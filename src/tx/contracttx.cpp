@@ -273,7 +273,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     }
 
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue))
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -292,7 +292,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAcct.OperateBalance(CoinType::WICC, ADD_FREE, bcoins)) {
+    if (!desAcct.OperateBalance("WICC", ADD_FREE, bcoins)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }

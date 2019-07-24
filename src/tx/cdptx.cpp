@@ -107,7 +107,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -286,7 +286,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     uint64_t free_scoins = account.GetToken("WUSD").free_amount;
     if (free_scoins < scoinsInterest) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
-                        free_fcoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
+                        free_scoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -302,7 +302,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -317,6 +317,8 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
         if (!SellInterestForFcoins(nHeight, cdp, cw, state))
             return false;
 
+        //TODO: compute interest
+        uint64_t scoinsInterest =
         account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsInterest);
     } else {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
@@ -397,12 +399,12 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
                         REJECT_INVALID, "interest-insufficient-error");
     }
 
-    if (scoinsInterest < scoinsInterestToRepay) {
+    if (scoinsToLiquidate < scoinsInterestToRepay) {
          return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
                     scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
 
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterest);
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -478,7 +480,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, deduct fees from regId=%s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }

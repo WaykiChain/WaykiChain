@@ -55,7 +55,7 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }

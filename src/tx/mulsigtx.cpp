@@ -128,7 +128,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     }
 
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, minusValue)) {
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, minusValue)) {
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }

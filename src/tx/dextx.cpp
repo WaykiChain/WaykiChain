@@ -99,7 +99,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -218,7 +218,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -325,7 +325,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -432,7 +432,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -520,7 +520,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAccount.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!srcAccount.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -560,7 +560,8 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         frozenAmount = orderDetail.assetAmount - activeOrder.totalDealAssetAmount;
     }
 
-    if (!srcAccount.UnFreezeDexCoin(frozenType, frozenAmount)) {
+    string symbol = frozenType == WICC ? "WICC" : "WGRT";
+    if (!srcAccount.OperateBalance(symbol, UNFREEZE, frozenAmount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze"),
                          UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
     }
@@ -788,7 +789,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAcct.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!srcAcct.OperateBalance("WICC", SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -917,8 +918,8 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             assert (buyOrderDetail.assetType == WICC || buyOrderDetail.assetType == WGRT);
             switch (buyOrderDetail.assetType) {
-                case WICC: srcAcct.free_bcoins += dealAssetFee; break;
-                case WGRT: srcAcct.free_fcoins += dealAssetFee; break;
+                case WICC: srcAcct.OperateBalance("WICC", ADD_FREE, dealAssetFee); break;
+                case WGRT: srcAcct.OperateBalance("WGRT", ADD_FREE, dealAssetFee); break;
                 default: break; //unlikely
             }
         }
@@ -947,7 +948,8 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             if (buyOrderDetail.orderType == ORDER_LIMIT_PRICE) {
                 if (buyOrderDetail.coinAmount > buyActiveOrder.totalDealCoinAmount) {
                     uint64_t residualCoinAmount = buyOrderDetail.coinAmount - buyActiveOrder.totalDealCoinAmount;
-                    buyOrderAccount.UnFreezeDexCoin(buyOrderDetail.coinType, residualCoinAmount);
+
+                    buyOrderAccount.OperateBalance("WUSD", UNFREEZE, residualCoinAmount);
                 } else {
                     assert(buyOrderDetail.coinAmount == buyActiveOrder.totalDealCoinAmount);
                 }
