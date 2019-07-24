@@ -36,16 +36,16 @@ bool CContractDBCache::UndoContractAccount(CDBOpLogMap &dbOpLogMap) {
     return contractAccountCache.UndoData(dbOpLogMap);
 }
 
-/************************ contract script ******************************/
-bool CContractDBCache::GetContractScript(const CRegID &contractRegId, string &contractScript) {
-    return scriptCache.GetData(contractRegId.ToRawString(), contractScript);
+/************************ contract in cache ******************************/
+bool CContractDBCache::GetContract(const CRegID &contractRegId, CContract &contract) {
+    return scriptCache.GetData(contractRegId.ToRawString(), contract);
 }
 
-bool CContractDBCache::SetContractScript(const CRegID &contractRegId, const string &contractScript) {
-    return scriptCache.SetData(contractRegId.ToRawString(), contractScript);
+bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CContract &contract) {
+    return scriptCache.SetData(contractRegId.ToRawString(), contract);
 }
 
-bool CContractDBCache::HaveContractScript(const CRegID &contractRegId) {
+bool CContractDBCache::HaveContract(const CRegID &contractRegId) {
     return scriptCache.HaveData(contractRegId.ToRawString());
 }
 
