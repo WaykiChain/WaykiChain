@@ -55,6 +55,7 @@ public:
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
     bool GetContract(const CRegID &contractRegId, CContract &contract);
+    bool GetContracts(map<CRegID, CContract> &contracts);
     bool SaveContract(const CRegID &contractRegId, const CContract &contract);
     bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
@@ -64,7 +65,6 @@ public:
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
 
-    bool GetContracts(map<CRegID, CContract> &contracts);
     // Usage: acquire all data related to the specific contract.
     bool GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData);
 
