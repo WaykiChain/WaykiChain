@@ -59,8 +59,7 @@ public:
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp);
 
-    // Usage: acquire user's cdp list by CRegID.
-    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps);
+    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) { return false; }
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
@@ -89,7 +88,7 @@ private:
 /*  CCompositeKVCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // cdp$CRegID$CTxID -> CUserCDP
-    CCompositeKVCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
+    CCompositeKVCache< dbk::CDP,         uint256,                       CUserCDP >       cdpCache;
 
 public:
     // Memory only cache
