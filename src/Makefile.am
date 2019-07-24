@@ -44,6 +44,8 @@ config/version.o: config/build.h
 coin_CORE_H = \
   entities/account.h \
   entities/assett.h \
+  entities/cdp.h \
+  entities/contract.h \
   entities/id.h \
   entities/key.h \
   entities/keystore.h \
