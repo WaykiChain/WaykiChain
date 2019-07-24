@@ -33,7 +33,7 @@ public:
     CContractDBCache() {}
 
     CContractDBCache(CDBAccess *pDbAccess):
-        scriptCache(pDbAccess),
+        contractCache(pDbAccess),
         txOutputCache(pDbAccess),
         acctTxListCache(pDbAccess),
         txDiskPosCache(pDbAccess),
@@ -44,7 +44,7 @@ public:
     };
 
     CContractDBCache(CContractDBCache *pBaseIn):
-        scriptCache(pBaseIn->scriptCache),
+        contractCache(pBaseIn->contractCache),
         txOutputCache(pBaseIn->txOutputCache),
         acctTxListCache(pBaseIn->acctTxListCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
@@ -91,7 +91,7 @@ public:
     bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
-        scriptCache.SetBase(&pBaseIn->scriptCache);
+        contractCache.SetBase(&pBaseIn->contractCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
         acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
