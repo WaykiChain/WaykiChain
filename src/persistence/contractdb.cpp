@@ -33,19 +33,19 @@ bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAp
 
 /************************ contract in cache ******************************/
 bool CContractDBCache::GetContract(const CRegID &contractRegId, CContract &contract) {
-    return scriptCache.GetData(contractRegId.ToRawString(), contract);
+    return contractCache.GetData(contractRegId.ToRawString(), contract);
 }
 
 bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CContract &contract) {
-    return scriptCache.SetData(contractRegId.ToRawString(), contract);
+    return contractCache.SetData(contractRegId.ToRawString(), contract);
 }
 
 bool CContractDBCache::HaveContract(const CRegID &contractRegId) {
-    return scriptCache.HaveData(contractRegId.ToRawString());
+    return contractCache.HaveData(contractRegId.ToRawString());
 }
 
-bool CContractDBCache::EraseContractScript(const CRegID &contractRegId) {
-    return scriptCache.EraseData(contractRegId.ToRawString());
+bool CContractDBCache::EraseContract(const CRegID &contractRegId) {
+    return contractCache.EraseData(contractRegId.ToRawString());
 }
 
 /************************ contract data ******************************/
@@ -88,7 +88,7 @@ bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<std::
 }
 
 bool CContractDBCache::Flush() {
-    scriptCache.Flush();
+    contractCache.Flush();
     txOutputCache.Flush();
     acctTxListCache.Flush();
     txDiskPosCache.Flush();
@@ -100,7 +100,7 @@ bool CContractDBCache::Flush() {
 }
 
 uint32_t CContractDBCache::GetCacheSize() const {
-    return scriptCache.GetCacheSize() +
+    return contractCache.GetCacheSize() +
         txOutputCache.GetCacheSize() +
         acctTxListCache.GetCacheSize() +
         txDiskPosCache.GetCacheSize() +

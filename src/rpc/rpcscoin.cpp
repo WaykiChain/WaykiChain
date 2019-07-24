@@ -46,14 +46,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     }
 
     RPCTypeCheck(params, boost::assign::list_of(str_type)(array_type)(int_type));
-    EnsureWalletIsUnlocked();
 
-    Array arrPricePoints    = params[1].get_array();
-    uint64_t fee = 0;
-    if (params.size() == 3) {
-        fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
+    auto feedUid = CUserID::ParseUserId(params[0].get_str());
+    if (!feedUid) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
+    Array arrPricePoints = params[1].get_array();
     vector<CPricePoint> pricePoints;
     for (auto objPp : arrPricePoints) {
         const Value& coinValue = find_value(objPp.get_obj(), "coin");
@@ -93,12 +92,12 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
-    auto feedUid = CUserID::ParseUserId(params[0].get_str());
-    if (!feedUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    uint64_t fee = 0;
+    if (params.size() == 3) {
+        fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    int validHeight = chainActive.Tip()->nHeight;
+    int32_t validHeight = chainActive.Height();
     CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
     return SubmitTx(*feedUid, tx);
 }

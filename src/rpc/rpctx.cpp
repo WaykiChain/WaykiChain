@@ -1403,17 +1403,13 @@ Value listcontracts(const Array& params, bool fHelp) {
 
     Object obj;
     Array scriptArray;
-    for (const auto item : contracts) {
+    for (const auto &item : contracts) {
         Object scriptObject;
+        const CContract &contract = item.second;
         scriptObject.push_back( Pair("contract_regid", item.first.ToString()) );
-
-        CDataStream ds(item.second.contract_code, SER_DISK, CLIENT_VERSION);
-        CVmScript vmScript;
-        ds >> vmScript;
-        scriptObject.push_back(Pair("memo", HexStr(vmScript.GetMemo())));
-
+        scriptObject.push_back(Pair("memo", HexStr(contract.memo)));
         if (showDetail) {
-            scriptObject.push_back(Pair("contract", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+            scriptObject.push_back(Pair("contract", HexStr(contract.code)));
         }
 
         scriptArray.push_back(scriptObject);
@@ -1448,18 +1444,14 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     }
 
     CContract contract;
-    map<CRegID, CContract> contracts;
-    if (!pCdMan->pContractCache->GetContracts(contracts)) {
+    if (!pCdMan->pContractCache->GetContract(contract)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
 
     Object obj;
     obj.push_back(Pair("contract_regid", regId.ToString()));
-    CDataStream ds(contract.contract_code, SER_DISK, CLIENT_VERSION);
-    CVmScript vmScript;
-    ds >> vmScript;
-    obj.push_back(Pair("contract_memo", HexStr(vmScript.GetMemo())));
-    obj.push_back(Pair("contract_content", HexStr(vmScript.GetRom().begin(), vmScript.GetRom().end())));
+    obj.push_back(Pair("contract_memo", HexStr(contract.memo)));
+    obj.push_back(Pair("contract_content", HexStr(contract.code)));
     return obj;
 }
 

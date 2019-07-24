@@ -147,6 +147,24 @@ bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bco
     return true;
 }
 
+bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) {
+    set<uint256> cdpTxids;
+    if (!regId2CdpCache.GetData(regId.ToRawString(), cdpTxids)) {
+        return false;
+    }
+
+    CUserCDP userCdp;
+    for (const auto &item : cdpTxids) {
+        if (!cdpCache.GetData(item, userCdp)) {
+            return false;
+        }
+
+        cdpList.push_back(userCdp);
+    }
+
+    return true;
+}
+
 bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
     if (!cdpCache.GetData(cdp.cdpTxId, cdp))
         return false;
@@ -154,12 +172,22 @@ bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
     return true;
 }
 
+// Attention: update cdpCache and regId2CdpCache synchronously.
 bool CCdpDBCache::SaveCdp(CUserCDP &cdp) {
-    return cdpCache.SetData(cdp.cdpTxId, cdp);
+    set<uint256> cdpTxids;
+    regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
+    cdpTxIds.insert(cdp.cdpTxId);
+
+    return cdpCache.SetData(cdp.cdpTxId, cdp) && regId2CdpCache.SetData(cdp.cdpTxId, cdpTxids);
 }
 
 bool CCdpDBCache::EraseCdp(const CUserCDP &cdp) {
-    return cdpCache.EraseData(cdp.cdpTxId));
+    set<uint256> cdpTxids;
+    regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
+    cdpTxIds.erase(cdp.cdpTxId);
+
+    // If cdpTxids is empty, regId2CdpCache will erase the key automatically.
+    return cdpCache.EraseData(cdp.cdpTxId)) && regId2CdpCache.SetData(cdp.cdpTxId, cdpTxids);
 }
 
 // global collateral ratio floor check
@@ -180,9 +208,10 @@ bool CCdpDBCache::CheckGlobalCollateralCeilingReached(const uint64_t &newBcoinsT
 
 bool CCdpDBCache::Flush() {
     cdpCache.Flush();
+    regId2CdpCache.Flush();
     cdpMemCache.Flush();
 
     return true;
 }
 
-uint32_t CCdpDBCache::GetCacheSize() const { return cdpCache.GetCacheSize(); }
+uint32_t CCdpDBCache::GetCacheSize() const { return cdpCache.GetCacheSize() + regId2CdpCache.GetCacheSize(); }

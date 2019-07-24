@@ -53,13 +53,14 @@ private:
 class CCdpDBCache {
 public:
     CCdpDBCache() {}
-    CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
-    CCdpDBCache(CCdpDBCache *pBaseIn) : cdpCache(pBaseIn->cdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
+    CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), regId2CdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
+    CCdpDBCache(CCdpDBCache *pBaseIn)
+        : cdpCache(pBaseIn->cdpCache), regId2CdpCache(pBaseIn->regId2CdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp);
 
-    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) { return false; }
+    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
     bool GetCdp(CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
@@ -74,6 +75,7 @@ public:
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn) {
         cdpCache.SetBase(&pBaseIn->cdpCache);
+        regId2CdpCache.SetBase(&pBaseIn->regId2CdpCache);
         cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
     }
 
@@ -85,10 +87,12 @@ public:
         return cdpCache.UndoDatas();
     }
 private:
-/*  CCompositeKVCache     prefixType     key                               value        variable  */
-/*  ----------------   --------------   ---------------------------   ---------------    --------- */
-    // cdp$CRegID$CTxID -> CUserCDP
-    CCompositeKVCache< dbk::CDP,         uint256,                       CUserCDP >       cdpCache;
+/*  CCompositeKVCache     prefixType     key              value             variable  */
+/*  ----------------   --------------   ------------   --------------    -------------*/
+    // cdp$CTxID -> CUserCDP
+    CCompositeKVCache< dbk::CDP,         uint256,       CUserCDP >       cdpCache;
+    // rcdp${CRegID} -> set<CTxID>
+    CCompositeKVCache< dbk::REGID_KEYID, string,        set<uint256>     regId2CdpCache;
 
 public:
     // Memory only cache

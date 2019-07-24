@@ -49,16 +49,6 @@ inline const std::string& GetDbName(DBNameType dbNameType) {
     return kDbNames[dbNameType];
 }
 
-/**
- * database key
- *
- *    取脚本 时 第一个vector 是scriptKey = "def" + "scriptid";
-      取应用账户时第一个vector是scriptKey = "acct" + "scriptid"+"_" + "accUserId";
-      取脚本总条数时第一个vector是scriptKey ="snum",
-      取脚本数据总条数时第一个vector是scriptKey ="sdnum";
-      取脚本数据时第一个vector是scriptKey ="data" + "vScriptId" + "_" + "vScriptKey"
-      取交易关联账户时第一个vector是scriptKey ="tx" + "txid"
- */
 namespace dbk {
 
 
@@ -98,7 +88,8 @@ namespace dbk {
         DEFINE( REGID_VOTE,           "ridv",  DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
         DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - staked_fcoins}_{RegId} --> 1 */ \
-        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$RegID}{$CTxCord} --> { lastBlockHeight, totalstaked_bcoins, total_owed_scoins } */ \
+        DEFINE( CDP,                  "cdp",   CDP )           /* cdp{$TxCord} --> { lastBlockHeight, totalstaked_bcoins, total_owed_scoins } */ \
+        DEFINE( REGID_CDP,            "rcdp"   CDP )           /* rcdp{$RegID} --> {set<TxCord>} */
         DEFINE( CDP_GLOBAL_HALT,      "cdph",  CDP )           /* cdph -> 0 | 1 */ \
         DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \

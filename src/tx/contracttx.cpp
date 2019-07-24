@@ -153,14 +153,9 @@ Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID keyid;
     accountCache.GetKeyId(txUid, keyid);
 
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("regid",          txUid.get<CRegID>().ToString()));
-    result.push_back(Pair("addr",           keyid.ToAddress()));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("script",         "script_content"));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",   nValidHeight));
+
     return result;
 }
 
