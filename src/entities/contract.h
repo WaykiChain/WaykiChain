@@ -27,6 +27,9 @@ public:
     string memo;
 
 public:
+    CContract(VMType vmTypeIn, string codeIn) : 
+        vm_type(vmTypeIn), code(codeIn), abi(""), memo("") { }; //for old-version compability
+
     CContract(VMType vmTypeIn, string codeIn, string abiIn, string memoIn) : 
         vm_type(vmTypeIn), code(codeIn), abi(abiIn), memo(memoIn) { };
 

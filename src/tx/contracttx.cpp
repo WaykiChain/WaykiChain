@@ -116,7 +116,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     contractAccount.nickid = CNickID();
 
     // save new script content
-    if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, code, ""))) {
+    if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, code))) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save code for contract id %s error",
             contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
