@@ -12,7 +12,6 @@
 #include "tx/tx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/blockpricemediantx.h"
-#include "tx/multicoinblockrewardtx.h"
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"

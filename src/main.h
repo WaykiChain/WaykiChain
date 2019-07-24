@@ -45,7 +45,6 @@
 #include "tx/dextx.h"
 #include "tx/fcoinstaketx.h"
 #include "tx/mulsigtx.h"
-#include "tx/multicoinblockrewardtx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/tx.h"
 #include "tx/txmempool.h"
