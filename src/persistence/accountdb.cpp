@@ -259,7 +259,7 @@ bool CAccountDBCache::SetBestBlock(const uint256 &blockHashIn) {
 
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {
     return Object();
-/* TODO: CCompositKVCache::ToJsonObj()
+/* TODO: CCompositeKVCache::ToJsonObj()
     Object obj;
     obj.push_back(Pair("blockHash", blockHash.ToString()));
 

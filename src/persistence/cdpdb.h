@@ -81,15 +81,15 @@ public:
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
-    
+
     bool UndoDatas() {
         return cdpCache.UndoDatas();
     }
 private:
-/*  CCompositKVCache     prefixType     key                               value        variable  */
+/*  CCompositeKVCache     prefixType     key                               value        variable  */
 /*  ----------------   --------------   ---------------------------   ---------------    --------- */
     // cdp$CRegID$CTxID -> CUserCDP
-    CCompositKVCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
+    CCompositeKVCache< dbk::CDP,         std::pair<string, uint256>,   CUserCDP >       cdpCache;
 
 public:
     // Memory only cache

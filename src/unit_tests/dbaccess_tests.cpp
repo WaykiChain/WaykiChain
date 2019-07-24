@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level1_test)
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
         DBNameType::ACCOUNT, 100000, false, isWipe);
 
-    auto pDBCache = make_shared< CCompositKVCache<prefix, string, string> >(pDBAccess.get());
+    auto pDBCache = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
     pDBCache->SetData("regid-1", "keyid-1");
     pDBCache->SetData("regid-2", "keyid-2");
     pDBCache->SetData("regid-3", "keyid-3");
@@ -69,9 +69,9 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level3_test)
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
         DBNameType::ACCOUNT, 100000, false, isWipe);
 
-    auto pDBCache1 = make_shared< CCompositKVCache<prefix, string, string> >(pDBAccess.get());
-    auto pDBCache2 = make_shared< CCompositKVCache<prefix, string, string> >(pDBCache1.get());
-    auto pDBCache3 = make_shared< CCompositKVCache<prefix, string, string> >(pDBCache2.get());
+    auto pDBCache1 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
+    auto pDBCache2 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBCache1.get());
+    auto pDBCache3 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBCache2.get());
     auto pDbOpLogMap = make_shared<CDBOpLogMap>();
     pDBCache3->SetData("regid-1", "keyid-1", *pDbOpLogMap);
     pDBCache3->SetData("regid-2", "keyid-2", *pDbOpLogMap);

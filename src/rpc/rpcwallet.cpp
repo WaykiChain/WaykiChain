@@ -822,7 +822,7 @@ Value getassets(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
-    if (!pCdMan->pContractCache->HaveContractScript(regid)) {
+    if (!pCdMan->pContractCache->HaveContract(regid)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to find contract");
     }
 

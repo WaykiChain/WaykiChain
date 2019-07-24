@@ -224,23 +224,21 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
 }
 
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 6) {
+    if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
             "submitliquidatecdptx \"addr\" liquidate_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
-            "1. \"address\" : CDP liquidator's address\n"
-            "2. \"liquidate_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "3. \"collateral_ratio\": (numberic required), collateral ratio, boosted by 10^4 times\n"
-            "4. \"cdp_id\": (string optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "5. \"interest\": (numeric optional) CDP interest (WUSD) to repay\n"
-            "6. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "1. \"address\" : (string required) CDP liquidator's address\n"
+            "2. \"cdp_id\": (string required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "3. \"liquidate_amount\": (numeric required) WICC coins to stake into the CDP, including penalty fees, boosted by 10^8\n"
+            "4. \"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 1000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 30000 \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n")
+            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 1000000\n")
         );
     }
 
@@ -248,24 +246,17 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (!cdpUid) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
-    uint64_t liquidateAmount = params[1].get_uint64();
-    uint64_t collateralRatio = params[2].get_uint64();
 
-    int validHeight = chainActive.Tip()->nHeight;
-    uint64_t interest   = 0;
+    uint256 cdpTxId     = uint256S(params[1].get_str());
+    uint64_t liquidateAmount = params[2].get_uint64();
+
     uint64_t fee        = 0;
-    uint256 cdpTxId;
-    if (params.size() >=4 ) {
-        cdpTxId = uint256S(params[3].get_str());
-    }
-    if (params.size() >=5 ) {
-        interest =  params[4].get_uint64();
-    }
-    if (params.size() ==6 ) {
+     if (params.size() ==6 ) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    CCDPLiquidateTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount, collateralRatio);
+    int validHeight = chainActive.Tip()->nHeight;
+    CCDPLiquidateTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount);
     return SubmitTx(*cdpUid, tx);
 }
 

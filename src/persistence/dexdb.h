@@ -193,8 +193,8 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// DexDB
     // order tx id -> active order
-    CCompositKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXActiveOrder >     activeOrderCache;
-    CCompositKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
+    CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXActiveOrder >     activeOrderCache;
+    CCompositeKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
 };
 
 #endif //PERSIST_DEX_H

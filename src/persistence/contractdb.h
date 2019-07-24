@@ -119,19 +119,19 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
     // contractRegId -> Contract
-    CCompositKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >             contractCache;
+    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >             contractCache;
     // txId -> vector<CVmOperate>
-    CCompositKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
+    CCompositeKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId, height, index -> txid
-    CCompositKVCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
+    CCompositeKVCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
     // txId -> DiskTxPos
-    CCompositKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
+    CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> relatedAccounts
-    CCompositKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
+    CCompositeKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
     // pair<contractRegId, contractKey> -> scriptData
-    CCompositKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
+    CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
-    CCompositKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
+    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };
 
 #endif  // PERSIST_CONTRACTDB_H

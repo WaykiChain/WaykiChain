@@ -179,17 +179,16 @@ public:
     }
 
     CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
-                CRegID &cdpOwnerRegIdIn, uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn, uint64_t scoinsPenaltyIn):
+                CRegID &cdpOwnerRegIdIn, uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        cdpOwnerRegId = cdpOwnerRegIdIn;
-        cdpTxId = cdpTxIdIn;
-        scoinsToLiquidate = scoinsToLiquidateIn;
-        scoinsPenalty = scoinsPenaltyIn;
+        cdpOwnerRegId       = cdpOwnerRegIdIn;
+        cdpTxId             = cdpTxIdIn;
+        scoinsToLiquidate   = scoinsToLiquidateIn;
     }
 
     ~CCDPLiquidateTx() {}
@@ -204,7 +203,6 @@ public:
         READWRITE(cdpOwnerRegId);
         READWRITE(cdpTxId);
         READWRITE(scoinsToLiquidate);
-        READWRITE(VARINT(scoinsPenalty));
 
         READWRITE(signature);
     )
@@ -213,7 +211,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpOwnerRegId << cdpTxId << VARINT(scoinsToLiquidate) << VARINT(scoinsPenalty);
+                << cdpOwnerRegId << cdpTxId << VARINT(scoinsToLiquidate);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -234,13 +232,13 @@ public:
     virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int nHeight,
+                            const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     CRegID      cdpOwnerRegId;      // CDP Owner RegID
     uint256     cdpTxId;            // target CDP to liquidate
-    uint64_t    scoinsToLiquidate;  // partial liquidation is allowed
-    uint64_t    scoinsPenalty;      // penalty fees in stablecoin (WUSD)
+    uint64_t    scoinsToLiquidate;  // partial liquidation is allowed, must include penalty fees in
 };
 
 #endif //TX_CDP_H

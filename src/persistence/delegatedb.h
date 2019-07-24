@@ -57,8 +57,8 @@ private:
 /*  CSimpleKVCache  prefixType     key                         value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
-    CCompositKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
-    CCompositKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
+    CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
+    CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
 
     vector<CRegID> delegateRegIds;
 };

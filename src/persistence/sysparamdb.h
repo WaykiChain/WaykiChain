@@ -55,5 +55,5 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CCompositKVCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
+    CCompositeKVCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
 };

@@ -419,7 +419,7 @@ private:
 };
 
 template<int PREFIX_TYPE_VALUE, typename KeyType, typename ValueType>
-class CCompositKVCache {
+class CCompositeKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
@@ -429,27 +429,27 @@ public:
     /**
      * Default constructor, must use set base to initialize before using.
      */
-    CCompositKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
+    CCompositeKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CCompositKVCache(CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CCompositeKVCache(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
 
-    CCompositKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
+    CCompositeKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
         pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
+    void SetBase(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        pDbOpLogMap = pDbOpLogMapIn;        
+        pDbOpLogMap = pDbOpLogMapIn;
     }
 
     uint32_t GetCacheSize() const {
@@ -588,7 +588,7 @@ public:
         }
         Iterator it = GetDataIt(key);
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            AddOpLog(key, it->second);            
+            AddOpLog(key, it->second);
             db_util::SetEmpty(it->second);
         }
         return true;
@@ -864,7 +864,7 @@ private:
 
     }
 private:
-    mutable CCompositKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
+    mutable CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable map<KeyType, ValueType> mapData;
     CDBOpLogMap *pDbOpLogMap = nullptr;
