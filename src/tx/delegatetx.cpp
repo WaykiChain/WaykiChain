@@ -40,14 +40,10 @@ Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
         candidateVoteArray.push_back(vote.ToJson());
     }
 
-    result.push_back(Pair("tx_hash",            GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("tx_addr",            keyId.ToAddress()));
-    result.push_back(Pair("fees",               llFees));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+
     result.push_back(Pair("candidate_votes",    candidateVoteArray));
-    result.push_back(Pair("valid_height",       nValidHeight));
+
 
     return result;
 }

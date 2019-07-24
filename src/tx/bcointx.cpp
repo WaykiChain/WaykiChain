@@ -112,21 +112,15 @@ string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
 Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId, desKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
+    CKeyID  desKeyId;
     accountCache.GetKeyId(toUid, desKeyId);
 
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+
     result.push_back(Pair("to_uid",         toUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("money",          bcoins));
-    result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("memo",           HexStr(memo)));
-    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }
