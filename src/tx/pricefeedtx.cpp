@@ -14,7 +14,7 @@
 #include "commons/util.h"
 #include "config/version.h"
 
-bool CPriceFeedTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -49,7 +49,7 @@ bool CPriceFeedTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &stat
     return true;
 }
 
-bool CPriceFeedTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",

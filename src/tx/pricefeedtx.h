@@ -18,12 +18,12 @@ public:
         assert(PRICE_FEED_TX == pBaseTx->nTxType);
         *this = *(CPriceFeedTx *)pBaseTx;
     }
-    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
+    CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
                 const CPricePoint &pricePointIn):
         CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
         pricePoints.push_back(pricePointIn);
     }
-    CPriceFeedTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
+    CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
                 const vector<CPricePoint> &pricePointsIn):
         CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
         if (pricePointsIn.size() > 3 || pricePointsIn.size() == 0)
@@ -54,15 +54,15 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
     virtual double GetPriority() const { return kPriceFeedTransactionPriority; }    // Top priority
     virtual string ToString(CAccountDBCache &view);            // logging usage
     virtual Object ToJson(const CAccountDBCache &view) const;  // json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
     bool GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts);
 };

@@ -30,14 +30,14 @@ public:
         *this = *(CCDPStakeTx *)pBaseTx;
     }
     /** Newly open a CDP */
-    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
+    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
                 uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         bcoinsToStake   = bcoinsToStakeIn;
         scoinsToMint    = scoinsToMintIn;
     }
     /** Stake an existing CDP */
-    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn, uint256 cdpTxIdIn,
+    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn, uint256 cdpTxIdIn,
                 uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn)
         : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -75,7 +75,7 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, bcoinsToStake}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoinsToStake}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
@@ -84,14 +84,14 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
 private:
     TxID        cdpTxId;            //optional: only required for staking existing CDPs
-    TokenSymbol bcoinSymbol;        //optional: only reuiqred for 1st-time CDP staking
+    TokenSymbol bcoinSymbol;        //optional: only required for 1st-time CDP staking
     TokenSymbol scoinSymbol;        //ditto
     uint64_t    bcoinsToStake;      // base coins amount to stake or collateralize
     uint64_t    scoinsToMint;       // initial collateral ratio must be >= 190 (%), boosted by 10000
@@ -109,7 +109,7 @@ public:
         *this = *(CCDPRedeemTx *)pBaseTx;
     }
 
-    CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
+    CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
                 uint256 cdpTxIdIn, uint64_t scoinsToRepayIn, uint64_t bcoinsToRedeemIn):
                 CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
@@ -146,7 +146,7 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WUSD, bcoinsToRedeem}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WUSD, bcoinsToRedeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPRedeemTx>(this); }
@@ -156,9 +156,9 @@ public:
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    bool SellInterestForFcoins(const int height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const int32_t height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256 cdpTxId;          // CDP cdpTxId
@@ -178,7 +178,7 @@ public:
         *this = *(CCDPLiquidateTx *)pBaseTx;
     }
 
-    CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int validHeightIn,
+    CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
                     uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
 
@@ -215,8 +215,8 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const {
-        return map<CoinType, uint64_t>{{CoinType::WUSD, scoinsToLiquidate}};
+    virtual map<TokenSymbol, uint64_t> GetValues() const {
+        return map<TokenSymbol, uint64_t>{{SYMB::WUSD, scoinsToLiquidate}};
     }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
@@ -226,11 +226,11 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int height,
+    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int32_t height,
                             const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:

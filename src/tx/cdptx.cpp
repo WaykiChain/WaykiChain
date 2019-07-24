@@ -98,7 +98,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     return true;
 }
 
-bool CCDPStakeTx::ExecuteTx(int32_t height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -293,7 +293,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     return true;
  }
 
- bool CCDPRedeemTx::ExecuteTx(int32_t height, int index, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -393,7 +393,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
      return true;
  }
 
- bool CCDPRedeemTx::SellInterestForFcoins(const int height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPRedeemTx::SellInterestForFcoins(const int32_t height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
     uint64_t scoinsInterestToRepay;
     if (!ComputeCdpInterest(height, cdp.blockHeight, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, ComputeCdpInterest error!"),
@@ -472,7 +472,7 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
   *  when M is 1.16 N and below, there'll be no return to the CDP owner
   *  when M is 1.13 N and below, there'll be no profit for the liquidator, hence requiring force settlement
   */
-bool CCDPLiquidateTx::ExecuteTx(int32_t height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -598,7 +598,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int index, CCacheWrapper &cw, CV
         account.OperateBalance(SYMB::WUSD, SUB_FREE, scoinsPenalty);
         account.OperateBalance(SYMB::WICC, ADD_FREE, totalBcoinsToReturnLiquidator);
 
-        int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
+        int32_t bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
         cdpOwneraccount.OperateBalance(SYMB::WICC, ADD_FREE, bcoinsToCDPOwner);
 
         cdp.total_owed_scoins -= scoinsToLiquidate;
@@ -665,7 +665,7 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     return true;
 }
 
-bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const int height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const int32_t height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state) {
 
     if (scoinsPenalty < scoinPenaltyToSysFund) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoinsPenalty %d < SellPenaltyForFcoins %d",
