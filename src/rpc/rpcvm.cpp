@@ -169,11 +169,11 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     assert(pWalletMain != nullptr);
     {
         CContractDeployTx tx;
-        tx.txUid          = srcRegId;
-        tx.contractScript = contractScript;
-        tx.llFees         = regFee;
-        tx.nRunStep       = contractScript.size();
-        tx.nValidHeight   = newHeight;
+        tx.txUid            = srcRegId;
+        tx.contract_code    = contractScript;
+        tx.llFees           = regFee;
+        tx.nRunStep         = contractScript.size();
+        tx.nValidHeight     = newHeight;
 
         if (!pWalletMain->Sign(srcKeyId, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -199,7 +199,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CContractInvokeTx contractInvokeTx;
 
     {
-        if (!spCW->contractCache.HaveContractScript(appId)) {
+        if (!spCW->contractCache.HaveContract(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
         contractInvokeTx.nTxType      = CONTRACT_INVOKE_TX;
