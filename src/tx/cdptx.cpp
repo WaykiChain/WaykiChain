@@ -160,7 +160,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         }
 
         uint64_t free_scoins = account.GetToken("WUSD").free_amount;
-        if (free_amount < scoinsInterestToRepay) {
+        if (free_scoins < scoinsInterestToRepay) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %d < scoinsInterestToRepay: %d",
                             free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
@@ -184,7 +184,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
                         INTEREST_INSUFFICIENT, "wicc-insufficient-error");
     }
-    account.OperateBalance("WUSD", BalanceOpType::ADD_FREE, mintedScoins);
+    account.OperateBalance("WUSD", BalanceOpType::ADD_FREE, scoinsToMint);
 
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
@@ -278,8 +278,8 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         REJECT_INVALID, "EMPTY_CDP_TXID");
     }
 
-    if (scoinsToRedeem == 0) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, scoinsToRedeem is 0"),
+    if (scoinsToRepay == 0) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, scoinsToRepay is 0"),
                         REJECT_DUST, "REJECT_DUST");
     }
 
@@ -443,9 +443,10 @@ bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (account.free_scoins < scoinsToLiquidate + scoinsPenalty) {
+    uint64_t free_scoins = account.GetToken("WUSD").free_amount;
+    if (free_scoins < scoinsToLiquidate + scoinsPenalty) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoinsToLiquidate: %d",
-                        account.free_scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
+                        free_scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -562,8 +563,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-        account.free_scoins -= totalScoinsToLiquidate;
-        account.free_scoins -= scoinsPenalty;
+        account.OperateBlance("WUSD", SUB_FREE, totalScoinsToLiquidate);
+        account.OperateBlance("WUSD", SUB_FREE, scoinsPenalty);
         account.OperateBlance("WICC", ADD_FREE, totalBcoinsToReturnLiquidator);
         cdpOwneraccount.OperateBlance("WICC", ADD_FREE, totalBcoinsToCDPOwner);
 
@@ -590,8 +591,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-        account.free_scoins -= scoinsToLiquidate;
-        account.free_scoins -= scoinsPenalty;
+        account.OperateBalance("WUSD", SUB_FREE, scoinsToLiquidate);
+        account.OperateBalance("WUSD", SUB_FREE, scoinsPenalty);
         account.OperateBalance("WICC", ADD_FREE, totalBcoinsToReturnLiquidator);
 
         int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;

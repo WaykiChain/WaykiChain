@@ -928,14 +928,16 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
             uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / kPercentBoost;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             assert (sellOrderDetail.coinType == WUSD);
-            srcAcct.free_scoins += dealCoinFee;
+            srcAcct.OperateBlance("WUSD", ADD_FREE, dealCoinFee);
         }
 
         // 10. operate account
-        if (!buyOrderAccount.MinusDEXFrozenCoin(buyOrderDetail.coinType, dealItem.dealCoinAmount)             // - minus buyer's coins
-            || !buyOrderAccount.OperateBalance(buyOrderDetail.assetType, ADD_FREE, buyerReceivedAssets)      // + add buyer's assets
-            || !sellOrderAccount.OperateBalance(sellOrderDetail.coinType, ADD_FREE, sellerReceivedCoins)     // + add seller's coin
-            || !sellOrderAccount.MinusDEXFrozenCoin(sellOrderDetail.assetType, dealItem.dealAssetAmount)) {   // - minus seller's assets
+        if (   !buyOrderAccount.OperateBalance(buyOrderDetail.coinType, UNFREEZE, dealItem.dealCoinAmount)
+            || !buyOrderAccount.OperateBalance(buyOrderDetail.coinType, SUB_FREE, dealItem.dealCoinAmount) // - minus buyer's coins
+            || !buyOrderAccount.OperateBalance(buyOrderDetail.assetType, ADD_FREE, buyerReceivedAssets)    // + add buyer's assets
+            || !sellOrderAccount.OperateBalance(sellOrderDetail.coinType, ADD_FREE, sellerReceivedCoins)   // + add seller's coin
+            || !sellOrderAccount.OperateBalance(sellOrderDetail.assetType, UNFREEZE. dealItem.dealAssetAmount)
+            || !sellOrderAccount.OperateBalance(sellOrderDetail.assetType, SUB_FREE, dealItem.dealAssetAmount)) { // - minus seller's assets
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, operate coins or assets failed"),
                             REJECT_INVALID, "operate-account-failed");
         }

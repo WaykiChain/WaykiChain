@@ -80,12 +80,12 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         uint64_t reserveFeeScoins = coins * riskReserveFeeRatio / kPercentBoost;
         actualCoinsToSend -= reserveFeeScoins;
 
-        fcoinGenesisAccount.free_scoins += reserveFeeScoins;
+        fcoinGenesisAccount.OperateBalance("WUSD", ADD_FREE, reserveFeeScoins);
         if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     }
-    if (!desAccount.OperateBalance(coinType, ADD_VALUE, actualCoinsToSend)) {
+    if (!desAccount.OperateBalance(coinType, ADD_FREE, actualCoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
