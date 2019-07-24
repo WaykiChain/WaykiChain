@@ -32,14 +32,18 @@ string CDEXBuyLimitOrderTx::ToString() {
         coinType, assetType, assetAmount, bidPrice);
 }
 
-Object CDEXBuyLimitOrderTx::ToJson(const CKeyID txUserKeyId) const {
+Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+
     Object result;
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           txUserKeyId.ToAddress()));
+    result.push_back(Pair("addr",           keyId.ToAddress()));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("valid_height",   nValidHeight));
 
@@ -146,7 +150,7 @@ void CDEXBuyLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSellLimitOrderTx
 
-string CDEXSellLimitOrderTx::ToString(CAccountDBCache &view) {
+string CDEXSellLimitOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
         "coin_type=%u, asset_type=%u, amount=%lld, price=%lld\n",
@@ -154,11 +158,11 @@ string CDEXSellLimitOrderTx::ToString(CAccountDBCache &view) {
         coinType, assetType, assetAmount, askPrice);
 }
 
-Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &view) const {
+Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID srcKeyId;
-    if(!view.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
+    if(!accountCache.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
@@ -262,7 +266,7 @@ void CDEXSellLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyMarketOrderTx
 
-string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &view) {
+string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
         "coin_type=%u, asset_type=%u, amount=%lld\n",
@@ -370,7 +374,7 @@ void CDEXBuyMarketOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSellMarketOrderTx
 
-string CDEXSellMarketOrderTx::ToString(CAccountDBCache &view) {
+string CDEXSellMarketOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
         "coin_type=%u, asset_type=%u, amount=%lld\n",

@@ -107,7 +107,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance(CoinType::WICC, MINUS_VALUE, llFees)) {
+    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -118,14 +118,14 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t paritialCollateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight)
+    uint64_t partialCollateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight)
                                         * kPercentBoost / scoinsToMint;
 
     //2. mint scoins
     if (cdpTxId.IsNull()) { // first-time CDP creation
-        if (paritialCollateralRatio < startingCdpCollateralRatio) {
+        if (partialCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-                        paritialCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+                        partialCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
@@ -142,15 +142,15 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                     nHeight, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "nHeight-error");
         }
 
-        uint64_t totalBoinsToStake = cdp.total_staked_bcoins + bcoinsToStake;
+        uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoinsToStake;
         uint64_t totalScoinsToOwe = cdp.total_owed_scoins + scoinsToMint;
-        uint64_t totalCollateralRatio = totalBoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight)
+        uint64_t totalCollateralRatio = totalBcoinsToStake * cw.ppCache.GetBcoinMedianPrice(nHeight)
                                         * kPercentBoost / totalScoinsToOwe;
 
-        if (paritialCollateralRatio < startingCdpCollateralRatio &&
+        if (partialCollateralRatio < startingCdpCollateralRatio &&
             totalCollateralRatio < startingCdpCollateralRatio) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (partial=%d, total=%d) is smaller than the minimal",
+                        partialCollateralRatio, totalCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
         uint64_t scoinsInterestToRepay;
