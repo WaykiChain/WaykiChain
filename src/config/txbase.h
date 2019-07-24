@@ -71,6 +71,7 @@ struct TxTypeHash {
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t>, TxTypeHash> kTxFeeTable = {
     { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0,         0,          0            ) },
+    { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",   0,          0,         0,          0            ) },
     { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",         0,          0,         0,          0            ) },
     { BLOCK_PRICE_MEDIAN_TX,    std::make_tuple("BLOCK_PRICE_MEDIAN_TX",   0,          0,         0,          0            ) },
     { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     0,          10000,     10000,      10000        ) }, //0.0001 WICC, optional

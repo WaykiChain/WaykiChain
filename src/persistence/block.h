@@ -136,7 +136,8 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE(*(CBlockHeader *)this);
-        READWRITE(vptx);)
+        READWRITE(vptx);
+    )
 
     void SetNull() {
         CBlockHeader::SetNull();

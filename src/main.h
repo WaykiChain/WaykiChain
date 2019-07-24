@@ -246,8 +246,6 @@ bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidation
 */
 bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 
-bool IsFinalTx(CBaseTx *pBaseTx, int nBlockHeight = 0, int64_t nBlockTime = 0);
-
 //get tx operate account log
 bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs);
 

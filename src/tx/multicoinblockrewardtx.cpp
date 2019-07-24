@@ -8,11 +8,11 @@
 
 #include "main.h"
 
-bool CMultiCoinBlockRewardTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CMultiCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
 
-bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CMultiCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, read source addr %s account info error",
@@ -44,7 +44,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
-    if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (nIndex == 0 && !SaveTxAddresses(height, nIndex, cw, state, {txUid}))
         return false;
 
     return true;
@@ -68,8 +68,8 @@ string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
         rewardValue += strprintf("%s: %lu, ", GetCoinTypeName(CoinType(item.first)), item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, %s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewardValue=%s, nValidHeight=%d\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), rewardValue, nValidHeight);
 }
 
 Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -88,7 +88,7 @@ Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) cons
     result.push_back(Pair("uid",            txUid.ToString()));
     result.push_back(Pair("addr",           keyId.ToAddress()));
     result.push_back(Pair("reward_value",   rewardValue));
-    result.push_back(Pair("valid_height",   nHeight));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }

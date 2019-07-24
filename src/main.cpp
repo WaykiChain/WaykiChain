@@ -456,11 +456,6 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     return true;
 }
 
-bool IsFinalTx(CBaseTx *ptx, int nBlockHeight, int64_t nBlockTime) {
-    AssertLockHeld(cs_main);
-    return true;
-}
-
 bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey) {
     if (signatureCache.Get(sigHash, signature, pubKey))
         return true;
@@ -472,12 +467,12 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &s
     return true;
 }
 
-bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cw, CValidationState &state) {
-    if (BLOCK_REWARD_TX == ptx->nTxType || BLOCK_PRICE_MEDIAN_TX == ptx->nTxType) {
+bool CheckTx(int nHeight, CBaseTx *pTx, CCacheWrapper &cw, CValidationState &state) {
+    if (BLOCK_REWARD_TX == pTx->nTxType || UCOIN_BLOCK_REWARD_TX == pTx->nTxType) {
         return true;
     }
 
-    return (ptx->CheckTx(nHeight, cw, state));
+    return (pTx->CheckTx(nHeight, cw, state));
 }
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
@@ -2122,10 +2117,9 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         ::GetSerializeSize(block, SER_NETWORK, PROTOCOL_VERSION) > MAX_BLOCK_SIZE)
         return state.DoS(100, ERRORMSG("CheckBlock() : size limits failed"), REJECT_INVALID, "bad-blk-length");
 
-    if ( (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash())
-            && block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
-        return state.Invalid(ERRORMSG("CheckBlock() : block version error"),
-                            REJECT_INVALID, "block-version-error");
+    if ((block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) &&
+        block.GetVersion() != CBlockHeader::CURRENT_VERSION) {
+        return state.Invalid(ERRORMSG("CheckBlock() : block version error"), REJECT_INVALID, "block-version-error");
     }
 
     // Check timestamp 12 seconds limits
@@ -2149,7 +2143,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         uniqueTx.insert(block.GetTxid(i));
 
         if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
-            return ERRORMSG("CheckBlock() :tx hash:%s CheckTx failed", block.vptx[i]->GetHash().GetHex());
+            return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
@@ -2158,8 +2152,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     }
 
     if (uniqueTx.size() != block.vptx.size())
-        return state.DoS(100, ERRORMSG("CheckBlock() : duplicate transaction"),
-                         REJECT_INVALID, "bad-tx-duplicated", true);
+        return state.DoS(100, ERRORMSG("CheckBlock() : duplicate transaction"), REJECT_INVALID, "bad-tx-duplicated",
+                         true);
 
     // Check merkle root
     if (fCheckMerkleRoot && block.GetMerkleRootHash() != block.vMerkleTree.back())
@@ -2194,7 +2188,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     // Get prev block index
     CBlockIndex *pBlockIndexPrev = nullptr;
-    int nHeight = 0;
+    int32_t nHeight = 0;
     if (block.GetHeight() != 0 || blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
@@ -2203,9 +2197,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
         pBlockIndexPrev = (*mi).second;
         nHeight = pBlockIndexPrev->nHeight + 1;
 
-        if (block.GetHeight() != (unsigned int) nHeight) {
+        if (block.GetHeight() != (uint32_t)nHeight) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : height given in block mismatches with its actual height"),
-                            REJECT_INVALID, "incorrect-height");
+                             REJECT_INVALID, "incorrect-height");
         }
 
         int64_t tempTime = GetTimeMillis();

@@ -110,7 +110,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     if (bExecute) {
         if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height() + 1, 0, *spCW, state)) {
             if (SysCfg().IsLogFailures()) {
-                pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
+                pCdMan->pLogCache->SetExecuteFail(chainActive.Height() + 1, memPoolEntry.GetTransaction()->GetHash(),
                                                   state.GetRejectCode(), state.GetRejectReason());
             }
             return false;

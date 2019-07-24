@@ -10,6 +10,7 @@
 
 bool CBlockPriceMedianTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    // TODO: check
     return true;
 }
 /**
@@ -106,17 +107,13 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
     for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-        pricePoints += strprintf("{coin_type:%u, price_type:%u, price:%lld}",
-                        it->first.coinType, it->first.priceType, it->second);
+        pricePoints +=
+            strprintf("{coin_type:%u, price_type:%u, price:%lld}", it->first.coinType, it->first.priceType, it->second);
     };
 
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
-        "median_price_points=%s\n",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-        pricePoints);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, txUid.ToString(), llFees, pricePoints,
+                     nValidHeight);
 }
 
 Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {

@@ -26,10 +26,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-            CPricePoint pricePoint(it->first, it->second);
-            READWRITE(pricePoint);
-        };
+        READWRITE(mapMedianPricePoints);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
