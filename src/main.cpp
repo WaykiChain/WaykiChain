@@ -1405,10 +1405,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
         }
 
-        if (nTotalFuel != block.GetFuel())
-            return ERRORMSG("fuel value at block header calculate error(actual fuel:%ld vs block fuel:%ld)",
-                            nTotalFuel, block.GetFuel());
     }
+
+    if (nTotalFuel != block.GetFuel())
+        return ERRORMSG("fuel value at block header calculate error(actual fuel:%ld vs block fuel:%ld)",
+                        nTotalFuel, block.GetFuel());
 
     // Verify reward value
     CAccount delegateAccount;
