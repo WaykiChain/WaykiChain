@@ -15,10 +15,9 @@ bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
-     // TODO: check range
-    if (kCoinTypeMapName.count(coinType) == 0 || kCoinTypeMapName.count(feesCoinType) == 0) {
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, invalid coin type"), REJECT_INVALID,
-                         "invalid-coin-type");
+    if (!kCoinTypeSet.count(coin_symbol) || !kCoinTypeSet.count(fee_symbol)) {
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, invalid coin or fee type"),
+                        REJECT_INVALID, "invalid-coin-type");
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())

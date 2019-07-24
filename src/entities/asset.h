@@ -52,11 +52,8 @@ struct PriceTypeHash {
     size_t operator()(const PriceType& type) const noexcept { return std::hash<uint8_t>{}(type); }
 };
 
-static const unordered_map<CoinType, string, CoinTypeHash> kCoinTypeMapName = {
-    {WICC, "WICC"},
-    {WGRT, "WGRT"},
-    {WUSD, "WUSD"},
-    {WCNY, "WCNY"}
+static const unordered_set<string> kCoinTypeSet = {
+    SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
 static const unordered_map<string, CoinType> kCoinNameMapType = {

@@ -15,8 +15,8 @@
 class CCoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
-    uint64_t amount;
     TokenSymbol coin_symbol;
+    uint64_t coin_amount;
     TokenSymbol fee_symbol;
     UnsignedCharArray memo;
 
@@ -29,23 +29,15 @@ public:
         *this = *(CCoinTransferTx *) pBaseTx;
     }
 
-    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
-                   CoinType coinTypeIn, uint64_t feesIn, CoinType feesCoinTypeIn, UnsignedCharArray &memoIn)
+    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn,
+                   const TokenSymbol &coinSymbol, uint64_t coinAmount, const TokenSymbol &feeSymbol, uint64_t feesIn,
+                   UnsignedCharArray &memoIn)
         : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
-        coins        = coinsIn;
-        coinType     = coinTypeIn;
-        feesCoinType = feesCoinTypeIn;
+        coin_amount  = coinAmount;
+        coin_symbol  = coinSymbol;
+        fee_symbol   = feeSymbol;
         memo         = memoIn;
-    }
-
-    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn, uint64_t coinsIn,
-                   CoinType coinTypeIn, uint64_t feesIn, CoinType feesCoinTypeIn)
-        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
-        toUid        = toUidIn;
-        coins        = coinsIn;
-        coinType     = coinTypeIn;
-        feesCoinType = feesCoinTypeIn;
     }
 
     ~CCoinTransferTx() {}
@@ -56,10 +48,10 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
         READWRITE(toUid);
-        READWRITE(VARINT(coins));
-        READWRITE((uint8_t &)coinType);
+        READWRITE(coin_symbol);
+        READWRITE(VARINT(coin_amount));
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
-        READWRITE((uint8_t &)feesCoinType);
         READWRITE(memo);
         READWRITE(signature);
     )
@@ -67,8 +59,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << toUid << VARINT(coins)
-               << uint8_t(coinType) << VARINT(llFees) << uint8_t(feesCoinType) << memo;
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << toUid <<
+                << coin_symbol << VARINT(coin_amount) << fee_symbol << VARINT(llFees) << memo;
 
             sigHash = ss.GetHash();
         }
