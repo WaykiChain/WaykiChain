@@ -92,9 +92,9 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
-    uint64_t fee = 0;
-    if (params.size() == 3) {
-        fee = params[2].get_uint64();  // real type, 0 if empty and thence minFee
+    int64_t fees = params.size() == 3 ? params[2].get_int64() : 0;
+    if (fees < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid fees: %ld", fees));
     }
 
     int32_t validHeight = chainActive.Height();

@@ -271,7 +271,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     /* for cdp */
     if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "submitpricefeedtx"        && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "submitpricefeedtx"        && n > 2) ConvertTo<int64_t>(params[2]);
 
     if (strMethod == "submitstakefcointx" && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "submitstakefcointx" && n > 2) ConvertTo<int64_t>(params[2]);
