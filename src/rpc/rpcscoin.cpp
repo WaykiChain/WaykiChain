@@ -6,6 +6,7 @@
 #include "rpcscoin.h"
 
 #include "commons/base58.h"
+#include "config/const.h"
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 #include "init.h"
@@ -417,7 +418,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     // TODO: need to support fee coin type
     uint64_t amount = assetAmount;
-    if (txAccount.GetToken("WICC").free_amount< amount + fee) {
+    if (txAccount.GetToken(SYMB::WICC).free_amount< amount + fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
@@ -481,11 +482,11 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
-    if (txAccount.GetToken("WICC").free_amount < fee) {
+    if (txAccount.GetToken(SYMB::WICC).free_amount < fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
     }
 
-    if (txAccount.GetToken("WUSD").free_amount < assetAmount) {
+    if (txAccount.GetToken(SYMB::WUSD).free_amount < assetAmount) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
     }
 
@@ -545,7 +546,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     // TODO: need to support fee coin type
     uint64_t amount = coinAmount;
-    if (txAccount.GetToken("WICC").free_amount< amount + fee) {
+    if (txAccount.GetToken(SYMB::WICC).free_amount< amount + fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
     }
 
@@ -606,11 +607,11 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     assert(!txAccount.keyid.IsEmpty());
 
     // TODO: need to support fee coin type
-    if (txAccount.GetToken("WICC").free_amount < fee) {
+    if (txAccount.GetToken(SYMB::WICC).free_amount < fee) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
     }
 
-    if (txAccount.GetToken("WUSD").free_amount < assetAmount) {
+    if (txAccount.GetToken(SYMB::WUSD).free_amount < assetAmount) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
     }
 

@@ -20,7 +20,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
-    uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken("WUSD").free_amount;
+    uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
     uint64_t globalCollateralRatioFloor = 0;
@@ -95,8 +95,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         //TODO: double check state consistence between MemCache & DBCache for CDP
     }
 
-    uint64_t prevScoins = fcoinGenesisAccount.GetToken("WUSD").free_amount;
-    fcoinGenesisAccount.OperateBalance("WUSD", ADD_FREE, currRiskReserveScoins - prevScoins);
+    uint64_t prevScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
+    fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, currRiskReserveScoins - prevScoins);
 
     cw.accountCache.SaveAccount(fcoinGenesisAccount);
 

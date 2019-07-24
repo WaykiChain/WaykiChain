@@ -15,14 +15,14 @@
 class CCoinTransferTx: public CBaseTx {
 private:
     mutable CUserID toUid;
-    uint64_t coins;
-    CoinType coinType;      // default: WICC
-    CoinType feesCoinType;  // default: WICC
+    uint64_t amount;
+    TokenSymbol coin_symbol;
+    TokenSymbol fee_symbol;
     UnsignedCharArray memo;
 
 public:
     CCoinTransferTx()
-        : CBaseTx(UCOIN_TRANSFER_TX), coins(0), coinType(CoinType::WICC), feesCoinType(CoinType::WICC) {}
+        : CBaseTx(UCOIN_TRANSFER_TX), amount(0), coin_symbol(SYMB::WICC), fee_symbol(SYMB::WICC) {}
 
     CCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(UCOIN_TRANSFER_TX) {
         assert(UCOIN_TRANSFER_TX == pBaseTx->nTxType);

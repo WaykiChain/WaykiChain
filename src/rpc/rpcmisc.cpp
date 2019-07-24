@@ -69,7 +69,7 @@ Value getbalance(const Array& params, bool fHelp)
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
                 if (pCdMan->pAccountCache->GetAccount(CUserID(keyid), account)) {
-                    obj.push_back( Pair("balance", ValueFromAmount(account.GetToken("WICC").free_amount)) );
+                    obj.push_back( Pair("balance", ValueFromAmount(account.GetToken(SYMB::WICC).free_amount)) );
                     return obj;
                 }
             } else {

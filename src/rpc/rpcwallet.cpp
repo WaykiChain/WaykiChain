@@ -370,7 +370,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         nAmount = AmountToRawValue(params[2]);
-        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId) < nAmount + nDefaultFee)
+        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId) < (uint64_t) (nAmount + nDefaultFee))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else {
         if (!GetKeyId(params[0].get_str(), recvKeyId))
@@ -581,15 +581,15 @@ Value send(const Array& params, bool fHelp) {
     }
 
     if (coinType==CoinType::WICC) {
-        if (txAccount.GetToken("WICC").free_amount< totalAmount)
+        if (txAccount.GetToken(SYMB::WICC).free_amount< totalAmount)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
 
     } else if (coinType==CoinType::WUSD) {
-        if (txAccount.GetToken("WUSD").free_amount < totalAmount)
+        if (txAccount.GetToken(SYMB::WUSD).free_amount < totalAmount)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
 
     } else if (coinType==CoinType::WGRT) {
-        if (txAccount.GetToken("WGRT").free_amount < totalAmount)
+        if (txAccount.GetToken(SYMB::WGRT).free_amount < totalAmount)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
 
     } else {
@@ -597,15 +597,15 @@ Value send(const Array& params, bool fHelp) {
     }
 
     if (feeType==CoinType::WICC) {
-        if (txAccount.GetToken("WICC").free_amount< fee)
+        if (txAccount.GetToken(SYMB::WICC).free_amount< fee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
 
     } else if (feeType==CoinType::WUSD) {
-        if (txAccount.GetToken("WUSD").free_amount < fee)
+        if (txAccount.GetToken(SYMB::WUSD).free_amount < fee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough scoins");
 
     } else if (feeType==CoinType::WGRT) {
-        if (txAccount.GetToken("WGRT").free_amount < fee)
+        if (txAccount.GetToken(SYMB::WGRT).free_amount < fee)
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough fcoins");
     } else {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");

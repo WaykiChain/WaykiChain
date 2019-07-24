@@ -1230,7 +1230,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.owner_pubkey = pubKey;
             account.regid        = regId;
 
-            account.OperateBalance("WICC", BalanceOpType::ADD_FREE, pRewardTx->rewardValue);
+            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->rewardValue);
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
@@ -1277,8 +1277,8 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
             }
-            assert(voterAcct.GetToken("WICC").free_amount >= maxVotes);
-            voterAcct.OperateBalance("WICC", BalanceOpType::STAKE, maxVotes);
+            assert(voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes);
+            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::STAKE, maxVotes);
             cw.accountCache.SaveAccount(voterAcct);
             assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
                                                       candidateVotes));

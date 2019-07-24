@@ -107,7 +107,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
+    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -159,7 +159,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
                              REJECT_INVALID, "compute-interest-error");
         }
 
-        uint64_t free_scoins = account.GetToken("WUSD").free_amount;
+        uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
         if (free_scoins < scoinsInterestToRepay) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %d < scoinsInterestToRepay: %d",
                             free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
@@ -170,7 +170,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
             return false;
         }
 
-        if (!account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
+        if (!account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: < scoinsInterestToRepay: %d",
                             scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
@@ -180,11 +180,11 @@ bool CCDPStakeTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CVal
     }
 
     // update account accordingly
-    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, bcoinsToStake)) {
+    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, bcoinsToStake)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
                         INTEREST_INSUFFICIENT, "wicc-insufficient-error");
     }
-    account.OperateBalance("WUSD", BalanceOpType::ADD_FREE, scoinsToMint);
+    account.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsToMint);
 
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
@@ -283,7 +283,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         REJECT_DUST, "REJECT_DUST");
     }
 
-    uint64_t free_scoins = account.GetToken("WUSD").free_amount;
+    uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
     if (free_scoins < scoinsInterest) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
                         free_scoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
@@ -302,7 +302,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance("WICC", SUB_FREE, llFees)) {
+    if (!account.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -319,7 +319,7 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
 
         //TODO: compute interest
         uint64_t scoinsInterest =
-        account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsInterest);
+        account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoinsInterest);
     } else {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                     txUid.ToString()), REJECT_INVALID, "target-cdp-not-exist");
@@ -334,8 +334,8 @@ bool CCDPRedeemTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState 
                         cdp.total_staked_bcoins, targetStakedBcoins), UPDATE_ACCOUNT_FAIL, "targetStakedBcoins-error");
     }
     uint64_t releasedBcoins = cdp.total_staked_bcoins - targetStakedBcoins;
-    account.OperateBalance("WUSD", BalanceOpType::SUB_FREE, scoinsToRedeem);
-    account.OperateBalance("WICC", BalanceOpType::ADD_FREE, releasedBcoins);
+    account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoinsToRedeem);
+    account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, releasedBcoins);
 
     cdp.total_staked_bcoins = (uint64_t) targetStakedBcoins;
     if (!cw.cdpCache.SaveCdp(cdp)) {
@@ -446,7 +446,7 @@ bool CCDPLiquidateTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    uint64_t free_scoins = account.GetToken("WUSD").free_amount;
+    uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
     if (free_scoins < scoinsToLiquidate + scoinsPenalty) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoinsToLiquidate: %d",
                         free_scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
@@ -481,7 +481,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance("WICC", SUB_FREE, llFees)) {
+    if (!account.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, deduct fees from regId=%s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -566,10 +566,10 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-        account.OperateBlance("WUSD", SUB_FREE, totalScoinsToLiquidate);
-        account.OperateBlance("WUSD", SUB_FREE, scoinsPenalty);
-        account.OperateBlance("WICC", ADD_FREE, totalBcoinsToReturnLiquidator);
-        cdpOwneraccount.OperateBlance("WICC", ADD_FREE, totalBcoinsToCDPOwner);
+        account.OperateBlance(SYMB::WUSD, SUB_FREE, totalScoinsToLiquidate);
+        account.OperateBlance(SYMB::WUSD, SUB_FREE, scoinsPenalty);
+        account.OperateBlance(SYMB::WICC, ADD_FREE, totalBcoinsToReturnLiquidator);
+        cdpOwneraccount.OperateBlance(SYMB::WICC, ADD_FREE, totalBcoinsToCDPOwner);
 
         if (!SellPenaltyForFcoins((uint64_t) totalScoinsToReturnSysFund, nHeight, cdp, cw, state))
             return false;
@@ -594,12 +594,12 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, 
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(nHeight);
 
-        account.OperateBalance("WUSD", SUB_FREE, scoinsToLiquidate);
-        account.OperateBalance("WUSD", SUB_FREE, scoinsPenalty);
-        account.OperateBalance("WICC", ADD_FREE, totalBcoinsToReturnLiquidator);
+        account.OperateBalance(SYMB::WUSD, SUB_FREE, scoinsToLiquidate);
+        account.OperateBalance(SYMB::WUSD, SUB_FREE, scoinsPenalty);
+        account.OperateBalance(SYMB::WICC, ADD_FREE, totalBcoinsToReturnLiquidator);
 
         int bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
-        cdpOwneraccount.OperateBalance("WICC", ADD_FREE, bcoinsToCDPOwner);
+        cdpOwneraccount.OperateBalance(SYMB::WICC, ADD_FREE, bcoinsToCDPOwner);
 
         cdp.total_owed_scoins -= scoinsToLiquidate;
         cdp.total_staked_bcoins -= bcoinsToCDPOwner;
@@ -680,7 +680,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
     uint64_t halfScoinsPenalty = scoinsPenalty / 2;
     // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
 
-    fcoinGenesisAccount.OperateBalance("WUSD", BalanceOpType:ADD_FREE, halfScoinsPenalty); // save to risk reserve
+    fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType:ADD_FREE, halfScoinsPenalty); // save to risk reserve
 
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {

@@ -418,7 +418,7 @@ std::tuple<uint64_t, uint64_t> CAccountDB::TraverseAccount() {
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 CAccount account;
                 ssValue >> account;
-                totalCoins += account.GetToken("WICC").free_amount;
+                totalCoins += account.GetToken(SYMB::WICC).free_amount;
 
                 CRegID regId;
                 if (account.GetRegId(regId)) {

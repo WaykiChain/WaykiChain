@@ -24,7 +24,7 @@ bool CBlockRewardTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &c
     } else if (-1 == nIndex) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        account.OperateBalance("WICC", ADD_FREE, rewardValue);
+        account.OperateBalance(SYMB::WICC, ADD_FREE, rewardValue);
 
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
@@ -102,15 +102,15 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWrappe
         for (const auto &item : rewardValues) {
             uint64_t value = item.second;
             switch (item.first/* CoinType */) {
-                case CoinType::WICC: account.OperateBalance("WICC", ADD_FREE, value); break;
-                case CoinType::WUSD: account.OperateBalance("WUSD", ADD_FREE, value); break;
-                case CoinType::WGRT: account.OperateBalance("WGRT", ADD_FREE, value); break;
+                case CoinType::WICC: account.OperateBalance(SYMB::WICC, ADD_FREE, value); break;
+                case CoinType::WUSD: account.OperateBalance(SYMB::WUSD, ADD_FREE, value); break;
+                case CoinType::WGRT: account.OperateBalance(SYMB::WGRT, ADD_FREE, value); break;
                 default: return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
             }
         }
 
         // Assign profits to the delegate's account.
-        account.OperateBalance("WICC", ADD_FREE, profits);
+        account.OperateBalance(SYMB::WICC, ADD_FREE, profits);
     } else {
         return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid index");
     }

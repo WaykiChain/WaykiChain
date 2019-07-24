@@ -801,7 +801,7 @@ unsigned char TempArray[] = {
 //		uint160 hash(nvector);
 //		CKeyID keyId1 = (CKeyID) hash;
 //		sourceAccount.keyid = keyId1;
-//		sourceaccount.GetToken("WICC").free_amount = 7800000000;
+//		sourceaccount.GetToken(SYMB::WICC).free_amount = 7800000000;
 //		account.push_back(accountId.vRegID);
 //		assert(view.SaveAccount(sourceAccount));
 //	}

@@ -39,18 +39,18 @@ bool CFcoinStakeTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
+    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient bcoins in txUid %s account",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
     }
 
     if (stakeType == BalanceOpType::STAKE) { //stake fcoins
-        if (!account.OperateBalance("WGRT", BalanceOpType::STAKE, fcoinsToStake)) {
+        if (!account.OperateBalance(SYMB::WGRT, BalanceOpType::STAKE, fcoinsToStake)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient fcoins to stake in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
         }
     } else {                // <= 0, unstake fcoins
-        if (!account.OperateBalance("WGRT", BalanceOpType::UNSTAKE, fcoinsToStake)) {
+        if (!account.OperateBalance(SYMB::WGRT, BalanceOpType::UNSTAKE, fcoinsToStake)) {
             return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient staked fcoins in txUid(%s)",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fcoins");
         }

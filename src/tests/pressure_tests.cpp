@@ -259,7 +259,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				freeValue += account.GetToken("WICC").free_amount;
+				freeValue += account.GetToken(SYMB::WICC).free_amount;
 			}
 
 		}
@@ -274,7 +274,7 @@ public:
 				if (!accView.GetAccount(userId, account)) {
 					return false;
 				}
-				scriptaccValue += account.GetToken("WICC").free_amount;
+				scriptaccValue += account.GetToken(SYMB::WICC).free_amount;
 			}
 
 		}

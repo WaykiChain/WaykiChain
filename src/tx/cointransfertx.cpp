@@ -80,7 +80,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         uint64_t reserveFeeScoins = coins * riskReserveFeeRatio / kPercentBoost;
         actualCoinsToSend -= reserveFeeScoins;
 
-        fcoinGenesisAccount.OperateBalance("WUSD", ADD_FREE, reserveFeeScoins);
+        fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, reserveFeeScoins);
         if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");

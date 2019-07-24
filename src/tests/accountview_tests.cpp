@@ -125,7 +125,7 @@ void CAccountViewTest::Init() {
 
 	for (int k = 0; k < VECTOR_SIZE; k++) {
 		CAccount account;
-		account.GetToken("WICC").free_amount = k + 1;
+		account.GetToken(SYMB::WICC).free_amount = k + 1;
 		account.keyid = vRandomKeyID.at(k);
 		vAccount.push_back(account);
 	}

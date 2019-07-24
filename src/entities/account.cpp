@@ -6,7 +6,7 @@
 
 #include "account.h"
 #include "config/configuration.h"
-
+#include "config/const.h"
 #include "main.h"
 
 bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value) {
@@ -162,7 +162,7 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, 
 
 uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votedBcoins = GetVotedBCoins(candidateVotes, currHeight);
-    auto wicc_token = GetToken("WICC");
+    auto wicc_token = GetToken(SYMB::WICC);
     return (votedBcoins + wicc_token.free_amount);
 }
 
@@ -328,17 +328,17 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
     });
 
     uint64_t newTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
-    uint64_t totalBcoins = GetToken("WICC").free_amount + lastTotalVotes;
+    uint64_t totalBcoins = GetToken(SYMB::WICC).free_amount + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVotes() : delegate votes exceeds account bcoins");
     }
     uint64_t free_bcoins = totalBcoins - newTotalVotes;
 
-    uint64_t currBcoinAmt = GetToken("WICC").free_amount;
+    uint64_t currBcoinAmt = GetToken(SYMB::WICC).free_amount;
     if (currBcoinAmt < free_bcoins) {
-        OperateBalance("WICC", BalanceOpType::ADD_FREE, free_bcoins - currBcoinAmt);
+        OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, free_bcoins - currBcoinAmt);
     } else {
-        OperateBalance("WICC", BalanceOpType::SUB_FREE, currBcoinAmt - free_bcoins);
+        OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, currBcoinAmt - free_bcoins);
     }
 
     uint64_t interestAmountToInflate = ComputeVoteStakingInterest(candidateVotesInOut, currHeight);
@@ -347,11 +347,11 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
 
     switch (GetFeatureForkVersion(currHeight)) {
         case MAJOR_VER_R1: // for backward compatibility
-            OperateBalance("WICC", BalanceOpType::ADD_FREE, interestAmountToInflate);
+            OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, interestAmountToInflate);
             break;
 
         case MAJOR_VER_R2: // only fcoins will be inflated for voters
-            OperateBalance("WGRT", BalanceOpType::ADD_FREE, interestAmountToInflate);
+            OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, interestAmountToInflate);
             break;
 
         default:

@@ -192,7 +192,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         if (account.HaveOwnerPubKey())
             throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
 
-        uint64_t balance = account.GetToken("WICC").free_amount;
+        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fee) {
             LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
@@ -427,7 +427,7 @@ Value registercontracttx(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetToken("WICC").free_amount;
+        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -527,7 +527,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetToken("WICC").free_amount;
+        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -651,7 +651,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetToken("WICC").free_amount;
+        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fees) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
@@ -735,7 +735,7 @@ Value listaddr(const Array& params, bool fHelp) {
 
             Object obj;
             obj.push_back(Pair("addr", keyId.ToAddress()));
-            obj.push_back(Pair("balance", (double)acctInfo.GetToken("WICC").free_amount / (double) COIN));
+            obj.push_back(Pair("balance", (double)acctInfo.GetToken(SYMB::WICC).free_amount / (double) COIN));
             obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
             obj.push_back(Pair("regid",acctInfo.regid.ToString()));
             retArray.push_back(obj);
@@ -1282,7 +1282,7 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
 static Value AccountLogToJson(const CAccount &accoutLog) {
     Object obj;
     obj.push_back(Pair("keyid", accoutLog.keyid.ToString()));
-    obj.push_back(Pair("free_bcoins", accoutLog.GetToken("WICC").free_amount));
+    obj.push_back(Pair("free_bcoins", accoutLog.GetToken(SYMB::WICC).free_amount));
     // Array array;
     // for (auto const& te : account.vRewardFund) {
     //     Object obj2;
@@ -1473,7 +1473,7 @@ Value getaddrbalance(const Array& params, bool fHelp) {
     double balance = 0.0;
     CAccount account;
     if (pCdMan->pAccountCache->GetAccount(keyId, account)) {
-        balance = (double)account.GetToken("WICC").free_amount / (double)COIN;
+        balance = (double)account.GetToken(SYMB::WICC).free_amount / (double)COIN;
     }
 
     return balance;

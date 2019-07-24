@@ -52,7 +52,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
             keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
     account.owner_pubkey = txUid.get<CPubKey>();
-    if (!account.OperateBalance("WICC", BalanceOpType::SUB_FREE, llFees)) {
+    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }

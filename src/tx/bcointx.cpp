@@ -61,7 +61,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     }
 
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance("WICC", BalanceOpType::ADD_FREE, minusValue)) {
+    if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minusValue)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -85,7 +85,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
     }
 
-    if (!desAcct.OperateBalance("WICC", BalanceOpType::ADD_FREE, bcoins)) {
+    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoins)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
