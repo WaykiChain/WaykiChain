@@ -14,12 +14,12 @@ uint256 CBlockHeader::GetHash() const {
 }
 
 void CBlockHeader::SetHeight(unsigned int height) {
-    this->nHeight = height;
+    this->height = height;
 }
 
 uint256 CBlockHeader::ComputeSignatureHash() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << nVersion << prevBlockHash << merkleRootHash << nTime << nNonce << nHeight << nFuel << nFuelRate;
+    ss << nVersion << prevBlockHash << merkleRootHash << nTime << nNonce << height << nFuel << nFuelRate;
     return ss.GetHash();
 }
 
@@ -40,29 +40,29 @@ uint256 CBlock::BuildMerkleTree() const {
     return (vMerkleTree.empty() ? uint256() : vMerkleTree.back());
 }
 
-vector<uint256> CBlock::GetMerkleBranch(int nIndex) const {
+vector<uint256> CBlock::GetMerkleBranch(int index) const {
     if (vMerkleTree.empty())
         BuildMerkleTree();
     vector<uint256> vMerkleBranch;
     int j = 0;
     for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
-        int i = min(nIndex ^ 1, nSize - 1);
+        int i = min(index ^ 1, nSize - 1);
         vMerkleBranch.push_back(vMerkleTree[j + i]);
-        nIndex >>= 1;
+        index >>= 1;
         j += nSize;
     }
     return vMerkleBranch;
 }
 
-uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int nIndex) {
-    if (nIndex == -1)
+uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int index) {
+    if (index == -1)
         return uint256();
     for (const auto& otherside : vMerkleBranch) {
-        if (nIndex & 1)
+        if (index & 1)
             hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
         else
             hash = Hash(BEGIN(hash), END(hash), BEGIN(otherside), END(otherside));
-        nIndex >>= 1;
+        index >>= 1;
     }
     return hash;
 }

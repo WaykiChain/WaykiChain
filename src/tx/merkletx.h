@@ -16,9 +16,9 @@ private:
 public:
     uint256 blockHash;
     vector<uint256> vMerkleBranch;
-    int nIndex;
+    int index;
     std::shared_ptr<CBaseTx> pTx;
-    int nHeight;
+    int height;
     // memory only
     mutable bool fMerkleVerified;
 
@@ -32,16 +32,16 @@ public:
 
     void Init() {
         blockHash       = uint256();
-        nIndex          = -1;
+        index          = -1;
         fMerkleVerified = false;
     }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(blockHash);
         READWRITE(vMerkleBranch);
-        READWRITE(nIndex);
+        READWRITE(index);
         READWRITE(pTx);
-        READWRITE(nHeight);)
+        READWRITE(height);)
 
     // Return depth of transaction in blockchain:
     // -1  : not in blockchain, and not in memory pool (conflicted transaction)
@@ -67,18 +67,18 @@ public:
             blockHash = pBlock->GetHash();
 
             // Locate the transaction
-            for (nIndex = 0; nIndex < (int)pBlock->vptx.size(); nIndex++)
-                if ((pBlock->vptx[nIndex])->GetHash() == pTx->GetHash())
+            for (index = 0; index < (int)pBlock->vptx.size(); index++)
+                if ((pBlock->vptx[index])->GetHash() == pTx->GetHash())
                     break;
-            if (nIndex == (int)pBlock->vptx.size()) {
+            if (index == (int)pBlock->vptx.size()) {
                 vMerkleBranch.clear();
-                nIndex = -1;
+                index = -1;
                 LogPrint("INFO", "ERROR: SetMerkleBranch() : couldn't find tx in block\n");
                 return 0;
             }
 
             // Fill in merkle branch
-            vMerkleBranch = pBlock->GetMerkleBranch(nIndex);
+            vMerkleBranch = pBlock->GetMerkleBranch(index);
         }
 
         // Is the tx in a block that's in the main chain
@@ -89,7 +89,7 @@ public:
         if (!pIndex || !chainActive.Contains(pIndex))
             return 0;
 
-        return chainActive.Height() - pIndex->nHeight + 1;
+        return chainActive.Height() - pIndex->height + 1;
     }
 };
 

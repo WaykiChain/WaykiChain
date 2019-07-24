@@ -412,8 +412,8 @@ Value getchainstate(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(int_type));
 
-    int nHeight = params[0].get_int();
-    if (nHeight < 1 || nHeight > chainActive.Height() || nHeight > kMostRecentBlockNumberLimit)
+    int height = params[0].get_int();
+    if (height < 1 || height > chainActive.Height() || height > kMostRecentBlockNumberLimit)
         throw runtime_error("Block number out of range.");
 
     CBlockIndex* pBlockIndex = chainActive.Tip();
@@ -423,7 +423,7 @@ Value getchainstate(const Array& params, bool fHelp) {
     Array fuel;
     Array blockminer;
 
-    for (int i = 0; (i < nHeight) && (pBlockIndex != NULL); i++) {
+    for (int i = 0; (i < height) && (pBlockIndex != NULL); i++) {
         blocktime.push_back(pBlockIndex->GetBlockTime());
         transactions.push_back((int)pBlockIndex->nTx);
         fuel.push_back(pBlockIndex->nFuel);

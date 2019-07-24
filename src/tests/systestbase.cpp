@@ -211,7 +211,7 @@ Value SysTestBase::CreateDelegateTx(const string &strAddress, const string &oper
 }
 
 Value SysTestBase::CreateRegAppTx(const string &strAddress, const string &strScript,
-                                  bool bRigsterScript, int nFee, int nHeight) {
+                                  bool bRigsterScript, int nFee, int height) {
     string filepath = SysCfg().GetDefaultTestDataPath() + strScript;
     if (!boost::filesystem::exists(filepath)) {
         BOOST_CHECK_MESSAGE(0, filepath + " not exist");
@@ -219,7 +219,7 @@ Value SysTestBase::CreateRegAppTx(const string &strAddress, const string &strScr
     }
 
     string strFee    = strprintf("%d", nFee);
-    string strHeight = strprintf("%d", nHeight);
+    string strHeight = strprintf("%d", height);
 
     const char *argv[] = {"rpctest",
                           "registercontracttx",
@@ -371,7 +371,7 @@ bool SysTestBase::GetMemPoolSize(int &size) {
     return false;
 }
 
-bool SysTestBase::GetBlockHeight(int &nHeight) {
+bool SysTestBase::GetBlockHeight(int &height) {
     const char *argv[] = {"rpctest", "getinfo"};
     int argc           = sizeof(argv) / sizeof(char *);
 
@@ -379,8 +379,8 @@ bool SysTestBase::GetBlockHeight(int &nHeight) {
     if (CommandLineRPC_GetValue(argc, argv, value)) {
         Object obj = value.get_obj();
 
-        nHeight = find_value(obj, "blocks").get_int();
-        LogPrint("test_miners", "GetBlockHeight:%d\r\n", nHeight);
+        height = find_value(obj, "blocks").get_int();
+        LogPrint("test_miners", "GetBlockHeight:%d\r\n", height);
         return true;
     }
     return false;
@@ -447,7 +447,7 @@ Value SysTestBase::RegisterAccountTx(const std::string &addr, const int nfee) {
 }
 
 Value SysTestBase::CallContractTx(const std::string &scriptid, const std::string &addrs,
-                                  const std::string &contract, int nHeight, int nFee,
+                                  const std::string &contract, int height, int nFee,
                                   uint64_t nMoney) {
     if (0 == nFee) {
         int nfee = GetRandomFee();
@@ -458,7 +458,7 @@ Value SysTestBase::CallContractTx(const std::string &scriptid, const std::string
 
     string strFee = strprintf("%d", nCurFee);
 
-    string height = strprintf("%d", nHeight);
+    string height = strprintf("%d", height);
 
     string pmoney = strprintf("%ld", nMoney);
 
@@ -480,8 +480,8 @@ Value SysTestBase::CallContractTx(const std::string &scriptid, const std::string
 }
 
 Value SysTestBase::RegisterContractTx(const string &strAddress, const string &strScript,
-                                      int nHeight, int nFee) {
-    return CreateRegAppTx(strAddress, strScript, true, nFee, nHeight);
+                                      int height, int nFee) {
+    return CreateRegAppTx(strAddress, strScript, true, nFee, height);
 }
 
 Value SysTestBase::SignSecureTx(const string &securetx) {
@@ -512,9 +512,9 @@ bool SysTestBase::IsAllTxInBlock() {
     return false;
 }
 
-bool SysTestBase::GetBlockHash(const int nHeight, std::string &blockhash) {
+bool SysTestBase::GetBlockHash(const int height, std::string &blockhash) {
     char height[16] = {0};
-    sprintf(height, "%d", nHeight);
+    sprintf(height, "%d", height);
 
     const char *argv[] = {"rpctest", "getblockhash", height};
     int argc           = sizeof(argv) / sizeof(char *);
@@ -554,15 +554,15 @@ bool SysTestBase::GenerateOneBlock() {
     GetBlockHeight(high);
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        int nHeight = 0;
+        int height = 0;
         int conter  = 0;
         do {
             MilliSleep(1000);
-            GetBlockHeight(nHeight);
+            GetBlockHeight(height);
             if (conter++ > 80) {
                 break;
             }
-        } while (high + 1 > nHeight);
+        } while (high + 1 > height);
         BOOST_CHECK(conter < 80);
         return true;
     }

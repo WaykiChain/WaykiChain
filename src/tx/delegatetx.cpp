@@ -62,7 +62,7 @@ bool CDelegateVoteTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
 }
 
 
-bool CDelegateVoteTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -91,7 +91,7 @@ bool CDelegateVoteTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
                         REJECT_INVALID, "bad-account-unregistered");
     }
 
-    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
         IMPLEMENT_CHECK_TX_SIGNATURE(sendAcct.owner_pubkey);
     }
 
@@ -114,7 +114,7 @@ bool CDelegateVoteTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
             voteKeyIds.insert(account.keyid);
         }
 
-        if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
+        if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
             if (!account.HaveOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
@@ -130,7 +130,7 @@ bool CDelegateVoteTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &
     return true;
 }
 
-bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read regist addr %s account info error",
@@ -146,7 +146,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
     CRegID regId = txUid.get<CRegID>();
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
-    if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, nHeight, &cw.accountCache)) {
+    if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, height, &cw.accountCache)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
@@ -190,7 +190,7 @@ bool CDelegateVoteTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CVal
         }
     }
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;

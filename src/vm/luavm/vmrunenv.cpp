@@ -34,10 +34,10 @@ vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return 
 
 vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight) {
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int height) {
     vmOperateOutput.clear();
     pBaseTx       = tx;
-    runTimeHeight = nHeight;
+    runTimeHeight = height;
     pAccountCache = &view;
     string contractScript;
 
@@ -87,7 +87,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int n
 
 CVmRunEnv::~CVmRunEnv() {}
 
-tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int nHeight, CCacheWrapper& cw,
+tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int height, CCacheWrapper& cw,
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
     if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
@@ -109,7 +109,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
         return std::make_tuple(false, 0, string("CVmRunEnv::ExecuteContract, fees too low"));
     }
 
-    if (!Initialize(pBaseTx, cw.accountCache, nHeight)) {
+    if (!Initialize(pBaseTx, cw.accountCache, height)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
@@ -131,7 +131,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
         return std::make_tuple(false, 0, string("VmScript CheckOperate Failed"));
     }
 
-    if (!OperateAccount(vmOperateOutput, cw.accountCache, nHeight)) {
+    if (!OperateAccount(vmOperateOutput, cw.accountCache, height)) {
         return std::make_tuple(false, 0, string("VmScript OperateAccount Failed"));
     }
 
@@ -380,7 +380,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
         //      CTransaction* tx = static_cast<CTransaction*>(pBaseTx.get());
         //      CFund fund;
         //      memcpy(&fund.value,it.money,sizeof(it.money));
-        //      fund.nHeight = it.timeoutHeight;
+        //      fund.height = it.timeoutHeight;
         uint64_t value;
         memcpy(&value, it.money, sizeof(it.money));
 

@@ -92,10 +92,10 @@ int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     return nFuelRate;
 }
 
-bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const {
+bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t height) const {
     const auto &iter = kTxFeeTable.find(nTxType);
 
-    switch (GetFeatureForkVersion(nHeight) ) {
+    switch (GetFeatureForkVersion(height) ) {
 
         case MAJOR_VER_R1: // Prior-stablecoin Release
             return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;

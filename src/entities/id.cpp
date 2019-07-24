@@ -10,8 +10,8 @@
 extern CCacheDBManager *pCdMan;
 
 bool CRegID::Clear() {
-    nHeight = 0 ;
-    nIndex = 0 ;
+    height = 0 ;
+    index = 0 ;
     vRegID.clear();
     return true;
 }
@@ -19,11 +19,11 @@ bool CRegID::Clear() {
 CRegID::CRegID(const vector<unsigned char>& vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
-    nHeight = 0;
-    nIndex = 0;
+    height = 0;
+    index = 0;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
-    ds >> nHeight;
-    ds >> nIndex;
+    ds >> height;
+    ds >> index;
 }
 
 bool CRegID::IsSimpleRegIdStr(const string & str) {
@@ -69,22 +69,22 @@ bool CRegID::IsRegIdStr(const string & str) {
 }
 
 void CRegID::SetRegID(string strRegID) {
-    nHeight = 0;
-    nIndex  = 0;
+    height = 0;
+    index  = 0;
     vRegID.clear();
 
     if (IsSimpleRegIdStr(strRegID)) {
         int pos = strRegID.find('-');
-        nHeight = atoi(strRegID.substr(0, pos).c_str());
-        nIndex  = atoi(strRegID.substr(pos + 1).c_str());
-        vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
-        vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
-        // memcpy(&vRegID.at(0), &nHeight, sizeof(nHeight));
-        // memcpy(&vRegID[sizeof(nHeight)], &nIndex, sizeof(nIndex));
+        height = atoi(strRegID.substr(0, pos).c_str());
+        index  = atoi(strRegID.substr(pos + 1).c_str());
+        vRegID.insert(vRegID.end(), BEGIN(height), END(height));
+        vRegID.insert(vRegID.end(), BEGIN(index), END(index));
+        // memcpy(&vRegID.at(0), &height, sizeof(height));
+        // memcpy(&vRegID[sizeof(height)], &index, sizeof(index));
     } else if (strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
-        memcpy(&nHeight, &vRegID[0], sizeof(nHeight));
-        memcpy(&nIndex, &vRegID[sizeof(nHeight)], sizeof(nIndex));
+        memcpy(&height, &vRegID[0], sizeof(height));
+        memcpy(&index, &vRegID[sizeof(height)], sizeof(index));
     }
 }
 
@@ -92,8 +92,8 @@ void CRegID::SetRegID(const vector<unsigned char> &vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
-    ds >> nHeight;
-    ds >> nIndex;
+    ds >> height;
+    ds >> index;
 }
 
 const vector<unsigned char> &CRegID::GetRegIdRaw() const {
@@ -108,8 +108,8 @@ string CRegID::ToRawString() const {
 CRegID::CRegID(string strRegID) { SetRegID(strRegID); }
 
 CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
-    nHeight = nHeightIn;
-    nIndex  = nIndexIn;
+    height = nHeightIn;
+    index  = nIndexIn;
     vRegID.clear();
     vRegID.insert(vRegID.end(), BEGIN(nHeightIn), END(nHeightIn));
     vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
@@ -119,7 +119,7 @@ string CRegID::ToString() const {
     if (IsEmpty())
         return string("");
 
-    return strprintf("%d-%d", nHeight, nIndex);
+    return strprintf("%d-%d", height, index);
 }
 
 CKeyID CRegID::GetKeyId(const CAccountDBCache &view) const {

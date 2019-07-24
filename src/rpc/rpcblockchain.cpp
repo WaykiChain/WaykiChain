@@ -222,11 +222,11 @@ Value getblockhash(const Array& params, bool fHelp)
 
     RPCTypeCheck(params, boost::assign::list_of(int_type));
 
-    int nHeight = params[0].get_int();
-    if (nHeight < 0 || nHeight > chainActive.Height())
+    int height = params[0].get_int();
+    if (height < 0 || height > chainActive.Height())
         throw runtime_error("Block number out of range");
 
-    CBlockIndex* pBlockIndex = chainActive[nHeight];
+    CBlockIndex* pBlockIndex = chainActive[height];
     Object result;
     result.push_back(Pair("txid", pBlockIndex->GetBlockHash().GetHex()));
     return result;
@@ -272,11 +272,11 @@ Value getblock(const Array& params, bool fHelp)
 
     std::string strHash;
     if (int_type == params[0].type()) {
-        int nHeight = params[0].get_int();
-        if (nHeight < 0 || nHeight > chainActive.Height())
+        int height = params[0].get_int();
+        if (height < 0 || height > chainActive.Height())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
 
-        CBlockIndex* pBlockIndex = chainActive[nHeight];
+        CBlockIndex* pBlockIndex = chainActive[height];
         strHash                  = pBlockIndex->GetBlockHash().GetHex();
     } else {
         strHash = params[0].get_str();
@@ -375,7 +375,7 @@ Value getcontractregid(const Array& params, bool fHelp)
 
     uint256 txid(uint256S(params[0].get_str()));
 
-    int nIndex = 0;
+    int index = 0;
     int nBlockHeight = GetTxConfirmHeight(txid, *pCdMan->pContractCache);
     if (nBlockHeight > chainActive.Height()) {
         throw runtime_error("height bigger than tip block");
@@ -393,8 +393,8 @@ Value getcontractregid(const Array& params, bool fHelp)
         throw runtime_error("tx not exit in block");
     }
 
-    nIndex = std::get<1>(ret);
-    CRegID regId(nBlockHeight, nIndex);
+    index = std::get<1>(ret);
+    CRegID regId(nBlockHeight, index);
     Object result;
     result.push_back(Pair("regid", regId.ToString()));
     result.push_back(Pair("regid_hex", HexStr(regId.GetRegIdRaw())));
@@ -504,7 +504,7 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         boost::this_thread::interruption_point();
 
         int64_t nStart       = GetTimeMillis();
-        int32_t nValidHeight = chainActive.Tip()->nHeight;
+        int32_t nValidHeight = chainActive.Tip()->height;
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CBaseCoinTransferTx tx;
@@ -645,7 +645,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         boost::this_thread::interruption_point();
 
         int64_t nStart       = GetTimeMillis();
-        int32_t nValidHeight = chainActive.Tip()->nHeight;
+        int32_t nValidHeight = chainActive.Tip()->height;
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CContractInvokeTx tx;

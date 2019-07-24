@@ -45,7 +45,7 @@ class MinedBlockInfo {
 public:
     int64_t         nTime;              // block time
     int64_t         nNonce;             // nonce
-    int             nHeight;            // block height
+    int             height;            // block height
     int64_t         nTotalFuels;        // the total fuels of all transactions in the block
     int             nFuelRate;          // block fuel rate
     int64_t         nTotalFees;         // the total fees of all transactions in the block

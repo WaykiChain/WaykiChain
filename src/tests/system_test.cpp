@@ -39,7 +39,7 @@ typedef struct tagACCOUNT_ID
 typedef struct {
 	unsigned char nType;
 	ACCOUNT_ID vregID[3];
-	long nHeight;
+	long height;
 	Int64 nPay;
 } CONTRACT_DATA;
 #pragma pack()
@@ -92,7 +92,7 @@ public:
 		return false;
 	}
 
-	bool GetTxIndexInBlock(const uint256& txid, int& nIndex) {
+	bool GetTxIndexInBlock(const uint256& txid, int& index) {
 		CBlockIndex* pIndex = chainActive.Tip();
 		CBlock block;
 		if (!ReadBlockFromDisk(pIndex, block))
@@ -104,7 +104,7 @@ public:
 			return false;
 		}
 
-		nIndex = std::get<1>(ret);
+		index = std::get<1>(ret);
 		return true;
 	}
 
@@ -185,12 +185,12 @@ public:
 	}
 
 	bool IsScriptAccCreatedEx(const uint256& txid,int nConfirmHeight) {
-		int nIndex = 0;
-		if (!GetTxIndexInBlock(uint256(uint256S(strTxHash)), nIndex)) {
+		int index = 0;
+		if (!GetTxIndexInBlock(uint256(uint256S(strTxHash)), index)) {
 			return false;
 		}
 
-		CRegID regId(nConfirmHeight, nIndex);
+		CRegID regId(nConfirmHeight, index);
 		return IsScriptAccCreated(HexStr(regId.GetRegIdRaw()));
 	}
 
@@ -230,9 +230,9 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 		BOOST_CHECK(nNewMoney == nOldMoney - nFee);
 
 		//3:确认脚本账号已经生成
-		int nIndex = 0;
-		BOOST_CHECK(GetTxIndexInBlock(uint256(uint256S(strTxHash)), nIndex));
-		CRegID regId(nNewBlockHeight, nIndex);
+		int index = 0;
+		BOOST_CHECK(GetTxIndexInBlock(uint256(uint256S(strTxHash)), index));
+		CRegID regId(nNewBlockHeight, index);
 		BOOST_CHECK(IsScriptAccCreated(HexStr(regId.GetRegIdRaw())));
 
 		//4:检查钱包里的已确认交易里是否有此笔交易
@@ -249,7 +249,7 @@ BOOST_FIXTURE_TEST_CASE(acct_process,CSystemTest)
 //		BOOST_CHECK(vLog[0].vOperFund[0].operType == MINUS_BCOIN && vLog[0].vOperFund[0].vFund[0].value == nFee);
 
 		map<int,string> mapData;
-		mapData.insert(make_pair(nIndex,strTxHash));
+		mapData.insert(make_pair(index,strTxHash));
 		vDataInfo.push_back(mapData);
 		ShowProgress("acct_process progress: ",(int)(((i+1)/(float)100) * 100));
 

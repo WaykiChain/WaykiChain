@@ -131,7 +131,7 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
     if (fees < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid fees");
     }
-    int32_t validHeight = chainActive.Tip()->nHeight;
+    int32_t validHeight = chainActive.Tip()->height;
 
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
     CFcoinStakeTx tx(*pUserId, validHeight, fees, stakeType, std::abs(stakeAmount));
@@ -164,7 +164,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     uint64_t stakeAmount = params[1].get_uint64();
     uint64_t mintAmount  = params[2].get_uint64();
 
-    int validHeight = chainActive.Tip()->nHeight;
+    int validHeight = chainActive.Tip()->height;
     uint64_t fee    = 0;
     uint256 cdpTxId;
     if (params.size() >= 4) {
@@ -217,7 +217,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
         fee = params[4].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    int validHeight = chainActive.Tip()->nHeight;
+    int validHeight = chainActive.Tip()->height;
 
     CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, repayAmount, redeemAmount);
     return SubmitTx(*cdpUid, tx);
@@ -255,7 +255,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
         fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
     }
 
-    int validHeight = chainActive.Tip()->nHeight;
+    int validHeight = chainActive.Tip()->height;
     CCDPLiquidateTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount);
     return SubmitTx(*cdpUid, tx);
 }
@@ -275,7 +275,7 @@ Value getmedianprice(const Array& params, bool fHelp){
         );
     }
 
-    int height = chainActive.Tip()->nHeight;
+    int height = chainActive.Tip()->height;
     if (params.size() > 0){
         height = params[0].get_int();
         if (height < 0 || height > chainActive.Height())

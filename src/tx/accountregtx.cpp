@@ -16,7 +16,7 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CAccountRegisterTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))
@@ -36,9 +36,9 @@ bool CAccountRegisterTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationStat
     return true;
 }
 
-bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
-    CRegID regId(nHeight, nIndex);
+    CRegID regId(height, index);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
@@ -69,7 +69,7 @@ bool CAccountRegisterTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
             regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-   if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+   if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
 
     return true;
 }

@@ -10,7 +10,7 @@
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
-    map<CCoinPriceType, uint64_t> mapMedianPricePoints;
+    map<CCoinPriceType, uint64_t> median_price_points;
 
 public:
     CBlockPriceMedianTx(): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {}
@@ -26,14 +26,14 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(mapMedianPricePoints);
+        READWRITE(median_price_points);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
-                << mapMedianPricePoints;
+                << median_price_points;
 
             sigHash = ss.GetHash();
         }
@@ -49,12 +49,12 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 public:
     bool SetMedianPricePoints(map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn) {
-        mapMedianPricePoints = mapMedianPricePointsIn;
+        median_price_points = mapMedianPricePointsIn;
         return true;
     }
 

@@ -239,7 +239,7 @@ struct CNodeStateStats {
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree);
 
 // Context-independent validity checks
-bool CheckTx(int nHeight, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
+bool CheckTx(int height, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
@@ -266,10 +266,10 @@ public:
     }
 
     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
-    CBlockIndex *operator[](int nHeight) const {
-        if (nHeight < 0 || nHeight >= (int)vChain.size())
+    CBlockIndex *operator[](int height) const {
+        if (height < 0 || height >= (int)vChain.size())
             return nullptr;
-        return vChain[nHeight];
+        return vChain[height];
     }
 
     /** Compare two chains efficiently. */
@@ -280,18 +280,18 @@ public:
 
     /** Efficiently check whether a block is present in this chain. */
     bool Contains(const CBlockIndex *pIndex) const {
-        return (*this)[pIndex->nHeight] == pIndex;
+        return (*this)[pIndex->height] == pIndex;
     }
 
     /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
     CBlockIndex *Next(const CBlockIndex *pIndex) const {
         if (Contains(pIndex))
-            return (*this)[pIndex->nHeight + 1];
+            return (*this)[pIndex->height + 1];
         else
             return nullptr;
     }
 
-    /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->nHeight : -1. */
+    /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
     int Height() const {
         return vChain.size() - 1;
     }
@@ -658,7 +658,7 @@ extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
-uint64_t GetBlockSubsidy(int nHeight);
+uint64_t GetBlockSubsidy(int height);
 
 /** Used to relay blocks as header + vector<merkle branch>
  * to filtered nodes.
@@ -724,7 +724,7 @@ bool DisconnectBlockFromTip(CValidationState &state);
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
 
-int64_t GetBlockValue(int nHeight, int64_t nFees);
+int64_t GetBlockValue(int height, int64_t nFees);
 /** Open a block file (blk?????.dat) */
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 

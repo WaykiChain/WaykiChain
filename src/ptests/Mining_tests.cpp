@@ -140,12 +140,12 @@ public:
 		//string strSendValue = HexStr(temp);
 		vContranct.insert(vContranct.end(), temp.begin(), temp.end());
 	}
-	//nIndex ????Χ1~5?????1~5???????
-	static CSendItem GetRandomSendItem(int nIndex) {
+	//index ????Χ1~5?????1~5???????
+	static CSendItem GetRandomSendItem(int index) {
 		int randAddr = std::rand() % 9;
 		int randSendValue = std::rand() % 10;
-		map<string, string>::iterator iterAddr = mapDesAddress[nIndex - 1].begin();
-		map<string, string>::iterator iterLast = mapDesAddress[nIndex - 1].end();
+		map<string, string>::iterator iterAddr = mapDesAddress[index - 1].begin();
+		map<string, string>::iterator iterLast = mapDesAddress[index - 1].end();
 		--iterLast;
 		do {
 			iterAddr++;

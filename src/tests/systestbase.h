@@ -71,19 +71,19 @@ struct AccOperLog {
 	AccOperLog() {
 		mapAccState.clear();
 	}
-	bool Add(int &nHeight, AccState &accstate) {
-		mapAccState[nHeight] = accstate;
+	bool Add(int &height, AccState &accstate) {
+		mapAccState[height] = accstate;
 		return true;
 	}
 
-	void MergeAcc(int nHeight) {
+	void MergeAcc(int height) {
 		for (auto &item : mapAccState) {
-			if (nHeight > item.first + nFrozenHeight) {
+			if (height > item.first + nFrozenHeight) {
 				item.second.dFreeMoney += item.second.dFrozenMoney;
 				item.second.dFrozenMoney = 0.0;
 			}
 
-			if (nHeight > item.first + nMatureHeight) {
+			if (height > item.first + nMatureHeight) {
 				item.second.dFreeMoney += item.second.dUnmatureMoney;
 				item.second.dUnmatureMoney = 0.0;
 			}
@@ -163,7 +163,7 @@ public:
 	}
 
 	Value CreateRegAppTx(const string& strAddress, const string& strScript, bool bRigsterScript, int nFee,
-			int nHeight);
+			int height);
 
 	bool ResetEnv();
 
@@ -175,7 +175,7 @@ public:
 
 	bool GetNewAddr(std::string &addr,bool flag);
 
-	bool GetBlockHeight(int &nHeight);
+	bool GetBlockHeight(int &height);
 
 	Value CreateDelegateTx(const string& strAddress, const string &operVoteFund, const uint64_t fee);
 
@@ -186,15 +186,15 @@ public:
 	Value RegisterAccountTx(const std::string &addr, const int nfee =0);
 
 	Value CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
-			int nHeight,int nFee = 0,uint64_t nMoney = 0);
+			int height,int nFee = 0,uint64_t nMoney = 0);
 
-	Value RegisterContractTx(const string& strAddress, const string& strScript, int nHeight, int nFee = 100000000);
+	Value RegisterContractTx(const string& strAddress, const string& strScript, int height, int nFee = 100000000);
 
 	Value SignSecureTx(const string &securetx);
 
 	bool IsAllTxInBlock();
 
-	bool GetBlockHash(const int nHeight, std::string &blockhash);
+	bool GetBlockHash(const int height, std::string &blockhash);
 
 	bool GetBlockMinerAddr(const std::string &blockhash, std::string &addr);
 

@@ -139,23 +139,23 @@ struct AccOperLog{
 	{
 		mapAccState.clear();
 	}
-	bool Add(int &nHeight,AccState &accstate)
+	bool Add(int &height,AccState &accstate)
 	{
-		mapAccState[nHeight] = accstate;
+		mapAccState[height] = accstate;
 		return true;
 	}
 
-	void MergeAcc(int nHeight)
+	void MergeAcc(int height)
 	{
 		for(auto &item:mapAccState)
 		{
-			if(nHeight > item.first+nFrozenHeight)
+			if(height > item.first+nFrozenHeight)
 			{
 				item.second.dFreeMoney += item.second.dFrozenMoney;
 				item.second.dFrozenMoney = 0.0;
 			}
 
-			if(nHeight > item.first+nMatureHeight)
+			if(height > item.first+nMatureHeight)
 			{
 				item.second.dFreeMoney += item.second.dUnmatureMoney;
 				item.second.dUnmatureMoney = 0.0;
@@ -264,9 +264,9 @@ public:
 		return false;
 	}
 
-	bool GetBlockHeight(int &nHeight)
+	bool GetBlockHeight(int &height)
 	{
-		nHeight = 0;
+		height = 0;
 		const char *argv[] = {"rpctest", "getinfo",};
 		int argc = sizeof(argv) / sizeof(char*);
 
@@ -276,14 +276,14 @@ public:
 		{
 			Object obj = value.get_obj();
 
-			nHeight = find_value(obj,"blocks").get_int();
-			LogPrint("test_miners","GetBlockHeight:%d\r\n",nHeight);
+			height = find_value(obj,"blocks").get_int();
+			LogPrint("test_miners","GetBlockHeight:%d\r\n",height);
 			return true;
 		}
 		return false;
 	}
 
-	bool CreateNormalTx(const std::string &srcAddr,const std::string &desAddr,const int nHeight)
+	bool CreateNormalTx(const std::string &srcAddr,const std::string &desAddr,const int height)
 	{
 		//CommanRpc
 		char src[64] = { 0 };
@@ -303,7 +303,7 @@ public:
 		nCurFee = nfee;
 
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 		const char *argv[] = { "rpctest", "createnormaltx", src,dest,money,fee,height};
 		int argc = sizeof(argv)/sizeof(char*);
@@ -318,7 +318,7 @@ public:
 		return false;
 	}
 
-	bool CreateFreezeTx(const std::string &addr,const int nHeight)
+	bool CreateFreezeTx(const std::string &addr,const int height)
 	{
 		//CommanRpc
 		char caddr[64] = { 0 };
@@ -335,10 +335,10 @@ public:
 		nCurFee = nfee;
 
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 		char freeheight[16] = {0};
-		sprintf(freeheight,"%d",nHeight+100);
+		sprintf(freeheight,"%d",height+100);
 
 		const char *argv[] = { "rpctest", "createfreezetx", caddr,money,fee,height,freeheight};
 		int argc = sizeof(argv)/sizeof(char*);
@@ -353,7 +353,7 @@ public:
 		return false;
 	}
 
-	bool registeraccounttx(const std::string &addr,const int nHeight)
+	bool registeraccounttx(const std::string &addr,const int height)
 	{
 		//CommanRpc
 		char caddr[64] = { 0 };
@@ -365,7 +365,7 @@ public:
 		nCurFee = nfee;
 
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 
 		const char *argv[] = { "rpctest", "registeraccounttx", caddr, fee, height};
@@ -381,7 +381,7 @@ public:
 		return false;
 	}
 
-	bool CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract, const int nHeight)
+	bool CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract, const int height)
 	{
 //		char cscriptid[1024] = { 0 };
 //		vector<char> te(scriptid.begin(),scriptid.end());
@@ -400,7 +400,7 @@ public:
 		nCurFee = nfee;
 
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 		 const char *argv[] = { "rpctest", "CallContractTx", (char *)(scriptid.c_str()), (char *)(addrs.c_str()), (char *)(contract.c_str()), fee, height};
 		int argc = sizeof(argv)/sizeof(char*);
@@ -415,7 +415,7 @@ public:
 		return false;
 	}
 
-	bool RegisterContractTx(const std::string &addr, const std::string &script, const int nHeight)
+	bool RegisterContractTx(const std::string &addr, const std::string &script, const int height)
 	{
 		//CommanRpc
 		char caddr[64] = { 0 };
@@ -430,7 +430,7 @@ public:
 		nCurFee = nfee;
 
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 
 		const char *argv[] = { "rpctest", "registercontracttx", caddr, csript, fee, height};
@@ -447,7 +447,7 @@ public:
 	}
 
 	bool CreateSecureTx(const string &scriptid,const vector<string> &obaddrs,
-			const vector<string> &addrs,const string&contract,const int nHeight)
+			const vector<string> &addrs,const string&contract,const int height)
 	{
 		//CommanRpc
 		char cscriptid[64] = { 0 };
@@ -479,7 +479,7 @@ public:
 		strncpy(ccontract, contract.c_str(), sizeof(ccontract)-1);
 
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 
 		const char *argv[] = { "rpctest", "createsecuretx", cscriptid,cobstr,addrstr,ccontract,"1000000",height};
@@ -530,10 +530,10 @@ public:
 		return false;
 	}
 
-	bool GetBlockHash(const int nHeight,std::string &blockhash)
+	bool GetBlockHash(const int height,std::string &blockhash)
 	{
 		char height[16] = {0};
-		sprintf(height,"%d",nHeight);
+		sprintf(height,"%d",height);
 
 		const char *argv[] = {"rpctest", "getblockhash",height};
 		int argc = sizeof(argv) / sizeof(char*);

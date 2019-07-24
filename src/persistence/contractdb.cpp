@@ -121,12 +121,12 @@ bool CContractDBCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, 
 bool CContractDBCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
     return false;
     /* TODO: implements get list in cache
-        pBase->GetTxHashByAddress(keyId, nHeight, mapTxHash);
+        pBase->GetTxHashByAddress(keyId, height, mapTxHash);
 
         string vPreKey = {'A', 'D', 'D', 'R'};
         CDataStream ds1(SER_DISK, CLIENT_VERSION);
         ds1 << keyId;
-        ds1 << nHeight;
+        ds1 << height;
         vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
 
         map<string, string >::iterator iterFindKey =

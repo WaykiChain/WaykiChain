@@ -186,14 +186,14 @@ bool CTestSesureTrade::CheckLastSendTx() {
 	return false;
 }
 
-void CSesureTradeHelp::PacketFirstContract(const char* pBuyID, const char* pSellID, const char* pArID, int nHeight,
+void CSesureTradeHelp::PacketFirstContract(const char* pBuyID, const char* pSellID, const char* pArID, int height,
 		int nFine, int nPay, int nFee, int ndeposit, FIRST_TRADE_CONTRACT* pContract) {
 
 		BOOST_CHECK(pContract);
 		memset(pContract,0,sizeof(FIRST_TRADE_CONTRACT));
 		pContract->nType = 1;
 		pContract->nArbitratorCount = 1;
-		pContract->nHeight = nHeight;
+		pContract->height = height;
 
 		unsigned char nSize = sizeof(int);
 		vector<unsigned char> v = ParseHex(pBuyID);

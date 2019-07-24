@@ -35,7 +35,7 @@ static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyI
 ///////////////////////////////////////////////////////////////////////////////
 // class CContractDeployTx
 
-bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -61,7 +61,7 @@ bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
     }
 
     // If valid height range changed little enough(i.e. 3 blocks), remove it.
-    if (GetFeatureForkVersion(nHeight) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
         unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
         double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
         if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
@@ -87,7 +87,7 @@ bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
     return true;
 }
 
-bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, read regist addr %s account info error",
@@ -106,7 +106,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     // create script account
     CAccount contractAccount;
-    CRegID contractRegId(nHeight, nIndex);
+    CRegID contractRegId(height, index);
     CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.keyid  = keyId;
     contractAccount.regid  = contractRegId;
@@ -124,7 +124,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
 
     nRunStep = contract_code.size();
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
+    if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
 
     return true;
 }
@@ -246,7 +246,7 @@ Object CContractInvokeTx::ToJson(const CAccountDBCache &accountView) const {
     return result;
 }
 
-bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CContractInvokeTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
@@ -261,7 +261,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             CRegID regId;
             // If the source account does NOT have CRegID, need to generate a new CRegID.
             if (!cw.accountCache.GetRegId(txUid, regId)) {
-                srcAcct.regid = CRegID(nHeight, nIndex);
+                srcAcct.regid = CRegID(height, index);
                 generateRegID = true;
             }
         }
@@ -306,7 +306,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
     int64_t llTime = GetTimeMillis();
-    tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, nHeight, cw, fuelRate, nRunStep);
+    tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, height, cw, fuelRate, nRunStep);
     if (!std::get<0>(ret))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
             GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error: " + std::get<2>(ret));
@@ -347,12 +347,12 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, appUid})) return false;
+    if (!SaveTxAddresses(height, index, cw, state, {txUid, appUid})) return false;
 
     return true;
 }
 
-bool CContractInvokeTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CContractInvokeTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());

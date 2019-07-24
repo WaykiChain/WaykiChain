@@ -312,8 +312,8 @@ public:
                     READWRITE(nSize);
                     for (std::set<int>::iterator it2 = vNew.begin(); it2 != vNew.end(); it2++)
                     {
-                        int nIndex = mapUnkIds[*it2];
-                        READWRITE(nIndex);
+                        int index = mapUnkIds[*it2];
+                        READWRITE(index);
                     }
                 }
             } else {
@@ -366,13 +366,13 @@ public:
                     READWRITE(nSize);
                     for (int n = 0; n < nSize; n++)
                     {
-                        int nIndex = 0;
-                        READWRITE(nIndex);
-                        CAddrInfo &info = am->mapInfo[nIndex];
+                        int index = 0;
+                        READWRITE(index);
+                        CAddrInfo &info = am->mapInfo[index];
                         if (nUBuckets == ADDRMAN_NEW_BUCKET_COUNT && info.nRefCount < ADDRMAN_NEW_BUCKETS_PER_ADDRESS)
                         {
                             info.nRefCount++;
-                            vNew.insert(nIndex);
+                            vNew.insert(index);
                         }
                     }
                 }

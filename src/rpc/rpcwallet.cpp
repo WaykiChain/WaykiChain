@@ -311,7 +311,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
         return std::make_tuple(false, "Key not found in the local wallet.");
 
-    int nHeight = chainActive.Height();
+    int height = chainActive.Height();
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
@@ -325,7 +325,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     tx.toUid    = recvUserId;
     tx.bcoins = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
-    tx.nValidHeight = nHeight;
+    tx.nValidHeight = height;
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
         return std::make_tuple(false, "Sign failed");
@@ -541,7 +541,7 @@ Value send(const Array& params, bool fHelp) {
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
 
-    int nHeight = chainActive.Height();
+    int height = chainActive.Height();
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
@@ -611,7 +611,7 @@ Value send(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
     }
 
-    CCoinTransferTx tx(sendUserId, recvUserId, nHeight, coinAmount, coinType, fee, feeType);
+    CCoinTransferTx tx(sendUserId, recvUserId, height, coinAmount, coinType, fee, feeType);
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -668,7 +668,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send 0 amount disallowed!");
     }
 
-    int height = chainActive.Tip()->nHeight;
+    int height = chainActive.Tip()->height;
     if (params.size() > 4) {
         height = params[4].get_int();
         if (height <= 0) {
@@ -749,7 +749,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CKeyID recvKeyId;
     CUserID recvUserId;
     CRegID recvRegId;
-    int height = chainActive.Tip()->nHeight;
+    int height = chainActive.Tip()->height;
 
     if (!GetKeyId(params[1].get_str(), recvKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
@@ -850,7 +850,7 @@ Value getassets(const Array& params, bool fHelp) {
             continue;
         }
 
-        temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
+        temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
         uint64_t freeValues = temp.get()->GetBcoins();
         uint64_t freezeValues = temp.get()->GetAllFreezedValues();
         totalassets += freeValues;

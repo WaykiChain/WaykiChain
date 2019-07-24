@@ -72,8 +72,8 @@ public:
     string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 
@@ -138,8 +138,8 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 
@@ -199,8 +199,8 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
@@ -258,8 +258,8 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
@@ -312,8 +312,8 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 public:
     uint256  orderId;       //!< id of oder need to be canceled.
 };
@@ -385,8 +385,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 private:
 
 private:

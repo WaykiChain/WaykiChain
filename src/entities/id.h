@@ -31,8 +31,8 @@ public:
 
 class CRegID {
 private:
-    uint32_t nHeight;
-    uint16_t nIndex;
+    uint32_t height;
+    uint16_t index;
     mutable vector<unsigned char> vRegID;
 
     void SetRegID(string strRegID);
@@ -43,36 +43,36 @@ private:
 public:
     CRegID(string strRegID);
     CRegID(const vector<unsigned char> &vIn);
-    CRegID(uint32_t nHeight = 0, uint16_t nIndex = 0);
+    CRegID(uint32_t height = 0, uint16_t index = 0);
 
     const vector<unsigned char> &GetRegIdRaw() const;
     string ToRawString() const;
     void SetRegID(const vector<unsigned char> &vIn);
     CKeyID GetKeyId(const CAccountDBCache &view) const;
-    uint32_t GetHeight() const { return nHeight; }
-    uint16_t GetIndex() const { return nIndex; }
+    uint32_t GetHeight() const { return height; }
+    uint16_t GetIndex() const { return index; }
     bool operator==(const CRegID &other) const {
-        return (this->nHeight == other.nHeight && this->nIndex == other.nIndex);
+        return (this->height == other.height && this->index == other.index);
     }
     bool operator!=(const CRegID &other) const {
-        return (this->nHeight != other.nHeight || this->nIndex != other.nIndex);
+        return (this->height != other.height || this->index != other.index);
     }
-    bool operator<(const CRegID &other) const { return (this->nHeight < other.nHeight || this->nIndex < other.nIndex); }
+    bool operator<(const CRegID &other) const { return (this->height < other.height || this->index < other.index); }
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);
-    bool IsEmpty() const { return (nHeight == 0 && nIndex == 0); };
+    bool IsEmpty() const { return (height == 0 && index == 0); };
     void SetEmpty() { Clear(); }
     bool Clear();
     string ToString() const;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nHeight));
-        READWRITE(VARINT(nIndex));
+        READWRITE(VARINT(height));
+        READWRITE(VARINT(index));
         if (fRead) {
             vRegID.clear();
-            vRegID.insert(vRegID.end(), BEGIN(nHeight), END(nHeight));
-            vRegID.insert(vRegID.end(), BEGIN(nIndex), END(nIndex));
+            vRegID.insert(vRegID.end(), BEGIN(height), END(height));
+            vRegID.insert(vRegID.end(), BEGIN(index), END(index));
         }
     )
 };

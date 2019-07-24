@@ -116,8 +116,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif //COIN_MULSIGTX_H

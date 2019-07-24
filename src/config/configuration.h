@@ -47,7 +47,7 @@ public:
     unsigned int GetRPCPort(NET_TYPE type) const;
     unsigned int GetStartTimeInit(NET_TYPE type) const;
     unsigned int GetHalvingInterval(NET_TYPE type) const;
-    uint64_t GetBlockSubsidyCfg(int nHeight) const;
+    uint64_t GetBlockSubsidyCfg(int height) const;
     int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
     uint32_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;

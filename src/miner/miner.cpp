@@ -39,7 +39,7 @@ int GetElementForBurn(CBlockIndex *pIndex) {
         return INIT_FUEL_RATES;
     }
     int nBlock = SysCfg().GetArg("-blocksizeforburn", DEFAULT_BURN_BLOCK_SIZE);
-    if (nBlock * 2 >= pIndex->nHeight - 1) {
+    if (nBlock * 2 >= pIndex->height - 1) {
         return INIT_FUEL_RATES;
     }
 
@@ -62,7 +62,7 @@ int GetElementForBurn(CBlockIndex *pIndex) {
     if (newFuelRate < MIN_FUEL_RATES)
         newFuelRate = MIN_FUEL_RATES;
 
-    LogPrint("fuel", "preFuelRate=%d fuelRate=%d, nHeight=%d\n", pIndex->nFuelRate, newFuelRate, pIndex->nHeight);
+    LogPrint("fuel", "preFuelRate=%d fuelRate=%d, height=%d\n", pIndex->nFuelRate, newFuelRate, pIndex->height);
     return newFuelRate;
 }
 
@@ -75,9 +75,9 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     static CoinType coinType = CoinType::WUSD;
     static uint64_t nFees    = 0;
 
-    int32_t nHeight           = chainActive.Height();
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(nHeight);
-    uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(nHeight);
+    int32_t height           = chainActive.Height();
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+    uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height);
     auto GetCoinMedianPrice   = [&](const CoinType coinType) -> uint64_t {
         switch (coinType) {
             case CoinType::WICC: return bcoinMedianPrice;
@@ -325,7 +325,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
-        uint32_t nHeight        = pIndexPrev->nHeight + 1;
+        uint32_t height        = pIndexPrev->height + 1;
         int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
         uint64_t nBlockSize     = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t nBlockTx       = 0;
@@ -367,12 +367,12 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
             CValidationState state;
             pBaseTx->nFuelRate = nFuelRate;
-            if (!pBaseTx->ExecuteTx(nHeight, nBlockTx + 1, *spCW, state)) {
+            if (!pBaseTx->ExecuteTx(height, nBlockTx + 1, *spCW, state)) {
                 LogPrint("MINER", "CreateNewBlock() : failed to execute transaction, txid: %s\n",
                         pBaseTx->GetHash().GetHex());
 
                 if (SysCfg().IsLogFailures())
-                    pCdMan->pLogCache->SetExecuteFail(nHeight, pBaseTx->GetHash(), state.GetRejectCode(),
+                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
 
                 continue;
@@ -415,16 +415,16 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
 
         if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R2) { // stablecoin release
-            CBlockPriceMedianTx* pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
+            CBlockPrice˜MedianTx* pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
             map<CCoinPriceType, uint64_t> mapMedianPricePoints;
-            cwIn.ppCache.GetBlockMedianPricePoints(nHeight, mapMedianPricePoints);
+            cwIn.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
             pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
         }
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         pBlock->SetNonce(0);
-        pBlock->SetHeight(nHeight);
+        pBlock->SetHeight(height);
         pBlock->SetFuel(nTotalFuel);
         pBlock->SetFuelRate(nFuelRate);
         UpdateTime(*pBlock, pIndexPrev);
@@ -449,13 +449,13 @@ std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
 
         // Fill in header
         CBlockIndex *pIndexPrev = chainActive.Tip();
-        uint32_t nHeight        = pIndexPrev->nHeight + 1;
+        uint32_t height        = pIndexPrev->height + 1;
         int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
 
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         UpdateTime(*pBlock, pIndexPrev);
         pBlock->SetNonce(0);
-        pBlock->SetHeight(nHeight);
+        pBlock->SetHeight(height);
         pBlock->SetFuel(0);
         pBlock->SetFuelRate(nFuelRate);
     }
@@ -511,15 +511,15 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             return false;
         }
 
-        uint16_t nIndex = 0;
+        uint16_t index = 0;
         for (auto &delegate : delegatesList)
-            LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", nIndex++, delegate.ToString());
+            LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
         ShuffleDelegates(pBlock->GetHeight(), delegatesList);
 
-        nIndex = 0;
+        index = 0;
         for (auto &delegate : delegatesList)
-            LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", nIndex++, delegate.ToString());
+            LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
         int64_t currentTime = GetTime();
         CRegID regId;
@@ -534,7 +534,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         int64_t nLastTime;
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
-            if (uint32_t(chainActive.Tip()->nHeight + 1) != pBlock->GetHeight())
+            if (uint32_t(chainActive.Tip()->height + 1) != pBlock->GetHeight())
                 return false;
 
             CKey acctKey;
@@ -560,7 +560,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
             miningBlockInfo.nTime         = pBlock->GetBlockTime();
             miningBlockInfo.nNonce        = pBlock->GetNonce();
-            miningBlockInfo.nHeight       = pBlock->GetHeight();
+            miningBlockInfo.height       = pBlock->GetHeight();
             miningBlockInfo.nTotalFuels   = pBlock->GetFuel();
             miningBlockInfo.nFuelRate     = pBlock->GetFuelRate();
             miningBlockInfo.hash          = pBlock->GetHash();
@@ -617,7 +617,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             if (SysCfg().NetworkID() != REGTEST_NET) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
-                while (vNodes.empty() || (chainActive.Tip() && chainActive.Tip()->nHeight > 1 &&
+                while (vNodes.empty() || (chainActive.Tip() && chainActive.Tip()->height > 1 &&
                                           GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60 &&
                                           !SysCfg().GetBoolArg("-genblockforce", false))) {
                     MilliSleep(1000);
@@ -635,7 +635,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             miningBlockInfo.SetNull();
             int64_t nLastTime = GetTimeMillis();
 
-            auto pBlock = (pIndexPrev->nHeight + 1 == (int32_t)SysCfg().GetStableCoinGenesisHeight())
+            auto pBlock = (pIndexPrev->height + 1 == (int32_t)SysCfg().GetStableCoinGenesisHeight())
                               ? CreateStableCoinGenesisBlock()
                               : CreateNewBlock(*spCW);
             if (!pBlock.get()) {
@@ -685,7 +685,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
 void MinedBlockInfo::SetNull() {
     nTime       = 0;
     nNonce      = 0;
-    nHeight     = 0;
+    height      = 0;
     nTotalFuels = 0;
     nFuelRate   = 0;
     nTotalFees  = 0;

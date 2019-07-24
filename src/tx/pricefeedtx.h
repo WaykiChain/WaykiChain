@@ -61,8 +61,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &view) const;  // json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 
     bool GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts);
 };

@@ -212,7 +212,7 @@ public:
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
     void SetScriptCheckThreads(int64_t nNum) const { nScriptCheckThreads = nNum; }
     void SetViewCacheSize(unsigned int nSize) const { nViewCacheSize = nSize; }
-    void SetTxCacheHeight(int nHeight) const { nTxCacheHeight = nHeight; }
+    void SetTxCacheHeight(int height) const { nTxCacheHeight = height; }
     bool IsContractLogOn() const { return bContractLog; }
     bool GetAddressToTxFlag() const { return bAddressToTx; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }

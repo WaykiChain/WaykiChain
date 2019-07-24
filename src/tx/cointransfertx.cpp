@@ -8,7 +8,7 @@
 
 #include "main.h"
 
-bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     // TODO: fees in WICC/WGRT/WUSD
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -34,7 +34,7 @@ bool CCoinTransferTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationSta
     return true;
 }
 
-bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
@@ -93,7 +93,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid, toUid}))
         return false;
 
     return true;

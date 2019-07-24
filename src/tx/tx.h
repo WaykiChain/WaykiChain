@@ -32,7 +32,7 @@ class CContractDBCache;
 typedef uint256 TxID;
 
 string GetTxType(const TxType txType);
-uint64_t GetTxMinFee(const TxType nTxType, int nHeight);
+uint64_t GetTxMinFee(const TxType nTxType, int height);
 
 class CBaseTx {
 public:
@@ -90,15 +90,15 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const                 = 0;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state)                       = 0;
-    virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state)     = 0;
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                       = 0;
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state)     = 0;
 
     int32_t GetFuelRate(CContractDBCache &contractCache);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
     bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
 
 protected:
-    bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t nHeight) const;
+    bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
     bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
@@ -123,12 +123,16 @@ public:
     ~CCoinPriceType() {}
 
 public:
-     bool operator<(const CCoinPriceType &coinPriceType) const {
+    bool operator<(const CCoinPriceType &coinPriceType) const {
         if (coinType == coinPriceType.coinType) {
             return priceType < coinPriceType.priceType;
         } else {
             return coinType < coinPriceType.coinType;
         }
+    }
+
+    bool operator==(const CCoinPriceType &rhs) const {
+        return (this->coinType == rhs.coinType && this->priceType == rhs.priceType);
     }
 
     string ToString() { return strprintf("%u%u", coinType, priceType); }
@@ -217,7 +221,7 @@ public:
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__), REJECT_INVALID,          \
                          "bad-tx-fee-toolarge");                                                                   \
                                                                                                                    \
-    if (!CheckTxFeeSufficient(llFees, nHeight)) {                                                                  \
+    if (!CheckTxFeeSufficient(llFees, height)) {                                                                   \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee smaller than MinTxFee", __FUNCTION__), REJECT_INVALID, \
                          "bad-tx-fee-toosmall");                                                                   \
     }

@@ -165,7 +165,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     Object registerContractTxObj;
     EnsureWalletIsUnlocked();
-    int newHeight = chainActive.Tip()->nHeight + 1;
+    int newHeight = chainActive.Tip()->height + 1;
     assert(pWalletMain != nullptr);
     {
         CContractDeployTx tx;
@@ -216,7 +216,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        if (!contractInvokeTx.ExecuteTx(chainActive.Tip()->nHeight + 1, 2, *spCW, state)) {
+        if (!contractInvokeTx.ExecuteTx(chainActive.Tip()->height + 1, 2, *spCW, state)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
         }
     }

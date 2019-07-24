@@ -1083,14 +1083,14 @@ static int ExGetTxConfirmHeightFunc(lua_State *L) {
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxConfirmHeight, BURN_VER_R2);
-    int nHeight = GetTxConfirmHeight(hash1, *pVmRunEnv->GetScriptDB());
-    if(-1 == nHeight)
+    int height = GetTxConfirmHeight(hash1, *pVmRunEnv->GetScriptDB());
+    if(-1 == height)
     {
         return RetFalse("ExGetTxConfirmHeightFunc para err2");
     }
     else{
        if(lua_checkstack(L,sizeof(lua_Number))){
-            lua_pushnumber(L,(lua_Number)nHeight);
+            lua_pushnumber(L,(lua_Number)height);
             return 1 ;
        }else{
            LogPrint("vm","%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
@@ -1775,9 +1775,9 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     return len;
 }
 
-static bool GetDataTableAssetOperate(lua_State *L, int nIndex, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
+static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
 {
-    if (!lua_istable(L, nIndex)) {
+    if (!lua_istable(L, index)) {
         LogPrint("vm", "L is not table\n");
         return false;
     }
@@ -1951,7 +1951,7 @@ static int ExTransferContractAsset(lua_State *L)
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }
 
-    temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
+    temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
 
     uint64_t nMoney = temp.get()->GetBcoins();
 
@@ -2057,8 +2057,8 @@ static int ExTransferSomeAsset(lua_State *L) {
     if (0 == uTransferMoney)
         return RetFalse(string(__FUNCTION__) + " Transfer Money is not valid !");
 
-    int nHeight = assetOp.GetHeight();
-    if (nHeight < 0)
+    int height = assetOp.GetHeight();
+    if (height < 0)
         return RetFalse(string(__FUNCTION__) + " outHeight is not valid !");
 
     int i = 0;
@@ -2072,17 +2072,17 @@ static int ExTransferSomeAsset(lua_State *L) {
     }
 
     op.mMoney = uTransferMoney;
-    op.timeoutHeight = nHeight;
+    op.timeoutHeight = height;
     op.appuserIDlen = sendKey.size();
 
     for (i = 0; i < op.appuserIDlen; i++) {
         op.vAppuser[i] = sendKey[i];
     }
 
-    op.opType = (nHeight > 0) ? SUB_TAG_OP : SUB_FREE_OP;
+    op.opType = (height > 0) ? SUB_TAG_OP : SUB_FREE_OP;
     pVmRunEnv->InsertOutAPPOperte(sendKey, op);
 
-    op.opType = (nHeight > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
+    op.opType = (height > 0) ? ADD_TAG_OP : ADD_FREE_OP ;
     op.appuserIDlen = recvKey.size();
 
     for (i = 0; i < op.appuserIDlen; i++) {

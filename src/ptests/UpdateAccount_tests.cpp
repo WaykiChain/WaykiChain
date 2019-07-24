@@ -386,8 +386,8 @@ BOOST_AUTO_TEST_CASE(test) {
  * ���Խ���ͬ��׼ȷ���뼰ʱ��
  */
 BOOST_AUTO_TEST_CASE(test1) {
-	int nIndex = 10000;
-	while(nIndex--) {
+	int index = 10000;
+	while(index--) {
 		CreateNormalTx();
 		MilliSleep(500);
 	}

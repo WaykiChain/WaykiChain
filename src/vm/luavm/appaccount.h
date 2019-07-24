@@ -148,7 +148,7 @@ public:
     CAppUserAccount();
     CAppUserAccount(const string &userId);
     bool Operate(const vector<CAppFundOperate> &Op);
-    bool GetAppCFund(CAppCFund &outFound, const vector<unsigned char> &vTag, int nHeight);
+    bool GetAppCFund(CAppCFund &outFound, const vector<unsigned char> &vTag, int height);
 
     bool AutoMergeFreezeToFree(int hight);
 

@@ -110,7 +110,7 @@ bool CMulsigTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
@@ -122,7 +122,7 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
         CRegID regId;
         // If the source account does NOT have CRegID, need to generate a new CRegID.
         if (!cw.accountCache.GetRegId(CUserID(keyId), regId)) {
-            srcAcct.regid = CRegID(nHeight, nIndex);
+            srcAcct.regid = CRegID(height, index);
             generateRegID = true;
         }
     }
@@ -168,12 +168,12 @@ bool CMulsigTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidatio
     }
     uids.push_back(desUserId);
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, uids)) return false;
+    if (!SaveTxAddresses(height, index, cw, state, uids)) return false;
 
     return true;
 }
 
-bool CMulsigTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 

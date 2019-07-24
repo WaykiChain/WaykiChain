@@ -42,7 +42,7 @@ typedef struct  {
 	ACCOUNT_ID 	buyer;
 	ACCOUNT_ID seller;
 	ACCOUNT_ID arbitrator[MAX_ARBITRATOR];
-	long nHeight;
+	long height;
 	Int64 nFineMoney;
 	Int64 nPayMoney;
 	Int64 nFee;
@@ -69,7 +69,7 @@ public:
 	bool VerifyTxInBlock(const string& strTxHash,bool bTryForever = false);
 	//bool GetContractRegID(const string& strTxHash, string& strAppRegID);
 
-	void PacketFirstContract(const char*pBuyID, const char* pSellID, const char* pArID, int nHeight, int nFine,
+	void PacketFirstContract(const char*pBuyID, const char* pSellID, const char* pArID, int height, int nFine,
 			int nPay, int nFee, int ndeposit, FIRST_TRADE_CONTRACT* pContract);
 	void PacketNextContract(unsigned char nStep, unsigned char* pHash, NEXT_TRADE_CONTRACT* pNextContract);
 	void PacketLastContract(unsigned char* pHash, int nFine, ARBIT_RES_CONTRACT* pLastContract);

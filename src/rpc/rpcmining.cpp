@@ -225,7 +225,7 @@ Value getminedblocks(const Array& params, bool fHelp)
         Object obj;
         obj.push_back(Pair("time",          blockInfo.nTime));
         obj.push_back(Pair("nonce",         blockInfo.nNonce));
-        obj.push_back(Pair("height",        blockInfo.nHeight));
+        obj.push_back(Pair("height",        blockInfo.height));
         obj.push_back(Pair("total_fuels",   blockInfo.nTotalFuels));
         obj.push_back(Pair("fuel_rate",     blockInfo.nFuelRate));
         obj.push_back(Pair("total_fees",    blockInfo.nTotalFees));

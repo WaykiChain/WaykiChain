@@ -32,7 +32,7 @@ private:
     double dPriority;                     // Cached to avoid recomputing priority
 
     int64_t nTime;     // Local time when entering the mempool
-    uint32_t nHeight;  // Chain height when entering the mempool
+    uint32_t height;  // Chain height when entering the mempool
 
 public:
     CTxMemPoolEntry(CBaseTx *ptx, int64_t time, uint32_t height);
@@ -46,7 +46,7 @@ public:
     inline double GetPriority() const { return dPriority; }
 
     inline int64_t GetTime() const { return nTime; }
-    inline uint32_t GetHeight() const { return nHeight; }
+    inline uint32_t GetHeight() const { return height; }
 };
 
 /*

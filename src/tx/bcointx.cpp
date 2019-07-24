@@ -14,7 +14,7 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CBaseCoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CBaseCoinTransferTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -39,7 +39,7 @@ bool CBaseCoinTransferTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
     return true;
 }
 
-bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CBaseCoinTransferTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
@@ -54,7 +54,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
             CRegID regId;
             // If the source account does NOT have CRegID, need to generate a new CRegID.
             if (!cw.accountCache.GetRegId(txUid, regId)) {
-                srcAcct.regid = CRegID(nHeight, nIndex);
+                srcAcct.regid = CRegID(height, index);
                 generateRegID = true;
             }
         }
@@ -95,7 +95,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          desAcct.keyid.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid, toUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid, toUid}))
         return false;
 
     return true;

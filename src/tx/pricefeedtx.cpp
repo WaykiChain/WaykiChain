@@ -14,7 +14,7 @@
 #include "commons/util.h"
 #include "config/version.h"
 
-bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -49,7 +49,7 @@ bool CPriceFeedTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
     return true;
 }
 
-bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
@@ -66,12 +66,12 @@ bool CPriceFeedTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
     }
 
     // update the price feed cache accordingly
-    if (!cw.ppCache.AddBlockPricePointInBatch(nHeight, txUid.get<CRegID>(), pricePoints)) {
+    if (!cw.ppCache.AddBlockPricePointInBatch(height, txUid.get<CRegID>(), pricePoints)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;

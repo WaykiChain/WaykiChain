@@ -63,8 +63,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
+    bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif

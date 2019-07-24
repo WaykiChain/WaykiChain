@@ -84,8 +84,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
@@ -155,10 +155,10 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int index, CCacheWrapper &cw, CValidationState &state);
 private:
-    bool SellInterestForFcoins(const int nHeight, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const int height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256 cdpTxId;          // CDP cdpTxId
@@ -226,11 +226,11 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int nHeight,
+    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int height,
                             const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:

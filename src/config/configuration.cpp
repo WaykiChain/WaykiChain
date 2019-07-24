@@ -206,9 +206,9 @@ unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
     return 0;
 }
 
-uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int nHeight) const {
+uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int height) const {
     uint64_t nSubsidy = nInitialSubsidy;
-    int nHalvings     = nHeight / SysCfg().GetSubsidyHalvingInterval();
+    int nHalvings     = height / SysCfg().GetSubsidyHalvingInterval();
     // Force block reward to a fixed value when right shift is more than 3.
     if (nHalvings > 4) {
         return nFixedSubsidy;

@@ -16,10 +16,10 @@ CTxMemPoolEntry::CTxMemPoolEntry() {
     dPriority = 0.0;
 
     nTime   = 0;
-    nHeight = 0;
+    height = 0;
 }
 
-CTxMemPoolEntry::CTxMemPoolEntry(CBaseTx *pBaseTx, int64_t time, uint32_t height) : nTime(time), nHeight(height) {
+CTxMemPoolEntry::CTxMemPoolEntry(CBaseTx *pBaseTx, int64_t time, uint32_t height) : nTime(time), height(height) {
     pTx       = pBaseTx->GetNewInstance();
     nFees     = pTx->GetFees();
     nTxSize   = ::GetSerializeSize(*pTx, SER_NETWORK, PROTOCOL_VERSION);
@@ -33,7 +33,7 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
     this->dPriority = other.dPriority;
 
     this->nTime     = other.nTime;
-    this->nHeight   = other.nHeight;
+    this->height   = other.height;
 }
 
 CTxMemPool::CTxMemPool() {

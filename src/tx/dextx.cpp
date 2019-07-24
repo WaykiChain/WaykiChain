@@ -54,7 +54,7 @@ Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXBuyLimitOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -96,7 +96,7 @@ bool CDEXBuyLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSta
     return true;
 }
 
-bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXBuyLimitOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, read source addr account info error"),
@@ -129,7 +129,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;
@@ -179,7 +179,7 @@ Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSellLimitOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -215,7 +215,7 @@ bool CDEXSellLimitOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
     return true;
 }
 
-bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSellLimitOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, read source addr account info error"),
@@ -245,7 +245,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;
@@ -286,7 +286,7 @@ Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXBuyMarketOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -322,7 +322,7 @@ bool CDEXBuyMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationSt
     return true;
 }
 
-bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXBuyMarketOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, read source addr account info error"),
@@ -353,7 +353,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw,
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;
@@ -393,7 +393,7 @@ Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const 
     return result;
 }
 
-bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSellMarketOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -429,7 +429,7 @@ bool CDEXSellMarketOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationS
     return true;
 }
 
-bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSellMarketOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, read source addr account info error"),
@@ -459,7 +459,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;
@@ -498,7 +498,7 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXCancelOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -517,7 +517,7 @@ bool CDEXCancelOrderTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
     return true;
 }
 
-bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXCancelOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
@@ -574,7 +574,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;
@@ -675,7 +675,7 @@ bool CDEXSettleTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSettleTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -786,7 +786,7 @@ bool CDEXSettleTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &sta
             update active order to dex db
         }
 */
-bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSettleTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
    if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read source addr account info error"),
@@ -995,7 +995,7 @@ bool CDEXSettleTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;

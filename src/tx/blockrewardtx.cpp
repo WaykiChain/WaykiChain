@@ -8,20 +8,20 @@
 
 #include "main.h"
 
-bool CBlockRewardTx::CheckTx(int32_t nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
 
-bool CBlockRewardTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (0 == nIndex) {
+    if (0 == index) {
         // When the reward transaction is immature, should NOT update account's balances.
-    } else if (-1 == nIndex) {
+    } else if (-1 == index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
         account.OperateBalance(SYMB::WICC, ADD_FREE, rewardValue);
@@ -35,7 +35,7 @@ bool CBlockRewardTx::ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &c
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
-    if (nIndex == 0 && !SaveTxAddresses(nHeight, nIndex, cw, state, {txUid}))
+    if (index == 0 && !SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;
@@ -87,16 +87,16 @@ bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
     return true;
 }
 
-bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (0 == nIndex) {
+    if (0 == index) {
         // When the reward transaction is immature, should NOT update account's balances.
-    } else if (-1 == nIndex) {
+    } else if (-1 == index) {
         // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
         // the target account.
         for (const auto &item : rewardValues) {
@@ -120,7 +120,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWrappe
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
-    if (nIndex == 0 && !SaveTxAddresses(height, nIndex, cw, state, {txUid}))
+    if (index == 0 && !SaveTxAddresses(height, index, cw, state, {txUid}))
         return false;
 
     return true;

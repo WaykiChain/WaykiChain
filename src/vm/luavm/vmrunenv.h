@@ -71,7 +71,7 @@ private:
      * @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int nHeight);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int height);
     /**
      * @brief check aciton
      * @param listoperate: run the script return the code,check the code

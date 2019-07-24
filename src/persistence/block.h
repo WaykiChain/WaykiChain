@@ -61,7 +61,7 @@ protected:
     uint256 merkleRootHash;
     unsigned int nTime;
     unsigned int nNonce;
-    unsigned int nHeight;
+    unsigned int height;
     int64_t nFuel;
     int nFuelRate;
     vector<unsigned char> vSignature;
@@ -77,7 +77,7 @@ public:
         READWRITE(merkleRootHash);
         READWRITE(nTime);
         READWRITE(nNonce);
-        READWRITE(nHeight);
+        READWRITE(height);
         READWRITE(nFuel);
         READWRITE(nFuelRate);
         READWRITE(vSignature);
@@ -89,7 +89,7 @@ public:
         merkleRootHash = uint256();
         nTime          = 0;
         nNonce         = 0;
-        nHeight        = 0;
+        height        = 0;
         nFuel          = 0;
         nFuelRate      = 100;
         vSignature.clear();
@@ -108,7 +108,7 @@ public:
     void SetTime(unsigned int time) { this->nTime = time; }
     unsigned int GetNonce() const { return nNonce; }
     void SetNonce(unsigned int nonce) { this->nNonce = nonce; }
-    unsigned int GetHeight() const { return nHeight; }
+    unsigned int GetHeight() const { return height; }
     void SetHeight(unsigned int height);
     unsigned int GetFuel() const { return nFuel; }
     void SetFuel(int64_t fuel) { this->nFuel = fuel; }
@@ -152,7 +152,7 @@ public:
         block.SetMerkleRootHash(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
-        block.SetHeight(nHeight);
+        block.SetHeight(height);
         block.SetFuel(nFuel);
         block.SetFuelRate(nFuelRate);
         block.SetSignature(vSignature);
@@ -164,14 +164,14 @@ public:
 
     std::tuple<bool, int> GetTxIndex(const uint256 &txid) const;
 
-    const uint256 &GetTxid(unsigned int nIndex) const {
+    const uint256 &GetTxid(unsigned int index) const {
         assert(vMerkleTree.size() > 0);  // BuildMerkleTree must have been called first
-        assert(nIndex < vptx.size());
-        return vMerkleTree[nIndex];
+        assert(index < vptx.size());
+        return vMerkleTree[index];
     }
 
-    vector<uint256> GetMerkleBranch(int nIndex) const;
-    static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int nIndex);
+    vector<uint256> GetMerkleBranch(int index) const;
+    static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int index);
 
     // TODO: Fees
     // int64_t GetFees() const;
@@ -197,7 +197,7 @@ public:
     CBlockIndex *pskip;
 
     // height of the entry in the chain. The genesis block has height 0
-    int nHeight;
+    int height;
 
     // Which # file this block is stored in (blk?????.dat)
     int nFile;
@@ -246,7 +246,7 @@ public:
         pBlockHash       = nullptr;
         pprev            = nullptr;
         pskip            = nullptr;
-        nHeight          = 0;
+        height          = 0;
         nFile            = 0;
         nDataPos         = 0;
         nUndoPos         = 0;
@@ -274,7 +274,7 @@ public:
         pBlockHash       = nullptr;
         pprev            = nullptr;
         pskip            = nullptr;
-        nHeight          = 0;
+        height          = 0;
         nFile            = 0;
         nDataPos         = 0;
         nUndoPos         = 0;
@@ -330,7 +330,7 @@ public:
         block.SetMerkleRootHash(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
-        block.SetHeight(nHeight);
+        block.SetHeight(height);
         block.SetSignature(vSignature);
         return block;
     }
@@ -365,8 +365,8 @@ public:
                                 unsigned int nRequired, unsigned int nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, nHeight=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s)",
-                        pprev, nHeight, merkleRootHash.ToString(), GetBlockHash().ToString(),
+        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s)",
+                        pprev, height, merkleRootHash.ToString(), GetBlockHash().ToString(),
                         nBlockFee, nChainWork.ToString());
     }
 
@@ -397,7 +397,7 @@ public:
             READWRITE(VARINT(nVersion));
 
         READWRITE(nBlockFee);
-        READWRITE(VARINT(nHeight));
+        READWRITE(VARINT(height));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));
         if (nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO))
@@ -428,7 +428,7 @@ public:
         block.SetMerkleRootHash(merkleRootHash);
         block.SetTime(nTime);
         block.SetNonce(nNonce);
-        block.SetHeight(nHeight);
+        block.SetHeight(height);
         block.SetFuel(nFuel);
         block.SetFuelRate(nFuelRate);
         block.SetSignature(vSignature);

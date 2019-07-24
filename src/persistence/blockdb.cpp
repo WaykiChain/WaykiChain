@@ -106,7 +106,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
                 // Construct block index object
                 CBlockIndex *pIndexNew    = InsertBlockIndex(diskindex.GetBlockHash());
                 pIndexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-                pIndexNew->nHeight        = diskindex.nHeight;
+                pIndexNew->height        = diskindex.height;
                 pIndexNew->nFile          = diskindex.nFile;
                 pIndexNew->nDataPos       = diskindex.nDataPos;
                 pIndexNew->nUndoPos       = diskindex.nUndoPos;

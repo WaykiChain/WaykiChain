@@ -8,15 +8,23 @@
 #include "main.h"
 
 
-bool CBlockPriceMedianTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    // TODO: check
+
+    map<CCoinPriceType, uint64_t> mapMedianPricePoints;
+    cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
+
+    if (mapMedianPricePoints != median_price_points) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, invalid median price points"), REJECT_INVALID,
+                         "bad-median-price-points");
+    }
+
     return true;
 }
 /**
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 100%)
  */
-bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
@@ -29,7 +37,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(nHeight),
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(height),
                                                       globalCollateralRatioFloor)) {
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
         return true;
@@ -37,7 +45,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 
     //1. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;
-    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(nHeight);
+    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height);
     uint64_t forceLiquidateRatio = 0;
     if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
@@ -46,7 +54,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
     cw.cdpCache.cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCdps);
 
     //2. force settle each cdp
-    int cdpIndex = 0;
+    int32_t cdpIndex = 0;
     for (auto cdp : forceLiquidateCdps) {
         if (++cdpIndex > kForceSettleCDPMaxCountPerBlock)
             break;
@@ -73,7 +81,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
         assert(cdp.total_owed_scoins > cdp.total_staked_bcoins * bcoinMedianPrice);
         uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - cdp.total_staked_bcoins * bcoinMedianPrice;
-        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(nHeight);
+        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height);
         auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WGRT, fcoinsToInflate);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",
@@ -100,15 +108,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
 
     cw.accountCache.SaveAccount(fcoinGenesisAccount);
 
-    bool ret = SaveTxAddresses(nHeight, nIndex, cw, state, {txUid});
-    return ret;
+    return SaveTxAddresses(height, index, cw, state, {txUid});
 }
 
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
-    for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
-        pricePoints +=
-            strprintf("{coin_type:%u, price_type:%u, price:%lld}", it->first.coinType, it->first.priceType, it->second);
+    for (const auto item : median_price_points) {
+        pricePoints += strprintf("{coin_type:%u, price_type:%u, price:%lld}", item.first.coinType, item.first.priceType,
+                                 item.second);
     };
 
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, nValidHeight=%d\n",
@@ -122,11 +129,11 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
 
     Array pricePointArray;
-    for (auto it = mapMedianPricePoints.begin(); it != mapMedianPricePoints.end(); ++it) {
+    for (const auto &item : median_price_points) {
         Object subItem;
-        subItem.push_back(Pair("coin_type",     it->first.coinType));
-        subItem.push_back(Pair("price_type",    it->first.priceType));
-        subItem.push_back(Pair("price",         it->second));
+        subItem.push_back(Pair("coin_type",     item.first.coinType));
+        subItem.push_back(Pair("price_type",    item.first.priceType));
+        subItem.push_back(Pair("price",         item.second));
         pricePointArray.push_back(subItem);
     }
     result.push_back(Pair("median_price_points",   pricePointArray));
@@ -140,5 +147,5 @@ bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyI
 }
 
 map<CCoinPriceType, uint64_t> CBlockPriceMedianTx::GetMedianPrice() const {
-    return mapMedianPricePoints;
+    return median_price_points;
 }

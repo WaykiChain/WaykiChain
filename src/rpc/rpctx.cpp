@@ -64,7 +64,7 @@ Value gettransaction(const Array& params, bool fHelp) {
         if (txid == genesisblock.GetTxid(i)) {
             double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValues()[CoinType::WICC]) / COIN;
             obj.push_back(Pair("amount", dAmount));
-            obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight));
+            obj.push_back(Pair("confirmations", chainActive.Tip()->height));
             obj.push_back(Pair("block_hash", genesisblock.GetHash().GetHex()));
             obj.push_back(Pair("block_index", (int)i));
             obj.push_back(Pair("block_time", (int)genesisblock.GetTime()));
@@ -91,7 +91,7 @@ Value gettransaction(const Array& params, bool fHelp) {
                 double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
                 obj.push_back(Pair("amount", dAmount));
                 obj.push_back(
-                    Pair("confirmations", chainActive.Tip()->nHeight - (int)header.GetHeight()));
+                    Pair("confirmations", chainActive.Tip()->height - (int)header.GetHeight()));
                 obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
                 obj.push_back(Pair("blocktime", (int)header.GetTime()));
                 obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
@@ -211,7 +211,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         }
         rtx.txUid        = pubkey;
         rtx.llFees       = fee;
-        rtx.nValidHeight = chainActive.Tip()->nHeight;
+        rtx.nValidHeight = chainActive.Tip()->height;
 
         if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
@@ -444,7 +444,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         tx.llFees         = fee;
         tx.nRunStep       = contractScript.size();
         if (0 == height) {
-            height = chainActive.Tip()->nHeight;
+            height = chainActive.Tip()->height;
         }
         tx.nValidHeight = height;
 
@@ -502,9 +502,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fee    = params[2].get_uint64();  // real type
-    int nHeight     = 0;
+    int height     = 0;
     if (params.size() > 3) {
-        nHeight = params[3].get_int();
+        height = params[3].get_int();
     }
     Array arrVotes = params[1].get_array();
 
@@ -537,10 +537,10 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         }
 
         delegateVoteTx.llFees = fee;
-        if (0 != nHeight) {
-            delegateVoteTx.nValidHeight = nHeight;
+        if (0 != height) {
+            delegateVoteTx.nValidHeight = height;
         } else {
-            delegateVoteTx.nValidHeight = chainActive.Tip()->nHeight;
+            delegateVoteTx.nValidHeight = chainActive.Tip()->height;
         }
         delegateVoteTx.txUid = account.regid;
 
@@ -622,10 +622,10 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fees   = params[2].get_uint64();
-    int32_t nHeight = chainActive.Tip()->nHeight;
+    int32_t height = chainActive.Tip()->height;
     if (params.size() > 3) {
-        nHeight = params[3].get_int();
-        if (nHeight <= 0) {
+        height = params[3].get_int();
+        if (height <= 0) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
         }
     }
@@ -661,7 +661,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         }
 
         delegateVoteTx.llFees       = fees;
-        delegateVoteTx.nValidHeight = nHeight;
+        delegateVoteTx.nValidHeight = height;
         delegateVoteTx.txUid        = account.regid;
 
         for (auto objVote : arrVotes) {
@@ -785,11 +785,11 @@ Value listtransactions(const Array& params, bool fHelp) {
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
         if (pIndex != nullptr)
-            blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
+            blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
     }
 
     int txnCount(0);
-    int nIndex(0);
+    int index(0);
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pWalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
@@ -820,7 +820,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     bRecv = false;
                 }
 
-                if(nFrom > 0 && nIndex++ < nFrom) {
+                if(nFrom > 0 && index++ < nFrom) {
                     continue;
                 }
 
@@ -839,7 +839,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -859,7 +859,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("category", "receive"));
                         double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -896,7 +896,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     bRecv = false;
                 }
 
-                if(nFrom > 0 && nIndex++ < nFrom) {
+                if(nFrom > 0 && index++ < nFrom) {
                     continue;
                 }
 
@@ -915,7 +915,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -936,7 +936,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
                         obj.push_back(Pair("amount", dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -994,7 +994,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
     LOCK2(cs_main, pWalletMain->cs_wallet);
 
     int txnCount(0);
-    int nIndex(0);
+    int index(0);
     CAccountDBCache accView(*pCdMan->pAccountCache);
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         for (auto const & item : wtx.second.mapAccountTx) {
@@ -1014,7 +1014,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
                 if ("*" != strAddress && desAddr != strAddress) {
                     continue;
                 }
-                if (nFrom > 0 && nIndex++ < nFrom) {
+                if (nFrom > 0 && index++ < nFrom) {
                     continue;
                 }
                 if (nCount > 0 && txnCount++ > nCount) {
@@ -1024,7 +1024,7 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
                 obj.push_back(Pair("desaddr", desAddr));
                 double dAmount = static_cast<double>(item.second->GetValues()[CoinType::WICC]) / COIN;
                 obj.push_back(Pair("amount", dAmount));
-                obj.push_back(Pair("confirmations", chainActive.Tip()->nHeight - wtx.second.blockHeight));
+                obj.push_back(Pair("confirmations", chainActive.Tip()->height - wtx.second.blockHeight));
                 obj.push_back(Pair("blockhash", (chainActive[wtx.second.blockHeight]->GetBlockHash().GetHex())));
                 obj.push_back(Pair("blocktime", (int64_t)(chainActive[wtx.second.blockHeight]->nTime)));
                 obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -1086,16 +1086,16 @@ Value listcontracttx(const Array& params, bool fHelp)
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
         if (pIndex != nullptr)
-            blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
+            blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
     }
 
     int txnCount(0);
-    int nIndex(0);
+    int index(0);
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pWalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
             if (item.second.get() && item.second->nTxType == CONTRACT_INVOKE_TX) {
-                if (nFrom > 0 && nIndex++ < nFrom) {
+                if (nFrom > 0 && index++ < nFrom) {
                     continue;
                 }
                 if (nCount > 0 && txnCount > nCount) {
@@ -1165,7 +1165,7 @@ if (fHelp || params.size() > 2) {
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
         if (pIndex != nullptr)
-            blockInfoMap.insert(make_pair(pIndex->nHeight, wtx.first));
+            blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
     }
     bool bUpLimited = false;
     for (auto const &blockInfo : blockInfoMap) {
@@ -1287,7 +1287,7 @@ static Value AccountLogToJson(const CAccount &accoutLog) {
     // for (auto const& te : account.vRewardFund) {
     //     Object obj2;
     //     obj2.push_back(Pair("value", te.value));
-    //     obj2.push_back(Pair("nHeight", te.nHeight));
+    //     obj2.push_back(Pair("height", te.height));
     //     array.push_back(obj2);
     // }
     // obj.push_back(Pair("vRewardFund", array));
@@ -1339,13 +1339,13 @@ static Value TestDisconnectBlock(int number) {
     Object obj;
 
     CValidationState state;
-    if ((chainActive.Tip()->nHeight - number) < 0) {
+    if ((chainActive.Tip()->height - number) < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "restclient Error: number");
     }
     if (number > 0) {
         do {
             CBlockIndex * pTipIndex = chainActive.Tip();
-            LogPrint("DEBUG", "current height:%d\n", pTipIndex->nHeight);
+            LogPrint("DEBUG", "current height:%d\n", pTipIndex->height);
             if (!DisconnectBlockFromTip(state))
                 return false;
             chainMostWork.SetTip(pTipIndex->pprev);
@@ -1357,7 +1357,7 @@ static Value TestDisconnectBlock(int number) {
         } while (--number);
     }
 
-    obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Tip()->nHeight)));
+    obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Tip()->height)));
     return obj;
 }
 
@@ -1544,8 +1544,8 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     }
     pCdMan->pTxCache->Clear();
     CBlockIndex *pIndex = chainActive.Tip();
-    if ((chainActive.Tip()->nHeight - SysCfg().GetTxCacheHeight()) >= 0) {
-        pIndex = chainActive[(chainActive.Tip()->nHeight - SysCfg().GetTxCacheHeight())];
+    if ((chainActive.Tip()->height - SysCfg().GetTxCacheHeight()) >= 0) {
+        pIndex = chainActive[(chainActive.Tip()->height - SysCfg().GetTxCacheHeight())];
     } else {
         pIndex = chainActive.Genesis();
     }
@@ -1553,7 +1553,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     do {
         if (!ReadBlockFromDisk(pIndex, block))
             return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s",
-                pIndex->nHeight, pIndex->GetBlockHash().ToString());
+                pIndex->height, pIndex->GetBlockHash().ToString());
 
         pCdMan->pTxCache->AddBlockToCache(block);
         pIndex = chainActive.Next(pIndex);
@@ -1639,7 +1639,7 @@ Value saveblocktofile(const Array& params, bool fHelp) {
         if (!fileout)
             throw JSONRPCError(RPC_MISC_ERROR, "open file:" + strblockhash + "failed!");
         if(chainActive.Contains(pIndex))
-            fileout << pIndex->nHeight;
+            fileout << pIndex->height;
         fileout << blockInfo;
         fflush(fileout);
     } catch (std::exception &e) {
@@ -1791,7 +1791,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     int64_t amount = AmountToRawValue(params[3]);;
     int64_t fee = AmountToRawValue(params[4]);
 
-    int height = chainActive.Tip()->nHeight;
+    int height = chainActive.Tip()->height;
     if (params.size() > 5)
         height = params[5].get_int();
 
@@ -1935,7 +1935,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     tx.get()->contract_code  = contractScript;
     tx.get()->llFees         = fee;
 
-    uint32_t height = chainActive.Tip()->nHeight;
+    uint32_t height = chainActive.Tip()->height;
     if (params.size() > 3) {
         height =  params[3].get_int();
         if (height <= 0) {
@@ -2497,7 +2497,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
-    appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
+    appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
 
     return Value(appUserAccount.get()->ToJson());
 }
@@ -2537,7 +2537,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
             if (!contractScriptTemp.GetContractAccount(script, key, *tem.get())) {
                 tem = std::make_shared<CAppUserAccount>(key);
             }
-            tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->nHeight);
+            tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
 
             Object obj;
             obj.push_back(Pair("addr", key));
