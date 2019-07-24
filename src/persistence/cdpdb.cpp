@@ -23,8 +23,8 @@ bool CCdpMemCache::LoadAllCdpFromDB() {
         static uint8_t valid = 1; // 0: invalid; 1: valid
 
         cdps.emplace(item.second, valid);
-        totalStakedBcoins += item.second.totalStakedBcoins;
-        totalOwedScoins += item.second.totalOwedScoins;
+        total_staked_bcoins += item.second.total_staked_bcoins;
+        total_owed_scoins += item.second.total_owed_scoins;
     }
 
     return true;
@@ -46,8 +46,8 @@ bool CCdpMemCache::SaveCdp(const CUserCDP &userCdp) {
     static uint8_t valid = 1;  // 0: invalid; 1: valid
     cdps.emplace(userCdp, valid);
 
-    totalStakedBcoins += userCdp.totalStakedBcoins;
-    totalOwedScoins += userCdp.totalOwedScoins;
+    total_staked_bcoins += userCdp.total_staked_bcoins;
+    total_owed_scoins += userCdp.total_owed_scoins;
 
     return true;
 }
@@ -56,8 +56,8 @@ bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
     static uint8_t invalid = 0;  // 0: invalid; 1: valid
 
     cdps[userCdp] = invalid;
-    totalStakedBcoins -= userCdp.totalStakedBcoins;
-    totalOwedScoins -= userCdp.totalOwedScoins;
+    total_staked_bcoins -= userCdp.total_staked_bcoins;
+    total_owed_scoins -= userCdp.total_owed_scoins;
 
     return true;
 }
@@ -65,11 +65,11 @@ bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
 
 uint64_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const {
     // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
-    return (totalOwedScoins == 0) ? UINT64_MAX : totalStakedBcoins * bcoinMedianPrice * kPercentBoost / totalOwedScoins;
+    return (total_owed_scoins == 0) ? UINT64_MAX : total_staked_bcoins * bcoinMedianPrice * kPercentBoost / total_owed_scoins;
 }
 
 uint64_t CCdpMemCache::GetGlobalCollateral() const {
-    return totalStakedBcoins;
+    return total_staked_bcoins;
 }
 
 bool CCdpMemCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
@@ -134,9 +134,9 @@ bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bco
 
     // 2. update cdp's properties before saving
     cdp.blockHeight = blockHeight;
-    cdp.totalStakedBcoins += bcoinsToStake;
-    cdp.totalOwedScoins += mintedScoins;
-    cdp.collateralRatioBase = double(cdp.totalStakedBcoins) / cdp.totalOwedScoins;
+    cdp.total_staked_bcoins += bcoinsToStake;
+    cdp.total_owed_scoins += mintedScoins;
+    cdp.collateralRatioBase = double(cdp.total_staked_bcoins) / cdp.total_owed_scoins;
     if (!SaveCdp(cdp)) {
         return ERRORMSG("CCdpDBCache::StakeBcoinsToCdp : SetData failed.");
     }

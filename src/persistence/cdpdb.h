@@ -44,10 +44,10 @@ private:
 
 private:
     map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
-    uint64_t totalStakedBcoins = 0;
-    uint64_t totalOwedScoins   = 0;
-    CCdpMemCache *pBase        = nullptr;
-    CDBAccess *pAccess         = nullptr;
+    uint64_t total_staked_bcoins = 0;
+    uint64_t total_owed_scoins   = 0;
+    CCdpMemCache *pBase         = nullptr;
+    CDBAccess *pAccess          = nullptr;
 };
 
 class CCdpDBCache {

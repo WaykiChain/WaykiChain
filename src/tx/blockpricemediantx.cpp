@@ -52,18 +52,18 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
             break;
 
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)", cdp.ToString());
-        if (currRiskReserveScoins < cdp.totalOwedScoins) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.totalOwedScoins(%lu) !!",
-                    currRiskReserveScoins, cdp.totalOwedScoins);
+        if (currRiskReserveScoins < cdp.total_owed_scoins) {
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!",
+                    currRiskReserveScoins, cdp.total_owed_scoins);
             break;
         }
 
         // a) minus scoins from the risk reserve pool to repay CDP scoins
         uint64_t prevRiskReserveScoins = currRiskReserveScoins;
-        currRiskReserveScoins -= cdp.totalOwedScoins;
+        currRiskReserveScoins -= cdp.total_owed_scoins;
 
         // b) sell WICC for WUSD to return to risk reserve pool
-        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WICC, cdp.totalStakedBcoins);
+        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WICC, cdp.total_staked_bcoins);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pBcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellBcoinForScoin (%s) failed!!",
                     pBcoinSellMarketOrder->ToString());
@@ -71,8 +71,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, 
         }
 
         // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
-        assert(cdp.totalOwedScoins > cdp.totalStakedBcoins * bcoinMedianPrice);
-        uint64_t fcoinsValueToInflate = cdp.totalOwedScoins - cdp.totalStakedBcoins * bcoinMedianPrice;
+        assert(cdp.total_owed_scoins > cdp.total_staked_bcoins * bcoinMedianPrice);
+        uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - cdp.total_staked_bcoins * bcoinMedianPrice;
         uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(nHeight);
         auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WGRT, fcoinsToInflate);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder)) {
