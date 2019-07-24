@@ -799,7 +799,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
 
         case UCOIN_BLOCK_REWARD_TX:
-            Serialize(os, *((CMultiCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
+            Serialize(os, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
         // TODO: UCOIN_CONTRACT_INVOKE_TX
         case UCOIN_TRANSFER_TX:
             Serialize(os, *((CCoinTransferTx *)(pa.get())), nType, nVersion); break;
@@ -887,8 +887,8 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
         }
 
         case UCOIN_BLOCK_REWARD_TX: {
-            pa = std::make_shared<CMultiCoinBlockRewardTx>();
-            Unserialize(is, *((CMultiCoinBlockRewardTx *)(pa.get())), nType, nVersion);
+            pa = std::make_shared<CUCoinBlockRewardTx>();
+            Unserialize(is, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion);
             break;
         }
         // TODO: UCOIN_CONTRACT_INVOKE_TX

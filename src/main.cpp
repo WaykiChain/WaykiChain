@@ -1423,7 +1423,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
+        auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
         // TODO:
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
@@ -2073,7 +2073,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx = (CMultiCoinBlockRewardTx *)block.vptx[0].get();
+        auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",

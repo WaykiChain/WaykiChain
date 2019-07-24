@@ -83,14 +83,14 @@ bool CBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CMultiCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
 
-bool CMultiCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
+bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, read source addr %s account info error",
+        return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
@@ -104,18 +104,18 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWr
                 case CoinType::WICC: account.GetToken("WICC").free_amount += item.second; break;
                 case CoinType::WUSD: account.free_scoins += item.second; break;
                 case CoinType::WGRT: account.free_fcoins += item.second; break;
-                default: return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid coin type");
+                default: return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
             }
         }
 
         // Assign profits to the delegate's account.
         account.GetToken("WICC").free_amount += profits;
     } else {
-        return ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, invalid index");
+        return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid index");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
-        return state.DoS(100, ERRORMSG("CMultiCoinBlockRewardTx::ExecuteTx, write secure account info error"),
+        return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     // Block reward transaction will execute twice, but need to save once when index equals to zero.
@@ -125,7 +125,7 @@ bool CMultiCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t nIndex, CCacheWr
     return true;
 }
 
-map<CoinType, uint64_t> CMultiCoinBlockRewardTx::GetValues() const {
+map<CoinType, uint64_t> CUCoinBlockRewardTx::GetValues() const {
     map<CoinType, uint64_t> rewardValuesOut;
     for (const auto &item : rewardValues) {
         rewardValuesOut.emplace(CoinType(item.first), item.second);
@@ -134,7 +134,7 @@ map<CoinType, uint64_t> CMultiCoinBlockRewardTx::GetValues() const {
     return rewardValuesOut;
 }
 
-string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
+string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
@@ -147,7 +147,7 @@ string CMultiCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), rewardValue, nValidHeight);
 }
 
-Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
@@ -168,7 +168,7 @@ Object CMultiCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) cons
     return result;
 }
 
-bool CMultiCoinBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+bool CUCoinBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     if (!cw.accountCache.GetKeyId(txUid, keyId))
         return false;

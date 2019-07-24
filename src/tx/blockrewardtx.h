@@ -61,19 +61,18 @@ public:
     virtual bool ExecuteTx(int32_t nHeight, int32_t nIndex, CCacheWrapper &cw, CValidationState &state);
 };
 
-
-class CMultiCoinBlockRewardTx : public CBaseTx {
+class CUCoinBlockRewardTx : public CBaseTx {
 public:
     map<uint8_t /* CoinType */, uint64_t /* reward value */> rewardValues;
     uint64_t profits;  // Profits as delegate according to received votes.
 
 public:
-    CMultiCoinBlockRewardTx(): CBaseTx(UCOIN_BLOCK_REWARD_TX), profits(0) {}
-    CMultiCoinBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_BLOCK_REWARD_TX), profits(0) {
+    CUCoinBlockRewardTx(): CBaseTx(UCOIN_BLOCK_REWARD_TX), profits(0) {}
+    CUCoinBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_BLOCK_REWARD_TX), profits(0) {
         assert(UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType);
-        *this = *(CMultiCoinBlockRewardTx *)pBaseTx;
+        *this = *(CUCoinBlockRewardTx *)pBaseTx;
     }
-    CMultiCoinBlockRewardTx(const CUserID &txUidIn, const map<CoinType, uint64_t> rewardValuesIn,
+    CUCoinBlockRewardTx(const CUserID &txUidIn, const map<CoinType, uint64_t> rewardValuesIn,
                             const int32_t validHeightIn)
         : CBaseTx(UCOIN_BLOCK_REWARD_TX) {
         txUid = txUidIn;
@@ -84,7 +83,7 @@ public:
 
         nValidHeight = validHeightIn;
     }
-    ~CMultiCoinBlockRewardTx() {}
+    ~CUCoinBlockRewardTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -108,7 +107,7 @@ public:
 
     map<CoinType, uint64_t> GetValues() const;
     uint64_t GetProfits() const { return profits; }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMultiCoinBlockRewardTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUCoinBlockRewardTx>(this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
