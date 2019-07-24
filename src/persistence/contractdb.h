@@ -96,7 +96,7 @@ public:
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        scriptCache.SetDbOpLogMap(pDbOpLogMapIn);
+        contractCache.SetDbOpLogMap(pDbOpLogMapIn);
         txOutputCache.SetDbOpLogMap(pDbOpLogMapIn);
         acctTxListCache.SetDbOpLogMap(pDbOpLogMapIn);
         txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
@@ -106,7 +106,7 @@ public:
     }
 
     bool UndoDatas() {
-        return scriptCache.UndoDatas() &&
+        return contractCache.UndoDatas() &&
                txOutputCache.UndoDatas() &&
                acctTxListCache.UndoDatas() &&
                txDiskPosCache.UndoDatas() &&

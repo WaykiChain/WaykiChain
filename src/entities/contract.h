@@ -12,10 +12,10 @@
 #include <string>
 
 enum VMType : uint8_t {
-    LUA_VM,
-    WASM_VM,
-    EVM,
-    NULL_VM,
+    NULL_VM     = 0,
+    LUA_VM      = 1,
+    WASM_VM     = 2,
+    EVM         = 3
 };
 
 class CContract {
@@ -27,6 +27,8 @@ public:
     string memo;
 
 public:
+    CContract(): vm_type(NULL_VM) {}
+
     CContract(VMType vmTypeIn, string codeIn) : 
         vm_type(vmTypeIn), code(codeIn), abi(""), memo("") { }; //for old-version compability
 
@@ -36,7 +38,7 @@ public:
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << vm_type << code << abi << memo;
+            ss << (uint8_t&)vm_type << code << abi << memo;
             sigHash = ss.GetHash();
         }
 
