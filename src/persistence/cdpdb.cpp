@@ -147,32 +147,19 @@ bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bco
     return true;
 }
 
-bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdps) {
-    map<std::pair<string, uint256>, CUserCDP> elements;
-    if (!cdpCache.GetAllElements(regId.ToRawString(), elements)) {
-        return false;
-    }
-
-    for (const auto &item : elements) {
-        cdps.push_back(item.second);
-    }
-
-    return true;
-}
-
 bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
-    if (!cdpCache.GetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp))
+    if (!cdpCache.GetData(cdp.cdpTxId, cdp))
         return false;
 
     return true;
 }
 
 bool CCdpDBCache::SaveCdp(CUserCDP &cdp) {
-    return cdpCache.SetData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId), cdp);
+    return cdpCache.SetData(cdp.cdpTxId, cdp);
 }
 
 bool CCdpDBCache::EraseCdp(const CUserCDP &cdp) {
-    return cdpCache.EraseData(std::make_pair(cdp.ownerRegId.ToRawString(), cdp.cdpTxId));
+    return cdpCache.EraseData(cdp.cdpTxId));
 }
 
 // global collateral ratio floor check
