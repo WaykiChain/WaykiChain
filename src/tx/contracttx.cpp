@@ -39,7 +39,7 @@ bool CContractDeployTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
+    CDataStream stream(contract_code, SER_DISK, CLIENT_VERSION);
     CVmScript vmScript;
     try {
         stream >> vmScript;
@@ -113,7 +113,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     contractAccount.nickid = CNickID();
 
     // save new script content
-    if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, code))) {
+    if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, contract_code))) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save code for contract id %s error",
             contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -122,7 +122,7 @@ bool CContractDeployTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
-    nRunStep = contractScript.size();
+    nRunStep = contract_code.size();
 
     if (!SaveTxAddresses(nHeight, nIndex, cw, state, {txUid})) return false;
 
@@ -268,7 +268,7 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
     }
 
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance("WICC", SUB_FREE, minusValue))
+    if (!srcAcct.OperateBalance("WICC", BalanceOpType::SUB_FREE, minusValue))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
@@ -287,12 +287,12 @@ bool CContractInvokeTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cw, CV
             appUid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAcct.OperateBalance("WICC", ADD_FREE, bcoins)) {
+    if (!desAcct.OperateBalance("WICC", BalanceOpType::ADD_FREE, bcoins)) {
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.accountCache.SaveAccount(appUid, desAcct))
+    if (!cw.accountCache.SetAccount(appUid, desAcct))
         return state.DoS(100, ERRORMSG("CContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
             desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 

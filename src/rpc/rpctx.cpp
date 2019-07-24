@@ -1444,7 +1444,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     }
 
     CContract contract;
-    if (!pCdMan->pContractCache->GetContract(contract)) {
+    if (!pCdMan->pContractCache->GetContract(regId, contract)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
 

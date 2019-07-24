@@ -98,7 +98,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     }
 
     int32_t validHeight = chainActive.Height();
-    CPriceFeedTx tx(*feedUid, validHeight, fee, pricePoints);
+    CPriceFeedTx tx(*feedUid, validHeight, fees, pricePoints);
     return SubmitTx(*feedUid, tx);
 }
 

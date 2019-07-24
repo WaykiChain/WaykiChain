@@ -10,7 +10,6 @@
 #include <boost/thread/thread.hpp>
 
 using std::string;
-using namespace boost;
 
 class CWallet;
 
