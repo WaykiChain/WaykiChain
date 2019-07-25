@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "commons/types.h"
 #include "config/const.h"
 #include "crypto/hash.h"
 #include "id.h"
