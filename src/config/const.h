@@ -16,5 +16,12 @@ static const string WICC = "WICC";
 static const string WGRT = "WGRT";
 static const string WUSD = "WUSD";
 
+static const string USD  = "USD";
+static const string CNY  = "CNY";
+static const string EUR  = "EUR";
+static const string BTC  = "BTC";
+static const string USDT = "USDT";
+static const string GOLD = "GOLD";
+static const string KWH  = "KWH";
 }
 #endif //CONFIG_CONST_H
