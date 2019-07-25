@@ -334,7 +334,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
     }
     uint64_t releasedBcoins = cdp.total_staked_bcoins - scoins_to_repay;
-    account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoins_to_redeem);
+    account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoins_to_repay);
     account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, releasedBcoins);
 
     cdp.total_staked_bcoins = (uint64_t) scoins_to_repay;
@@ -344,7 +344,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
     vector<CReceipt> receipts;
     CUserID nullUid;
-    CReceipt receipt1(nTxType, txUid, nullUid, SYMB::WUSD, scoinsToRedeem);
+    CReceipt receipt1(nTxType, txUid, nullUid, SYMB::WUSD, scoins_to_repay);
     receipts.push_back(receipt1);
     CReceipt receipt2(nTxType, nullUid, txUid, SYMB::WICC, releasedBcoins);
     receipts.push_back(receipt2);
@@ -360,8 +360,8 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
 
-    str += strprintf("cdp_txid=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
-                    cdp_txid.ToString(), scoinsToRedeem, collateralRatio, scoinsInterest);
+    str += strprintf("cdp_txid=%s, scoins_to_repay=%d, bcoins_to_redeem=%d",
+                    cdp_txid.ToString(), scoins_to_repay, bcoins_to_redeem);
 
     return str;
  }
@@ -380,10 +380,9 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
 
-    result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
-    result.push_back(Pair("scoins_to_redeem",    scoinsToRedeem));
-    result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
-    result.push_back(Pair("scoins_interest",     scoinsInterest));
+    result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
+    result.push_back(Pair("scoins_to_repay",    scoins_to_repay));
+    result.push_back(Pair("bcoins_to_redeem",   bcoins_to_redeem));
 
     return result;
  }
@@ -487,7 +486,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
-    CUserCDP cdp(cdpOwnerRegId, cdp_txid);
+    CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
     if (!cw.cdpCache.GetCdp(cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
@@ -498,8 +497,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    uint64_t collateralRatio =
-        (double)cdp.total_staked_bcoins * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost / cdp.total_owed_scoins;
+    uint64_t collateralRatio = (double)cdp.total_staked_bcoins * cw.ppCache.GetBcoinMedianPrice(height)
+                            * kPercentBoost / cdp.total_owed_scoins;
 
     double liquidateRate; //unboosted
     double totalScoinsToReturnLiquidator, totalScoinsToLiquidate, totalScoinsToReturnSysFund, totalBcoinsToCDPOwner;
