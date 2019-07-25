@@ -7,10 +7,11 @@
 #define TX_CONTRACT_H
 
 #include "tx.h"
+#include "entities/contract.h"
 
 class CContractDeployTx : public CBaseTx {
 public:
-    string contract_code;  // contract script content
+    CLuaContract contract;  // contract script content
 
 public:
     CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {
@@ -26,14 +27,14 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(contract_code);
+        READWRITE(contract);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract_code
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }

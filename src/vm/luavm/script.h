@@ -8,8 +8,9 @@
 #ifndef VMSCRIPT_H_
 #define VMSCRIPT_H_
 
-#include "main.h"
+//#include "main.h"
 #include "commons/serialize.h"
+#include <string>
 
 using namespace std;
 

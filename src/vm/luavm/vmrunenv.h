@@ -40,10 +40,6 @@ private:
 	 */
 	std::shared_ptr<CBaseTx> pBaseTx;
 	/**
-	 * run the script
-	 */
-	CVmScript vmScript;
-	/**
 	 * the block height
 	 */
 	unsigned int runTimeHeight;

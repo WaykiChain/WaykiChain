@@ -236,6 +236,7 @@ liblua53_a_SOURCES = \
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
   entities/account.cpp \
+  entities/contract.cpp \
   entities/id.cpp \
   entities/key.cpp \
   entities/keystore.cpp \

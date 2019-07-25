@@ -55,4 +55,47 @@ private:
     mutable uint256 sigHash;  //!< only in memory
 };
 
+// lua contract
+class CLuaContract {
+public:
+    string code;  //!< Lua code
+    string memo;  //!< Describe the binary code action    
+public:
+
+    inline unsigned int GetContractSize() const {
+        return GetContractSize(SER_DISK, CLIENT_VERSION);
+    }
+
+    inline unsigned int GetContractSize(int nType, int nVersion) const {
+        unsigned int sz = ::GetSerializeSize(code, nType, nVersion);
+        sz += ::GetSerializeSize(memo, nType, nVersion);
+        return sz;
+    }
+
+    inline unsigned int GetSerializeSize(int nType, int nVersion) const {
+        unsigned int sz = GetContractSize(nType, nVersion);
+        return GetSizeOfCompactSize(sz) + sz;
+    }
+
+    template <typename Stream>
+    void Serialize(Stream &s, int nType, int nVersion) const {
+        unsigned int sz = GetContractSize(nType, nVersion);
+        WriteCompactSize(s, sz);
+        s << code << memo;
+    }
+
+    template <typename Stream>
+    void Unserialize(Stream &s, int nType, int nVersion) {
+
+        unsigned int sz = ReadCompactSize(s);
+        s >> code >> memo;
+        if (sz != GetContractSize(nType, nVersion)) {
+            assert(false && "contractSize != SerializeSize(code) + SerializeSize(memo)");
+        }
+    }
+public:;
+    bool IsValid();
+    bool IsCheckAccount(void);
+};
+
 #endif //ENTITIES_CONTRACT_H
