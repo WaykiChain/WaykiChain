@@ -39,17 +39,8 @@ bool CContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState 
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    CDataStream stream(contract_code, SER_DISK, CLIENT_VERSION);
-    CVmScript vmScript;
-    try {
-        stream >> vmScript;
-    } catch (exception &e) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, unserialize to vmScript error"),
-                         REJECT_INVALID, "unserialize-error");
-    }
-
-    if (!vmScript.IsValid()) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, vmScript is invalid"),
+    if (!contract.IsValid()) {
+        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
     }
 
@@ -113,7 +104,7 @@ bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CVal
     contractAccount.nickid = CNickID();
 
     // save new script content
-    if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, contract_code))) {
+    if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, contract.code, "", contract.memo))) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save code for contract id %s error",
             contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
@@ -122,7 +113,7 @@ bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CVal
             contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
-    nRunStep = contract_code.size();
+    nRunStep = contract.GetContractSize();
 
     if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
 

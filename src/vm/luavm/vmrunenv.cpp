@@ -39,7 +39,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
     pBaseTx       = tx;
     runTimeHeight = height;
     pAccountCache = &view;
-    string contractScript;
+    CContract contract;
 
     if (tx.get()->nTxType != CONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "%s\n", "err param");
@@ -47,33 +47,25 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
     }
 
     CContractInvokeTx* contractTx = static_cast<CContractInvokeTx*>(tx.get());
-    if (!pContractCache->GetContractScript(contractTx->appUid.get<CRegID>(), contractScript)) {
+    if (!pContractCache->GetContract(contractTx->appUid.get<CRegID>(), contract)) {
         LogPrint("ERROR", "contract not found: %s\n",
                  contractTx->appUid.get<CRegID>().ToString());
         return false;
     }
 
-    CDataStream stream(contractScript, SER_DISK, CLIENT_VERSION);
-    try {
-        stream >> vmScript;
-    } catch (exception& e) {
-        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() Unserialize to vmScript error");
-        throw runtime_error("CVmScriptRun::Initialize() Unserialize to vmScript error:" +
-                            string(e.what()));
-    }
-
-    if (!vmScript.IsValid()) {
-        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() vmScript.IsValid error");
-        return false;
-    }
-    isCheckAccount = vmScript.IsCheckAccount();
+    // if (!contract.IsValid()) {
+    //     LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() contract is invalid");
+    //     return false;
+    // }
+    // TODO: need contract.IsCheckAccount() ?
+    //isCheckAccount = vmScript.IsCheckAccount();
     if (contractTx->arguments.size() >= kContractArgumentMaxSize) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size too large");
         return false;
     }
 
     try {
-        pLua = std::make_shared<CVmlua>(vmScript.GetRom(), contractTx->arguments);
+        pLua = std::make_shared<CVmlua>(contract.code, contractTx->arguments);
     } catch (exception& e) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() CVmlua init error");
         return false;

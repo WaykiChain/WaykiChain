@@ -218,14 +218,12 @@ VMLUA_C = \
 
 VM_H = \
   vm/luavm/vmrunenv.h \
-  vm/luavm/script.h \
   vm/luavm/appaccount.h \
   vm/luavm/vmlua.h
 
 
 VM_CPP = \
   vm/luavm/vmrunenv.cpp \
-  vm/luavm/script.cpp \
   vm/luavm/appaccount.cpp \
   vm/luavm/lmylib.cpp \
   vm/luavm/vmlua.cpp
@@ -236,6 +234,7 @@ liblua53_a_SOURCES = \
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
   entities/account.cpp \
+  entities/contract.cpp \
   entities/id.cpp \
   entities/key.cpp \
   entities/keystore.cpp \

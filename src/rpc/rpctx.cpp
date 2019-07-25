@@ -17,7 +17,6 @@
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
-#include "vm/luavm/script.h"
 #include "vm/luavm/vmrunenv.h"
 
 #include <stdint.h>
@@ -383,24 +382,18 @@ Value registercontracttx(const Array& params, bool fHelp)
         fclose(file);
     }
 
-    CVmScript vmScript;
-    vmScript.GetRom().insert(vmScript.GetRom().end(), buffer, buffer + lSize);
+    CLuaContract luaContract;
+    luaContract.code.assign(buffer, lSize);
 
     if (buffer)
         free(buffer);
 
     if (params.size() > 4) {
-        string memo = params[4].get_str();
-        if (memo.size() > kContractMemoMaxSize) {
+        luaContract.memo = params[4].get_str();
+        if (luaContract.memo.size() > kContractMemoMaxSize) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "App desc is too large");
         }
-        vmScript.GetMemo().insert(vmScript.GetMemo().end(), memo.begin(), memo.end());
     }
-
-    string contractScript;
-    CDataStream ds(SER_DISK, CLIENT_VERSION);
-    ds << vmScript;
-    contractScript.assign(ds.begin(), ds.end());
 
     uint64_t fee = params[2].get_uint64();
     int height   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
@@ -440,9 +433,9 @@ Value registercontracttx(const Array& params, bool fHelp)
         pCdMan->pAccountCache->GetRegId(keyId, regId);
 
         tx.txUid          = regId;
-        tx.contract_code  = contractScript;
+        tx.contract       = luaContract;
         tx.llFees         = fee;
-        tx.nRunStep       = contractScript.size();
+        tx.nRunStep       = tx.contract.GetContractSize();
         if (0 == height) {
             height = chainActive.Tip()->height;
         }
@@ -1846,8 +1839,6 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
 
-    CVmScript vmScript;
-    string contractScript;
     string luaScriptFilePath = GetAbsolutePath(params[1].get_str()).string();
     if (luaScriptFilePath.empty())
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
@@ -1878,18 +1869,15 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     } else {
         fclose(file);
     }
-    vmScript.GetRom().insert(vmScript.GetRom().end(), buffer, buffer + lSize);
-    if (buffer)
+    string code(buffer, lSize);
+
+    if (buffer) {
         free(buffer);
+    }
 
-    CDataStream dsScript(SER_DISK, CLIENT_VERSION);
-    dsScript << vmScript;
-
-    contractScript.assign(dsScript.begin(), dsScript.end());
-
+    string memo;
     if (params.size() > 4) {
-        string memo = params[4].get_str();
-        vmScript.GetMemo().insert(vmScript.GetMemo().end(), memo.begin(), memo.end());
+        memo = params[4].get_str();
     }
 
     uint64_t fee = params[2].get_uint64();
@@ -1901,11 +1889,10 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    CAccountDBCache view(*pCdMan->pAccountCache);
+    std::shared_ptr<CAccountDBCache> pAccountCache(new CAccountDBCache(pCdMan->pAccountCache));    
     CAccount account;
-
     CUserID userId = keyId;
-    if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
+    if (!pAccountCache->GetAccount(userId, account)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
     }
     if (!account.HaveOwnerPubKey()) {
@@ -1914,11 +1901,12 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
 
     std::shared_ptr<CContractDeployTx> tx = std::make_shared<CContractDeployTx>();
     CRegID regId;
-    pCdMan->pAccountCache->GetRegId(keyId, regId);
+    pAccountCache->GetRegId(keyId, regId);
 
-    tx.get()->txUid          = regId;
-    tx.get()->contract_code  = contractScript;
-    tx.get()->llFees         = fee;
+    tx->txUid          = regId;
+    tx->contract.code  = code;
+    tx->contract.memo  = memo;
+    tx->llFees         = fee;
 
     uint32_t height = chainActive.Tip()->height;
     if (params.size() > 3) {
