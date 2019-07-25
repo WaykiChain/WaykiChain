@@ -362,16 +362,15 @@ public:
 
         pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
 
-        pTxCache        = new CTxMemCache();
-
-        pPpCache        = new CPricePointMemCache();
-
         pLogDb          = new CDBAccess(DBNameType::LOG, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pLogCache       = new CLogDBCache(pLogDb);
 
         pTxReceiptDb    = new CDBAccess(DBNameType::RECEIPT, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pTxReceiptCache = new CTxReceiptDBCache(pTxReceiptDb);
 
+        // memory-only cache
+        pTxCache        = new CTxMemCache();
+        pPpCache        = new CPricePointMemCache();
     }
 
     ~CCacheDBManager() {
@@ -379,8 +378,6 @@ public:
         delete pAccountCache;   pAccountCache = nullptr;
         delete pContractCache;  pContractCache = nullptr;
         delete pDelegateCache;  pDelegateCache = nullptr;
-        delete pTxCache;        pTxCache = nullptr;
-        delete pPpCache;        pPpCache = nullptr;
         delete pCdpCache;       pCdpCache = nullptr;
         delete pDexCache;       pDexCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
@@ -395,6 +392,10 @@ public:
         delete pDexDb;          pDexDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
         delete pTxReceiptDb;    pTxReceiptDb = nullptr;
+
+        // memory-only cache
+        delete pTxCache;        pTxCache = nullptr;
+        delete pPpCache;        pPpCache = nullptr;
     }
 
     bool Flush() {
@@ -422,10 +423,12 @@ public:
         // Memory only cache, not bother to flush.
         // if (pTxCache)
         //     pTxCache->Flush();
+        // if (pPpCache)
+        //     pPpCache->Flush();
 
         return true;
     }
-}; //end of CCacheDBManager
+};  // CCacheDBManager
 
 bool IsInitialBlockDownload();
 

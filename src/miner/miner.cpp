@@ -482,8 +482,8 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet) {
     return true;
 }
 
-bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
-                        unsigned int nTransactionsUpdated, CCacheWrapper &cw) {
+bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated,
+                      CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
     while (true) {

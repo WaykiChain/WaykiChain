@@ -44,7 +44,8 @@ public:
                   CCdpDBCache* pCdpCacheIn,
                   CDexDBCache* pDexCacheIn,
                   CTxReceiptDBCache* pTxReceiptCacheIn,
-                  CTxMemCache *pTxCacheIn);
+                  CTxMemCache *pTxCacheIn,
+                  CPricePointMemCache *pPpCacheIn);
     CCacheWrapper(CCacheWrapper& cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 

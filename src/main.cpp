@@ -1974,11 +1974,15 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         uint256 blockHash = pPreBlockIndex->GetBlockHash();
         int blockHeight   = pPreBlockIndex->height;
 
+        spCW->sysParamCache = mapForkCache[blockHash]->sysParamCache;
         spCW->accountCache  = mapForkCache[blockHash]->accountCache;
-        spCW->txCache       = mapForkCache[blockHash]->txCache;
         spCW->contractCache = mapForkCache[blockHash]->contractCache;
         spCW->delegateCache = mapForkCache[blockHash]->delegateCache;
         spCW->cdpCache      = mapForkCache[blockHash]->cdpCache;
+        spCW->dexCache      = mapForkCache[blockHash]->dexCache;
+        spCW->txReceiptCache= mapForkCache[blockHash]->txReceiptCache;
+        spCW->txCache       = mapForkCache[blockHash]->txCache;
+        spCW->ppCache       = mapForkCache[blockHash]->ppCache;
 
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
             blockHeight, blockHash.GetHex());
@@ -2011,18 +2015,25 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     if (forkChainTipFound) {
-        spForkCW->accountCache  = mapForkCache[forkChainTipBlockHash]->accountCache;
-        spForkCW->txCache       = mapForkCache[forkChainTipBlockHash]->txCache;
-        spForkCW->contractCache = mapForkCache[forkChainTipBlockHash]->contractCache;
-        spForkCW->delegateCache = mapForkCache[forkChainTipBlockHash]->delegateCache;
-        spForkCW->cdpCache      = mapForkCache[forkChainTipBlockHash]->cdpCache;
-
+        spForkCW->sysParamCache  = mapForkCache[forkChainTipBlockHash]->sysParamCache;
+        spForkCW->accountCache   = mapForkCache[forkChainTipBlockHash]->accountCache;
+        spForkCW->contractCache  = mapForkCache[forkChainTipBlockHash]->contractCache;
+        spForkCW->delegateCache  = mapForkCache[forkChainTipBlockHash]->delegateCache;
+        spForkCW->cdpCache       = mapForkCache[forkChainTipBlockHash]->cdpCache;
+        spForkCW->dexCache       = mapForkCache[forkChainTipBlockHash]->dexCache;
+        spForkCW->txReceiptCache = mapForkCache[forkChainTipBlockHash]->txReceiptCache;
+        spForkCW->txCache        = mapForkCache[forkChainTipBlockHash]->txCache;
+        spForkCW->ppCache        = mapForkCache[forkChainTipBlockHash]->ppCache;
     } else {
-        spForkCW->accountCache  = spCW->accountCache;
-        spForkCW->txCache       = spCW->txCache;
-        spForkCW->contractCache = spCW->contractCache;
-        spForkCW->delegateCache = spCW->delegateCache;
-        spForkCW->cdpCache      = spCW->cdpCache;
+        spForkCW->sysParamCache  = spCW->sysParamCache;
+        spForkCW->accountCache   = spCW->accountCache;
+        spForkCW->contractCache  = spCW->contractCache;
+        spForkCW->delegateCache  = spCW->delegateCache;
+        spForkCW->cdpCache       = spCW->cdpCache;
+        spForkCW->dexCache       = spCW->dexCache;
+        spForkCW->txReceiptCache = spCW->txReceiptCache;
+        spForkCW->txCache        = spCW->txCache;
+        spForkCW->ppCache        = spCW->ppCache;
     }
 
     uint256 forkChainBestBlockHash = spForkCW->accountCache.GetBestBlock();
