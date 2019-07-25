@@ -68,7 +68,7 @@ public:
         return sigHash;
     }
 
-    map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType(coinType), coins}}; }
+    map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coinType, coins}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinTransferTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

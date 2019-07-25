@@ -108,13 +108,13 @@ protected:
 
 class CCoinPriceType {
 public:
-    unsigned char coinType;
-    unsigned char priceType;
+    TokenSymbol coinType;
+    PriceSymbol priceType;
 
 public:
     CCoinPriceType() {}
 
-    CCoinPriceType(const CoinType &coinTypeIn, const PriceType &priceTypeIn) :
+    CCoinPriceType(const TokenSymbol &coinTypeIn, const PriceSymbol &priceTypeIn) :
         coinType(coinTypeIn), priceType(priceTypeIn) {}
 
     CCoinPriceType(const CCoinPriceType &other) {
@@ -164,7 +164,7 @@ public:
     CPricePoint(const CCoinPriceType &coinPriceTypeIn, const uint64_t priceIn)
         : coinPriceType(coinPriceTypeIn), price(priceIn) {}
 
-    CPricePoint(const CoinType &coinTypeIn, const PriceType &priceTypeIn, const uint64_t priceIn)
+    CPricePoint(const TokenSymbol &coinTypeIn, const PriceSymbol &priceTypeIn, const uint64_t priceIn)
         : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
 
     CPricePoint(const CPricePoint& other) {

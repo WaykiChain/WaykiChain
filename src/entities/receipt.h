@@ -15,17 +15,17 @@
 
 class CReceipt {
 public:
-    TxType      txType;
-    CUserID     fromUid;
-    CUserID     toUid;
-    CoinType    coinType;
-    uint64_t    sendAmount;
+    TxType txType;
+    CUserID fromUid;
+    CUserID toUid;
+    TokenSymbol coinType;
+    uint64_t sendAmount;
 
 public:
     CReceipt() {};
 
     CReceipt(TxType txTypeIn, CUserID &fromUidIn, CUserID &toUidIn,
-            CoinType coinTypeIn, uint64_t sendAmountIn) :
+            TokenSymbol coinTypeIn, uint64_t sendAmountIn) :
             txType(txTypeIn), fromUid(fromUidIn), toUid(toUidIn),
             coinType(coinTypeIn), sendAmount(sendAmountIn) {};
 

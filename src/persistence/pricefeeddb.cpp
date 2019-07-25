@@ -168,20 +168,20 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
 }
 
 uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
-    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WICC, PriceType::USD));
+    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(SYMB::WICC, SYMB::USD));
 }
 
 uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
-    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(CoinType::WGRT, PriceType::USD));
+    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(SYMB::WGRT, SYMB::USD));
 }
 
 bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
                                                     map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn) {
-    CCoinPriceType bcoinPriceType(CoinType::WICC, PriceType::USD);
+    CCoinPriceType bcoinPriceType(SYMB::WICC, SYMB::USD);
     uint64_t bcoinMedianPrice = GetBcoinMedianPrice(blockHeight);
     mapMedianPricePointsIn.emplace(bcoinPriceType, bcoinMedianPrice);
 
-    CCoinPriceType fcoinPriceType(CoinType::WGRT, PriceType::USD);
+    CCoinPriceType fcoinPriceType(SYMB::WGRT, SYMB::USD);
     uint64_t scoinMedianPrice = GetFcoinMedianPrice(blockHeight);
     mapMedianPricePointsIn.emplace(fcoinPriceType, scoinMedianPrice);
 

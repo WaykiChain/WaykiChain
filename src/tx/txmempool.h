@@ -27,7 +27,7 @@ class uint256;
 class CTxMemPoolEntry {
 private:
     std::shared_ptr<CBaseTx> pTx;
-    std::pair<CoinType, uint64_t> nFees;  // Cached to avoid expensive parent-transaction lookups
+    std::pair<TokenSymbol, uint64_t> nFees;  // Cached to avoid expensive parent-transaction lookups
     uint32_t nTxSize;                     // Cached to avoid recomputing tx size
     double dPriority;                     // Cached to avoid recomputing priority
 
@@ -41,7 +41,7 @@ public:
 
     std::shared_ptr<CBaseTx> GetTransaction() const { return pTx; }
 
-    inline std::pair<CoinType, uint64_t> GetFees() const { return nFees; }
+    inline std::pair<TokenSymbol, uint64_t> GetFees() const { return nFees; }
     inline uint32_t GetTxSize() const { return nTxSize; }
     inline double GetPriority() const { return dPriority; }
 

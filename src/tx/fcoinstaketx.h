@@ -54,8 +54,8 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const {
-        return map<CoinType, uint64_t>{{CoinType::WGRT, fcoinsToStake}};
+    virtual map<TokenSymbol, uint64_t> GetValues() const {
+        return map<TokenSymbol, uint64_t>{{SYMB::WGRT, fcoinsToStake}};
     }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
 

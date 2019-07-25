@@ -28,6 +28,7 @@ using namespace std;
 typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
 typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
 
+typedef string AssetSymbol;     //8 chars max, E.g. WICC
 typedef string PriceSymbol;     //8 chars max, E.g. USD, CNY, EUR, BTC
 
 static const unordered_set<string> kCoinTypeSet = {

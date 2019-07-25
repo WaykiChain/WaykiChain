@@ -72,17 +72,17 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     static double dPriority  = 0;
     static double dFeePerKb  = 0;
     static uint32_t nTxSize  = 0;
-    static CoinType coinType = CoinType::WUSD;
+    static TokenSymbol coinType = SYMB::WUSD;
     static uint64_t nFees    = 0;
 
     int32_t height            = chainActive.Height();
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
     uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height);
-    auto GetCoinMedianPrice   = [&](const CoinType coinType) -> uint64_t {
+    auto GetCoinMedianPrice   = [&](const TokenSymbol coinType) -> uint64_t {
         switch (coinType) {
-            case CoinType::WICC: return bcoinMedianPrice;
-            case CoinType::WGRT: return fcoinMedianPrice;
-            case CoinType::WUSD: return 1;
+            case SYMB::WICC: return bcoinMedianPrice;
+            case SYMB::WGRT: return fcoinMedianPrice;
+            case SYMB::WUSD: return 1;
             default: return 0;
         }
     };

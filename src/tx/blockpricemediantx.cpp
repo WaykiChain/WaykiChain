@@ -71,7 +71,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         currRiskReserveScoins -= cdp.total_owed_scoins;
 
         // b) sell WICC for WUSD to return to risk reserve pool
-        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WICC, cdp.total_staked_bcoins);
+        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pBcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellBcoinForScoin (%s) failed!!",
                     pBcoinSellMarketOrder->ToString());
@@ -82,7 +82,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         assert(cdp.total_owed_scoins > cdp.total_staked_bcoins * bcoinMedianPrice);
         uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - cdp.total_staked_bcoins * bcoinMedianPrice;
         uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height);
-        auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(CoinType::WUSD, AssetType::WGRT, fcoinsToInflate);
+        auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",
                     pFcoinSellMarketOrder->ToString());

@@ -50,7 +50,7 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, rewardValue}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, rewardValue}}; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockRewardTx>(this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
@@ -63,7 +63,7 @@ public:
 
 class CUCoinBlockRewardTx : public CBaseTx {
 public:
-    map<uint8_t /* CoinType */, uint64_t /* reward value */> rewardValues;
+    map<TokenSymbol /* CoinType */, uint64_t /* reward value */> rewardValues;
     uint64_t profits;  // Profits as delegate according to received votes.
 
 public:
@@ -72,13 +72,13 @@ public:
         assert(UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CUCoinBlockRewardTx *)pBaseTx;
     }
-    CUCoinBlockRewardTx(const CUserID &txUidIn, const map<CoinType, uint64_t> rewardValuesIn,
+    CUCoinBlockRewardTx(const CUserID &txUidIn, const map<TokenSymbol, uint64_t> rewardValuesIn,
                             const int32_t validHeightIn)
         : CBaseTx(UCOIN_BLOCK_REWARD_TX) {
         txUid = txUidIn;
 
         for (const auto &item : rewardValuesIn) {
-            rewardValues.emplace(uint8_t(item.first), item.second);
+            rewardValues.emplace(item.first, item.second);
         }
 
         nValidHeight = validHeightIn;
@@ -105,7 +105,7 @@ public:
         return sigHash;
     }
 
-    map<CoinType, uint64_t> GetValues() const;
+    map<TokenSymbol, uint64_t> GetValues() const;
     uint64_t GetProfits() const { return profits; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUCoinBlockRewardTx>(this); }
 

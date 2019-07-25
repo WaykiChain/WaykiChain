@@ -422,7 +422,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regid) || vmAccount.get()->regid ==
         //      tx->appRegId.get<CRegID>())
-        { ret = vmAccount.get()->OperateBalance(CoinType::WICC, (BalanceOpType)it.opType, value); }
+        { ret = vmAccount.get()->OperateBalance(SYMB::WICC, (BalanceOpType)it.opType, value); }
         //      else{
         //          ret = vmAccount.get()->OperateBalance((BalanceOpType)it.opType, fund,
         //          *pContractCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);

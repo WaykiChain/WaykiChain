@@ -102,9 +102,9 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         for (const auto &item : rewardValues) {
             uint64_t value = item.second;
             switch (item.first/* CoinType */) {
-                case CoinType::WICC: account.OperateBalance(SYMB::WICC, ADD_FREE, value); break;
-                case CoinType::WUSD: account.OperateBalance(SYMB::WUSD, ADD_FREE, value); break;
-                case CoinType::WGRT: account.OperateBalance(SYMB::WGRT, ADD_FREE, value); break;
+                case SYMB::WICC: account.OperateBalance(SYMB::WICC, ADD_FREE, value); break;
+                case SYMB::WUSD: account.OperateBalance(SYMB::WUSD, ADD_FREE, value); break;
+                case SYMB::WGRT: account.OperateBalance(SYMB::WGRT, ADD_FREE, value); break;
                 default: return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
             }
         }
@@ -126,10 +126,10 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     return true;
 }
 
-map<CoinType, uint64_t> CUCoinBlockRewardTx::GetValues() const {
-    map<CoinType, uint64_t> rewardValuesOut;
+map<TokenSymbol, uint64_t> CUCoinBlockRewardTx::GetValues() const {
+    map<TokenSymbol, uint64_t> rewardValuesOut;
     for (const auto &item : rewardValues) {
-        rewardValuesOut.emplace(CoinType(item.first), item.second);
+        rewardValuesOut.emplace(item.first, item.second);
     }
 
     return rewardValuesOut;
@@ -141,7 +141,7 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
 
     string rewardValue;
     for (const auto &item : rewardValues) {
-        rewardValue += strprintf("%s: %lu, ", GetCoinTypeName(CoinType(item.first)), item.second);
+        rewardValue += strprintf("%s: %lu, ", item.first, item.second);
     }
 
     return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewardValue=%s, nValidHeight=%d\n", GetTxType(nTxType),
@@ -155,7 +155,7 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object rewardValue;
     for (const auto &item : rewardValues) {
-        rewardValue.push_back(Pair(GetCoinTypeName(CoinType(item.first)), item.second));
+        rewardValue.push_back(Pair(item.first, item.second));
     }
 
     result.push_back(Pair("txid",           GetHash().GetHex()));

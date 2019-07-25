@@ -238,7 +238,7 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 
 bool CCDPStakeTx::SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
                                         CValidationState &state) {
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterestToRepay);
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(SYMB::WUSD, SYMB::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -402,7 +402,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
                     scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
 
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, scoinsInterestToRepay);
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(SYMB::WUSD, SYMB::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -679,7 +679,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
 
     fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType:ADD_FREE, halfScoinsPenalty); // save to risk reserve
 
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(CoinType::WUSD, CoinType::WGRT, halfScoinsPenalty);
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(SYMB::WUSD, SYMB::WGRT, halfScoinsPenalty);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

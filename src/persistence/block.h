@@ -175,7 +175,7 @@ public:
 
     // TODO: Fees
     // int64_t GetFees() const;
-    uint64_t GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const;
+    uint64_t GetBlockMedianPrice(const TokenSymbol coinType, const PriceSymbol priceType) const;
 
     void Print(CAccountDBCache &accountCache) const;
 };
@@ -274,7 +274,7 @@ public:
         pBlockHash       = nullptr;
         pprev            = nullptr;
         pskip            = nullptr;
-        height          = 0;
+        height           = 0;
         nFile            = 0;
         nDataPos         = 0;
         nUndoPos         = 0;
@@ -286,8 +286,8 @@ public:
 
         // TODO: Fees
         // nBlockFee        = block.GetFees();
-        bcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WICC, PriceType::USD);
-        fcoinMedianPrice = block.GetBlockMedianPrice(CoinType::WGRT, PriceType::USD);
+        bcoinMedianPrice = block.GetBlockMedianPrice(SYMB::WICC, SYMB::USD);
+        fcoinMedianPrice = block.GetBlockMedianPrice(SYMB::WGRT, SYMB::USD);
 
         int64_t nTxSize = 0;
         for (auto &pTx : block.vptx) {

@@ -379,17 +379,17 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     // global account
-    auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), CoinType::WGRT, 0, nStableCoinGenesisHeight);
+    auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), SYMB::WGRT, 0, nStableCoinGenesisHeight);
     pTx->nVersion = nTxVersion1;
     vptx.push_back(pTx);
 
     // Initial FundCoin Owner's account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))), CoinType::WGRT,
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))), SYMB::WGRT,
                                           kTotalFundCoinGenesisReleaseAmount * COIN, nStableCoinGenesisHeight);
     vptx.push_back(pTx);
 
     // Order Matching Service's account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))), CoinType::WGRT, 0,
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))), SYMB::WGRT, 0,
                                           nStableCoinGenesisHeight);
     vptx.push_back(pTx);
 

@@ -76,7 +76,7 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
 //     return nFees;
 // }
 
-uint64_t CBlock::GetBlockMedianPrice(const CoinType coinType, const PriceType priceType) const {
+uint64_t CBlock::GetBlockMedianPrice(const TokenSymbol coinType, const PriceSymbol priceType) const {
     if (vptx.size() == 1 || vptx[1]->nTxType != BLOCK_PRICE_MEDIAN_TX) {
         return 0;
     }
@@ -91,8 +91,8 @@ void CBlock::Print(CAccountDBCache& accountCache) const {
     LogPrint("INFO", "block hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
              "nFuelRate=%d, bcoinMedianPrice=%lu, fcoinMedianPrice=%lu\n",
              GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
-             vptx.size(), nFuel, nFuelRate, GetBlockMedianPrice(CoinType::WICC, PriceType::USD),
-             GetBlockMedianPrice(CoinType::WGRT, PriceType::USD));
+             vptx.size(), nFuel, nFuelRate, GetBlockMedianPrice(SYMB::WICC, SYMB::USD),
+             GetBlockMedianPrice(SYMB::WGRT, SYMB::USD));
     // LogPrint("INFO", "list transactions:\n");
     // for (unsigned int i = 0; i < vptx.size(); i++) {
     //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));

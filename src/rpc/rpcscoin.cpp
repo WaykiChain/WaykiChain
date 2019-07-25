@@ -66,21 +66,21 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         }
 
         string coinStr = coinValue.get_str();
-        CoinType coinType;
+        TokenSymbol coinType;
         if (coinStr == "WICC") {
-            coinType = CoinType::WICC;
+            coinType = SYMB::WICC;
         } else if (coinStr == "WUSD") {
-            coinType = CoinType::WUSD;
+            coinType = SYMB::WUSD;
         } else if (coinStr == "WGRT") {
-            coinType = CoinType::WGRT;
+            coinType = SYMB::WGRT;
         } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid coin type: %s", coinStr));
         }
 
         string currencyStr = currencyValue.get_str();
-        PriceType currencyType;
+        PriceSymbol currencyType;
         if (currencyStr == "USD") {
-            currencyType = PriceType::USD;
+            currencyType = SYMB::USD;
         } else if (currencyStr == "CNY") {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "CNY stablecoin not supported yet");
         } else {
@@ -391,18 +391,10 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CoinType coinType;
-    if (!ParseCoinType(params[1].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
-    }
-
-    AssetType assetType;
-    if (!ParseAssetType(params[2].get_str(), assetType)) {
-        throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
-    }
-
-    uint64_t assetAmount = AmountToRawValue(params[3]);
-    uint64_t price = AmountToRawValue(params[4]);
+    TokenSymbol coinType  = params[1].get_str();
+    AssetSymbol assetType = params[2].get_str();
+    uint64_t assetAmount  = AmountToRawValue(params[3]);
+    uint64_t price        = AmountToRawValue(params[4]);
 
     uint64_t fee = 0;
     if (params.size() > 5) {
@@ -456,18 +448,10 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CoinType coinType;
-    if (!ParseCoinType(params[1].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
-    }
-
-    AssetType assetType;
-    if (!ParseAssetType(params[2].get_str(), assetType)) {
-        throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
-    }
-
-    uint64_t assetAmount = AmountToRawValue(params[3]);
-    uint64_t price = AmountToRawValue(params[4]);
+    TokenSymbol coinType  = params[1].get_str();
+    TokenSymbol assetType = params[2].get_str();
+    uint64_t assetAmount  = AmountToRawValue(params[3]);
+    uint64_t price        = AmountToRawValue(params[4]);
 
     uint64_t fee = 0;
     if (params.size() > 5) {
@@ -522,17 +506,10 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CoinType coinType;
-    if (!ParseCoinType(params[1].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
-    }
+    TokenSymbol coinType  = params[1].get_str();
+    TokenSymbol assetType = params[2].get_str();
+    uint64_t coinAmount   = AmountToRawValue(params[3]);
 
-    AssetType assetType;
-    if (!ParseAssetType(params[2].get_str(), assetType)) {
-        throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
-    }
-
-    uint64_t coinAmount = AmountToRawValue(params[3]);
     uint64_t fee = 0;
     if (params.size() > 4) {
         fee = AmountToRawValue(params[4]);
@@ -583,17 +560,10 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CoinType coinType;
-    if (!ParseCoinType(params[1].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
-    }
+    TokenSymbol coinType  = params[1].get_str();
+    TokenSymbol assetType = params[2].get_str();
+    uint64_t assetAmount  = AmountToRawValue(params[3]);
 
-    AssetType assetType;
-    if (!ParseAssetType(params[2].get_str(), assetType)) {
-        throw JSONRPCError(RPC_ASSET_TYPE_INVALID, "Invalid asset_type");
-    }
-
-    uint64_t assetAmount = AmountToRawValue(params[3]);
     uint64_t fee = 0;
     if (params.size() > 4) {
         fee = params[4].get_uint64();

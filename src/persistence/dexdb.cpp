@@ -5,13 +5,14 @@
 
 #include "dexdb.h"
 #include "entities/account.h"
+#include "entities/asset.h"
 #include "main.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSysOrder
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(CoinType coinTypeIn,
-                                                           AssetType assetTypeIn,
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(TokenSymbol coinTypeIn,
+                                                           AssetSymbol assetTypeIn,
                                                            uint64_t assetAmountIn,
                                                            uint64_t priceIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
@@ -26,8 +27,8 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(CoinType coinTypeIn,
     return pSysOrder;
 }
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(CoinType coinTypeIn,
-                                                            AssetType assetTypeIn,
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(TokenSymbol coinTypeIn,
+                                                            AssetSymbol assetTypeIn,
                                                             uint64_t assetAmountIn,
                                                             uint64_t priceIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
@@ -42,8 +43,8 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(CoinType coinTypeIn,
     return pSysOrder;
 }
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(CoinType coinTypeIn,
-                                                            CoinType assetTypeIn,
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(TokenSymbol coinTypeIn,
+                                                            AssetSymbol assetTypeIn,
                                                             uint64_t coinAmountIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_BUY;
@@ -57,8 +58,8 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(CoinType coinTypeIn,
     return pSysOrder;
 }
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(CoinType coinTypeIn,
-                                                             AssetType assetTypeIn,
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(TokenSymbol coinTypeIn,
+                                                             AssetSymbol assetTypeIn,
                                                              uint64_t assetAmountIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_BUY;

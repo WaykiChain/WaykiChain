@@ -152,7 +152,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
     std::set<CKeyID> vKeyIdSet;
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
-    double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
+    double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
     switch (pBaseTx->nTxType) {
         case BLOCK_REWARD_TX: {
             if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
@@ -270,7 +270,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
                 return arrayDetail;
 
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[CoinType::WICC]) / COIN;
+            double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
 
             obj.push_back(Pair("from_address", vKeyIdSet.begin()->ToAddress()));
             obj.push_back(Pair("category", "send"));
