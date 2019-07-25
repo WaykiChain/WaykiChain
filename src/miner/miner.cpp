@@ -33,7 +33,7 @@ MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(kMaxMinedBlocks);
 CCriticalSection csMinedBlocks;
 
-//base on the last 50 blocks
+// base on the last 50 blocks
 int GetElementForBurn(CBlockIndex *pIndex) {
     if (NULL == pIndex) {
         return INIT_FUEL_RATES;
@@ -257,8 +257,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         return ERRORMSG("VerifyPosTx() : transaction version %d vs current %d", pBlock->vptx[0]->nVersion, nTxVersion1);
 
     if (bNeedRunTx) {
-        uint64_t nTotalFuel(0);
-        uint64_t nTotalRunStep(0);
+        uint64_t totalFuel    = 0;
+        uint64_t totalRunStep = 0;
         for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
@@ -273,37 +273,190 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                 return ERRORMSG("VerifyPosTx() : failed to execute transaction, txid=%s", pBaseTx->GetHash().GetHex());
             }
 
-            nTotalRunStep += pBaseTx->nRunStep;
-            if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
-                return ERRORMSG("VerifyPosTx() : block total run steps(%lu) exceed max run step(%lu)", nTotalRunStep,
+            totalRunStep += pBaseTx->nRunStep;
+            if (totalRunStep > MAX_BLOCK_RUN_STEP)
+                return ERRORMSG("VerifyPosTx() : block total run steps(%lu) exceed max run step(%lu)", totalRunStep,
                                 MAX_BLOCK_RUN_STEP);
 
-            nTotalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyPosTx() : total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", nTotalFuel,
+            totalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
+            LogPrint("fuel", "VerifyPosTx() : total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", totalFuel,
                      pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep, pBlock->GetFuelRate(),
                      pBaseTx->GetHash().GetHex());
         }
 
-        if (nTotalFuel != pBlock->GetFuel())
-            return ERRORMSG("VerifyPosTx() : total fuel(%lu) mismatch what(%u) in block header", nTotalFuel,
+        if (totalFuel != pBlock->GetFuel())
+            return ERRORMSG("VerifyPosTx() : total fuel(%lu) mismatch what(%u) in block header", totalFuel,
                             pBlock->GetFuel());
     }
 
     return true;
 }
 
-std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
+std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) {
     // Create new block
     std::unique_ptr<CBlock> pBlock(new CBlock());
     if (!pBlock.get())
         return nullptr;
 
-    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) {  // pre-stablecoin release
-        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    } else {  // stablecoin release
-        pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
-        pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
+    pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+
+    // Largest block you're willing to create:
+    unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
+    // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
+    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
+
+    // How much of the block should be dedicated to high-priority transactions,
+    // included regardless of the fees they pay
+    unsigned int nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
+    nBlockPrioritySize              = std::min(nBlockMaxSize, nBlockPrioritySize);
+
+    // Minimum block size you want to create; block will be filled with free transactions
+    // until there are no more or the block reaches this size:
+    unsigned int nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
+    nBlockMinSize              = std::min(nBlockMaxSize, nBlockMinSize);
+
+    // Collect memory pool transactions into the block
+    {
+        LOCK2(cs_main, mempool.cs);
+
+        CBlockIndex *pIndexPrev = chainActive.Tip();
+        int32_t height          = pIndexPrev->height + 1;
+        int32_t index           = 0;
+        int32_t fuelRate        = GetElementForBurn(pIndexPrev);
+        uint64_t blockSize      = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
+        uint64_t totalRunStep   = 0;
+        int64_t totalFees       = 0;
+        int64_t totalFuel       = 0;
+
+        // Calculate && sort transactions from memory pool.
+        vector<TxPriority> txPriorities;
+        GetPriorityTx(txPriorities, fuelRate);
+        TxPriorityCompare comparer(false); // Priority by size first.
+        make_heap(txPriorities.begin(), txPriorities.end(), comparer);
+        LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
+                 txPriorities.size());
+
+        // Collect transactions into the block.
+        for (auto item : txPriorities) {
+            CBaseTx *pBaseTx = std::get<2>(item).get();
+
+            uint32_t nTxSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+            if (blockSize + nTxSize >= nBlockMaxSize) {
+                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : exceed max block size, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
+                continue;
+            }
+
+            // Skip trx with MinRelayTxFee fee for this block once the accumulated tx size surpasses the minimum block size.
+            const double dFeePerKb = std::get<1>(item);
+            if ((dFeePerKb != 0) && (dFeePerKb < CBaseTx::nMinRelayTxFee) && (blockSize + nTxSize >= nBlockMinSize)) {
+                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : skip free transaction, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
+                continue;
+            }
+
+            auto spCW = std::make_shared<CCacheWrapper>(cwIn);
+
+            CValidationState state;
+            pBaseTx->nFuelRate = fuelRate;
+            if (!pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to execute transaction, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
+
+                if (SysCfg().IsLogFailures())
+                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
+
+                continue;
+            }
+
+            // Run step limits
+            if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
+                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : exceed max block run steps, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
+
+                continue;
+            }
+
+            // Need to re-sync all to cache layer except for transaction cache, as it depends on
+            // the global transaction cache to verify whether a transaction(txid) has been confirmed
+            // already in block.
+            spCW->Flush();
+
+            totalFees += pBaseTx->GetFees();
+            blockSize += nTxSize;
+            totalRunStep += pBaseTx->nRunStep;
+            totalFuel += pBaseTx->GetFuel(fuelRate);
+            ++index;
+            pBlock->vptx.push_back(std::get<2>(item));
+
+            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
+                     pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+        }
+
+        nLastBlockTx              = index;
+        nLastBlockSize            = blockSize;
+        miningBlockInfo.txCount   = index;
+        miningBlockInfo.blockSize = blockSize;
+        miningBlockInfo.totalFees = totalFees;
+
+        assert(totalFees >= totalFuel);
+        ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = totalFees - totalFuel;
+
+        // Fill in header
+        pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
+        pBlock->SetNonce(0);
+        pBlock->SetHeight(height);
+        pBlock->SetFuel(totalFuel);
+        pBlock->SetFuelRate(fuelRate);
+        UpdateTime(*pBlock, pIndexPrev);
+
+        LogPrint("INFO", "CreateNewBlockPreStableCoinRelease() : height=%d, index=%d, blockSize=%lu\n", height, index,
+                 blockSize);
     }
+
+    return pBlock;
+}
+
+std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
+    // Create new block
+    std::unique_ptr<CBlock> pBlock(new CBlock());
+    if (!pBlock.get())
+        return nullptr;
+
+    {
+        LOCK(cs_main);
+
+        // Create block reward transaction.
+        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
+
+        // Create stale coin genesis transactions.
+        SysCfg().CreateFundCoinRewardTx(pBlock->vptx, SysCfg().NetworkID());
+
+        // Fill in header
+        CBlockIndex *pIndexPrev = chainActive.Tip();
+        uint32_t height         = pIndexPrev->height + 1;
+        int32_t fuelRate        = GetElementForBurn(pIndexPrev);
+
+        pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
+        UpdateTime(*pBlock, pIndexPrev);
+        pBlock->SetNonce(0);
+        pBlock->SetHeight(height);
+        pBlock->SetFuel(0);
+        pBlock->SetFuelRate(fuelRate);
+    }
+
+    return pBlock;
+}
+
+std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
+    // Create new block
+    std::unique_ptr<CBlock> pBlock(new CBlock());
+    if (!pBlock.get())
+        return nullptr;
+
+    pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
+    pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
 
     // Largest block you're willing to create:
     unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -326,44 +479,47 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
         uint32_t height         = pIndexPrev->height + 1;
-        int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
-        uint64_t nBlockSize     = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
-        uint64_t nBlockTx       = 0;
-        uint64_t nTotalRunStep  = 0;
-        int64_t nTotalFees      = 0;
-        int64_t nTotalFuel      = 0;
+        uint64_t index          = 0;
+        int32_t fuelRate        = GetElementForBurn(pIndexPrev);
+        uint64_t blockSize      = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
+        uint64_t totalRunStep   = 0;
+        int64_t totalFees       = 0;
+        int64_t totalFuel       = 0;
 
         // Calculate && sort transactions from memory pool.
         vector<TxPriority> txPriorities;
-        GetPriorityTx(txPriorities, nFuelRate);
+        GetPriorityTx(txPriorities, fuelRate);
         TxPriorityCompare comparer(false); // Priority by size first.
         make_heap(txPriorities.begin(), txPriorities.end(), comparer);
-        LogPrint("MINER", "CreateNewBlock() : got %lu transaction(s) sorted by priority rules\n", txPriorities.size());
+        LogPrint("MINER", "CreateNewBlockStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
+                 txPriorities.size());
 
         // Collect transactions into the block.
         for (auto item : txPriorities) {
             CBaseTx *pBaseTx = std::get<2>(item).get();
 
             uint32_t nTxSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-            if (nBlockSize + nTxSize >= nBlockMaxSize) {
-                LogPrint("MINER", "CreateNewBlock() : exceed max block size, txid: %s\n", pBaseTx->GetHash().GetHex());
+            if (blockSize + nTxSize >= nBlockMaxSize) {
+                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : exceed max block size, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
                 continue;
             }
 
             // Skip trx with MinRelayTxFee fee for this block once the accumulated tx size surpasses the minimum block size.
             const double dFeePerKb = std::get<1>(item);
-            if ((dFeePerKb != 0) && (dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize)) {
-                LogPrint("MINER", "CreateNewBlock() : skip free transaction, txid: %s\n", pBaseTx->GetHash().GetHex());
+            if ((dFeePerKb != 0) && (dFeePerKb < CBaseTx::nMinRelayTxFee) && (blockSize + nTxSize >= nBlockMinSize)) {
+                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : skip free transaction, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
                 continue;
             }
 
             auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
             CValidationState state;
-            pBaseTx->nFuelRate = nFuelRate;
-            if (!pBaseTx->ExecuteTx(height, nBlockTx + 1, *spCW, state)) {
-                LogPrint("MINER", "CreateNewBlock() : failed to execute transaction, txid: %s\n",
-                        pBaseTx->GetHash().GetHex());
+            pBaseTx->nFuelRate = fuelRate;
+            if (!pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to execute transaction, txid: %s\n",
+                         pBaseTx->GetHash().GetHex());
 
                 if (SysCfg().IsLogFailures())
                     pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
@@ -373,8 +529,8 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             }
 
             // Run step limits
-            if (nTotalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
-                LogPrint("MINER", "CreateNewBlock() : exceed max block run steps, txid: %s\n",
+            if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
+                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : exceed max block run steps, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
 
                 continue;
@@ -386,27 +542,27 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
             spCW->Flush();
 
             // TODO: Fees
-            // nTotalFees += pBaseTx->GetFees();
-            nBlockSize += nTxSize;
-            nTotalRunStep += pBaseTx->nRunStep;
-            nTotalFuel += pBaseTx->GetFuel(nFuelRate);
-            ++nBlockTx;
+            // totalFees += pBaseTx->GetFees();
+            blockSize += nTxSize;
+            totalRunStep += pBaseTx->nRunStep;
+            totalFuel += pBaseTx->GetFuel(fuelRate);
+            ++index;
             pBlock->vptx.push_back(std::get<2>(item));
 
-            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", nTotalFuel,
-                     pBaseTx->GetFuel(nFuelRate), pBaseTx->nRunStep, nFuelRate, pBaseTx->GetHash().GetHex());
+            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
+                     pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
-        nLastBlockTx               = nBlockTx;
-        nLastBlockSize             = nBlockSize;
-        miningBlockInfo.nTxCount   = nBlockTx;
-        miningBlockInfo.nBlockSize = nBlockSize;
-        miningBlockInfo.nTotalFees = nTotalFees;
+        nLastBlockTx              = index;
+        nLastBlockSize            = blockSize;
+        miningBlockInfo.txCount   = index;
+        miningBlockInfo.blockSize = blockSize;
+        miningBlockInfo.totalFees = totalFees;
 
         // TODO: Fees
-        // assert(nTotalFees >= nTotalFuel);
+        // assert(totalFees >= totalFuel);
         // TODO: CUCoinBlockRewardTx
-        ((CBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = nTotalFees - nTotalFuel;
+        ((CUCoinBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = totalFees - totalFuel;
 
         if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R2) { // stablecoin release
             CBlockPriceMedianTx* pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
@@ -419,39 +575,12 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
         pBlock->SetNonce(0);
         pBlock->SetHeight(height);
-        pBlock->SetFuel(nTotalFuel);
-        pBlock->SetFuelRate(nFuelRate);
+        pBlock->SetFuel(totalFuel);
+        pBlock->SetFuelRate(fuelRate);
         UpdateTime(*pBlock, pIndexPrev);
 
-        LogPrint("INFO", "CreateNewBlock() : total size %lu\n", nBlockSize);
-    }
-
-    return pBlock;
-}
-
-std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
-    // Create new block
-    std::unique_ptr<CBlock> pBlock(new CBlock());
-    if (!pBlock.get())
-        return nullptr;
-
-    {
-        LOCK(cs_main);
-
-        pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-        SysCfg().CreateFundCoinRewardTx(pBlock->vptx, SysCfg().NetworkID());
-
-        // Fill in header
-        CBlockIndex *pIndexPrev = chainActive.Tip();
-        uint32_t height        = pIndexPrev->height + 1;
-        int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
-
-        pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
-        UpdateTime(*pBlock, pIndexPrev);
-        pBlock->SetNonce(0);
-        pBlock->SetHeight(height);
-        pBlock->SetFuel(0);
-        pBlock->SetFuelRate(nFuelRate);
+        LogPrint("INFO", "CreateNewBlockStableCoinRelease() : height=%d, index=%d, blockSize=%lu\n", height, index,
+                 blockSize);
     }
 
     return pBlock;
@@ -476,7 +605,7 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet) {
     return true;
 }
 
-bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev, unsigned int nTransactionsUpdated,
+bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev, unsigned int txUpdated,
                       CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
@@ -525,7 +654,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         }
 
         bool success = false;
-        int64_t nLastTime;
+        int64_t lastTime;
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
             if (uint32_t(chainActive.Tip()->height + 1) != pBlock->GetHeight())
@@ -534,10 +663,10 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             CKey acctKey;
             if (pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey)) {
-                nLastTime = GetTimeMillis();
+                lastTime = GetTimeMillis();
                 success   = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
                 LogPrint("MINER", "MineBlock() : %s to create block reward transaction, used %d ms, miner address %s\n",
-                         success ? "succeed" : "failed", GetTimeMillis() - nLastTime,
+                         success ? "succeed" : "failed", GetTimeMillis() - lastTime,
                          minerAcct.keyid.ToAddress());
             }
         }
@@ -545,18 +674,18 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         if (success) {
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
-            nLastTime = GetTimeMillis();
+            lastTime = GetTimeMillis();
             success   = CheckWork(pBlock, *pWallet);
             LogPrint("MINER", "MineBlock() : %s to check work, used %s ms\n", success ? "succeed" : "failed",
-                     GetTimeMillis() - nLastTime);
+                     GetTimeMillis() - lastTime);
 
             SetThreadPriority(THREAD_PRIORITY_LOWEST);
 
-            miningBlockInfo.nTime         = pBlock->GetBlockTime();
-            miningBlockInfo.nNonce        = pBlock->GetNonce();
-            miningBlockInfo.height       = pBlock->GetHeight();
-            miningBlockInfo.nTotalFuels   = pBlock->GetFuel();
-            miningBlockInfo.nFuelRate     = pBlock->GetFuelRate();
+            miningBlockInfo.time          = pBlock->GetBlockTime();
+            miningBlockInfo.nonce         = pBlock->GetNonce();
+            miningBlockInfo.height        = pBlock->GetHeight();
+            miningBlockInfo.totalFuel     = pBlock->GetFuel();
+            miningBlockInfo.fuelRate      = pBlock->GetFuelRate();
             miningBlockInfo.hash          = pBlock->GetHash();
             miningBlockInfo.hashPrevBlock = pBlock->GetHash();
 
@@ -568,7 +697,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             return true;
         }
 
-        if (mempool.GetUpdatedTransactionNum() != nTransactionsUpdated || GetTime() - nStart > 60)
+        if (mempool.GetUpdatedTransactionNum() != txUpdated || GetTime() - nStart > 60)
             return false;
     }
 
@@ -618,31 +747,34 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
                 }
             }
 
+            miningBlockInfo.SetNull();  // TODO: remove
+
             //
             // Create new block
             //
-            unsigned int nTransactionsUpdated = mempool.GetUpdatedTransactionNum();
-            CBlockIndex *pIndexPrev           = chainActive.Tip();
+            int64_t lastTime        = GetTimeMillis();
+            uint32_t txUpdated      = mempool.GetUpdatedTransactionNum();
+            uint32_t blockHeight    = chainActive.Height() + 1;
+            CBlockIndex *pIndexPrev = chainActive.Tip();
 
-            auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+            auto spCW   = std::make_shared<CCacheWrapper>(pCdMan);
+            auto pBlock = (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight())
+                              ? CreateStableCoinGenesisBlock()  // stable coin genesis
+                              : (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1)
+                                    ? CreateNewBlockPreStableCoinRelease(*spCW) // pre-stable coin release
+                                    : CreateNewBlockStableCoinRelease(*spCW);   // stable coin release
 
-            miningBlockInfo.SetNull();
-            int64_t nLastTime = GetTimeMillis();
-
-            auto pBlock = (pIndexPrev->height + 1 == (int32_t)SysCfg().GetStableCoinGenesisHeight())
-                              ? CreateStableCoinGenesisBlock()
-                              : CreateNewBlock(*spCW);
             if (!pBlock.get()) {
                 throw runtime_error("CoinMiner() : failed to create new block");
             } else {
                 LogPrint("MINER", "CoinMiner() : succeed to create new block, contain %s transactions, used %s ms\n",
-                         pBlock->vptx.size(), GetTimeMillis() - nLastTime);
+                         pBlock->vptx.size(), GetTimeMillis() - lastTime);
             }
 
             // Attention: need to reset delegate cache to compute the miner account according to received votes ranking
             // list.
             spCW->delegateCache.Clear();
-            MineBlock(pBlock.get(), pWallet, pIndexPrev, nTransactionsUpdated, *spCW);
+            MineBlock(pBlock.get(), pWallet, pIndexPrev, txUpdated, *spCW);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();
@@ -654,7 +786,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
     }
 }
 
-void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
+void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t targetHeight) {
     static boost::thread_group *minerThreads = NULL;
 
     if (minerThreads != NULL) {
@@ -677,25 +809,25 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int targetHeight) {
 }
 
 void MinedBlockInfo::SetNull() {
-    nTime       = 0;
-    nNonce      = 0;
-    height      = 0;
-    nTotalFuels = 0;
-    nFuelRate   = 0;
-    nTotalFees  = 0;
-    nTxCount    = 0;
-    nBlockSize  = 0;
+    time      = 0;
+    nonce     = 0;
+    height    = 0;
+    totalFuel = 0;
+    fuelRate  = 0;
+    totalFees = 0;
+    txCount   = 0;
+    blockSize = 0;
     hash.SetNull();
     hashPrevBlock.SetNull();
 }
 
-int64_t MinedBlockInfo::GetReward() { return nTotalFees - nTotalFuels; }
+int64_t MinedBlockInfo::GetReward() { return totalFees - totalFuel; }
 
-vector<MinedBlockInfo> GetMinedBlocks(unsigned int count) {
+vector<MinedBlockInfo> GetMinedBlocks(uint32_t count) {
     std::vector<MinedBlockInfo> ret;
     LOCK(csMinedBlocks);
-    count = std::min((unsigned int)minedBlocks.size(), count);
-    for (unsigned int i = 0; i < count; i++) {
+    count = std::min((uint32_t)minedBlocks.size(), count);
+    for (uint32_t i = 0; i < count; i++) {
         ret.push_back(minedBlocks[i]);
     }
 

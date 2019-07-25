@@ -43,16 +43,16 @@ public:
 // mined block info
 class MinedBlockInfo {
 public:
-    int64_t         nTime;              // block time
-    int64_t         nNonce;             // nonce
-    int             height;            // block height
-    int64_t         nTotalFuels;        // the total fuels of all transactions in the block
-    int             nFuelRate;          // block fuel rate
-    int64_t         nTotalFees;         // the total fees of all transactions in the block
-    uint64_t        nTxCount;           // transaction count in block, exclude coinbase
-    uint64_t        nBlockSize;         // block size(bytes)
-    uint256         hash;               // block hash
-    uint256         hashPrevBlock;      // prev block has
+    int64_t time;           // block time
+    int64_t nonce;          // nonce
+    int height;             // block height
+    int64_t totalFuel;      // the total fuels of all transactions in the block
+    int fuelRate;           // block fuel rate
+    int64_t totalFees;      // the total fees of all transactions in the block
+    uint64_t txCount;       // transaction count in block, exclude coinbase
+    uint64_t blockSize;     // block size(bytes)
+    uint256 hash;           // block hash
+    uint256 hashPrevBlock;  // prev block has
 
 public:
     MinedBlockInfo() { SetNull(); }
@@ -61,14 +61,18 @@ public:
 };
 
 // get the info of mined blocks. thread safe.
-vector<MinedBlockInfo> GetMinedBlocks(unsigned int count);
+vector<MinedBlockInfo> GetMinedBlocks(uint32_t count);
 
 /** Run the miner threads */
-void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int nThreads);
-/** Generate a new block */
-std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn);
+void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t nThreads);
+
+/** Generate a new block pre-stable coin release */
+std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn);
 /** Generate fund coin's genesis block */
 std::unique_ptr<CBlock> CreateStableCoinGenesisBlock();
+/** Generate a new block after stable coin release */
+std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn);
+
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce);
 /** Do mining precalculation */
