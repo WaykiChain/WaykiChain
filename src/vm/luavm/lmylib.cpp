@@ -72,6 +72,32 @@ static inline int RetRstToLua(lua_State *L, const vector<unsigned char> &resultD
     }
     return 0;
 }
+
+static inline int RetRstToLua(lua_State *L, const string &resultData,
+                              bool needToTruncate = true) {
+    int len = resultData.size();
+    // truncate data by default
+    if (needToTruncate) {
+        len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
+    }
+
+    if (len > 0) {
+        // check stack to avoid stack overflow
+        if (lua_checkstack(L, len)) {
+            // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
+            for (int i = 0; i < len; i++) {
+                lua_pushinteger(L, (lua_Integer)resultData[i]);
+            }
+            return len;
+        } else {
+            LogPrint("vm", "%s\n", "RetRstToLua stack overflow");
+        }
+    } else {
+        LogPrint("vm", "RetRstToLua err len = %d\n", len);
+    }
+    return 0;
+}
+
 /*
  *  //3.往函数私有栈里存布尔类型返回值*/
 static inline int RetRstBooleanToLua(lua_State *L,bool flag)
@@ -810,7 +836,7 @@ static int ExGetTxContractFunc(lua_State *L) {
     std::shared_ptr<CBaseTx> pBaseTx;
     int len = 0;
     if (hash == pVmRunEnv->GetCurTxHash()) {
-        const vector<unsigned char> &curTxArguments = pVmRunEnv->GetTxContract();
+        const string &curTxArguments = pVmRunEnv->GetTxContract();
         LUA_BurnFuncData(L, FUEL_CALL_GetCurTxContract, curTxArguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
         len = RetRstToLua(L, curTxArguments, false);
     } else if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {

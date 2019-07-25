@@ -476,6 +476,12 @@ vector<unsigned char> ParseHex(const char* psz) {
 
 vector<unsigned char> ParseHex(const string& str) { return ParseHex(str.c_str()); }
 
+string ParseHexStr(const string& str) {
+    // TODO: change to string
+    vector<unsigned char> ret = ParseHex(str);
+    return string(ret.begin(), ret.end());
+}
+
 static void InterpretNegativeSetting(string name, map<string, string>& mapSettingsRet) {
     // interpret -nofoo as -foo=0 (and -nofoo=0 as -foo=1) as long as -foo not set
     if (name.find("-no") == 0) {

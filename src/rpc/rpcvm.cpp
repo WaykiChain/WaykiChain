@@ -163,11 +163,12 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     int newHeight = chainActive.Tip()->height + 1;
     assert(pWalletMain != nullptr);
     {
+        size_t contract_size = contract.GetContractSize();
         CContractDeployTx tx;
         tx.txUid            = srcRegId;
         tx.contract         = contract;
         tx.llFees           = regFee;
-        tx.nRunStep         = tx.contract.GetContractSize();
+        tx.nRunStep         = contract_size;
         tx.nValidHeight     = newHeight;
 
         if (!pWalletMain->Sign(srcKeyId, tx.ComputeSignatureHash(), tx.signature)) {
@@ -179,8 +180,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
-        registerContractTxObj.push_back(Pair("contract_size", (int32_t)tx.contract.GetContractSize()));
-        registerContractTxObj.push_back(Pair("used_fuel",     (int32_t)tx.GetFuel(nFuelRate)));
+        registerContractTxObj.push_back(Pair("contract_size", contract_size));
+        registerContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
     }
 
     CRegID appId(newHeight, 1); //App RegId
@@ -202,7 +203,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.appUid       = appId;
         contractInvokeTx.bcoins       = amount;
         contractInvokeTx.llFees       = totalFee - regFee;
-        contractInvokeTx.arguments    = arguments;
+        contractInvokeTx.arguments    = string(arguments.begin(), arguments.end());
         contractInvokeTx.nValidHeight = newHeight;
 
         vector<unsigned char> signature;

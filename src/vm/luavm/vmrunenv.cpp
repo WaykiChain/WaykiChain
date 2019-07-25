@@ -446,7 +446,7 @@ uint64_t CVmRunEnv::GetValue() const {
     return tx->bcoins;
 }
 
-const vector<unsigned char>& CVmRunEnv::GetTxContract() {
+const string& CVmRunEnv::GetTxContract() {
     CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
     return tx->arguments;
 }

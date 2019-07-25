@@ -183,6 +183,7 @@ bool ParseMoney(const char* pszIn, int64_t& nRet);
 string SanitizeString(const string& str);
 vector<unsigned char> ParseHex(const char* psz);
 vector<unsigned char> ParseHex(const string& str);
+string ParseHexStr(const string& str);
 bool IsHex(const string& str);
 vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = NULL);
 string DecodeBase64(const string& str);

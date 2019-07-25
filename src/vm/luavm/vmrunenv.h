@@ -144,7 +144,7 @@ public:
     const CRegID& GetScriptRegID();
     const CRegID& GetTxAccount();
     uint64_t GetValue() const;
-    const vector<unsigned char>& GetTxContract();
+    const string& GetTxContract();
     CContractDBCache* GetScriptDB();
     CAccountDBCache* GetCatchView();
     int GetConfirmHeight();

@@ -126,25 +126,10 @@ static int luaopen_array(lua_State *L){
 
 #endif
 
-CVmlua::CVmlua(const vector<unsigned char> &vContractScript,
-               const vector<unsigned char> &vContractCallParams) {
-    unsigned long len = 0;
-    memset(contractCallArguments, 0, sizeof(contractCallArguments));
-    memset(contractScript, 0, sizeof(contractScript));
-
-    len = vContractScript.size();
-    if (len >= sizeof(contractScript)) {
-        throw runtime_error("CVmlua::CVmlua() length of vContractScript exception");
-    }
-    memcpy(contractScript, &vContractScript[0], len);
-
-    // must be no more than kContractArgumentMaxSize
-    unsigned short count = vContractCallParams.size();
-    if (count > kContractArgumentMaxSize) {
-        throw runtime_error("CVmlua::CVmlua() length of vContractCallParams exception");
-    }
-    memcpy(contractCallArguments, &count, 2);
-    memcpy(&contractCallArguments[2], &vContractCallParams[0], count);
+CVmlua::CVmlua(const std::string &codeIn, const std::string &argumentsIn):
+    code(codeIn), arguments(argumentsIn) {
+    assert(code.size <= kContractScriptMaxSize);
+    assert(arguments.size <= kContractArgumentMaxSize);
 }
 
 CVmlua::~CVmlua() {}
@@ -288,12 +273,9 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     lua_pushnumber(lua_state, -1);
     lua_rawseti(lua_state, -2, 0);
 
-    unsigned short count = 0;
-    memcpy(&count, contractCallArguments, 2);
-    assert(count <= 4096 && "arguments size can not bigger than 4096");
-    for (unsigned short n = 0; n < count; n++) {
-        lua_pushinteger(lua_state, contractCallArguments[2 + n]);  // value值放入
-        lua_rawseti(lua_state, -2, n + 1);                         // set table at key 'n + 1'
+    for (size_t i = 0; i < arguments.size(); i++) {
+        lua_pushinteger(lua_state, arguments[i]);  // value值放入
+        lua_rawseti(lua_state, -2, i + 1);                         // set table at key 'n + 1'
     }
     lua_setglobal(lua_state, "contract");
 
@@ -304,7 +286,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
 
     // 5. Load the contract script
     std::string strError;
-    int luaStatus = luaL_loadbuffer(lua_state, (char *)contractScript, strlen((char *)contractScript), "line");
+    int luaStatus = luaL_loadbuffer(lua_state, code.c_str(), code.size(), "line");
     if (luaStatus == LUA_OK) {
         luaStatus = lua_pcallk(lua_state, 0, 0, 0, 0, NULL, BURN_VER_STEP_V1);
         if (luaStatus != LUA_OK) {

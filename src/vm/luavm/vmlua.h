@@ -13,17 +13,15 @@ class CVmRunEnv;
 
 class CVmlua {
 public:
-    CVmlua(const vector<unsigned char> &vContractScript,
-           const vector<unsigned char> &vContractCallParams);
+    CVmlua(const std::string &code, const std::string &arguments);
     ~CVmlua();
     std::tuple<uint64_t, string> Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv);
     static std::tuple<bool, string> CheckScriptSyntax(const char *filePath);
 
 private:
     // to hold contract call arguments
-    unsigned char contractCallArguments[ kContractArgumentMaxSize + 2 ];
-    // to hold contract script content
-    unsigned char contractScript[ kContractScriptMaxSize ];
+    std::string code;
+    std::string arguments;
 };
 
 #endif
