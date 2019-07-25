@@ -34,7 +34,7 @@ static const unordered_set<string> kPriceTypeSet = {
     SYMB::WUSD
 };
 
-static const unordered_set<tuble<TokenSymbol, TokenSymbol> kTradingPairSet = {
+static const unordered_set< tuble<TokenSymbol, TokenSymbol> > kTradingPairSet = {
     make_tuple(SYMB::WICC, SYMB::WUSD),
     make_tuple(SYMB::WGRT, SYMB::WUSD)
 };
