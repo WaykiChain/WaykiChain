@@ -6,22 +6,23 @@
 #ifndef TX_COIN_REWARD_H
 #define TX_COIN_REWARD_H
 
+#include "entities/asset.h"
 #include "tx.h"
 
 class CCoinRewardTx : public CBaseTx {
 public:
-    uint8_t coinType;
+    TokenSymbol coinType;
     uint64_t coins;  // default: WICC
 
 public:
-    CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {}
+    CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coinType(SYMB::WICC), coins(0) {}
 
-    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_REWARD_TX), coinType(CoinType::WICC), coins(0) {
+    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_REWARD_TX), coinType(SYMB::WICC), coins(0) {
         assert(UCOIN_REWARD_TX == pBaseTx->nTxType);
         *this = *(CCoinRewardTx *)pBaseTx;
     }
 
-    CCoinRewardTx(const CUserID &txUidIn, const CoinType coinTypeIn, const uint64_t coinsIn, const int32_t nValidHeightIn)
+    CCoinRewardTx(const CUserID &txUidIn, const TokenSymbol coinTypeIn, const uint64_t coinsIn, const int32_t nValidHeightIn)
         : CBaseTx(UCOIN_REWARD_TX) {
         txUid        = txUidIn;
         coinType     = coinTypeIn;
@@ -51,7 +52,7 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType(coinType), coins}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coinType, coins}}; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinRewardTx>(this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
