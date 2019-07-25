@@ -13,7 +13,7 @@
  *
  */
 class CCoinTransferTx: public CBaseTx {
-private:
+public:
     mutable CUserID toUid;
     TokenSymbol coin_symbol;
     uint64_t coin_amount;

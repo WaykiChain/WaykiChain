@@ -637,8 +637,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
     uint64_t llFees         = 10 * SysCfg().GetTxFee();
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
     // 77686d44344d3851387162457836523567554c626362355a6b656462635244475931
-    vector<unsigned char> arguments =
-        ParseHex("77686d44344d3851387162457836523567554c626362355a6b656462635244475931");
+    string arguments =
+        ParseHexStr("77686d44344d3851387162457836523567554c626362355a6b656462635244475931");
 
     while (true) {
         // add interruption point

@@ -524,9 +524,13 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
         CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
         if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer amount(%d) "
-                 "too small, you must send a min (%d)", hash.GetHex(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
-                 REJECT_DUST, "dust amount");
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
+                 hash.GetHex(), pTx->bcoins, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
+    } else if (pBaseTx->nTxType == UCOIN_TRANSFER_TX) {
+        CCoinTransferTx *pTx = static_cast<CCoinTransferTx *>(pBaseTx);
+        if (pTx->coin_amount < CBaseTx::nDustAmountThreshold)
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
+                 hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
     }
 
     uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);

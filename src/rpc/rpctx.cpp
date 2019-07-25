@@ -260,7 +260,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
     }
 
-    vector<unsigned char> arguments = ParseHex(params[2].get_str());
+    string arguments = ParseHexStr(params[2].get_str());
     if (arguments.size() >= kContractArgumentMaxSize) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
@@ -1761,7 +1761,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
     }
 
-    vector<unsigned char> arguments = ParseHex(params[2].get_str());
+    string arguments = ParseHexStr(params[2].get_str());
     if (arguments.size() >= kContractArgumentMaxSize) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }

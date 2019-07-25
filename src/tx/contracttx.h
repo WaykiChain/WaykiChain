@@ -57,7 +57,7 @@ class CContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID appUid;  // app regid or address
     uint64_t bcoins;         // transfer amount
-    UnsignedCharArray arguments; // arguments to invoke a contract method
+    string arguments; // arguments to invoke a contract method
 
 public:
     CContractInvokeTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
@@ -68,7 +68,7 @@ public:
     }
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
-                uint64_t bcoinsIn, int validHeightIn, UnsignedCharArray &argumentsIn):
+                uint64_t bcoinsIn, int validHeightIn, string &argumentsIn):
                 CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
