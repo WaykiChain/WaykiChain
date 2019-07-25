@@ -230,8 +230,7 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, const int32_t height,
-                            const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
+    bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state);
 
 private:
     uint256     cdp_txid;            // target CDP to liquidate
