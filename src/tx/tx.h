@@ -11,6 +11,7 @@
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "entities/account.h"
+#include "entities/asset.h"
 #include "entities/id.h"
 #include "persistence/contractdb.h"
 #include "config/configuration.h"
@@ -73,7 +74,7 @@ public:
 
     virtual ~CBaseTx() {}
 
-    virtual std::pair<CoinType, uint64_t> GetFees() const { return std::make_pair(CoinType::WICC, llFees); }
+    virtual std::pair<TokenSymbol, uint64_t> GetFees() const { return std::make_pair(SYMB::WICC, llFees); }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
@@ -81,7 +82,7 @@ public:
     virtual double GetPriority() const {
         return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
-    virtual map<CoinType, uint64_t> GetValues() const = 0;
+    virtual map<TokenSymbol, uint64_t> GetValues() const = 0;
 
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance()                 = 0;
