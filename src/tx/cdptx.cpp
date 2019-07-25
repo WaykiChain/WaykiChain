@@ -435,21 +435,16 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
                         REJECT_INVALID, "EMPTY_CDPTXID");
     }
 
-    if (scoinsPenalty == 0) {
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, penalty amount is zero"),
-                        REJECT_INVALID, "bad-tx-zero-penalty-error");
-    }
-
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
-    if (free_scoins < scoins_to_liquidate + scoinsPenalty) {
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoins_to_liquidate: %d",
-                        free_scoins, scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
-    }
+    // uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
+    // if (free_scoins < scoins_to_liquidate + scoinsPenalty) {
+    //     return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoins_to_liquidate: %d",
+    //                     free_scoins, scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
+    // }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
