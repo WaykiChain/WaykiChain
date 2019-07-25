@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "commons/arith_uint256.h"
+#include "commons/types.h"
 #include "commons/uint256.h"
 #include "config/chainparams.h"
 #include "config/const.h"

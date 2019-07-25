@@ -59,6 +59,7 @@ coin_CORE_H = \
   commons/bloom.h \
   commons/openssl.hpp \
   commons/serialize.h \
+  commons/types.h \
   commons/util.h \
   config/configuration.h \
   config/const.h \
