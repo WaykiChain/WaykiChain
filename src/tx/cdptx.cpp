@@ -344,9 +344,9 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
     vector<CReceipt> receipts;
     CUserID nullUid;
-    CReceipt receipt1(nTxType, txUid, nullUid, WUSD, scoinsToRedeem);
+    CReceipt receipt1(nTxType, txUid, nullUid, SYMB::WUSD, scoinsToRedeem);
     receipts.push_back(receipt1);
-    CReceipt receipt2(nTxType, nullUid, txUid, WICC, releasedBcoins);
+    CReceipt receipt2(nTxType, nullUid, txUid, SYMB::WICC, releasedBcoins);
     receipts.push_back(receipt2);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 

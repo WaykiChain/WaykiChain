@@ -62,11 +62,11 @@ public:
 
 class CAsset {
 public:
-    CRegID      owner_regid;    // creator or owner of the asset
-    TokenSymbol symbol;         // asset symbol, E.g WICC | WUSD
-    TokenName   name;           // asset long name, E.g WaykiChain coin
-    bool        mintable;       // whether this token can be minted in the future.
-    uint64_t    total_supply;    // boosted by 1e8 for the decimal part, max is 90 billion.
+    CRegID owner_regid;     // creator or owner of the asset
+    TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
+    TokenName name;         // asset long name, E.g WaykiChain coin
+    bool mintable;          // whether this token can be minted in the future.
+    uint64_t total_supply;  // boosted by 1e8 for the decimal part, max is 90 billion.
 
     mutable uint256 sigHash;  //!< in-memory only
 

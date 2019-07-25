@@ -179,8 +179,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
-        registerContractTxObj.push_back(Pair("contract_size", tx.contract.GetContractSize()));
-        registerContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
+        registerContractTxObj.push_back(Pair("contract_size", (int32_t)tx.contract.GetContractSize()));
+        registerContractTxObj.push_back(Pair("used_fuel",     (int32_t)tx.GetFuel(nFuelRate)));
     }
 
     CRegID appId(newHeight, 1); //App RegId

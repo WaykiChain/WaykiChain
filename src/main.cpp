@@ -497,78 +497,70 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.Exists(hash))
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : tx[%s] already in mempool", hash.GetHex()),
-                             REJECT_INVALID, "tx-already-in-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s already in mempool", hash.GetHex()),
+            REJECT_INVALID, "tx-already-in-mempool");
 
     // is it a miner reward tx?
     if (pBaseTx->IsCoinBase())
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : tx[%s] is a miner reward tx, can't put into mempool", hash.GetHex()),
-            REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward transaction, can't put into mempool",
+            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
-        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : nonstandard transaction: %s", reason), REJECT_NONSTANDARD,
-                         reason);
+        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s is nonstandard transaction due to %s",
+            hash.GetHex(), reason), REJECT_NONSTANDARD, reason);
 
     auto spCW = std::make_shared<CCacheWrapper>(*mempool.cw);
 
-    if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
-        return ERRORMSG("AcceptToMemoryPool() : CheckTx failed");
+    if (!CheckTx(chainActive.Height() + 1, pBaseTx, *spCW, state))
+        return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
-    {
-        CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
-        // TODO: consider different coin types.
-        auto nFees = std::get<1>(entry.GetFees());
-        auto nSize = entry.GetTxSize();
+    CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
+    // TODO: consider different coin types.
+    auto nFees = std::get<1>(entry.GetFees());
+    auto nSize = entry.GetTxSize();
 
-        if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
-            CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
-            if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : common tx %d transfer amount(%d) "
-                    "too small, you must send a min (%d)", hash.ToString(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
-                    REJECT_DUST, "dust amount");
-        }
-
-        uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);
-        if (fLimitFree && nFees < minFees)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : not enough fees %s, %d < %d", hash.ToString(), nFees, minFees),
-                REJECT_INSUFFICIENTFEE, "insufficient fee");
-
-        // Continuously rate-limit free transactions
-        // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
-        // be annoying or make others' transactions take longer to confirm.
-        if (fLimitFree && nFees < CBaseTx::nMinRelayTxFee) {
-            static CCriticalSection csFreeLimiter;
-            static double dFreeCount;
-            static int64_t nLastTime;
-            int64_t nNow = GetTime();
-
-            LOCK(csFreeLimiter);
-            // Use an exponentially decaying ~10-second window:
-            dFreeCount *= pow(1.0 - 1.0 / 10.0, (double)(nNow - nLastTime));
-            nLastTime = nNow;
-            // -limitfreerelay unit is thousand-bytes-per-minute
-            // At default rate it would take over a month to fill 1GB
-            if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
-                return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : free transaction rejected by rate limiter"),
-                                 REJECT_INSUFFICIENTFEE, "insufficient priority");
-
-            LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
-            dFreeCount += nSize;
-        }
-
-        if (fRejectInsaneFee && nFees > SysCfg().GetMaxFee())
-            return ERRORMSG("AcceptToMemoryPool() : insane fees %s, %d > %d", hash.ToString(), nFees,
-                            SysCfg().GetMaxFee());
-
-        // Store transaction in memory
-        if (!pool.AddUnchecked(hash, entry, state))
-            return ERRORMSG("AcceptToMemoryPool() : AddUnchecked failed hash:%s", hash.ToString());
+    if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
+        CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
+        if (pTx->bcoins < CBaseTx::nDustAmountThreshold)
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer amount(%d) "
+                 "too small, you must send a min (%d)", hash.GetHex(), pTx->bcoins, CBaseTx::nDustAmountThreshold),
+                 REJECT_DUST, "dust amount");
     }
 
-    return true;
+    uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);
+    if (fLimitFree && nFees < minFees)
+        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s not pay enough fees, %d < %d",
+            hash.GetHex(), nFees, minFees), REJECT_INSUFFICIENTFEE, "insufficient fee");
+
+    // Continuously rate-limit free transactions
+    // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
+    // be annoying or make others' transactions take longer to confirm.
+    if (fLimitFree && nFees < CBaseTx::nMinRelayTxFee) {
+        static CCriticalSection csFreeLimiter;
+        static double dFreeCount;
+        static int64_t nLastTime;
+        int64_t nNow = GetTime();
+
+        LOCK(csFreeLimiter);
+        // Use an exponentially decaying ~10-second window:
+        dFreeCount *= pow(1.0 - 1.0 / 10.0, (double)(nNow - nLastTime));
+        nLastTime = nNow;
+        // -limitfreerelay unit is thousand-bytes-per-minute
+        // At default rate it would take over a month to fill 1GB
+        if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
+            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s is a free transaction, rejected by rate limiter",
+                hash.GetHex()), REJECT_INSUFFICIENTFEE, "insufficient priority");
+
+        LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
+        dFreeCount += nSize;
+    }
+
+    if (fRejectInsaneFee && nFees > SysCfg().GetMaxFee())
+        return ERRORMSG("AcceptToMemoryPool() : txid: %s pay insane fees, %d > %d", hash.GetHex(), nFees, SysCfg().GetMaxFee());
+
+    return pool.AddUnchecked(hash, entry, state);
 }
 
 int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {

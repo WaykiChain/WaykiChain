@@ -95,13 +95,13 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
                                   bool bExecute) {
     // is it already confirmed in block
     if (cw->txCache.HaveTx(txid))
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid=%s has been confirmed", txid.GetHex()), REJECT_INVALID,
+        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s has been confirmed", txid.GetHex()), REJECT_INVALID,
                              "tx-duplicate-confirmed");
 
     // is it within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
     if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Height() + 1, validHeight)) {
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid=%s beyond the scope of valid height", txid.GetHex()),
+        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
                              REJECT_INVALID, "tx-invalid-height");
     }
 
