@@ -62,14 +62,13 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    // TODO:
-    // uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost / scoinsToMint;
-    // if (collateralRatio < startingCdpCollateralRatio) {
-    //     return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-    //                     collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
-    // }
+    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost / scoinsToMint;
+    if (collateralRatio < startingCdpCollateralRatio) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
+                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+    }
 
-    if (cdpTxId.IsNull()) {  // first-time CDP creation
+    if (cdpTxId.IsNull()) {  // 1st-time CDP creation
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"),
