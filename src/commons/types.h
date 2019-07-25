@@ -7,6 +7,7 @@
 #ifndef COMMONS_TYPES_H
 #define COMMONS_TYPES_H
 
+#include <utility>
 #include <unordered_set>
 
 // pair<> hash for unordered_set and unordered_map
@@ -14,7 +15,7 @@ template <typename T1, typename T2>
 struct UnorderedPairHash
 {
     size_t
-    operator()(const pair<T1, T2> &value) const {                                              
+    operator()(const std::pair<T1, T2> &value) const {                                              
         return std::hash<T1>()(std::get<0>(value)) ^ std::hash<T2>()(std::get<1>(value)); 
     }                                              
 };
