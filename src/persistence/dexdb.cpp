@@ -126,7 +126,7 @@ bool CDexDBCache::CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &b
     }
     if (!sysOrderCache.SetData(orderTxId, buyOrder)) return false;
     CDEXActiveOrder activeOrder;
-    activeOrder.generateType = SYSTEM_GEN_ORDER;  //!< generate type
+    activeOrder.generate_type = SYSTEM_GEN_ORDER;  //!< generate type
     if (!CreateActiveOrder(orderTxId, activeOrder)) return false;
     return true;
 };

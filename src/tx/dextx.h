@@ -6,6 +6,7 @@
 #ifndef TX_DEX_H
 #define TX_DEX_H
 
+#include "entities/asset.h"
 #include "tx.h"
 #include "persistence/dexdb.h"
 
@@ -16,7 +17,7 @@ public:
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail) = 0;
 
 public:
-    static bool CalcCoinAmount(uint64_t assetAmount, uint64_t price, uint64_t &coinAmountOut);
+    static uint64_t CalcCoinAmount(uint64_t assetAmount, uint64_t price);
 };
 
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
@@ -30,12 +31,12 @@ public:
     }
 
     CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                   CoinType coinTypeIn, CoinType assetTypeIn,
+                   TokenSymbol coinSymbol, TokenSymbol assetSymbol,
                    uint64_t assetAmountIn, uint64_t bidPriceIn)
         : CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn),
-          coinType(coinTypeIn),
-          assetType(assetTypeIn),
-          assetAmount(assetAmountIn),
+          coin_symbol(coinSymbol),
+          asset_symbol(assetSymbol),
+          asset_amount(assetAmountIn),
           bidPrice(bidPriceIn) {}
 
     ~CDEXBuyLimitOrderTx() {}
@@ -47,9 +48,9 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
-        READWRITE((uint8_t &)coinType);
-        READWRITE((uint8_t &)assetType);
-        READWRITE(VARINT(assetAmount));
+        READWRITE((uint8_t &)coin_symbol);
+        READWRITE((uint8_t &)asset_symbol);
+        READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(bidPrice));
 
         READWRITE(signature);
@@ -59,14 +60,14 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << (uint8_t)coinType << (uint8_t)assetType << assetAmount << bidPrice;
+                << coin_symbol << asset_symbol << asset_amount << bidPrice;
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
     virtual string ToString(); //logging usage
     string ToString(CAccountDBCache &view);
@@ -78,10 +79,10 @@ public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 
 private:
-    CoinType coinType;          //!< coin type (wusd) to buy asset
-    AssetType assetType;        //!< asset type
-    uint64_t assetAmount;       //!< amount of target asset to buy
-    uint64_t bidPrice;          //!< bidding price in coinType willing to buy
+    TokenSymbol coin_symbol;          //!< coin type (wusd) to buy asset
+    TokenSymbol asset_symbol;        //!< asset type
+    uint64_t asset_amount;       //!< amount of target asset to buy
+    uint64_t bidPrice;          //!< bidding price in coin_symbol willing to buy
 
 };
 
@@ -96,12 +97,12 @@ public:
     }
 
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                    CoinType coinTypeIn, CoinType assetTypeIn,
+                    TokenSymbol coinSymbol, TokenSymbol assetSymbol,
                     uint64_t assetAmountIn, uint64_t askPriceIn)
         : CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn) {
-        coinType   = coinTypeIn;
-        assetType  = assetTypeIn;
-        assetAmount = assetAmountIn;
+        coin_symbol   = coinSymbol;
+        asset_symbol  = assetSymbol;
+        asset_amount = assetAmountIn;
         askPrice   = askPriceIn;
     }
 
@@ -114,9 +115,9 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
-        READWRITE((uint8_t&)coinType);
-        READWRITE((uint8_t&)assetType);
-        READWRITE(VARINT(assetAmount));
+        READWRITE((uint8_t&)coin_symbol);
+        READWRITE((uint8_t&)asset_symbol);
+        READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(askPrice));
 
         READWRITE(signature);
@@ -126,14 +127,14 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << (uint8_t)coinType << (uint8_t)assetType << assetAmount << askPrice;
+                << coin_symbol << asset_symbol << asset_amount << askPrice;
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellLimitOrderTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
@@ -144,10 +145,10 @@ public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 
 private:
-    CoinType coinType;       //!< coin type (wusd) to sell asset
-    AssetType assetType;     //!< holding asset type (wicc or wgrt) to sell in coinType
-    uint64_t assetAmount;    //!< amount of holding asset to sell
-    uint64_t askPrice;       //!< asking price in coinType willing to sell
+    TokenSymbol coin_symbol;       //!< coin type (wusd) to sell asset
+    TokenSymbol asset_symbol;     //!< holding asset type (wicc or wgrt) to sell in coin_symbol
+    uint64_t asset_amount;    //!< amount of holding asset to sell
+    uint64_t askPrice;       //!< asking price in coin_symbol willing to sell
 
 };
 
@@ -165,7 +166,7 @@ public:
         : CDEXOrderBaseTx(DEX_BUY_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coin_symbol(coinSymbol),
           asset_symbol(assetSymbol),
-          coinAmount(coinAmountIn) {}
+          coin_amount(coinAmountIn) {}
 
     ~CDEXBuyMarketOrderTx() {}
 
@@ -175,8 +176,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
         READWRITE(VARINT(llFees));
-
-        READWRITE(coin_symbol;
+        READWRITE(coin_symbol);
         READWRITE(asset_symbol);
         READWRITE(VARINT(coin_amount));
 
@@ -194,7 +194,7 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
@@ -205,9 +205,9 @@ public:
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
-    CoinType coinType;      //!< coin type (wusd) to buy asset
-    AssetType assetType;    //!< asset type
-    uint64_t coinAmount;    //!< amount of target coin to spend for buying asset
+    TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
+    TokenSymbol asset_symbol;    //!< asset type
+    uint64_t coin_amount;    //!< amount of target coin to spend for buying asset
 };
 
 class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
@@ -220,11 +220,11 @@ public:
     }
 
     CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
-                         CoinType coinTypeIn, CoinType assetTypeIn, uint64_t assetAmountIn)
+                         TokenSymbol coinSymbol, TokenSymbol assetSymbol, uint64_t assetAmountIn)
         : CDEXOrderBaseTx(DEX_SELL_MARKET_ORDER_TX, txUidIn, validHeightIn, feesIn),
-          coinType(coinTypeIn),
-          assetType(assetTypeIn),
-          assetAmount(assetAmountIn) {}
+          coin_symbol(coinSymbol),
+          asset_symbol(assetSymbol),
+          asset_amount(assetAmountIn) {}
 
     ~CDEXSellMarketOrderTx() {}
 
@@ -235,9 +235,9 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
-        READWRITE((uint8_t&)coinType);
-        READWRITE((uint8_t&)assetType);
-        READWRITE(VARINT(assetAmount));
+        READWRITE((uint8_t&)coin_symbol);
+        READWRITE((uint8_t&)asset_symbol);
+        READWRITE(VARINT(asset_amount));
 
         READWRITE(signature);
     )
@@ -246,14 +246,14 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << (uint8_t)coinType << (uint8_t)assetType << assetAmount;
+                << coin_symbol << asset_symbol << asset_amount;
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
@@ -264,9 +264,9 @@ public:
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
-    CoinType coinType;      //!< coin type (wusd) to buy asset
-    AssetType assetType;    //!< asset type
-    uint64_t assetAmount;   //!< amount of target asset to buy
+    TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
+    TokenSymbol asset_symbol;    //!< asset type
+    uint64_t asset_amount;   //!< amount of target asset to buy
 };
 
 class CDEXCancelOrderTx : public CBaseTx {
@@ -307,7 +307,7 @@ public:
         return sigHash;
     }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
@@ -379,7 +379,7 @@ public:
 
     vector<DEXDealItem>& GetDealItems() { return dealItems; }
 
-    virtual map<CoinType, uint64_t> GetValues() const { return map<CoinType, uint64_t>{{CoinType::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage

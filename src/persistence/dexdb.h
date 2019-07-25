@@ -38,39 +38,39 @@ enum OrderGenerateType {
 };
 
 struct CDEXOrderDetail {
-    CRegID          userRegId;
-    OrderType       orderType;     //!< order type
-    OrderSide       orderSide;
-    CoinType        coinType;      //!< coin type
-    AssetType       assetType;     //!< asset type
-    uint64_t        coinAmount;    //!< amount of coin to buy/sell asset
-    uint64_t        assetAmount;   //!< amount of asset to buy/sell
+    CRegID          user_regid;
+    OrderType       order_type;     //!< order type
+    OrderSide       order_side;
+    TokenSymbol     coin_symbol;   //!< coin symbol
+    TokenSymbol     asset_symbol;  //!< asset symbol
+    uint64_t        coin_amount;    //!< amount of coin to buy/sell asset
+    uint64_t        asset_amount;   //!< amount of asset to buy/sell
     uint64_t        price;         //!< price in coinType want to buy/sell asset
 };
 
 
 // for all active order db: orderId -> CDEXActiveOrder
 struct CDEXActiveOrder {
-    OrderGenerateType generateType  = EMPTY_ORDER;  //!< generate type
-    uint64_t totalDealCoinAmount    = 0;            //!< total deal coin amount
-    uint64_t totalDealAssetAmount   = 0;            //!< total deal asset amount
-    CTxCord  txCord                 = CTxCord();    //!< related tx cord
+    OrderGenerateType generate_type     = EMPTY_ORDER;  //!< generate type
+    uint64_t total_deal_coin_amount    = 0;            //!< total deal coin amount
+    uint64_t total_deal_asset_amount   = 0;            //!< total deal asset amount
+    CTxCord  tx_cord                   = CTxCord();    //!< related tx cord
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t&)generateType);
-        READWRITE(VARINT(totalDealCoinAmount));
-        READWRITE(VARINT(totalDealAssetAmount));
-        READWRITE(txCord);
+        READWRITE((uint8_t&)generate_type);
+        READWRITE(VARINT(total_deal_coin_amount));
+        READWRITE(VARINT(total_deal_asset_amount));
+        READWRITE(tx_cord);
     )
 
     bool IsEmpty() const {
-        return generateType == EMPTY_ORDER;
+        return generate_type == EMPTY_ORDER;
     }
     void SetEmpty() {
-        generateType  = EMPTY_ORDER;
-        totalDealCoinAmount    = 0;
-        totalDealAssetAmount   = 0;
-        txCord.SetEmpty();
+        generate_type  = EMPTY_ORDER;
+        total_deal_coin_amount    = 0;
+        total_deal_asset_amount   = 0;
+        tx_cord.SetEmpty();
     }
 };
 
@@ -129,7 +129,7 @@ public:
 
     string ToString() {
         return strprintf(
-                "OrderDir=%s, order_side=%s, CoinSymbol=%d, AssetSymbol=%s, coinAmount=%lu, assetAmount=%lu, price=%lu",
+                "order_side=%s, order_type=%s, coin_symbol=%d, asset_symbol=%s, coin_amount=%lu, asset_amount=%lu, price=%lu",
                 OrderSideTitles[order_side], OrderTypeTitles[order_type],
                 coin_symbol, asset_symbol, coin_amount, asset_amount, price);
     }

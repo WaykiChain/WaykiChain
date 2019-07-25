@@ -35,9 +35,26 @@ static const unordered_set<string> kPriceTypeSet = {
     SYMB::WUSD
 };
 
-static const unordered_set< tuple<TokenSymbol, TokenSymbol> > kTradingPairSet = {
-    make_tuple(SYMB::WICC, SYMB::WUSD),
-    make_tuple(SYMB::WGRT, SYMB::WUSD)
+// typedef tuple<int,int> testABCD ;
+
+// struct ABCD1{ int abc; };
+
+// static const unordered_set<ABCD1> abcd = {};
+template <typename TT>
+struct UnorderHash
+{
+    size_t
+    operator()(TT const& tt) const
+    {                                              
+        return std::hash<TT>()(tt);                                 
+    }                                              
+};
+
+typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
+
+static const unordered_set< TradingPair, UnorderHash<TradingPair> > kTradingPairSet = {
+    {SYMB::WICC, SYMB::WUSD},
+    {SYMB::WGRT, SYMB::WUSD}
 };
 
 class CAssetTradingPair {
