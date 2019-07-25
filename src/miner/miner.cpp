@@ -79,12 +79,14 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
     uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height);
     auto GetCoinMedianPrice   = [&](const TokenSymbol coinType) -> uint64_t {
-        switch (coinType) {
-            case SYMB::WICC: return bcoinMedianPrice;
-            case SYMB::WGRT: return fcoinMedianPrice;
-            case SYMB::WUSD: return 1;
-            default: return 0;
-        }
+        if (coinType == SYMB::WICC)
+            return bcoinMedianPrice;
+        else if (coinType == SYMB::WGRT)
+            return fcoinMedianPrice;
+        else if (coinType == SYMB::WUSD)
+            return 1;
+        else
+            return 0;
     };
 
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
@@ -152,7 +154,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         pRewardTx->txUid        = delegate.regid;
         pRewardTx->nValidHeight = pBlock->GetHeight();
         pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
-        pRewardTx->rewardValues = map<uint8_t, uint64_t>();
+        pRewardTx->rewardValues = map<TokenSymbol, uint64_t>();
 
         auto pPriceMedianTx          = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         pPriceMedianTx->txUid        = delegate.regid;
@@ -383,7 +385,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             // already in block.
             spCW->Flush();
 
-            totalFees += pBaseTx->GetFees();
+            // TODO: fees
+            // totalFees += pBaseTx->GetFees();
             blockSize += nTxSize;
             totalRunStep += pBaseTx->nRunStep;
             totalFuel += pBaseTx->GetFuel(fuelRate);
@@ -562,7 +565,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         // TODO: Fees
         // assert(totalFees >= totalFuel);
         // TODO: CUCoinBlockRewardTx
-        ((CUCoinBlockRewardTx *)pBlock->vptx[0].get())->rewardValue = totalFees - totalFuel;
+        // ((CUCoinBlockRewardTx *)pBlock->vptx[0].get())->rewardValues = totalFees - totalFuel;
 
         if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R2) { // stablecoin release
             CBlockPriceMedianTx* pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
@@ -754,7 +757,7 @@ void static CoinMiner(CWallet *pWallet, int targetHeight) {
             //
             int64_t lastTime        = GetTimeMillis();
             uint32_t txUpdated      = mempool.GetUpdatedTransactionNum();
-            uint32_t blockHeight    = chainActive.Height() + 1;
+            int32_t blockHeight     = chainActive.Height() + 1;
             CBlockIndex *pIndexPrev = chainActive.Tip();
 
             auto spCW   = std::make_shared<CCacheWrapper>(pCdMan);

@@ -11,10 +11,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSysOrder
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(TokenSymbol coinTypeIn,
-                                                           AssetSymbol assetTypeIn,
-                                                           uint64_t assetAmountIn,
-                                                           uint64_t priceIn) {
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(const TokenSymbol& coinTypeIn,
+                                                           const AssetSymbol& assetTypeIn,
+                                                           const uint64_t assetAmountIn,
+                                                           const uint64_t priceIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_BUY;
     pSysOrder->orderType = ORDER_LIMIT_PRICE;
@@ -27,10 +27,10 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(TokenSymbol coinTypeI
     return pSysOrder;
 }
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(TokenSymbol coinTypeIn,
-                                                            AssetSymbol assetTypeIn,
-                                                            uint64_t assetAmountIn,
-                                                            uint64_t priceIn) {
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(const TokenSymbol& coinTypeIn,
+                                                            const AssetSymbol& assetTypeIn,
+                                                            const uint64_t assetAmountIn,
+                                                            const uint64_t priceIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_SELL;
     pSysOrder->orderType = ORDER_LIMIT_PRICE;
@@ -43,9 +43,9 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(TokenSymbol coinType
     return pSysOrder;
 }
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(TokenSymbol coinTypeIn,
-                                                            AssetSymbol assetTypeIn,
-                                                            uint64_t coinAmountIn) {
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(const TokenSymbol& coinTypeIn,
+                                                            const AssetSymbol& assetTypeIn,
+                                                            const uint64_t coinAmountIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_BUY;
     pSysOrder->orderType = ORDER_MARKET_PRICE;
@@ -58,9 +58,9 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(TokenSymbol coinType
     return pSysOrder;
 }
 
-shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(TokenSymbol coinTypeIn,
-                                                             AssetSymbol assetTypeIn,
-                                                             uint64_t assetAmountIn) {
+shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(const TokenSymbol &coinTypeIn,
+                                                             const AssetSymbol &assetTypeIn,
+                                                             const uint64_t assetAmountIn) {
     auto pSysOrder       = make_shared<CDEXSysOrder>();
     pSysOrder->direction = ORDER_BUY;
     pSysOrder->orderType = ORDER_MARKET_PRICE;

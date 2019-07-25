@@ -100,13 +100,16 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
         // the target account.
         for (const auto &item : rewardValues) {
-            uint64_t value = item.second;
-            switch (item.first/* CoinType */) {
-                case SYMB::WICC: account.OperateBalance(SYMB::WICC, ADD_FREE, value); break;
-                case SYMB::WUSD: account.OperateBalance(SYMB::WUSD, ADD_FREE, value); break;
-                case SYMB::WGRT: account.OperateBalance(SYMB::WGRT, ADD_FREE, value); break;
-                default: return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
-            }
+            uint64_t value       = item.second;
+            TokenSymbol coinType = item.first;
+            if (coinType == SYMB::WICC)
+                account.OperateBalance(SYMB::WICC, ADD_FREE, value);
+            else if (coinType == SYMB::WUSD)
+                account.OperateBalance(SYMB::WUSD, ADD_FREE, value);
+            else if (coinType == SYMB::WGRT)
+                account.OperateBalance(SYMB::WGRT, ADD_FREE, value);
+            else
+                return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
         }
 
         // Assign profits to the delegate's account.

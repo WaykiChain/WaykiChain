@@ -223,15 +223,15 @@ Value getminedblocks(const Array& params, bool fHelp)
     auto minedBlocks = GetMinedBlocks(count);
     for ( auto &blockInfo : minedBlocks) {
         Object obj;
-        obj.push_back(Pair("time",          blockInfo.nTime));
-        obj.push_back(Pair("nonce",         blockInfo.nNonce));
+        obj.push_back(Pair("time",          blockInfo.time));
+        obj.push_back(Pair("nonce",         blockInfo.nonce));
         obj.push_back(Pair("height",        blockInfo.height));
-        obj.push_back(Pair("total_fuels",   blockInfo.nTotalFuels));
-        obj.push_back(Pair("fuel_rate",     blockInfo.nFuelRate));
-        obj.push_back(Pair("total_fees",    blockInfo.nTotalFees));
+        obj.push_back(Pair("total_fuels",   blockInfo.totalFuel));
+        obj.push_back(Pair("fuel_rate",     blockInfo.fuelRate));
+        obj.push_back(Pair("total_fees",    blockInfo.totalFees));
         obj.push_back(Pair("reward",        blockInfo.GetReward()));
-        obj.push_back(Pair("tx_count",      blockInfo.nTxCount));
-        obj.push_back(Pair("block_size",    blockInfo.nBlockSize));
+        obj.push_back(Pair("tx_count",      blockInfo.txCount));
+        obj.push_back(Pair("block_size",    blockInfo.blockSize));
         obj.push_back(Pair("txid",          blockInfo.hash.ToString()));
         obj.push_back(Pair("preblockhash",  blockInfo.hashPrevBlock.ToString()));
         ret.push_back(obj);

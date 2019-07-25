@@ -190,7 +190,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
     vector<CReceipt> receipts;
     CUserID nullUid;
-    CReceipt receipt(nTxType, nullUid, txUid, WUSD, scoinsToMint);
+    CReceipt receipt(nTxType, nullUid, txUid, SYMB::WUSD, scoinsToMint);
     receipts.push_back(receipt);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
@@ -677,7 +677,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(uint64_t scoinPenaltyToSysFund, const
     uint64_t halfScoinsPenalty = scoinsPenalty / 2;
     // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
 
-    fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType:ADD_FREE, halfScoinsPenalty); // save to risk reserve
+    fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, halfScoinsPenalty); // save to risk reserve
 
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(SYMB::WUSD, SYMB::WGRT, halfScoinsPenalty);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {

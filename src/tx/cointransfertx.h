@@ -30,8 +30,8 @@ public:
     }
 
     CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn,
-                   const TokenSymbol &coinSymbol, uint64_t coinAmount, const TokenSymbol &feeSymbol, uint64_t feesIn,
-                   UnsignedCharArray &memoIn)
+                    const TokenSymbol &coinSymbol, uint64_t coinAmount, const TokenSymbol &feeSymbol, uint64_t feesIn,
+                    const UnsignedCharArray &memoIn)
         : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         coin_amount  = coinAmount;

@@ -92,17 +92,17 @@ private:
     uint64_t        asset_amount;   //!< amount of coin to buy asset
     uint64_t        price;          //!< price in coin_symbol want to buy/sell asset
 public:// create functions
-    static shared_ptr<CDEXSysOrder> CreateBuyLimitOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
-                                                        uint64_t assetAmountIn, uint64_t priceIn);
+    static shared_ptr<CDEXSysOrder> CreateBuyLimitOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
+                                                        const uint64_t assetAmountIn, const uint64_t priceIn);
 
-    static shared_ptr<CDEXSysOrder> CreateSellLimitOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
-                                                         uint64_t assetAmountIn, uint64_t priceIn);
+    static shared_ptr<CDEXSysOrder> CreateSellLimitOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
+                                                         const uint64_t assetAmountIn, const uint64_t priceIn);
 
-    static shared_ptr<CDEXSysOrder> CreateBuyMarketOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
-                                                         uint64_t coinAmountIn);
+    static shared_ptr<CDEXSysOrder> CreateBuyMarketOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
+                                                         const uint64_t coinAmountIn);
 
-    static shared_ptr<CDEXSysOrder> CreateSellMarketOrder(const TokenSymbol &coinSymbol, TokenSymbol &assetSymbol,
-                                                          uint64_t assetAmountIn);
+    static shared_ptr<CDEXSysOrder> CreateSellMarketOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
+                                                          const uint64_t assetAmountIn);
 
 public:
     // default constructor
