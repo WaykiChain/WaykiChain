@@ -22,6 +22,7 @@
 #include "json/json_spirit_value.h"
 
 using namespace json_spirit;
+using namespace std;
 
 typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
 typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
@@ -34,7 +35,7 @@ static const unordered_set<string> kPriceTypeSet = {
     SYMB::WUSD
 };
 
-static const unordered_set< tuble<TokenSymbol, TokenSymbol> > kTradingPairSet = {
+static const unordered_set< tuple<TokenSymbol, TokenSymbol> > kTradingPairSet = {
     make_tuple(SYMB::WICC, SYMB::WUSD),
     make_tuple(SYMB::WGRT, SYMB::WUSD)
 };
