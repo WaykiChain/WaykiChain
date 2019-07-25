@@ -9,14 +9,8 @@
 
 // hash for unordered_set and unordered_map
 template <typename TT>
-struct UnorderedHash
-{
-    size_t
-    operator()(TT const& tt) const
-    {                                              
-        return std::hash<TT>()(tt);                                 
-    }                                              
+struct UnorderedHash {
+    size_t operator()(TT const& tt) const { return std::hash<TT>()(tt); }
 };
-
 
 #endif //COMMONS_TYPES_H

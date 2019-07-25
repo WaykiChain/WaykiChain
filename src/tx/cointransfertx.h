@@ -22,7 +22,7 @@ private:
 
 public:
     CCoinTransferTx()
-        : CBaseTx(UCOIN_TRANSFER_TX), amount(0), coin_symbol(SYMB::WICC), fee_symbol(SYMB::WICC) {}
+        : CBaseTx(UCOIN_TRANSFER_TX), coin_symbol(SYMB::WICC), coin_amount(0), fee_symbol(SYMB::WICC) {}
 
     CCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(UCOIN_TRANSFER_TX) {
         assert(UCOIN_TRANSFER_TX == pBaseTx->nTxType);
@@ -59,8 +59,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << toUid <<
-                << coin_symbol << VARINT(coin_amount) << fee_symbol << VARINT(llFees) << memo;
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << toUid << coin_symbol
+               << VARINT(coin_amount) << fee_symbol << VARINT(llFees) << memo;
 
             sigHash = ss.GetHash();
         }
@@ -68,7 +68,7 @@ public:
         return sigHash;
     }
 
-    map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coinType, coins}}; }
+    map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coin_symbol, coin_amount}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinTransferTx>(this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
