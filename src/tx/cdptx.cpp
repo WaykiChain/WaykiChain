@@ -12,7 +12,7 @@
 #include <cmath>
 
 bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &total_owed_scoins, uint64_t &interest) {
+                        const uint64_t &total_owed_scoins, uint64_t &interestOut) {
     int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
     int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
 
@@ -26,7 +26,7 @@ bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBloc
 
     uint64_t N = total_owed_scoins;
     double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
-    interest = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+    interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
 
     return true;
 }
@@ -77,11 +77,10 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     }
 
     uint64_t bcoinsToStakeAmountMin;
-    if (!cw.sysParamCache.GetParam(CDP_BCOINS_TOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
+    if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read min coins to stake error"),
                         READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
     }
-
     if (bcoinsToStake < bcoinsToStakeAmountMin) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
                     bcoinsToStake), REJECT_INVALID, "bcoins-too-small-to-stake");
@@ -120,16 +119,15 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     uint64_t partialCollateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height)
                                         * kPercentBoost / scoinsToMint;
 
-    //2. mint scoins
-    if (cdpTxId.IsNull()) { // first-time CDP creation
+    if (cdpTxId.IsNull()) { // 1st-time CDP creation
         if (partialCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         partialCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
-        // settle cdp state & persist for the 1st-time
         cw.cdpCache.StakeBcoinsToCdp(height, bcoinsToStake, scoinsToMint, cdp);
+
     } else { // further staking on one's existing CDP
         CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
         if (!cw.cdpCache.GetCdp(cdp)) {
