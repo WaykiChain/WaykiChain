@@ -39,9 +39,7 @@ static const unordered_set<string> kPriceTypeSet = {
     SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::USDT, SYMB::GOLD, SYMB::KWH
 };
 
-typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
-
-static const unordered_set< TradingPair, UnorderedHash<TradingPair> > kTradingPairSet = {
+static const UnorderedPairSet<TokenSymbol, TokenSymbol> kTradingPairSet = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WGRT, SYMB::WUSD}
 };
