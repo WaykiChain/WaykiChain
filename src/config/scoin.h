@@ -43,7 +43,7 @@ enum SysParamType : uint8_t {
     CDP_NONRETURN_LIQUIDATE_RATIO           = 12,
     CDP_FORCE_LIQUIDATE_RATIO               = 13,
     CDP_LIQUIDATE_DISCOUNT_RATIO            = 14,
-    CDP_BCOINS_TOSTAKE_AMOUNT_MIN           = 15,
+    CDP_BCOINSTOSTAKE_AMOUNT_MIN            = 15,
     CDP_INTEREST_PARAM_A                    = 16,
     CDP_INTEREST_PARAM_B                    = 17,
 
@@ -72,7 +72,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { CDP_NONRETURN_LIQUIDATE_RATIO,                std::make_tuple("L",    11300)      },  // 1.04 ~ 1.13 : Non-return to CDP owner
     { CDP_FORCE_LIQUIDATE_RATIO,                    std::make_tuple("M",    10400)      },  // 0 ~ 1.04    : forced liquidation only
     { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       },  // discount: 97%
-    { CDP_BCOINS_TOSTAKE_AMOUNT_MIN,                std::make_tuple("O",    100000000)  },  // 1 WICC, dust amount (<1) rejected
+    { CDP_BCOINSTOSTAKE_AMOUNT_MIN,                 std::make_tuple("O",    100000000)  },  // 1 WICC, dust amount (<1) rejected
     { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          },  // a = 2
     { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          },  // b = 1
 
