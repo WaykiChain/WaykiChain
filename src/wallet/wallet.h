@@ -144,23 +144,6 @@ public:
     std::tuple<bool,string>  CommitTx(CBaseTx *pTx);
 };
 
-
-typedef map<string, string> mapValue_t;
-
-static void ReadOrderPos(int64_t& nOrderPos, mapValue_t& mapValue) {
-    if (!mapValue.count("n")) {
-        nOrderPos = -1; // TODO: calculate elsewhere
-        return;
-    }
-    nOrderPos = atoi64(mapValue["n"].c_str());
-}
-
-static void WriteOrderPos(const int64_t& nOrderPos, mapValue_t& mapValue) {
-    if (nOrderPos == -1)
-        return;
-    mapValue["n"] = i64tostr(nOrderPos);
-}
-
 /** Private key that includes an expiration date in case it never gets used. */
 class CWalletKey {
 public:

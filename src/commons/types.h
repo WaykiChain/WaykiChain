@@ -7,10 +7,21 @@
 #ifndef COMMONS_TYPES_H
 #define COMMONS_TYPES_H
 
-// hash for unordered_set and unordered_map
-template <typename TT>
-struct UnorderedHash {
-    size_t operator()(TT const& tt) const { return std::hash<TT>()(tt); }
+#include <utility>
+#include <unordered_set>
+
+// pair<> hash for unordered_set and unordered_map
+template <typename T1, typename T2>
+struct UnorderedPairHash
+{
+    size_t
+    operator()(const std::pair<T1, T2> &value) const {                                              
+        return std::hash<T1>()(std::get<0>(value)) ^ std::hash<T2>()(std::get<1>(value)); 
+    }                                              
 };
+
+// T1 and T2 must be the basic type(int, string ...)
+template <class T1, class T2, class _Hash = UnorderedPairHash<T1, T2>>
+using UnorderedPairSet = std::unordered_set<std::pair<T1, T2>, _Hash>;
 
 #endif //COMMONS_TYPES_H

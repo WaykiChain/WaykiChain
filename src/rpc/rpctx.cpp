@@ -1279,21 +1279,6 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     return retObj;
 }
 
-static Value AccountLogToJson(const CAccount &accoutLog) {
-    Object obj;
-    obj.push_back(Pair("keyid", accoutLog.keyid.ToString()));
-    obj.push_back(Pair("free_bcoins", accoutLog.GetToken(SYMB::WICC).free_amount));
-    // Array array;
-    // for (auto const& te : account.vRewardFund) {
-    //     Object obj2;
-    //     obj2.push_back(Pair("value", te.value));
-    //     obj2.push_back(Pair("height", te.height));
-    //     array.push_back(obj2);
-    // }
-    // obj.push_back(Pair("vRewardFund", array));
-    return obj;
-}
-
 Value gettxoperationlog(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error("gettxoperationlog \"txid\"\n"

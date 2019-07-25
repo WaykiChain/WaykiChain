@@ -185,7 +185,7 @@ Value getrawmempool(const Array& params, bool fHelp)
             const CTxMemPoolEntry& e = entry.second;
             Object info;
             info.push_back(Pair("size",         (int)e.GetTxSize()));
-            info.push_back(Pair("fees_type",    kCoinTypeMapName.at(std::get<0>(e.GetFees()))));
+            info.push_back(Pair("fees_type",    std::get<0>(e.GetFees())));
             info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(e.GetFees()))));
             info.push_back(Pair("time",         e.GetTime()));
             info.push_back(Pair("height",       (int)e.GetHeight()));

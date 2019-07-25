@@ -387,7 +387,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= nAmount + nDefaultFee)) {
+                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= (uint64_t(nAmount + nDefaultFee)))) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -454,7 +454,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
                                strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
-        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId) < nAmount + nActualFee) {
+        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId) < (uint64_t(nAmount + nActualFee))) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else {  // sender address omitted
@@ -478,7 +478,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= nAmount + nDefaultFee)) {
+                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= (uint64_t(nAmount + nDefaultFee)))) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -541,7 +541,7 @@ Value send(const Array& params, bool fHelp) {
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
 
-    int height = chainActive.Height();
+    int32_t height = chainActive.Height();
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
@@ -552,16 +552,11 @@ Value send(const Array& params, bool fHelp) {
                      : CUserID(recvKeyId);
 
     coinAmount = params[2].get_uint64();
-
-    if (!ParseCoinType(params[3].get_str(), coinType)) {
-        throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid coin_type");
-    }
+    coinType   = params[3].get_str();
 
     if (params.size() == 6) {
-        fee = params[4].get_uint64();
-        if (!ParseCoinType(params[5].get_str(), feeType)) {
-            throw JSONRPCError(RPC_COIN_TYPE_INVALID, "Invalid fee_type");
-        }
+        fee     = params[4].get_uint64();
+        feeType = params[5].get_str();
     } else {
         //TODO : default WUSD fee amount
         fee = GetTxMinFee(UCOIN_TRANSFER_TX, chainActive.Height());
@@ -576,7 +571,7 @@ Value send(const Array& params, bool fHelp) {
     }
 
     uint64_t totalAmount = coinAmount;
-    if (coinType==feeType) {
+    if (coinType == feeType) {
         totalAmount += fee;
     }
 
@@ -606,7 +601,9 @@ Value send(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
     }
 
-    CCoinTransferTx tx(sendUserId, recvUserId, height, coinAmount, coinType, fee, feeType);
+    // TOOD: memo
+    UnsignedCharArray memo;
+    CCoinTransferTx tx(sendUserId, recvUserId, height, coinType, coinAmount, feeType, fee, memo);
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");

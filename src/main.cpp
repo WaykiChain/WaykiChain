@@ -2303,17 +2303,17 @@ int static inline GetSkipHeight(int height) {
     return (height & 1) ? InvertLowestOne(InvertLowestOne(height - 1)) + 1 : InvertLowestOne(height);
 }
 
-CBlockIndex *CBlockIndex::GetAncestor(int height) {
-    if (height > height || height < 0)
+CBlockIndex *CBlockIndex::GetAncestor(int heightIn) {
+    if (heightIn > height || heightIn < 0)
         return nullptr;
 
     CBlockIndex *pindexWalk = this;
-    int heightWalk          = height;
+    int heightWalk          = heightIn;
     while (heightWalk > height) {
         int heightSkip     = GetSkipHeight(heightWalk);
         int heightSkipPrev = GetSkipHeight(heightWalk - 1);
-        if (heightSkip == height ||
-            (heightSkip > height && !(heightSkipPrev < heightSkip - 2 && heightSkipPrev >= height))) {
+        if (heightSkip == heightIn ||
+            (heightSkip > heightIn && !(heightSkipPrev < heightSkip - 2 && heightSkipPrev >= heightIn))) {
             // Only follow pskip if pprev->pskip isn't better than pskip->pprev.
             pindexWalk = pindexWalk->pskip;
             heightWalk = heightSkip;
