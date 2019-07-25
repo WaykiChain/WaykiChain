@@ -15,7 +15,6 @@
 
 #include "config/configuration.h"
 #include "main.h"
-#include "vm/luavm/script.h"
 #include "vm/luavm/vmrunenv.h"
 #include <algorithm>
 
@@ -117,7 +116,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
     int nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((int)ceil(contract.size() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
+    uint64_t regFee = std::max((int)ceil(contract.GetContractSize() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 
     uint64_t totalFee = minFee + 10000000; // set default totalFee
@@ -166,7 +165,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     {
         CContractDeployTx tx;
         tx.txUid            = srcRegId;
-        tx.contract    = contract;
+        tx.contract         = contract;
         tx.llFees           = regFee;
         tx.nRunStep         = tx.contract.GetContractSize();
         tx.nValidHeight     = newHeight;
@@ -180,7 +179,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
-        registerContractTxObj.push_back(Pair("script_size", contractScript.size()));
+        registerContractTxObj.push_back(Pair("contract_size", tx.contract.GetContractSize()));
         registerContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
     }
 

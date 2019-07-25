@@ -218,14 +218,12 @@ VMLUA_C = \
 
 VM_H = \
   vm/luavm/vmrunenv.h \
-  vm/luavm/script.h \
   vm/luavm/appaccount.h \
   vm/luavm/vmlua.h
 
 
 VM_CPP = \
   vm/luavm/vmrunenv.cpp \
-  vm/luavm/script.cpp \
   vm/luavm/appaccount.cpp \
   vm/luavm/lmylib.cpp \
   vm/luavm/vmlua.cpp

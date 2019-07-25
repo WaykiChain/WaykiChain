@@ -17,7 +17,6 @@
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
-#include "vm/luavm/script.h"
 #include "vm/luavm/vmrunenv.h"
 
 #include <stdint.h>
@@ -436,7 +435,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         tx.txUid          = regId;
         tx.contract       = luaContract;
         tx.llFees         = fee;
-        tx.nRunStep       = contractScript.GetContractSize();
+        tx.nRunStep       = tx.contract.GetContractSize();
         if (0 == height) {
             height = chainActive.Tip()->height;
         }
@@ -1890,9 +1889,8 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    auto pAccountCache = make_shared<CAccountDBCache>(pCdMan->pAccountCache);
+    std::shared_ptr<CAccountDBCache> pAccountCache(new CAccountDBCache(pCdMan->pAccountCache));    
     CAccount account;
-
     CUserID userId = keyId;
     if (!pAccountCache->GetAccount(userId, account)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
