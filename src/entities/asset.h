@@ -41,7 +41,7 @@ static const unordered_set<string> kPriceTypeSet = {
 };
 
 
-static const unordered_set< TradingPair, UnorderedHash<TradingPair> > kTradingPairSet = {
+static const UnorderedPairSet<TokenSymbol, TokenSymbol> kTradingPairSet = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WGRT, SYMB::WUSD}
 };
