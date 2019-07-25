@@ -5,6 +5,7 @@
 
 #include "cdptx.h"
 
+#include "config/const.h"
 #include "main.h"
 #include "entities/receipt.h"
 #include "persistence/cdpdb.h"
@@ -85,7 +86,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     }
     if (bcoins_to_stake < bcoinsToStakeAmountMin) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
-                    bcoinsToStake), REJECT_INVALID, "bcoins-too-small-to-stake");
+                    bcoins_to_stake), REJECT_INVALID, "bcoins-too-small-to-stake");
     }
 
     CAccount account;
@@ -192,11 +193,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
     vector<CReceipt> receipts;
     CUserID nullUid;
-<<<<<<< HEAD
-    CReceipt receipt(nTxType, nullUid, txUid, WUSD, scoins_to_mint);
-=======
-    CReceipt receipt(nTxType, nullUid, txUid, SYMB::WUSD, scoinsToMint);
->>>>>>> 5c581fb1f7a8f56c883815fd97a9c5c78d1d653c
+    CReceipt receipt(nTxType, nullUid, txUid, SYMB::WUSD, scoins_to_mint);
     receipts.push_back(receipt);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
@@ -261,14 +258,14 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     uint64_t globalCollateralRatioFloor = 0;
     if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, read global collateral ratio floor error"), READ_SYS_PARAM_FAIL,
-                         "read-global-collateral-ratio-floor-error");
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, read global collateral ratio floor error"),
+                        READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(height),
                                                            globalCollateralRatioFloor)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
-                         "gloalcdplock_is_on");
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"),
+                        REJECT_INVALID, "gloalcdplock_is_on");
     }
 
     CAccount account;
@@ -282,15 +279,9 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         REJECT_INVALID, "EMPTY_CDP_TXID");
     }
 
-    if (scoinsToRepay == 0) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, scoinsToRepay is 0"),
+    if (scoins_to_repay == 0) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, scoins_to_repay is 0"),
                         REJECT_DUST, "REJECT_DUST");
-    }
-
-    uint64_t freeScoins = account.GetToken(SYMB::WUSD).free_amount;
-    if (freeScoins < scoinsInterest) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
-                        freeScoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -321,27 +312,32 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         if (!SellInterestForFcoins(height, cdp, cw, state))
             return false;
 
-        //TODO: compute interest
-        uint64_t scoinsInterest =
-        account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoinsInterest);
+        uint64_t scoinsInterestToRepay;
+        if (!ComputeCdpInterest(height, cdp.blockHeight, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCdpInterest error!"),
+                             REJECT_INVALID, "compute-interest-error");
+        }
+
+        if (!account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, Deduct interest error!"),
+                             REJECT_INVALID, "deduct-interest-error");
+        }
     } else {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
                     txUid.ToString()), REJECT_INVALID, "target-cdp-not-exist");
     }
 
     //3. redeem in scoins and update cdp
-    cdp.total_owed_scoins -= scoinsToRedeem;
-    double targetStakedBcoins =
-        ((double)collateralRatio / kPercentBoost) * cdp.total_owed_scoins / cw.ppCache.GetBcoinMedianPrice(height);
-    if (cdp.total_staked_bcoins <= targetStakedBcoins) {
+    cdp.total_owed_scoins -= scoins_to_repay;
+    if (cdp.total_staked_bcoins <= bcoins_to_redeem) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins %d <= target %d",
-                        cdp.total_staked_bcoins, targetStakedBcoins), UPDATE_ACCOUNT_FAIL, "targetStakedBcoins-error");
+                        cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
     }
-    uint64_t releasedBcoins = cdp.total_staked_bcoins - targetStakedBcoins;
-    account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoinsToRedeem);
+    uint64_t releasedBcoins = cdp.total_staked_bcoins - scoins_to_repay;
+    account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoins_to_redeem);
     account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, releasedBcoins);
 
-    cdp.total_staked_bcoins = (uint64_t) targetStakedBcoins;
+    cdp.total_staked_bcoins = (uint64_t) scoins_to_repay;
     if (!cw.cdpCache.SaveCdp(cdp)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed",
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");

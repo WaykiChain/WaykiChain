@@ -293,9 +293,9 @@ Value getmedianprice(const Array& params, bool fHelp){
         map<CoinPricePair, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
         for (auto &item : mapMedianPricePoints) {
             Object price;
-            price.push_back(Pair("coin_type",   item.first.coinType));
-            price.push_back(Pair("price_type",  item.first.priceType));
-            price.push_back(Pair("price",       item.second));
+            price.push_back(Pair("coin_symbol",   item.first.first));
+            price.push_back(Pair("price_symbol",  item.first.second));
+            price.push_back(Pair("price",         item.second));
             prices.push_back(price);
         }
     }

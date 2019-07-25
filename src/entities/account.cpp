@@ -78,19 +78,6 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
     return false;
 }
 
-bool CAccount::UndoOperateAccount(const CAccount &acnt) {
-    // LogPrint("undo_account", "after operate:%s\n", ToString());
-
-    // staked_bcoins       = acnt.staked_bcoins;
-    // staked_fcoins       = acnt.staked_fcoins;
-    // received_votes      = acnt.received_votes;
-    // last_vote_height    = acnt.last_vote_height;
-    // extended_tokens     = acnt.extended_tokens;
-
-    // LogPrint("undo_account", "before operate:%s\n", ToString());
-    return true;
-}
-
 uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateVote> &candidateVotes,
                                                 const uint64_t currHeight) {
     if (candidateVotes.empty()) {

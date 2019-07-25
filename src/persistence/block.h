@@ -6,11 +6,12 @@
 #ifndef PERSIST_BLOCK_H
 #define PERSIST_BLOCK_H
 
-#include "entities/key.h"
 #include "commons/base58.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
 #include "config/configuration.h"
+#include "config/const.h"
+#include "entities/key.h"
 #include "sync.h"
 #include "tx/tx.h"
 #include "disk.h"
@@ -286,8 +287,8 @@ public:
 
         // TODO: Fees
         // nBlockFee        = block.GetFees();
-        bcoinMedianPrice = block.GetBlockMedianPrice(SYMB::WICC, SYMB::USD);
-        fcoinMedianPrice = block.GetBlockMedianPrice(SYMB::WGRT, SYMB::USD);
+        bcoinMedianPrice = block.GetBlockMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+        fcoinMedianPrice = block.GetBlockMedianPrice(CoinPricePair(SYMB::WGRT, SYMB::USD));
 
         int64_t nTxSize = 0;
         for (auto &pTx : block.vptx) {

@@ -2431,11 +2431,11 @@ Value gettxreceipt(const Array& params, bool fHelp) {
     for (const auto &receipt : receipts) {
         Object obj;
 
-        obj.push_back(Pair("tx_type",           std::get<0>(kTxFeeTable.at(receipt.txType))));
-        obj.push_back(Pair("from_addr",         receipt.fromUid.ToString()));
-        obj.push_back(Pair("to_addr",           receipt.fromUid.ToString()));
-        obj.push_back(Pair("coin_type",         receipt.coinType));
-        obj.push_back(Pair("transfer_amount",   receipt.sendAmount));
+        obj.push_back(Pair("tx_type",           std::get<0>(kTxFeeTable.at(receipt.tx_type))));
+        obj.push_back(Pair("from_uid",         receipt.from_uid.ToString()));
+        obj.push_back(Pair("to_uid",           receipt.to_uid.ToString()));
+        obj.push_back(Pair("coin_symbol",       receipt.coin_symbol));
+        obj.push_back(Pair("transfer_amount",   receipt.send_amount));
         retArray.push_back(obj);
     }
     return retArray;

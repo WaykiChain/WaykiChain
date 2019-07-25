@@ -85,13 +85,13 @@ void CDEXSysOrder::SetEmpty() {
 }
 
 void CDEXSysOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) const {
-    orderDetail.userRegId = SysCfg().GetFcoinGenesisRegId();
-    orderDetail.orderType = orderType;
-    orderDetail.direction = direction;
-    orderDetail.coinType = coinType;
-    orderDetail.assetType = assetType;
-    orderDetail.coinAmount = coinAmount;
-    orderDetail.assetAmount = assetAmount;
+    orderDetail.user_regid = SysCfg().GetFcoinGenesisRegId();
+    orderDetail.order_type = order_type;
+    orderDetail.order_side = order_side;
+    orderDetail.coin_symbol = coin_symbol;
+    orderDetail.asset_symbol = asset_symbol;
+    orderDetail.coin_amount = coin_amount;
+    orderDetail.asset_amount = asset_amount;
     orderDetail.price = price;
 }
 

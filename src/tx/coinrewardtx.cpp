@@ -27,12 +27,8 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     account.regid  = regId;
     account.keyid  = keyId;
 
-    switch (coinType) {
-        case SYMB::WICC: account.OperateBalance(SYMB::WICC, ADD_FREE, coins); break;
-        case SYMB::WUSD: account.OperateBalance(SYMB::WUSD, ADD_FREE, coins); break;
-        case SYMB::WGRT: account.OperateBalance(SYMB::WGRT, ADD_FREE, coins); break;
-        default: return ERRORMSG("CCoinRewardTx::ExecuteTx, invalid coin type");
-    }
+    if (!account.OperateBalance(coin_symbol, ADD_FREE, coin_amount))
+        return ERRORMSG("CCoinRewardTx::ExecuteTx: OperateBalance failed");
 
     if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, write secure account info error"),

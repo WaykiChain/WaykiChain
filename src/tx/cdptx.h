@@ -110,7 +110,7 @@ public:
     }
 
     CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
-                uint256 cdpTxIdIn, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem):
+                uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem):
                 CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());

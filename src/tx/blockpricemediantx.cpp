@@ -114,8 +114,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
     for (const auto item : median_price_points) {
-        pricePoints += strprintf("{coin_type:%u, price_type:%u, price:%lld}", item.first.coinType, item.first.priceType,
-                                 item.second);
+        pricePoints += strprintf("{coin_symbol:%u, price_symbol:%u, price:%lld}",
+                                item.first.first, item.first.second, item.second);
     };
 
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, nValidHeight=%d\n",
@@ -131,9 +131,9 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     Array pricePointArray;
     for (const auto &item : median_price_points) {
         Object subItem;
-        subItem.push_back(Pair("coin_type",     item.first.coinType));
-        subItem.push_back(Pair("price_type",    item.first.priceType));
-        subItem.push_back(Pair("price",         item.second));
+        subItem.push_back(Pair("coin_symbol",     item.first.first));
+        subItem.push_back(Pair("price_symbol",    item.first.second));
+        subItem.push_back(Pair("price",           item.second));
         pricePointArray.push_back(subItem);
     }
     result.push_back(Pair("median_price_points",   pricePointArray));
