@@ -77,10 +77,10 @@ void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointC
         const auto &mapBlockUserPrices = item.second.mapBlockUserPrices;
         for (const auto &userPrice : mapBlockUserPrices) {
             if (userPrice.second.empty()) {
-                mapCoinPricePointCache[item.first /* CCoinPriceType */].mapBlockUserPrices.erase(
+                mapCoinPricePointCache[item.first /* CoinPricePair */].mapBlockUserPrices.erase(
                     userPrice.first /* height */);
             } else {
-                mapCoinPricePointCache[item.first /* CCoinPriceType */].mapBlockUserPrices[userPrice.first /* height */] =
+                mapCoinPricePointCache[item.first /* CoinPricePair */].mapBlockUserPrices[userPrice.first /* height */] =
                     userPrice.second;
             }
         }
@@ -94,7 +94,7 @@ void CPricePointMemCache::Flush() {
     mapCoinPricePointCache.clear();
 }
 
-bool CPricePointMemCache::GetBlockUserPrices(CCoinPriceType coinPriceType, set<int32_t> &expired,
+bool CPricePointMemCache::GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired,
                                           BlockUserPriceMap &blockUserPrices) {
     const auto &iter = mapCoinPricePointCache.find(coinPriceType);
     if (iter != mapCoinPricePointCache.end()) {
@@ -113,15 +113,15 @@ bool CPricePointMemCache::GetBlockUserPrices(CCoinPriceType coinPriceType, set<i
     }
 
     if (pBase != nullptr) {
-        return pBase->GetBlockUserPrices(coinPriceType, expired, blockUserPrices);
+        return pBase->GetBlockUserPrices(coinPricePair, expired, blockUserPrices);
     }
 
     return true;
 }
 
-bool CPricePointMemCache::GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices) {
+bool CPricePointMemCache::GetBlockUserPrices(const CoinPricePair &coinPricePair, BlockUserPriceMap &blockUserPrices) {
     set<int32_t /* block height */> expired;
-    if (!GetBlockUserPrices(coinPriceType, expired, blockUserPrices)) {
+    if (!GetBlockUserPrices(coinPricePair, expired, blockUserPrices)) {
         // TODO: log
         return false;
     }
@@ -129,10 +129,10 @@ bool CPricePointMemCache::GetBlockUserPrices(CCoinPriceType coinPriceType, Block
     return true;
 }
 
-uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const CCoinPriceType &coinPriceType) {
+uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const CoinPricePair &coinPricePair) {
     // 1. merge block user prices with base cache.
     BlockUserPriceMap blockUserPrices;
-    if (!GetBlockUserPrices(coinPriceType, blockUserPrices) || blockUserPrices.empty()) {
+    if (!GetBlockUserPrices(coinPricePair, blockUserPrices) || blockUserPrices.empty()) {
         return 0;
     }
 
@@ -168,22 +168,22 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
 }
 
 uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
-    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(SYMB::WICC, SYMB::USD));
+    return ComputeBlockMedianPrice(blockHeight, CoinPricePair(SYMB::WICC, SYMB::USD));
 }
 
 uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
-    return ComputeBlockMedianPrice(blockHeight, CCoinPriceType(SYMB::WGRT, SYMB::USD));
+    return ComputeBlockMedianPrice(blockHeight, CoinPricePair(SYMB::WGRT, SYMB::USD));
 }
 
 bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
-                                                    map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn) {
-    CCoinPriceType bcoinPriceType(SYMB::WICC, SYMB::USD);
+                                                    map<CoinPricePair, uint64_t> &mapMedianPricePointsIn) {
+    CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
     uint64_t bcoinMedianPrice = GetBcoinMedianPrice(blockHeight);
-    mapMedianPricePointsIn.emplace(bcoinPriceType, bcoinMedianPrice);
+    mapMedianPricePointsIn.emplace(bcoinPricePair, bcoinMedianPrice);
 
-    CCoinPriceType fcoinPriceType(SYMB::WGRT, SYMB::USD);
+    CoinPricePair fcoinPricePair(SYMB::WGRT, SYMB::USD);
     uint64_t scoinMedianPrice = GetFcoinMedianPrice(blockHeight);
-    mapMedianPricePointsIn.emplace(fcoinPriceType, scoinMedianPrice);
+    mapMedianPricePointsIn.emplace(fcoinPricePair, scoinMedianPrice);
 
     return true;
 }

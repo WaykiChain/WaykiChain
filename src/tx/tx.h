@@ -106,102 +106,49 @@ protected:
                                 CValidationState &state, const vector<CUserID> &userIds);
 };
 
-class CCoinPriceType {
-public:
-    TokenSymbol coinType;
-    PriceSymbol priceType;
-
-public:
-    CCoinPriceType() {}
-
-    CCoinPriceType(const TokenSymbol &coinTypeIn, const PriceSymbol &priceTypeIn) :
-        coinType(coinTypeIn), priceType(priceTypeIn) {}
-
-    CCoinPriceType(const CCoinPriceType &other) {
-        *this = other;
-    }
-
-    ~CCoinPriceType() {}
-
-public:
-    bool operator<(const CCoinPriceType &coinPriceType) const {
-        if (coinType == coinPriceType.coinType) {
-            return priceType < coinPriceType.priceType;
-        } else {
-            return coinType < coinPriceType.coinType;
-        }
-    }
-
-    bool operator==(const CCoinPriceType &rhs) const {
-        return (this->coinType == rhs.coinType && this->priceType == rhs.priceType);
-    }
-
-    string ToString() { return strprintf("%u%u", coinType, priceType); }
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(coinType);
-        READWRITE(priceType);)
-
-    CCoinPriceType& operator=(const CCoinPriceType& other) {
-        if (this == &other)
-            return *this;
-
-        this->coinType  = other.coinType;
-        this->priceType = other.priceType;
-
-        return *this;
-    }
-};
-
 class CPricePoint {
 public:
-    CCoinPriceType coinPriceType;
+    CoinPricePair coin_price_pair;
     uint64_t price;
 
 public:
     CPricePoint() {}
 
-    CPricePoint(const CCoinPriceType &coinPriceTypeIn, const uint64_t priceIn)
-        : coinPriceType(coinPriceTypeIn), price(priceIn) {}
+    CPricePoint(const CoinPricePair &coinPricePair, const uint64_t priceIn)
+        : coin_price_pair(coinPricePair), price(priceIn) {}
 
-    CPricePoint(const TokenSymbol &coinTypeIn, const PriceSymbol &priceTypeIn, const uint64_t priceIn)
-        : coinPriceType(coinTypeIn, priceTypeIn), price(priceIn) {}
-
-    CPricePoint(const CPricePoint& other) {
-        *this = other;
-    }
+    CPricePoint(const CPricePoint& other) { *this = other; }
 
     ~CPricePoint() {}
 
 public:
     uint64_t GetPrice() { return price; }
-    CCoinPriceType GetCoinPriceType() { return coinPriceType; }
 
     string ToString() {
-        return strprintf("coinType:%u, priceType:%u, price:%lld",
-                        coinPriceType.coinType, coinPriceType.priceType, price);
+        return strprintf("coin_price_pair:%s:%s, price:%lld",
+                        coin_price_pair.first, coin_price_pair.second, price);
     }
 
     json_spirit::Object ToJson() const {
         json_spirit::Object obj;
 
-        obj.push_back(json_spirit::Pair("coin_type",    coinPriceType.coinType));
-        obj.push_back(json_spirit::Pair("price_type",   coinPriceType.priceType));
-        obj.push_back(json_spirit::Pair("price",        price));
+        obj.push_back(json_spirit::Pair("coin_symbol",      coin_price_pair.first));
+        obj.push_back(json_spirit::Pair("price_symbol",     coin_price_pair.second));
+        obj.push_back(json_spirit::Pair("price",            price));
 
         return obj;
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(coinPriceType);
+        READWRITE(coin_price_pair);
         READWRITE(VARINT(price));)
 
     CPricePoint& operator=(const CPricePoint& other) {
         if (this == &other)
             return *this;
 
-        this->coinPriceType = other.coinPriceType;
-        this->price         = other.price;
+        this->coin_price_pair   = other.coin_price_pair;
+        this->price             = other.price;
 
         return *this;
     }

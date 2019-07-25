@@ -31,22 +31,22 @@ public:
     }
     /** Newly open a CDP */
     CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
-                uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn):
+                uint64_t bcoinsToStake, uint64_t scoinsToMint):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
-        bcoinsToStake   = bcoinsToStakeIn;
-        scoinsToMint    = scoinsToMintIn;
+        bcoins_to_stake   = bcoinsToStake;
+        scoins_to_mint    = scoinsToMint;
     }
     /** Stake an existing CDP */
-    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn, uint256 cdpTxIdIn,
-                uint64_t bcoinsToStakeIn, uint64_t scoinsToMintIn)
+    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn, uint256 cdpTxId,
+                uint64_t bcoinsToStake, uint64_t scoinsToMint)
         : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        cdpTxId       = cdpTxIdIn;
-        bcoinsToStake = bcoinsToStakeIn;
-        scoinsToMint  = scoinsToMintIn;
+        cdp_txid        = cdpTxId;
+        bcoins_to_stake = bcoinsToStake;
+        scoins_to_mint  = scoinsToMint;
     }
 
     ~CCDPStakeTx() {}
@@ -58,9 +58,9 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
-        READWRITE(cdpTxId);
-        READWRITE(VARINT(bcoinsToStake));
-        READWRITE(VARINT(scoinsToMint));
+        READWRITE(cdp_txid);
+        READWRITE(VARINT(bcoins_to_stake));
+        READWRITE(VARINT(scoins_to_mint));
 
         READWRITE(signature);
     )
@@ -69,13 +69,13 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(bcoinsToStake) << VARINT(scoinsToMint);
+                << cdp_txid << VARINT(bcoins_to_stake) << VARINT(scoins_to_mint);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoinsToStake}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins_to_stake}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
@@ -90,11 +90,11 @@ private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TxID        cdpTxId;            //optional: only required for staking existing CDPs
-    TokenSymbol bcoinSymbol;        //optional: only required for 1st-time CDP staking
-    TokenSymbol scoinSymbol;        //ditto
-    uint64_t    bcoinsToStake;      // base coins amount to stake or collateralize
-    uint64_t    scoinsToMint;       // initial collateral ratio must be >= 190 (%), boosted by 10000
+    TxID        cdp_txid;            //optional: only required for staking existing CDPs
+    TokenSymbol bcoin_symbol;        //optional: only required for 1st-time CDP staking
+    TokenSymbol scoin_symbol;        //ditto
+    uint64_t    bcoins_to_stake;      // base coins amount to stake or collateralize
+    uint64_t    scoins_to_mint;       // initial collateral ratio must be >= 190 (%), boosted by 10000
 };
 
 /**
@@ -110,14 +110,14 @@ public:
     }
 
     CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
-                uint256 cdpTxIdIn, uint64_t scoinsToRepayIn, uint64_t bcoinsToRedeemIn):
+                uint256 cdpTxIdIn, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem):
                 CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
-        cdpTxId        = cdpTxIdIn;
-        scoinsToRepay  = scoinsToRepayIn;
-        bcoinsToRedeem = bcoinsToRedeemIn;
+        cdp_txid         = cdpTxId;
+        scoins_to_repay  = scoinsToRepay;
+        bcoins_to_redeem = bcoinsToRedeem;
     }
 
     ~CCDPRedeemTx() {}
@@ -129,9 +129,9 @@ public:
         READWRITE(txUid);
         READWRITE(VARINT(llFees));
 
-        READWRITE(cdpTxId);
-        READWRITE(VARINT(scoinsToRepay));
-        READWRITE(VARINT(bcoinsToRedeem));
+        READWRITE(cdp_txid);
+        READWRITE(VARINT(scoins_to_repay));
+        READWRITE(VARINT(bcoins_to_redeem));
 
         READWRITE(signature);
     )
@@ -140,13 +140,13 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(scoinsToRepay) << VARINT(bcoinsToRedeem);
+                << cdp_txid << VARINT(scoins_to_repay) << VARINT(bcoins_to_redeem);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WUSD, bcoinsToRedeem}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WUSD, bcoins_to_redeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPRedeemTx>(this); }
@@ -161,9 +161,9 @@ private:
     bool SellInterestForFcoins(const int32_t height, const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint256 cdpTxId;          // CDP cdpTxId
-    uint64_t scoinsToRepay;   // stableCoins amount to redeem or burn, including interest
-    uint64_t bcoinsToRedeem;
+    uint256 cdp_txid;          // CDP cdpTxId
+    uint64_t scoins_to_repay;   // stableCoins amount to redeem or burn, including interest
+    uint64_t bcoins_to_redeem;
 };
 
 /**
@@ -179,15 +179,15 @@ public:
     }
 
     CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
-                    uint256 cdpTxIdIn, uint64_t scoinsToLiquidateIn):
+                    uint256 cdpTxId, uint64_t scoinsToLiquidate):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        cdpTxId             = cdpTxIdIn;
-        scoinsToLiquidate   = scoinsToLiquidateIn;
+        cdp_txid            = cdpTxId;
+        scoins_to_liquidate = scoinsToLiquidate;
     }
 
     ~CCDPLiquidateTx() {}
@@ -199,8 +199,8 @@ public:
         READWRITE(txUid);
         READWRITE(VARINT(llFees));
 
-        READWRITE(cdpTxId);
-        READWRITE(scoinsToLiquidate);
+        READWRITE(cdp_txid);
+        READWRITE(scoins_to_liquidate);
 
         READWRITE(signature);
     )
@@ -209,14 +209,14 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdpTxId << VARINT(scoinsToLiquidate);
+                << cdp_txid << VARINT(scoins_to_liquidate);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const {
-        return map<TokenSymbol, uint64_t>{{SYMB::WUSD, scoinsToLiquidate}};
+        return map<TokenSymbol, uint64_t>{{SYMB::WUSD, scoins_to_liquidate}};
     }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
@@ -234,8 +234,8 @@ private:
                             const CUserCDP &cdp, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    uint256     cdpTxId;            // target CDP to liquidate
-    uint64_t    scoinsToLiquidate;  // partial liquidation is allowed, must include penalty fees in
+    uint256     cdp_txid;            // target CDP to liquidate
+    uint64_t    scoins_to_liquidate;  // partial liquidation is allowed, must include penalty fees in
 };
 
 #endif //TX_CDP_H

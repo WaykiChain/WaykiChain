@@ -175,7 +175,7 @@ public:
 
     // TODO: Fees
     // int64_t GetFees() const;
-    uint64_t GetBlockMedianPrice(const TokenSymbol coinType, const PriceSymbol priceType) const;
+    uint64_t GetBlockMedianPrice(const CoinPricePair &coinPricePair) const;
 
     void Print(CAccountDBCache &accountCache) const;
 };

@@ -15,26 +15,26 @@
 
 class CReceipt {
 public:
-    TxType txType;
-    CUserID fromUid;
-    CUserID toUid;
-    TokenSymbol coinType;
-    uint64_t sendAmount;
+    TxType      tx_type;
+    CUserID     from_uid;
+    CUserID     to_uid;
+    TokenSymbol coin_symbol;
+    uint64_t    send_amount;
 
 public:
     CReceipt() {};
 
-    CReceipt(TxType txTypeIn, CUserID &fromUidIn, CUserID &toUidIn,
-            TokenSymbol coinTypeIn, uint64_t sendAmountIn) :
-            txType(txTypeIn), fromUid(fromUidIn), toUid(toUidIn),
-            coinType(coinTypeIn), sendAmount(sendAmountIn) {};
+    CReceipt(TxType txType, CUserID &fromUid, CUserID &toUid,
+            TokenSymbol coinSymbol, uint64_t sendAmount) :
+            tx_type(txType), from_uid(fromUid), to_uid(toUid),
+            coin_symbol(coinSymbol), send_amount(sendAmount) {};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t &) txType);
-        READWRITE(fromUid);
-        READWRITE(toUid);
-        READWRITE((uint8_t &) coinType);
-        READWRITE(VARINT(sendAmount));)
+        READWRITE((uint8_t &) tx_type);
+        READWRITE(from_uid);
+        READWRITE(to_uid);
+        READWRITE((uint8_t &) coin_symbol);
+        READWRITE(VARINT(send_amount));)
 };
 
 #endif //ENTITIES_RECEIPT_H

@@ -52,7 +52,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read GLOBAL_COLLATERAL_CEILING_AMOUNT error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
-    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoinsToStake, globalCollateralCeiling)) {
+    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoins_to_stake, globalCollateralCeiling)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralCeilingReached!"),
                         REJECT_INVALID, "global-cdp-lock-is-on");
     }
@@ -62,13 +62,15 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost / scoinsToMint;
+    uint64_t collateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost /
+                                scoins_to_mint;
+
     if (collateralRatio < startingCdpCollateralRatio) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
     }
 
-    if (cdpTxId.IsNull()) {  // 1st-time CDP creation
+    if (cdp_txid.IsNull()) {  // 1st-time CDP creation
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"),
@@ -81,7 +83,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read min coins to stake error"),
                         READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
     }
-    if (bcoinsToStake < bcoinsToStakeAmountMin) {
+    if (bcoins_to_stake < bcoinsToStakeAmountMin) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
                     bcoinsToStake), REJECT_INVALID, "bcoins-too-small-to-stake");
     }
@@ -116,22 +118,22 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t partialCollateralRatio = bcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height)
-                                        * kPercentBoost / scoinsToMint;
+    uint64_t partialCollateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height)
+                                        * kPercentBoost / scoins_to_mint;
 
-    if (cdpTxId.IsNull()) { // 1st-time CDP creation
+    if (cdp_txid.IsNull()) { // 1st-time CDP creation
         if (partialCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         partialCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
-        cw.cdpCache.StakeBcoinsToCdp(height, bcoinsToStake, scoinsToMint, cdp);
+        cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp);
 
     } else { // further staking on one's existing CDP
-        CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
+        CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
         if (!cw.cdpCache.GetCdp(cdp)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdpTxId %s", cdpTxId.ToString()),
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdp_txid %s", cdp_txid.ToString()),
                              REJECT_INVALID, "invalid-stake-cdp-txid");
         }
         if (height < cdp.blockHeight) {
@@ -139,8 +141,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                     height, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
-        uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoinsToStake;
-        uint64_t totalScoinsToOwe = cdp.total_owed_scoins + scoinsToMint;
+        uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoins_to_stake;
+        uint64_t totalScoinsToOwe = cdp.total_owed_scoins + scoins_to_mint;
         uint64_t totalCollateralRatio = totalBcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height)
                                         * kPercentBoost / totalScoinsToOwe;
 
@@ -173,15 +175,15 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         // settle cdp state & persist
-        cw.cdpCache.StakeBcoinsToCdp(height, bcoinsToStake, scoinsToMint, cdp);
+        cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp);
     }
 
     // update account accordingly
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, bcoinsToStake)) {
+    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, bcoins_to_stake)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
                         INTEREST_INSUFFICIENT, "wicc-insufficient-error");
     }
-    account.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsToMint);
+    account.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoins_to_mint);
 
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
@@ -190,7 +192,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
     vector<CReceipt> receipts;
     CUserID nullUid;
-    CReceipt receipt(nTxType, nullUid, txUid, WUSD, scoinsToMint);
+    CReceipt receipt(nTxType, nullUid, txUid, WUSD, scoins_to_mint);
     receipts.push_back(receipt);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
@@ -205,7 +207,8 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
 
-    str += strprintf("cdpTxId=%s, bcoinsToStake=%d, scoinsToMint=%d", cdpTxId.ToString(), bcoinsToStake, scoinsToMint);
+    str += strprintf("cdp_txid=%s, bcoins_to_stake=%d, scoins_to_mint=%d",
+                    cdp_txid.ToString(), bcoins_to_stake, scoins_to_mint);
 
     return str;
 }
@@ -224,9 +227,9 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
 
-    result.push_back(Pair("cdp_txid",           cdpTxId.ToString()));
-    result.push_back(Pair("bcoins_to_stake",    bcoinsToStake));
-    result.push_back(Pair("scoins_to_mint",     scoinsToMint));
+    result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
+    result.push_back(Pair("bcoins_to_stake",    bcoins_to_stake));
+    result.push_back(Pair("scoins_to_mint",     scoins_to_mint));
 
     return result;
 }
@@ -270,8 +273,8 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (cdpTxId.IsEmpty()) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdpTxId is empty"),
+    if (cdp_txid.IsEmpty()) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdp_txid is empty"),
                         REJECT_INVALID, "EMPTY_CDP_TXID");
     }
 
@@ -280,10 +283,10 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         REJECT_DUST, "REJECT_DUST");
     }
 
-    uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
-    if (free_scoins < scoinsInterest) {
+    uint64_t freeScoins = account.GetToken(SYMB::WUSD).free_amount;
+    if (freeScoins < scoinsInterest) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, account scoins %d insufficent for interest %d",
-                        free_scoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
+                        freeScoins, scoinsInterest), REJECT_INVALID, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -305,7 +308,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     //2. pay interest fees in wusd
-    CUserCDP cdp(txUid.get<CRegID>(), cdpTxId);
+    CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
     if (cw.cdpCache.GetCdp(cdp)) {
         if (height < cdp.blockHeight) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.blockHeight: %d",
@@ -357,8 +360,8 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
 
-    str += strprintf("cdpTxId=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
-                    cdpTxId.ToString(), scoinsToRedeem, collateralRatio, scoinsInterest);
+    str += strprintf("cdp_txid=%s, scoinsToRedeem=%d, collateralRatio=%d, scoinsInterest=%d",
+                    cdp_txid.ToString(), scoinsToRedeem, collateralRatio, scoinsInterest);
 
     return str;
  }
@@ -377,7 +380,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
 
-    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
+    result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_redeem",    scoinsToRedeem));
     result.push_back(Pair("collateral_ratio",    collateralRatio / kPercentBoost));
     result.push_back(Pair("scoins_interest",     scoinsInterest));
@@ -397,7 +400,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
                         REJECT_INVALID, "interest-insufficient-error");
     }
 
-    if (scoinsToLiquidate < scoinsInterestToRepay) {
+    if (scoins_to_liquidate < scoinsInterestToRepay) {
          return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, scoinsInterest: %d < scoinsInterestToRepay: %d",
                     scoinsInterest, scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "scoins-interest-insufficient-error");
     }
@@ -428,8 +431,8 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
                          "gloalcdplock_is_on");
     }
 
-    if (cdpTxId.IsEmpty()) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdpTxId is empty"),
+    if (cdp_txid.IsEmpty()) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"),
                         REJECT_INVALID, "EMPTY_CDPTXID");
     }
 
@@ -444,9 +447,9 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     uint64_t free_scoins = account.GetToken(SYMB::WUSD).free_amount;
-    if (free_scoins < scoinsToLiquidate + scoinsPenalty) {
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoinsToLiquidate: %d",
-                        free_scoins, scoinsToLiquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
+    if (free_scoins < scoins_to_liquidate + scoinsPenalty) {
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoins_to_liquidate: %d",
+                        free_scoins, scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -484,7 +487,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
-    CUserCDP cdp(cdpOwnerRegId, cdpTxId);
+    CUserCDP cdp(cdpOwnerRegId, cdp_txid);
     if (!cw.cdpCache.GetCdp(cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
@@ -547,8 +550,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         //Although not likely to happen. but if it does, execute it accordingly.
         totalScoinsToLiquidate = cdp.total_owed_scoins; //N
         totalScoinsToReturnLiquidator = (double) cdp.total_staked_bcoins / cw.ppCache.GetBcoinMedianPrice(height); //M
-        if (scoinsToLiquidate < cdp.total_owed_scoins) {
-            totalScoinsToReturnLiquidator = scoinsToLiquidate * kPercentBoost / cdpLiquidateDiscountRate;
+        if (scoins_to_liquidate < cdp.total_owed_scoins) {
+            totalScoinsToReturnLiquidator = scoins_to_liquidate * kPercentBoost / cdpLiquidateDiscountRate;
             uint64_t totalCdpStakeInScoins = cdp.total_staked_bcoins * cw.ppCache.GetBcoinMedianPrice(height);
             if (totalCdpStakeInScoins < totalScoinsToReturnLiquidator) {
                 totalScoinsToReturnLiquidator = totalCdpStakeInScoins;
@@ -559,7 +562,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     vector<CReceipt> receipts;
-    if (scoinsToLiquidate >= totalScoinsToLiquidate) {
+    if (scoins_to_liquidate >= totalScoinsToLiquidate) {
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(height);
 
@@ -587,18 +590,18 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         receipts.push_back(receipt3);
 
     } else { //partial liquidation
-        liquidateRate = (double) scoinsToLiquidate / totalScoinsToLiquidate;
+        liquidateRate = (double) scoins_to_liquidate / totalScoinsToLiquidate;
         uint64_t totalBcoinsToReturnLiquidator =
             totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(height);
 
-        account.OperateBalance(SYMB::WUSD, SUB_FREE, scoinsToLiquidate);
+        account.OperateBalance(SYMB::WUSD, SUB_FREE, scoins_to_liquidate);
         account.OperateBalance(SYMB::WUSD, SUB_FREE, scoinsPenalty);
         account.OperateBalance(SYMB::WICC, ADD_FREE, totalBcoinsToReturnLiquidator);
 
         int32_t bcoinsToCDPOwner = totalBcoinsToCDPOwner * liquidateRate;
         cdpOwneraccount.OperateBalance(SYMB::WICC, ADD_FREE, bcoinsToCDPOwner);
 
-        cdp.total_owed_scoins -= scoinsToLiquidate;
+        cdp.total_owed_scoins -= scoins_to_liquidate;
         cdp.total_staked_bcoins -= bcoinsToCDPOwner;
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
@@ -608,7 +611,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         cw.cdpCache.SaveCdp(cdp);
 
         CUserID nullUid;
-        CReceipt receipt1(nTxType, txUid, nullUid, WUSD, (scoinsToLiquidate + scoinsPenalty));
+        CReceipt receipt1(nTxType, txUid, nullUid, WUSD, (scoins_to_liquidate + scoinsPenalty));
         receipts.push_back(receipt1);
 
         CReceipt receipt2(nTxType, nullUid, txUid, WICC, totalBcoinsToReturnLiquidator);
@@ -629,9 +632,9 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
 
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n"
-        "cdpTxId=%s, scoinsToLiquidate=%d, scoinsPenalty=%d",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), cdpTxId.ToString(),
-        scoinsToLiquidate, scoinsPenalty);
+        "cdp_txid=%s, scoins_to_liquidate=%d, scoinsPenalty=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), cdp_txid.ToString(),
+        scoins_to_liquidate, scoinsPenalty);
 
     return str;
 }
@@ -650,9 +653,8 @@ Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
 
-    result.push_back(Pair("cdp_txid",            cdpTxId.ToString()));
-    result.push_back(Pair("scoins_to_liquidate", scoinsToLiquidate));
-    result.push_back(Pair("scoinsPenalty",       scoinsPenalty / kPercentBoost));
+    result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
+    result.push_back(Pair("scoins_to_liquidate", scoins_to_liquidate));
 
     return result;
 }

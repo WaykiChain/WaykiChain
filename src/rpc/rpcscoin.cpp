@@ -88,8 +88,8 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         }
 
         uint64_t price = priceValue.get_int64();
-        CCoinPriceType cpt(coinType, currencyType);
-        CPricePoint pp(cpt, price);
+        CoinPricePair cpp(coinType, currencyType);
+        CPricePoint pp(cpp, price);
         pricePoints.push_back(pp);
     }
 
@@ -290,7 +290,7 @@ Value getmedianprice(const Array& params, bool fHelp){
 
     Array prices;
     if (block.vptx.size() > 1 && block.vptx[1]->nTxType == BLOCK_PRICE_MEDIAN_TX) {
-        map<CCoinPriceType, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
+        map<CoinPricePair, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
         for (auto &item : mapMedianPricePoints) {
             Object price;
             price.push_back(Pair("coin_type",   item.first.coinType));

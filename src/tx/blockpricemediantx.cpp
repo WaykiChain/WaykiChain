@@ -11,7 +11,7 @@
 bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    map<CCoinPriceType, uint64_t> mapMedianPricePoints;
+    map<CoinPricePair, uint64_t> mapMedianPricePoints;
     cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
 
     if (mapMedianPricePoints != median_price_points) {
@@ -146,6 +146,6 @@ bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyI
     return true;
 }
 
-map<CCoinPriceType, uint64_t> CBlockPriceMedianTx::GetMedianPrice() const {
+map<CoinPricePair, uint64_t> CBlockPriceMedianTx::GetMedianPrice() const {
     return median_price_points;
 }

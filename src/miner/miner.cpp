@@ -566,7 +566,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
         if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R2) { // stablecoin release
             CBlockPriceMedianTx* pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
-            map<CCoinPriceType, uint64_t> mapMedianPricePoints;
+            map<CoinPricePair, uint64_t> mapMedianPricePoints;
             cwIn.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
             pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
         }

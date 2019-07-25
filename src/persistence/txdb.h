@@ -20,8 +20,6 @@ using namespace std;
 using namespace json_spirit;
 
 class CBlock;
-class CPricePoint;
-class CCoinPriceType;
 class CRegID;
 
 class CTxMemCache {

@@ -27,7 +27,8 @@ using namespace std;
 
 typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
 typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
-
+typedef std::pair<TokenSymbol, TokenSymbol> CoinPricePair;
+typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
 typedef string AssetSymbol;     //8 chars max, E.g. WICC
 typedef string PriceSymbol;     //8 chars max, E.g. USD, CNY, EUR, BTC
 
@@ -39,7 +40,7 @@ static const unordered_set<string> kPriceTypeSet = {
     SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::USDT, SYMB::GOLD, SYMB::KWH
 };
 
-typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
+
 
 static const unordered_set< TradingPair, UnorderedHash<TradingPair> > kTradingPairSet = {
     {SYMB::WICC, SYMB::WUSD},

@@ -21,7 +21,7 @@ using namespace std;
 class CConsecutiveBlockPrice;
 
 typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
-typedef map<CCoinPriceType, CConsecutiveBlockPrice> CoinPricePointMap;
+typedef map<CoinPricePair, CConsecutiveBlockPrice> CoinPricePointMap;
 
 // Price Points in 11 consecutive blocks
 class CConsecutiveBlockPrice {
@@ -49,17 +49,17 @@ public:
 
     uint64_t GetBcoinMedianPrice(const int32_t blockHeight);
     uint64_t GetFcoinMedianPrice(const int32_t blockHeight);
-    bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn);
+    bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CoinPricePair, uint64_t> &mapMedianPricePointsIn);
 
     void Flush();
 
 private:
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
 
-    bool GetBlockUserPrices(CCoinPriceType coinPriceType, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
-    bool GetBlockUserPrices(CCoinPriceType coinPriceType, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
+    bool GetBlockUserPrices(const CoinPricePair &coinPricePair, BlockUserPriceMap &blockUserPrices);
 
-    uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const CCoinPriceType &coinPriceType);
+    uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const CoinPricePair &coinPricePair);
     uint64_t ComputeBlockMedianPrice(const int32_t blockHeight, const BlockUserPriceMap &blockUserPrices);
     static uint64_t ComputeMedianNumber(vector<uint64_t> &numbers);
 

@@ -76,15 +76,14 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
 //     return nFees;
 // }
 
-uint64_t CBlock::GetBlockMedianPrice(const TokenSymbol coinType, const PriceSymbol priceType) const {
+uint64_t CBlock::GetBlockMedianPrice(const CoinPricePair &coinPricePair) const {
     if (vptx.size() == 1 || vptx[1]->nTxType != BLOCK_PRICE_MEDIAN_TX) {
         return 0;
     }
 
-    CCoinPriceType coinPriceType(coinType, priceType);
-    map<CCoinPriceType, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
+    map<CoinPricePair, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
 
-    return mapMedianPricePoints.count(coinPriceType) ? mapMedianPricePoints[coinPriceType] : 0;
+    return mapMedianPricePoints.count(coinPricePair) ? mapMedianPricePoints[coinPricePair] : 0;
 }
 
 void CBlock::Print(CAccountDBCache& accountCache) const {

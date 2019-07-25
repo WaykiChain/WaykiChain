@@ -10,7 +10,7 @@
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
-    map<CCoinPriceType, uint64_t> median_price_points;
+    map<CoinPricePair, uint64_t> median_price_points;
 
 public:
     CBlockPriceMedianTx(): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {}
@@ -53,12 +53,12 @@ public:
     bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 public:
-    bool SetMedianPricePoints(map<CCoinPriceType, uint64_t> &mapMedianPricePointsIn) {
+    bool SetMedianPricePoints(map<CoinPricePair, uint64_t> &mapMedianPricePointsIn) {
         median_price_points = mapMedianPricePointsIn;
         return true;
     }
 
-    map<CCoinPriceType, uint64_t> GetMedianPrice() const;
+    map<CoinPricePair, uint64_t> GetMedianPrice() const;
 
 };
 
