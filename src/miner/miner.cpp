@@ -75,7 +75,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     static CoinType coinType = CoinType::WUSD;
     static uint64_t nFees    = 0;
 
-    int32_t height           = chainActive.Height();
+    int32_t height            = chainActive.Height();
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
     uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height);
     auto GetCoinMedianPrice   = [&](const CoinType coinType) -> uint64_t {
@@ -298,9 +298,9 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     if (!pBlock.get())
         return nullptr;
 
-    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) { // pre-stablecoin release
+    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) {  // pre-stablecoin release
         pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
-    } else {  //stablecoin release
+    } else {  // stablecoin release
         pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
         pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
     }
@@ -313,7 +313,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
     unsigned int nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize = std::min(nBlockMaxSize, nBlockPrioritySize);
+    nBlockPrioritySize              = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
@@ -325,7 +325,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
-        uint32_t height        = pIndexPrev->height + 1;
+        uint32_t height         = pIndexPrev->height + 1;
         int32_t nFuelRate       = GetElementForBurn(pIndexPrev);
         uint64_t nBlockSize     = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t nBlockTx       = 0;
@@ -342,26 +342,20 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
         // Collect transactions into the block.
         for (auto item : txPriorities) {
-            // Take highest priority transaction off the priority queue.
-            // TODO: Fees
-            // double dFeePerKb        = std::get<1>(txPriorities.front());
-            shared_ptr<CBaseTx> stx = std::get<2>(item);
-            CBaseTx *pBaseTx        = stx.get();
+            CBaseTx *pBaseTx = std::get<2>(item).get();
 
-            // Size limits
-            unsigned int nTxSize = ::GetSerializeSize(*pBaseTx, SER_NETWORK, PROTOCOL_VERSION);
+            uint32_t nTxSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             if (nBlockSize + nTxSize >= nBlockMaxSize) {
                 LogPrint("MINER", "CreateNewBlock() : exceed max block size, txid: %s\n", pBaseTx->GetHash().GetHex());
                 continue;
             }
 
-            // Skip trx with MinRelayTxFee fee for this block
-            // once the accumulated tx size surpasses the minimum block size:
-            // TODO: Fees
-            // if ((dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize)) {
-            //     LogPrint("MINER", "CreateNewBlock() : skip free transaction, txid: %s\n", pBaseTx->GetHash().GetHex());
-            //     continue;
-            // }
+            // Skip trx with MinRelayTxFee fee for this block once the accumulated tx size surpasses the minimum block size.
+            const double dFeePerKb = std::get<1>(item);
+            if ((dFeePerKb != 0) && (dFeePerKb < CBaseTx::nMinRelayTxFee) && (nBlockSize + nTxSize >= nBlockMinSize)) {
+                LogPrint("MINER", "CreateNewBlock() : skip free transaction, txid: %s\n", pBaseTx->GetHash().GetHex());
+                continue;
+            }
 
             auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
@@ -393,11 +387,11 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
 
             // TODO: Fees
             // nTotalFees += pBaseTx->GetFees();
-            nBlockSize += stx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+            nBlockSize += nTxSize;
             nTotalRunStep += pBaseTx->nRunStep;
             nTotalFuel += pBaseTx->GetFuel(nFuelRate);
             ++nBlockTx;
-            pBlock->vptx.push_back(stx);
+            pBlock->vptx.push_back(std::get<2>(item));
 
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", nTotalFuel,
                      pBaseTx->GetFuel(nFuelRate), pBaseTx->nRunStep, nFuelRate, pBaseTx->GetHash().GetHex());
@@ -429,7 +423,7 @@ std::unique_ptr<CBlock> CreateNewBlock(CCacheWrapper &cwIn) {
         pBlock->SetFuelRate(nFuelRate);
         UpdateTime(*pBlock, pIndexPrev);
 
-        LogPrint("INFO", "CreateNewBlock(): total size %u\n", nBlockSize);
+        LogPrint("INFO", "CreateNewBlock() : total size %lu\n", nBlockSize);
     }
 
     return pBlock;
