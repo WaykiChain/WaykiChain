@@ -376,8 +376,8 @@ public:
     void BuildSkip();
 
     // Efficiently find an ancestor of this block.
-    CBlockIndex *GetAncestor(int height);
-    const CBlockIndex *GetAncestor(int height) const;
+    CBlockIndex *GetAncestor(int heightIn);
+    const CBlockIndex *GetAncestor(int heightIn) const;
 };
 
 

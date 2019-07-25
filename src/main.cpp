@@ -2308,8 +2308,8 @@ CBlockIndex *CBlockIndex::GetAncestor(int heightIn) {
         return nullptr;
 
     CBlockIndex *pindexWalk = this;
-    int heightWalk          = heightIn;
-    while (heightWalk > height) {
+    int heightWalk          = height;
+    while (heightWalk > heightIn) {
         int heightSkip     = GetSkipHeight(heightWalk);
         int heightSkipPrev = GetSkipHeight(heightWalk - 1);
         if (heightSkip == heightIn ||
@@ -2325,8 +2325,8 @@ CBlockIndex *CBlockIndex::GetAncestor(int heightIn) {
     return pindexWalk;
 }
 
-const CBlockIndex *CBlockIndex::GetAncestor(int height) const {
-    return const_cast<CBlockIndex *>(this)->GetAncestor(height);
+const CBlockIndex *CBlockIndex::GetAncestor(int heightIn) const {
+    return const_cast<CBlockIndex *>(this)->GetAncestor(heightIn);
 }
 
 void CBlockIndex::BuildSkip() {
