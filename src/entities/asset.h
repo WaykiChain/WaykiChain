@@ -36,7 +36,7 @@ static const unordered_set<string> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
-static const unordered_set<string> kPriceTypeSet = {
+static const unordered_set<string> kCurrencyTypeSet = {
     SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::USDT, SYMB::GOLD, SYMB::KWH
 };
 

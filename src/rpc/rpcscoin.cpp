@@ -70,7 +70,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid coin symbol: %s", coinStr));
 
         string currencyStr = currencyValue.get_str();
-        if (!kPriceTypeSet.count(currencyStr))
+        if (!kCurrencyTypeSet.count(currencyStr))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
 
         uint64_t price = priceValue.get_int64();
