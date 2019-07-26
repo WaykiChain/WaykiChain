@@ -35,6 +35,26 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
     return true;
 }
 
+bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &title,
+                          const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol) {
+    if (kCoinTypeSet.count(coinSymbol) == 0) {
+        return state.DoS(100, ERRORMSG("%s, invalid coin symbol=%s", title, coinSymbol), 
+                        REJECT_INVALID, "invalid-coin-symbol");
+    }
+
+    if (kCoinTypeSet.count(assetSymbol) == 0) {
+        return state.DoS(100, ERRORMSG("%s invalid asset symbol=%s", title, assetSymbol), 
+                        REJECT_INVALID, "invalid-asset-symbol");
+    }
+
+    if (coinSymbol == assetSymbol) {
+        return state.DoS(100, ERRORMSG("%s coin symbol can not be same as asset symbol=%s", title, assetSymbol), 
+                        REJECT_INVALID, "invalid-same-symbol");
+    }
+
+    return true;
+}
+
 uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price) {
     uint128_t coinAmount = assetAmount * (uint128_t)price / COIN;
     assert(coinAmount < ULLONG_MAX);
@@ -76,20 +96,7 @@ bool CDEXBuyLimitOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationStat
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (kCoinTypeSet.count(coin_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, invalid coin_symbol"), REJECT_INVALID,
-                         "invalid-coin-symbol");
-    }
-
-    if (kCoinTypeSet.count(asset_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, invalid asset_symbol"), REJECT_INVALID,
-                         "invalid-asset-symbol");
-    }
-
-    if (coin_symbol == asset_symbol) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, coin_symbol can not be same as asset_symbol"), 
-                        REJECT_INVALID, "invalid-same-symbol");
-    }
+    if (!CheckOrderSymbols(state, "CDEXBuyLimitOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
 
     if (!CheckOrderAmountRange(state, "CDEXBuyLimitOrderTx::CheckTx, asset,", asset_symbol, asset_amount)) return false;
 
@@ -197,20 +204,7 @@ bool CDEXSellLimitOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationSta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (kCoinTypeSet.count(coin_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, invalid coin_symbol"), REJECT_INVALID,
-                         "bad-coin_symbol");
-    }
-
-    if (kCoinTypeSet.count(asset_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, invalid asset_symbol"), REJECT_INVALID,
-                         "bad-asset_symbol");
-    }
-
-    if (coin_symbol == asset_symbol) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, coin_symbol can not equal to asset_symbol"), REJECT_INVALID,
-                         "bad-coin_symbol-asset_symbol");
-    }
+    if (!CheckOrderSymbols(state, "CDEXSellLimitOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
 
     if (!CheckOrderAmountRange(state, "CDEXSellLimitOrderTx::CheckTx, asset,", asset_symbol, asset_amount)) return false;
 
@@ -307,20 +301,7 @@ bool CDEXBuyMarketOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationSta
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (kCoinTypeSet.count(coin_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, invalid coin_symbol"), REJECT_INVALID,
-                         "bad-coin_symbol");
-    }
-
-    if (kCoinTypeSet.count(asset_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, invalid asset_symbol"), REJECT_INVALID,
-                         "bad-asset_symbol");
-    }
-
-    if (coin_symbol == asset_symbol) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, coin_symbol can not equal to asset_symbol"), REJECT_INVALID,
-                         "bad-coin_symbol-asset_symbol");
-    }
+    if (!CheckOrderSymbols(state, "CDEXBuyMarketOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
 
     if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, coin,", coin_symbol, coin_amount)) return false;
 
@@ -414,20 +395,7 @@ bool CDEXSellMarketOrderTx::CheckTx(int height, CCacheWrapper &cw, CValidationSt
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (kCoinTypeSet.count(coin_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, invalid coin_symbol"), REJECT_INVALID,
-                         "bad-coin_symbol");
-    }
-
-    if (kCoinTypeSet.count(asset_symbol) == 0) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, invalid asset_symbol"), REJECT_INVALID,
-                         "bad-asset_symbol");
-    }
-
-    if (coin_symbol == asset_symbol) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, coin_symbol can not equal to asset_symbol"), REJECT_INVALID,
-                         "bad-coin_symbol-asset_symbol");
-    }
+    if (!CheckOrderSymbols(state, "CDEXSellMarketOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
 
     if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, asset,", asset_symbol, asset_amount)) return false;
 

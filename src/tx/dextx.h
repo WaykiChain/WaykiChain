@@ -23,7 +23,8 @@ public:
     bool CheckOrderPriceRange(CValidationState &state, const string &title,
                               const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
                               int64_t price);
-
+    bool CheckOrderSymbols(CValidationState &state, const string &title,
+                           const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol);
 public:
     static uint64_t CalcCoinAmount(uint64_t assetAmount, uint64_t price);
 };
