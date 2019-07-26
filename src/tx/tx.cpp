@@ -137,6 +137,19 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
     return true;
 }
 
+bool CBaseTx::CheckCoinRange(TokenSymbol symbol, int64_t amount) {
+    if (symbol == SYMB::WICC) {
+        return CheckBaseCoinRange(amount);
+    } else if (symbol == SYMB::WGRT) {
+        return CheckFundCoinRange(amount);
+    } else if (symbol == SYMB::WUSD) {
+        return CheckStableCoinRange(amount);
+    } else {
+        // TODO: need to check other token range
+        return amount >= 0;
+    }
+}
+
 bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
                               CValidationState &state, const vector<CUserID> &userIds) {
     if (SysCfg().GetAddressToTxFlag()) {

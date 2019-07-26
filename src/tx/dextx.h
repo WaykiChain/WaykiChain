@@ -17,6 +17,14 @@ public:
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail) = 0;
 
 public:
+    bool CheckOrderAmountRange(CValidationState &state, const string &title,
+                             const TokenSymbol &symbol, int64_t amount);
+
+    bool CheckOrderPriceRange(CValidationState &state, const string &title,
+                              const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
+                              int64_t price);
+
+public:
     static uint64_t CalcCoinAmount(uint64_t assetAmount, uint64_t price);
 };
 
@@ -32,12 +40,12 @@ public:
 
     CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                    TokenSymbol coinSymbol, TokenSymbol assetSymbol,
-                   uint64_t assetAmountIn, uint64_t bidPriceIn)
+                   uint64_t assetAmountIn, uint64_t bid_priceIn)
         : CDEXOrderBaseTx(DEX_BUY_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn),
           coin_symbol(coinSymbol),
           asset_symbol(assetSymbol),
           asset_amount(assetAmountIn),
-          bidPrice(bidPriceIn) {}
+          bid_price(bid_priceIn) {}
 
     ~CDEXBuyLimitOrderTx() {}
 
@@ -51,7 +59,7 @@ public:
         READWRITE((uint8_t &)coin_symbol);
         READWRITE((uint8_t &)asset_symbol);
         READWRITE(VARINT(asset_amount));
-        READWRITE(VARINT(bidPrice));
+        READWRITE(VARINT(bid_price));
 
         READWRITE(signature);
     )
@@ -60,7 +68,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << coin_symbol << asset_symbol << asset_amount << bidPrice;
+                << coin_symbol << asset_symbol << asset_amount << bid_price;
             sigHash = ss.GetHash();
         }
 
@@ -81,7 +89,7 @@ private:
     TokenSymbol coin_symbol;          //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;        //!< asset type
     uint64_t asset_amount;       //!< amount of target asset to buy
-    uint64_t bidPrice;          //!< bidding price in coin_symbol willing to buy
+    uint64_t bid_price;          //!< bidding price in coin_symbol willing to buy
 
 };
 
@@ -97,12 +105,12 @@ public:
 
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                     TokenSymbol coinSymbol, TokenSymbol assetSymbol,
-                    uint64_t assetAmountIn, uint64_t askPriceIn)
+                    uint64_t assetAmount, uint64_t askPrice)
         : CDEXOrderBaseTx(DEX_SELL_LIMIT_ORDER_TX, txUidIn, validHeightIn, feesIn) {
         coin_symbol   = coinSymbol;
         asset_symbol  = assetSymbol;
-        asset_amount = assetAmountIn;
-        askPrice   = askPriceIn;
+        asset_amount = assetAmount;
+        ask_price   = askPrice;
     }
 
     ~CDEXSellLimitOrderTx() {}
@@ -117,7 +125,7 @@ public:
         READWRITE((uint8_t&)coin_symbol);
         READWRITE((uint8_t&)asset_symbol);
         READWRITE(VARINT(asset_amount));
-        READWRITE(VARINT(askPrice));
+        READWRITE(VARINT(ask_price));
 
         READWRITE(signature);
     )
@@ -126,7 +134,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << coin_symbol << asset_symbol << asset_amount << askPrice;
+                << coin_symbol << asset_symbol << asset_amount << ask_price;
             sigHash = ss.GetHash();
         }
 
@@ -147,7 +155,7 @@ private:
     TokenSymbol coin_symbol;       //!< coin type (wusd) to sell asset
     TokenSymbol asset_symbol;     //!< holding asset type (wicc or wgrt) to sell in coin_symbol
     uint64_t asset_amount;    //!< amount of holding asset to sell
-    uint64_t askPrice;       //!< asking price in coin_symbol willing to sell
+    uint64_t ask_price;       //!< asking price in coin_symbol willing to sell
 
 };
 
