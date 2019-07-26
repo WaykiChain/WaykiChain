@@ -29,8 +29,7 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    CRegID sendRegId;
-    account.GetRegId(sendRegId);
+    CRegID sendRegId = txUid.get<CRegID>();
     if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a miner
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
@@ -41,7 +40,9 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    if (account.staked_fcoins < priceFeedstaked_fcoinsMin) // must stake enough fcoins
+
+    CAccountToken accountToken = account.GetToken(SYMB::WGRT);
+    if (accountToken.staked_amount < priceFeedstaked_fcoinsMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 

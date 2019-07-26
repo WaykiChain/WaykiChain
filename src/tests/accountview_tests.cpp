@@ -57,7 +57,7 @@ bool CAccountViewTest::EraseKeyID() {
 bool CAccountViewTest::EraseAccount() {
 	for (int i = 0; i < VECTOR_SIZE; i++) {
 		CUserID userId = vRandomKeyID.at(i);
-		pViewTip2->EraseAccountByKeyId(userId);
+		pViewTip2->EraseAccount(userId);
 	}
 
 	return true;

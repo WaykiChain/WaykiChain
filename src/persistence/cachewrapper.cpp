@@ -39,7 +39,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
     txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCache);
 
     txCache.SetBaseViewPtr(&cwIn.txCache);
-    ppCache.SetBaseViewPtr(&cwIn.ppCache)
+    ppCache.SetBaseViewPtr(&cwIn.ppCache);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {

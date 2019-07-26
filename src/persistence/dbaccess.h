@@ -6,6 +6,7 @@
 #ifndef PERSIST_DB_ACCESS_H
 #define PERSIST_DB_ACCESS_H
 
+#include "commons/uint256.h"
 #include "dbconf.h"
 #include "leveldbwrapper.h"
 
@@ -37,6 +38,10 @@ namespace db_util {
     // uint64_t
     inline bool IsEmpty(const uint64_t val) { return val == 0; }
     inline void SetEmpty(uint64_t &val) { val = 0; }
+
+    // uint256
+    inline bool IsEmpty(const uint256 val) { return val.IsEmpty(); }
+    inline void SetEmpty(uint256 &val) { val.SetEmpty(); }
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);

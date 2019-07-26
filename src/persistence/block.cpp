@@ -90,8 +90,8 @@ void CBlock::Print(CAccountDBCache& accountCache) const {
     LogPrint("INFO", "block hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
              "nFuelRate=%d, bcoinMedianPrice=%lu, fcoinMedianPrice=%lu\n",
              GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
-             vptx.size(), nFuel, nFuelRate, GetBlockMedianPrice(SYMB::WICC, SYMB::USD),
-             GetBlockMedianPrice(SYMB::WGRT, SYMB::USD));
+             vptx.size(), nFuel, nFuelRate, GetBlockMedianPrice(std::make_pair(SYMB::WICC, SYMB::USD)),
+             GetBlockMedianPrice(std::make_pair(SYMB::WGRT, SYMB::USD)));
     // LogPrint("INFO", "list transactions:\n");
     // for (unsigned int i = 0; i < vptx.size(); i++) {
     //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));

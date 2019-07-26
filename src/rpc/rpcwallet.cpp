@@ -370,7 +370,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
         nAmount = AmountToRawValue(params[2]);
-        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId) < (uint64_t) (nAmount + nDefaultFee))
+        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId, SYMB::WICC) < (uint64_t) (nAmount + nDefaultFee))
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
     } else {
         if (!GetKeyId(params[0].get_str(), recvKeyId))
@@ -387,7 +387,7 @@ Value sendtoaddress(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= (uint64_t(nAmount + nDefaultFee)))) {
+                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId, SYMB::WICC) >= (uint64_t(nAmount + nDefaultFee)))) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -454,7 +454,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
                                strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
-        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId) < (uint64_t(nAmount + nActualFee))) {
+        if (pCdMan->pAccountCache->GetAccountFreeAmount(sendKeyId, SYMB::WICC) < (uint64_t(nAmount + nActualFee))) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
         }
     } else {  // sender address omitted
@@ -478,7 +478,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         bool sufficientFee = false;
         for (auto keyId : sKeyIds) {
             if (keyId != recvKeyId &&
-                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId) >= (uint64_t(nAmount + nDefaultFee)))) {
+                (pCdMan->pAccountCache->GetAccountFreeAmount(keyId, SYMB::WICC) >= (uint64_t(nAmount + nDefaultFee)))) {
                 sendKeyId     = keyId;
                 sufficientFee = true;
                 break;
@@ -931,7 +931,7 @@ Value getassets(const Array& params, bool fHelp) {
 //             rev = recvKeyId;
 //         }
 
-//         if(pCdMan->pAccountCache->GetAccountFreeAmount(sendreg) < nAmount + SysCfg().GetTxFee()) {
+//         if (pCdMan->pAccountCache->GetAccountFreeAmount(sendreg, SYMB::WICC) < nAmount + SysCfg().GetTxFee()) {
 //             break;
 //         }
 

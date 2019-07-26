@@ -91,7 +91,7 @@ public:
         nickId2KeyIdCache.SetBase(&pBaseIn->nickId2KeyIdCache);
     };
 
-    uint64_t GetAccountFreeAmount(CKeyID &acctnKeyId);
+    uint64_t GetAccountFreeAmount(const CKeyID &keyId, const TokenSymbol &tokenSymbol);
 
     bool Flush();
 

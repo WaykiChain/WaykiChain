@@ -69,8 +69,7 @@ public:
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
-    virtual string ToString(); //logging usage
-    string ToString(CAccountDBCache &view);
+    string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
     virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);

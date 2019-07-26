@@ -22,12 +22,12 @@ uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyLimitOrderTx
 
-string CDEXBuyLimitOrderTx::ToString() {
+string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
         "coin_symbol=%u, asset_symbol=%u, amount=%lld, price=%lld\n",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees,
-        coin_symbol, asset_symbol, asset_amount, bidPrice);
+        GetTxType(nTxType), GetHash().GetHex(), nVersion, nValidHeight, txUid.ToString(), llFees, coin_symbol,
+        asset_symbol, asset_amount, bidPrice);
 }
 
 Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {

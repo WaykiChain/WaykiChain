@@ -19,7 +19,6 @@ enum VMType : uint8_t {
 };
 
 class CContract {
-
 public:
     VMType vm_type;
     string code;
@@ -45,6 +44,18 @@ public:
         return sigHash;
     }
 
+    bool IsEmpty() const {
+        // FIXME:
+        return vm_type == VMType::NULL_VM || code.empty();
+    }
+
+    void SetEmpty() {
+        vm_type = VMType::NULL_VM;
+        code.clear();
+        abi.clear();
+        memo.clear();
+    }
+
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) vm_type);
         READWRITE(code);
@@ -59,7 +70,7 @@ private:
 class CLuaContract {
 public:
     string code;  //!< Lua code
-    string memo;  //!< Describe the binary code action    
+    string memo;  //!< Describe the binary code action
 public:
 
     inline unsigned int GetContractSize() const {

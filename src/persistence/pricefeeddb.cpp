@@ -28,7 +28,7 @@ bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int32_t blockHeight, cons
 bool CPricePointMemCache::AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId,
                                                  const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
-        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPriceType()];
+        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPricePair()];
         if (cbp.ExistBlockUserPrice(blockHeight, regId))
             return false;
 
@@ -96,7 +96,7 @@ void CPricePointMemCache::Flush() {
 
 bool CPricePointMemCache::GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired,
                                           BlockUserPriceMap &blockUserPrices) {
-    const auto &iter = mapCoinPricePointCache.find(coinPriceType);
+    const auto &iter = mapCoinPricePointCache.find(coinPricePair);
     if (iter != mapCoinPricePointCache.end()) {
         const auto &mapBlockUserPrices = iter->second.mapBlockUserPrices;
         for (const auto &item : mapBlockUserPrices) {

@@ -11,7 +11,7 @@
 
 class CCoinRewardTx : public CBaseTx {
 public:
-    TokenSymbol coin_symbol; //default: WICC
+    TokenSymbol coin_symbol;  // default: WICC
     uint64_t coin_amount;
 
 public:

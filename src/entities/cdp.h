@@ -9,7 +9,10 @@
 
 #include "id.h"
 
-#include <string>
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
+
+using namespace json_spirit;
 
 /**
  * CDP Cache Item: stake in BaseCoin to get StableCoins

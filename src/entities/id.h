@@ -61,7 +61,7 @@ public:
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);
-    bool IsEmpty() const { return (height == 0 && index == 0); };
+    bool IsEmpty() const { return (height == 0 && index == 0); }
     void SetEmpty() { Clear(); }
     bool Clear();
     string ToString() const;

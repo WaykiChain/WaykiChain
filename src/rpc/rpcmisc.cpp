@@ -139,10 +139,10 @@ Value getbalance(const Array& params, bool fHelp)
                         pBlockIndex = pBlockIndex->pprev;
                         --nConf;
                     }
-                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetAccountFreeAmount(keyid) - nValue)));
+                    obj.push_back(Pair("balance", ValueFromAmount(pCdMan->pAccountCache->GetAccountFreeAmount(keyid, SYMB::WICC) - nValue)));
                     return obj;
                 } else {
-                    obj.push_back(Pair("balance", ValueFromAmount(mempool.cw->accountCache.GetAccountFreeAmount(keyid))));
+                    obj.push_back(Pair("balance", ValueFromAmount(mempool.cw->accountCache.GetAccountFreeAmount(keyid, SYMB::WICC))));
                     return obj;
                 }
             } else {

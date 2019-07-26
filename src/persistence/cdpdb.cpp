@@ -176,18 +176,20 @@ bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
 bool CCdpDBCache::SaveCdp(CUserCDP &cdp) {
     set<uint256> cdpTxids;
     regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
-    cdpTxIds.insert(cdp.cdpTxId);
+    cdpTxids.insert(cdp.cdpTxId);
 
-    return cdpCache.SetData(cdp.cdpTxId, cdp) && regId2CdpCache.SetData(cdp.cdpTxId, cdpTxids);
+    // return cdpCache.SetData(cdp.cdpTxId, cdp) && regId2CdpCache.SetData(cdp.cdpTxId, cdpTxids);
+    return false;
 }
 
 bool CCdpDBCache::EraseCdp(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
     regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
-    cdpTxIds.erase(cdp.cdpTxId);
+    cdpTxids.erase(cdp.cdpTxId);
 
     // If cdpTxids is empty, regId2CdpCache will erase the key automatically.
-    return cdpCache.EraseData(cdp.cdpTxId)) && regId2CdpCache.SetData(cdp.cdpTxId, cdpTxids);
+    // return cdpCache.EraseData(cdp.cdpTxId) && regId2CdpCache.SetData(cdp.cdpTxId, cdpTxids);
+    return false;
 }
 
 // global collateral ratio floor check

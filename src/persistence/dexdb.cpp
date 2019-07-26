@@ -15,15 +15,15 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyLimitOrder(const TokenSymbol& co
                                                            const AssetSymbol& assetTypeIn,
                                                            const uint64_t assetAmountIn,
                                                            const uint64_t priceIn) {
-    auto pSysOrder       = make_shared<CDEXSysOrder>();
-    pSysOrder->direction = ORDER_BUY;
-    pSysOrder->orderType = ORDER_LIMIT_PRICE;
-    pSysOrder->coinType  = coinTypeIn;
-    pSysOrder->assetType = assetTypeIn;
+    auto pSysOrder          = make_shared<CDEXSysOrder>();
+    pSysOrder->order_side   = ORDER_BUY;
+    pSysOrder->order_type   = ORDER_LIMIT_PRICE;
+    pSysOrder->coin_symbol  = coinTypeIn;
+    pSysOrder->asset_symbol = assetTypeIn;
 
-    pSysOrder->assetAmount = assetAmountIn;
-    pSysOrder->price       = priceIn;
-    assert(pSysOrder->coinAmount == 0);
+    pSysOrder->asset_amount = assetAmountIn;
+    pSysOrder->price        = priceIn;
+    assert(pSysOrder->coin_amount == 0);
     return pSysOrder;
 }
 
@@ -31,29 +31,29 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellLimitOrder(const TokenSymbol& c
                                                             const AssetSymbol& assetTypeIn,
                                                             const uint64_t assetAmountIn,
                                                             const uint64_t priceIn) {
-    auto pSysOrder       = make_shared<CDEXSysOrder>();
-    pSysOrder->direction = ORDER_SELL;
-    pSysOrder->orderType = ORDER_LIMIT_PRICE;
-    pSysOrder->coinType  = coinTypeIn;
-    pSysOrder->assetType = assetTypeIn;
+    auto pSysOrder          = make_shared<CDEXSysOrder>();
+    pSysOrder->order_side   = ORDER_SELL;
+    pSysOrder->order_type   = ORDER_LIMIT_PRICE;
+    pSysOrder->coin_symbol  = coinTypeIn;
+    pSysOrder->asset_symbol = assetTypeIn;
 
-    pSysOrder->assetAmount = assetAmountIn;
-    pSysOrder->price       = priceIn;
-    assert(pSysOrder->coinAmount == 0);
+    pSysOrder->asset_amount = assetAmountIn;
+    pSysOrder->price        = priceIn;
+    assert(pSysOrder->coin_amount == 0);
     return pSysOrder;
 }
 
 shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(const TokenSymbol& coinTypeIn,
                                                             const AssetSymbol& assetTypeIn,
                                                             const uint64_t coinAmountIn) {
-    auto pSysOrder       = make_shared<CDEXSysOrder>();
-    pSysOrder->direction = ORDER_BUY;
-    pSysOrder->orderType = ORDER_MARKET_PRICE;
-    pSysOrder->coinType  = coinTypeIn;
-    pSysOrder->assetType = assetTypeIn;
+    auto pSysOrder          = make_shared<CDEXSysOrder>();
+    pSysOrder->order_side   = ORDER_BUY;
+    pSysOrder->order_type   = ORDER_MARKET_PRICE;
+    pSysOrder->coin_symbol  = coinTypeIn;
+    pSysOrder->asset_symbol = assetTypeIn;
 
-    pSysOrder->coinAmount = coinAmountIn;
-    assert(pSysOrder->assetAmount == 0);
+    pSysOrder->coin_amount = coinAmountIn;
+    assert(pSysOrder->asset_amount == 0);
     assert(pSysOrder->price == 0);
     return pSysOrder;
 }
@@ -61,38 +61,35 @@ shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateBuyMarketOrder(const TokenSymbol& c
 shared_ptr<CDEXSysOrder> CDEXSysOrder::CreateSellMarketOrder(const TokenSymbol &coinTypeIn,
                                                              const AssetSymbol &assetTypeIn,
                                                              const uint64_t assetAmountIn) {
-    auto pSysOrder       = make_shared<CDEXSysOrder>();
-    pSysOrder->direction = ORDER_BUY;
-    pSysOrder->orderType = ORDER_MARKET_PRICE;
-    pSysOrder->coinType  = coinTypeIn;
-    pSysOrder->assetType = assetTypeIn;
+    auto pSysOrder          = make_shared<CDEXSysOrder>();
+    pSysOrder->order_side   = ORDER_BUY;
+    pSysOrder->order_type   = ORDER_MARKET_PRICE;
+    pSysOrder->coin_symbol  = coinTypeIn;
+    pSysOrder->asset_symbol = assetTypeIn;
 
-    pSysOrder->assetAmount = assetAmountIn;
-    assert(pSysOrder->coinAmount == 0);
+    pSysOrder->asset_amount = assetAmountIn;
+    assert(pSysOrder->coin_amount == 0);
     assert(pSysOrder->price == 0);
     return pSysOrder;
 }
 
-bool CDEXSysOrder::IsEmpty() const {
-    return  coinAmount == 0
-         && assetAmount == 0
-         && price == 0;
-}
+bool CDEXSysOrder::IsEmpty() const { return coin_amount == 0 && asset_amount == 0 && price == 0; }
+
 void CDEXSysOrder::SetEmpty() {
-    coinAmount = 0;
-    assetAmount = 0;
-    price = 0;
+    coin_amount  = 0;
+    asset_amount = 0;
+    price        = 0;
 }
 
 void CDEXSysOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) const {
-    orderDetail.user_regid = SysCfg().GetFcoinGenesisRegId();
-    orderDetail.order_type = order_type;
-    orderDetail.order_side = order_side;
-    orderDetail.coin_symbol = coin_symbol;
+    orderDetail.user_regid   = SysCfg().GetFcoinGenesisRegId();
+    orderDetail.order_type   = order_type;
+    orderDetail.order_side   = order_side;
+    orderDetail.coin_symbol  = coin_symbol;
     orderDetail.asset_symbol = asset_symbol;
-    orderDetail.coin_amount = coin_amount;
+    orderDetail.coin_amount  = coin_amount;
     orderDetail.asset_amount = asset_amount;
-    orderDetail.price = price;
+    orderDetail.price        = price;
 }
 
 

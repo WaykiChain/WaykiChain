@@ -308,7 +308,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.blockHeight: %d",
                             height, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "height-error");
         }
-        
+
         uint64_t scoinsInterestToRepay;
         if (!ComputeCdpInterest(height, cdp.blockHeight, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCdpInterest error!"),
@@ -319,7 +319,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                              REJECT_INVALID, "deduct-interest-error");
         }
 
-        if (!SellInterestForFcoins(scoinsInterestToRepay, cdp, cw, state)) {
+        if (!SellInterestForFcoins(scoinsInterestToRepay, cw, state)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, SellInterestForFcoins error!"),
                              REJECT_INVALID, "sell-interest-for-fcoins-error");
         }
@@ -347,7 +347,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
-    
+
     vector<CReceipt> receipts;
     CUserID nullUid;
     CReceipt receipt1(nTxType, txUid, nullUid, SYMB::WUSD, scoins_to_repay);
@@ -422,7 +422,7 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(height), globalCollateralRatioFloor)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"), 
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"),
                         REJECT_INVALID, "gloalcdplock_is_on");
     }
 

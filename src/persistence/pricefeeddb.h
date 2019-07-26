@@ -51,6 +51,7 @@ public:
     uint64_t GetFcoinMedianPrice(const int32_t blockHeight);
     bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CoinPricePair, uint64_t> &mapMedianPricePointsIn);
 
+    void SetBaseViewPtr(CPricePointMemCache *pBaseIn) { pBase = pBaseIn; }
     void Flush();
 
 private:

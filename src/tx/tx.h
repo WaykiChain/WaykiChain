@@ -122,7 +122,8 @@ public:
     ~CPricePoint() {}
 
 public:
-    uint64_t GetPrice() { return price; }
+    uint64_t GetPrice() const { return price; }
+    CoinPricePair GetCoinPricePair() const { return coin_price_pair; }
 
     string ToString() {
         return strprintf("coin_price_pair:%s:%s, price:%lld",
