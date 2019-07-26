@@ -61,6 +61,8 @@ public:
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp);
+    bool RedeemBcoinsFromCdp(const int32_t blockHeight, const uint64_t bcoinsToRedeem, const uint64_t scoinsToRepay,
+                             CUserCDP &cdp);
 
     bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
@@ -88,13 +90,18 @@ public:
     bool UndoDatas() {
         return cdpCache.UndoDatas();
     }
+
+private:
+    // Attention: changedBcoins/changedScoins could be positive or negative values.
+    bool UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins, CUserCDP &cdp);
+
 private:
 /*  CCompositeKVCache     prefixType     key              value             variable  */
 /*  ----------------   --------------   ------------   --------------    -------------*/
     // cdp$CTxID -> CUserCDP
     CCompositeKVCache< dbk::CDP,         uint256,       CUserCDP >       cdpCache;
     // rcdp${CRegID} -> set<CTxID>
-    CCompositeKVCache< dbk::REGID_CDP, string,        set<uint256>>    regId2CdpCache;
+    CCompositeKVCache< dbk::REGID_CDP, string,          set<uint256>>    regId2CdpCache;
 
 public:
     // Memory only cache
