@@ -250,7 +250,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
 Value getmedianprice(const Array& params, bool fHelp){
     if (fHelp) {
         throw runtime_error(
-            "getmedianprice \"coin_type\" \"asset_type\" [height]\n"
+            "getmedianprice [height]\n"
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
             "1.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
