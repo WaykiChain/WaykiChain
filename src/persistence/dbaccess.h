@@ -498,7 +498,6 @@ public:
     };
 
     bool SetData(const KeyType &key, const ValueType &value, CDbOpLog &dbOpLog) {
-
         if (db_util::IsEmpty(key)) {
             return false;
         }

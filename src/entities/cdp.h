@@ -78,16 +78,9 @@ struct CUserCDP {
         return result;
     }
 
-    bool IsEmpty() const {
-        return cdpTxId.IsEmpty();
-    }
-
-    void SetEmpty() {
-        cdpTxId             = uint256();
-        blockHeight         = 0;
-        total_staked_bcoins = 0;
-        total_owed_scoins   = 0;
-    }
+    // FIXME: need to set other members empty?
+    bool IsEmpty() const { return cdpTxId.IsEmpty(); }
+    void SetEmpty() { cdpTxId.SetEmpty(); }
 };
 
 #endif //ENTITIES_CDP_H

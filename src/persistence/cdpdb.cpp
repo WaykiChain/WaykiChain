@@ -127,24 +127,36 @@ void CCdpMemCache::BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn) {
     }
 }
 
-bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                                    CUserCDP &cdp) {
+bool CCdpDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins, CUserCDP &cdp) {
     // 1. erase the old cdp in memory cache
     cdpMemCache.EraseCdp(cdp);
 
     // 2. update cdp's properties before saving
     cdp.blockHeight = blockHeight;
-    cdp.total_staked_bcoins += bcoinsToStake;
-    cdp.total_owed_scoins += mintedScoins;
+    cdp.total_staked_bcoins += changedBcoins;
+    cdp.total_owed_scoins += changedScoins;
     cdp.collateralRatioBase = double(cdp.total_staked_bcoins) / cdp.total_owed_scoins;
-    if (!SaveCdp(cdp)) {
-        return ERRORMSG("CCdpDBCache::StakeBcoinsToCdp : SetData failed.");
+
+    // 3. save or erase cdp in cache/memory cache
+
+    // 3.1 erase cdp from cache if it's time to close cdp. Do not bother to erase cdp from
+    //     memory cache as it had never existed.
+    if (cdp.total_staked_bcoins == 0 && cdp.total_owed_scoins == 0) {
+        return EraseCdp(cdp);
+    } else {
+    // 3.2 otherwise, save cdp to cache/memory cache.
+        return SaveCdp(cdp) && cdpMemCache.SaveCdp(cdp);
     }
+}
 
-    // 3. save the new cdp in memory cache
-    cdpMemCache.SaveCdp(cdp);
+bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+                                   CUserCDP &cdp) {
+    return UpdateCdp(blockHeight, bcoinsToStake, mintedScoins, cdp);
+}
 
-    return true;
+bool CCdpDBCache::RedeemBcoinsFromCdp(const int32_t blockHeight, const uint64_t bcoinsToRedeem,
+                                      const uint64_t scoinsToRepay, CUserCDP &cdp) {
+    return UpdateCdp(blockHeight, -1 * bcoinsToRedeem, -1 * scoinsToRepay, cdp);
 }
 
 bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) {
@@ -176,7 +188,7 @@ bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
 bool CCdpDBCache::SaveCdp(CUserCDP &cdp) {
     set<uint256> cdpTxids;
     regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
-    cdpTxids.insert(cdp.cdpTxId);
+    cdpTxids.insert(cdp.cdpTxId);   // failed to insert if txid existed.
 
     return cdpCache.SetData(cdp.cdpTxId, cdp) && regId2CdpCache.SetData(cdp.ownerRegId.ToRawString(), cdpTxids);
 }

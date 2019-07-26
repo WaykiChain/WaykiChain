@@ -330,15 +330,9 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     //3. redeem in scoins and update cdp
-    cdp.total_owed_scoins -= scoins_to_repay;
-    if (cdp.total_staked_bcoins <= bcoins_to_redeem) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins %d <= target %d",
-                        cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
-    }
-    cdp.total_staked_bcoins -= bcoins_to_redeem;
-    if (!cw.cdpCache.SaveCdp(cdp)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed",
-                        cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
+    if (!cw.cdpCache.RedeemBcoinsFromCdp(height, bcoins_to_redeem, scoins_to_repay, cdp)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.ownerRegId.ToString()),
+                         UPDATE_CDP_FAIL, "bad-save-cdp");
     }
 
     account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoins_to_repay);
