@@ -66,29 +66,16 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         }
 
         string coinStr = coinValue.get_str();
-        TokenSymbol coinType;
-        if (coinStr == "WICC") {
-            coinType = SYMB::WICC;
-        } else if (coinStr == "WUSD") {
-            coinType = SYMB::WUSD;
-        } else if (coinStr == "WGRT") {
-            coinType = SYMB::WGRT;
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid coin type: %s", coinStr));
-        }
+        if (!kCoinTypeSet.count(coinStr))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid coin symbol: %s", coinStr));
 
         string currencyStr = currencyValue.get_str();
-        PriceSymbol currencyType;
-        if (currencyStr == "USD") {
-            currencyType = SYMB::USD;
-        } else if (currencyStr == "CNY") {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "CNY stablecoin not supported yet");
-        } else {
+        if (!kPriceTypeSet.count(currencyStr))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
-        }
 
         uint64_t price = priceValue.get_int64();
-        CoinPricePair cpp(coinType, currencyType);
+
+        CoinPricePair cpp(coinStr, currencyStr);
         CPricePoint pp(cpp, price);
         pricePoints.push_back(pp);
     }
