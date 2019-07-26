@@ -65,7 +65,7 @@ public:
     bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
     bool GetCdp(CUserCDP &cdp);
-    bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
+    bool SaveCdp(CUserCDP &cdp);
     bool EraseCdp(const CUserCDP &cdp);
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,

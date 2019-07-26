@@ -85,8 +85,8 @@ struct CUserCDP {
     void SetEmpty() {
         cdpTxId             = uint256();
         blockHeight         = 0;
-        total_staked_bcoins   = 0;
-        total_owed_scoins     = 0;
+        total_staked_bcoins = 0;
+        total_owed_scoins   = 0;
     }
 };
 
