@@ -65,13 +65,13 @@ public:
     bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
     bool GetCdp(CUserCDP &cdp);
-    bool SaveCdp(CUserCDP &cdp); //first-time cdp creation
+    bool SaveCdp(CUserCDP &cdp);
     bool EraseCdp(const CUserCDP &cdp);
 
-    bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,
-                                                const uint64_t &kGlobalCollateralRatioLimit);
-    bool CheckGlobalCollateralCeilingReached(const uint64_t &newBcoinsToStake,
-                                             const uint64_t &kGlobalCollateralCeiling);
+    bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
+                                                const uint64_t globalCollateralRatioLimit);
+    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake,
+                                             const uint64_t globalCollateralCeiling);
     bool Flush();
     uint32_t GetCacheSize() const;
 
@@ -94,7 +94,7 @@ private:
     // cdp$CTxID -> CUserCDP
     CCompositeKVCache< dbk::CDP,         uint256,       CUserCDP >       cdpCache;
     // rcdp${CRegID} -> set<CTxID>
-    CCompositeKVCache< dbk::REGID_KEYID, string,        set<uint256>>    regId2CdpCache;
+    CCompositeKVCache< dbk::REGID_CDP, string,        set<uint256>>    regId2CdpCache;
 
 public:
     // Memory only cache

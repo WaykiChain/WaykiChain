@@ -176,11 +176,13 @@ static const int g_BlockVersion = 1;
 /* No amount larger than this (in sawi) is valid */
 static const int64_t BASECOIN_MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;	// 210 million
 static const int64_t FUNDCOIN_MAX_MONEY = BASECOIN_MAX_MONEY / 10;				// 21 million
+static const int64_t STABLECOIN_MAX_MONEY = BASECOIN_MAX_MONEY * 10;			// 2100 million
 static const int64_t INIT_FUEL_RATES    = 100;  	// 100 unit / 100 step
 static const int64_t MIN_FUEL_RATES     = 1;    	// 1 unit / 100 step
 
 inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
 inline bool CheckBaseCoinRange(int64_t nValue) { return (nValue >= 0 && nValue <= BASECOIN_MAX_MONEY); }
 inline bool CheckFundCoinRange(int64_t nValue) { return (nValue >= 0 && nValue <= FUNDCOIN_MAX_MONEY); }
+inline bool CheckStableCoinRange(int64_t nValue) { return (nValue >= 0 && nValue <= STABLECOIN_MAX_MONEY); }
 
 #endif /* CONFIGURATION_H_ */

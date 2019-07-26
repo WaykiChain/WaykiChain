@@ -120,7 +120,7 @@ private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <prefix$RegID -> KeyID>
-    CCompositeKVCache< dbk::REGID_KEYID,          CRegID,       CKeyID >         regId2KeyIdCache;
+    CCompositeKVCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
     // <prefix$NickID -> KeyID>
     CCompositeKVCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
     // <prefix$KeyID -> Account>

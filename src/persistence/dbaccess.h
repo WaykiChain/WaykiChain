@@ -39,10 +39,6 @@ namespace db_util {
     inline bool IsEmpty(const uint64_t val) { return val == 0; }
     inline void SetEmpty(uint64_t &val) { val = 0; }
 
-    // uint256
-    inline bool IsEmpty(const uint256 val) { return val.IsEmpty(); }
-    inline void SetEmpty(uint256 &val) { val.SetEmpty(); }
-
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);
     template<typename C> void SetEmpty(basic_string<C> &val);

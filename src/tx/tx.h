@@ -98,6 +98,7 @@ public:
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
     bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
 
+    bool CheckCoinRange(TokenSymbol symbol, int64_t amount);
 protected:
     bool CheckTxFeeSufficient(const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
