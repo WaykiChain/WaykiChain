@@ -457,7 +457,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
     }
 
-    if (txAccount.GetToken(SYMB::WUSD).free_amount < assetAmount) {
+    if (txAccount.GetToken(SYMB::WICC).free_amount < assetAmount) {
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
     }
 

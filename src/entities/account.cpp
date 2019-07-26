@@ -181,9 +181,18 @@ Object CAccount::ToJsonObj() const {
         candidateVoteArray.push_back(vote.ToJson());
     }
 
-    Object obj;
-    string strTokens = GetAccountTokenStr();
+    Object tokenMapObj;
+    for (auto tokenPair : tokens) {
+        Object tokenObj;
+        const CAccountToken &token = tokenPair.second;        
+        tokenObj.push_back(Pair("free_amount",           token.free_amount));
+        tokenObj.push_back(Pair("staked_amount",           token.staked_amount));
+        tokenObj.push_back(Pair("frozen_amount",           token.frozen_amount));
 
+        tokenMapObj.push_back(Pair(tokenPair.first,        tokenObj));        
+    }  
+
+    Object obj;
     obj.push_back(Pair("address",           keyid.ToAddress()));
     obj.push_back(Pair("keyid",             keyid.ToString()));
     obj.push_back(Pair("nickid",            nickid.ToString()));
@@ -191,7 +200,7 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("regid_mature",      RegIDIsMature()));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
-    obj.push_back(Pair("tokens",            strTokens));
+    obj.push_back(Pair("tokens",            tokenMapObj));
     obj.push_back(Pair("received_votes",    received_votes));
     obj.push_back(Pair("vote_list",         candidateVoteArray));
 
@@ -200,10 +209,15 @@ Object CAccount::ToJsonObj() const {
 
 string CAccount::ToString() const {
     string str;
-    string  strTokens = GetAccountTokenStr();
+    string  strTokens = "";
+    for (auto pair : tokens) {
+        CAccountToken &token = pair.second;
+        strTokens += strprintf ("\n %s: {free=%llu, staked=%llu, frozen=%llu}\n",
+                    pair.first, token.free_amount, token.staked_amount, token.frozen_amount);
+    }
     str += strprintf(
         "regid=%s, keyid=%s, nickId=%s, owner_pubkey=%s, miner_pubkey=%s, "
-        "tokens=%s, received_votes=%lld, last_vote_height=%\n",
+        "tokens=%s, received_votes=%llu, last_vote_height=%llu\n",
         regid.ToString(), keyid.GetHex(), nickid.ToString(), owner_pubkey.ToString(), miner_pubkey.ToString(),
         strTokens, received_votes, last_vote_height);
     str += "candidate vote list: \n";

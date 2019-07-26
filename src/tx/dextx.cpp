@@ -27,9 +27,10 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
                           const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
                           int64_t price) {
     // TODO: should check the price range??
-    if (price > 0)
+    if (price < 0)
         return state.DoS(100, ERRORMSG("%s price out of range,"
-                        " coin_symbol=%s, asset_symbol=%s, bid_price=%llu", coin_symbol, asset_symbol, price), 
+                        " coin_symbol=%s, asset_symbol=%s, price=%llu", 
+                        title, coin_symbol, asset_symbol, price), 
                         REJECT_INVALID, "invalid-price-range");
 
     return true;
