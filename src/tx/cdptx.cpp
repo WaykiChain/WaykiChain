@@ -330,9 +330,14 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     //3. redeem in scoins and update cdp
-    cdp.total_owed_scoins -= scoins_to_repay;
+    if (cdp.total_owed_scoins <= scoins_to_repay) {
+        cdp.total_owed_scoins = 0;
+    } else {
+        cdp.total_owed_scoins -= scoins_to_repay;
+    }
+
     if (cdp.total_staked_bcoins <= bcoins_to_redeem) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins %d <= target %d",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total_staked_bcoins %d <= target %d",
                         cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
     }
     cdp.total_staked_bcoins -= bcoins_to_redeem;
@@ -341,8 +346,14 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
     }
 
-    account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoins_to_repay);
-    account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoins_to_redeem);
+    if (!account.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, scoins_to_repay)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
+                        account.regid.ToString(), scoins_to_repay), UPDATE_CDP_FAIL, "bad-operate-account");
+    }
+    if (account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoins_to_redeem)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
+                        account.regid.ToString(), bcoins_to_redeem), UPDATE_CDP_FAIL, "bad-operate-account");
+    }
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
