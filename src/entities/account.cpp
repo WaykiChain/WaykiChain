@@ -25,57 +25,57 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
 }
 
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
-    auto iter = tokens.find(tokenSymbol);
-    if (iter != tokens.end()) {
-        auto &accountToken = iter->second;
-        switch (opType) {
-            case ADD_FREE: {
-                accountToken.free_amount += value;
-                return true;
-            }
-            case SUB_FREE: {
-                if (accountToken.free_amount < value)
-                    return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
-
-                accountToken.free_amount -= value;
-                return true;
-            }
-            case STAKE: {
-                if (accountToken.free_amount < value)
-                    return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
-
-                accountToken.free_amount -= value;
-                accountToken.staked_amount += value;
-                return true;
-            }
-            case UNSTAKE: {
-                if (accountToken.staked_amount < value)
-                    return ERRORMSG("CAccount::OperateBalance, staked_amount insufficient");
-
-                accountToken.free_amount += value;
-                accountToken.staked_amount -= value;
-                return true;
-            }
-            case FREEZE: {
-                if (accountToken.free_amount < value)
-                    return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
-
-                accountToken.free_amount -= value;
-                accountToken.frozen_amount += value;
-                return true;
-            }
-            case UNFREEZE: {
-                if (accountToken.frozen_amount < value)
-                    return ERRORMSG("CAccount::OperateBalance, frozen_amount insufficient");
-
-                accountToken.free_amount += value;
-                accountToken.frozen_amount -= value;
-                return true;
-            }
-            default: return false;
-        }
+    if (!kCoinTypeSet.count(tokenSymbol)) {
+        assert(false && "Unsupport token symbol");
+        return false;
     }
-    return false;
+    CAccountToken &accountToken = tokens[tokenSymbol];
+    switch (opType) {
+        case ADD_FREE: {
+            accountToken.free_amount += value;
+            return true;
+        }
+        case SUB_FREE: {
+            if (accountToken.free_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
+
+            accountToken.free_amount -= value;
+            return true;
+        }
+        case STAKE: {
+            if (accountToken.free_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
+
+            accountToken.free_amount -= value;
+            accountToken.staked_amount += value;
+            return true;
+        }
+        case UNSTAKE: {
+            if (accountToken.staked_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, staked_amount insufficient");
+
+            accountToken.free_amount += value;
+            accountToken.staked_amount -= value;
+            return true;
+        }
+        case FREEZE: {
+            if (accountToken.free_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
+
+            accountToken.free_amount -= value;
+            accountToken.frozen_amount += value;
+            return true;
+        }
+        case UNFREEZE: {
+            if (accountToken.frozen_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, frozen_amount insufficient");
+
+            accountToken.free_amount += value;
+            accountToken.frozen_amount -= value;
+            return true;
+        }
+        default: return false;
+    }
 }
 
 uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateVote> &candidateVotes,
