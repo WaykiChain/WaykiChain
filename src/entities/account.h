@@ -165,19 +165,6 @@ public:
         return sigHash;
     }
 
-    string GetAccountTokenStr() const {
-        string str;
-        for (auto iter : tokens) {
-            string symbol = iter.first;
-            uint64_t free_amount = iter.second.free_amount;
-            uint64_t staked_amount = iter.second.staked_amount;
-            uint64_t frozen_amount = iter.second.frozen_amount;
-            str += strprintf ("\n  - %s: {free=%lld, staked=%lld, frozen=%lld}\n",
-                        symbol, free_amount, staked_amount, frozen_amount);
-        }
-        return str;
-    }
-
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
 
@@ -214,7 +201,6 @@ public:
 private:
     bool IsBcoinWithinRange(uint64_t nAddMoney);
     bool IsFcoinWithinRange(uint64_t nAddMoney);
-
 };
 
 enum ACCOUNT_TYPE {
