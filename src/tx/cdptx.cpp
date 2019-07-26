@@ -42,7 +42,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read GLOBAL_COLLATERAL_RATIO_MIN error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached( cw.ppCache.GetBcoinMedianPrice(height),
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(height),
                                                             globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralFloorReached!!"),
                         REJECT_INVALID, "global-cdp-lock-is-on");
@@ -597,7 +597,10 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         if (!SellPenaltyForFcoins(scoinsToReturnSysFund, cw, state))
             return false;
 
-        cw.cdpCache.SaveCdp(cdp);
+        if (!cw.cdpCache.SaveCdp(cdp)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, update CDP %s failed",
+                        cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
+        }
 
         CUserID nullUid;
         CReceipt receipt1(nTxType, txUid, nullUid, SYMB::WUSD, (scoins_to_liquidate + totalScoinsToReturnSysFund));

@@ -68,10 +68,10 @@ public:
     bool SaveCdp(CUserCDP &cdp);
     bool EraseCdp(const CUserCDP &cdp);
 
-    bool CheckGlobalCollateralRatioFloorReached(const uint64_t &bcoinMedianPrice,
-                                                const uint64_t &kGlobalCollateralRatioLimit);
-    bool CheckGlobalCollateralCeilingReached(const uint64_t &newBcoinsToStake,
-                                             const uint64_t &kGlobalCollateralCeiling);
+    bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
+                                                const uint64_t globalCollateralRatioLimit);
+    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake,
+                                             const uint64_t globalCollateralCeiling);
     bool Flush();
     uint32_t GetCacheSize() const;
 
