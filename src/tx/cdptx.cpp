@@ -340,7 +340,6 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total_staked_bcoins %d <= target %d",
                         cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
     }
-    cdp.total_staked_bcoins -= bcoins_to_redeem;
     if (!cw.cdpCache.RedeemBcoinsFromCdp(height, bcoins_to_redeem, scoins_to_repay, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.ownerRegId.ToString()),
                          UPDATE_CDP_FAIL, "bad-save-cdp");
