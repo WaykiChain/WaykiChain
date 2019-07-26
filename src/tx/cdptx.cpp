@@ -330,11 +330,8 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     //3. redeem in scoins and update cdp
-    if (cdp.total_owed_scoins <= scoins_to_repay) {
-        cdp.total_owed_scoins = 0;
-    } else {
-        cdp.total_owed_scoins -= scoins_to_repay;
-    }
+    if (scoins_to_repay > cdp.total_owed_scoins)
+        scoins_to_repay = cdp.total_owed_scoins;
 
     if (cdp.total_staked_bcoins <= bcoins_to_redeem) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total_staked_bcoins %d <= target %d",

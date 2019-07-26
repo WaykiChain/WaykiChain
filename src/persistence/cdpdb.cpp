@@ -143,6 +143,7 @@ bool CCdpDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, co
     //     memory cache as it had never existed.
     if (cdp.total_staked_bcoins == 0 && cdp.total_owed_scoins == 0) {
         return EraseCdp(cdp);
+
     } else {
     // 3.2 otherwise, save cdp to cache/memory cache.
         return SaveCdp(cdp) && cdpMemCache.SaveCdp(cdp);
