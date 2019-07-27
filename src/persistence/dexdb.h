@@ -38,14 +38,14 @@ enum OrderGenerateType {
 };
 
 struct CDEXOrderDetail {
-    CRegID          user_regid;
-    OrderType       order_type;     //!< order type
-    OrderSide       order_side;
-    TokenSymbol     coin_symbol;   //!< coin symbol
-    TokenSymbol     asset_symbol;  //!< asset symbol
-    uint64_t        coin_amount;    //!< amount of coin to buy/sell asset
-    uint64_t        asset_amount;   //!< amount of asset to buy/sell
-    uint64_t        price;         //!< price in coinType want to buy/sell asset
+    CRegID user_regid;         //!< user regid
+    OrderType order_type;      //!< order type
+    OrderSide order_side;      //!< order side
+    TokenSymbol coin_symbol;   //!< coin symbol
+    TokenSymbol asset_symbol;  //!< asset symbol
+    uint64_t coin_amount;      //!< amount of coin to buy/sell asset
+    uint64_t asset_amount;     //!< amount of asset to buy/sell
+    uint64_t price;            //!< price in coinType want to buy/sell asset
 };
 
 

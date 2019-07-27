@@ -143,9 +143,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoins_to_stake;
-        uint64_t totalScoinsToOwe = cdp.total_owed_scoins + scoins_to_mint;
-        uint64_t totalCollateralRatio = totalBcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height)
-                                        * kPercentBoost / totalScoinsToOwe;
+        uint64_t totalScoinsToOwe   = cdp.total_owed_scoins + scoins_to_mint;
+        uint64_t totalCollateralRatio =
+            totalBcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost / totalScoinsToOwe;
 
         if (partialCollateralRatio < startingCdpCollateralRatio &&
             totalCollateralRatio < startingCdpCollateralRatio) {

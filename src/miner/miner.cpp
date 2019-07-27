@@ -368,7 +368,6 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
                 if (SysCfg().IsLogFailures())
                     pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
-
                 continue;
             }
 
@@ -376,7 +375,6 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
                 LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : exceed max block run steps, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
-
                 continue;
             }
 
@@ -385,21 +383,24 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             // already in block.
             spCW->Flush();
 
-            // TODO: fees
-            // totalFees += pBaseTx->GetFees();
+            std::pair<TokenSymbol, uint64_t> fees = pBaseTx->GetFees();
+            assert(std::get<0>(fees) == SYMB::WICC);
+
+            totalFees += std::get<1>(fees);
             blockSize += nTxSize;
             totalRunStep += pBaseTx->nRunStep;
             totalFuel += pBaseTx->GetFuel(fuelRate);
             ++index;
+
             pBlock->vptx.push_back(std::get<2>(item));
 
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
-        nLastBlockTx              = index;
+        nLastBlockTx              = index + 1;
         nLastBlockSize            = blockSize;
-        miningBlockInfo.txCount   = index;
+        miningBlockInfo.txCount   = index + 1;
         miningBlockInfo.blockSize = blockSize;
         miningBlockInfo.totalFees = totalFees;
 
@@ -414,7 +415,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
         pBlock->SetFuelRate(fuelRate);
         UpdateTime(*pBlock, pIndexPrev);
 
-        LogPrint("INFO", "CreateNewBlockPreStableCoinRelease() : height=%d, index=%d, blockSize=%lu\n", height, index,
+        LogPrint("INFO", "CreateNewBlockPreStableCoinRelease() : height=%d, tx=%d, blockSize=%lu\n", height, index + 1,
                  blockSize);
     }
 
@@ -527,7 +528,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 if (SysCfg().IsLogFailures())
                     pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
-
                 continue;
             }
 
@@ -535,7 +535,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
                 LogPrint("MINER", "CreateNewBlockStableCoinRelease() : exceed max block run steps, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
-
                 continue;
             }
 
@@ -556,9 +555,9 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                      pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
-        nLastBlockTx              = index;
+        nLastBlockTx              = index + 1;
         nLastBlockSize            = blockSize;
-        miningBlockInfo.txCount   = index;
+        miningBlockInfo.txCount   = index + 1;
         miningBlockInfo.blockSize = blockSize;
         miningBlockInfo.totalFees = totalFees;
 
@@ -582,7 +581,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         pBlock->SetFuelRate(fuelRate);
         UpdateTime(*pBlock, pIndexPrev);
 
-        LogPrint("INFO", "CreateNewBlockStableCoinRelease() : height=%d, index=%d, blockSize=%lu\n", height, index,
+        LogPrint("INFO", "CreateNewBlockStableCoinRelease() : height=%d, tx=%d, blockSize=%lu\n", height, index + 1,
                  blockSize);
     }
 
