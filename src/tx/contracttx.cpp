@@ -18,16 +18,18 @@
 
 static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
     switch (userIdStr.size()) {
-    case 6:
-        CRegID regId(userIdStr);
-        KeyId = regId.GetKeyId(view);
-        break;
-    case 34:
-        string addr(userIdStr.begin(), userIdStr.end());
-        KeyId = CKeyID(addr);
-        break;
-    default:
-        return false;
+        case 6: {
+            CRegID regId(userIdStr);
+            KeyId = regId.GetKeyId(view);
+            break;
+        }
+        case 34: {
+            string addr(userIdStr.begin(), userIdStr.end());
+            KeyId = CKeyID(addr);
+            break;
+        }
+        default:
+            return false;
     }
 
     if (KeyId.IsEmpty())
