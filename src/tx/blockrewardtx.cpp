@@ -129,15 +129,6 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     return true;
 }
 
-map<TokenSymbol, uint64_t> CUCoinBlockRewardTx::GetValues() const {
-    map<TokenSymbol, uint64_t> rewardValuesOut;
-    for (const auto &item : rewardValues) {
-        rewardValuesOut.emplace(item.first, item.second);
-    }
-
-    return rewardValuesOut;
-}
-
 string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);

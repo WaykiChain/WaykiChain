@@ -959,6 +959,7 @@ void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state
             }
         }
     }
+
     if (!state.CorruptionPossible()) {
         pIndex->nStatus |= BLOCK_FAILED_VALID;
         pCdMan->pBlockTreeDb->WriteBlockIndex(CDiskBlockIndex(pIndex));

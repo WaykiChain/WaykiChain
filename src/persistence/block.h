@@ -55,16 +55,16 @@ enum BlockStatus {
 class CBlockHeader {
 public:
     // header
-    static const int CURRENT_VERSION = g_BlockVersion;
+    static const int32_t CURRENT_VERSION = g_BlockVersion;
 protected:
-    int nVersion;
+    int32_t nVersion;
     uint256 prevBlockHash;
     uint256 merkleRootHash;
-    unsigned int nTime;
-    unsigned int nNonce;
-    unsigned int height;
+    uint32_t nTime;
+    uint32_t nNonce;
+    uint32_t height;
     int64_t nFuel;
-    int nFuelRate;
+    int32_t nFuelRate;
     vector<unsigned char> vSignature;
 
 public:
@@ -90,7 +90,7 @@ public:
         merkleRootHash = uint256();
         nTime          = 0;
         nNonce         = 0;
-        height        = 0;
+        height         = 0;
         nFuel          = 0;
         nFuelRate      = 100;
         vSignature.clear();
@@ -99,22 +99,22 @@ public:
     uint256 GetHash() const;
     TxID ComputeSignatureHash() const;
     int64_t GetBlockTime() const { return (int64_t)nTime; }
-    int GetVersion() const { return nVersion; }
-    void SetVersion(int nVersion) { this->nVersion = nVersion; }
+    int32_t GetVersion() const { return nVersion; }
+    void SetVersion(int32_t nVersion) { this->nVersion = nVersion; }
     uint256 GetPrevBlockHash() const { return prevBlockHash; }
     void SetPrevBlockHash(uint256 prevBlockHash) { this->prevBlockHash = prevBlockHash; }
     uint256 GetMerkleRootHash() const { return merkleRootHash; }
     void SetMerkleRootHash(uint256 merkleRootHash) { this->merkleRootHash = merkleRootHash; }
-    unsigned int GetTime() const { return nTime; }
-    void SetTime(unsigned int time) { this->nTime = time; }
-    unsigned int GetNonce() const { return nNonce; }
-    void SetNonce(unsigned int nonce) { this->nNonce = nonce; }
-    unsigned int GetHeight() const { return height; }
-    void SetHeight(unsigned int height);
-    unsigned int GetFuel() const { return nFuel; }
+    uint32_t GetTime() const { return nTime; }
+    void SetTime(uint32_t time) { this->nTime = time; }
+    uint32_t GetNonce() const { return nNonce; }
+    void SetNonce(uint32_t nonce) { this->nNonce = nonce; }
+    uint32_t GetHeight() const { return height; }
+    void SetHeight(uint32_t height);
+    uint32_t GetFuel() const { return nFuel; }
     void SetFuel(int64_t fuel) { this->nFuel = fuel; }
-    int GetFuelRate() const { return nFuelRate; }
-    void SetFuelRate(int fuelRate) { this->nFuelRate = fuelRate; }
+    int32_t GetFuelRate() const { return nFuelRate; }
+    void SetFuelRate(int32_t fuelRate) { this->nFuelRate = fuelRate; }
     const vector<unsigned char> &GetSignature() const { return vSignature; }
     void SetSignature(const vector<unsigned char> &signature) { this->vSignature = signature; }
     void ClearSignature() { this->vSignature.clear(); }
@@ -163,16 +163,16 @@ public:
 
     uint256 BuildMerkleTree() const;
 
-    std::tuple<bool, int> GetTxIndex(const uint256 &txid) const;
+    std::tuple<bool, int32_t> GetTxIndex(const uint256 &txid) const;
 
-    const uint256 &GetTxid(unsigned int index) const {
+    const uint256 &GetTxid(uint32_t index) const {
         assert(vMerkleTree.size() > 0);  // BuildMerkleTree must have been called first
         assert(index < vptx.size());
         return vMerkleTree[index];
     }
 
-    vector<uint256> GetMerkleBranch(int index) const;
-    static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int index);
+    vector<uint256> GetMerkleBranch(int32_t index) const;
+    static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int32_t index);
 
     map<TokenSymbol, uint64_t> GetFees() const;
     uint64_t GetBlockMedianPrice(const CoinPricePair &coinPricePair) const;
@@ -221,12 +221,8 @@ public:
     // Verification status of this block. See enum BlockStatus
     unsigned int nStatus;
 
-    // the block's fee
-    uint64_t nBlockFee;
-
-    // (memory only) Block price median
-    uint64_t bcoinMedianPrice;  // against scoin
-    uint64_t fcoinMedianPrice;  // against scoin
+    // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
+    uint32_t nSequenceId;
 
     // block header
     int nVersion;
@@ -239,14 +235,12 @@ public:
     int nFuelRate;
     vector<unsigned char> vSignature;
 
-    // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
-    uint32_t nSequenceId;
 
     CBlockIndex() {
         pBlockHash       = nullptr;
         pprev            = nullptr;
         pskip            = nullptr;
-        height          = 0;
+        height           = 0;
         nFile            = 0;
         nDataPos         = 0;
         nUndoPos         = 0;
@@ -255,9 +249,6 @@ public:
         nChainTx         = 0;
         nStatus          = 0;
         nSequenceId      = 0;
-        nBlockFee        = 0;
-        bcoinMedianPrice = 0;
-        fcoinMedianPrice = 0;
 
         nVersion       = 0;
         merkleRootHash = uint256();
@@ -283,11 +274,6 @@ public:
         nChainTx         = 0;
         nStatus          = 0;
         nSequenceId      = 0;
-
-        // TODO: Fees
-        // nBlockFee        = block.GetFees();
-        bcoinMedianPrice = block.GetBlockMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
-        fcoinMedianPrice = block.GetBlockMedianPrice(CoinPricePair(SYMB::WGRT, SYMB::USD));
 
         int64_t nTxSize = 0;
         for (auto &pTx : block.vptx) {
@@ -332,10 +318,10 @@ public:
         block.SetNonce(nNonce);
         block.SetHeight(height);
         block.SetSignature(vSignature);
+
         return block;
     }
 
-    int64_t GetBlockFee() const { return nBlockFee; }
     uint256 GetBlockHash() const { return *pBlockHash; }
     int64_t GetBlockTime() const { return (int64_t)nTime; }
     bool CheckIndex() const { return true; }
@@ -365,9 +351,8 @@ public:
                                 unsigned int nRequired, unsigned int nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, blockFee=%d, chainWork=%s)",
-                        pprev, height, merkleRootHash.ToString(), GetBlockHash().ToString(),
-                        nBlockFee, nChainWork.ToString());
+        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, chainWork=%s)", pprev, height,
+                         merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString());
     }
 
     void Print() const { LogPrint("INFO", "%s\n", ToString()); }
@@ -396,7 +381,6 @@ public:
         if (!(nType & SER_GETHASH))
             READWRITE(VARINT(nVersion));
 
-        READWRITE(nBlockFee);
         READWRITE(VARINT(height));
         READWRITE(VARINT(nStatus));
         READWRITE(VARINT(nTx));

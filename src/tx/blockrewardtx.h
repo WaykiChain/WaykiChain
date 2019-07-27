@@ -105,7 +105,7 @@ public:
         return sigHash;
     }
 
-    map<TokenSymbol, uint64_t> GetValues() const;
+    map<TokenSymbol, uint64_t> GetValues() const { return rewardValues; }
     uint64_t GetProfits() const { return profits; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUCoinBlockRewardTx>(this); }
 
