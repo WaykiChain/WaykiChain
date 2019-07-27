@@ -14,11 +14,11 @@ public:
     CLuaContract contract;  // contract script content
 
 public:
-    CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_DEPLOY_TX) {
+    CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
         assert(CONTRACT_DEPLOY_TX == pBaseTx->nTxType);
         *this = *(CContractDeployTx *)pBaseTx;
     }
-    CContractDeployTx(): CBaseTx(CONTRACT_DEPLOY_TX) {}
+    CContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
     ~CContractDeployTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -35,7 +35,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract.ToString()
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }
@@ -62,16 +62,16 @@ public:
     string arguments;       // arguments to invoke a contract method
 
 public:
-    CContractInvokeTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
+    CContractInvokeTx() : CBaseTx(LCONTRACT_INVOKE_TX) {}
 
-    CContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(CONTRACT_INVOKE_TX) {
-        assert(CONTRACT_INVOKE_TX == pBaseTx->nTxType);
+    CContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_INVOKE_TX) {
+        assert(LCONTRACT_INVOKE_TX == pBaseTx->nTxType);
         *this = *(CContractInvokeTx *)pBaseTx;
     }
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
                 uint64_t bcoinsIn, int validHeightIn, string &argumentsIn):
-                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
+                CBaseTx(LCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
 
@@ -84,7 +84,7 @@ public:
     }
 
     CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(CONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
+                CBaseTx(LCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
         else if (txUidIn.type() == typeid(CPubKey))
