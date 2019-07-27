@@ -168,11 +168,15 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
 }
 
 uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
-    return ComputeBlockMedianPrice(blockHeight, CoinPricePair(SYMB::WICC, SYMB::USD));
+    // TODO:
+    // return ComputeBlockMedianPrice(blockHeight, CoinPricePair(SYMB::WICC, SYMB::USD));
+    return 5000;
 }
 
 uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
-    return ComputeBlockMedianPrice(blockHeight, CoinPricePair(SYMB::WGRT, SYMB::USD));
+    // TODO:
+    // return ComputeBlockMedianPrice(blockHeight, CoinPricePair(SYMB::WGRT, SYMB::USD));
+    return 5000;
 }
 
 bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
