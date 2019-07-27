@@ -495,7 +495,7 @@ public:
         AddOpLog(key, it->second);
         it->second = value;
         return true;
-    };
+    }
 
     bool SetData(const KeyType &key, const ValueType &value, CDbOpLog &dbOpLog) {
         if (db_util::IsEmpty(key)) {
@@ -511,7 +511,7 @@ public:
         dbOpLog.Set(key, it->second);
         it->second = value;
         return true;
-    };
+    }
 
     bool SetData(const KeyType &key, const ValueType &value, CDBOpLogMap &dbOpLogMap) {
         CDbOpLog dbOpLog;
@@ -647,7 +647,7 @@ private:
         }
 
         return mapData.end();
-    };
+    }
 
     bool GetTopNElements(const uint32_t maxNum, set<KeyType> &expiredKeys, set<KeyType> &keys) {
         if (!mapData.empty()) {
@@ -798,18 +798,18 @@ public:
     CSimpleKVCache(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
-    };
+    }
 
     CSimpleKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
         pDbAccess(pDbAccessIn) {
         assert(pDbAccessIn != nullptr);
-    };
+    }
 
     void SetBase(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(!ptrData);
         pBase = pBaseIn;
-    };
+    }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         pDbOpLogMap = pDbOpLogMapIn;
@@ -837,7 +837,7 @@ public:
             ptrData = std::make_shared<ValueType>(value);
         }
         return true;
-    };
+    }
 
     bool SetData(const ValueType &value, CDbOpLog &dbOpLog) {
         if (ptrData) {
@@ -849,7 +849,7 @@ public:
             ptrData = std::make_shared<ValueType>(value);
         }
         return true;
-    };
+    }
 
 
     bool SetData(const ValueType &value, CDBOpLogMap &dbOpLogMap) {
@@ -962,7 +962,7 @@ private:
             }
         }
         return nullptr;
-    };
+    }
 
     inline void AddOpLog(const ValueType &oldValue) {
         if (pDbOpLogMap != nullptr) {
