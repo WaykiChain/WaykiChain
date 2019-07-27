@@ -118,7 +118,6 @@ coin_CORE_H = \
   tx/accountregtx.h \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
-  tx/bcointx.h \
   tx/cdptx.h \
   tx/coinrewardtx.h \
   tx/contracttx.h \
@@ -264,7 +263,6 @@ libcoin_server_a_SOURCES = \
   tx/accountregtx.cpp \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \
-  tx/bcointx.cpp \
   tx/cdptx.cpp \
   tx/coinrewardtx.cpp \
   tx/contracttx.cpp \

@@ -36,7 +36,7 @@
 #include "persistence/txdb.h"
 #include "sigcache.h"
 #include "tx/accountregtx.h"
-#include "tx/bcointx.h"
+#include "tx/cointransfertx.h"
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/cdptx.h"

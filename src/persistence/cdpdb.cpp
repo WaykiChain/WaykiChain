@@ -138,7 +138,6 @@ bool CCdpDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, co
     cdp.collateralRatioBase = double(cdp.total_staked_bcoins) / cdp.total_owed_scoins;
 
     // 3. save or erase cdp in cache/memory cache
-
     // 3.1 erase cdp from cache if it's time to close cdp. Do not bother to erase cdp from
     //     memory cache as it had never existed.
     if (cdp.total_staked_bcoins == 0 && cdp.total_owed_scoins == 0) {
