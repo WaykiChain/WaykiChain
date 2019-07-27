@@ -3067,11 +3067,11 @@ void static ProcessGetData(CNode *pFrom) {
                         ss.reserve(1000);
                         if (BCOIN_TRANSFER_TX == pBaseTx->nTxType) {
                             ss << *((CBaseCoinTransferTx *)(pBaseTx.get()));
-                        } else if (CONTRACT_INVOKE_TX == pBaseTx->nTxType) {
+                        } else if (LCONTRACT_INVOKE_TX == pBaseTx->nTxType) {
                             ss << *((CContractInvokeTx *)(pBaseTx.get()));
                         } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
                             ss << *((CAccountRegisterTx *)pBaseTx.get());
-                        } else if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
+                        } else if (LCONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
                             ss << *((CContractDeployTx *)pBaseTx.get());
                         } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateVoteTx *)pBaseTx.get());
@@ -4047,13 +4047,13 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
     switch (uType) {
         case BCOIN_TRANSFER_TX:
             return std::make_shared<CBaseCoinTransferTx>();
-        case CONTRACT_INVOKE_TX:
+        case LCONTRACT_INVOKE_TX:
             return std::make_shared<CContractInvokeTx>();
         case ACCOUNT_REGISTER_TX:
             return std::make_shared<CAccountRegisterTx>();
         case BLOCK_REWARD_TX:
             return std::make_shared<CBlockRewardTx>();
-        case CONTRACT_DEPLOY_TX:
+        case LCONTRACT_DEPLOY_TX:
             return std::make_shared<CContractDeployTx>();
         case DELEGATE_VOTE_TX:
             return std::make_shared<CDelegateVoteTx>();

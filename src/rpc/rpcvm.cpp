@@ -27,7 +27,7 @@ using namespace std;
 using namespace json_spirit;
 
 
-static const int CONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
+static const int LCONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId
@@ -116,7 +116,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
     int nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((int)ceil(contract.GetContractSize() / 100) * nFuelRate, CONTRACT_DEPLOY_TX_FEE_MIN);
+    uint64_t regFee = std::max((int)ceil(contract.GetContractSize() / 100) * nFuelRate, LCONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 
     uint64_t totalFee = minFee + 10000000; // set default totalFee
@@ -198,7 +198,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         if (!spCW->contractCache.HaveContract(appId)) {
             throw runtime_error(tinyformat::format("AppId %s is not exist\n", appId.ToString()));
         }
-        contractInvokeTx.nTxType      = CONTRACT_INVOKE_TX;
+        contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;
         contractInvokeTx.txUid        = srcRegId;
         contractInvokeTx.appUid       = appId;
         contractInvokeTx.bcoins       = amount;

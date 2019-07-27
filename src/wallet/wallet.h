@@ -200,7 +200,7 @@ public:
         case BCOIN_TRANSFER_TX:
             mapAccountTx[hash] = std::make_shared<CBaseCoinTransferTx>(pTx);
             break;
-        case CONTRACT_INVOKE_TX:
+        case LCONTRACT_INVOKE_TX:
             mapAccountTx[hash] = std::make_shared<CContractInvokeTx>(pTx);
             break;
         case ACCOUNT_REGISTER_TX:
@@ -209,7 +209,7 @@ public:
         case BLOCK_REWARD_TX:
             mapAccountTx[hash] = std::make_shared<CBlockRewardTx>(pTx);
             break;
-        case CONTRACT_DEPLOY_TX:
+        case LCONTRACT_DEPLOY_TX:
             mapAccountTx[hash] = std::make_shared<CContractDeployTx>(pTx);
             break;
         case DELEGATE_VOTE_TX:

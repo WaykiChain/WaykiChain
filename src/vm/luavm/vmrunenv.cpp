@@ -41,7 +41,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
     pAccountCache = &view;
     CContract contract;
 
-    if (tx.get()->nTxType != CONTRACT_INVOKE_TX) {
+    if (tx.get()->nTxType != LCONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "%s\n", "err param");
         return false;
     }

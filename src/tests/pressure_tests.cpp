@@ -387,7 +387,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 						llSendValue += pTransaction->bcoins;
 					}
 				}
-				if (CONTRACT_INVOKE_TX == ptx->nTxType) {
+				if (LCONTRACT_INVOKE_TX == ptx->nTxType) {
 					CContractInvokeTx *pTransaction = (CContractInvokeTx *)ptx.get();
 					if (typeid(pTransaction->desUserId) == typeid(CKeyID)) {
 						llSendValue += pTransaction->bcoins;

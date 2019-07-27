@@ -17,14 +17,14 @@ static const int32_t nTxVersion1 = 1;
 static const int32_t nTxVersion2 = 2;
 
 enum TxType: uint8_t {
-    NULL_TX                     = 0     //!< NULL_TX
+    NULL_TX                     = 0,     //!< NULL_TX
 
     /** R1 Tx types */
     BLOCK_REWARD_TX             = 1,    //!< Miner Block Reward Tx
     ACCOUNT_REGISTER_TX         = 2,    //!< Account Registration Tx
     BCOIN_TRANSFER_TX           = 3,    //!< BaseCoin Transfer Tx
-    CONTRACT_INVOKE_TX          = 4,    //!< Contract Invocation Tx
-    CONTRACT_DEPLOY_TX          = 5,    //!< LuaVM Contract Deployment Tx
+    LCONTRACT_INVOKE_TX         = 4,    //!< LuaVM Contract Invocation Tx
+    LCONTRACT_DEPLOY_TX         = 5,    //!< LuaVM Contract Deployment Tx
     DELEGATE_VOTE_TX            = 6,    //!< Vote Delegate Tx
 
     /** R2 newly added Tx types below */
@@ -73,30 +73,45 @@ struct TxTypeHash {
  * Fees are boosted by 10^8
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t>, TxTypeHash> kTxFeeTable = {
-    { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",         0,          0,         0,          0            ) },
-    { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",   0,          0,         0,          0            ) },
-    { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",         0,          0,         0,          0            ) },
-    { PRICE_MEDIAN_TX,    std::make_tuple("PRICE_MEDIAN_TX",   0,          0,         0,          0            ) },
-    { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",     0,          10000,     10000,      10000        ) }, //0.0001 WICC, optional
-    { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { CONTRACT_DEPLOY_TX,       std::make_tuple("CONTRACT_DEPLOY_TX",      100000000,  100000000, 100000000,  100000000    ) }, //0.01 WICC (unit fuel rate)
-    { CONTRACT_INVOKE_TX,       std::make_tuple("CONTRACT_INVOKE_TX",      1000,       1000,      1000,       1000         ) }, //0.001 WICC, min fees
-    { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { BCOIN_TRANSFER_MTX,               std::make_tuple("BCOIN_TRANSFER_MTX",              10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { CDP_STAKE_TX,             std::make_tuple("CDP_STAKE_TX",            100000,     100000,    100000,     100000       ) }, //0.001 WICC
-    { CDP_REDEEM_TX,            std::make_tuple("CDP_REDEEM_TX",           100000,     100000,    100000,     100000       ) }, //0.001 WICC
-    { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",        100000,     100000,    100000,     100000       ) }, //0.001 WICC
-    { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { SFC_PARAM_MTX,            std::make_tuple("SFC_PARAM_MTX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",          10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { DEX_TRADE_SETTLE_TX,            std::make_tuple("DEX_TRADE_SETTLE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",     10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { DEX_LIMIT_BUY_ORDER_TX,   std::make_tuple("DEX_LIMIT_BUY_ORDER_TX",  10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { DEX_LIMIT_SELL_ORDER_TX,  std::make_tuple("DEX_LIMIT_SELL_ORDER_TX", 10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { DEX_MARKET_BUY_ORDER_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_TX", 10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { DEX_MARKET_SELL_ORDER_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_TX",10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-    { NULL_TX,                  std::make_tuple("NULL_TX",                 0,          0,         0,          0            ) }
+{ NULL_TX,                  std::make_tuple("NULL_TX",                  0,          0,         0,          0            ) },
+
+{ BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",          0,          0,         0,          0            ) },
+{ ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",      0,          10000,     10000,      10000        ) }, //0.0001 WICC, optional
+{ BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ LCONTRACT_DEPLOY_TX,      std::make_tuple("LCONTRACT_DEPLOY_TX",      100000000,  100000000, 100000000,  100000000    ) }, //1 WICC (unit fuel rate)
+{ LCONTRACT_INVOKE_TX,      std::make_tuple("LCONTRACT_INVOKE_TX",      100000,     100000,    100000,     100000       ) }, //0.001 WICC, min fees
+{ DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",         10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+
+{ BCOIN_TRANSFER_MTX,       std::make_tuple("BCOIN_TRANSFER_MTX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+
+{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           50000000000,50000000000,50000000000,50000000000) }, //50 WICC
+{ UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,         0,          0            ) },
+{ UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,         0,          0            ) },
+{ UCONTRACT_DEPLOY_TX,      std::make_tuple("UCONTRACT_DEPLOY_TX",      100000000, 100000000,  100000000,  100000000    ) }, //1 WICC
+{ UCONTRACT_INVOKE_TX,      std::make_tuple("UCONTRACT_INVOKE_TX",      1000,       100000,    100000,     100000       ) },  //0.0001 WICC
+{ PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",            10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ PRICE_MEDIAN_TX,          std::make_tuple("PRICE_MEDIAN_TX",          0,          0,         0,          0            ) },
+{ SYS_PARAM_PROPOSE_TX,     std::make_tuple("SYS_PARAM_PROPOSE_TX",     10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ SYS_PARAM_RESPONSE_TX,    std::make_tuple("SYS_PARAM_RESPONSE_TX",    10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+
+{ CDP_STAKE_TX,             std::make_tuple("CDP_STAKE_TX",             100000,     100000,    100000,     100000       ) }, //0.001 WICC
+{ CDP_REDEEM_TX,            std::make_tuple("CDP_REDEEM_TX",            100000,     100000,    100000,     100000       ) }, //0.001 WICC
+{ CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",         100000,     100000,    100000,     100000       ) }, //0.001 WICC
+
+{ DEX_TRADEPAIR_PROPOSE_TX, std::make_tuple("DEX_TRADEPAIR_PROPOSE_TX", 10000000000,10000000000,10000000000,10000000000 ) }, // 100 WICC
+{ DEX_TRADEPAIR_LIST_TX,    std::make_tuple("DEX_TRADEPAIR_LIST_TX",    100000000,  100000000, 100000000,  100000000    ) }, // 1 WICC
+{ DEX_TRADEPAIR_DELIST_TX,  std::make_tuple("DEX_TRADEPAIR_DELIST_TX",  10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+
+{ DEX_LIMIT_BUY_ORDER_TX,   std::make_tuple("DEX_LIMIT_BUY_ORDER_TX",   10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ DEX_LIMIT_SELL_ORDER_TX,  std::make_tuple("DEX_LIMIT_SELL_ORDER_TX",  10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ DEX_MARKET_BUY_ORDER_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_TX",  10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ DEX_MARKET_SELL_ORDER_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_TX", 10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+
+
 };
 
 #endif
