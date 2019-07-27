@@ -16,16 +16,16 @@
 #include "config/version.h"
 #include "vm/luavm/vmrunenv.h"
 
-static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
+static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &keyid) {
     switch (userIdStr.size()) {
         case 6: {   // CRegID
             CRegID regId(userIdStr);
-            KeyId = regId.GetKeyId(view);
+            keyid = regId.GetKeyId(view);
             break;
         }
         case 34: {  // Base58Addr
             string addr(userIdStr.begin(), userIdStr.end());
-            KeyId = CKeyID(addr);
+            keyid = CKeyID(addr);
             break;
         }
         //TODO: support nick ID
@@ -33,7 +33,7 @@ static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyI
             return false;
     }
 
-    if (KeyId.IsEmpty())
+    if (keyid.IsEmpty())
         return false;
 
     return true;

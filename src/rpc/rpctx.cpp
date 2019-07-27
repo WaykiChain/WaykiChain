@@ -721,16 +721,29 @@ Value listaddr(const Array& params, bool fHelp) {
 
         for (const auto &keyId : setKeyId) {
             CUserID userId(keyId);
-            CAccount acctInfo;
-            pCdMan->pAccountCache->GetAccount(userId, acctInfo);
+            CAccount account;
+            pCdMan->pAccountCache->GetAccount(userId, account);
             CKeyCombi keyCombi;
             pWalletMain->GetKeyCombi(keyId, keyCombi);
 
             Object obj;
-            obj.push_back(Pair("addr", keyId.ToAddress()));
-            obj.push_back(Pair("balance", (double)acctInfo.GetToken(SYMB::WICC).free_amount / (double) COIN));
-            obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
-            obj.push_back(Pair("regid",acctInfo.regid.ToString()));
+            obj.push_back(Pair("addr",  keyId.ToAddress()));
+            obj.push_back(Pair("regid", account.regid.ToString()));
+
+            Object tokenMapObj;
+            for (auto tokenPair : account.tokens) {
+                Object tokenObj;
+                const CAccountToken& token = tokenPair.second;
+                tokenObj.push_back(Pair("free_amount",      token.free_amount));
+                tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
+                tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
+
+                tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
+            }
+
+            obj.push_back(Pair("tokens",        tokenMapObj));
+            obj.push_back(Pair("hasminerkey",   keyCombi.HaveMinerKey()));
+
             retArray.push_back(obj);
         }
     }
@@ -1215,28 +1228,28 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         CAccount account;
         if (pCdMan->pAccountCache->GetAccount(userId, account)) {
             if (!account.owner_pubkey.IsValid()) {
-                CPubKey pk;
-                CPubKey minerpk;
-                if (pWalletMain->GetPubKey(keyId, pk)) {
-                    pWalletMain->GetPubKey(keyId, minerpk, true);
-                    account.owner_pubkey = pk;
-                    account.keyid  = pk.GetKeyId();
-                    if (pk != minerpk && !account.miner_pubkey.IsValid()) {
-                        account.miner_pubkey = minerpk;
+                CPubKey pubKey;
+                CPubKey minerPubKey;
+                if (pWalletMain->GetPubKey(keyId, pubKey)) {
+                    pWalletMain->GetPubKey(keyId, minerPubKey, true);
+                    account.owner_pubkey = pubKey;
+                    account.keyid        = pubKey.GetKeyId();
+                    if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
+                        account.miner_pubkey = minerPubKey;
                     }
                 }
             }
             obj = account.ToJsonObj();
             obj.push_back(Pair("position", "inblock"));
         } else {  // unregistered keyId
-            CPubKey pk;
-            CPubKey minerpk;
-            if (pWalletMain->GetPubKey(keyId, pk)) {
-                pWalletMain->GetPubKey(keyId, minerpk, true);
-                account.owner_pubkey = pk;
-                account.keyid  = pk.GetKeyId();
-                if (minerpk != pk) {
-                    account.miner_pubkey = minerpk;
+            CPubKey pubKey;
+            CPubKey minerPubKey;
+            if (pWalletMain->GetPubKey(keyId, pubKey)) {
+                pWalletMain->GetPubKey(keyId, minerPubKey, true);
+                account.owner_pubkey = pubKey;
+                account.keyid        = pubKey.GetKeyId();
+                if (minerPubKey != pubKey) {
+                    account.miner_pubkey = minerPubKey;
                 }
                 obj = account.ToJsonObj();
                 obj.push_back(Pair("position", "inwallet"));
@@ -1889,7 +1902,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    std::shared_ptr<CAccountDBCache> pAccountCache(new CAccountDBCache(pCdMan->pAccountCache));    
+    std::shared_ptr<CAccountDBCache> pAccountCache(new CAccountDBCache(pCdMan->pAccountCache));
     CAccount account;
     CUserID userId = keyId;
     if (!pAccountCache->GetAccount(userId, account)) {
