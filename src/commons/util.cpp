@@ -408,15 +408,19 @@ bool ParseMoney(const char* pszIn, int64_t& nRet) {
             }
             break;
         }
-        if (isspace(*p)) break;
-        if (!isdigit(*p)) return false;
+        if (isspace(*p))
+            break;
+        if (!isdigit(*p))
+            return false;
         strWhole.insert(strWhole.end(), *p);
     }
     for (; *p; p++)
-        if (!isspace(*p)) return false;
+        if (!isspace(*p))
+            return false;
     if (strWhole.size() > 10)  // guard against 63 bit overflow
         return false;
-    if (nUnits < 0 || nUnits > COIN) return false;
+    if (nUnits < 0 || nUnits > (int64_t)COIN)
+        return false;
     int64_t nWhole = atoi64(strWhole);
     int64_t nValue = nWhole * COIN + nUnits;
 

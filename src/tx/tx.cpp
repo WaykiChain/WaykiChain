@@ -61,15 +61,7 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     return true;
 }
 
-uint64_t CBaseTx::GetFuel(int32_t nFuelRate) {
-    uint64_t llFuel = ceil(nRunStep/100.0f) * nFuelRate;
-    if (CONTRACT_DEPLOY_TX == nTxType) {
-        if (llFuel < 1 * COIN) {
-            llFuel = 1 * COIN;
-        }
-    }
-    return llFuel;
-}
+uint64_t CBaseTx::GetFuel(int32_t nFuelRate) { return nRunStep == 0 ? 0 : ceil(nRunStep / 100.0f) * nFuelRate; }
 
 int32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     if (nFuelRate > 0)

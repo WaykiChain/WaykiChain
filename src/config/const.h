@@ -44,8 +44,8 @@ static const string CONFIRMED_HEIGHT    = "confirmed_height" ;
 
 }
 
-static const int64_t COIN = 100000000;  //10^8 = 1 WICC
-static const int64_t CENT = 1000000;    //10^6 = 0.01 WICC
+static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
+static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
