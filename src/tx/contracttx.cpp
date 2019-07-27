@@ -17,17 +17,21 @@
 #include "vm/luavm/vmrunenv.h"
 
 static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
-    if (userIdStr.size() == 6) {
+    switch (userIdStr.size()) {
+    case 6:
         CRegID regId(userIdStr);
         KeyId = regId.GetKeyId(view);
-    } else if (userIdStr.size() == 34) {
+        break;
+    case 34:
         string addr(userIdStr.begin(), userIdStr.end());
         KeyId = CKeyID(addr);
-    } else {
+        break;
+    default:
         return false;
     }
 
-    if (KeyId.IsEmpty()) return false;
+    if (KeyId.IsEmpty())
+        return false;
 
     return true;
 }

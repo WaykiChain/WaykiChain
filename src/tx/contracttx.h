@@ -55,9 +55,9 @@ public:
 
 class CContractInvokeTx : public CBaseTx {
 public:
-    mutable CUserID appUid;  // app regid or address
-    uint64_t bcoins;         // transfer amount
-    string arguments; // arguments to invoke a contract method
+    mutable CUserID appUid; // app regid or address
+    uint64_t bcoins;        // transfer amount
+    string arguments;       // arguments to invoke a contract method
 
 public:
     CContractInvokeTx() : CBaseTx(CONTRACT_INVOKE_TX) {}
