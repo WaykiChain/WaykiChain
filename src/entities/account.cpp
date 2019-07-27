@@ -184,13 +184,13 @@ Object CAccount::ToJsonObj() const {
     Object tokenMapObj;
     for (auto tokenPair : tokens) {
         Object tokenObj;
-        const CAccountToken &token = tokenPair.second;        
-        tokenObj.push_back(Pair("free_amount",           token.free_amount));
-        tokenObj.push_back(Pair("staked_amount",           token.staked_amount));
-        tokenObj.push_back(Pair("frozen_amount",           token.frozen_amount));
+        const CAccountToken &token = tokenPair.second;
+        tokenObj.push_back(Pair("free_amount",      token.free_amount));
+        tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
+        tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
 
-        tokenMapObj.push_back(Pair(tokenPair.first,        tokenObj));        
-    }  
+        tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
+    }
 
     Object obj;
     obj.push_back(Pair("address",           keyid.ToAddress()));

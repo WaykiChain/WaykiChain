@@ -1215,28 +1215,28 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         CAccount account;
         if (pCdMan->pAccountCache->GetAccount(userId, account)) {
             if (!account.owner_pubkey.IsValid()) {
-                CPubKey pk;
-                CPubKey minerpk;
-                if (pWalletMain->GetPubKey(keyId, pk)) {
-                    pWalletMain->GetPubKey(keyId, minerpk, true);
-                    account.owner_pubkey = pk;
-                    account.keyid  = pk.GetKeyId();
-                    if (pk != minerpk && !account.miner_pubkey.IsValid()) {
-                        account.miner_pubkey = minerpk;
+                CPubKey pubKey;
+                CPubKey minerPubKey;
+                if (pWalletMain->GetPubKey(keyId, pubKey)) {
+                    pWalletMain->GetPubKey(keyId, minerPubKey, true);
+                    account.owner_pubkey = pubKey;
+                    account.keyid        = pubKey.GetKeyId();
+                    if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
+                        account.miner_pubkey = minerPubKey;
                     }
                 }
             }
             obj = account.ToJsonObj();
             obj.push_back(Pair("position", "inblock"));
         } else {  // unregistered keyId
-            CPubKey pk;
-            CPubKey minerpk;
-            if (pWalletMain->GetPubKey(keyId, pk)) {
-                pWalletMain->GetPubKey(keyId, minerpk, true);
-                account.owner_pubkey = pk;
-                account.keyid  = pk.GetKeyId();
-                if (minerpk != pk) {
-                    account.miner_pubkey = minerpk;
+            CPubKey pubKey;
+            CPubKey minerPubKey;
+            if (pWalletMain->GetPubKey(keyId, pubKey)) {
+                pWalletMain->GetPubKey(keyId, minerPubKey, true);
+                account.owner_pubkey = pubKey;
+                account.keyid        = pubKey.GetKeyId();
+                if (minerPubKey != pubKey) {
+                    account.miner_pubkey = minerPubKey;
                 }
                 obj = account.ToJsonObj();
                 obj.push_back(Pair("position", "inwallet"));
@@ -1889,7 +1889,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Recv address invalid");
     }
 
-    std::shared_ptr<CAccountDBCache> pAccountCache(new CAccountDBCache(pCdMan->pAccountCache));    
+    std::shared_ptr<CAccountDBCache> pAccountCache(new CAccountDBCache(pCdMan->pAccountCache));
     CAccount account;
     CUserID userId = keyId;
     if (!pAccountCache->GetAccount(userId, account)) {
