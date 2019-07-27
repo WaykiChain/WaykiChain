@@ -222,16 +222,15 @@ public:
         transfer_coin_amount    = transferCoinAmount;
     }
 
-    ~CLuaContractInvokeTx() {}
+    ~CUniversalContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-        READWRITE(appUid);
-        READWRITE(VARINT(llFees));
 
+        READWRITE(app_uid);
         READWRITE(arguments);
         READWRITE(fee_symbol);
         READWRITE(transfer_coin_symbol);
@@ -243,7 +242,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << appUid << VARINT(llFees)
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << appUid
                 << VARINT(arguments) << fee_symbol << transfer_coin_symbol << VARINT(transfer_coin_amount);
             sigHash = ss.GetHash();
         }
