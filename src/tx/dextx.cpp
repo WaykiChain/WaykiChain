@@ -57,7 +57,7 @@ bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &t
 }
 
 uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price) {
-    uint128_t coinAmount = assetAmount * (uint128_t)price / COIN;
+    uint128_t coinAmount = assetAmount * (uint128_t)price / kPercentBoost;
     assert(coinAmount < ULLONG_MAX);
     return (uint64_t)coinAmount;
 }
@@ -142,10 +142,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CV
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     const uint256 &txid = GetHash();
-    CDEXActiveOrder buyActiveOrder;
-    buyActiveOrder.generate_type = USER_GEN_ORDER;
-    buyActiveOrder.total_deal_coin_amount = 0;
-    buyActiveOrder.total_deal_asset_amount = 0;
+    CDEXActiveOrder buyActiveOrder(USER_GEN_ORDER, CTxCord(height, index));
     if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
@@ -249,9 +246,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, C
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     const uint256 &txid = GetHash();
-    CDEXActiveOrder sellActiveOrder;
-    sellActiveOrder.generate_type = USER_GEN_ORDER;
-    sellActiveOrder.total_deal_asset_amount = 0;
+    CDEXActiveOrder sellActiveOrder(USER_GEN_ORDER, CTxCord(height, index));
     if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
@@ -342,10 +337,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, C
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     const uint256 &txid = GetHash();
-    CDEXActiveOrder buyActiveOrder;
-    buyActiveOrder.generate_type         = USER_GEN_ORDER;
-    buyActiveOrder.total_deal_coin_amount  = 0;
-    buyActiveOrder.total_deal_asset_amount = 0;
+    CDEXActiveOrder buyActiveOrder(USER_GEN_ORDER, CTxCord(height, index));
     if (!cw.dexCache.CreateActiveOrder(txid, buyActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
@@ -434,9 +426,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int height, int index, CCacheWrapper &cw, 
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     const uint256 &txid = GetHash();
-    CDEXActiveOrder sellActiveOrder;
-    sellActiveOrder.generate_type = USER_GEN_ORDER;
-    sellActiveOrder.total_deal_asset_amount = 0;
+    CDEXActiveOrder sellActiveOrder(USER_GEN_ORDER, CTxCord(height, index));
     if (!cw.dexCache.CreateActiveOrder(txid, sellActiveOrder)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
@@ -568,10 +558,10 @@ public:
     CDEXOrderDetail orderDetail;
 };
 
-static bool GetDealOrder(const uint256 &txid, const OrderSide order_side, CCacheWrapper &cw,
+static bool GetDealOrder(const uint256 &txid, const OrderSide orderSide, CCacheWrapper &cw,
                           CDEXDealOrder &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(txid, dealOrder.activeOrder)) {
-        return ERRORMSG("GetDealOrder, get active failed! txid=%s", txid.ToString());
+        return ERRORMSG("GetDealOrder, get active order failed! txid=%s", txid.ToString());
     }
 
     if (dealOrder.activeOrder.generate_type == USER_GEN_ORDER) {
@@ -589,8 +579,8 @@ static bool GetDealOrder(const uint256 &txid, const OrderSide order_side, CCache
         }
         sysBuyOrder.GetOrderDetail(dealOrder.orderDetail);
     }
-    if (dealOrder.orderDetail.order_side != order_side) {
-        return ERRORMSG("GetDealOrder, unexpected order_side of order tx! order_side=%s", typeid(order_side).name());
+    if (dealOrder.orderDetail.order_side != orderSide) {
+        return ERRORMSG("GetDealOrder, unexpected order_side of order tx! order_side=%s", typeid(orderSide).name());
     }
     return true;
 }

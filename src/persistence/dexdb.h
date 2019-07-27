@@ -52,15 +52,21 @@ struct CDEXOrderDetail {
 // for all active order db: orderId -> CDEXActiveOrder
 struct CDEXActiveOrder {
     OrderGenerateType generate_type     = EMPTY_ORDER;  //!< generate type
+    CTxCord  tx_cord                   = CTxCord();    //!< related tx cord
     uint64_t total_deal_coin_amount    = 0;            //!< total deal coin amount
     uint64_t total_deal_asset_amount   = 0;            //!< total deal asset amount
-    CTxCord  tx_cord                   = CTxCord();    //!< related tx cord
+
+    CDEXActiveOrder() {}
+    
+    CDEXActiveOrder(OrderGenerateType generateType, const CTxCord &txCord):
+        generate_type(generateType), tx_cord(txCord)
+    {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&)generate_type);
+        READWRITE(tx_cord);
         READWRITE(VARINT(total_deal_coin_amount));
         READWRITE(VARINT(total_deal_asset_amount));
-        READWRITE(tx_cord);
     )
 
     bool IsEmpty() const {

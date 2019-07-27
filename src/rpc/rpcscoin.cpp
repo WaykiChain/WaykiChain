@@ -631,7 +631,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
             "   {\n"
             "      \"buy_order_txid\":\"txid\", (string, required) order txid of buyer\n"
             "      \"sell_order_txid\":\"txid\", (string, required) order txid of seller\n"
-            "      \"deal_price\":n (numeric, required) deal price "
+            "      \"deal_price\":n (numeric, required) deal price\n"
             "      \"deal_coin_amount\":n (numeric, required) deal amount of coin\n"
             "      \"deal_asset_amount\":n (numeric, required) deal amount of asset\n"
             "   }\n"
@@ -671,15 +671,15 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     for (auto dealItemObj : dealItemArray) {
         DEXDealItem dealItem;
-        const Value& buy_order_txid = JSON::JsonFindValue(dealItemObj, "buy_order_txid");
+        const Value& buy_order_txid = JSON::GetObjectFieldValue(dealItemObj, "buy_order_txid");
         dealItem.buyOrderId.SetHex(buy_order_txid.get_str());
-        const Value& sell_order_txid = find_value(dealItemObj.get_obj(), "sell_order_txid");
+        const Value& sell_order_txid = JSON::GetObjectFieldValue(dealItemObj, "sell_order_txid");
         dealItem.sellOrderId.SetHex(sell_order_txid.get_str());
-        const Value& deal_price = JSON::JsonFindValue(dealItemObj, "deal_price");
+        const Value& deal_price = JSON::GetObjectFieldValue(dealItemObj, "deal_price");
         dealItem.dealPrice = AmountToRawValue(deal_price);
-        const Value& deal_coin_amount = JSON::JsonFindValue(dealItemObj, "deal_coin_amount");
+        const Value& deal_coin_amount = JSON::GetObjectFieldValue(dealItemObj, "deal_coin_amount");
         dealItem.dealCoinAmount = AmountToRawValue(deal_coin_amount);
-        const Value& deal_asset_amount = JSON::JsonFindValue(dealItemObj, "deal_asset_amount");
+        const Value& deal_asset_amount = JSON::GetObjectFieldValue(dealItemObj, "deal_asset_amount");
         dealItem.dealAssetAmount = AmountToRawValue(deal_asset_amount);
         dealItems.push_back(dealItem);
     }

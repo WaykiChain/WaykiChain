@@ -23,7 +23,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 Object SubmitTx(CUserID &userId, CBaseTx &tx);
 
 namespace JSON {
-const Value& JsonFindValue(Value jsonObj, const string &name);
+const Value& GetObjectFieldValue(const Value &jsonObj, const string &fieldName);
 }
 
 

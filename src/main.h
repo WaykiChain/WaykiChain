@@ -668,11 +668,12 @@ bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
     if (!ReadBaseTxFromDisk(txCord, pBaseTx)) {
         return ERRORMSG("ReadTxFromDisk failed! txcord(%s)", txCord.ToString());
     }
-    if (typeid(*pBaseTx) != typeid(TxType)) {
+    assert(pBaseTx);
+    pTx = dynamic_pointer_cast<TxType>(pBaseTx);
+    if (!pTx) {
         return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s",
             txCord.ToString(), typeid(TxType).name(), typeid(*pBaseTx).name());
     }
-    pTx = dynamic_pointer_cast<TxType>(pBaseTx);
     return true;
 }
 

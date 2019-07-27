@@ -339,11 +339,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 ///////////////////////////////////////////////////////////////////////////////
 // namespace JSON
 
-const Value& JSON::JsonFindValue(Value jsonObj, const string &name) {
+const Value& JSON::GetObjectFieldValue(const Value &jsonObj, const string &fieldName) {
 
-    const Value& jsonValue = find_value(jsonObj.get_obj(), name);
+    const Value& jsonValue = find_value(jsonObj.get_obj(), fieldName);
     if (jsonValue.type() == null_type || jsonValue == null_type) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("field %s not found in json object", name));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("field %s not found in json object", fieldName));
     }
     return jsonValue;
 }
