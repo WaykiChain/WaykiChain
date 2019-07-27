@@ -63,6 +63,7 @@ coin_CORE_H = \
   commons/util.h \
   config/configuration.h \
   config/const.h \
+  config/errorcode.h \
   config/scoin.h \
   config/txbase.h \
   config/clientversion.h \

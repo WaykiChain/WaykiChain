@@ -10,11 +10,11 @@
 #include "tx.h"
 #include "crypto/hash.h"
 #include "commons/util.h"
+#include "config/version.h"
 #include "main.h"
 #include "persistence/contractdb.h"
 #include "vm/luavm/vmrunenv.h"
 #include "miner/miner.h"
-#include "config/version.h"
 
 bool CAccountRegisterTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
