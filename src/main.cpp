@@ -1051,47 +1051,9 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
 
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
-    if(!cw.UndoDatas(blockUndo)) {
+    if (!cw.UndoDatas(blockUndo)) {
         return ERRORMSG("DisconnectBlock() : Undo tx datas in block failed");
     }
-
-    /* TODO: delete
-    if (pIndex->height > COINBASE_MATURITY) {
-        // Undo mature reward tx
-        CTxUndo txUndo = blockUndo.vtxundo.back();
-        blockUndo.vtxundo.pop_back();
-        CBlockIndex *pMatureIndex = pIndex;
-        for (int i = 0; i < COINBASE_MATURITY; ++i) {
-            pMatureIndex = pMatureIndex->pprev;
-        }
-        if (nullptr != pMatureIndex) {
-            CBlock matureBlock;
-            if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
-                return state.DoS(100, ERRORMSG("DisconnectBlock() : read mature block error"), REJECT_INVALID,
-                                 "bad-read-block");
-            }
-            cw.txUndo = txUndo;
-            if (!matureBlock.vptx[0]->UndoExecuteTx(pIndex->height, -1, cw, state))
-                return ERRORMSG("DisconnectBlock() : undo execute mature block reward tx error");
-        }
-    }
-
-    // Undo reward tx
-    std::shared_ptr<CBaseTx> pBaseTx = block.vptx[0];
-    cw.txUndo                        = blockUndo.vtxundo.back();
-    if (!pBaseTx->UndoExecuteTx(pIndex->height, 0, cw, state))
-        return false;
-
-    // Undo transactions in reverse order
-    for (int i = block.vptx.size() - 1; i >= 1; i--) {
-        std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
-        cw.txUndo                        = blockUndo.vtxundo[i - 1];
-        if (!pBaseTx->UndoExecuteTx(pIndex->height, i, cw, state)) {
-            LogPrint("ERROR", "%s\n", cw.txUndo.ToString());
-            return false;
-        }
-    }
-    */
 
     // Set previous block as the best block
     cw.accountCache.SetBestBlock(pIndex->pprev->GetBlockHash());
