@@ -164,7 +164,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     assert(pWalletMain != nullptr);
     {
         size_t contract_size = contract.GetContractSize();
-        CContractDeployTx tx;
+        CLuaContractDeployTx tx;
         tx.txUid            = srcRegId;
         tx.contract         = contract;
         tx.llFees           = regFee;

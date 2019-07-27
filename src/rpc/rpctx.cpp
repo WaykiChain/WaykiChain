@@ -407,7 +407,7 @@ Value registercontracttx(const Array& params, bool fHelp)
     }
 
     assert(pWalletMain != nullptr);
-    CContractDeployTx tx;
+    CLuaContractDeployTx tx;
     {
         EnsureWalletIsUnlocked();
 
@@ -1912,7 +1912,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
 
-    std::shared_ptr<CContractDeployTx> tx = std::make_shared<CContractDeployTx>();
+    std::shared_ptr<CLuaContractDeployTx> tx = std::make_shared<CLuaContractDeployTx>();
     CRegID regId;
     pAccountCache->GetRegId(keyId, regId);
 
@@ -2043,8 +2043,8 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         case LCONTRACT_DEPLOY_TX: {
-            std::shared_ptr<CContractDeployTx> tx =
-                std::make_shared<CContractDeployTx>(pBaseTx.get());
+            std::shared_ptr<CLuaContractDeployTx> tx =
+                std::make_shared<CLuaContractDeployTx>(pBaseTx.get());
             if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
@@ -2223,8 +2223,8 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case LCONTRACT_DEPLOY_TX: {
-            std::shared_ptr<CContractDeployTx> tx =
-                std::make_shared<CContractDeployTx>(pBaseTx.get());
+            std::shared_ptr<CLuaContractDeployTx> tx =
+                std::make_shared<CLuaContractDeployTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
             }

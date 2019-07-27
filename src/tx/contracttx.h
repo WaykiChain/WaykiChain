@@ -9,17 +9,17 @@
 #include "tx.h"
 #include "entities/contract.h"
 
-class CContractDeployTx : public CBaseTx {
+class CLuaContractDeployTx : public CBaseTx {
 public:
     CLuaContract contract;  // contract script content
 
 public:
-    CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
+    CLuaContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
         assert(LCONTRACT_DEPLOY_TX == pBaseTx->nTxType);
-        *this = *(CContractDeployTx *)pBaseTx;
+        *this = *(CLuaContractDeployTx *)pBaseTx;
     }
-    CContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
-    ~CContractDeployTx() {}
+    CLuaContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
+    ~CLuaContractDeployTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -44,7 +44,56 @@ public:
     }
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractDeployTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractDeployTx>(this); }
+    virtual uint64_t GetFuel(int32_t nFuelRate);
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
+    virtual string ToString(CAccountDBCache &view);
+    virtual Object ToJson(const CAccountDBCache &AccountView) const;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+};
+
+lass CUniversalContractDeployTx : public CBaseTx {
+public:
+    CUniversalContract contract;  // contract script content
+    TokenSymbol coin_symbol;
+    uint64_t coin_amount;
+    TokenSymbol fee_symbol;
+
+public:
+    CUniversalContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
+        assert(LCONTRACT_DEPLOY_TX == pBaseTx->nTxType);
+        *this = *(CUniversalContractDeployTx *)pBaseTx;
+    }
+    CUniversalContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
+    ~CUniversalContractDeployTx() {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(nValidHeight));
+        READWRITE(txUid);
+
+        READWRITE(contract);
+        READWRITE(VARINT(llFees));
+        READWRITE(signature);
+    )
+
+    TxID ComputeSignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract
+               << VARINT(llFees);
+            sigHash = ss.GetHash();
+        }
+
+        return sigHash;
+    }
+
+    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractDeployTx>(this); }
     virtual uint64_t GetFuel(int32_t nFuelRate);
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual string ToString(CAccountDBCache &view);

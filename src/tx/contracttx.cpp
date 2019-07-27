@@ -40,20 +40,20 @@ static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyI
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CContractDeployTx
+// class CLuaContractDeployTx
 
-bool CContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (!contract.IsValid()) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, contract is invalid"),
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
     }
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter to afford fuel "
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter to afford fuel "
                          "(actual:%lld vs need:%lld)", llFees, llFuel),
                          REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
@@ -63,7 +63,7 @@ bool CContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState 
         unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
         double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
         if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
-            return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, fee too litter in fees/Kb "
+            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fees/Kb "
                              "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
                              REJECT_INVALID, "fee-too-litter-in-fees/Kb");
         }
@@ -71,12 +71,12 @@ bool CContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState 
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::CheckTx, get account failed"),
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
     if (!account.HaveOwnerPubKey()) {
         return state.DoS(
-            100, ERRORMSG("CContractDeployTx::CheckTx, account unregistered"),
+            100, ERRORMSG("CLuaContractDeployTx::CheckTx, account unregistered"),
             REJECT_INVALID, "bad-account-unregistered");
     }
 
@@ -85,21 +85,21 @@ bool CContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState 
     return true;
 }
 
-bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, read regist addr %s account info error",
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, read regist addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     CAccount accountLog(account);
     if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
-            return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
+            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, operate account failed ,regId=%s",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
-        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save account info error"),
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, save account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     // create script account
@@ -112,11 +112,11 @@ bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CVal
 
     // save new script content
     if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, contract.code, "", contract.memo))) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save code for contract id %s error",
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, save code for contract id %s error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     if (!cw.accountCache.SaveAccount(contractAccount)) {
-        return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, create new account script id %s script info error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
@@ -127,7 +127,7 @@ bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CVal
     return true;
 }
 
-bool CContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+bool CLuaContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     if (!cw.accountCache.GetKeyId(txUid, keyId))
         return false;
@@ -136,11 +136,11 @@ bool CContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
     return true;
 }
 
-uint64_t CContractDeployTx::GetFuel(int32_t nFuelRate) {
+uint64_t CLuaContractDeployTx::GetFuel(int32_t nFuelRate) {
     return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
 }
 
-string CContractDeployTx::ToString(CAccountDBCache &view) {
+string CLuaContractDeployTx::ToString(CAccountDBCache &view) {
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);
 
@@ -149,7 +149,7 @@ string CContractDeployTx::ToString(CAccountDBCache &view) {
                      llFees, nValidHeight);
 }
 
-Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     CKeyID keyid;

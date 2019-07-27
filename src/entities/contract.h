@@ -63,7 +63,7 @@ enum VMType : uint8_t {
     EVM         = 3
 };
 
-class CContract {
+class CUniversalContract {
 public:
     VMType vm_type;
     string code;
@@ -71,12 +71,9 @@ public:
     string abi;
 
 public:
-    CContract(): vm_type(NULL_VM) {}
+    CUniversalContract(): vm_type(NULL_VM) {}
 
-    CContract(VMType vmTypeIn, string codeIn, string memoIn) :
-        vm_type(vmTypeIn), code(codeIn), memo(memoIn), abi("") { }; //for backward compatibility
-
-    CContract(VMType vmTypeIn, string codeIn, string memoIn, string abiIn) :
+    CUniversalContract(VMType vmTypeIn, string codeIn, string memoIn, string abiIn) :
         vm_type(vmTypeIn), code(codeIn), memo(memoIn), abi(abiIn) { };
 
     uint256 GetHash(bool recalculate = false) const {
