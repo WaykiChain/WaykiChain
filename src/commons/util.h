@@ -10,6 +10,7 @@
 #include "config/coin-config.h"
 #endif
 
+#include "config/const.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
 #include "compat/compat.h"
@@ -34,9 +35,6 @@
 
 class CNetAddr;
 class uint256;
-
-static const int64_t COIN = 100000000;
-static const int64_t CENT = 1000000;
 
 #define BEGIN(a) ((char*)&(a))
 #define END(a) ((char*)&((&(a))[1]))

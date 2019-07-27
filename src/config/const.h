@@ -26,6 +26,9 @@ static const string KWH  = "KWH";
 
 }
 
+static const int64_t COIN = 100000000;
+static const int64_t CENT = 1000000;
+
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
