@@ -840,7 +840,7 @@ static int ExGetTxContractFunc(lua_State *L) {
         LUA_BurnFuncData(L, FUEL_CALL_GetCurTxContract, curTxArguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
         len = RetRstToLua(L, curTxArguments, false);
     } else if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
-        if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
+        if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
             CContractInvokeTx *tx = static_cast<CContractInvokeTx *>(pBaseTx.get());
             LUA_BurnFuncData(L, FUEL_CALL_GetTxContract, tx->arguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
             len = RetRstToLua(L, tx->arguments, false);
@@ -914,7 +914,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
 
             vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
-        } else if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
+        } else if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
             CContractInvokeTx *tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
             if (tx->txUid.type() != typeid(CRegID))
                 return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");

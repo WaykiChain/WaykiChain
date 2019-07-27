@@ -269,7 +269,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     int64_t fee    = AmountToRawValue(params[4]);
     int height     = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
     if (fee == 0) {
-        fee = GetTxMinFee(TxType::CONTRACT_INVOKE_TX, height);
+        fee = GetTxMinFee(TxType::LCONTRACT_INVOKE_TX, height);
     }
 
     CPubKey sendPubKey;
@@ -293,7 +293,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     }
 
     CContractInvokeTx tx;
-    tx.nTxType      = CONTRACT_INVOKE_TX;
+    tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
     tx.appUid       = recvRegId;
     tx.bcoins       = amount;
@@ -877,7 +877,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         txnCount++;
                     }
                 }
-            } else if (item.second->nTxType == CONTRACT_INVOKE_TX) {
+            } else if (item.second->nTxType == LCONTRACT_INVOKE_TX) {
                 CContractInvokeTx* ptx = (CContractInvokeTx*)item.second.get();
                 CKeyID sendKeyID;
                 if (ptx->txUid.type() == typeid(CPubKey)) {
@@ -925,7 +925,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
+                        obj.push_back(Pair("tx_type", "LCONTRACT_INVOKE_TX"));
                         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
 
                         arrayData.push_back(obj);
@@ -946,7 +946,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
+                        obj.push_back(Pair("tx_type", "LCONTRACT_INVOKE_TX"));
                         obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
 
                         arrayData.push_back(obj);
@@ -1100,7 +1100,7 @@ Value listcontracttx(const Array& params, bool fHelp)
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pWalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
-            if (item.second.get() && item.second->nTxType == CONTRACT_INVOKE_TX) {
+            if (item.second.get() && item.second->nTxType == LCONTRACT_INVOKE_TX) {
                 if (nFrom > 0 && index++ < nFrom) {
                     continue;
                 }
@@ -1808,7 +1808,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     }
 
     CContractInvokeTx tx;
-    tx.nTxType      = CONTRACT_INVOKE_TX;
+    tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
     tx.appUid       = recvRegId;
     tx.bcoins       = amount;
@@ -2025,7 +2025,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case CONTRACT_INVOKE_TX: {
+        case LCONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
             if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
@@ -2042,7 +2042,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Block reward transation is forbidden");
         }
 
-        case CONTRACT_DEPLOY_TX: {
+        case LCONTRACT_DEPLOY_TX: {
             std::shared_ptr<CContractDeployTx> tx =
                 std::make_shared<CContractDeployTx>(pBaseTx.get());
             if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
@@ -2208,7 +2208,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case CONTRACT_INVOKE_TX: {
+        case LCONTRACT_INVOKE_TX: {
             std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
@@ -2222,7 +2222,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case CONTRACT_DEPLOY_TX: {
+        case LCONTRACT_DEPLOY_TX: {
             std::shared_ptr<CContractDeployTx> tx =
                 std::make_shared<CContractDeployTx>(pBaseTx.get());
             if (tx.get()) {
@@ -2245,7 +2245,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        // TODO: UCOIN_CONTRACT_INVOKE_TX
+        // TODO: UCOIN_LCONTRACT_INVOKE_TX
         case UCOIN_TRANSFER_TX: {
            std::shared_ptr<CCoinTransferTx> tx = std::make_shared<CCoinTransferTx>(pBaseTx.get());
             if (tx.get()) {

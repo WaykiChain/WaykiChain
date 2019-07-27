@@ -114,7 +114,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj.push_back(Pair("confirmed_time", (int) header.GetTime()));
                     obj.push_back(Pair("block_hash", header.GetHash().GetHex()));
 
-                    if (pBaseTx->nTxType == CONTRACT_INVOKE_TX) {
+                    if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
                         pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
                         Array outputArray;
@@ -204,7 +204,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case CONTRACT_INVOKE_TX: {
+        case LCONTRACT_INVOKE_TX: {
             CContractInvokeTx* ptx = (CContractInvokeTx*)pBaseTx.get();
             CKeyID sendKeyID;
             if (ptx->txUid.type() == typeid(CPubKey)) {
@@ -219,7 +219,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("tx_type", "CONTRACT_INVOKE_TX"));
+            obj.push_back(Pair("tx_type", "LCONTRACT_INVOKE_TX"));
             obj.push_back(Pair("from_address", sendKeyID.ToAddress()));
             obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
             obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
@@ -264,7 +264,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case CONTRACT_DEPLOY_TX:
+        case LCONTRACT_DEPLOY_TX:
         case DELEGATE_VOTE_TX: {
 
             if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
@@ -276,8 +276,8 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             obj.push_back(Pair("category", "send"));
             obj.push_back(Pair("transfer_amount", dAmount));
 
-            if (pBaseTx->nTxType == CONTRACT_DEPLOY_TX)
-                obj.push_back(Pair("tx_type", "CONTRACT_DEPLOY_TX"));
+            if (pBaseTx->nTxType == LCONTRACT_DEPLOY_TX)
+                obj.push_back(Pair("tx_type", "LCONTRACT_DEPLOY_TX"));
             else if (pBaseTx->nTxType == DELEGATE_VOTE_TX)
                 obj.push_back(Pair("tx_type", "DELEGATE_VOTE_TX"));
 

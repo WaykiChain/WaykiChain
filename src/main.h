@@ -690,11 +690,11 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CAccountRegisterTx *)(pa.get())), nType, nVersion); break;
         case BCOIN_TRANSFER_TX:
             Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion); break;
-        case CONTRACT_INVOKE_TX:
+        case LCONTRACT_INVOKE_TX:
             Serialize(os, *((CContractInvokeTx *)(pa.get())), nType, nVersion); break;
         case BLOCK_REWARD_TX:
             Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion); break;
-        case CONTRACT_DEPLOY_TX:
+        case LCONTRACT_DEPLOY_TX:
             Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion); break;
         case DELEGATE_VOTE_TX:
             Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion); break;
@@ -703,7 +703,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
 
         case UCOIN_BLOCK_REWARD_TX:
             Serialize(os, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
-        // TODO: UCOIN_CONTRACT_INVOKE_TX
+        // TODO: UCOIN_LCONTRACT_INVOKE_TX
         case UCOIN_TRANSFER_TX:
             Serialize(os, *((CCoinTransferTx *)(pa.get())), nType, nVersion); break;
         case UCOIN_REWARD_TX:
@@ -763,7 +763,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case CONTRACT_INVOKE_TX: {
+        case LCONTRACT_INVOKE_TX: {
             pa = std::make_shared<CContractInvokeTx>();
             Unserialize(is, *((CContractInvokeTx *)(pa.get())), nType, nVersion);
             break;
@@ -773,7 +773,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case CONTRACT_DEPLOY_TX: {
+        case LCONTRACT_DEPLOY_TX: {
             pa = std::make_shared<CContractDeployTx>();
             Unserialize(is, *((CContractDeployTx *)(pa.get())), nType, nVersion);
             break;
@@ -794,7 +794,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion);
             break;
         }
-        // TODO: UCOIN_CONTRACT_INVOKE_TX
+        // TODO: UCOIN_LCONTRACT_INVOKE_TX
         case UCOIN_TRANSFER_TX: {
             pa = std::make_shared<CCoinTransferTx>();
             Unserialize(is, *((CCoinTransferTx *)(pa.get())), nType, nVersion);
