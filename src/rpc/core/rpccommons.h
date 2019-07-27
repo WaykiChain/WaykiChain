@@ -8,6 +8,7 @@
 #include <string>
 #include "entities/id.h"
 #include "json/json_spirit.h"
+#include "entities/asset.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -20,5 +21,17 @@ Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 
 Object SubmitTx(CUserID &userId, CBaseTx &tx);
+
+namespace JSON {
+const Value& JsonFindValue(Value jsonObj, const string &name);
+}
+
+
+namespace RPC_PARAM {
+
+// will throw error it check failed
+void CheckOrderCoinSymbol(const TokenSymbol &coinSymbol);
+
+}
 
 #endif  // RPC_CORE_COMMONS_H

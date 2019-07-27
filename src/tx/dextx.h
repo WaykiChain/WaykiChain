@@ -57,8 +57,8 @@ public:
         READWRITE(txUid);
 
         READWRITE(VARINT(llFees));
-        READWRITE((uint8_t &)coin_symbol);
-        READWRITE((uint8_t &)asset_symbol);
+        READWRITE(coin_symbol);
+        READWRITE(asset_symbol);
         READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(bid_price));
 
