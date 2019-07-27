@@ -82,7 +82,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
     { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { COMMON_MTX,               std::make_tuple("COMMON_MTX",              10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { CDP_STAKE_TX,             std::make_tuple("CDP_STAKE_TX",            100000,     100000,    100000,     100000       ) }, //0.001 WICC
-    { CDP_REDEEM_TX,            std::make_tuple("CDP_REDEEM_TX",          100000,     100000,    100000,     100000       ) }, //0.001 WICC
+    { CDP_REDEEM_TX,            std::make_tuple("CDP_REDEEM_TX",           100000,     100000,    100000,     100000       ) }, //0.001 WICC
     { CDP_LIQUIDATE_TX,         std::make_tuple("CDP_LIQUIDATE_TX",        100000,     100000,    100000,     100000       ) }, //0.001 WICC
     { PRICE_FEED_TX,            std::make_tuple("PRICE_FEED_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
     { SFC_PARAM_MTX,            std::make_tuple("SFC_PARAM_MTX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
