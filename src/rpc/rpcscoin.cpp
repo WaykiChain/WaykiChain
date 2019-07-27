@@ -378,9 +378,10 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    TokenSymbol coinType  = params[1].get_str();
+    TokenSymbol coinSymbol  = params[1].get_str();
+    RPC_PARAM::CheckOrderCoinSymbol(coinSymbol);
     uint64_t assetAmount  = AmountToRawValue(params[2]);
-    AssetSymbol assetType = params[3].get_str();
+    AssetSymbol assetSymbol = params[3].get_str();
     uint64_t price        = AmountToRawValue(params[4]);
 
     uint64_t fee = 0;
@@ -402,7 +403,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Height();
-    CDEXBuyLimitOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount, price);
+    CDEXBuyLimitOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, assetAmount, price);
     return SubmitTx(*pUserId, tx);
 }
 
@@ -435,8 +436,10 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    TokenSymbol coinType  = params[1].get_str();
-    TokenSymbol assetType = params[2].get_str();
+    TokenSymbol coinSymbol  = params[1].get_str();
+    RPC_PARAM::CheckOrderCoinSymbol(coinSymbol);
+    TokenSymbol assetSymbol = params[2].get_str();
+    // TODO: CheckOrderAssetSymbol()
     uint64_t assetAmount  = AmountToRawValue(params[3]);
     uint64_t price        = AmountToRawValue(params[4]);
 
@@ -462,7 +465,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Height();
-    CDEXSellLimitOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount, price);
+    CDEXSellLimitOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, assetAmount, price);
     return SubmitTx(*pUserId, tx);
 }
 
@@ -493,9 +496,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    TokenSymbol coinType  = params[1].get_str();
+    TokenSymbol coinSymbol  = params[1].get_str();
     uint64_t coinAmount   = AmountToRawValue(params[2]);
-    TokenSymbol assetType = params[3].get_str();
+    TokenSymbol assetSymbol = params[3].get_str();
 
     uint64_t fee = 0;
     if (params.size() > 4) {
@@ -515,7 +518,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, coinAmount);
+    CDEXBuyMarketOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, coinAmount);
     return SubmitTx(*pUserId, tx);
 }
 
@@ -547,8 +550,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    TokenSymbol coinType  = params[1].get_str();
-    TokenSymbol assetType = params[2].get_str();
+    TokenSymbol coinSymbol  = params[1].get_str();
+    TokenSymbol assetSymbol = params[2].get_str();
     uint64_t assetAmount  = AmountToRawValue(params[3]);
 
     uint64_t fee = 0;
@@ -573,7 +576,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Height();
-    CDEXSellMarketOrderTx tx(*pUserId, validHeight, fee, coinType, assetType, assetAmount);
+    CDEXSellMarketOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, assetAmount);
     return SubmitTx(*pUserId, tx);
 }
 
@@ -614,15 +617,6 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
     int validHeight = chainActive.Height();
     CDEXCancelOrderTx tx(*pUserId, validHeight, fee, txid);
     return SubmitTx(*pUserId, tx);
-}
-
-static const Value& JsonFindValue(Value jsonObj, const string &name) {
-
-    const Value& jsonValue = find_value(jsonObj.get_obj(), name);
-    if (jsonValue.type() == null_type || jsonValue == null_type) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("field %s not found in json object", name));
-    }
-    return jsonValue;
 }
 
 Value submitdexsettletx(const Array& params, bool fHelp) {
@@ -677,15 +671,15 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     for (auto dealItemObj : dealItemArray) {
         DEXDealItem dealItem;
-        const Value& buy_order_txid = JsonFindValue(dealItemObj, "buy_order_txid");
+        const Value& buy_order_txid = JSON::JsonFindValue(dealItemObj, "buy_order_txid");
         dealItem.buyOrderId.SetHex(buy_order_txid.get_str());
         const Value& sell_order_txid = find_value(dealItemObj.get_obj(), "sell_order_txid");
         dealItem.sellOrderId.SetHex(sell_order_txid.get_str());
-        const Value& deal_price = JsonFindValue(dealItemObj, "deal_price");
+        const Value& deal_price = JSON::JsonFindValue(dealItemObj, "deal_price");
         dealItem.dealPrice = AmountToRawValue(deal_price);
-        const Value& deal_coin_amount = JsonFindValue(dealItemObj, "deal_coin_amount");
+        const Value& deal_coin_amount = JSON::JsonFindValue(dealItemObj, "deal_coin_amount");
         dealItem.dealCoinAmount = AmountToRawValue(deal_coin_amount);
-        const Value& deal_asset_amount = JsonFindValue(dealItemObj, "deal_asset_amount");
+        const Value& deal_asset_amount = JSON::JsonFindValue(dealItemObj, "deal_asset_amount");
         dealItem.dealAssetAmount = AmountToRawValue(deal_asset_amount);
         dealItems.push_back(dealItem);
     }

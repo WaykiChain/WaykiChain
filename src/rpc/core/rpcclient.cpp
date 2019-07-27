@@ -255,13 +255,24 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
 
     /* for dex */
-    if (strMethod == "submitdexbuylimitordertx" && n > 3) ConvertTo<uint64_t>(params[3]);
+    if (strMethod == "submitdexbuylimitordertx" && n > 2) ConvertTo<uint64_t>(params[2]);
     if (strMethod == "submitdexbuylimitordertx" && n > 4) ConvertTo<uint64_t>(params[4]);
     if (strMethod == "submitdexbuylimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
 
     if (strMethod == "submitdexselllimitordertx" && n > 3) ConvertTo<uint64_t>(params[3]);
     if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<uint64_t>(params[4]);
     if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
+
+    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
+
+    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
+
+    if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<int64_t>(params[2]);
+
+    if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "submitdexsettletx" && n > 2) ConvertTo<uint64_t>(params[2]);
 
     if (strMethod == "startcommontpstest"       && n > 0)    ConvertTo<int64_t>(params[0]);
     if (strMethod == "startcommontpstest"       && n > 1)    ConvertTo<int64_t>(params[1]);
@@ -291,25 +302,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitliquidatecdptx" && n > 5) ConvertTo<uint64_t>(params[5]);
 
     if (strMethod == "getmedianprice" && n > 0) ConvertTo<int>(params[0]);
-
-    if (strMethod == "submitdexbuylimitordertx" && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "submitdexbuylimitordertx" && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "submitdexbuylimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
-
-    if (strMethod == "submitdexselllimitordertx" && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
-
-    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
-
-    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
-
-    if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<int64_t>(params[2]);
-
-    if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "submitdexsettletx" && n > 2) ConvertTo<uint64_t>(params[2]);
 
     if (strMethod == "send"  && n > 2) ConvertTo<uint64_t>(params[2]);
     if (strMethod == "send"  && n > 4) ConvertTo<uint64_t>(params[4]);
