@@ -79,16 +79,6 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         }
     }
 
-    uint64_t bcoinsToStakeAmountMin;
-    if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read min coins to stake error"),
-                        READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
-    }
-    if (bcoins_to_stake < bcoinsToStakeAmountMin) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
-                    bcoins_to_stake), REJECT_INVALID, "bcoins-too-small-to-stake");
-    }
-
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read txUid %s account info error",
@@ -126,6 +116,15 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         if (partialCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         partialCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+        }
+        uint64_t bcoinsToStakeAmountMin;
+        if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read min coins to stake error"),
+                            READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
+        }
+        if (bcoins_to_stake < bcoinsToStakeAmountMin) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
+                        bcoins_to_stake), REJECT_INVALID, "bcoins-too-small-to-stake");
         }
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
