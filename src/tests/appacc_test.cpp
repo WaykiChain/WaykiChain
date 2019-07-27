@@ -43,7 +43,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     CUserID srcUserId = srcRegId;
     CUserID desUserId = desRegId;
     UnsignedCharArray arguments;
-    CContractInvokeTx tx(srcUserId, desRegId, 10000, opValue[0], 1, arguments); //100 * COIN
+    CLuaContractInvokeTx tx(srcUserId, desRegId, 10000, opValue[0], 1, arguments); //100 * COIN
 
     CVmRunEnv vmRunEnv;
     vector<CVmOperate> vAcctOper;

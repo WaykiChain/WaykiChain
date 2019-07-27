@@ -292,7 +292,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
-    CContractInvokeTx tx;
+    CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
     tx.appUid       = recvRegId;
@@ -878,7 +878,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     }
                 }
             } else if (item.second->nTxType == LCONTRACT_INVOKE_TX) {
-                CContractInvokeTx* ptx = (CContractInvokeTx*)item.second.get();
+                CLuaContractInvokeTx* ptx = (CLuaContractInvokeTx*)item.second.get();
                 CKeyID sendKeyID;
                 if (ptx->txUid.type() == typeid(CPubKey)) {
                     sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
@@ -1108,7 +1108,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                     return arrayData;
                 }
 
-                CContractInvokeTx* ptx = (CContractInvokeTx*) item.second.get();
+                CLuaContractInvokeTx* ptx = (CLuaContractInvokeTx*) item.second.get();
                 if (strRegId != getregidstring(ptx->appUid)) {
                     continue;
                 }
@@ -1807,7 +1807,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
     }
 
-    CContractInvokeTx tx;
+    CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
     tx.appUid       = recvRegId;
@@ -2026,7 +2026,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         case LCONTRACT_INVOKE_TX: {
-            std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
+            std::shared_ptr<CLuaContractInvokeTx> tx = std::make_shared<CLuaContractInvokeTx>(pBaseTx.get());
             if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
             }
@@ -2209,7 +2209,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
         case LCONTRACT_INVOKE_TX: {
-            std::shared_ptr<CContractInvokeTx> tx = std::make_shared<CContractInvokeTx>(pBaseTx.get());
+            std::shared_ptr<CLuaContractInvokeTx> tx = std::make_shared<CLuaContractInvokeTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
             }

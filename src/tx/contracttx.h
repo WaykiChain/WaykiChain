@@ -104,21 +104,21 @@ public:
     virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 };
 
-class CContractInvokeTx : public CBaseTx {
+class CLuaContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID appUid; // app regid or address
     uint64_t bcoins;        // transfer amount
     string arguments;       // arguments to invoke a contract method
 
 public:
-    CContractInvokeTx() : CBaseTx(LCONTRACT_INVOKE_TX) {}
+    CLuaContractInvokeTx() : CBaseTx(LCONTRACT_INVOKE_TX) {}
 
-    CContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_INVOKE_TX) {
+    CLuaContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_INVOKE_TX) {
         assert(LCONTRACT_INVOKE_TX == pBaseTx->nTxType);
-        *this = *(CContractInvokeTx *)pBaseTx;
+        *this = *(CLuaContractInvokeTx *)pBaseTx;
     }
 
-    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
+    CLuaContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
                 uint64_t bcoinsIn, int validHeightIn, string &argumentsIn):
                 CBaseTx(LCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
@@ -132,7 +132,7 @@ public:
         arguments = argumentsIn;
     }
 
-    CContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int validHeightIn):
+    CLuaContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int validHeightIn):
                 CBaseTx(LCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
@@ -146,7 +146,7 @@ public:
         bcoins = bcoinsIn;
     }
 
-    ~CContractInvokeTx() {}
+    ~CLuaContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -172,7 +172,7 @@ public:
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CContractInvokeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractInvokeTx>(this); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

@@ -205,7 +205,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             break;
         }
         case LCONTRACT_INVOKE_TX: {
-            CContractInvokeTx* ptx = (CContractInvokeTx*)pBaseTx.get();
+            CLuaContractInvokeTx* ptx = (CLuaContractInvokeTx*)pBaseTx.get();
             CKeyID sendKeyID;
             if (ptx->txUid.type() == typeid(CPubKey)) {
                 sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();

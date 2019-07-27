@@ -3068,7 +3068,7 @@ void static ProcessGetData(CNode *pFrom) {
                         if (BCOIN_TRANSFER_TX == pBaseTx->nTxType) {
                             ss << *((CBaseCoinTransferTx *)(pBaseTx.get()));
                         } else if (LCONTRACT_INVOKE_TX == pBaseTx->nTxType) {
-                            ss << *((CContractInvokeTx *)(pBaseTx.get()));
+                            ss << *((CLuaContractInvokeTx *)(pBaseTx.get()));
                         } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
                             ss << *((CAccountRegisterTx *)pBaseTx.get());
                         } else if (LCONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
@@ -4048,7 +4048,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
         case BCOIN_TRANSFER_TX:
             return std::make_shared<CBaseCoinTransferTx>();
         case LCONTRACT_INVOKE_TX:
-            return std::make_shared<CContractInvokeTx>();
+            return std::make_shared<CLuaContractInvokeTx>();
         case ACCOUNT_REGISTER_TX:
             return std::make_shared<CAccountRegisterTx>();
         case BLOCK_REWARD_TX:

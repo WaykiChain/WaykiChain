@@ -46,7 +46,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
         return false;
     }
 
-    CContractInvokeTx* contractTx = static_cast<CContractInvokeTx*>(tx.get());
+    CLuaContractInvokeTx* contractTx = static_cast<CLuaContractInvokeTx*>(tx.get());
     if (!pContractCache->GetContract(contractTx->appUid.get<CRegID>(), contract)) {
         LogPrint("ERROR", "contract not found: %s\n",
                  contractTx->appUid.get<CRegID>().ToString());
@@ -85,7 +85,7 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
 
     pContractCache = &cw.contractCache;
 
-    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+    CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
         return std::make_tuple(false, 0, string("CVmRunEnv: Contract pBaseTx fee too small"));
 
@@ -235,7 +235,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             UnsignedCharArray accountId = GetAccountID(it);
             if (accountId.size() != 6) return false;
             CRegID regId(accountId);
-            CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+            CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
             if (pContractCache->HaveContract(regId) && regId != tx->appUid.get<CRegID>())
                 return false;
@@ -273,7 +273,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
     return true;
 }
 
-bool CVmRunEnv::CheckAppAcctOperate(CContractInvokeTx* tx) {
+bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto vOpItem : mapAppFundOperate) {
         for (auto appFund : vOpItem.second) {
@@ -432,22 +432,22 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
 }
 
 const CRegID& CVmRunEnv::GetScriptRegID() {  // 获取目的账户ID
-    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+    CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->appUid.get<CRegID>();
 }
 
 const CRegID& CVmRunEnv::GetTxAccount() {
-    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+    CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->txUid.get<CRegID>();
 }
 
 uint64_t CVmRunEnv::GetValue() const {
-    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+    CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->bcoins;
 }
 
 const string& CVmRunEnv::GetTxContract() {
-    CContractInvokeTx* tx = static_cast<CContractInvokeTx*>(pBaseTx.get());
+    CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->arguments;
 }
 

@@ -155,7 +155,7 @@ public:
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
 
     bool GetAppUserAccount(const vector<unsigned char>& id, std::shared_ptr<CAppUserAccount>& sptrAcc);
-    bool CheckAppAcctOperate(CContractInvokeTx* tx);
+    bool CheckAppAcctOperate(CLuaContractInvokeTx* tx);
     void SetCheckAccount(bool bCheckAccount);
     virtual ~CVmRunEnv();
 };

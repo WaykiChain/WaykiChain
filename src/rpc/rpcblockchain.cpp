@@ -614,7 +614,7 @@ Value startcommontpstest(const Array& params, bool fHelp) {
     return obj;
 }
 
-static unique_ptr<MsgQueue<CContractInvokeTx>> generationContractQueue;
+static unique_ptr<MsgQueue<CLuaContractInvokeTx>> generationContractQueue;
 
 void static ContractTxGenerator(const string& regid, const int64_t period,
                                 const int64_t batchSize) {
@@ -648,7 +648,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         int32_t nValidHeight = chainActive.Tip()->height;
 
         for (int64_t i = 0; i < batchSize; ++i) {
-            CContractInvokeTx tx;
+            CLuaContractInvokeTx tx;
             tx.txUid        = txUid;
             tx.appUid       = appUid;
             tx.bcoins       = llValue++;
@@ -679,7 +679,7 @@ void static ContractTxGenerator() {
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
     CValidationState state;
-    CContractInvokeTx tx;
+    CLuaContractInvokeTx tx;
 
     while (true) {
         // add interruption point
@@ -711,10 +711,10 @@ void StartContractGeneration(const string& regid, const int64_t period, const in
     // For example, generate 50(batchSize) transactions in 20(period), then
     // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
     // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CContractInvokeTx>::SizeType size = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CContractInvokeTx>::SizeType actualSize =
+    MsgQueue<CLuaContractInvokeTx>::SizeType size = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CLuaContractInvokeTx>::SizeType actualSize =
         size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
-    generationContractQueue.reset(new MsgQueue<CContractInvokeTx>(actualSize));
+    generationContractQueue.reset(new MsgQueue<CLuaContractInvokeTx>(actualSize));
 
     generateContractThreads = new boost::thread_group();
     generateContractThreads->create_thread(

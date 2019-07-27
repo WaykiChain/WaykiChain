@@ -36,7 +36,7 @@ bool ReadKeyValue(CWallet* pwallet, CDataStream& ssKey, CDataStream& ssValue,str
         if (strType == "tx") {
             uint256 hash;
             ssKey >> hash;
-            std::shared_ptr<CBaseTx> pBaseTx; //= make_shared<CContractInvokeTx>();
+            std::shared_ptr<CBaseTx> pBaseTx; //= make_shared<CLuaContractInvokeTx>();
             ssValue >> pBaseTx;
             if (pBaseTx->GetHash() == hash) {
                 if (pwallet != NULL)

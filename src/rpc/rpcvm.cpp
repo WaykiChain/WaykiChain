@@ -192,7 +192,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         arguments = ParseHex(params[2].get_str());
     }
 
-    CContractInvokeTx contractInvokeTx;
+    CLuaContractInvokeTx contractInvokeTx;
 
     {
         if (!spCW->contractCache.HaveContract(appId)) {

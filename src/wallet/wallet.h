@@ -201,7 +201,7 @@ public:
             mapAccountTx[hash] = std::make_shared<CBaseCoinTransferTx>(pTx);
             break;
         case LCONTRACT_INVOKE_TX:
-            mapAccountTx[hash] = std::make_shared<CContractInvokeTx>(pTx);
+            mapAccountTx[hash] = std::make_shared<CLuaContractInvokeTx>(pTx);
             break;
         case ACCOUNT_REGISTER_TX:
             mapAccountTx[hash] = std::make_shared<CAccountRegisterTx>(pTx);
