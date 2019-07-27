@@ -137,10 +137,10 @@ public:
 /**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
 class CUniversalContractDeployTx : public CBaseTx {
 public:
-    CUniversalContract contract;  // contract script content
-    TokenSymbol coin_symbol;
-    uint64_t coin_amount;
-    TokenSymbol fee_symbol;
+    TokenSymbol         fee_symbol;
+    TokenSymbol         transfer_coin_symbol;
+    uint64_t            transfer_coin_amount;
+    CUniversalContract  contract;  // contract script content
 
 public:
     CUniversalContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
@@ -156,16 +156,19 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
+        READWRITE(transfer_coin_symbol);
+        READWRITE(VARINT(transfer_coin_amount));
         READWRITE(contract);
-        READWRITE(VARINT(llFees));
+
         READWRITE(signature);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract
-               << VARINT(llFees);
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid <<
+                << fee_symbol << transfer_coin_symbol << VARINT(transfer_coin_amount) << contract;
             sigHash = ss.GetHash();
         }
 
@@ -173,9 +176,11 @@ public:
     }
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractDeployTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUniversalContractDeployTx>(this); }
     virtual uint64_t GetFuel(int32_t nFuelRate);
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const {
+            return map<TokenSymbol, uint64_t>{ {transfer_coin_symbol, transfer_coin_amount} };
+    }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
