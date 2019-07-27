@@ -170,12 +170,11 @@ bool CContractDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
 
 bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
     for (auto it : list) {
-        LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it.first.GetHex(), it.second.nFile,
-                 it.second.nPos, it.second.nTxOffset);
+        LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
+                it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
-        if (!txDiskPosCache.SetData(it.first, it.second)) {
+        if (!txDiskPosCache.SetData(it.first, it.second))
             return false;
-        }
     }
     return true;
 }

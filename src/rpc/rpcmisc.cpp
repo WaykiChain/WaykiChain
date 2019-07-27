@@ -100,7 +100,7 @@ Value getbalance(const Array& params, bool fHelp)
                                     nValue = pTx->bcoins;
                                 }
                             }
-                            // TODO: COMMON_MTX
+                            // TODO: BCOIN_TRANSFER_MTX
                         }
                     }
                     pBlockIndex = pBlockIndex->pprev;
@@ -133,7 +133,7 @@ Value getbalance(const Array& params, bool fHelp)
                                         nValue = pTx->bcoins;
                                     }
                                 }
-                                // TODO: COMMON_MTX
+                                // TODO: BCOIN_TRANSFER_MTX
                             }
                         }
                         pBlockIndex = pBlockIndex->pprev;

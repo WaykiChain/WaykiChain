@@ -3074,7 +3074,7 @@ void static ProcessGetData(CNode *pFrom) {
                             ss << *((CContractDeployTx *)pBaseTx.get());
                         } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
                             ss << *((CDelegateVoteTx *)pBaseTx.get());
-                        } else if (COMMON_MTX == pBaseTx->nTxType) {
+                        } else if (BCOIN_TRANSFER_MTX == pBaseTx->nTxType) {
                             ss << *((CMulsigTx *)pBaseTx.get());
                         }
                         pFrom->PushMessage("tx", ss);
@@ -3429,8 +3429,8 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
         if (BLOCK_REWARD_TX == pBaseTx->nTxType || UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType ||
-            BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType) {
-            return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, BLOCK_PRICE_MEDIAN_TX from network "
+            PRICE_MEDIAN_TX == pBaseTx->nTxType) {
+            return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, PRICE_MEDIAN_TX from network "
                 "should be accepted, raw string: %s", HexStr(vRecv.begin(), vRecv.end()));
         }
 
@@ -4056,7 +4056,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType) {
             return std::make_shared<CContractDeployTx>();
         case DELEGATE_VOTE_TX:
             return std::make_shared<CDelegateVoteTx>();
-        case COMMON_MTX:
+        case BCOIN_TRANSFER_MTX:
             return std::make_shared<CMulsigTx>();
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");

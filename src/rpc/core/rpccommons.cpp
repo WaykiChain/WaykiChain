@@ -285,7 +285,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 
             break;
         }
-        case COMMON_MTX: {
+        case BCOIN_TRANSFER_MTX: {
             CMulsigTx* ptx = (CMulsigTx*)pBaseTx.get();
 
             CAccount account;
@@ -309,7 +309,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("tx_type", "COMMON_MTX"));
+            obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_MTX"));
             obj.push_back(Pair("from_address", sendKeyId.ToAddress()));
             obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
             obj.push_back(Pair("transfer_amount", dAmount));
@@ -324,12 +324,12 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         case CDP_LIQUIDATE_TX:
         case PRICE_FEED_TX:
         case FCOIN_STAKE_TX:
-        case DEX_SETTLE_TX:
+        case DEX_TRADE_SETTLE_TX:
         case DEX_CANCEL_ORDER_TX:
-        case DEX_BUY_LIMIT_ORDER_TX:
-        case DEX_SELL_LIMIT_ORDER_TX:
-        case DEX_BUY_MARKET_ORDER_TX:
-        case DEX_SELL_MARKET_ORDER_TX:
+        case DEX_LIMIT_BUY_ORDER_TX:
+        case DEX_LIMIT_SELL_ORDER_TX:
+        case DEX_MARKET_BUY_ORDER_TX:
+        case DEX_MARKET_SELL_ORDER_TX:
         default:
             break;
     }

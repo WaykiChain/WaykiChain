@@ -215,7 +215,7 @@ public:
         case DELEGATE_VOTE_TX:
             mapAccountTx[hash] = std::make_shared<CDelegateVoteTx>(pTx);
             break;
-        case COMMON_MTX:
+        case BCOIN_TRANSFER_MTX:
             mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);
             break;
         default:

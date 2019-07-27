@@ -698,7 +698,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
             Serialize(os, *((CContractDeployTx *)(pa.get())), nType, nVersion); break;
         case DELEGATE_VOTE_TX:
             Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion); break;
-        case COMMON_MTX:
+        case BCOIN_TRANSFER_MTX:
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
 
         case UCOIN_BLOCK_REWARD_TX:
@@ -718,7 +718,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
 
         case PRICE_FEED_TX:
             Serialize(os, *((CPriceFeedTx *)(pa.get())), nType, nVersion); break;
-        case BLOCK_PRICE_MEDIAN_TX:
+        case PRICE_MEDIAN_TX:
             Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
 
         // TODO: SFC_PARAM_MTX
@@ -726,17 +726,17 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
         case FCOIN_STAKE_TX:
             Serialize(os, *((CFcoinStakeTx *)(pa.get())), nType, nVersion); break;
 
-        case DEX_SETTLE_TX:
+        case DEX_TRADE_SETTLE_TX:
             Serialize(os, *((CDEXSettleTx *)(pa.get())), nType, nVersion); break;
         case DEX_CANCEL_ORDER_TX:
             Serialize(os, *((CDEXCancelOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_BUY_LIMIT_ORDER_TX:
+        case DEX_LIMIT_BUY_ORDER_TX:
             Serialize(os, *((CDEXBuyLimitOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_SELL_LIMIT_ORDER_TX:
+        case DEX_LIMIT_SELL_ORDER_TX:
             Serialize(os, *((CDEXSellLimitOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_BUY_MARKET_ORDER_TX:
+        case DEX_MARKET_BUY_ORDER_TX:
             Serialize(os, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_SELL_MARKET_ORDER_TX:
+        case DEX_MARKET_SELL_ORDER_TX:
             Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
 
         default:
@@ -783,7 +783,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case COMMON_MTX: {
+        case BCOIN_TRANSFER_MTX: {
             pa = std::make_shared<CMulsigTx>();
             Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
             break;
@@ -827,7 +827,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CPriceFeedTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case BLOCK_PRICE_MEDIAN_TX: {
+        case PRICE_MEDIAN_TX: {
             pa = std::make_shared<CBlockPriceMedianTx>();
             Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
             break;
@@ -843,7 +843,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             break;
         }
 
-        case DEX_SETTLE_TX: {
+        case DEX_TRADE_SETTLE_TX: {
             pa = std::make_shared<CDEXSettleTx>();
             Unserialize(is, *((CDEXSettleTx *)(pa.get())), nType, nVersion);
             break;
@@ -853,22 +853,22 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersi
             Unserialize(is, *((CDEXCancelOrderTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case DEX_BUY_LIMIT_ORDER_TX: {
+        case DEX_LIMIT_BUY_ORDER_TX: {
             pa = std::make_shared<CDEXBuyLimitOrderTx>();
             Unserialize(is, *((CDEXBuyLimitOrderTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case DEX_SELL_LIMIT_ORDER_TX: {
+        case DEX_LIMIT_SELL_ORDER_TX: {
             pa = std::make_shared<CDEXSellLimitOrderTx>();
             Unserialize(is, *((CDEXSellLimitOrderTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case DEX_BUY_MARKET_ORDER_TX: {
+        case DEX_MARKET_BUY_ORDER_TX: {
             pa = std::make_shared<CDEXBuyMarketOrderTx>();
             Unserialize(is, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion);
             break;
         }
-        case DEX_SELL_MARKET_ORDER_TX: {
+        case DEX_MARKET_SELL_ORDER_TX: {
             pa = std::make_shared<CDEXSellMarketOrderTx>();
             Unserialize(is, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion);
             break;

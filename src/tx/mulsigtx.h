@@ -40,24 +40,24 @@ class CMulsigTx : public CBaseTx {
 public:
     mutable CUserID desUserId;              //!< keyid or regid
     uint64_t bcoins;                        //!< transfer amount
-    uint8_t required;                       //!< required keys
-    UnsignedCharArray memo;              //!< memo
+    uint8_t required;                       //!< number of required keys
+    UnsignedCharArray memo;                 //!< memo
     vector<CSignaturePair> signaturePairs;  //!< signature pair
 
     CKeyID keyId;  //!< only in memory
 
 public:
-    CMulsigTx() : CBaseTx(COMMON_MTX) {}
+    CMulsigTx() : CBaseTx(BCOIN_TRANSFER_MTX) {}
 
-    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(COMMON_MTX) {
-        assert(COMMON_MTX == pBaseTx->nTxType);
+    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(BCOIN_TRANSFER_MTX) {
+        assert(BCOIN_TRANSFER_MTX == pBaseTx->nTxType);
         *this = *(CMulsigTx *)pBaseTx;
     }
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const UnsignedCharArray &memoIn)
-        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feesIn) {
+        : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 
@@ -71,7 +71,7 @@ public:
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn)
-        : CBaseTx(COMMON_MTX, CNullID(), validHeightIn, feesIn) {
+        : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
 

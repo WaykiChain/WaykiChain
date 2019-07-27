@@ -42,16 +42,17 @@ public:
 
     template <typename Stream>
     void Unserialize(Stream &s, int nType, int nVersion) {
-
         unsigned int sz = ReadCompactSize(s);
         s >> code >> memo;
         if (sz != GetContractSize(nType, nVersion)) {
             assert(false && "contractSize != SerializeSize(code) + SerializeSize(memo)");
         }
     }
-public:;
+
+public:
     bool IsValid();
     bool IsCheckAccount(void);
+
 };
 
 /** ###################################### Universal Contract ######################################*/
@@ -66,22 +67,22 @@ class CContract {
 public:
     VMType vm_type;
     string code;
-    string abi;
     string memo;
+    string abi;
 
 public:
     CContract(): vm_type(NULL_VM) {}
 
-    CContract(VMType vmTypeIn, string codeIn) :
-        vm_type(vmTypeIn), code(codeIn), abi(""), memo("") { }; //for backward compatibility
+    CContract(VMType vmTypeIn, string codeIn, string memoIn) :
+        vm_type(vmTypeIn), code(codeIn), memo(memoIn), abi("") { }; //for backward compatibility
 
-    CContract(VMType vmTypeIn, string codeIn, string abiIn, string memoIn) :
-        vm_type(vmTypeIn), code(codeIn), abi(abiIn), memo(memoIn) { };
+    CContract(VMType vmTypeIn, string codeIn, string memoIn, string abiIn) :
+        vm_type(vmTypeIn), code(codeIn), memo(memoIn), abi(abiIn) { };
 
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << (uint8_t&)vm_type << code << abi << memo;
+            ss << (uint8_t&)vm_type << code << memo << abi;
             sigHash = ss.GetHash();
         }
 
@@ -96,15 +97,16 @@ public:
     void SetEmpty() {
         vm_type = VMType::NULL_VM;
         code.clear();
-        abi.clear();
         memo.clear();
+        abi.clear();
     }
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) vm_type);
         READWRITE(code);
+        READWRITE(memo);
         READWRITE(abi);
-        READWRITE(memo);)
+    )
 
 private:
     mutable uint256 sigHash;  //!< only in memory

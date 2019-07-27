@@ -29,12 +29,13 @@ public:
 
         READWRITE(contract);
         READWRITE(VARINT(llFees));
-        READWRITE(signature);)
+        READWRITE(signature);
+    )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract.ToString()
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }

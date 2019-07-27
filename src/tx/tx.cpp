@@ -49,7 +49,7 @@ uint64_t GetTxMinFee(const TxType nTxType, int height) {
 }
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
-    if (BLOCK_REWARD_TX == nTxType || BLOCK_PRICE_MEDIAN_TX == nTxType)
+    if (BLOCK_REWARD_TX == nTxType || PRICE_MEDIAN_TX == nTxType)
         return true;
 
     if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)
@@ -160,4 +160,3 @@ bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw
     }
     return true;
 }
-

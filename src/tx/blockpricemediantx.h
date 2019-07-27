@@ -13,10 +13,10 @@ private:
     map<CoinPricePair, uint64_t> median_price_points;
 
 public:
-    CBlockPriceMedianTx(): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {}
+    CBlockPriceMedianTx(): CBaseTx(PRICE_MEDIAN_TX) {}
 
-    CBlockPriceMedianTx(const CBaseTx *pBaseTx): CBaseTx(BLOCK_PRICE_MEDIAN_TX) {
-        assert(BLOCK_PRICE_MEDIAN_TX == pBaseTx->nTxType);
+    CBlockPriceMedianTx(const CBaseTx *pBaseTx): CBaseTx(PRICE_MEDIAN_TX) {
+        assert(PRICE_MEDIAN_TX == pBaseTx->nTxType);
         *this = *(CBlockPriceMedianTx *)pBaseTx;
     }
 

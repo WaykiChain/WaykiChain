@@ -81,7 +81,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     if (pNext) result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
 
     Array prices;
-    if (block.vptx.size() > 1 && block.vptx[1]->nTxType == BLOCK_PRICE_MEDIAN_TX) {
+    if (block.vptx.size() > 1 && block.vptx[1]->nTxType == PRICE_MEDIAN_TX) {
         map<CoinPricePair, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
         for (auto &item : mapMedianPricePoints) {
             Object price;

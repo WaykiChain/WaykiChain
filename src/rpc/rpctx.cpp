@@ -955,7 +955,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                     }
                 }
             }
-            // TODO: COMMON_MTX
+            // TODO: BCOIN_TRANSFER_MTX
         }
     }
     return arrayData;
@@ -1979,7 +1979,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != COMMON_MTX && addresses.size() != 1) {
+    if (pBaseTx.get()->nTxType != BCOIN_TRANSFER_MTX && addresses.size() != 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
@@ -2069,7 +2069,7 @@ Value signtxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case COMMON_MTX: {
+        case BCOIN_TRANSFER_MTX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
 
             vector<CSignaturePair>& signaturePairs = tx.get()->signaturePairs;
@@ -2237,7 +2237,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case COMMON_MTX: {
+        case BCOIN_TRANSFER_MTX: {
             std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
@@ -2290,7 +2290,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case BLOCK_PRICE_MEDIAN_TX: {
+        case PRICE_MEDIAN_TX: {
             std::shared_ptr<CBlockPriceMedianTx> tx = std::make_shared<CBlockPriceMedianTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
@@ -2310,7 +2310,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
             break;
         }
 
-        case DEX_SETTLE_TX: {
+        case DEX_TRADE_SETTLE_TX: {
             std::shared_ptr<CDEXSettleTx> tx = std::make_shared<CDEXSettleTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
@@ -2324,28 +2324,28 @@ Value decodetxraw(const Array& params, bool fHelp) {
             }
             break;
         }
-        case DEX_BUY_LIMIT_ORDER_TX: {
+        case DEX_LIMIT_BUY_ORDER_TX: {
             std::shared_ptr<CDEXBuyLimitOrderTx> tx = std::make_shared<CDEXBuyLimitOrderTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
-        case DEX_SELL_LIMIT_ORDER_TX: {
+        case DEX_LIMIT_SELL_ORDER_TX: {
             std::shared_ptr<CDEXSellLimitOrderTx> tx = std::make_shared<CDEXSellLimitOrderTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
-        case DEX_BUY_MARKET_ORDER_TX: {
+        case DEX_MARKET_BUY_ORDER_TX: {
             std::shared_ptr<CDEXBuyMarketOrderTx> tx = std::make_shared<CDEXBuyMarketOrderTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
             }
             break;
         }
-        case DEX_SELL_MARKET_ORDER_TX: {
+        case DEX_MARKET_SELL_ORDER_TX: {
             std::shared_ptr<CDEXSellMarketOrderTx> tx = std::make_shared<CDEXSellMarketOrderTx>(pBaseTx.get());
             if (tx.get()) {
                 obj = tx->ToJson(*pCdMan->pAccountCache);
