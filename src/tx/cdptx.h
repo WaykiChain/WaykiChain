@@ -200,7 +200,7 @@ public:
         READWRITE(VARINT(llFees));
 
         READWRITE(cdp_txid);
-        READWRITE(scoins_to_liquidate);
+        READWRITE(VARINT(scoins_to_liquidate));
 
         READWRITE(signature);
     )
