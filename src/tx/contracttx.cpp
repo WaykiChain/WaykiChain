@@ -18,16 +18,17 @@
 
 static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
     switch (userIdStr.size()) {
-        case 6: {
+        case 6: {   // CRegID
             CRegID regId(userIdStr);
             KeyId = regId.GetKeyId(view);
             break;
         }
-        case 34: {
+        case 34: {  // Base58Addr
             string addr(userIdStr.begin(), userIdStr.end());
             KeyId = CKeyID(addr);
             break;
         }
+        //TODO: support nick ID
         default:
             return false;
     }
