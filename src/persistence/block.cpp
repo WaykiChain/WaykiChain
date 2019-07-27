@@ -67,21 +67,23 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
     return hash;
 }
 
-// TODO: Fees
-// int64_t CBlock::GetFees() const {
-//     int64_t nFees = 0;
-//     for (unsigned int i = 1; i < vptx.size(); ++i) {
-//         nFees += vptx[i]->GetFees();
-//     }
-//     return nFees;
-// }
+map<TokenSymbol, uint64_t> CBlock::GetFees() const {
+    map<TokenSymbol, uint64_t> fees = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};
+    for (uint32_t i = 1; i < vptx.size(); ++i) {
+        auto token_symbol = std::get<0>(vptx[i]->GetFees());
+        assert(token_symbol == SYMB::WICC || token_symbol == SYMB::WUSD);
+        fees[token_symbol] = std::get<1>(vptx[i]->GetFees());
+    }
 
-uint64_t CBlock::GetBlockMedianPrice(const CoinPricePair &coinPricePair) const {
+    return fees;
+}
+
+uint64_t CBlock::GetBlockMedianPrice(const CoinPricePair& coinPricePair) const {
     if (vptx.size() == 1 || vptx[1]->nTxType != BLOCK_PRICE_MEDIAN_TX) {
         return 0;
     }
 
-    map<CoinPricePair, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
+    auto mapMedianPricePoints = ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
 
     return mapMedianPricePoints.count(coinPricePair) ? mapMedianPricePoints[coinPricePair] : 0;
 }

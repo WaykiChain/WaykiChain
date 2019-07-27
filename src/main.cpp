@@ -1331,7 +1331,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 cw.DisableTxUndoLog();
                 return false;
             }
-            if (!SaveTxIndex(*block.vptx[0], cw, state, pos)) {
+            if (!SaveTxIndex(*pBaseTx, cw, state, pos)) {
                 cw.DisableTxUndoLog();
                 return false;
             }
