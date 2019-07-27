@@ -110,11 +110,11 @@ bool CContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CVal
     // save new script content
     if (!cw.contractCache.SaveContract(contractRegId, CContract(LUA_VM, contract.code, "", contract.memo))) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, save code for contract id %s error",
-            contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
     if (!cw.accountCache.SaveAccount(contractAccount)) {
         return state.DoS(100, ERRORMSG("CContractDeployTx::ExecuteTx, create new account script id %s script info error",
-            contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                        contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
 
     nRunStep = contract.GetContractSize();
@@ -138,8 +138,8 @@ string CContractDeployTx::ToString(CAccountDBCache &view) {
     view.GetKeyId(txUid, keyId);
 
     return strprintf("txType=%s, hash=%s, ver=%d, accountId=%s, keyid=%s, llFees=%ld, nValidHeight=%d\n",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), llFees,
-                     nValidHeight);
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(),
+                     llFees, nValidHeight);
 }
 
 Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -149,7 +149,8 @@ Object CContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     accountCache.GetKeyId(txUid, keyid);
 
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-    result.push_back(Pair("script",         "script_content"));
+    result.push_back(Pair("contract_code", contract.code));
+    result.push_back(Pair("contract_memo", contract.memo));
 
     return result;
 }
