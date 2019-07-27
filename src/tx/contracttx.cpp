@@ -136,6 +136,10 @@ bool CContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds
     return true;
 }
 
+uint64_t CContractDeployTx::GetFuel(int32_t nFuelRate) {
+    return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
+}
+
 string CContractDeployTx::ToString(CAccountDBCache &view) {
     CKeyID keyId;
     view.GetKeyId(txUid, keyId);

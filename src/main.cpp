@@ -1343,14 +1343,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step",
                                 block.GetHash().GetHex()), REJECT_INVALID, "exceed-max-run-step");
 
-            uint64_t llFuel = ceil(pBaseTx->nRunStep / 100.f) * block.GetFuelRate();
-            if (CONTRACT_DEPLOY_TX == pBaseTx->nTxType && llFuel < 1 * COIN) {
-                llFuel = 1 * COIN;
-            }
-
+            uint64_t llFuel = pBaseTx->GetFuel(block.GetFuelRate());
             nTotalFuel += llFuel;
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
                      nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
+
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
         }
 
@@ -1367,8 +1364,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        // TODO: Fees
-        // auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
+        // auto pRewardTx         = (CBlockRewardTx *)block.vptx[0].get();
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
         // if (pRewardTx->rewardValue != llValidReward) {
         //     LogPrint("ERROR", "ConnectBlock() : block height:%u, block fee:%lld, block fuel:%u\n",
