@@ -186,12 +186,11 @@ public:
 
 class CUniversalContractInvokeTx : public CBaseTx {
 public:
-    mutable CUserID app_uid;    // app regid or address
-    string arguments;           // arguments to invoke a contract method
-
-    TokenSymbol coin_symbol;
-    uint64_t coin_amount;        // transfer amount to contract account
+    mutable CUserID app_uid;            // app regid or address
+    string arguments;                   // arguments to invoke a contract method
+    TokenSymbol transfer_coin_symbol;
     TokenSymbol fee_symbol;
+    uint64_t    transfer_coin_amount;  /// transfer amount to contract account
 
 public:
     CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_TX) {}
@@ -201,8 +200,9 @@ public:
         *this = *(CUniversalContractInvokeTx *)pBaseTx;
     }
 
-    CUniversalContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
-                uint64_t bcoinsIn, int validHeightIn, string &argumentsIn):
+    CUniversalContractInvokeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
+                CUserID appUidIn, string &argumentsIn, TokenSymbol feeSymbol, TokenSymbol transferCoinSymbol,
+                uint64_t transferCoinAmount):
                 CBaseTx(UCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
@@ -210,23 +210,11 @@ public:
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        appUid = appUidIn;
-        bcoins = bcoinsIn;
-        arguments = argumentsIn;
-    }
-
-    CUniversalContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int validHeightIn):
-                CBaseTx(UCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        else if (txUidIn.type() == typeid(CPubKey))
-            assert(txUidIn.get<CPubKey>().IsFullyValid());
-
-        if (appUidIn.type() == typeid(CRegID))
-            assert(!appUidIn.get<CRegID>().IsEmpty());
-
-        appUid = appUidIn;
-        bcoins = bcoinsIn;
+        app_uid                 = appUidIn;
+        arguments               = argumentsIn;
+        fee_symbol              = feeSymbol;
+        transfer_coin_symbol    = transferCoinSymbol;
+        transfer_coin_amount    = transferCoinAmount;
     }
 
     ~CLuaContractInvokeTx() {}
@@ -238,24 +226,30 @@ public:
         READWRITE(txUid);
         READWRITE(appUid);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoins));
+
         READWRITE(arguments);
+        READWRITE(fee_symbol);
+        READWRITE(transfer_coin_symbol);
+        READWRITE(VARINT(transfer_coin_amount));
+
         READWRITE(signature);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << appUid
-               << VARINT(llFees) << VARINT(bcoins) << arguments;
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << appUid << VARINT(llFees)
+                << VARINT(arguments) << fee_symbol << transfer_coin_symbol << VARINT(transfer_coin_amount);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const {
+            return map<TokenSymbol, uint64_t>{{transfer_coin_symbol, transfer_coin_amount}};
+    }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractInvokeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUniversalContractInvokeTx>(this); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
