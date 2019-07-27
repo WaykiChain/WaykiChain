@@ -15,7 +15,7 @@ public:
 
 public:
     CContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
-        assert(CONTRACT_DEPLOY_TX == pBaseTx->nTxType);
+        assert(LCONTRACT_DEPLOY_TX == pBaseTx->nTxType);
         *this = *(CContractDeployTx *)pBaseTx;
     }
     CContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
