@@ -721,16 +721,29 @@ Value listaddr(const Array& params, bool fHelp) {
 
         for (const auto &keyId : setKeyId) {
             CUserID userId(keyId);
-            CAccount acctInfo;
-            pCdMan->pAccountCache->GetAccount(userId, acctInfo);
+            CAccount account;
+            pCdMan->pAccountCache->GetAccount(userId, account);
             CKeyCombi keyCombi;
             pWalletMain->GetKeyCombi(keyId, keyCombi);
 
             Object obj;
-            obj.push_back(Pair("addr", keyId.ToAddress()));
-            obj.push_back(Pair("balance", (double)acctInfo.GetToken(SYMB::WICC).free_amount / (double) COIN));
-            obj.push_back(Pair("hasminerkey", keyCombi.HaveMinerKey()));
-            obj.push_back(Pair("regid",acctInfo.regid.ToString()));
+            obj.push_back(Pair("addr",  keyId.ToAddress()));
+            obj.push_back(Pair("regid", account.regid.ToString()));
+
+            Object tokenMapObj;
+            for (auto tokenPair : account.tokens) {
+                Object tokenObj;
+                const CAccountToken& token = tokenPair.second;
+                tokenObj.push_back(Pair("free_amount",      token.free_amount));
+                tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
+                tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
+
+                tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
+            }
+
+            obj.push_back(Pair("tokens",        tokenMapObj));
+            obj.push_back(Pair("hasminerkey",   keyCombi.HaveMinerKey()));
+
             retArray.push_back(obj);
         }
     }
