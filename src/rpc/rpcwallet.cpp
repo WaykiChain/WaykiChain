@@ -504,14 +504,14 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
 Value send(const Array& params, bool fHelp) {
     if (fHelp || (params.size() !=4 && params.size() !=6))
         throw runtime_error(
-            "send \"from\" \"to\" \"coin_amount\" \"coin_type\" \"fee\" \"fee_type\"\n"
+            "send \"from\" \"to\" \"coin_amount\" \"coin_symbol\" \"fee\" \"fee_type\"\n"
             "\nSend asset to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
             "1.\"from\" (string, optional) The address where coins are sent from.\n"
             "2.\"to\" (string, required) The address where coins are received.\n"
             "3.\"coin_amount\" (number, required) The amount to transfer.\n"
-            "4.\"coin_type\" (string, required) The coin type to transfer. If transferring WUSD, must pay 0.01% to the risk reserve\n"
+            "4.\"coin_symbol\" (string, required) The coin type to transfer. If transferring WUSD, must pay 0.01% to the risk reserve\n"
             "5.\"fee\" (number, optional) The fee pay for miner.\n"
             "6.\"fee_type\" (string, optional) The coin type of fee.\n"
             "\nResult:\n"

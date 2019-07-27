@@ -292,21 +292,21 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getmedianprice" && n > 0) ConvertTo<int>(params[0]);
 
-    if (strMethod == "submitdexbuylimitordertx" && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "submitdexbuylimitordertx" && n > 4) ConvertTo<double>(params[4]);
-    if (strMethod == "submitdexbuylimitordertx" && n > 5) ConvertTo<double>(params[5]);
+    if (strMethod == "submitdexbuylimitordertx" && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitdexbuylimitordertx" && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitdexbuylimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
 
-    if (strMethod == "submitdexselllimitordertx" && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<double>(params[4]);
-    if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<double>(params[5]);
+    if (strMethod == "submitdexselllimitordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
 
-    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<double>(params[4]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
 
-    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<double>(params[4]);
+    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
 
-    if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<double>(params[2]);
+    if (strMethod == "submitdexcancelordertx" && n > 2) ConvertTo<int64_t>(params[2]);
 
     if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "submitdexsettletx" && n > 2) ConvertTo<uint64_t>(params[2]);

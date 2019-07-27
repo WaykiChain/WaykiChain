@@ -353,12 +353,12 @@ Value getusercdp(const Array& params, bool fHelp){
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submitdexbuylimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
+            "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [fee]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_type\": (string required) coin type to pay\n"
-            "3.\"asset_type\": (string required), asset type to buy\n"
+            "2.\"coin_symbol\": (string required) coin type to pay\n"
+            "3.\"asset_symbol\": (string required), asset type to buy\n"
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"price\": (numeric, required) bidding price willing to buy\n"
             "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
@@ -379,13 +379,13 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     }
 
     TokenSymbol coinType  = params[1].get_str();
-    AssetSymbol assetType = params[2].get_str();
-    uint64_t assetAmount  = AmountToRawValue(params[3]);
+    uint64_t assetAmount  = AmountToRawValue(params[2]);
+    AssetSymbol assetType = params[3].get_str();
     uint64_t price        = AmountToRawValue(params[4]);
 
     uint64_t fee = 0;
     if (params.size() > 5) {
-        fee = params[5].get_uint64();
+        fee = AmountToRawValue(params[5]);
     }
 
     CAccount txAccount;
@@ -409,12 +409,12 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submitdexselllimitordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount price [fee]\n"
+            "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [fee]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_type\": (string required) coin type to pay\n"
-            "3.\"asset_type\": (string required), asset type to buy\n"
+            "2.\"coin_symbol\": (string required) coin type to pay\n"
+            "3.\"asset_symbol\": (string required), asset type to buy\n"
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"price\": (numeric, required) bidding price willing to buy\n"
             "6.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
@@ -442,7 +442,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     uint64_t fee = 0;
     if (params.size() > 5) {
-        fee = params[5].get_uint64();
+        fee = AmountToRawValue(params[5]);
     }
 
     CAccount txAccount;
@@ -458,7 +458,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     }
 
     if (txAccount.GetToken(SYMB::WICC).free_amount < assetAmount) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
     }
 
     int validHeight = chainActive.Height();
@@ -469,13 +469,13 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexbuymarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
+            "submitdexbuymarketordertx \"addr\" \"coin_symbol\" coin_amount \"asset_symbol\" [fee]\n"
             "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_type\": (string required) coin type to pay\n"
-            "3.\"asset_type\": (string required), asset type to buy\n"
-            "4.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
+            "2.\"coin_symbol\": (string required) coin type to pay\n"
+            "3.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
+            "4.\"asset_symbol\": (string required), asset type to buy\n"
             "5.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
@@ -494,8 +494,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     }
 
     TokenSymbol coinType  = params[1].get_str();
-    TokenSymbol assetType = params[2].get_str();
-    uint64_t coinAmount   = AmountToRawValue(params[3]);
+    uint64_t coinAmount   = AmountToRawValue(params[2]);
+    TokenSymbol assetType = params[3].get_str();
 
     uint64_t fee = 0;
     if (params.size() > 4) {
@@ -522,12 +522,12 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexsellmarketordertx \"addr\" \"coin_type\" \"asset_type\" asset_amount [fee]\n"
+            "submitdexsellmarketordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount [fee]\n"
             "\nsubmit a dex sell market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_type\": (string required) coin type to pay\n"
-            "3.\"asset_type\": (string required), asset type to buy\n"
+            "2.\"coin_symbol\": (string required) coin type to pay\n"
+            "3.\"asset_symbol\": (string required), asset type to buy\n"
             "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
             "5.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
