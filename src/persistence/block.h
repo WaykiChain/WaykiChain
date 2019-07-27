@@ -174,8 +174,7 @@ public:
     vector<uint256> GetMerkleBranch(int index) const;
     static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int index);
 
-    // TODO: Fees
-    // int64_t GetFees() const;
+    map<TokenSymbol, uint64_t> GetFees() const;
     uint64_t GetBlockMedianPrice(const CoinPricePair &coinPricePair) const;
 
     void Print(CAccountDBCache &accountCache) const;
