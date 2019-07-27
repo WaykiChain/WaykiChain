@@ -26,8 +26,8 @@ static const string KWH  = "KWH";
 
 }
 
-static const int64_t COIN = 100000000;
-static const int64_t CENT = 1000000;
+static const int64_t COIN = 100000000;  //10^8 = 1 WICC
+static const int64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
@@ -78,20 +78,22 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint64_t kTotalBaseCoinCount               = 210000000; // 210 million
-static const uint64_t kYearBlockCount                   = 3153600;   // one year = 365 * 24 * 60 * 60 / 10
-static const uint64_t kMinDiskSpace                     = 52428800;  // Minimum disk space required
-static const int kContractScriptMaxSize                 = 65536;     // 64 KB max for contract script size
-static const int kContractArgumentMaxSize               = 4096;      // 4 KB max for contract argument size
-static const int kCommonTxMemoMaxSize                   = 100;       // 100 bytes max for memo size
-static const int kContractMemoMaxSize                   = 100;       // 100 bytes max for memo size
-static const int kMostRecentBlockNumberLimit            = 1000;      // most recent block number limit
+static const uint64_t kTotalBaseCoinCount       = 210000000;    // 210 million
+static const uint64_t kYearBlockCount           = 3153600;      // one year = 365 * 24 * 60 * 60 / 10
+static const uint64_t kMinDiskSpace             = 52428800;     // Minimum disk space required
+static const int kContractScriptMaxSize         = 65536;        // 64 KB max for contract script size
+static const int kContractArgumentMaxSize       = 4096;         // 4 KB max for contract argument size
+static const int kCommonTxMemoMaxSize           = 100;          // 100 bytes max for memo size
+static const int kContractMemoMaxSize           = 100;          // 100 bytes max for memo size
+static const int kMostRecentBlockNumberLimit    = 1000;         // most recent block number limit
 
-static const int kMultisigNumberLimit                   = 15;        // m-n multisig, refer to n
-static const int KMultisigScriptMaxSize                 = 1000;      // multisig script max size
-static const int kRegIdMaturePeriodByBlock              = 100;       // RegId's mature period measured by blocks
+static const int kMultisigNumberLimit           = 15;           // m-n multisig, refer to n
+static const int KMultisigScriptMaxSize         = 1000;         // multisig script max size
+static const int kRegIdMaturePeriodByBlock      = 100;          // RegId's mature period measured by blocks
 
-const uint16_t kMaxMinedBlocks                          = 100;      // maximun cache size for mined blocks
+const uint16_t kMaxMinedBlocks                  = 100;          // maximun cache size for mined blocks
 
-static const string kContractScriptPathPrefix           = "/tmp/lua/";
+static const string kContractScriptPathPrefix   = "/tmp/lua/";
+
+
 #endif //CONFIG_CONST_H
