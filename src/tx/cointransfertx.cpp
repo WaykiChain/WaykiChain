@@ -107,14 +107,12 @@ string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
 Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId, desKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
+    CKeyID desKeyId;
     accountCache.GetKeyId(toUid, desKeyId);
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId)
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("to_uid",    toUid.ToString()));
     result.push_back(Pair("to_addr",   desKeyId.ToAddress()));
-    result.push_back(Pair("money",     bcoins));
+    result.push_back(Pair("transer_bcoins", bcoins));
     result.push_back(Pair("memo",      HexStr(memo)));
 
     return result;
@@ -240,11 +238,9 @@ string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
 Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId, desKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
+    CKeyID desKeyId;
     accountCache.GetKeyId(toUid, desKeyId);
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId)
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("to_uid",      toUid.ToString()));
     result.push_back(Pair("to_addr",     desKeyId.ToAddress()));
     result.push_back(Pair("coin_symbol", coin_symbol));

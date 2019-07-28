@@ -382,9 +382,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
  Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_repay",    scoins_to_repay));
     result.push_back(Pair("bcoins_to_redeem",   bcoins_to_redeem));

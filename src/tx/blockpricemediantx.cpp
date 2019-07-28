@@ -133,10 +133,9 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
         pricePointArray.push_back(subItem);
     }
 
-    CKeyID srcKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
+
     Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
     result.push_back(Pair("median_price_points",   pricePointArray));
 
     return result;

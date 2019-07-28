@@ -289,10 +289,7 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &accountCache) {
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId;
-    view.GetKeyId(txUid, srcKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
-
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("coin_amount",    coin_amount));
@@ -385,11 +382,7 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &accountCache) {
 
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
-
-    CKeyID srcKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
-
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("asset_amount",   asset_amount));
@@ -480,11 +473,8 @@ string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
 
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
-
-    CKeyID srcKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
-    result.push_back(Pair("order_id",       orderId.GetHex()));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    result.push_back(Pair("order_id", orderId.GetHex()));
 
     return result;
 }
@@ -623,12 +613,6 @@ string CDEXSettleTx::ToString(CAccountDBCache &view) {
 }
 
 Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    CKeyID srcKeyId;
-    accountCache.GetKeyId(txUid, srcKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
-
     Array arrayItems;
     for (const auto &item : dealItems) {
         Object subItem;
@@ -639,7 +623,10 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
         subItem.push_back(Pair("price",             item.dealPrice));
         arrayItems.push_back(subItem);
     }
-    result.push_back(Pair("deal_items",     arrayItems));
+
+    Object result;
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    result.push_back(Pair("deal_items",  arrayItems));
 
     return result;
 }

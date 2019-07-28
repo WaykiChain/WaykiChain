@@ -211,7 +211,9 @@ public:
                          "bad-tx-signature");                                                                   \
     }
 
-#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId)                                              \
+#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)                                          \
+    CKeyID srcKeyId;                                                                            \
+    accountCache.GetKeyId(txUid, srcKeyId);                                                     \
     result.push_back(Pair("txid",           GetHash().GetHex()));                               \
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));                               \
     result.push_back(Pair("ver",            nVersion));                                         \
