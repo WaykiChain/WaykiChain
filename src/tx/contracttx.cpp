@@ -152,10 +152,10 @@ string CLuaContractDeployTx::ToString(CAccountDBCache &view) {
 Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyid;
-    accountCache.GetKeyId(txUid, keyid);
+    CKeyID srcKeyId;
+    view.GetKeyId(txUid, srcKeyId);
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId)
     result.push_back(Pair("contract_code", contract.code));
     result.push_back(Pair("contract_memo", contract.memo));
 
@@ -234,17 +234,12 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountView) const {
     view.GetKeyId(txUid, srcKeyId);
     view.GetKeyId(appUid, desKeyId);
 
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId)
     result.push_back(Pair("regid",          txUid.ToString()));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
+    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("app_uid",        appUid.ToString()));
-    result.push_back(Pair("app_addr",       desKeyId.ToAddress()));
-    result.push_back(Pair("money",          bcoins));
-    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("transfer_bcoins",bcoins));
     result.push_back(Pair("arguments",      HexStr(arguments)));
-    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }

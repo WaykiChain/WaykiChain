@@ -32,19 +32,15 @@ string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
 Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-
     Array candidateVoteArray;
     for (const auto &vote : candidateVotes) {
         candidateVoteArray.push_back(vote.ToJson());
     }
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(keyId)
     result.push_back(Pair("candidate_votes",    candidateVoteArray));
-
-
     return result;
 }
 

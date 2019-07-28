@@ -91,7 +91,9 @@ string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
 Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    CKeyID srcKeyId;
+    accountCache.GetKeyId(txUid, srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
 
     Array pricePointArray;
     for (const auto &pp : pricePoints) {

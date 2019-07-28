@@ -59,7 +59,7 @@ public:
 
 class CLuaContractInvokeTx : public CBaseTx {
 public:
-    mutable CUserID appUid; // app regid or address
+    mutable CUserID app_uid; // app regid or address
     uint64_t bcoins;        // transfer amount
     string arguments;       // arguments to invoke a contract method
 
@@ -80,7 +80,7 @@ public:
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        appUid = appUidIn;
+        app_uid = appUidIn;
         bcoins = bcoinsIn;
         arguments = argumentsIn;
     }
@@ -95,7 +95,7 @@ public:
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
 
-        appUid = appUidIn;
+        app_uid = appUidIn;
         bcoins = bcoinsIn;
     }
 
@@ -106,7 +106,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-        READWRITE(appUid);
+        READWRITE(app_uid);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(arguments);
@@ -193,8 +193,8 @@ class CUniversalContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID app_uid;            // app regid or address
     string arguments;                   // arguments to invoke a contract method
-    TokenSymbol transfer_coin_symbol;
     TokenSymbol fee_symbol;
+    TokenSymbol transfer_coin_symbol;
     uint64_t    transfer_coin_amount;  /// transfer amount to contract account
 
 public:

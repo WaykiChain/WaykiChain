@@ -211,14 +211,12 @@ public:
                          "bad-tx-signature");                                                                   \
     }
 
-#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)                                          \
-    CKeyID srcKeyId;                                                                            \
-    accountCache.GetKeyId(txUid, srcKeyId);                                                     \
+#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId)                                              \
     result.push_back(Pair("txid",           GetHash().GetHex()));                               \
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));                               \
     result.push_back(Pair("ver",            nVersion));                                         \
     result.push_back(Pair("tx_uid",         txUid.ToString()));                                 \
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));                             \
+    result.push_back(Pair("from_addr",      srcKeyId.ToAddress()));                             \
     result.push_back(Pair("fees",           llFees));                                           \
     result.push_back(Pair("valid_height",   nValidHeight));                                     \
 

@@ -29,8 +29,8 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
     // TODO: should check the price range??
     if (price < 0)
         return state.DoS(100, ERRORMSG("%s price out of range,"
-                        " coin_symbol=%s, asset_symbol=%s, price=%llu", 
-                        title, coin_symbol, asset_symbol, price), 
+                        " coin_symbol=%s, asset_symbol=%s, price=%llu",
+                        title, coin_symbol, asset_symbol, price),
                         REJECT_INVALID, "invalid-price-range");
 
     return true;
@@ -39,17 +39,17 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
 bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &title,
                           const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol) {
     if (kCoinTypeSet.count(coinSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s, invalid coin symbol=%s", title, coinSymbol), 
+        return state.DoS(100, ERRORMSG("%s, invalid coin symbol=%s", title, coinSymbol),
                         REJECT_INVALID, "invalid-coin-symbol");
     }
 
     if (kCoinTypeSet.count(assetSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s invalid asset symbol=%s", title, assetSymbol), 
+        return state.DoS(100, ERRORMSG("%s invalid asset symbol=%s", title, assetSymbol),
                         REJECT_INVALID, "invalid-asset-symbol");
     }
 
     if (coinSymbol == assetSymbol) {
-        return state.DoS(100, ERRORMSG("%s coin symbol can not be same as asset symbol=%s", title, assetSymbol), 
+        return state.DoS(100, ERRORMSG("%s coin symbol can not be same as asset symbol=%s", title, assetSymbol),
                         REJECT_INVALID, "invalid-same-symbol");
     }
 
@@ -289,10 +289,12 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &accountCache) {
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    CKeyID srcKeyId;
+    view.GetKeyId(txUid, srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
 
-    result.push_back(Pair("coin_symbol",      coin_symbol));
-    result.push_back(Pair("asset_symbol",     asset_symbol));
+    result.push_back(Pair("coin_symbol",    coin_symbol));
+    result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("coin_amount",    coin_amount));
 
     return result;
@@ -384,10 +386,12 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &accountCache) {
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    CKeyID srcKeyId;
+    accountCache.GetKeyId(txUid, srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
 
-    result.push_back(Pair("coin_symbol",      coin_symbol));
-    result.push_back(Pair("asset_symbol",     asset_symbol));
+    result.push_back(Pair("coin_symbol",    coin_symbol));
+    result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("asset_amount",   asset_amount));
     return result;
 }
@@ -477,8 +481,9 @@ string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
-
+    CKeyID srcKeyId;
+    accountCache.GetKeyId(txUid, srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
     result.push_back(Pair("order_id",       orderId.GetHex()));
 
     return result;
@@ -620,7 +625,9 @@ string CDEXSettleTx::ToString(CAccountDBCache &view) {
 Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    CKeyID srcKeyId;
+    accountCache.GetKeyId(txUid, srcKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(srcKeyId);
 
     Array arrayItems;
     for (const auto &item : dealItems) {
