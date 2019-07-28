@@ -11,37 +11,33 @@
 using namespace std;
 
 namespace SYMB {
+    static const string WICC                = "WICC";
+    static const string WGRT                = "WGRT";
+    static const string WUSD                = "WUSD";
 
-static const string WICC                = "WICC";
-static const string WGRT                = "WGRT";
-static const string WUSD                = "WUSD";
-
-static const string USD                 = "USD";
-static const string CNY                 = "CNY";
-static const string EUR                 = "EUR";
-static const string BTC                 = "BTC";
-static const string USDT                = "USDT";
-static const string GOLD                = "GOLD";
-static const string KWH                 = "KWH";
-
+    static const string USD                 = "USD";
+    static const string CNY                 = "CNY";
+    static const string EUR                 = "EUR";
+    static const string BTC                 = "BTC";
+    static const string USDT                = "USDT";
+    static const string GOLD                = "GOLD";
+    static const string KWH                 = "KWH";
 }
 
 namespace txfield {
-
-static const string TXID                = "txid" ;
-static const string TXTYPE              = "tx_type" ;
-static const string RAWTX               = "rawtx" ;
-static const string TRIGGER_UID         = "tx_uid" ;
-static const string TRIGGER_ADDR        = "addr" ;
-static const string DEST_UID            = "to_uid" ;
-static const string DEST_ADDR           = "to_addr";
-static const string BLOCK_HASH          = "block_hash" ;
-static const string FEES_AMOUNT         = "fees" ;
-static const string FEES_COIN_TYPE      = "fees_coin_type" ;
-static const string VERSION             = "ver" ;
-static const string VALID_HEIGHT        = "valid_height" ;
-static const string CONFIRMED_HEIGHT    = "confirmed_height" ;
-
+    static const string TXID                = "txid" ;
+    static const string TXTYPE              = "tx_type" ;
+    static const string RAWTX               = "rawtx" ;
+    static const string TRIGGER_UID         = "tx_uid" ;
+    static const string TRIGGER_ADDR        = "addr" ;
+    static const string DEST_UID            = "to_uid" ;
+    static const string DEST_ADDR           = "to_addr";
+    static const string BLOCK_HASH          = "block_hash" ;
+    static const string FEES_AMOUNT         = "fees" ;
+    static const string FEES_COIN_TYPE      = "fees_coin_type" ;
+    static const string VERSION             = "ver" ;
+    static const string VALID_HEIGHT        = "valid_height" ;
+    static const string CONFIRMED_HEIGHT    = "confirmed_height" ;
 }
 
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC

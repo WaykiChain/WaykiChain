@@ -125,9 +125,9 @@ public:
         this->nickid            = other.nickid;
         this->owner_pubkey      = other.owner_pubkey;
         this->miner_pubkey      = other.miner_pubkey;
+        this->tokens            = other.tokens;
         this->received_votes    = other.received_votes;
         this->last_vote_height  = other.last_vote_height;
-        this->tokens            = other.tokens;
 
         return *this;
     }
@@ -165,10 +165,11 @@ public:
         return sigHash;
     }
 
+    CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
+    bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
+
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
-
-    bool UndoOperateAccount(const CAccount& accountInfo);
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
@@ -176,27 +177,22 @@ public:
                               const uint64_t currHeight,
                               const CAccountDBCache* pAccountCache);
 
-    bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
-    bool RegIDIsMature() const;
-
     uint64_t GetTotalBcoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
     uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
 
     uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
     uint64_t ComputeBlockInflateInterest(const uint64_t currHeight) const;
 
+    bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
+    bool RegIDIsMature() const;
+
     bool IsEmptyValue() const { return (tokens.size() == 0); }
-
     bool IsEmpty() const { return keyid.IsEmpty(); }
-
     void SetEmpty() { keyid.SetEmpty(); }  // TODO: need set other fields to empty()??
     string ToString() const;
     Object ToJsonObj() const;
 
     void SetRegId(CRegID & regIdIn) { regid = regIdIn; }
-
-    CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
-    bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
 private:
     bool IsBcoinWithinRange(uint64_t nAddMoney);
