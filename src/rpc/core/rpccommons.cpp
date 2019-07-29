@@ -158,7 +158,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
     return true;
 }
 
-Object SubmitTx(CUserID &userId, CBaseTx &tx) {
+Object SubmitTx(const CUserID &userId, CBaseTx &tx) {
     uint64_t minFee = GetTxMinFee(tx.nTxType, chainActive.Height());
     if (tx.llFees == 0) {
         tx.llFees = minFee;
@@ -499,6 +499,67 @@ const Value& JSON::GetObjectFieldValue(const Value &jsonObj, const string &field
 ///////////////////////////////////////////////////////////////////////////////
 // namespace RPC_PARAM
 
-void RPC_PARAM::CheckOrderCoinSymbol(const TokenSymbol &coinSymbol) {
-    // TODO: check coinSymbol
+uint64_t RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
+    uint64_t fee = 0;
+    uint64_t minFee = GetTxMinFee(txType, chainActive.Height());
+    if (params.size() > index) {
+        fee = AmountToRawValue(params[index]);
+        if (fee < minFee)
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                strprintf("The given fee is too small: %d < %d(min fee)", fee, minFee));
+    } else {
+        fee = minFee;
+    }
+    return fee;
+}
+
+CUserID RPC_PARAM::GetUserId(const Value &jsonValue) {
+    auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
+    if (!pUserId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    }
+    return *pUserId;
+}
+
+
+uint64_t RPC_PARAM::GetPrice(const Value &jsonValue) {
+    // TODO: check price range??
+    return AmountToRawValue(jsonValue);
+}
+
+uint256 RPC_PARAM::GetTxid(const Value &jsonValue) {
+    return uint256S(jsonValue.get_str()); // TODO: need to check txid??
+}
+
+CAccount RPC_PARAM::GetUserAccount(CAccountDBCache &accountCache, const CUserID &userId) {
+    CAccount account;
+    if (!accountCache.GetAccount(userId, account))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           strprintf("The account not exists! userId=%s", userId.ToString()));
+
+    assert(!account.keyid.IsEmpty());
+    return account;
+}
+
+TokenSymbol RPC_PARAM::GetOrderCoinSymbol(const Value &jsonValue) {
+    // TODO: check coin symbol for orders
+    return jsonValue.get_str();
+}
+
+TokenSymbol RPC_PARAM::GetOrderAssetSymbol(const Value &jsonValue) {
+    // TODO: check asset symbol for oders
+    return jsonValue.get_str();
+}
+
+void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
+                                    const BalanceOpType opType, const uint64_t &value) {
+    if (!account.OperateBalance(tokenSymbol, opType, value))
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
+                           strprintf("Account does not have enough %s", tokenSymbol));
+}
+
+void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid) {
+    CDEXActiveOrder activeOrder;
+    if (!dexCache.GetActiveOrder(orderTxid, activeOrder))
+        throw JSONRPCError(RPC_DEX_ORDER_INACTIVE, "Order is inactive or not existed");
 }

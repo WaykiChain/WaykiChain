@@ -251,7 +251,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
 
     /* for dex */
-    if (strMethod == "submitdexbuylimitordertx" && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "submitdexbuylimitordertx" && n > 2) ConvertTo<uint64_t>(params[3]);
     if (strMethod == "submitdexbuylimitordertx" && n > 4) ConvertTo<uint64_t>(params[4]);
     if (strMethod == "submitdexbuylimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
 
@@ -259,7 +259,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<uint64_t>(params[4]);
     if (strMethod == "submitdexselllimitordertx" && n > 5) ConvertTo<int64_t>(params[5]);
 
-    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx" && n > 3) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitdexbuymarketordertx" && n > 4) ConvertTo<int64_t>(params[4]);
 
     if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);

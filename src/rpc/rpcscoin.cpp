@@ -370,41 +370,23 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
         );
     }
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
+    uint64_t assetAmount  = AmountToRawValue(params[3]);
+    uint64_t price        = RPC_PARAM::GetPrice(params[4]); // TODO: need to check price?
+    uint64_t fee = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_BUY_ORDER_TX);
 
-    EnsureWalletIsUnlocked();
-
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
-
-    TokenSymbol coinSymbol  = params[1].get_str();
-    RPC_PARAM::CheckOrderCoinSymbol(coinSymbol);
-    uint64_t assetAmount  = AmountToRawValue(params[2]);
-    AssetSymbol assetSymbol = params[3].get_str();
-    uint64_t price        = AmountToRawValue(params[4]);
-
-    uint64_t fee = 0;
-    if (params.size() > 5) {
-        fee = AmountToRawValue(params[5]);
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyid.IsEmpty());
-
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
     // TODO: need to support fee coin type
-    uint64_t amount = assetAmount;
-    if (txAccount.GetToken(SYMB::WICC).free_amount< amount + fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
-    }
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
+    uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetAmount, price);
+    RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
     int validHeight = chainActive.Height();
-    CDEXBuyLimitOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, assetAmount, price);
-    return SubmitTx(*pUserId, tx);
+    CDEXBuyLimitOrderTx tx(userId, validHeight, fee, coinSymbol, assetSymbol, assetAmount, price);
+    return SubmitTx(userId, tx);
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
@@ -428,45 +410,22 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         );
     }
 
-    EnsureWalletIsUnlocked();
-
-    // 1. addr
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
-
-    TokenSymbol coinSymbol  = params[1].get_str();
-    RPC_PARAM::CheckOrderCoinSymbol(coinSymbol);
-    TokenSymbol assetSymbol = params[2].get_str();
-    // TODO: CheckOrderAssetSymbol()
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
     uint64_t assetAmount  = AmountToRawValue(params[3]);
-    uint64_t price        = AmountToRawValue(params[4]);
+    uint64_t price        = RPC_PARAM::GetPrice(params[4]);
+    uint64_t fee = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_SELL_ORDER_TX);
 
-    uint64_t fee = 0;
-    if (params.size() > 5) {
-        fee = AmountToRawValue(params[5]);
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyid.IsEmpty());
-
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
     // TODO: need to support fee coin type
-    if (txAccount.GetToken(SYMB::WICC).free_amount < fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
-    }
-
-    if (txAccount.GetToken(SYMB::WICC).free_amount < assetAmount) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
-    }
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
 
     int validHeight = chainActive.Height();
-    CDEXSellLimitOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, assetAmount, price);
-    return SubmitTx(*pUserId, tx);
+    CDEXSellLimitOrderTx tx(userId, validHeight, fee, coinSymbol, assetSymbol, assetAmount, price);
+    return SubmitTx(userId, tx);
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
@@ -489,37 +448,21 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         );
     }
 
-    EnsureWalletIsUnlocked();
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
+    uint64_t coinAmount  = AmountToRawValue(params[2]);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
+    uint64_t fee = RPC_PARAM::GetFee(params, 4, DEX_MARKET_BUY_ORDER_TX);
 
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
-
-    TokenSymbol coinSymbol  = params[1].get_str();
-    uint64_t coinAmount   = AmountToRawValue(params[2]);
-    TokenSymbol assetSymbol = params[3].get_str();
-
-    uint64_t fee = 0;
-    if (params.size() > 4) {
-        fee = AmountToRawValue(params[4]);
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
     // TODO: need to support fee coin type
-    uint64_t amount = coinAmount;
-    if (txAccount.GetToken(SYMB::WICC).free_amount< amount + fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough coins");
-    }
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
     int validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, coinAmount);
-    return SubmitTx(*pUserId, tx);
+    CDEXBuyMarketOrderTx tx(userId, validHeight, fee, coinSymbol, assetSymbol, coinAmount);
+    return SubmitTx(userId, tx);
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
@@ -542,42 +485,21 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         );
     }
 
-    EnsureWalletIsUnlocked();
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
+    uint64_t assetAmount  = AmountToRawValue(params[2]);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
+    uint64_t fee = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
 
-    // 1. addr
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
-
-    TokenSymbol coinSymbol  = params[1].get_str();
-    TokenSymbol assetSymbol = params[2].get_str();
-    uint64_t assetAmount  = AmountToRawValue(params[3]);
-
-    uint64_t fee = 0;
-    if (params.size() > 4) {
-        fee = params[4].get_uint64();
-    }
-
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
-    }
-    assert(!txAccount.keyid.IsEmpty());
-
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
     // TODO: need to support fee coin type
-    if (txAccount.GetToken(SYMB::WICC).free_amount < fee) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WICC");
-    }
-
-    if (txAccount.GetToken(SYMB::WUSD).free_amount < assetAmount) {
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Account does not have enough WUSD");
-    }
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
 
     int validHeight = chainActive.Height();
-    CDEXSellMarketOrderTx tx(*pUserId, validHeight, fee, coinSymbol, assetSymbol, assetAmount);
-    return SubmitTx(*pUserId, tx);
+    CDEXSellMarketOrderTx tx(userId, validHeight, fee, coinSymbol, assetSymbol, assetAmount);
+    return SubmitTx(userId, tx);
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
@@ -600,23 +522,21 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
         );
     }
 
-    EnsureWalletIsUnlocked();
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const uint256 &txid = RPC_PARAM::GetTxid(params[1]);
+    uint64_t fee = RPC_PARAM::GetFee(params, 2, DEX_MARKET_SELL_ORDER_TX);
 
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    // TODO: need to support fee coin type
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
 
-    uint256 txid(uint256S(params[1].get_str()));
-
-    uint64_t fee = 0;
-    if (params.size() > 2) {
-        fee = params[2].get_uint64();
-    }
+    // check active order tx
+    RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, txid);
 
     int validHeight = chainActive.Height();
-    CDEXCancelOrderTx tx(*pUserId, validHeight, fee, txid);
-    return SubmitTx(*pUserId, tx);
+    CDEXCancelOrderTx tx(userId, validHeight, fee, txid);
+    return SubmitTx(userId, tx);
 }
 
 Value submitdexsettletx(const Array& params, bool fHelp) {
