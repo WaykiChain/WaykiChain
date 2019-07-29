@@ -182,15 +182,16 @@ public:
         *this = *(CCDPLiquidateTx *)pBaseTx;
     }
 
-    CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
-                    TokenSymbol feeSymbol, uint256 cdpTxId, uint64_t scoinsToLiquidate):
-                CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
+    CCDPLiquidateTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
+                    uint256 cdpTxId, uint64_t scoinsToLiquidate):
+                CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, 0) {
 
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        fee_symbol          = feeSymbol;
+        fee_symbol          = std::get<0>(cmFeeIn);
+        llFees              = std::get<1>(cmFeeIn) * CoinUnitTypeTable[std::get<2>(cmFeeIn)];
         cdp_txid            = cdpTxId;
         scoins_to_liquidate = scoinsToLiquidate;
     }

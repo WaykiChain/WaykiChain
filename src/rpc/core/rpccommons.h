@@ -37,13 +37,6 @@ namespace RPC_PARAM {
 
 }
 
-enum AccountIDType {
-    NULL_ID = 0,
-    NICK_ID,
-    REG_ID,
-    ADDRESS
-};
-
 /*
 std::string split implementation by using delimeter as a character.
 */
@@ -126,7 +119,7 @@ bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType,
 
 // [symbol]:amount:[unit]
 // [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]
-bool ParseRpcInputMoney(const string &comboMoneyStr, tuple<TokenSymbol, int64_t amount, CoinUnitName> &comboMoney) {
+bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
 	vector<string> comboMoneyArr = split(comboMoneyStr, ':');
 
     switch (comboMoneyArr.size()) {
@@ -138,9 +131,9 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, tuple<TokenSymbol, int64_t 
             if (iValue < 0)
                 return false;
 
-            get<0>(comboMoney) = "WICC";
-            get<1>(comboMoney) = (uint64_t) iValue;
-            get<2>(comboMoney) = "sawi";
+            comboMoney.symbol = "WICC";
+            comboMoney.amount = (uint64_t) iValue;
+            comboMoney.unit   = "sawi";
             break;
         }
         case 1: {
@@ -152,17 +145,19 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, tuple<TokenSymbol, int64_t 
                 if (!CoinUnitTypeTable.count(comboMoneyArr[1]))
                     return false;
 
-                get<0>(comboMoney) = "WICC";
-                get<1>(comboMoney) = (uint64_t) iValue;
-                get<2>(comboMoney) = comboMoneyArr[1];
+                comboMoney.symbol = "WICC";
+                comboMoney.amount = (uint64_t) iValue;
+                comboMoney.unit   = comboMoneyArr[1];
+
             } else if (is_number(comboMoneyArr[1])) {
                 int64_t iValue = std::atoll(comboMoneyArr[1].c_str());
                 if (iValue < 0)
                     return false;
 
-                get<0>(comboMoney) = comboMoneyArr[0];
-                get<1>(comboMoney) = (uint64_t) iValue;
-                get<2>(comboMoney) = "sawi";
+                comboMoney.symbol = comboMoneyArr[0];
+                comboMoney.amount = (uint64_t) iValue;
+                comboMoney.unit   = "sawi";
+
             } else {
                 return false;
             }
@@ -183,9 +178,9 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, tuple<TokenSymbol, int64_t 
             if (!CoinUnitTypeTable.count(comboMoneyArr[2]))
                 return false;
 
-            get<0>(comboMoney) = comboMoneyArr[0];
-            get<1>(comboMoney) = (uint64_t) iValue;
-            get<2>(comboMoney) = comboMoneyArr[2];
+            comboMoney.symbol = comboMoneyArr[0];
+            comboMoney.amount = (uint64_t) iValue;
+            comboMoney.unit   = comboMoneyArr[2];
             break;
         }
         default:

@@ -20,6 +20,14 @@ class CAccountDBCache;
 class CUserID;
 class CRegID;
 
+enum AccountIDType {
+    NULL_ID = 0,
+    NICK_ID,
+    REG_ID,
+    ADDRESS
+};
+
+typedef tuple<AccountIDType, string> ComboAccountID;
 typedef vector<unsigned char> UnsignedCharArray;
 typedef CRegID CTxCord;
 

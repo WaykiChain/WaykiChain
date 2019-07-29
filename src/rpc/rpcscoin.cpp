@@ -230,27 +230,21 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid) {
+    if (!cdpUid)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid liquidator addr");
-    }
 
     uint256 cdpTxId = uint256S(params[1].get_str());
     uint64_t liquidateAmount = params[2].get_uint64();
 
-    uint64_t fee = 0;
-    tuple<TokenSymbol, int64_t amount, CoinUnitName> inputFeeMoney;
-
-    if (params.size() ==4 ) {
+    ComboMoney cmFee;
+    if (params.size() == 4) {
         //fee = params[3].get_uint64();  // real type, 0 if empty and thence minFee
-        feeStr = params[3].get_str();
-
-        if (!ParseRpcInputValue(feeStr, inputFeeMoney)) {
-
-        }
+        if (!ParseRpcInputMoney(params[3].get_str(), cmFee))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
     }
 
     int validHeight = chainActive.Tip()->height;
-    CCDPLiquidateTx tx(*cdpUid, fee, validHeight, cdpTxId, liquidateAmount);
+    CCDPLiquidateTx tx(*cdpUid, cmFee, validHeight, cdpTxId, liquidateAmount);
     return SubmitTx(*cdpUid, tx);
 }
 

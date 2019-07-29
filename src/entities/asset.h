@@ -34,6 +34,12 @@ typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
 typedef string AssetSymbol;     //8 chars max, E.g. WICC
 typedef string PriceSymbol;     //8 chars max, E.g. USD, CNY, EUR, BTC
 
+struct ComboMoney {
+    TokenSymbol     symbol;     //E.g. WICC
+    uint64_t        amount;
+    CoinUnitName    unit;       //E.g. sawi
+}
+
 static const unordered_set<string> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
