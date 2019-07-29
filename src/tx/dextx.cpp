@@ -947,7 +947,7 @@ bool CDEXSettleTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidati
         }
 
         if (!cw.accountCache.SetAccount(buyOrderDetail.user_regid, buyOrderAccount)
-            || !cw.accountCache.SetAccount(buyOrderDetail.user_regid, sellOrderAccount)) {
+            || !cw.accountCache.SetAccount(sellOrderDetail.user_regid, sellOrderAccount)) {
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, write account info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         }
