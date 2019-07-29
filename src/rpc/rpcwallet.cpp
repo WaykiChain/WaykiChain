@@ -675,12 +675,18 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
 
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
-                     ? CUserID(sendRegId)
-                     : CUserID(sendPubKey);
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
-                     ? CUserID(recvRegId)
-                     : CUserID(recvKeyId);
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) &&
+                pCdMan->pAccountCache->RegIDIsMature(sendRegId)) ? CUserID(sendRegId) : CUserID(sendPubKey);
+
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) &&
+                pCdMan->pAccountCache->RegIDIsMature(recvRegId)) ? CUserID(recvRegId) : CUserID(recvKeyId);
+
+    CAccount fromAccount;
+    if (!pCdMan->pAccountCache->getAccount(sendUserId, fromAccount))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender User Account not found.");
+
+    if (fromAccount.GetToken("WICC").free_amount < amount)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Sender User Account insufficient amount to transfer");
 
     CBaseCoinTransferTx tx;
     tx.txUid        = sendUserId;
@@ -688,6 +694,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     tx.bcoins       = amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
+
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");

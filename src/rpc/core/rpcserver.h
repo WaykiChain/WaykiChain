@@ -153,7 +153,6 @@ extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool f
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value send(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value sendtoaddressraw       (const json_spirit::Array& params, bool fHelp); //deprecated
 extern json_spirit::Value gensendtoaddressraw    (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genregisteraccountraw  (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genregistercontractraw (const json_spirit::Array& params, bool fHelp);
