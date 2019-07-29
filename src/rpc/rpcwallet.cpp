@@ -684,16 +684,15 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     if (!pCdMan->pAccountCache->GetAccount(sendUserId, fromAccount))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender User Account not found.");
 
-    if (fromAccount.GetToken("WICC").free_amount < amount)
+    if (fromAccount.GetToken(SYMB::WICC).free_amount < (uint64_t)amount)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sender User Account insufficient amount to transfer");
 
     CBaseCoinTransferTx tx;
     tx.txUid        = sendUserId;
     tx.toUid        = recvUserId;
-    tx.bcoins       = (uint64_t) amount;
+    tx.bcoins       = (uint64_t)amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
-
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
