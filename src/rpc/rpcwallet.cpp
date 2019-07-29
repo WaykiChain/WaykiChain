@@ -656,8 +656,8 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
 
     int64_t amount = AmountToRawValue(params[2]);
     int64_t fee    = AmountToRawValue(params[3]);
-    if (amount == 0) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send 0 amount disallowed!");
+    if (amount <= 0) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send amount <= 0 error!");
     }
 
     int height = chainActive.Tip()->height;
@@ -681,7 +681,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
                 pCdMan->pAccountCache->RegIDIsMature(recvRegId)) ? CUserID(recvRegId) : CUserID(recvKeyId);
 
     CAccount fromAccount;
-    if (!pCdMan->pAccountCache->getAccount(sendUserId, fromAccount))
+    if (!pCdMan->pAccountCache->GetAccount(sendUserId, fromAccount))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender User Account not found.");
 
     if (fromAccount.GetToken("WICC").free_amount < amount)
@@ -690,7 +690,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     CBaseCoinTransferTx tx;
     tx.txUid        = sendUserId;
     tx.toUid        = recvUserId;
-    tx.bcoins       = amount;
+    tx.bcoins       = (uint64_t) amount;
     tx.llFees       = fee;
     tx.nValidHeight = height;
 
