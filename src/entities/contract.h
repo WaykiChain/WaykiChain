@@ -22,8 +22,8 @@ public:
     string memo;  //!< Contract description
 
 public:
-    CLuaContract(): CLuaContract() { };
-    CLuaContract(const string codeIn, const string memoIn): CLuaContract(codeIn, memoIn) { };
+    CLuaContract() { };
+    CLuaContract(const string codeIn, const string memoIn): code(codeIn), memo(memoIn) { };
 
 public:
     inline unsigned int GetContractSize() const {
