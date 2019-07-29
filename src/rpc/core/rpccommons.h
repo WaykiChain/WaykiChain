@@ -91,6 +91,35 @@ bool is_number(const std::string& s)
 // NickID (default) | RegID | Address
 bool ParseRpcInputAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
     vector<string> comboAccountIdArr = split(comboAccountIdStr, ':');
+    switch (comboMoneyArr.size()) {
+        case 0: {
+            get<0>(comboAccountId) = AccountIDType::NICK_ID;
+            get<1>(comboAccountId) = comboAccountIdArr[0];
+            break;
+        }
+        case 1: {
+            if (comboAccountIdArr[0].size() > 1)
+                return false;
+
+            char tag = toupper(comboAccountIdArr[0][0]);
+            if (tag == 'N') {
+                get<0>(comboAccountId) = AccountIDType::NICK_ID;
+
+            } else if (tag == 'R') {
+                get<0>(comboAccountId) = AccountIDType::REG_ID;
+
+            } else if (tag == 'A') {
+                get<0>(comboAccountId) = AccountIDType::ADDRESS;
+
+            } else
+                return false;
+
+            get<1>(comboAccountId) = comboAccountIdArr[1];
+
+            break;
+        }
+        default: break;
+    }
 
     return true;
 }
