@@ -1810,13 +1810,13 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
 
     if (!pCdMan->pBlockTreeDb->WriteBlockIndex(CDiskBlockIndex(pIndexNew)))
         return state.Abort(_("Failed to write block index"));
-    int64_t tempTime = GetTimeMillis();
+    int64_t beginTime = GetTimeMillis();
     // New best?
     if (!ActivateBestChain(state)) {
-        LogPrint("INFO", "ActivateBestChain() elapse time:%lld ms\n", GetTimeMillis() - tempTime);
+        LogPrint("INFO", "ActivateBestChain() elapse time:%lld ms\n", GetTimeMillis() - beginTime);
         return false;
     }
-    // LogPrint("INFO", "ActivateBestChain() elapse time:%lld ms\n", GetTimeMillis() - tempTime);
+    // LogPrint("INFO", "ActivateBestChain() elapse time:%lld ms\n", GetTimeMillis() - beginTime);
     LOCK(cs_main);
     if (pIndexNew == chainActive.Tip()) {
         // Clear fork warning if its no longer applicable
@@ -2157,14 +2157,14 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
             return state.DoS(10, ERRORMSG("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
 
         pBlockIndexPrev = (*mi).second;
-        height = pBlockIndexPrev->height + 1;
+        height          = pBlockIndexPrev->height + 1;
 
         if (block.GetHeight() != (uint32_t)height) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : height given in block mismatches with its actual height"),
                              REJECT_INVALID, "incorrect-height");
         }
 
-        int64_t tempTime = GetTimeMillis();
+        int64_t beginTime = GetTimeMillis();
 
         // Check timestamp against prev
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
@@ -2175,7 +2175,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
         // Process forked branch
         if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
-            LogPrint("INFO", "ProcessForkedChain() end: %lld ms\n", GetTimeMillis() - tempTime);
+            LogPrint("INFO", "ProcessForkedChain() end: %lld ms\n", GetTimeMillis() - beginTime);
             return state.DoS(100, ERRORMSG("AcceptBlock() : check proof of pos tx"), REJECT_INVALID, "bad-pos-tx");
         }
 

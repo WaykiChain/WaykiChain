@@ -115,7 +115,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
-    int nFuelRate = GetElementForBurn(chainActive.Tip());
+    int32_t nFuelRate = GetElementForBurn(chainActive.Tip());
     uint64_t regFee = std::max((int)ceil(contract.GetContractSize() / 100) * nFuelRate, LCONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 

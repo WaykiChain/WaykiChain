@@ -79,6 +79,7 @@ public:
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(int32_t nFuelRate);
+    int32_t GetFuelRate(CContractDBCache &contractCache);
     virtual double GetPriority() const {
         return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
@@ -94,7 +95,6 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                       = 0;
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state)     = 0;
 
-    int32_t GetFuelRate(CContractDBCache &contractCache);
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
     bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
 

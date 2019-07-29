@@ -325,7 +325,7 @@ Value getusercdp(const Array& params, bool fHelp){
 
     Array cdps;
 
-    if(params.size() > 1) {
+    if (params.size() > 1) {
         uint256 cdpTxId(uint256S(params[1].get_str()));
         CUserCDP cdp(txAccount.regid, cdpTxId);
         if (pCdMan->pCdpCache->GetCdp(cdp)) {
@@ -334,8 +334,7 @@ Value getusercdp(const Array& params, bool fHelp){
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The cdp not exists! cdpId=%s", params[1].get_str()));
         }
-    }
-    else {
+    } else {
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
             for (auto& cdp : userCdps) {
