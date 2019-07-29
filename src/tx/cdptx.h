@@ -29,33 +29,45 @@ public:
         *this = *(CCDPStakeTx *)pBaseTx;
     }
     /** Newly open a CDP */
-    CCDPStakeTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
-                uint64_t bcoinsToStake, uint64_t scoinsToMint):
+    CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn,
+                const ComboMoney &cmFeeIn,
+                const ComboMoney &cmBcoinsToStake,
+                const ComboMoney &cmScoinsToMint):
                 CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, 0) {
-        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
 
-        fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * unit_base;
+        uint64_t feeUnitBase    = CoinUnitTypeTable.at(cmFeeIn.unit);
+        uint64_t bcoinUnitBase  = CoinUnitTypeTable.at(cmBcoinsToStake.unit);
+        uint64_t scoinUnitBase  = CoinUnitTypeTable.at(cmScoinsToMint.unit);
 
-        bcoins_to_stake   = bcoinsToStake;
-        scoins_to_mint    = scoinsToMint;
+        fee_symbol              = cmFeeIn.symbol;
+        llFees                  = cmFeeIn.amount * feeUnitBase;
+        bcoin_symbol            = cmBcoinsToStake.symbol;
+        scoin_symbol            = cmScoinsToMint.symbol;
+        bcoins_to_stake         = cmBcoinsToStake.amount * bcoinUnitBase;
+        scoins_to_mint          = cmScoinsToMint.amount * scoinUnitBase;
     }
     /** Stake an existing CDP */
-    CCDPStakeTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn, uint256 cdpTxId,
-                uint64_t bcoinsToStake, uint64_t scoinsToMint)
+    CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint256 cdpTxId,
+                const ComboMoney &cmFeeIn,
+                const ComboMoney &cmBcoinsToStake,
+                const ComboMoney &cmScoinsToMint)
         : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, 0) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
+        uint64_t feeUnitBase    = CoinUnitTypeTable.at(cmFeeIn.unit);
+        uint64_t bcoinUnitBase  = CoinUnitTypeTable.at(cmBcoinsToStake.unit);
+        uint64_t scoinUnitBase  = CoinUnitTypeTable.at(cmScoinsToMint.unit);
 
-        fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * unit_base;
+        cdp_txid                = cdpTxId;
 
-        cdp_txid        = cdpTxId;
-        bcoins_to_stake = bcoinsToStake;
-        scoins_to_mint  = scoinsToMint;
+        fee_symbol              = cmFeeIn.symbol;
+        llFees                  = cmFeeIn.amount * feeUnitBase;
+        bcoin_symbol            = cmBcoinsToStake.symbol;
+        scoin_symbol            = cmScoinsToMint.symbol;
+        bcoins_to_stake         = cmBcoinsToStake.amount * bcoinUnitBase;
+        scoins_to_mint          = cmScoinsToMint.amount * scoinUnitBase;
     }
 
     ~CCDPStakeTx() {}
@@ -69,6 +81,8 @@ public:
         READWRITE(VARINT(llFees));
 
         READWRITE(cdp_txid);
+        READWRITE(bcoin_symbol);
+        READWRITE(scoin_symbol);
         READWRITE(VARINT(bcoins_to_stake));
         READWRITE(VARINT(scoins_to_mint));
 
@@ -79,13 +93,13 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << VARINT(bcoins_to_stake) << VARINT(scoins_to_mint);
+               << cdp_txid << bcoin_symbol << scoin_symbol << VARINT(bcoins_to_stake) << VARINT(scoins_to_mint);
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins_to_stake}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{bcoin_symbol, bcoins_to_stake}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
@@ -129,10 +143,10 @@ public:
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
+        uint64_t feeUnitBase  = CoinUnitTypeTable.at(cmFeeIn.unit);
 
         fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * unit_base;
+        llFees              = cmFeeIn.amount * feeUnitBase;
 
         cdp_txid         = cdpTxId;
         scoins_to_repay  = scoinsToRepay;
@@ -183,8 +197,8 @@ private:
 private:
     TokenSymbol fee_symbol;
 
-    uint256 cdp_txid;          // CDP cdpTxId
-    uint64_t scoins_to_repay;   // stableCoins amount to redeem or burn, including interest
+    uint256 cdp_txid;           // CDP cdpTxId
+    uint64_t scoins_to_repay;   // stablecoin amount to redeem or burn, including interest
     uint64_t bcoins_to_redeem;
 };
 
@@ -206,10 +220,10 @@ public:
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
-        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
+        uint64_t feeUnitBase  = CoinUnitTypeTable.at(cmFeeIn.unit);
 
         fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * unit_base;
+        llFees              = cmFeeIn.amount * feeUnitBase;
         cdp_txid            = cdpTxId;
         scoins_to_liquidate = scoinsToLiquidate;
     }
