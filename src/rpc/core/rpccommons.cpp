@@ -214,15 +214,15 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             }
 
             CKeyID recvKeyId;
-            if (ptx->appUid.type() == typeid(CRegID)) {
-                CRegID appUid = ptx->appUid.get<CRegID>();
+            if (ptx->app_uid.type() == typeid(CRegID)) {
+                CRegID appUid = ptx->app_uid.get<CRegID>();
                 recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("tx_type", "LCONTRACT_INVOKE_TX"));
-            obj.push_back(Pair("from_address", sendKeyID.ToAddress()));
-            obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
-            obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
+            obj.push_back(Pair("tx_type",       "LCONTRACT_INVOKE_TX"));
+            obj.push_back(Pair("from_address",  sendKeyID.ToAddress()));
+            obj.push_back(Pair("to_address",    recvKeyId.ToAddress()));
+            obj.push_back(Pair("arguments",     HexStr(ptx->arguments)));
             obj.push_back(Pair("transfer_amount", dAmount));
             arrayDetail.push_back(obj);
 

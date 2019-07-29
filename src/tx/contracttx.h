@@ -116,7 +116,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << appUid
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << app_uid
                << VARINT(llFees) << VARINT(bcoins) << arguments;
             sigHash = ss.GetHash();
         }
@@ -167,7 +167,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid <<
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
                 << fee_symbol << transfer_coin_symbol << VARINT(transfer_coin_amount) << contract;
             sigHash = ss.GetHash();
         }
@@ -242,8 +242,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << appUid
-                << VARINT(arguments) << fee_symbol << transfer_coin_symbol << VARINT(transfer_coin_amount);
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << app_uid
+                << arguments << fee_symbol << transfer_coin_symbol << VARINT(transfer_coin_amount);
             sigHash = ss.GetHash();
         }
         return sigHash;

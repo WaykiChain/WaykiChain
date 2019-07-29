@@ -11,11 +11,19 @@
 
 #include <string>
 
-// lua contract
+/**
+ *  lua contract - for blockchain tx serialization/deserialization purpose
+ *      - This is a backward compability implmentation,
+ *      - Only universal contract tx will be allowed after the software fork height
+ */
 class CLuaContract {
 public:
-    string code;  //!< Contract code in Lua script
+    string code;  //!< Contract code
     string memo;  //!< Contract description
+
+public:
+    CLuaContract(): CLuaContract() { };
+    CLuaContract(const string codeIn, const string memoIn): CLuaContract(codeIn, memoIn) { };
 
 public:
     inline unsigned int GetContractSize() const {
@@ -63,23 +71,38 @@ enum VMType : uint8_t {
     EVM         = 3
 };
 
-class CUniversalContract {
+/**
+ * Used for both blockchain tx (new tx only) and levelDB Persistence (both old & new tx)
+ *   serialization/deserialization purposes
+ */
+class CUniversalContract  {
 public:
     VMType vm_type;
-    string code;
-    string memo;
-    string abi;
+    bool upgradable;    //!< if true, the contract can be upgraded otherwise cannot anyhow.
+    string code;        //!< Contract code
+    string memo;        //!< Contract description
+    string abi;         //!< ABI for contract invocation
 
 public:
     CUniversalContract(): vm_type(NULL_VM) {}
 
-    CUniversalContract(VMType vmTypeIn, string codeIn, string memoIn, string abiIn) :
-        vm_type(vmTypeIn), code(codeIn), memo(memoIn), abi(abiIn) { };
+    CUniversalContract(const string &codeIn, const string &memoIn) :
+        vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi("") { };
+
+    CUniversalContract(const string &codeIn, const string &memoIn, const string &abiIn) :
+        vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi(abiIn) { };
+
+    CUniversalContract(bool upgradableIn, const string &codeIn, const string &memoIn, const string &abiIn) :
+        vm_type(LUA_VM), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) { };
+
+    CUniversalContract(VMType vmTypeIn, bool upgradableIn,
+                        const string &codeIn, const string &memoIn, const string &abiIn) :
+        vm_type(vmTypeIn), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) { };
 
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << (uint8_t&)vm_type << code << memo << abi;
+            ss << (uint8_t&)vm_type << upgradable << code << memo << abi;
             sigHash = ss.GetHash();
         }
 
@@ -100,6 +123,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &) vm_type);
+        READWRITE(upgradable);
         READWRITE(code);
         READWRITE(memo);
         READWRITE(abi);

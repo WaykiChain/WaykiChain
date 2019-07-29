@@ -295,7 +295,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
-    tx.appUid       = recvRegId;
+    tx.app_uid      = recvRegId;
     tx.bcoins       = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
@@ -887,8 +887,8 @@ Value listtransactions(const Array& params, bool fHelp) {
                 }
 
                 CKeyID recvKeyId;
-                if (ptx->appUid.type() == typeid(CRegID)) {
-                    CRegID appUid = ptx->appUid.get<CRegID>();
+                if (ptx->app_uid.type() == typeid(CRegID)) {
+                    CRegID appUid = ptx->app_uid.get<CRegID>();
                     recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
                 }
 
@@ -1109,7 +1109,7 @@ Value listcontracttx(const Array& params, bool fHelp)
                 }
 
                 CLuaContractInvokeTx* ptx = (CLuaContractInvokeTx*) item.second.get();
-                if (strRegId != getregidstring(ptx->appUid)) {
+                if (strRegId != getregidstring(ptx->app_uid)) {
                     continue;
                 }
 
@@ -1117,11 +1117,11 @@ Value listcontracttx(const Array& params, bool fHelp)
                 Object obj;
 
                 CAccountDBCache accView(*pCdMan->pAccountCache);
-                obj.push_back(Pair("txid", ptx->GetHash().GetHex()));
+                obj.push_back(Pair("txid",  ptx->GetHash().GetHex()));
                 obj.push_back(Pair("regid",  getregidstring(ptx->txUid)));
                 pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("addr",  keyId.ToAddress()));
-                obj.push_back(Pair("dest_regid", getregidstring(ptx->appUid)));
+                obj.push_back(Pair("dest_regid", getregidstring(ptx->app_uid)));
                 pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
                 obj.push_back(Pair("dest_addr", keyId.ToAddress()));
                 obj.push_back(Pair("money", ptx->bcoins));
@@ -1387,7 +1387,7 @@ Value listcontracts(const Array& params, bool fHelp) {
     bool showDetail = false;
     showDetail      = params[0].get_bool();
 
-    map<CRegID, CContract> contracts;
+    map<string, CUniversalContract> contracts;
     if (!pCdMan->pContractCache->GetContracts(contracts)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract scripts.");
     }
@@ -1396,9 +1396,10 @@ Value listcontracts(const Array& params, bool fHelp) {
     Array scriptArray;
     for (const auto &item : contracts) {
         Object scriptObject;
-        const CContract &contract = item.second;
-        scriptObject.push_back( Pair("contract_regid", item.first.ToString()) );
-        scriptObject.push_back(Pair("memo", HexStr(contract.memo)));
+        const CUniversalContract &contract = item.second;
+        CRegID regid(item.first);
+        scriptObject.push_back( Pair("contract_regid", regid.ToString()) );
+        scriptObject.push_back( Pair("memo", HexStr(contract.memo)) );
         if (showDetail) {
             scriptObject.push_back(Pair("contract", HexStr(contract.code)));
         }
@@ -1434,7 +1435,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
         throw runtime_error("in getcontractinfo: contract regid not exist!\n");
     }
 
-    CContract contract;
+    CUniversalContract contract;
     if (!pCdMan->pContractCache->GetContract(regId, contract)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
     }
@@ -1810,7 +1811,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
-    tx.appUid       = recvRegId;
+    tx.app_uid      = recvRegId;
     tx.bcoins       = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;

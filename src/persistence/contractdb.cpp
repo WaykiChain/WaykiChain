@@ -32,15 +32,15 @@ bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAp
 }
 
 /************************ contract in cache ******************************/
-bool CContractDBCache::GetContract(const CRegID &contractRegId, CContract &contract) {
+bool CContractDBCache::GetContract(const CRegID &contractRegId, CUniversalContract &contract) {
     return contractCache.GetData(contractRegId.ToRawString(), contract);
 }
 
-bool CContractDBCache::GetContracts(map<CRegID, CContract> &contracts) {
+bool CContractDBCache::GetContracts(map<string, CUniversalContract> &contracts) {
     return contractCache.GetAllElements(contracts);
 }
 
-bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CContract &contract) {
+bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CUniversalContract &contract) {
     return contractCache.SetData(contractRegId.ToRawString(), contract);
 }
 

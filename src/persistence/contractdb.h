@@ -54,9 +54,9 @@ public:
     bool GetContractAccount(const CRegID &contractRegId, const string &accountKey, CAppUserAccount &appAccOut);
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
-    bool GetContract(const CRegID &contractRegId, CContract &contract);
-    bool GetContracts(map<CRegID, CContract> &contracts);
-    bool SaveContract(const CRegID &contractRegId, const CContract &contract);
+    bool GetContract(const CRegID &contractRegId, CUniversalContract &contract);
+    bool GetContracts(map<string, CUniversalContract> &contracts);
+    bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
     bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
@@ -118,8 +118,8 @@ private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
-    // contractRegId -> Contract
-    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegID,                   CContract >            contractCache;
+    // contract $RegId.ToRawString() -> Contract
+    CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
     // txId -> vector<CVmOperate>
     CCompositeKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // keyId, height, index -> txid

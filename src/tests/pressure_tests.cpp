@@ -55,7 +55,6 @@ int GetRandTxType() {
 	return iIndex + 1;
 }
 
-
 class PressureTest: public SysTestBase {
 public:
 	bool GetContractData(string regId, vector<unsigned char> &arguments) {

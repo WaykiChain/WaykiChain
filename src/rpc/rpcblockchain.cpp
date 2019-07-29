@@ -650,7 +650,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         for (int64_t i = 0; i < batchSize; ++i) {
             CLuaContractInvokeTx tx;
             tx.txUid        = txUid;
-            tx.appUid       = appUid;
+            tx.app_uid      = appUid;
             tx.bcoins       = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;

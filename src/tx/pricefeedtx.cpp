@@ -96,7 +96,7 @@ Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result;
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
-    result.push_back(Pair("price_points",   pricePointArray));
+    result.push_back(Pair("price_points", pricePointArray));
 
     return result;
 }

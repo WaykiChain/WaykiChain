@@ -39,7 +39,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
     pBaseTx       = tx;
     runTimeHeight = height;
     pAccountCache = &view;
-    CContract contract;
+    CUniversalContract contract;
 
     if (tx.get()->nTxType != LCONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "%s\n", "err param");
@@ -47,9 +47,9 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
     }
 
     CLuaContractInvokeTx* contractTx = static_cast<CLuaContractInvokeTx*>(tx.get());
-    if (!pContractCache->GetContract(contractTx->appUid.get<CRegID>(), contract)) {
+    if (!pContractCache->GetContract(contractTx->app_uid.get<CRegID>(), contract)) {
         LogPrint("ERROR", "contract not found: %s\n",
-                 contractTx->appUid.get<CRegID>().ToString());
+                 contractTx->app_uid.get<CRegID>().ToString());
         return false;
     }
 
@@ -237,7 +237,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             CRegID regId(accountId);
             CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
             /// current tx's script cant't mius other script's regid
-            if (pContractCache->HaveContract(regId) && regId != tx->appUid.get<CRegID>())
+            if (pContractCache->HaveContract(regId) && regId != tx->app_uid.get<CRegID>())
                 return false;
 
             memcpy(&operValue, it.money, sizeof(it.money));
@@ -315,7 +315,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
     uint64_t sysContractAcct(0);
     for (auto item : vmOperateOutput) {
         UnsignedCharArray vAccountId = GetAccountID(item);
-        if (vAccountId == tx->appUid.get<CRegID>().GetRegIdRaw() &&
+        if (vAccountId == tx->app_uid.get<CRegID>().GetRegIdRaw() &&
             item.opType == MINUS_BCOIN) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
@@ -433,7 +433,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
 
 const CRegID& CVmRunEnv::GetScriptRegID() {  // 获取目的账户ID
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
-    return tx->appUid.get<CRegID>();
+    return tx->app_uid.get<CRegID>();
 }
 
 const CRegID& CVmRunEnv::GetTxAccount() {
