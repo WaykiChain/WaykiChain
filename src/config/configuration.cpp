@@ -323,19 +323,19 @@ string G_CONFIG_TABLE::dexMatchPubKey_testNet = "033f51c7ef38ee34d1fe436dbf63298
 string G_CONFIG_TABLE::dexMatchPubKey_regTest = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_mainNet = {
-    "b0a997a7fb09c0bd6d3fde31dbe30d539f89a5a4a5194d42b94f3bc73b03ab6f",
-    "99981e0ddd9a688c3d691c38dc2d83ff88102757eb6061a493ba85e84a02d18a",
-    "5f227ff8aeca44feae19d015d184b00da91f75403700359341c43654eabd1fc4"};
+    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
+    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
+    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_testNet = {
-    "b0a997a7fb09c0bd6d3fde31dbe30d539f89a5a4a5194d42b94f3bc73b03ab6f",
-    "99981e0ddd9a688c3d691c38dc2d83ff88102757eb6061a493ba85e84a02d18a",
-    "5f227ff8aeca44feae19d015d184b00da91f75403700359341c43654eabd1fc4"};
+    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
+    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
+    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_regNet = {
-    "b0a997a7fb09c0bd6d3fde31dbe30d539f89a5a4a5194d42b94f3bc73b03ab6f",
-    "99981e0ddd9a688c3d691c38dc2d83ff88102757eb6061a493ba85e84a02d18a",
-    "5f227ff8aeca44feae19d015d184b00da91f75403700359341c43654eabd1fc4"};
+    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
+    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
+    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
 
 // IP Address
 vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
