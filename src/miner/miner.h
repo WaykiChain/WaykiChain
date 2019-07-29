@@ -43,21 +43,20 @@ public:
 // mined block info
 class MinedBlockInfo {
 public:
-    int64_t time;           // block time
-    int64_t nonce;          // nonce
-    int height;             // block height
-    int64_t totalFuel;      // the total fuels of all transactions in the block
-    int fuelRate;           // block fuel rate
-    int64_t totalFees;      // the total fees of all transactions in the block
-    uint64_t txCount;       // transaction count in block, exclude coinbase
-    uint64_t blockSize;     // block size(bytes)
-    uint256 hash;           // block hash
-    uint256 hashPrevBlock;  // prev block has
+    int64_t time;             // block time
+    int64_t nonce;            // nonce
+    int height;               // block height
+    uint64_t totalFuel;       // the total fuels of all transactions in the block
+    uint fuelRate;            // block fuel rate
+    uint64_t totalFees;       // the total fees of all transactions in the block
+    uint64_t txCount;         // transaction count in block, exclude coinbase
+    uint64_t totalBlockSize;  // block size(bytes)
+    uint256 hash;             // block hash
+    uint256 hashPrevBlock;    // prev block has
 
 public:
     MinedBlockInfo() { SetNull(); }
     void SetNull();
-    int64_t GetReward();
 };
 
 // get the info of mined blocks. thread safe.
@@ -91,7 +90,7 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet);
 /** Base sha256 mining transform */
 void SHA256Transform(void *pstate, void *pinput, const void *pinit);
 /** Get burn element */
-int32_t GetElementForBurn(CBlockIndex *pIndex);
+uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
 

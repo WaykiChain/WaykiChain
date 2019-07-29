@@ -227,11 +227,10 @@ Value getminedblocks(const Array& params, bool fHelp)
         obj.push_back(Pair("nonce",         blockInfo.nonce));
         obj.push_back(Pair("height",        blockInfo.height));
         obj.push_back(Pair("total_fuels",   blockInfo.totalFuel));
-        obj.push_back(Pair("fuel_rate",     blockInfo.fuelRate));
+        obj.push_back(Pair("fuel_rate",     (int32_t)blockInfo.fuelRate));
         obj.push_back(Pair("total_fees",    blockInfo.totalFees));
-        obj.push_back(Pair("reward",        blockInfo.GetReward()));
         obj.push_back(Pair("tx_count",      blockInfo.txCount));
-        obj.push_back(Pair("block_size",    blockInfo.blockSize));
+        obj.push_back(Pair("block_size",    blockInfo.totalBlockSize));
         obj.push_back(Pair("txid",          blockInfo.hash.ToString()));
         obj.push_back(Pair("preblockhash",  blockInfo.hashPrevBlock.ToString()));
         ret.push_back(obj);

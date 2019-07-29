@@ -1189,7 +1189,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.owner_pubkey = pubKey;
             account.regid        = regId;
 
-            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->rewardValue);
+            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward);
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
@@ -1306,11 +1306,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     CDiskTxPos rewardPos = pos;
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
-    LogPrint("op_account", "block height:%d block hash:%s\n", block.GetHeight(), block.GetHash().GetHex());
-    uint64_t nTotalRunStep(0);
-    int64_t nTotalFuel(0);
+    // Re-compute reward values and total fuel
+    uint64_t nTotalFuel                = 0;
+    map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
+
     if (block.vptx.size() > 1) {
-        for (unsigned int i = 1; i < block.vptx.size(); i++) {
+        uint64_t nTotalRunStep = 0;
+        for (uint32_t i = 1; i < block.vptx.size(); ++ i) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated",
@@ -1321,7 +1323,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s beyond the scope of valid height",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
-            LogPrint("op_account", "tx index:%d tx hash:%s\n", i, pBaseTx->GetHash().GetHex());
             pBaseTx->nFuelRate = block.GetFuelRate();
             cw.EnableTxUndoLog(pBaseTx->GetHash());
             if (!pBaseTx->ExecuteTx(pIndex->height, i, cw, state)) {
@@ -1344,44 +1345,48 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step",
                                 block.GetHash().GetHex()), REJECT_INVALID, "exceed-max-run-step");
 
-            uint64_t llFuel = pBaseTx->GetFuel(block.GetFuelRate());
-            nTotalFuel += llFuel;
-            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
-                     nTotalFuel, llFuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
+            auto fuel = pBaseTx->GetFuel(block.GetFuelRate());
+            nTotalFuel += fuel;
+
+            auto fees_symbol = std::get<0>(pBaseTx->GetFees());
+            assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);  // Only allow WICC/WUSD as fees type.
+            auto fees = std::get<1>(pBaseTx->GetFees());
+            assert(fees >= fuel);
+            rewards[fees_symbol] += (fees - fuel);
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-        }
 
+            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
+                     nTotalFuel, fuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
+        }
     }
 
+    // Verify total fuel
     if (nTotalFuel != block.GetFuel())
-        return ERRORMSG("fuel value at block header calculate error(actual fuel:%ld vs block fuel:%ld)",
-                        nTotalFuel, block.GetFuel());
+        return ERRORMSG("fuel value at block header calculate error(actual fuel:%lld vs block fuel:%lld)", nTotalFuel,
+                        block.GetFuel());
 
-    // Verify reward value
+    // Verify miner account
     CAccount delegateAccount;
     if (!cw.accountCache.GetAccount(block.vptx[0]->txUid, delegateAccount)) {
         assert(0);
     }
 
+    // Verify reward values
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        // auto pRewardTx         = (CBlockRewardTx *)block.vptx[0].get();
-        // uint64_t llValidReward = block.GetFees() - block.GetFuel();
-        // if (pRewardTx->rewardValue != llValidReward) {
-        //     LogPrint("ERROR", "ConnectBlock() : block height:%u, block fee:%lld, block fuel:%u\n",
-        //              block.GetHeight(), block.GetFees(), block.GetFuel());
-        //     return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-        //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
-        // }
+        auto pRewardTx        = (CBlockRewardTx *)block.vptx[0].get();
+        if (pRewardTx->reward != rewards.at(SYMB::WICC)) {
+            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
+                             "bad-reward-amount");
+        }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
-        // TODO:
-        // uint64_t llValidReward = block.GetFees() - block.GetFuel();
-        // if (pRewardTx->rewardValue != llValidReward) {
-        //     return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-        //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
-        // }
+        if (pRewardTx->rewards != rewards) {
+            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
+                             "bad-reward-amount");
+        }
 
+        // Verify profits
         uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
         if (pRewardTx->profits != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
@@ -2028,18 +2033,18 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         // TODO: Fees
         // auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
-        // if (pRewardTx->rewardValue != llValidReward) {
+        // if (pRewardTx->reward != llValidReward) {
         //     LogPrint("ERROR", "ProcessForkedChain() : block height:%u, block fee:%lld, block fuel:%u\n",
         //              block.GetHeight(), block.GetFees(), block.GetFuel());
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-        //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
+        //                      pRewardTx->reward, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
         // uint64_t llValidReward = block.GetFees() - block.GetFuel();
-        // if (pRewardTx->rewardValue != llValidReward) {
+        // if (pRewardTx->reward != llValidReward) {
         //     return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-        //                      pRewardTx->rewardValue, llValidReward), REJECT_INVALID, "bad-reward-amount");
+        //                      pRewardTx->reward, llValidReward), REJECT_INVALID, "bad-reward-amount");
         // }
 
         uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
@@ -2109,7 +2114,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
-                return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-cb-multiple");
+                return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-coinbase-multiple");
         }
     }
 
@@ -2143,8 +2148,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));
 
-    if (block.GetHeight() != 0 &&
-        block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
+    if (block.GetHeight() != 0 && block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
         return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID,
                          "fuel-rate-unmatched");
 

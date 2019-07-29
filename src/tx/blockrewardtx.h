@@ -11,22 +11,22 @@
 
 class CBlockRewardTx : public CBaseTx {
 public:
-    uint64_t rewardValue;
+    uint64_t reward;
 
 public:
-    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX), rewardValue(0) {}
-    CBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), rewardValue(0) {
+    CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX), reward(0) {}
+    CBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), reward(0) {
         assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
         *this = *(CBlockRewardTx *)pBaseTx;
     }
-    CBlockRewardTx(const UnsignedCharArray &accountIn, const uint64_t rewardValueIn, const int32_t nValidHeightIn):
+    CBlockRewardTx(const UnsignedCharArray &accountIn, const uint64_t rewardIn, const int32_t nValidHeightIn):
         CBaseTx(BLOCK_REWARD_TX) {
         if (accountIn.size() > 6) {
             txUid = CPubKey(accountIn);
         } else {
             txUid = CRegID(accountIn);
         }
-        rewardValue  = rewardValueIn;
+        reward  = rewardIn;
         nValidHeight = nValidHeightIn;
     }
     ~CBlockRewardTx() {}
@@ -37,20 +37,20 @@ public:
         READWRITE(txUid);
 
         // Do NOT change the order.
-        READWRITE(VARINT(rewardValue));
+        READWRITE(VARINT(reward));
         READWRITE(VARINT(nValidHeight));)
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(rewardValue) << VARINT(nValidHeight);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(reward) << VARINT(nValidHeight);
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, rewardValue}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, reward}}; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockRewardTx>(this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
@@ -63,7 +63,7 @@ public:
 
 class CUCoinBlockRewardTx : public CBaseTx {
 public:
-    map<TokenSymbol /* CoinType */, uint64_t /* reward value */> rewardValues;
+    map<TokenSymbol /* CoinType */, uint64_t /* reward value */> rewards;
     uint64_t profits;  // Profits as delegate according to received votes.
 
 public:
@@ -78,7 +78,7 @@ public:
         txUid = txUidIn;
 
         for (const auto &item : rewardValuesIn) {
-            rewardValues.emplace(item.first, item.second);
+            rewards.emplace(item.first, item.second);
         }
 
         nValidHeight = validHeightIn;
@@ -91,21 +91,21 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
-        READWRITE(rewardValues);
+        READWRITE(rewards);
         READWRITE(VARINT(profits));
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << rewardValues << VARINT(profits);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << rewards << VARINT(profits);
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    map<TokenSymbol, uint64_t> GetValues() const { return rewardValues; }
+    map<TokenSymbol, uint64_t> GetValues() const { return rewards; }
     uint64_t GetProfits() const { return profits; }
     std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUCoinBlockRewardTx>(this); }
 

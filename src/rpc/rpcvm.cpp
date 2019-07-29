@@ -27,7 +27,7 @@ using namespace std;
 using namespace json_spirit;
 
 
-static const int LCONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
+static const uint32_t LCONTRACT_DEPLOY_TX_FEE_MIN = 1 * COIN;
 
 static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID &keyId) {
     // first, try to parse regId
@@ -115,8 +115,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     uint64_t nDefaultFee = SysCfg().GetTxFee();
-    int32_t nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((int)ceil(contract.GetContractSize() / 100) * nFuelRate, LCONTRACT_DEPLOY_TX_FEE_MIN);
+    uint32_t nFuelRate = GetElementForBurn(chainActive.Tip());
+    uint64_t regFee = std::max((uint32_t)ceil(contract.GetContractSize() / 100) * nFuelRate, LCONTRACT_DEPLOY_TX_FEE_MIN);
     uint64_t minFee = regFee + nDefaultFee;
 
     uint64_t totalFee = minFee + 10000000; // set default totalFee
@@ -223,9 +223,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(contractInvokeTx.nFuelRate)));
 
     Object retObj;
-    retObj.push_back(Pair("fuel_rate", nFuelRate));
-    retObj.push_back(Pair("register_contract_tx", registerContractTxObj));
-    retObj.push_back(Pair("call_contract_tx", callContractTxObj));
+    retObj.push_back(Pair("fuel_rate",              (int32_t)nFuelRate));
+    retObj.push_back(Pair("register_contract_tx",   registerContractTxObj));
+    retObj.push_back(Pair("call_contract_tx",       callContractTxObj));
 
     return retObj;
 }

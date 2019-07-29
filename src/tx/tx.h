@@ -78,8 +78,8 @@ public:
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
-    virtual uint64_t GetFuel(int32_t nFuelRate);
-    int32_t GetFuelRate(CContractDBCache &contractCache);
+    virtual uint64_t GetFuel(uint32_t nFuelRate);
+    uint32_t GetFuelRate(CContractDBCache &contractCache);
     virtual double GetPriority() const {
         return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }

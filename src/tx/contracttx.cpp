@@ -136,7 +136,7 @@ bool CLuaContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &key
     return true;
 }
 
-uint64_t CLuaContractDeployTx::GetFuel(int32_t nFuelRate) {
+uint64_t CLuaContractDeployTx::GetFuel(uint32_t nFuelRate) {
     return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
 }
 

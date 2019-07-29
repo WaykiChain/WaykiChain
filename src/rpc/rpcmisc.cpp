@@ -218,15 +218,15 @@ Value getinfo(const Array& params, bool fHelp)
 
     obj.push_back(Pair("paytxfee",          ValueFromAmount(SysCfg().GetTxFee())));
     obj.push_back(Pair("relayfee",          ValueFromAmount(CBaseTx::nMinRelayTxFee)));
-    obj.push_back(Pair("fuelrate",          chainActive.Tip()->nFuelRate));
+    obj.push_back(Pair("fuelrate",          (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("fuel",              chainActive.Tip()->nFuel));
     obj.push_back(Pair("confdir",           GetConfigFile().string().c_str()));
     obj.push_back(Pair("datadir",           GetDataDir().string().c_str()));
-    obj.push_back(Pair("tipblocktime",      (int)chainActive.Tip()->nTime));
+    obj.push_back(Pair("tipblocktime",      (int32_t)chainActive.Tip()->nTime));
     obj.push_back(Pair("tipblockhash",      chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("syncblockheight",   nSyncTipHeight));
     obj.push_back(Pair("tipblockheight",    chainActive.Height()));
-    obj.push_back(Pair("connections",       (int)vNodes.size()));
+    obj.push_back(Pair("connections",       (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",            GetWarnings("statusbar")));
 
     return obj;
