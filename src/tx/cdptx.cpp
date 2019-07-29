@@ -129,8 +129,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         cdp.block_height = height;
         cdp.bcoin_symbol = bcoin_symbol;
         cdp.scoin_symbol = scoin_symbol;
-        cdp.bcoins_amount = bcoins_amount;
-        cdp.scoins_amount = scoins_amount;
+        cdp.total_staked_bcoins = bcoins_to_stake;
+        cdp.total_owed_scoins = scoins_to_mint;
 
         cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp);
 
@@ -140,9 +140,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdp_txid %s", cdp_txid.ToString()),
                              REJECT_INVALID, "invalid-stake-cdp-txid");
         }
-        if (height < cdp.blockHeight) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.blockHeight: %d",
-                    height, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "height-error");
+        if (height < cdp.block_height) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.block_height: %d",
+                    height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
         uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoins_to_stake;
@@ -157,7 +157,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         uint64_t scoinsInterestToRepay;
-        if (!ComputeCdpInterest(height, cdp.blockHeight, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+        if (!ComputeCdpInterest(height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCdpInterest error!"),
                              REJECT_INVALID, "compute-interest-error");
         }
@@ -307,13 +307,13 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     //2. pay interest fees in wusd
     CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
     if (cw.cdpCache.GetCdp(cdp)) {
-        if (height < cdp.blockHeight) {
-            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.blockHeight: %d",
-                            height, cdp.blockHeight), UPDATE_ACCOUNT_FAIL, "height-error");
+        if (height < cdp.block_height) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.block_height: %d",
+                            height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
         uint64_t scoinsInterestToRepay;
-        if (!ComputeCdpInterest(height, cdp.blockHeight, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+        if (!ComputeCdpInterest(height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCdpInterest error!"),
                             REJECT_INVALID, "interest-insufficient-error");
         }

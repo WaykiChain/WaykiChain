@@ -132,7 +132,7 @@ bool CCdpDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, co
     cdpMemCache.EraseCdp(cdp);
 
     // 2. update cdp's properties before saving
-    cdp.blockHeight = blockHeight;
+    cdp.block_height = blockHeight;
     cdp.total_staked_bcoins += changedBcoins;
     cdp.total_owed_scoins += changedScoins;
     cdp.collateralRatioBase = double(cdp.total_staked_bcoins) / cdp.total_owed_scoins;
