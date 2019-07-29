@@ -213,33 +213,40 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "submitliquidatecdptx \"addr\" liquidate_amount collateral_ratio [\"cdp_id\"] [interest] [fee]\n"
+            "submitliquidatecdptx \"addr\" \"cdp_id\" liquidate_amount [fee]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
             "1. \"address\" : (string required) CDP liquidator's address\n"
             "2. \"cdp_id\": (string required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "3. \"liquidate_amount\": (numeric required) WICC coins to stake into the CDP, including penalty fees, boosted by 10^8\n"
-            "4. \"fee\": (numeric, optional) fee pay for miner, default is 100000\n"
+            "3. \"liquidate_amount\": (numeric required) WUSD coins to repay to CDP, boosted by 10^8 (penalty fees deducted separately from sender account)\n"
+            "4. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 1000000\n")
+            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 1000000:WICC\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 1000000\n")
+            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 1000000:WICC\n")
         );
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
     if (!cdpUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid liquidator addr");
     }
 
-    uint256 cdpTxId     = uint256S(params[1].get_str());
+    uint256 cdpTxId = uint256S(params[1].get_str());
     uint64_t liquidateAmount = params[2].get_uint64();
 
-    uint64_t fee        = 0;
-     if (params.size() ==6 ) {
-        fee = params[5].get_uint64();  // real type, 0 if empty and thence minFee
+    uint64_t fee = 0;
+    tuple<TokenSymbol, int64_t amount, CoinUnitName> inputFeeMoney;
+
+    if (params.size() ==4 ) {
+        //fee = params[3].get_uint64();  // real type, 0 if empty and thence minFee
+        feeStr = params[3].get_str();
+
+        if (!ParseRpcInputValue(feeStr, inputFeeMoney)) {
+
+        }
     }
 
     int validHeight = chainActive.Tip()->height;

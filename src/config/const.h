@@ -7,6 +7,7 @@
 #define CONFIG_CONST_H
 
 #include <string>
+#include <unordered_map>
 
 using namespace std;
 
@@ -39,6 +40,27 @@ namespace txfield {
     static const string VALID_HEIGHT        = "valid_height" ;
     static const string CONFIRMED_HEIGHT    = "confirmed_height" ;
 }
+
+
+struct CoinUnitTypeHash {
+    size_t operator()(const string &unit) const noexcept {
+        return std::hash<string>{}(unit);
+    }
+};
+
+static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeTable {
+    {"sawi", 1                  },  // 0.00000001
+    {"quwi", 10                 },  // 0.0000001
+    {"muwi", 100                },  // 0.000001
+    {"huwi", 1000               },  // 0.00001
+    {"siwi", 10000              },  // 0.0001
+    {"miwi", 100000             },  // 0.001
+    {"lewi", 1000000            },  // 0.01
+    {"fewi", 10000000           },  // 0.1
+    {"wi",   100000000          },  // 1
+    {"kwi",  100000000000       },  // 1000
+    {"mwi",  100000000000000    },  // 1000,000
+};
 
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
 static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC

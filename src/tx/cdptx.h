@@ -183,13 +183,14 @@ public:
     }
 
     CCDPLiquidateTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
-                    uint256 cdpTxId, uint64_t scoinsToLiquidate):
+                    TokenSymbol feeSymbol, uint256 cdpTxId, uint64_t scoinsToLiquidate):
                 CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, feesIn) {
 
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
+        fee_symbol          = feeSymbol;
         cdp_txid            = cdpTxId;
         scoins_to_liquidate = scoinsToLiquidate;
     }
