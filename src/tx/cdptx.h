@@ -29,19 +29,29 @@ public:
         *this = *(CCDPStakeTx *)pBaseTx;
     }
     /** Newly open a CDP */
-    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
+    CCDPStakeTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
                 uint64_t bcoinsToStake, uint64_t scoinsToMint):
-                CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
+                CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, 0) {
+        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
+
+        fee_symbol          = cmFeeIn.symbol;
+        llFees              = cmFeeIn.amount * unit_base;
+
         bcoins_to_stake   = bcoinsToStake;
         scoins_to_mint    = scoinsToMint;
     }
     /** Stake an existing CDP */
-    CCDPStakeTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn, uint256 cdpTxId,
+    CCDPStakeTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn, uint256 cdpTxId,
                 uint64_t bcoinsToStake, uint64_t scoinsToMint)
-        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, feesIn) {
+        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, 0) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
+
+        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
+
+        fee_symbol          = cmFeeIn.symbol;
+        llFees              = cmFeeIn.amount * unit_base;
 
         cdp_txid        = cdpTxId;
         bcoins_to_stake = bcoinsToStake;
@@ -86,6 +96,7 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+
 private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
@@ -111,12 +122,18 @@ public:
         *this = *(CCDPRedeemTx *)pBaseTx;
     }
 
-    CCDPRedeemTx(const CUserID &txUidIn, uint64_t feesIn, int32_t validHeightIn,
+    CCDPRedeemTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
                 uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem):
-                CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, feesIn) {
+                CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, 0) {
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
+
+        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
+
+        fee_symbol          = cmFeeIn.symbol;
+        llFees              = cmFeeIn.amount * unit_base;
+
         cdp_txid         = cdpTxId;
         scoins_to_repay  = scoinsToRepay;
         bcoins_to_redeem = bcoinsToRedeem;
