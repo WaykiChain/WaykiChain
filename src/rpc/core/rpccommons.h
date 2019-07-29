@@ -89,7 +89,7 @@ bool is_number(const std::string& s)
 
 // [N|R|A]:address
 // NickID (default) | RegID | Address
-bool ParseRpcInputAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
+bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
     vector<string> comboAccountIdArr = split(comboAccountIdStr, ':');
     switch (comboMoneyArr.size()) {
         case 0: {
@@ -126,7 +126,7 @@ bool ParseRpcInputAccountId(const string &comboAccountIdStr, tuple<AccountIDType
 
 // [symbol]:amount:[unit]
 // [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]
-bool ParseRpcInputValue(const string &comboMoneyStr, tuple<TokenSymbol, int64_t amount, CoinUnitName> &comboMoney) {
+bool ParseRpcInputMoney(const string &comboMoneyStr, tuple<TokenSymbol, int64_t amount, CoinUnitName> &comboMoney) {
 	vector<string> comboMoneyArr = split(comboMoneyStr, ':');
 
     switch (comboMoneyArr.size()) {
