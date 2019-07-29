@@ -190,8 +190,8 @@ public:
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        fee_symbol          = std::get<0>(cmFeeIn);
-        llFees              = std::get<1>(cmFeeIn) * CoinUnitTypeTable[std::get<2>(cmFeeIn)];
+        fee_symbol          = cmFeeIn.symbol;
+        llFees              = cmFeeIn.amount * CoinUnitTypeTable[cmFeeIn.unit];
         cdp_txid            = cdpTxId;
         scoins_to_liquidate = scoinsToLiquidate;
     }
