@@ -189,9 +189,10 @@ public:
         if (txUidIn.type() == typeid(CRegID)) {
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
+        uint64_t unit_base  = CoinUnitTypeTable.at(cmFeeIn.unit);
 
         fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * CoinUnitTypeTable[cmFeeIn.unit];
+        llFees              = cmFeeIn.amount * unit_base;
         cdp_txid            = cdpTxId;
         scoins_to_liquidate = scoinsToLiquidate;
     }

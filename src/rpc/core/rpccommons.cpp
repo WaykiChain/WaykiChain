@@ -11,6 +11,153 @@
 #include "init.h"
 #include "rpcserver.h"
 
+/*
+std::string split implementation by using delimeter as a character.
+*/
+std::vector<std::string> split(std::string strToSplit, char delimeter)
+{
+    std::stringstream ss(strToSplit);
+    std::string item;
+	std::vector<std::string> splittedStrings;
+    while (std::getline(ss, item, delimeter))
+	{
+		splittedStrings.push_back(item);
+    }
+	return splittedStrings;
+}
+
+/*
+std::string split implementation by using delimeter as an another string
+*/
+std::vector<std::string> split(std::string stringToBeSplitted, std::string delimeter)
+{
+	std::vector<std::string> splittedString;
+	size_t startIndex = 0;
+	size_t  endIndex = 0;
+	while( (endIndex = stringToBeSplitted.find(delimeter, startIndex)) < stringToBeSplitted.size() ) {
+		std::string val = stringToBeSplitted.substr(startIndex, endIndex - startIndex);
+		splittedString.push_back(val);
+		startIndex = endIndex + delimeter.size();
+	}
+
+	if(startIndex < stringToBeSplitted.size()) {
+		std::string val = stringToBeSplitted.substr(startIndex);
+		splittedString.push_back(val);
+	}
+
+	return splittedString;
+}
+
+// [N|R|A]:address
+// NickID (default) | RegID | Address
+bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
+    vector<string> comboAccountIdArr = split(comboAccountIdStr, ':');
+    switch (comboAccountIdArr.size()) {
+        case 0: {
+            get<0>(comboAccountId) = AccountIDType::NICK_ID;
+            get<1>(comboAccountId) = comboAccountIdArr[0];
+            break;
+        }
+        case 1: {
+            if (comboAccountIdArr[0].size() > 1)
+                return false;
+
+            char tag = toupper(comboAccountIdArr[0][0]);
+            if (tag == 'N') {
+                get<0>(comboAccountId) = AccountIDType::NICK_ID;
+
+            } else if (tag == 'R') {
+                get<0>(comboAccountId) = AccountIDType::REG_ID;
+
+            } else if (tag == 'A') {
+                get<0>(comboAccountId) = AccountIDType::ADDRESS;
+
+            } else
+                return false;
+
+            get<1>(comboAccountId) = comboAccountIdArr[1];
+
+            break;
+        }
+        default: break;
+    }
+
+    return true;
+}
+
+// [symbol]:amount:[unit]
+// [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]
+bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
+	vector<string> comboMoneyArr = split(comboMoneyStr, ':');
+
+    switch (comboMoneyArr.size()) {
+        case 0: {
+            if (!is_number(comboMoneyArr[0]))
+                return false;
+
+            int64_t iValue = std::atoll(comboMoneyArr[0].c_str());
+            if (iValue < 0)
+                return false;
+
+            comboMoney.symbol = "WICC";
+            comboMoney.amount = (uint64_t) iValue;
+            comboMoney.unit   = "sawi";
+            break;
+        }
+        case 1: {
+            if (is_number(comboMoneyArr[0])) {
+                int64_t iValue = std::atoll(comboMoneyArr[0].c_str());
+                if (iValue < 0)
+                    return false;
+
+                if (!CoinUnitTypeTable.count(comboMoneyArr[1]))
+                    return false;
+
+                comboMoney.symbol = "WICC";
+                comboMoney.amount = (uint64_t) iValue;
+                comboMoney.unit   = comboMoneyArr[1];
+
+            } else if (is_number(comboMoneyArr[1])) {
+                int64_t iValue = std::atoll(comboMoneyArr[1].c_str());
+                if (iValue < 0)
+                    return false;
+
+                comboMoney.symbol = comboMoneyArr[0];
+                comboMoney.amount = (uint64_t) iValue;
+                comboMoney.unit   = "sawi";
+
+            } else {
+                return false;
+            }
+
+            break;
+        }
+        case 2: {
+            if (comboMoneyArr.size() > 12)
+                return false;
+
+            if (!is_number(comboMoneyArr[1]))
+                return false;
+
+            int64_t iValue = std::atoll(comboMoneyArr[1].c_str());
+            if (iValue < 0)
+                return false;
+
+            if (!CoinUnitTypeTable.count(comboMoneyArr[2]))
+                return false;
+
+            comboMoney.symbol = comboMoneyArr[0];
+            comboMoney.amount = (uint64_t) iValue;
+            comboMoney.unit   = comboMoneyArr[2];
+            break;
+        }
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 Object SubmitTx(CUserID &userId, CBaseTx &tx) {
     uint64_t minFee = GetTxMinFee(tx.nTxType, chainActive.Height());
     if (tx.llFees == 0) {

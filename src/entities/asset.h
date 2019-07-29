@@ -38,7 +38,7 @@ struct ComboMoney {
     TokenSymbol     symbol;     //E.g. WICC
     uint64_t        amount;
     CoinUnitName    unit;       //E.g. sawi
-}
+};
 
 static const unordered_set<string> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
