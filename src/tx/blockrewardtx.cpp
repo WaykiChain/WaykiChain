@@ -24,7 +24,7 @@ bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
     } else if (-1 == index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        account.OperateBalance(SYMB::WICC, ADD_FREE, rewardValue);
+        account.OperateBalance(SYMB::WICC, ADD_FREE, reward);
 
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
@@ -45,8 +45,8 @@ string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, rewardValue=%ld\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), rewardValue);
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, reward=%ld\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), reward);
 }
 
 Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -59,7 +59,7 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("uid",            txUid.ToString()));
     result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("reward_value",   rewardValue));
+    result.push_back(Pair("reward_value",   reward));
     result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
@@ -99,7 +99,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     } else if (-1 == index) {
         // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
         // the target account.
-        for (const auto &item : rewardValues) {
+        for (const auto &item : rewards) {
             uint64_t value       = item.second;
             TokenSymbol coinType = item.first;
             if (coinType == SYMB::WICC)
@@ -133,13 +133,13 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string rewardValue;
-    for (const auto &item : rewardValues) {
-        rewardValue += strprintf("%s: %lu, ", item.first, item.second);
+    string reward;
+    for (const auto &item : rewards) {
+        reward += strprintf("%s: %lu, ", item.first, item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewardValue=%s, nValidHeight=%d\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), rewardValue, nValidHeight);
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, reward=%s, nValidHeight=%d\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward, nValidHeight);
 }
 
 Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -147,9 +147,9 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    Object rewardValue;
-    for (const auto &item : rewardValues) {
-        rewardValue.push_back(Pair(item.first, item.second));
+    Object reward;
+    for (const auto &item : rewards) {
+        reward.push_back(Pair(item.first, item.second));
     }
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
@@ -157,7 +157,7 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("uid",            txUid.ToString()));
     result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("reward_value",   rewardValue));
+    result.push_back(Pair("reward_value",   reward));
     result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;

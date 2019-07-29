@@ -68,10 +68,10 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     result.push_back(Pair("nonce", (uint64_t)block.GetNonce()));
     // TODO: Fees
     // CBlockRewardTx* pBlockRewardTx = (CBlockRewardTx*)block.vptx[0].get();
-    // uint64_t rewardValue           = pBlockRewardTx->rewardValue;
+    // uint64_t reward           = pBlockRewardTx->reward;
     // int64_t fees                   = block.GetFees();
     // int64_t fuel                   = block.GetFuel();
-    // uint64_t profits               = rewardValue - (fees - fuel);
+    // uint64_t profits               = reward - (fees - fuel);
     // result.push_back(Pair("fuel", (int)block.GetFuel()));
     // result.push_back(Pair("fuel_rate", block.GetFuelRate()));
     // result.push_back(Pair("profits", profits));

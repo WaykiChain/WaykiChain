@@ -13,7 +13,7 @@ uint256 CBlockHeader::GetHash() const {
     return ComputeSignatureHash();
 }
 
-void CBlockHeader::SetHeight(unsigned int height) {
+void CBlockHeader::SetHeight(uint32_t  height) {
     this->height = height;
 }
 
@@ -28,10 +28,10 @@ uint256 CBlock::BuildMerkleTree() const {
     for (const auto& ptx : vptx) {
         vMerkleTree.push_back(ptx->GetHash());
     }
-    int j = 0;
-    for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
-        for (int i = 0; i < nSize; i += 2) {
-            int i2 = min(i + 1, nSize - 1);
+    int32_t j = 0;
+    for (int32_t nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
+        for (int32_t i = 0; i < nSize; i += 2) {
+            int32_t i2 = min(i + 1, nSize - 1);
             vMerkleTree.push_back(Hash(BEGIN(vMerkleTree[j + i]), END(vMerkleTree[j + i]),
                                        BEGIN(vMerkleTree[j + i2]), END(vMerkleTree[j + i2])));
         }
@@ -40,13 +40,13 @@ uint256 CBlock::BuildMerkleTree() const {
     return (vMerkleTree.empty() ? uint256() : vMerkleTree.back());
 }
 
-vector<uint256> CBlock::GetMerkleBranch(int index) const {
+vector<uint256> CBlock::GetMerkleBranch(int32_t index) const {
     if (vMerkleTree.empty())
         BuildMerkleTree();
     vector<uint256> vMerkleBranch;
-    int j = 0;
-    for (int nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
-        int i = min(index ^ 1, nSize - 1);
+    int32_t j = 0;
+    for (int32_t nSize = vptx.size(); nSize > 1; nSize = (nSize + 1) / 2) {
+        int32_t i = min(index ^ 1, nSize - 1);
         vMerkleBranch.push_back(vMerkleTree[j + i]);
         index >>= 1;
         j += nSize;
@@ -54,7 +54,7 @@ vector<uint256> CBlock::GetMerkleBranch(int index) const {
     return vMerkleBranch;
 }
 
-uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int index) {
+uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBranch, int32_t index) {
     if (index == -1)
         return uint256();
     for (const auto& otherside : vMerkleBranch) {
@@ -70,9 +70,9 @@ uint256 CBlock::CheckMerkleBranch(uint256 hash, const vector<uint256>& vMerkleBr
 map<TokenSymbol, uint64_t> CBlock::GetFees() const {
     map<TokenSymbol, uint64_t> fees = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};
     for (uint32_t i = 1; i < vptx.size(); ++i) {
-        auto token_symbol = std::get<0>(vptx[i]->GetFees());
-        assert(token_symbol == SYMB::WICC || token_symbol == SYMB::WUSD);
-        fees[token_symbol] = std::get<1>(vptx[i]->GetFees());
+        auto fees_symbol = std::get<0>(vptx[i]->GetFees());
+        assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);
+        fees[fees_symbol] = std::get<1>(vptx[i]->GetFees());
     }
 
     return fees;
@@ -95,14 +95,14 @@ void CBlock::Print(CAccountDBCache& accountCache) const {
              vptx.size(), nFuel, nFuelRate, GetBlockMedianPrice(std::make_pair(SYMB::WICC, SYMB::USD)),
              GetBlockMedianPrice(std::make_pair(SYMB::WGRT, SYMB::USD)));
     // LogPrint("INFO", "list transactions:\n");
-    // for (unsigned int i = 0; i < vptx.size(); i++) {
+    // for (uint32_t i = 0; i < vptx.size(); i++) {
     //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));
     // }
     // LogPrint("INFO", "  vMerkleTree: ");
-    // for (unsigned int i = 0; i < vMerkleTree.size(); i++) {
+    // for (uint32_t i = 0; i < vMerkleTree.size(); i++) {
     //     LogPrint("INFO", "%s ", vMerkleTree[i].ToString());
     // }
-    // LogPrint("INFO","\n");
+    // LogPrint("INFO", "\n");
 }
 
 std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txid) const {

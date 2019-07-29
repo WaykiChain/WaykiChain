@@ -342,12 +342,12 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
 bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     vector<string> vInitPubKey = IniCfg().GetInitPubKey(type);
     for (size_t i = 0; i < vInitPubKey.size(); ++i) {
-        uint64_t rewardValue = 0;
+        uint64_t reward = 0;
         if (i > 0) {
-            rewardValue = IniCfg().GetCoinInitValue() * COIN;
+            reward = IniCfg().GetCoinInitValue() * COIN;
         }
 
-        auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i]), rewardValue, 0);
+        auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i]), reward, 0);
         pRewardTx->nVersion = nTxVersion1;
         vptx.push_back(pRewardTx);
     }

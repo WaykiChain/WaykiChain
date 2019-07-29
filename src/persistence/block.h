@@ -63,8 +63,8 @@ protected:
     uint32_t nTime;
     uint32_t nNonce;
     uint32_t height;
-    int64_t nFuel;
-    int32_t nFuelRate;
+    uint64_t nFuel;
+    uint32_t nFuelRate;
     vector<unsigned char> vSignature;
 
 public:
@@ -112,9 +112,9 @@ public:
     uint32_t GetHeight() const { return height; }
     void SetHeight(uint32_t height);
     uint32_t GetFuel() const { return nFuel; }
-    void SetFuel(int64_t fuel) { this->nFuel = fuel; }
-    int32_t GetFuelRate() const { return nFuelRate; }
-    void SetFuelRate(int32_t fuelRate) { this->nFuelRate = fuelRate; }
+    void SetFuel(uint64_t fuel) { this->nFuel = fuel; }
+    uint32_t GetFuelRate() const { return nFuelRate; }
+    void SetFuelRate(uint32_t fuelRate) { this->nFuelRate = fuelRate; }
     const vector<unsigned char> &GetSignature() const { return vSignature; }
     void SetSignature(const vector<unsigned char> &signature) { this->vSignature = signature; }
     void ClearSignature() { this->vSignature.clear(); }
@@ -197,42 +197,42 @@ public:
     CBlockIndex *pskip;
 
     // height of the entry in the chain. The genesis block has height 0
-    int height;
+    int32_t height;
 
     // Which # file this block is stored in (blk?????.dat)
-    int nFile;
+    int32_t nFile;
 
     // Byte offset within blk?????.dat where this block's data is stored
-    unsigned int nDataPos;
+    uint32_t nDataPos;
 
     // Byte offset within rev?????.dat where this block's undo data is stored
-    unsigned int nUndoPos;
+    uint32_t nUndoPos;
 
     // (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
     arith_uint256 nChainWork;
 
     // Number of transactions in this block.
     // Note: in a potential headers-first mode, this number cannot be relied upon
-    unsigned int nTx;
+    uint32_t nTx;
 
     // (memory only) Number of transactions in the chain up to and including this block
-    unsigned int nChainTx;  // change to 64-bit type when necessary; won't happen before 2030
+    uint32_t nChainTx;  // change to 64-bit type when necessary; won't happen before 2030
 
     // Verification status of this block. See enum BlockStatus
-    unsigned int nStatus;
+    uint32_t nStatus;
 
     // (memory only) Sequencial id assigned to distinguish order in which blocks are received.
     uint32_t nSequenceId;
 
     // block header
-    int nVersion;
+    int32_t nVersion;
     uint256 merkleRootHash;
     uint256 hashPos;
-    unsigned int nTime;
-    unsigned int nBits;
-    unsigned int nNonce;
-    int64_t nFuel;
-    int nFuelRate;
+    uint32_t nTime;
+    uint32_t nBits;
+    uint32_t nNonce;
+    uint64_t nFuel;
+    uint32_t nFuelRate;
     vector<unsigned char> vSignature;
 
 
@@ -334,7 +334,7 @@ public:
         int64_t *pend   = &pmedian[nMedianTimeSpan];
 
         const CBlockIndex *pIndex = this;
-        for (int i = 0; i < nMedianTimeSpan && pIndex; i++, pIndex = pIndex->pprev)
+        for (int32_t i = 0; i < nMedianTimeSpan && pIndex; i++, pIndex = pIndex->pprev)
             *(--pbegin) = pIndex->GetBlockTime();
 
         sort(pbegin, pend);
@@ -347,8 +347,8 @@ public:
      * Returns true if there are nRequired or more blocks of minVersion or above
      * in the last nToCheck blocks, starting at pstart and going backwards.
      */
-    static bool IsSuperMajority(int minVersion, const CBlockIndex *pstart,
-                                unsigned int nRequired, unsigned int nToCheck);
+    static bool IsSuperMajority(int32_t minVersion, const CBlockIndex *pstart,
+                                uint32_t nRequired, uint32_t nToCheck);
 
     string ToString() const {
         return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, chainWork=%s)", pprev, height,
@@ -361,8 +361,8 @@ public:
     void BuildSkip();
 
     // Efficiently find an ancestor of this block.
-    CBlockIndex *GetAncestor(int heightIn);
-    const CBlockIndex *GetAncestor(int heightIn) const;
+    CBlockIndex *GetAncestor(int32_t heightIn);
+    const CBlockIndex *GetAncestor(int32_t heightIn) const;
 };
 
 

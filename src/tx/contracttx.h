@@ -47,7 +47,7 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractDeployTx>(this); }
-    virtual uint64_t GetFuel(int32_t nFuelRate);
+    virtual uint64_t GetFuel(uint32_t nFuelRate);
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
@@ -177,7 +177,7 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUniversalContractDeployTx>(this); }
-    virtual uint64_t GetFuel(int32_t nFuelRate);
+    virtual uint64_t GetFuel(uint32_t nFuelRate);
     virtual map<TokenSymbol, uint64_t> GetValues() const {
             return map<TokenSymbol, uint64_t>{ {transfer_coin_symbol, transfer_coin_amount} };
     }
