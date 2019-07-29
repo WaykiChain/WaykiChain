@@ -22,7 +22,6 @@ bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlo
  * Stake or ReStake bcoins into a CDP
  */
 class CCDPStakeTx: public CBaseTx {
-
 public:
     CCDPStakeTx() : CBaseTx(CDP_STAKE_TX) {}
 
@@ -56,8 +55,9 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
+
         READWRITE(cdp_txid);
         READWRITE(VARINT(bcoins_to_stake));
         READWRITE(VARINT(scoins_to_mint));
@@ -68,8 +68,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdp_txid << VARINT(bcoins_to_stake) << VARINT(scoins_to_mint);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << cdp_txid << VARINT(bcoins_to_stake) << VARINT(scoins_to_mint);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -90,11 +90,13 @@ private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TxID        cdp_txid;            //optional: only required for staking existing CDPs
-    TokenSymbol bcoin_symbol;        //optional: only required for 1st-time CDP staking
-    TokenSymbol scoin_symbol;        //ditto
-    uint64_t    bcoins_to_stake;      // base coins amount to stake or collateralize
-    uint64_t    scoins_to_mint;       // initial collateral ratio must be >= 190 (%), boosted by 10000
+    TokenSymbol fee_symbol;
+
+    TxID cdp_txid;             // optional: only required for staking existing CDPs
+    TokenSymbol bcoin_symbol;  // optional: only required for 1st-time CDP staking
+    TokenSymbol scoin_symbol;  // ditto
+    uint64_t bcoins_to_stake;  // base coins amount to stake or collateralize
+    uint64_t scoins_to_mint;   // initial collateral ratio must be >= 190 (%), boosted by 10000
 };
 
 /**
@@ -127,6 +129,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
         READWRITE(cdp_txid);
@@ -139,8 +142,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdp_txid << VARINT(scoins_to_repay) << VARINT(bcoins_to_redeem);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << cdp_txid << VARINT(scoins_to_repay) << VARINT(bcoins_to_redeem);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -161,6 +164,8 @@ private:
     bool SellInterestForFcoins(const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
 
 private:
+    TokenSymbol fee_symbol;
+
     uint256 cdp_txid;          // CDP cdpTxId
     uint64_t scoins_to_repay;   // stableCoins amount to redeem or burn, including interest
     uint64_t bcoins_to_redeem;
@@ -170,7 +175,6 @@ private:
  * Liquidate a CDP
  */
 class CCDPLiquidateTx: public CBaseTx {
-
 public:
     CCDPLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
 
@@ -197,6 +201,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
         READWRITE(cdp_txid);
@@ -208,8 +213,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << cdp_txid << VARINT(scoins_to_liquidate);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << cdp_txid << VARINT(scoins_to_liquidate);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -233,6 +238,8 @@ private:
     bool SellPenaltyForFcoins(uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state);
 
 private:
+    TokenSymbol fee_symbol;
+
     uint256     cdp_txid;            // target CDP to liquidate
     uint64_t    scoins_to_liquidate;  // partial liquidation is allowed, must include penalty fees in
 };
