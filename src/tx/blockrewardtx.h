@@ -63,7 +63,7 @@ public:
 
 class CUCoinBlockRewardTx : public CBaseTx {
 public:
-    map<TokenSymbol /* CoinType */, uint64_t /* reward value */> rewards;
+    map<TokenSymbol, uint64_t> rewards;
     uint64_t profits;  // Profits as delegate according to received votes.
 
 public:
