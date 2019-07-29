@@ -669,9 +669,8 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     }
 
     CPubKey sendPubKey;
-    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {
+    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
-    }
 
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
