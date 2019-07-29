@@ -92,31 +92,29 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
 bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount account;
-    if (!cw.accountCache.GetAccount(txUid, account)) {
+    if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
-    }
 
     //1. pay miner fees (WICC)
-    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
+    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, deduct fees from regId=%s failed,",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
-    }
 
     //2. check collateral ratio: parital or total >= 200%
     uint64_t startingCdpCollateralRatio;
-    if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio)) {
+    if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
-    }
+
     uint64_t partialCollateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height)
                                         * kPercentBoost / scoins_to_mint;
 
     if (cdp_txid.IsNull()) { // 1st-time CDP creation
-        if (partialCollateralRatio < startingCdpCollateralRatio) {
+        if (partialCollateralRatio < startingCdpCollateralRatio)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
                         partialCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
-        }
+
         uint64_t bcoinsToStakeAmountMin;
         if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read min coins to stake error"),
@@ -128,6 +126,12 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash());
+        cdp.block_height = height;
+        cdp.bcoin_symbol = bcoin_symbol;
+        cdp.scoin_symbol = scoin_symbol;
+        cdp.bcoins_amount = bcoins_amount;
+        cdp.scoins_amount = scoins_amount;
+
         cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp);
 
     } else { // further staking on one's existing CDP
@@ -179,7 +183,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     }
 
     // update account accordingly
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, bcoins_to_stake)) {
+    if (!account.OperateBalance(, BalanceOpType::SUB_FREE, bcoins_to_stake)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
                         INTEREST_INSUFFICIENT, "wicc-insufficient-error");
     }

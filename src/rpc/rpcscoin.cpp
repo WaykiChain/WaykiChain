@@ -136,38 +136,47 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "2. \"stake_amount\":   (numeric, required) WICC coins to stake into the CDP, boosted by 10^8\n"
             "3. \"mint_amount\":    (numberic, required), WUSD amount to mint\n"
             "4. \"cdp_id\":         (string, optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "5. \"fee\":            (numeric, optional) fee pay for miner, default is 100000\n"
+            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
             "\nResult:\n"
             "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n") +
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" WICC:1000000:sawi\n") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 1000000\n"));
-    }
-    uint64_t stakeAmount = params[1].get_uint64();
-    uint64_t mintAmount  = params[2].get_uint64();
-
-    int validHeight = chainActive.Tip()->height;
-    uint64_t fee    = 0;
-    uint256 cdpTxId;
-    if (params.size() >= 4) {
-        cdpTxId = uint256S(params[3].get_str());
-    }
-    if (params.size() == 5) {
-        fee = params[4].get_uint64();  // real type, 0 if empty and thence minFee
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" WICC:1000000:sawi\n"));
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid) {
+    if (!cdpUid)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+
+    ComboMoney cmBcoinsToStake, cmScoinsToMint;
+    if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
+
+    if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
+
+    int validHeight = chainActive.Tip()->height;
+
+    if (params.size() == 3) {
+        CCDPStakeTx tx(*cdpUid, validHeight, cmFee, cmBcoinsToStake, cmScoinsToMint);
+        return SubmitTx(*cdpUid, tx);
     }
 
-    CCDPStakeTx tx(*cdpUid, fee, validHeight, cdpTxId, stakeAmount, mintAmount);
-    return SubmitTx(*cdpUid, tx);
+    uint256 cdpId = uint256S(params[3].get_str());
+
+    ComboMoney cmFee;
+    if (params.size() == 5) {
+        if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
+
+        CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmBcoinsToStakecdpTxId);
+        return SubmitTx(*cdpUid, tx);
+    }
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {
@@ -180,7 +189,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
             "2. \"cdp_id\": (string) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"repay_amount\": (numeric required) WUSD coins to stake into the CDP, boosted by 10^8\n"
             "4. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "5. \"fee\": (numeric, optional) fee pay for miner, default is 100000\n"
+            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -199,14 +208,16 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     uint256 cdpTxId     = uint256S(params[1].get_str());
     uint64_t repayAmount = params[2].get_uint64();
     uint64_t redeemAmount = params[3].get_uint64();
-    uint64_t fee        = 0;
+
+    ComboMoney cmFee;
     if (params.size() == 5) {
-        fee = params[4].get_uint64();  // real type, 0 if empty and thence minFee
+        if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
     }
 
     int validHeight = chainActive.Tip()->height;
 
-    CCDPRedeemTx tx(*cdpUid, fee, validHeight, cdpTxId, repayAmount, redeemAmount);
+    CCDPRedeemTx tx(*cdpUid, cmFee, validHeight, cdpTxId, repayAmount, redeemAmount);
     return SubmitTx(*cdpUid, tx);
 }
 
@@ -378,7 +389,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     uint64_t fee = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_BUY_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetAmount, price);
@@ -418,7 +429,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     uint64_t fee = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_SELL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
     RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
@@ -455,7 +466,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     uint64_t fee = RPC_PARAM::GetFee(params, 4, DEX_MARKET_BUY_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
     RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
@@ -492,7 +503,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     uint64_t fee = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
     RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
@@ -527,7 +538,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
     uint64_t fee = RPC_PARAM::GetFee(params, 2, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
 
