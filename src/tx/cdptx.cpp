@@ -341,7 +341,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
     }
     if (!cw.cdpCache.RedeemBcoinsFromCdp(height, bcoins_to_redeem, scoins_to_repay, cdp)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.ownerRegId.ToString()),
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.owner_regid.ToString()),
                          UPDATE_CDP_FAIL, "bad-save-cdp");
     }
 
@@ -483,7 +483,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
     }
     CAccount cdpOwnerAccount;
-    if (!cw.accountCache.GetAccount(CUserID(cdp.ownerRegId), cdpOwnerAccount)) {
+    if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
@@ -574,7 +574,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         CReceipt receipt2(nTxType, nullUid, txUid, SYMB::WICC, totalBcoinsToReturnLiquidator);
         receipts.push_back(receipt2);
 
-        CUserID ownerUserId(cdp.ownerRegId);
+        CUserID ownerUserId(cdp.owner_regid);
         CReceipt receipt3(nTxType, nullUid, ownerUserId, SYMB::WICC, (uint64_t)totalBcoinsToCdpOwner);
         receipts.push_back(receipt3);
 
@@ -599,7 +599,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
         if (!cw.cdpCache.SaveCdp(cdp)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, update CDP %s failed",
-                        cdp.ownerRegId.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
+                        cdp.owner_regid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
 
         CUserID nullUid;
@@ -609,7 +609,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         CReceipt receipt2(nTxType, nullUid, txUid, SYMB::WICC, totalBcoinsToReturnLiquidator);
         receipts.push_back(receipt2);
 
-        CUserID ownerUserId(cdp.ownerRegId);
+        CUserID ownerUserId(cdp.owner_regid);
         CReceipt receipt3(nTxType, nullUid, ownerUserId, SYMB::WICC, bcoinsToCDPOwner);
         receipts.push_back(receipt3);
     }

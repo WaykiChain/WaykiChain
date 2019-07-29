@@ -24,9 +24,9 @@ using namespace json_spirit;
  *
  */
 struct CUserCDP {
-    CRegID ownerRegId;                  // CDP Owner RegId
-    uint256 cdpTxId;                    // CDP TxID
-    int32_t block_height;                // persisted: Hj (Hj+1 refer to current height) - last op block height
+    uint256 cdpid;                      // CDP TxID
+    CRegID owner_regid;                 // CDP Owner RegId
+    int32_t block_height;               // persisted: Hj (Hj+1 refer to current height) - last op block height
     TokenSymbol bcoin_symbol;           // persisted
     TokenSymbol scoin_symbol;           // persisted
     uint64_t total_staked_bcoins;       // persisted: total staked bcoins
@@ -37,22 +37,22 @@ struct CUserCDP {
     CUserCDP() : block_height(0), total_staked_bcoins(0), total_owed_scoins(0) {}
 
     CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn)
-        : ownerRegId(regId), cdpTxId(cdpTxIdIn), block_height(0), bcoin_symbol(SYMB::WICC), scoin_symbol(SYMB::WUSD), total_staked_bcoins(0), total_owed_scoins(0) {}
+        : cdpid(cdpTxIdIn), owner_regid(regId), block_height(0), bcoin_symbol(SYMB::WICC), scoin_symbol(SYMB::WUSD), total_staked_bcoins(0), total_owed_scoins(0) {}
 
     bool operator<(const CUserCDP &cdp) const {
         if (collateralRatioBase == cdp.collateralRatioBase) {
-            if (ownerRegId == cdp.ownerRegId)
-                return cdpTxId < cdp.cdpTxId;
+            if (owner_regid == cdp.owner_regid)
+                return cdpid < cdp.cdpid;
             else
-                return ownerRegId < cdp.ownerRegId;
-        } else {
+                return owner_regid < cdp.owner_regid;
+
+        } else
             return collateralRatioBase < cdp.collateralRatioBase;
-        }
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(ownerRegId);
-        READWRITE(cdpTxId);
+        READWRITE(cdpid);
+        READWRITE(owner_regid);
         READWRITE(VARINT(block_height));
         READWRITE(bcoin_symbol);
         READWRITE(scoin_symbol);
@@ -65,28 +65,28 @@ struct CUserCDP {
 
     string ToString() {
         return strprintf(
-            "ownerRegId=%s, cdpTxId=%s, block_height=%d, bcoin_symbol=%s, total_staked_bcoins=%d, "
-            "scoin_symbol=%s, tatalOwedScoins=%d, collateralRatioBase=%f",
-            ownerRegId.ToString(), cdpTxId.ToString(), block_height, bcoin_symbol, total_staked_bcoins,
+            "cdpid=%s, owner_regid=%s, block_height=%d, bcoin_symbol=%s, total_staked_bcoins=%d, "
+            "scoin_symbol=%s, tatal_owed_scoins=%d, collateralRatioBase=%f",
+            cdpid.ToString(), owner_regid.ToString(), block_height, bcoin_symbol, total_staked_bcoins,
             scoin_symbol, total_owed_scoins, collateralRatioBase);
     }
 
     Object ToJson() {
         Object result;
-        result.push_back(Pair("regid",          ownerRegId.ToString()));
-        result.push_back(Pair("cdp_id",         cdpTxId.GetHex()));
+        result.push_back(Pair("cdpid",          cdpid.GetHex()));
+        result.push_back(Pair("regid",          owner_regid.ToString()));
         result.push_back(Pair("last_height",    block_height));
         result.push_back(Pair("bcoin_symbol",   bcoin_symbol));
         result.push_back(Pair("total_bcoin",    total_staked_bcoins));
         result.push_back(Pair("scoin_symbol",   scoin_symbol));
         result.push_back(Pair("total_scoin",    total_owed_scoins));
-        result.push_back(Pair("ratio",          collateralRatioBase));
+        result.push_back(Pair("ratio_base",     collateralRatioBase));
         return result;
     }
 
     // FIXME: need to set other members empty?
-    bool IsEmpty() const { return cdpTxId.IsEmpty(); }
-    void SetEmpty() { cdpTxId.SetEmpty(); }
+    bool IsEmpty() const { return cdpid.IsEmpty(); }
+    void SetEmpty() { cdpid.SetEmpty(); }
 };
 
 #endif //ENTITIES_CDP_H

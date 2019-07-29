@@ -82,7 +82,7 @@ bool CCdpMemCache::GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, se
     static uint256 txid;
     static CUserCDP cdp(regId, txid);
     cdp.collateralRatioBase = ratio;
-    cdp.ownerRegId          = regId;
+    cdp.owner_regid         = regId;
 
     auto boundary = cdps.upper_bound(cdp);
     if (boundary != cdps.end()) {
@@ -178,7 +178,7 @@ bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) {
 }
 
 bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
-    if (!cdpCache.GetData(cdp.cdpTxId, cdp))
+    if (!cdpCache.GetData(cdp.cdpid, cdp))
         return false;
 
     return true;
@@ -187,19 +187,19 @@ bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
 // Attention: update cdpCache and regId2CdpCache synchronously.
 bool CCdpDBCache::SaveCdp(CUserCDP &cdp) {
     set<uint256> cdpTxids;
-    regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
-    cdpTxids.insert(cdp.cdpTxId);   // failed to insert if txid existed.
+    regId2CdpCache.GetData(cdp.owner_regid.ToRawString(), cdpTxids);
+    cdpTxids.insert(cdp.cdpid);   // failed to insert if txid existed.
 
-    return cdpCache.SetData(cdp.cdpTxId, cdp) && regId2CdpCache.SetData(cdp.ownerRegId.ToRawString(), cdpTxids);
+    return cdpCache.SetData(cdp.cdpid, cdp) && regId2CdpCache.SetData(cdp.owner_regid.ToRawString(), cdpTxids);
 }
 
 bool CCdpDBCache::EraseCdp(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
-    regId2CdpCache.GetData(cdp.ownerRegId.ToRawString(), cdpTxids);
-    cdpTxids.erase(cdp.cdpTxId);
+    regId2CdpCache.GetData(cdp.owner_regid.ToRawString(), cdpTxids);
+    cdpTxids.erase(cdp.cdpid);
 
     // If cdpTxids is empty, regId2CdpCache will erase the key automatically.
-    return cdpCache.EraseData(cdp.cdpTxId) && regId2CdpCache.SetData(cdp.ownerRegId.ToRawString(), cdpTxids);
+    return cdpCache.EraseData(cdp.cdpid) && regId2CdpCache.SetData(cdp.owner_regid.ToRawString(), cdpTxids);
 }
 
 // global collateral ratio floor check
