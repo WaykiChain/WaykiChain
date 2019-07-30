@@ -318,11 +318,10 @@ Value listcdpstoliquidate(const Array& params, bool fHelp);
 Value getusercdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getusercdp \"addr\" \"cdp_id\" [height]\n"
+            "getusercdp \"addr\"\n"
             "\nget account's cdp.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string, required) CDP owner addr\n"
-            "2.\"cdb_id\": (string, optional) CDP TxId\n"
+            "1.\"addr\": (string, required) CDP owner's account addr\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
@@ -347,27 +346,47 @@ Value getusercdp(const Array& params, bool fHelp){
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
 
     Array cdps;
-    if (params.size() > 1) {
-        uint256 cdpTxId(uint256S(params[1].get_str()));
-        CUserCDP cdp(txAccount.regid, cdpTxId);
-        if (pCdMan->pCdpCache->GetCdp(cdp)) {
+    vector<CUserCDP> userCdps;
+    if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
+        for (auto& cdp : userCdps) {
             cdps.push_back(cdp.ToJson(bcoinMedianPrice));
-        } else {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("CDP (%s) does not exist!", params[1].get_str()));
-        }
-    } else {
-        vector<CUserCDP> userCdps;
-        if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
-            for (auto& cdp : userCdps) {
-                cdps.push_back(cdp.ToJson(bcoinMedianPrice));
-            }
         }
     }
 
     Object obj;
-    obj.push_back(Pair("cdp", cdps));
+    obj.push_back(Pair("user_cdps", cdps));
     return obj;
+}
+
+Value getcdp(const Array& params, bool fHelp){
+    if (fHelp || params.size() < 1 || params.size() > 2) {
+        throw runtime_error(
+            "getcdp \"cdp_id\"\n"
+            "\nget CDP by its CDP_ID\n"
+            "\nArguments:\n"
+            "1.\"cdp_id\": (string, required) cdp_id\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+        );
+    }
+
+    int height = chainActive.Tip()->height;
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+
+    uint256 cdpTxId(uint256S(params[0].get_str()));
+    CUserCDP cdp;
+    if (pCdMan->pCdpCache->GetCdp(cdp)) {
+        Object obj;
+        obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
+        return obj;
+
+    } else {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("CDP (%s) does not exist!", params[0].get_str()));
+    }
 }
 
 /*************************************************<< DEX >>**************************************************/
