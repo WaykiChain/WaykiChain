@@ -155,13 +155,13 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
     if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake ComboMoney format error");
 
     if (cmBcoinsToStake.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
 
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
 
     if (cmScoinsToMint.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
@@ -178,7 +178,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
     }
 
     CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
@@ -218,7 +218,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     ComboMoney cmFee;
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
     }
 
     int validHeight = chainActive.Tip()->height;
@@ -257,7 +257,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (params.size() == 4) {
         //fee = params[3].get_uint64();  // real type, 0 if empty and thence minFee
         if (!ParseRpcInputMoney(params[3].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
     }
 
     int validHeight = chainActive.Tip()->height;
