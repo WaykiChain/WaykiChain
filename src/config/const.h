@@ -64,6 +64,8 @@ static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeTable
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
 static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
+/** the max token symbol len */
+static const unsigned int MAX_TOKEN_SYMBOL_LEN = 12;
 /** the total blocks of burn fee need */
 static const unsigned int DEFAULT_BURN_BLOCK_SIZE = 50;
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
