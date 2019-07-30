@@ -7,6 +7,7 @@
 #ifndef ENTITIES_CDP_H
 #define ENTITIES_CDP_H
 
+#include "asset.h"
 #include "id.h"
 
 #include "json/json_spirit_utils.h"

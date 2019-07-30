@@ -155,10 +155,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
     if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
 
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
 
     int validHeight = chainActive.Tip()->height;
 
@@ -177,6 +177,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
         return SubmitTx(*cdpUid, tx);
     }
+
+    return false;
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {

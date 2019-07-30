@@ -565,7 +565,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
         cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
 
-        if (!SellPenaltyForFcoins((uint64_t) totalScoinsToReturnSysFund, cw, state))
+        if (!SellPenaltyForFcoins(cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
             return false;
 
         //close CDP
@@ -599,7 +599,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         cdp.total_staked_bcoins -= bcoinsToCDPOwner;
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
-        if (!SellPenaltyForFcoins(scoinsToReturnSysFund, cw, state))
+        if (!SellPenaltyForFcoins(cdp, scoinsToReturnSysFund, cw, state))
             return false;
 
         if (!cw.cdpCache.SaveCdp(cdp)) {
