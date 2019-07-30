@@ -129,10 +129,10 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 Value submitstakecdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
-            "submitstakecdptx \"addr\" stake_amount collateral_ratio [\"cdp_id\"] [fee]\n"
+            "submitstakecdptx \"addr\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
-            "1. \"address\": CDP Staker's account address\n"
+            "1. \"addr\": CDP Staker's account address\n"
             "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP\n"
             "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint\n"
             "4. \"cdp_id\":         (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
@@ -188,14 +188,14 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitredeemcdptx \"addr\" \"cdp_id\" repay_amount redeem_amount [fee]\n"
+            "submitredeemcdptx \"addr\" \"cdp_id\" repay_amount redeem_amount [symbol:fee:unit]\n"
             "\nsubmit a CDP Redemption Tx\n"
             "\nArguments:\n"
-            "1. \"address\" : CDP redemptor's address\n"
+            "1. \"addr\" : CDP redemptor's address\n"
             "2. \"cdp_id\": (string) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"repay_amount\": (numeric required) WUSD coins to stake into the CDP, boosted by 10^8\n"
             "4. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
+            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -230,13 +230,13 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "submitliquidatecdptx \"addr\" \"cdp_id\" liquidate_amount [fee]\n"
+            "submitliquidatecdptx \"addr\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
-            "1. \"address\" : (string required) CDP liquidator's address\n"
+            "1. \"addr\" : (string required) CDP liquidator's address\n"
             "2. \"cdp_id\": (string required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"liquidate_amount\": (numeric required) WUSD coins to repay to CDP, boosted by 10^8 (penalty fees deducted separately from sender account)\n"
-            "4. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
+            "4. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -271,7 +271,7 @@ Value getmedianprice(const Array& params, bool fHelp){
             "getmedianprice [height]\n"
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
-            "1.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
+            "1.\"height\": (numeric, optional), specified height. If not provided, use the tip block height in chainActive\n\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getmedianprice","")

@@ -36,6 +36,35 @@ static bool GetKeyId(string const &addr, CKeyID &KeyId) {
     return true;
 };
 
+Value getcoinunitinfo(const Array& params, bool fHelp){
+    if (fHelp || params.size() > 1) {
+            string msg = "getcoinunitinfo\n"
+                    "\nArguments:\n"
+                     "\nExamples:\n"
+                    + HelpExampleCli("getcoinunitinfo", "")
+                    + "\nAs json rpc call\n"
+                    + HelpExampleRpc("getcoinunitinfo", "");
+            throw runtime_error(msg);
+    }
+
+    typedef std::function<bool(std::pair<std::string, uint64_t>, std::pair<std::string, uint64_t>)> Comparator;
+	Comparator compFunctor =
+			[](std::pair<std::string, uint64_t> elem1 ,std::pair<std::string, uint64_t> elem2)
+			{
+				return elem1.second < elem2.second;
+			};
+
+	// Declaring a set that will store the pairs using above comparision logic
+	std::set<std::pair<std::string, uint64_t>, Comparator> setOfUnits(
+			CoinUnitTypeTable.begin(), CoinUnitTypeTable.end(), compFunctor);
+
+	Object obj;
+    for (auto& it: setOfUnits) {
+        obj.push_back(Pair(it.first, it.second));
+    }
+    return obj;
+}
+
 Value getbalance(const Array& params, bool fHelp)
 {
     int size = params.size();
