@@ -595,27 +595,19 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
                            "\"deal_asset_amount\":100000000}]")
         );
     }
-
-    EnsureWalletIsUnlocked();
-
-    // 1. addr
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    Array dealItemArray = params[1].get_array();
+    uint64_t fee = RPC_PARAM::GetFee(params, 2, DEX_LIMIT_BUY_ORDER_TX);
 
     vector<DEXDealItem> dealItems;
-
-    Array dealItemArray = params[1].get_array();
-
     for (auto dealItemObj : dealItemArray) {
         DEXDealItem dealItem;
         const Value& buy_order_txid = JSON::GetObjectFieldValue(dealItemObj, "buy_order_txid");
-        dealItem.buyOrderId.SetHex(buy_order_txid.get_str());
+        dealItem.buyOrderId = RPC_PARAM::GetTxid(buy_order_txid);
         const Value& sell_order_txid = JSON::GetObjectFieldValue(dealItemObj, "sell_order_txid");
-        dealItem.sellOrderId.SetHex(sell_order_txid.get_str());
+        dealItem.sellOrderId = RPC_PARAM::GetTxid(sell_order_txid.get_str());
         const Value& deal_price = JSON::GetObjectFieldValue(dealItemObj, "deal_price");
-        dealItem.dealPrice = AmountToRawValue(deal_price);
+        dealItem.dealPrice = RPC_PARAM::GetPrice(deal_price);
         const Value& deal_coin_amount = JSON::GetObjectFieldValue(dealItemObj, "deal_coin_amount");
         dealItem.dealCoinAmount = AmountToRawValue(deal_coin_amount);
         const Value& deal_asset_amount = JSON::GetObjectFieldValue(dealItemObj, "deal_asset_amount");
@@ -623,12 +615,12 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
         dealItems.push_back(dealItem);
     }
 
-    uint64_t fee = 0;
-    if (params.size() > 2) {
-        fee = params[2].get_uint64();
-    }
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    // TODO: need to support fee coin type
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
 
     int validHeight = chainActive.Height();
-    CDEXSettleTx tx(*pUserId, validHeight, fee, dealItems);
-    return SubmitTx(*pUserId, tx);
+    CDEXSettleTx tx(userId, validHeight, fee, dealItems);
+    return SubmitTx(userId, tx);
 }
