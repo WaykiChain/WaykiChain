@@ -145,8 +145,11 @@ void Shutdown() {
             bitdb.Flush(true);
         }
 
-        pCdMan->Flush();
-        delete pCdMan;
+        if (pCdMan != nullptr) {
+            pCdMan->Flush();
+            delete pCdMan;
+            pCdMan = nullptr;
+        }
     }
 
     boost::filesystem::remove(GetPidFile());

@@ -43,7 +43,7 @@ using namespace boost;
 //
 // Global state
 //
-CCacheDBManager *pCdMan;
+CCacheDBManager *pCdMan = nullptr;
 CCriticalSection cs_main;
 CTxMemPool mempool;
 map<uint256, CBlockIndex *> mapBlockIndex;
