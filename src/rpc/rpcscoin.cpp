@@ -170,12 +170,11 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     uint256 cdpId = uint256S(params[3].get_str());
 
-
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
 
-        CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmBcoinsToStakecdpTxId);
+        CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
         return SubmitTx(*cdpUid, tx);
     }
 }
