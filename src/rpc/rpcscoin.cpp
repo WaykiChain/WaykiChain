@@ -158,13 +158,13 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
 
     if (cmBcoinsToStake.amount == 0)
-        throw JSONRPCERROR(RPC_INVALID_PARAMETER, "Error: stake_amount is zeror!");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zeror!");
 
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
 
     if (cmScoinsToMint.amount == 0)
-        throw JSONRPCERROR(RPC_INVALID_PARAMETER, "Error: mint_amount is zeror!");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zeror!");
 
     int validHeight = chainActive.Tip()->height;
 
