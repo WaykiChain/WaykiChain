@@ -72,16 +72,18 @@ struct CUserCDP {
             scoin_symbol, total_owed_scoins, collateralRatioBase);
     }
 
-    Object ToJson() {
+    Object ToJson(uint64_t bcoinMedianPrice) {
+        uint64_t collateralRatio = collateralRatioBase * bcoinMedianPrice * 100 / COIN;
+
         Object result;
-        result.push_back(Pair("cdpid",          cdpid.GetHex()));
-        result.push_back(Pair("regid",          owner_regid.ToString()));
-        result.push_back(Pair("last_height",    block_height));
-        result.push_back(Pair("bcoin_symbol",   bcoin_symbol));
-        result.push_back(Pair("total_bcoin",    total_staked_bcoins));
-        result.push_back(Pair("scoin_symbol",   scoin_symbol));
-        result.push_back(Pair("total_scoin",    total_owed_scoins));
-        result.push_back(Pair("ratio_base",     collateralRatioBase));
+        result.push_back(Pair("cdpid",              cdpid.GetHex()));
+        result.push_back(Pair("regid",              owner_regid.ToString()));
+        result.push_back(Pair("last_height",        block_height));
+        result.push_back(Pair("bcoin_symbol",       bcoin_symbol));
+        result.push_back(Pair("total_bcoin",        total_staked_bcoins));
+        result.push_back(Pair("scoin_symbol",       scoin_symbol));
+        result.push_back(Pair("total_scoin",        total_owed_scoins));
+        result.push_back(Pair("collateral_ratio",   collateralRatio));
         return result;
     }
 

@@ -343,13 +343,15 @@ Value getusercdp(const Array& params, bool fHelp){
     }
     assert(!txAccount.regid.IsEmpty());
 
-    Array cdps;
+    int height = chainActive.Tip()->height;
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
 
+    Array cdps;
     if (params.size() > 1) {
         uint256 cdpTxId(uint256S(params[1].get_str()));
         CUserCDP cdp(txAccount.regid, cdpTxId);
         if (pCdMan->pCdpCache->GetCdp(cdp)) {
-            cdps.push_back(cdp.ToJson());
+            cdps.push_back(cdp.ToJson(bcoinMedianPrice));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("CDP (%s) does not exist!", params[1].get_str()));
@@ -358,7 +360,7 @@ Value getusercdp(const Array& params, bool fHelp){
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
             for (auto& cdp : userCdps) {
-                cdps.push_back(cdp.ToJson());
+                cdps.push_back(cdp.ToJson(bcoinMedianPrice));
             }
         }
     }
