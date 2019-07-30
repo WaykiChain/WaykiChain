@@ -1308,10 +1308,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Re-compute reward values and total fuel
     uint64_t nTotalFuel                = 0;
+    uint64_t nTotalRunStep             = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
-        uint64_t nTotalRunStep = 0;
         for (uint32_t i = 1; i < block.vptx.size(); ++ i) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())))
@@ -2115,6 +2115,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-coinbase-multiple");
+
+            // Second transaction must be median price transaction if existed.
+            if (1 != i && block.vptx[i]->IsMedianPriceTx())
+                return state.DoS(100, ERRORMSG("CheckBlock() : more than one median price tx"), REJECT_INSUFFICIENTFEE,
+                                 "bad-median-price-multiple");
         }
     }
 
