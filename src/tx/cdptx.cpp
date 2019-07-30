@@ -37,6 +37,11 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (scoins_to_mint == 0) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, scoins_to_mint is zero error!!"),
+                        REJECT_INVALID, "scoins_to_mint_zeror-err");
+    }
+
     uint64_t globalCollateralRatioMin;
     if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read GLOBAL_COLLATERAL_RATIO_MIN error!!"),

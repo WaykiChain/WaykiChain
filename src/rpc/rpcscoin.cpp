@@ -132,9 +132,9 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "submitstakecdptx \"addr\" stake_amount collateral_ratio [\"cdp_id\"] [fee]\n"
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
-            "1. \"address\" : CDP staker's address\n"
-            "2. \"stake_amount\":   (numeric, required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "3. \"mint_amount\":    (numberic, required), WUSD amount to mint\n"
+            "1. \"address\": CDP Staker's account address\n"
+            "2. \"stake_combo_money\":   (symbol:numeric:unit, required) Combo Money to stake into the CDP\n"
+            "3. \"mint_combo_money\":   (symbol:numeric:unit, required), Combo Money to mint\n"
             "4. \"cdp_id\":         (string, optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
             "\nResult:\n"
@@ -157,8 +157,14 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
 
+    if (cmBcoinsToStake.amount == 0)
+        throw JSONRPCERROR(RPC_INVALID_PARAMETER, "Error: stake_amount is zeror!")
+
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
+
+    if (cmScoinsToMint.amount == 0)
+        throw JSONRPCERROR(RPC_INVALID_PARAMETER, "Error: mint_amount is zeror!")
 
     int validHeight = chainActive.Tip()->height;
 
