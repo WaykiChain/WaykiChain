@@ -508,8 +508,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    uint64_t assetAmount  = AmountToRawValue(params[2]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
+    uint64_t assetAmount  = AmountToRawValue(params[3]);
     uint64_t fee = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance
