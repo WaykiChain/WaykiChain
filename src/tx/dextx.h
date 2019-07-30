@@ -108,10 +108,10 @@ public:
                     TokenSymbol coinSymbol, TokenSymbol assetSymbol,
                     uint64_t assetAmount, uint64_t askPrice)
         : CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX, txUidIn, validHeightIn, feesIn) {
-        coin_symbol   = coinSymbol;
-        asset_symbol  = assetSymbol;
+        coin_symbol  = coinSymbol;
+        asset_symbol = assetSymbol;
         asset_amount = assetAmount;
-        ask_price   = askPrice;
+        ask_price    = askPrice;
     }
 
     ~CDEXSellLimitOrderTx() {}

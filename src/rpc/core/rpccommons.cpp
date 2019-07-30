@@ -268,7 +268,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                         for (auto& item : vOutput) {
                             outputArray.push_back(item.ToJson());
                         }
-                        obj.push_back(Pair("listOutput", outputArray));
+                        obj.push_back(Pair("list_output", outputArray));
                     }
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
