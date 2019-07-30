@@ -15,6 +15,22 @@ bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
     cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
 
     if (mapMedianPricePoints != median_price_points) {
+        string pricePoints;
+        for (const auto item : mapMedianPricePoints) {
+            pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
+                                     item.first.second, item.second);
+        };
+
+        LogPrint("ERROR", "CBlockPriceMedianTx::CheckTx, from cache, height: %d, price points: %s\n", height, pricePoints);
+
+        pricePoints.clear();
+        for (const auto item : median_price_points) {
+            pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
+                                     item.first.second, item.second);
+        };
+
+        LogPrint("ERROR", "CBlockPriceMedianTx::CheckTx, from median tx, height: %d, price points: %s\n", height, pricePoints);
+
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, invalid median price points"), REJECT_INVALID,
                          "bad-median-price-points");
     }
@@ -114,7 +130,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
     for (const auto item : median_price_points) {
-        pricePoints += strprintf("{coin_symbol:%u, price_symbol:%u, price:%lld}",
+        pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}",
                                 item.first.first, item.first.second, item.second);
     };
 
