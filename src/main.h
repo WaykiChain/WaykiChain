@@ -165,7 +165,7 @@ public:
     }
 
     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
-    CBlockIndex *operator[](int height) const {
+    CBlockIndex *operator[](int32_t height) const {
         if (height < 0 || height >= (int)vChain.size())
             return nullptr;
         return vChain[height];
@@ -191,7 +191,7 @@ public:
     }
 
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
-    int Height() const {
+    int32_t Height() const {
         return vChain.size() - 1;
     }
 

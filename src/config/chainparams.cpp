@@ -82,7 +82,7 @@ public:
     virtual const CBlock& GenesisBlock() const { return genesis; }
     virtual NET_TYPE NetworkID() const { return MAIN_NET; }
     virtual bool InitialConfig() { return CBaseParams::InitialConfig(); }
-    virtual int GetBlockMaxNonce() const { return 1000; }
+    virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     virtual const vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
     virtual bool IsInFixedSeeds(CAddress& addr) {
         vector<CAddress>::iterator iterAddr = find(vFixedSeeds.begin(), vFixedSeeds.end(), addr);
@@ -138,7 +138,7 @@ public:
         return true;
     }
 
-    virtual int GetBlockMaxNonce() const { return 1000; }
+    virtual uint32_t GetBlockMaxNonce() const { return 1000; }
 };
 
 //
@@ -428,7 +428,6 @@ CBaseParams::CBaseParams() {
     nLogMaxSize             = 100 * 1024 * 1024;  // 100M
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
-    nScriptCheckThreads     = 0;
     nViewCacheSize          = 2000000;
     nBlockInterval          = 10;
     nSubsidyHalvingInterval = 0;

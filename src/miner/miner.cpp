@@ -106,22 +106,10 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     }
 }
 
-void IncrementExtraNonce(CBlock *pBlock, CBlockIndex *pIndexPrev, unsigned int &nExtraNonce) {
-    // Update nExtraNonce
-    static uint256 hashPrevBlock;
-    if (hashPrevBlock != pBlock->GetPrevBlockHash()) {
-        nExtraNonce   = 0;
-        hashPrevBlock = pBlock->GetPrevBlockHash();
-    }
-    ++nExtraNonce;
-
-    pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
-}
-
-bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegatesList, CRegID &delegate) {
-    int64_t slot = currentTime / SysCfg().GetBlockInterval();
-    int miner    = slot % IniCfg().GetTotalDelegateNum();
-    delegate     = delegatesList[miner];
+bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegateList, CRegID &delegate) {
+    uint32_t slot  = currentTime / SysCfg().GetBlockInterval();
+    uint32_t miner = slot % IniCfg().GetTotalDelegateNum();
+    delegate       = delegateList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, regId=%s\n", currentTime, slot, miner,
              delegate.ToString());
 
@@ -167,7 +155,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
     pBlock->SetTime(currentTime);
 
-    vector<unsigned char> signature;
+    vector<uint8_t> signature;
     if (pWalletMain->Sign(delegate.keyid, pBlock->ComputeSignatureHash(), signature, delegate.miner_pubkey.IsValid())) {
         pBlock->SetSignature(signature);
         return true;
@@ -176,7 +164,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 }
 
-void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList) {
+void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
     uint32_t TotalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / TotalDelegateNum + (nCurHeight % TotalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -186,10 +174,10 @@ void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList) {
     for (uint32_t i = 0, delCount = TotalDelegateNum; i < delCount; i++) {
         for (uint32_t x = 0; x < 4 && i < delCount; i++, x++) {
             memcpy(&currendTemp, currendSeed.begin() + (x * 8), 8);
-            uint32_t newIndex       = currendTemp % delCount;
-            CRegID regId            = delegatesList[newIndex];
-            delegatesList[newIndex] = delegatesList[i];
-            delegatesList[i]        = regId;
+            uint32_t newIndex      = currendTemp % delCount;
+            CRegID regId           = delegateList[newIndex];
+            delegateList[newIndex] = delegateList[i];
+            delegateList[i]        = regId;
         }
         ss << currendSeed;
         currendSeed = ss.GetHash();
@@ -197,16 +185,16 @@ void ShuffleDelegates(const int nCurHeight, vector<CRegID> &delegatesList) {
 }
 
 bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
-    uint64_t maxNonce = SysCfg().GetBlockMaxNonce();
+    uint32_t maxNonce = SysCfg().GetBlockMaxNonce();
 
-    vector<CRegID> delegatesList;
-    if (!cwIn.delegateCache.GetTopDelegates(delegatesList))
+    vector<CRegID> delegateList;
+    if (!cwIn.delegateCache.GetTopDelegates(delegateList))
         return false;
 
-    ShuffleDelegates(pBlock->GetHeight(), delegatesList);
+    ShuffleDelegates(pBlock->GetHeight(), delegateList);
 
     CRegID regId;
-    if (!GetCurrentDelegate(pBlock->GetTime(), delegatesList, regId))
+    if (!GetCurrentDelegate(pBlock->GetTime(), delegateList, regId))
         return ERRORMSG("VerifyPosTx() : failed to get current delegate");
     CAccount curDelegate;
     if (!cwIn.accountCache.GetAccount(regId, curDelegate))
@@ -243,8 +231,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                             account.regid.ToString());
         }
 
-        const uint256 &blockHash                    = pBlock->ComputeSignatureHash();
-        const vector<unsigned char> &blockSignature = pBlock->GetSignature();
+        const auto &blockHash      = pBlock->ComputeSignatureHash();
+        const auto &blockSignature = pBlock->GetSignature();
 
         if (blockSignature.size() == 0 || blockSignature.size() > MAX_BLOCK_SIGNATURE_SIZE) {
             return ERRORMSG("VerifyPosTx() : invalid block signature size, hash=%s", blockHash.ToString());
@@ -263,7 +251,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     if (bNeedRunTx) {
         uint64_t totalFuel    = 0;
         uint64_t totalRunStep = 0;
-        for (unsigned int i = 1; i < pBlock->vptx.size(); i++) {
+        for (uint32_t i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyPosTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
@@ -305,18 +293,18 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
     pBlock->vptx.push_back(std::make_shared<CBlockRewardTx>());
 
     // Largest block you're willing to create:
-    unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
+    uint32_t nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
+    nBlockMaxSize = std::max((uint32_t)1000, std::min((uint32_t)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
-    unsigned int nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
+    uint32_t nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
     nBlockPrioritySize              = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
-    unsigned int nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
+    uint32_t nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
     nBlockMinSize              = std::min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
@@ -470,18 +458,18 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
     pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
 
     // Largest block you're willing to create:
-    unsigned int nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
+    uint32_t nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((unsigned int)1000, std::min((unsigned int)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
+    nBlockMaxSize = std::max((uint32_t)1000, std::min((uint32_t)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
-    unsigned int nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
+    uint32_t nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
     nBlockPrioritySize              = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
-    unsigned int nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
+    uint32_t nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
     nBlockMinSize              = std::min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
@@ -612,14 +600,14 @@ bool CheckWork(CBlock *pBlock, CWallet &wallet) {
 
         // Process this block the same as if we received it from another node
         CValidationState state;
-        if (!ProcessBlock(state, NULL, pBlock))
+        if (!ProcessBlock(state, nullptr, pBlock))
             return ERRORMSG("CheckWork() : failed to process block");
     }
 
     return true;
 }
 
-bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev, unsigned int txUpdated,
+bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev, uint32_t txUpdated,
                       CCacheWrapper &cw) {
     int64_t nStart = GetTime();
 
@@ -642,25 +630,25 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             }
         } ();
 
-        vector<CRegID> delegatesList;
-        if (!cw.delegateCache.GetTopDelegates(delegatesList)) {
+        vector<CRegID> delegateList;
+        if (!cw.delegateCache.GetTopDelegates(delegateList)) {
             LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
             return false;
         }
 
         uint16_t index = 0;
-        for (auto &delegate : delegatesList)
+        for (auto &delegate : delegateList)
             LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
-        ShuffleDelegates(pBlock->GetHeight(), delegatesList);
+        ShuffleDelegates(pBlock->GetHeight(), delegateList);
 
         index = 0;
-        for (auto &delegate : delegatesList)
+        for (auto &delegate : delegateList)
             LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
         int64_t currentTime = GetTime();
         CRegID regId;
-        GetCurrentDelegate(currentTime, delegatesList, regId);
+        GetCurrentDelegate(currentTime, delegateList, regId);
         CAccount minerAcct;
         if (!cw.accountCache.GetAccount(regId, minerAcct)) {
             LogPrint("MINER", "MineBlock() : failed to get miner's account: %s\n", regId.ToString());
@@ -718,7 +706,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
     return false;
 }
 
-void static CoinMiner(CWallet *pWallet, int targetHeight) {
+void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
     LogPrint("INFO", "CoinMiner() : started\n");
 
     SetThreadPriority(THREAD_PRIORITY_LOWEST);

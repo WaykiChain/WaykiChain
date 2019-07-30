@@ -17,7 +17,6 @@ using namespace boost;
 using namespace json_spirit;
 
 extern Object CallRPC(const string& strMethod, const Array& params);
-extern void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 
 int CommandLineRPC_GetValue(int argc, const char *argv[],Value &value)
 {

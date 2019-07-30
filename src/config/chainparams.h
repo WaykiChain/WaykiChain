@@ -20,7 +20,7 @@
 using namespace std;
 
 #define MESSAGE_START_SIZE 4
-typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
+typedef uint8_t MessageStartChars[MESSAGE_START_SIZE];
 
 class CAddress;
 class CBaseTx;
@@ -70,17 +70,16 @@ protected:
     mutable bool fTxIndex;
     mutable bool fLogFailures;
     mutable int64_t nTimeBestReceived;
-    mutable int64_t payTxFee;
-    uint16_t nMaxForkHeight = 24 * 60 * 6; //8640, i.e. forked distance by a day block height
-    int64_t nBlockInterval;   //to limit block creation time
+    mutable uint64_t payTxFee;
+    uint32_t nMaxForkHeight = 24 * 60 * 6;  // 8640, i.e. forked distance by a day block height
+    uint32_t nBlockInterval;                // to limit block creation time
     uint32_t nFeatureForkHeight;
     uint32_t nStableCoinGenesisHeight;
-    mutable unsigned int nScriptCheckThreads;
-    mutable int64_t nViewCacheSize;
-    mutable int nTxCacheHeight;
-    int nLogMaxSize; // to limit the maximum log file size in bytes
-    bool bContractLog;    // whether to save contract script operation account log
-    bool bAddressToTx; // whether to save the mapping of address to Tx
+    mutable uint32_t nViewCacheSize;
+    mutable int32_t nTxCacheHeight;
+    uint32_t nLogMaxSize;    // to limit the maximum log file size in bytes
+    bool bContractLog;  // whether to save contract script operation account log
+    bool bAddressToTx;  // whether to save the mapping of address to Tx
 
 public:
     virtual ~CBaseParams() {}
@@ -136,18 +135,17 @@ public:
         te += strprintf("fBenchmark:%d\n",          fBenchmark);
         te += strprintf("fTxIndex:%d\n",            fTxIndex);
         te += strprintf("fLogFailures:%d\n",        fLogFailures);
-        te += strprintf("nTimeBestReceived:%d\n",   nTimeBestReceived);
-        te += strprintf("paytxfee:%d\n",            payTxFee);
-        te += strprintf("nBlockInterval:%d\n",      nBlockInterval);
-        te += strprintf("nScriptCheckThreads:%d\n", nScriptCheckThreads);
-        te += strprintf("nViewCacheSize:%d\n",      nViewCacheSize);
-        te += strprintf("nTxCacheHeight:%d\n",      nTxCacheHeight);
-        te += strprintf("nLogMaxSize:%d\n",         nLogMaxSize);
+        te += strprintf("nTimeBestReceived:%llu\n", nTimeBestReceived);
+        te += strprintf("paytxfee:%llu\n",          payTxFee);
+        te += strprintf("nBlockInterval:%u\n",      nBlockInterval);
+        te += strprintf("nViewCacheSize:%u\n",      nViewCacheSize);
+        te += strprintf("nTxCacheHeight:%u\n",      nTxCacheHeight);
+        te += strprintf("nLogMaxSize:%u\n",         nLogMaxSize);
 
         return te;
     }
 
-    virtual int GetBlockMaxNonce() const {
+    virtual uint32_t GetBlockMaxNonce() const {
         return 1000;
     }
     int64_t GetTxFee() const;
@@ -198,28 +196,26 @@ public:
     bool IsBenchmark() const { return fBenchmark; }
     bool IsTxIndex() const { return fTxIndex; }
     bool IsLogFailures() const { return fLogFailures; };
-    int64_t GetBlockInterval() const { return nBlockInterval; }
+    uint32_t GetBlockInterval() const { return nBlockInterval; }
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
-    int64_t GetScriptCheckThreads() const { return nScriptCheckThreads; }
-    unsigned int GetViewCacheSize() const { return nViewCacheSize; }
-    int GetTxCacheHeight() const { return nTxCacheHeight; }
-    int GetLogMaxSize() const { return nLogMaxSize; }
+    uint32_t GetViewCacheSize() const { return nViewCacheSize; }
+    int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
+    uint32_t GetLogMaxSize() const { return nLogMaxSize; }
     void SetImporting(bool flag) const { fImporting = flag; }
     void SetReIndex(bool flag) const { fReindex = flag; }
     void SetBenchMark(bool flag) const { fBenchmark = flag; }
     void SetTxIndex(bool flag) const { fTxIndex = flag; }
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
-    void SetScriptCheckThreads(int64_t nNum) const { nScriptCheckThreads = nNum; }
-    void SetViewCacheSize(unsigned int nSize) const { nViewCacheSize = nSize; }
-    void SetTxCacheHeight(int height) const { nTxCacheHeight = height; }
+    void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
+    void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }
     bool IsContractLogOn() const { return bContractLog; }
     bool GetAddressToTxFlag() const { return bAddressToTx; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
-    const vector<unsigned char>& AlertKey() const { return vAlertPubKey; }
-    int GetDefaultPort() const { return nDefaultPort; }
+    const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
+    int32_t GetDefaultPort() const { return nDefaultPort; }
     const arith_uint256 ProofOfWorkLimit() { return bnProofOfStakeLimit; }
-    int GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
+    int32_t GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
@@ -237,7 +233,7 @@ public:
     const string& DataDir() const { return strDataDir; }
     virtual NET_TYPE NetworkID() const = 0;
     const vector<CDNSSeedData>& DNSSeeds() const { return vSeeds; }
-    const vector<unsigned char>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
+    const vector<uint8_t>& Base58Prefix(Base58Type type) const { return base58Prefixes[type]; }
     virtual const vector<CAddress>& FixedSeeds() const = 0;
     virtual bool IsInFixedSeeds(CAddress& addr)        = 0;
     int RPCPort() const { return nRPCPort; }
@@ -269,7 +265,7 @@ protected:
     uint256 genesisBlockHash;
     MessageStartChars pchMessageStart;
     // Raw pub key bytes for the broadcast alert signing key.
-    vector<unsigned char> vAlertPubKey;
+    vector<uint8_t> vAlertPubKey;
     int nDefaultPort;
     int nRPCPort;
     string alartPKey;
@@ -277,7 +273,7 @@ protected:
     int nSubsidyHalvingInterval;
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
-    vector<unsigned char> base58Prefixes[MAX_BASE58_TYPES];
+    vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];
 };
 
 extern CBaseParams &SysCfg();
