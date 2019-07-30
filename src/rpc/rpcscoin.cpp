@@ -133,10 +133,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
             "1. \"address\": CDP Staker's account address\n"
-            "2. \"stake_combo_money\":   (symbol:numeric:unit, required) Combo Money to stake into the CDP\n"
-            "3. \"mint_combo_money\":   (symbol:numeric:unit, required), Combo Money to mint\n"
-            "4. \"cdp_id\":         (string, optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
+            "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP\n"
+            "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint\n"
+            "4. \"cdp_id\":         (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
+            "5. \"symbol:fee:unit\": (symbol:amount:unit, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -179,12 +179,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
-
-        CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
-        return SubmitTx(*cdpUid, tx);
     }
 
-    return false;
+    CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
+    return SubmitTx(*cdpUid, tx);
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {
@@ -618,7 +616,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     }
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
 
