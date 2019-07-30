@@ -144,6 +144,16 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
     // TODO:
     assert(blockHeight >= 11);
 
+    for (const auto &item : blockUserPrices) {
+        string price;
+        for (const auto &userPrice : item.second) {
+            price += strprintf("{user:%s, price:%lld}", userPrice.first.ToString(), userPrice.second);
+        }
+
+        LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, height: %d, userPrice: %s\n",
+                 item.first, price);
+    }
+
     vector<uint64_t> prices;
     int32_t beginBlockHeight = blockHeight - 11;
     for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
@@ -155,7 +165,14 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
         }
     }
 
-    return ComputeMedianNumber(prices);
+    for (const auto &item : prices) {
+        LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, found a candidate price: %llu\n", item);
+    }
+
+    uint64_t medianPrice = ComputeMedianNumber(prices);
+    LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, final median price: %llu\n", medianPrice);
+
+    return medianPrice;
 }
 
 uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
@@ -182,12 +199,16 @@ uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
 bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
                                                     map<CoinPricePair, uint64_t> &mapMedianPricePointsIn) {
     CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
-    uint64_t bcoinMedianPrice = GetBcoinMedianPrice(blockHeight);
+    uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, bcoinPricePair);
     mapMedianPricePointsIn.emplace(bcoinPricePair, bcoinMedianPrice);
+    LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, %s/%s -> %llu\n", SYMB::WICC, SYMB::USD,
+             bcoinMedianPrice);
 
     CoinPricePair fcoinPricePair(SYMB::WGRT, SYMB::USD);
-    uint64_t scoinMedianPrice = GetFcoinMedianPrice(blockHeight);
-    mapMedianPricePointsIn.emplace(fcoinPricePair, scoinMedianPrice);
+    uint64_t fcoinMedianPrice = GetMedianPrice(blockHeight, fcoinPricePair);
+    mapMedianPricePointsIn.emplace(fcoinPricePair, fcoinMedianPrice);
+    LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, %s/%s -> %llu\n", SYMB::WGRT, SYMB::USD,
+             fcoinMedianPrice);
 
     return true;
 }
