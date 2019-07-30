@@ -37,6 +37,16 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (bcoin_symbol != SYMB::WICC) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid bcoin symbol! "),
+                        REJECT_INVALID, "invalid-bcoin-symbol");
+    }
+
+    if (scoin_symbol != SYMB::WUSD) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin symbol!!"),
+                        REJECT_INVALID, "invalid-scoin-symbol");
+    }
+
     if (scoins_to_mint == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, scoins_to_mint is zero error!!"),
                         REJECT_INVALID, "scoins_to_mint_zeror-err");

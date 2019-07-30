@@ -133,8 +133,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
             "1. \"addr\": CDP Staker's account address\n"
-            "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP\n"
-            "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint\n"
+            "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP,"
+                                                                      " default symbol=WICC, default unit=sawi\n"
+            "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint,"
+                                                                      " default symbol=WUSD, default unit=sawi\n"
             "4. \"cdp_id\":         (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
             "5. \"symbol:fee:unit\": (symbol:amount:unit, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
@@ -142,11 +144,11 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "\nExamples:\n" +
             HelpExampleCli("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" WICC:1000000:sawi\n") +
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" WICC:1000000:sawi\n"));
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n"));
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
@@ -154,13 +156,13 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
-    if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake))
+    if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake, SYMB::WICC))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake ComboMoney format error");
 
     if (cmBcoinsToStake.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
 
-    if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
+    if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint, SYMB::WUSD))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
 
     if (cmScoinsToMint.amount == 0)
