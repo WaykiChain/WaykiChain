@@ -322,8 +322,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitredeemcdptx",      &submitredeemcdptx,      true,      false,      true },
     { "submitliquidatecdptx",   &submitliquidatecdptx,   true,      false,      true },
 
-    { "getmedianprice",         &getmedianprice,         false,     false,      false },
-    { "getusercdp",             &getusercdp,         false,     false,      false },
+    { "getmedianprice",         &getmedianprice,        false,     false,      false },
+    { "getusercdp",             &getusercdp,            false,     false,      false },
 
     /* for dex */
     { "submitdexbuylimitordertx",   &submitdexbuylimitordertx,   true,     false,      false },
