@@ -39,8 +39,7 @@ static bool fMining = false;
 void SetMinerStatus(bool bStatus) { fMining = bStatus; }
 static bool GetMiningInfo() { return fMining; }
 
-Value setgenerate(const Array& params, bool fHelp)
-{
+Value setgenerate(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 1 && params.size() != 2))
         throw runtime_error(
             "setgenerate generate ( genblocklimit )\n"
@@ -101,8 +100,7 @@ Value setgenerate(const Array& params, bool fHelp)
     return obj;
 }
 
-Value getmininginfo(const Array& params, bool fHelp)
-{
+Value getmininginfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("getmininginfo\n"
             "\nReturns a json object containing mining-related information."
@@ -125,20 +123,19 @@ Value getmininginfo(const Array& params, bool fHelp)
     static const string NetTypes[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
 
     Object obj;
-    obj.push_back(Pair("blocks",           (int)chainActive.Height()));
+    obj.push_back(Pair("blocks",           chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
     obj.push_back(Pair("currentblocktx",   (uint64_t)nLastBlockTx));
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("genblocklimit",    1));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.Size()));
     obj.push_back(Pair("nettype",          NetTypes[SysCfg().NetworkID()]));
-    obj.push_back(Pair("posmaxnonce",      SysCfg().GetBlockMaxNonce()));
+    obj.push_back(Pair("posmaxnonce",      (int32_t)SysCfg().GetBlockMaxNonce()));
     obj.push_back(Pair("generate",         GetMiningInfo()));
     return obj;
 }
 
-Value submitblock(const Array& params, bool fHelp)
-{
+Value submitblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error("submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
             "\nAttempts to submit new block to network.\n"
@@ -183,8 +180,7 @@ Value submitblock(const Array& params, bool fHelp)
 }
 
 
-Value getminedblocks(const Array& params, bool fHelp)
-{
+Value getminedblocks(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {
         throw runtime_error("getminedblocks\n"
             "\nReturns a json array containing the blocks mined by this node."

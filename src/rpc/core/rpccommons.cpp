@@ -480,6 +480,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
         default:
             break;
     }
+
     return arrayDetail;
 }
 
@@ -487,11 +488,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
 // namespace JSON
 
 const Value& JSON::GetObjectFieldValue(const Value &jsonObj, const string &fieldName) {
-
     const Value& jsonValue = find_value(jsonObj.get_obj(), fieldName);
     if (jsonValue.type() == null_type || jsonValue == null_type) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("field %s not found in json object", fieldName));
     }
+
     return jsonValue;
 }
 
@@ -510,6 +511,7 @@ uint64_t RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
     } else {
         fee = minFee;
     }
+
     return fee;
 }
 

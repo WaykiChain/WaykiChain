@@ -1490,12 +1490,8 @@ Value generateblock(const Array& params, bool fHelp) {
     if (!GetKeyId(params[0].get_str(), keyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in generateblock :address err");
 
-//  uint256 hash = CreateBlockWithAppointedAddr(keyId);
-//  if (hash.IsNull()) {
-//      throw runtime_error("in generateblock :cannot generate block\n");
-//  }
     Object obj;
-//  obj.push_back(Pair("blockhash", hash.GetHex()));
+    // obj.push_back(Pair("blockhash", hash.GetHex()));
     return obj;
 }
 
