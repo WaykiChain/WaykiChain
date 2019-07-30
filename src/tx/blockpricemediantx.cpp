@@ -12,7 +12,10 @@ bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     map<CoinPricePair, uint64_t> mapMedianPricePoints;
-    cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
+    if (!cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, failed to get block median price points"),
+                         READ_PRICE_POINT_FAIL, "bad-read-price-points");
+    }
 
     if (mapMedianPricePoints != median_price_points) {
         string pricePoints;

@@ -44,4 +44,7 @@ static const uint8_t UNDO_SYS_ORDER_FAILED      = 0x81;
 static const uint8_t READ_SYS_PARAM_FAIL        = 0x90;
 static const uint8_t WRITE_SYS_PARAM_FAIL       = 0x91;
 
+static const uint8_t READ_PRICE_POINT_FAIL      = 0xa0;
+static const uint8_t WRITE_PRICE_POINT_FAIL     = 0xa1;
+
 #endif //CONFIG_ERRORCODE_H
