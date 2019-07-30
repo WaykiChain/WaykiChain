@@ -1307,23 +1307,27 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     // Re-compute reward values and total fuel
-    uint64_t nTotalFuel                = 0;
-    uint64_t nTotalRunStep             = 0;
+    uint64_t totalFuel                 = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
+        assert(mapBlockIndex.count(cw.accountCache.GetBestBlock()));
+        int32_t curHeight     = mapBlockIndex[cw.accountCache.GetBestBlock()]->height;
+        int32_t validHeight   = SysCfg().GetTxCacheHeight();
+        uint32_t fuelRate     = block.GetFuelRate();
+        uint64_t totalRunStep = 0;
+
         for (uint32_t i = 1; i < block.vptx.size(); ++ i) {
             std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())))
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated",
-                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-duplicated");
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
+                                 REJECT_INVALID, "tx-duplicated");
 
-            assert(mapBlockIndex.count(cw.accountCache.GetBestBlock()));
-            if (!pBaseTx->IsValidHeight(mapBlockIndex[cw.accountCache.GetBestBlock()]->height, SysCfg().GetTxCacheHeight()))
+            if (!pBaseTx->IsValidHeight(curHeight, validHeight))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s beyond the scope of valid height",
                                 pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
-            pBaseTx->nFuelRate = block.GetFuelRate();
+            pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog(pBaseTx->GetHash());
             if (!pBaseTx->ExecuteTx(pIndex->height, i, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
@@ -1340,13 +1344,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             blockUndo.vtxundo.push_back(cw.txUndo);
             cw.DisableTxUndoLog();
 
-            nTotalRunStep += pBaseTx->nRunStep;
-            if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
+            totalRunStep += pBaseTx->nRunStep;
+            if (totalRunStep > MAX_BLOCK_RUN_STEP)
                 return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step",
                                 block.GetHash().GetHex()), REJECT_INVALID, "exceed-max-run-step");
 
             auto fuel = pBaseTx->GetFuel(block.GetFuelRate());
-            nTotalFuel += fuel;
+            totalFuel += fuel;
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);  // Only allow WICC/WUSD as fees type.
@@ -1357,13 +1361,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
-                     nTotalFuel, fuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
+                     totalFuel, fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 
     // Verify total fuel
-    if (nTotalFuel != block.GetFuel())
-        return ERRORMSG("fuel value at block header calculate error(actual fuel:%lld vs block fuel:%lld)", nTotalFuel,
+    if (totalFuel != block.GetFuel())
+        return ERRORMSG("fuel value at block header calculate error(actual fuel:%lld vs block fuel:%lld)", totalFuel,
                         block.GetFuel());
 
     // Verify miner account

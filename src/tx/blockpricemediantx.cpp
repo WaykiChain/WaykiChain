@@ -44,7 +44,6 @@ bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 100%)
  */
 bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
