@@ -24,26 +24,28 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         throw runtime_error(
             "submitpricefeedtx {price_feeds_json} [fee]\n"
             "\nsubmit a Price Feed Tx.\n"
-            "\nthe execution include registercontracttx and callcontracttx.\n"
             "\nArguments:\n"
-            "1. \"address\" : Price Feeder's address\n"
-            "2. \"pricefeeds\"    (string, required) A json array of pricefeeds\n"
+            "1. \"address\" :   (string, required) Price Feeder's address\n"
+            "2. \"pricefeeds\": (string, required) A json array of pricefeeds\n"
             " [\n"
             "   {\n"
-            "      \"coin\": \"WICC|WGRT\", (string, required) The coin type\n"
-            "      \"currency\": \"USD|CNY\" (string, required) The currency type\n"
-            "      \"price\": (number, required) The price (boosted by 10^4) \n"
+            "      \"coin\": \"WICC|WGRT\",     (string, required) The coin type\n"
+            "      \"currency\": \"USD|CNY\"    (string, required) The currency type\n"
+            "      \"price\":                   (number, required) The price (boosted by 10^4) \n"
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\": (numeric, optional) fee pay for miner, default is 10000\n"
+            "3.\"fee\":         (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
-            "\"txid\" (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitpricefeedtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
-                            "\"[{\\\"coin\\\", WICC, \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 0.28}]\"\n")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitpricefeedtx","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\", WICC, \"currency\": \"USD\", \"price\": 0.28}]\"\n"));
+            "\"txid\"           (string) The transaction id.\n"
+            "\nExamples:\n" +
+            HelpExampleCli("submitpricefeedtx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
+                           "\"[{\\\"coin\\\": \"WICC\", \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 2500}]\"\n") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submitpricefeedtx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\": \"WICC\", \"currency\": \"USD\", "
+                           "\"price\": 2500}]\"\n"));
     }
 
     RPCTypeCheck(params, boost::assign::list_of(str_type)(array_type)(int_type));
@@ -618,7 +620,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     }
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);    
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     // TODO: need to support fee coin type
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, fee);
 
