@@ -352,7 +352,7 @@ Value getusercdp(const Array& params, bool fHelp){
             cdps.push_back(cdp.ToJson());
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The cdp not exists! cdpId=%s", params[1].get_str()));
+                            strprintf("CDP (%s) does not exist!", params[1].get_str()));
         }
     } else {
         vector<CUserCDP> userCdps;
