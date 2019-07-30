@@ -101,7 +101,7 @@ private:
     // cdp$CTxID -> CUserCDP
     CCompositeKVCache< dbk::CDP,         uint256,       CUserCDP >       cdpCache;
     // rcdp${CRegID} -> set<CTxID>
-    CCompositeKVCache< dbk::REGID_CDP, string,          set<uint256>>    regId2CdpCache;
+    CCompositeKVCache< dbk::REGID_CDP,   string,        set<uint256>>    regId2CdpCache;
 
 public:
     // Memory only cache

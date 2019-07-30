@@ -37,6 +37,16 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (bcoin_symbol != SYMB::WICC) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid bcoin symbol! "),
+                        REJECT_INVALID, "invalid-bcoin-symbol");
+    }
+
+    if (scoin_symbol != SYMB::WUSD) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin symbol!!"),
+                        REJECT_INVALID, "invalid-scoin-symbol");
+    }
+
     if (scoins_to_mint == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, scoins_to_mint is zero error!!"),
                         REJECT_INVALID, "scoins_to_mint_zeror-err");
@@ -233,13 +243,15 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("ver",                nVersion));
     result.push_back(Pair("tx_uid",             txUid.ToString()));
     result.push_back(Pair("addr",               keyId.ToAddress()));
+    result.push_back(Pair("fee_symbol",         fee_symbol));
     result.push_back(Pair("fees",               llFees));
     result.push_back(Pair("valid_height",       nValidHeight));
 
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
+    result.push_back(Pair("bcoin_symbol",       bcoin_symbol));
+    result.push_back(Pair("scoin_symbol",       scoin_symbol));
     result.push_back(Pair("bcoins_to_stake",    bcoins_to_stake));
     result.push_back(Pair("scoins_to_mint",     scoins_to_mint));
-
     return result;
 }
 
@@ -354,7 +366,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
                         account.regid.ToString(), scoins_to_repay), UPDATE_CDP_FAIL, "bad-operate-account");
     }
-    if (account.OperateBalance(cdp.bcoin_symbol, BalanceOpType::ADD_FREE, bcoins_to_redeem)) {
+    if (!account.OperateBalance(cdp.bcoin_symbol, BalanceOpType::ADD_FREE, bcoins_to_redeem)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
                         account.regid.ToString(), bcoins_to_redeem), UPDATE_CDP_FAIL, "bad-operate-account");
     }

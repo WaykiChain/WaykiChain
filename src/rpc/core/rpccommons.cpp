@@ -87,11 +87,11 @@ bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType,
 
 // [symbol]:amount:[unit]
 // [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]
-bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
+bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, const TokenSymbol defaltSymbol) {
 	vector<string> comboMoneyArr = split(comboMoneyStr, ':');
 
     switch (comboMoneyArr.size()) {
-        case 0: {
+        case 1: {
             if (!is_number(comboMoneyArr[0]))
                 return false;
 
@@ -99,12 +99,12 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
             if (iValue < 0)
                 return false;
 
-            comboMoney.symbol = "WICC";
+            comboMoney.symbol = defaltSymbol;
             comboMoney.amount = (uint64_t) iValue;
             comboMoney.unit   = "sawi";
             break;
         }
-        case 1: {
+        case 2: {
             if (is_number(comboMoneyArr[0])) {
                 int64_t iValue = std::atoll(comboMoneyArr[0].c_str());
                 if (iValue < 0)
@@ -113,11 +113,14 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
                 if (!CoinUnitTypeTable.count(comboMoneyArr[1]))
                     return false;
 
-                comboMoney.symbol = "WICC";
+                comboMoney.symbol = defaltSymbol;
                 comboMoney.amount = (uint64_t) iValue;
                 comboMoney.unit   = comboMoneyArr[1];
 
             } else if (is_number(comboMoneyArr[1])) {
+                if (comboMoneyArr[0].size() > MAX_TOKEN_SYMBOL_LEN) // check symbol len
+                    return false;
+
                 int64_t iValue = std::atoll(comboMoneyArr[1].c_str());
                 if (iValue < 0)
                     return false;
@@ -132,8 +135,8 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney) {
 
             break;
         }
-        case 2: {
-            if (comboMoneyArr.size() > 12)
+        case 3: {
+            if (comboMoneyArr[0].size() > MAX_TOKEN_SYMBOL_LEN) // check symbol len
                 return false;
 
             if (!is_number(comboMoneyArr[1]))

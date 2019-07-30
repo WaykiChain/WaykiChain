@@ -132,6 +132,7 @@ extern json_spirit::Value getminedblocks(const json_spirit::Array& params, bool 
 extern json_spirit::Value getnewaddr(const json_spirit::Array& params, bool fHelp); // in rpcwallet.cpp
 extern json_spirit::Value getaccount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifymessage(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcoinunitinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getbalance(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addmulsigaddr(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createmulsig(const json_spirit::Array& params, bool fHelp);
@@ -196,6 +197,7 @@ extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, boo
 extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitliquidatecdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmedianprice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcdp(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getusercdp(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);

@@ -28,6 +28,11 @@ bool CBaseCoinTransferTx::CheckTx(int height, CCacheWrapper &cw, CValidationStat
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
+    if (srcAccount.GetToken(SYMB::WICC).free_amount < llFees + bcoins) {
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account balance insufficient"),
+                         REJECT_INVALID, "account-balance-insufficient");
+    }
+
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -56,7 +61,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CV
     }
 
     uint64_t minusValue = llFees + bcoins;
-    if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minusValue)) {
+    if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minusValue)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }

@@ -131,24 +131,26 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 Value submitstakecdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
-            "submitstakecdptx \"addr\" stake_amount collateral_ratio [\"cdp_id\"] [fee]\n"
+            "submitstakecdptx \"addr\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
-            "1. \"address\": CDP Staker's account address\n"
-            "2. \"stake_combo_money\":   (symbol:numeric:unit, required) Combo Money to stake into the CDP\n"
-            "3. \"mint_combo_money\":   (symbol:numeric:unit, required), Combo Money to mint\n"
-            "4. \"cdp_id\":         (string, optional) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
+            "1. \"addr\": CDP Staker's account address\n"
+            "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP,"
+                                                                      " default symbol=WICC, default unit=sawi\n"
+            "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint,"
+                                                                      " default symbol=WUSD, default unit=sawi\n"
+            "4. \"cdp_id\":         (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
+            "5. \"symbol:fee:unit\": (symbol:amount:unit, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" WICC:1000000:sawi\n") +
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" WICC:1000000:sawi\n"));
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n"));
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
@@ -156,14 +158,14 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
-    if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake comboMoney format error");
+    if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake, SYMB::WICC))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake ComboMoney format error");
 
     if (cmBcoinsToStake.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
 
-    if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint comboMoney format error");
+    if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint, SYMB::WUSD))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
 
     if (cmScoinsToMint.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
@@ -180,32 +182,30 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
-
-        CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
-        return SubmitTx(*cdpUid, tx);
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
     }
 
-    return false;
+    CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
+    return SubmitTx(*cdpUid, tx);
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitredeemcdptx \"addr\" \"cdp_id\" repay_amount redeem_amount [fee]\n"
+            "submitredeemcdptx \"addr\" \"cdp_id\" repay_amount redeem_amount [\"symbol:fee:unit\"]\n"
             "\nsubmit a CDP Redemption Tx\n"
             "\nArguments:\n"
-            "1. \"address\" : CDP redemptor's address\n"
+            "1. \"addr\" : (string) CDP redemptor's address\n"
             "2. \"cdp_id\": (string) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"repay_amount\": (numeric required) WUSD coins to stake into the CDP, boosted by 10^8\n"
             "4. \"redeem_amount\": (numeric required) WICC coins to stake into the CDP, boosted by 10^8\n"
-            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
+            "5. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 1000000\n")
+            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 \"1000000\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 30000 1000000\n")
+            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 30000 \"1000000\"\n")
         );
     }
     EnsureWalletIsUnlocked();
@@ -222,7 +222,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     ComboMoney cmFee;
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
     }
 
     int validHeight = chainActive.Tip()->height;
@@ -234,13 +234,13 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "submitliquidatecdptx \"addr\" \"cdp_id\" liquidate_amount [fee]\n"
+            "submitliquidatecdptx \"addr\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
-            "1. \"address\" : (string required) CDP liquidator's address\n"
+            "1. \"addr\" : (string required) CDP liquidator's address\n"
             "2. \"cdp_id\": (string required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"liquidate_amount\": (numeric required) WUSD coins to repay to CDP, boosted by 10^8 (penalty fees deducted separately from sender account)\n"
-            "4. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:\n"
+            "4. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -261,7 +261,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     if (params.size() == 4) {
         //fee = params[3].get_uint64();  // real type, 0 if empty and thence minFee
         if (!ParseRpcInputMoney(params[3].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee comboMoney format error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
     }
 
     int validHeight = chainActive.Tip()->height;
@@ -275,7 +275,7 @@ Value getmedianprice(const Array& params, bool fHelp){
             "getmedianprice [height]\n"
             "\nget current median price or query at specified height.\n"
             "\nArguments:\n"
-            "1.\"height\": (numeric, optional), specified height. If not provide use the tip block height in chainActive\n\n"
+            "1.\"height\": (numeric, optional), specified height. If not provided, use the tip block height in chainActive\n\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getmedianprice","")
@@ -320,11 +320,10 @@ Value listcdpstoliquidate(const Array& params, bool fHelp);
 Value getusercdp(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getusercdp \"addr\" \"cdp_id\" [height]\n"
+            "getusercdp \"addr\"\n"
             "\nget account's cdp.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string, required) CDP owner addr\n"
-            "2.\"cdb_id\": (string, optional) CDP TxId\n"
+            "1.\"addr\": (string, required) CDP owner's account addr\n"
             "\nResult:\n"
             "\nExamples:\n"
             + HelpExampleCli("getusercdp", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"\n")
@@ -349,27 +348,47 @@ Value getusercdp(const Array& params, bool fHelp){
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
 
     Array cdps;
-    if (params.size() > 1) {
-        uint256 cdpTxId(uint256S(params[1].get_str()));
-        CUserCDP cdp(txAccount.regid, cdpTxId);
-        if (pCdMan->pCdpCache->GetCdp(cdp)) {
+    vector<CUserCDP> userCdps;
+    if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
+        for (auto& cdp : userCdps) {
             cdps.push_back(cdp.ToJson(bcoinMedianPrice));
-        } else {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("CDP (%s) does not exist!", params[1].get_str()));
-        }
-    } else {
-        vector<CUserCDP> userCdps;
-        if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
-            for (auto& cdp : userCdps) {
-                cdps.push_back(cdp.ToJson(bcoinMedianPrice));
-            }
         }
     }
 
     Object obj;
-    obj.push_back(Pair("cdp", cdps));
+    obj.push_back(Pair("user_cdps", cdps));
     return obj;
+}
+
+Value getcdp(const Array& params, bool fHelp){
+    if (fHelp || params.size() < 1 || params.size() > 2) {
+        throw runtime_error(
+            "getcdp \"cdp_id\"\n"
+            "\nget CDP by its CDP_ID\n"
+            "\nArguments:\n"
+            "1.\"cdp_id\": (string, required) cdp_id\n"
+            "\nResult:\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+        );
+    }
+
+    int height = chainActive.Tip()->height;
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+
+    uint256 cdpTxId(uint256S(params[0].get_str()));
+    CUserCDP cdp;
+    if (pCdMan->pCdpCache->GetCdp(cdp)) {
+        Object obj;
+        obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
+        return obj;
+
+    } else {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                            strprintf("CDP (%s) does not exist!", params[0].get_str()));
+    }
 }
 
 /*************************************************<< DEX >>**************************************************/
@@ -510,8 +529,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    uint64_t assetAmount  = AmountToRawValue(params[2]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
+    uint64_t assetAmount  = AmountToRawValue(params[3]);
     uint64_t fee = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance

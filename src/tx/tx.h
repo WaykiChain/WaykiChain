@@ -98,6 +98,7 @@ public:
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
     bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsMedianPriceTx() { return nTxType == PRICE_MEDIAN_TX; }
+    bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
 
     bool CheckCoinRange(TokenSymbol symbol, int64_t amount);
 protected:
