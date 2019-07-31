@@ -115,9 +115,9 @@ static const int32_t fHaveUPnP = true;
 static const int32_t fHaveUPnP = false;
 #endif
 
-static const uint64_t kTotalBaseCoinCount       = 210000000;    // 210 million
-static const uint64_t kYearBlockCount           = 3153600;      // one year = 365 * 24 * 60 * 60 / 10
-static const uint64_t kMinDiskSpace             = 52428800;     // Minimum disk space required
+static const uint64_t kTotalBaseCoinCount           = 210000000;    // 210 million
+static const uint64_t kYearBlockCount               = 3153600;      // one year = 365 * 24 * 60 * 60 / 10
+static const uint64_t kMinDiskSpace                 = 52428800;     // Minimum disk space required
 static const int32_t kContractScriptMaxSize         = 65536;        // 64 KB max for contract script size
 static const int32_t kContractArgumentMaxSize       = 4096;         // 4 KB max for contract argument size
 static const int32_t kCommonTxMemoMaxSize           = 100;          // 100 bytes max for memo size
@@ -128,9 +128,9 @@ static const int32_t kMultisigNumberLimit           = 15;           // m-n multi
 static const int32_t KMultisigScriptMaxSize         = 1000;         // multisig script max size
 static const int32_t kRegIdMaturePeriodByBlock      = 100;          // RegId's mature period measured by blocks
 
-const uint16_t kMaxMinedBlocks                  = 100;          // maximun cache size for mined blocks
+const uint16_t kMaxMinedBlocks                      = 100;          // maximun cache size for mined blocks
 
-static const string kContractScriptPathPrefix   = "/tmp/lua/";
+static const string kContractScriptPathPrefix       = "/tmp/lua/";
 
 
 #endif //CONFIG_CONST_H
