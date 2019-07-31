@@ -37,10 +37,15 @@ public:
 
 class CPricePointMemCache {
 public:
-    CPricePointMemCache() : pBase(nullptr) {}
-    CPricePointMemCache(CPricePointMemCache *pBaseIn) : pBase(pBaseIn) {}
+    map<CoinPricePair, uint64_t> latestBlockMedianPricePoints;
 
 public:
+    CPricePointMemCache() : pBase(nullptr) {}
+    CPricePointMemCache(CPricePointMemCache *pBaseIn)
+        : latestBlockMedianPricePoints(pBase->latestBlockMedianPricePoints), pBase(pBaseIn) {}
+
+public:
+    void SetLatestBlockMedianPricePoints(const map<CoinPricePair, uint64_t> &latestBlockMedianPricePoints);
     bool AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
     bool AddBlockToCache(const CBlock &block);
     // delete block price point by specific block height.
@@ -52,9 +57,9 @@ public:
     uint64_t GetBcoinMedianPrice(const int32_t blockHeight);
     uint64_t GetFcoinMedianPrice(const int32_t blockHeight);
 
-    bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CoinPricePair, uint64_t> &mapMedianPricePointsIn);
+    bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CoinPricePair, uint64_t> &mapMedianPricePoints);
 
-    void SetBaseViewPtr(CPricePointMemCache *pBaseIn) { pBase = pBaseIn; }
+    void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
 
 private:

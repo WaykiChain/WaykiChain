@@ -15,7 +15,8 @@ private:
     uint64_t fcoinsToStake;  // when negative, it means staking revocation
 
 public:
-    CFcoinStakeTx(): CBaseTx(FCOIN_STAKE_TX), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
+    CFcoinStakeTx()
+        : CBaseTx(FCOIN_STAKE_TX), fee_symbol(SYMB::WICC), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
 
     CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
         assert(FCOIN_STAKE_TX == pBaseTx->nTxType);
@@ -26,7 +27,9 @@ public:
                   uint64_t fcoinsToStakeIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
           stakeType(stakeTypeIn),
-          fcoinsToStake(fcoinsToStakeIn) {}
+          fcoinsToStake(fcoinsToStakeIn) {
+              fee_symbol = SYMB::WICC; // TODO:
+          }
 
     ~CFcoinStakeTx() {}
 

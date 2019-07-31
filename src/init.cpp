@@ -866,6 +866,11 @@ bool AppInit(boost::thread_group &threadGroup) {
     blockIndex   = chainActive.Tip();
     nCacheHeight = 11;  // TODO: parameterize 11.
     nCount       = 0;
+
+    if (!ReadBlockFromDisk(blockIndex, block))
+        return InitError("Failed to read block from disk");
+    pCdMan->pPpCache->SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
+
     while (blockIndex && nCacheHeight-- > 0) {
         if (!ReadBlockFromDisk(blockIndex, block))
             return InitError("Failed to read block from disk");
