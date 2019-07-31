@@ -185,10 +185,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
 
         uint64_t minFee;
-        if (cmFee.symbol == SYMB:WICC) {
-            minFee = kTxFeeTable.at(CDP_STAKE_TX).get<1>();
-        } else if (cmFee.symbol == SYMB:WUSD) {
-            minFee = kTxFeeTable.at(CDP_STAKE_TX).get<3>();
+        if (cmFee.symbol == SYMB::WICC) {
+            minFee = std::get<1>(kTxFeeTable.at(CDP_STAKE_TX));
+        } else if (cmFee.symbol == SYMB::WUSD) {
+            minFee = std::get<3>(kTxFeeTable.at(CDP_STAKE_TX);
         }
         uint64_t unitBase =  CoinUnitTypeTable.at(cmFee.unit);
         uint64_t actualFee = cmFee.amount * unitBase;
