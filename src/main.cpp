@@ -1287,7 +1287,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
-        for (uint8_t index = 0; index < 3; ++ index) {
+        for (int32_t index = 0; index < 3; ++ index) {
             LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s",
                      block.vptx[index + 1]->GetHash().GetHex(), txids[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
@@ -1307,28 +1307,55 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
 
     // Re-compute reward values and total fuel
-    uint64_t nTotalFuel                = 0;
+    uint64_t totalFuel                 = 0;
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
-        uint64_t nTotalRunStep = 0;
-        for (uint32_t i = 1; i < block.vptx.size(); ++ i) {
-            std::shared_ptr<CBaseTx> pBaseTx = block.vptx[i];
+        assert(mapBlockIndex.count(cw.accountCache.GetBestBlock()));
+        int32_t curHeight     = mapBlockIndex[cw.accountCache.GetBestBlock()]->height;
+        int32_t validHeight   = SysCfg().GetTxCacheHeight();
+        uint32_t fuelRate     = block.GetFuelRate();
+        uint64_t totalRunStep = 0;
+
+        bool haveMedianPriceTx = block.vptx[1]->IsMedianPriceTx();
+        bool havePriceFeedTx   = (haveMedianPriceTx && (block.vptx.size() > 2) && (block.vptx[2]->IsPriceFeedTx()));
+        int32_t lastPriceFeedTxIndex = 2;  // 0: block reward tx; 1: median price tx
+        bool needExecuteTx           = false; // Execute it after all price feed tx(s) executed.
+        if (havePriceFeedTx) {
+            while (block.vptx.size() > (uint32_t)lastPriceFeedTxIndex + 1 &&
+                   block.vptx[lastPriceFeedTxIndex + 1]->IsPriceFeedTx()) {
+                ++lastPriceFeedTxIndex;
+            }
+        }
+
+        LogPrint("INFO", "Connect() : haveMedianPriceTx: %d, havePriceFeedTx: %d, lastPriceFeedTxIndex: %d, txCount: %llu\n",
+                 haveMedianPriceTx, havePriceFeedTx, lastPriceFeedTxIndex, block.vptx.size());
+
+        for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
+            if (index == 1 && haveMedianPriceTx) {
+                if (havePriceFeedTx && !needExecuteTx) {
+                    needExecuteTx = true;
+                    continue;
+                } else {
+                    // Execute median price tx normally.
+                }
+            }
+
+            std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())))
-                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated",
-                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-duplicated");
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
+                    REJECT_INVALID, "tx-duplicated");
 
-            assert(mapBlockIndex.count(cw.accountCache.GetBestBlock()));
-            if (!pBaseTx->IsValidHeight(mapBlockIndex[cw.accountCache.GetBestBlock()]->height, SysCfg().GetTxCacheHeight()))
+            if (!pBaseTx->IsValidHeight(curHeight, validHeight))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s beyond the scope of valid height",
-                                pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
+                    pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
-            pBaseTx->nFuelRate = block.GetFuelRate();
+            pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog(pBaseTx->GetHash());
-            if (!pBaseTx->ExecuteTx(pIndex->height, i, cw, state)) {
+            if (!pBaseTx->ExecuteTx(pIndex->height, index, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
                     pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                      state.GetRejectReason());
+                                                        state.GetRejectReason());
                 }
                 cw.DisableTxUndoLog();
                 return false;
@@ -1340,13 +1367,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             blockUndo.vtxundo.push_back(cw.txUndo);
             cw.DisableTxUndoLog();
 
-            nTotalRunStep += pBaseTx->nRunStep;
-            if (nTotalRunStep > MAX_BLOCK_RUN_STEP)
-                return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step",
-                                block.GetHash().GetHex()), REJECT_INVALID, "exceed-max-run-step");
+            totalRunStep += pBaseTx->nRunStep;
+            if (totalRunStep > MAX_BLOCK_RUN_STEP)
+                return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step", block.GetHash().GetHex()),
+                    REJECT_INVALID, "exceed-max-run-step");
 
             auto fuel = pBaseTx->GetFuel(block.GetFuelRate());
-            nTotalFuel += fuel;
+            totalFuel += fuel;
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);  // Only allow WICC/WUSD as fees type.
@@ -1356,14 +1383,23 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
-            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n",
-                     nTotalFuel, fuel, pBaseTx->nRunStep, block.GetFuelRate(), pBaseTx->GetHash().GetHex());
+            if (index == 1 && haveMedianPriceTx && needExecuteTx) {
+                // Jump to the tx refered to index = lastPriceFeedTxIndex + 1
+                index = lastPriceFeedTxIndex; // atuoincrement in loop for(;;)
+            } else if (havePriceFeedTx && index == lastPriceFeedTxIndex) {
+                // Jump to the median price tx refered to index = 1
+                assert(block.vptx[1]->IsMedianPriceTx());
+                index = 0; // atuoincrement in loop for(;;)
+            }
+
+            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", totalFuel,
+                        fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 
     // Verify total fuel
-    if (nTotalFuel != block.GetFuel())
-        return ERRORMSG("fuel value at block header calculate error(actual fuel:%lld vs block fuel:%lld)", nTotalFuel,
+    if (totalFuel != block.GetFuel())
+        return ERRORMSG("fuel value at block header calculate error(actual fuel:%lld vs block fuel:%lld)", totalFuel,
                         block.GetFuel());
 
     // Verify miner account
@@ -1417,7 +1453,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (pIndex->height - COINBASE_MATURITY > 0) {
         // Deal mature block reward transaction
         CBlockIndex *pMatureIndex = pIndex;
-        for (int i = 0; i < COINBASE_MATURITY; ++i) {
+        for (int32_t i = 0; i < COINBASE_MATURITY; ++i) {
             pMatureIndex = pMatureIndex->pprev;
         }
 
@@ -2115,6 +2151,11 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsCoinBase())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-coinbase-multiple");
+
+            // Second transaction must be median price transaction if existed.
+            if (1 != i && block.vptx[i]->IsMedianPriceTx())
+                return state.DoS(100, ERRORMSG("CheckBlock() : more than one median price tx"), REJECT_INSUFFICIENTFEE,
+                                 "bad-median-price-multiple");
         }
     }
 

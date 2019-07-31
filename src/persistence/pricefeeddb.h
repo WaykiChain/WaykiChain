@@ -47,8 +47,11 @@ public:
     bool DeleteBlockPricePoint(const int32_t blockHeight);
     bool DeleteBlockFromCache(const CBlock &block);
 
+    uint64_t GetMedianPrice(const int32_t blockHeight, const CoinPricePair &coinPricePair);
+
     uint64_t GetBcoinMedianPrice(const int32_t blockHeight);
     uint64_t GetFcoinMedianPrice(const int32_t blockHeight);
+
     bool GetBlockMedianPricePoints(const int32_t blockHeight, map<CoinPricePair, uint64_t> &mapMedianPricePointsIn);
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn) { pBase = pBaseIn; }

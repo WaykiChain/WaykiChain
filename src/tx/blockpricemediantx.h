@@ -27,6 +27,7 @@ public:
         READWRITE(txUid);
 
         READWRITE(median_price_points);
+        // READWRITE(signature);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {

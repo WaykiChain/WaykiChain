@@ -300,12 +300,12 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
     uint32_t nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize              = std::min(nBlockMaxSize, nBlockPrioritySize);
+    nBlockPrioritySize          = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
     uint32_t nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
-    nBlockMinSize              = std::min(nBlockMaxSize, nBlockMinSize);
+    nBlockMinSize          = std::min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
     {
@@ -313,7 +313,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
         int32_t height          = pIndexPrev->height + 1;
-        int32_t index           = 0;
+        int32_t index           = 0; // block reward tx
         uint32_t fuelRate       = GetElementForBurn(pIndexPrev);
         uint64_t totalBlockSize = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t totalRunStep   = 0;
@@ -465,12 +465,12 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
     // How much of the block should be dedicated to high-priority transactions,
     // included regardless of the fees they pay
     uint32_t nBlockPrioritySize = SysCfg().GetArg("-blockprioritysize", DEFAULT_BLOCK_PRIORITY_SIZE);
-    nBlockPrioritySize              = std::min(nBlockMaxSize, nBlockPrioritySize);
+    nBlockPrioritySize          = std::min(nBlockMaxSize, nBlockPrioritySize);
 
     // Minimum block size you want to create; block will be filled with free transactions
     // until there are no more or the block reaches this size:
     uint32_t nBlockMinSize = SysCfg().GetArg("-blockminsize", DEFAULT_BLOCK_MIN_SIZE);
-    nBlockMinSize              = std::min(nBlockMaxSize, nBlockMinSize);
+    nBlockMinSize          = std::min(nBlockMaxSize, nBlockMinSize);
 
     // Collect memory pool transactions into the block
     {
@@ -478,7 +478,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
         CBlockIndex *pIndexPrev            = chainActive.Tip();
         int32_t height                     = pIndexPrev->height + 1;
-        int32_t index                      = 0;
+        int32_t index                      = 1; // 0: block reward tx; 1: median price tx
         uint32_t fuelRate                  = GetElementForBurn(pIndexPrev);
         uint64_t totalBlockSize            = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t totalRunStep              = 0;

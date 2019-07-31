@@ -9,22 +9,42 @@
 
 
 bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    // TODO: txUid == miner?
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
-
-    map<CoinPricePair, uint64_t> mapMedianPricePoints;
-    cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
-
-    if (mapMedianPricePoints != median_price_points) {
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, invalid median price points"), REJECT_INVALID,
-                         "bad-median-price-points");
-    }
 
     return true;
 }
+
 /**
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 100%)
  */
 bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+    map<CoinPricePair, uint64_t> mapMedianPricePoints;
+    if (!cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, failed to get block median price points"),
+                         READ_PRICE_POINT_FAIL, "bad-read-price-points");
+    }
+
+    if (mapMedianPricePoints != median_price_points) {
+        string pricePoints;
+        for (const auto item : mapMedianPricePoints) {
+            pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
+                                     item.first.second, item.second);
+        };
+
+        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", height, pricePoints);
+
+        pricePoints.clear();
+        for (const auto item : median_price_points) {
+            pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
+                                     item.first.second, item.second);
+        };
+
+        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", height, pricePoints);
+
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
+                         "bad-median-price-points");
+    }
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
@@ -37,15 +57,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(cw.ppCache.GetBcoinMedianPrice(height),
-                                                      globalCollateralRatioFloor)) {
+    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height);
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
         return true;
     }
 
     //1. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;
-    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height);
     uint64_t forceLiquidateRatio = 0;
     if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
@@ -114,7 +133,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
     for (const auto item : median_price_points) {
-        pricePoints += strprintf("{coin_symbol:%u, price_symbol:%u, price:%lld}",
+        pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}",
                                 item.first.first, item.first.second, item.second);
     };
 

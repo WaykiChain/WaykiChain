@@ -39,15 +39,17 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+        READWRITE(VARINT(llFees));
 
         READWRITE(pricePoints);
+        READWRITE(signature);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
-                << pricePoints;
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
+               << pricePoints;
             sigHash = ss.GetHash();
         }
 
