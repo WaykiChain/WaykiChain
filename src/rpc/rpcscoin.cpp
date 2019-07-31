@@ -188,7 +188,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         if (cmFee.symbol == SYMB::WICC) {
             minFee = std::get<1>(kTxFeeTable.at(CDP_STAKE_TX));
         } else if (cmFee.symbol == SYMB::WUSD) {
-            minFee = std::get<3>(kTxFeeTable.at(CDP_STAKE_TX);
+            minFee = std::get<3>(kTxFeeTable.at(CDP_STAKE_TX));
         } else {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee Symbol not supported!");
         }
