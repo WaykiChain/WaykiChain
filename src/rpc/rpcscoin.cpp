@@ -386,7 +386,7 @@ Value getcdp(const Array& params, bool fHelp){
         return obj;
 
     } else {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdp.cdpid));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdp.cdpid.GetHex()));
     }
 }
 
