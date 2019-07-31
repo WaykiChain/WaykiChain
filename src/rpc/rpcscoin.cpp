@@ -387,19 +387,18 @@ Value getcdp(const Array& params, bool fHelp){
         );
     }
 
-    int height = chainActive.Tip()->height;
+    int32_t height = chainActive.Tip()->height;
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
-    if (pCdMan->pCdpCache->GetCdp(cdpTxId, cdp)) {
-        Object obj;
-        obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
-        return obj;
-
-    } else {
+    if (!pCdMan->pCdpCache->GetCdp(cdpTxId, cdp)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdp.cdpid.GetHex()));
     }
+
+    Object obj;
+    obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
+    return obj;
 }
 
 /*************************************************<< DEX >>**************************************************/
