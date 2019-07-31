@@ -183,6 +183,19 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (params.size() == 5) {
         if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
+
+        uint64_t minFee;
+        if (cmFee.symbol == SYMB:WICC) {
+            minFee = kTxFeeTable.at(CDP_STAKE_TX).get<1>();
+        } else if (cmFee.symbol == SYMB:WUSD) {
+            minFee = kTxFeeTable.at(CDP_STAKE_TX).get<3>();
+        }
+        uint64_t unitBase =  CoinUnitTypeTable.at(cmFee.unit);
+        uint64_t actualFee = cmFee.amount * unitBase;
+        if (actualFee < minFee) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Error: Fee(%llu) < minFee (%llu)",
+                        actualFee, minFee);
+        }
     }
 
     CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
