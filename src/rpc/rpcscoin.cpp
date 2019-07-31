@@ -189,6 +189,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             minFee = std::get<1>(kTxFeeTable.at(CDP_STAKE_TX));
         } else if (cmFee.symbol == SYMB::WUSD) {
             minFee = std::get<3>(kTxFeeTable.at(CDP_STAKE_TX);
+        } else {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee Symbol not supported!");
         }
         uint64_t unitBase =  CoinUnitTypeTable.at(cmFee.unit);
         uint64_t actualFee = cmFee.amount * unitBase;
