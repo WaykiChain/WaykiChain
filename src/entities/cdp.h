@@ -7,6 +7,7 @@
 #ifndef ENTITIES_CDP_H
 #define ENTITIES_CDP_H
 
+#include "config/scoin.h"
 #include "asset.h"
 #include "id.h"
 
@@ -33,22 +34,42 @@ struct CUserCDP {
     uint64_t total_staked_bcoins;       // persisted: total staked bcoins
     uint64_t total_owed_scoins;         // persisted: TNj = last + minted = total minted - total redempted
 
-    mutable double collateralRatioBase; // ratioBase = total_staked_bcoins / total_owed_scoins, mem-only
+    mutable double collateral_ratio_base; // ratioBase = total_staked_bcoins / total_owed_scoins, mem-only
 
-    CUserCDP() : block_height(0), total_staked_bcoins(0), total_owed_scoins(0) {}
+    CUserCDP() : block_height(0), total_staked_bcoins(0), total_owed_scoins(0), collateral_ratio_base(0) {}
 
     CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn)
-        : cdpid(cdpTxIdIn), owner_regid(regId), block_height(0), bcoin_symbol(SYMB::WICC), scoin_symbol(SYMB::WUSD), total_staked_bcoins(0), total_owed_scoins(0) {}
+        : cdpid(cdpTxIdIn),
+          owner_regid(regId),
+          block_height(0),
+          bcoin_symbol(SYMB::WICC),
+          scoin_symbol(SYMB::WUSD),
+          total_staked_bcoins(0),
+          total_owed_scoins(0),
+          collateral_ratio_base(0) {}
+
+    CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn, int32_t blockHeight,
+             TokenSymbol bcoinSymbol, TokenSymbol scoinSymbol, uint64_t totalStakedBcoins,
+             uint64_t totalOwedScoins)
+        : cdpid(cdpTxIdIn),
+          owner_regid(regId),
+          block_height(blockHeight),
+          bcoin_symbol(bcoinSymbol),
+          scoin_symbol(scoinSymbol),
+          total_staked_bcoins(totalStakedBcoins),
+          total_owed_scoins(totalOwedScoins) {
+              Update();
+          }
 
     bool operator<(const CUserCDP &cdp) const {
-        if (collateralRatioBase == cdp.collateralRatioBase) {
+        if (collateral_ratio_base == cdp.collateral_ratio_base) {
             if (owner_regid == cdp.owner_regid)
                 return cdpid < cdp.cdpid;
             else
                 return owner_regid < cdp.owner_regid;
 
         } else
-            return collateralRatioBase < cdp.collateralRatioBase;
+            return collateral_ratio_base < cdp.collateral_ratio_base;
     }
 
     IMPLEMENT_SERIALIZE(
@@ -60,20 +81,20 @@ struct CUserCDP {
         READWRITE(VARINT(total_staked_bcoins));
         READWRITE(VARINT(total_owed_scoins));
         if (fRead) {
-            InternalUpdate();
+            Update();
         }
     )
 
     string ToString() {
         return strprintf(
             "cdpid=%s, owner_regid=%s, block_height=%d, bcoin_symbol=%s, total_staked_bcoins=%d, "
-            "scoin_symbol=%s, tatal_owed_scoins=%d, collateralRatioBase=%f",
+            "scoin_symbol=%s, tatal_owed_scoins=%d, collateral_ratio_base=%f",
             cdpid.ToString(), owner_regid.ToString(), block_height, bcoin_symbol, total_staked_bcoins,
-            scoin_symbol, total_owed_scoins, collateralRatioBase);
+            scoin_symbol, total_owed_scoins, collateral_ratio_base);
     }
 
     Object ToJson(uint64_t bcoinMedianPrice) {
-        uint64_t collateralRatio = collateralRatioBase * bcoinMedianPrice * 100 / kPercentBoost; //display as x%
+        double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / kPercentBoost;
 
         Object result;
         result.push_back(Pair("cdpid",              cdpid.GetHex()));
@@ -83,25 +104,23 @@ struct CUserCDP {
         result.push_back(Pair("total_bcoin",        total_staked_bcoins));
         result.push_back(Pair("scoin_symbol",       scoin_symbol));
         result.push_back(Pair("total_scoin",        total_owed_scoins));
-        result.push_back(Pair("collateral_ratio",   collateralRatio));
+        result.push_back(Pair("collateral_ratio",   strprintf("%.2f%%", collateralRatio)));
         return result;
     }
-
+    inline void Update() const {
+        collateral_ratio_base = double (total_staked_bcoins) / total_owed_scoins;
+    }
     void Update(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins) {
 
         block_height = blockHeight;
         total_staked_bcoins += changedBcoins;
         total_owed_scoins += changedScoins;
-        InternalUpdate();
+        Update();
     }
 
     // FIXME: need to set other members empty?
     bool IsEmpty() const { return cdpid.IsEmpty(); }
     void SetEmpty() { cdpid.SetEmpty(); }
-private:
-    inline void InternalUpdate() const {
-        collateralRatioBase = double (total_staked_bcoins) / total_owed_scoins;
-    }
 };
 
 #endif //ENTITIES_CDP_H

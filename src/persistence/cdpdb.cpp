@@ -84,7 +84,7 @@ bool CCdpMemCache::GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, se
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
     static uint256 txid;
     static CUserCDP cdp(regId, txid);
-    cdp.collateralRatioBase = ratio;
+    cdp.collateral_ratio_base = ratio;
     cdp.owner_regid         = regId;
 
     auto boundary = cdps.upper_bound(cdp);

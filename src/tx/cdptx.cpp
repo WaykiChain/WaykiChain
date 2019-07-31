@@ -140,12 +140,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                         bcoins_to_stake), REJECT_INVALID, "bcoins-too-small-to-stake");
         }
 
-        CUserCDP cdp(txUid.get<CRegID>(), GetHash());
-        cdp.block_height = height;
-        cdp.bcoin_symbol = bcoin_symbol;
-        cdp.scoin_symbol = scoin_symbol;
-        cdp.total_staked_bcoins = bcoins_to_stake;
-        cdp.total_owed_scoins = scoins_to_mint;
+        CUserCDP cdp(txUid.get<CRegID>(), GetHash(), height, bcoin_symbol, scoin_symbol, bcoins_to_stake, scoins_to_mint);
 
         cw.cdpCache.NewCdp(height, cdp);
 
