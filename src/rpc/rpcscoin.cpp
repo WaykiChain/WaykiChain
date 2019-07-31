@@ -392,7 +392,7 @@ Value getcdp(const Array& params, bool fHelp){
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
-    if (pCdMan->pCdpCache->GetCdp(cdp)) {
+    if (pCdMan->pCdpCache->GetCdp(cdpTxId, cdp)) {
         Object obj;
         obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
         return obj;

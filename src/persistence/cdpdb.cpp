@@ -83,7 +83,7 @@ bool CCdpMemCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, c
 bool CCdpMemCache::GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps) {
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
     static uint256 txid;
-    static CUserCDP cdp(regId, txid);
+    static CUserCDP cdp;
     cdp.collateral_ratio_base = ratio;
     cdp.owner_regid         = regId;
 
@@ -182,8 +182,8 @@ bool CCdpDBCache::GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList) {
     return true;
 }
 
-bool CCdpDBCache::GetCdp(CUserCDP &cdp) {
-    if (!cdpCache.GetData(cdp.cdpid, cdp))
+bool CCdpDBCache::GetCdp(const uint256 cdpid, CUserCDP &cdp) {
+    if (!cdpCache.GetData(cdpid, cdp))
         return false;
 
     return true;

@@ -70,7 +70,7 @@ public:
 
     bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
-    bool GetCdp(CUserCDP &cdp);
+    bool GetCdp(const uint256 cdpid, CUserCDP &cdp);
     bool SaveCdp(CUserCDP &cdp);
     bool EraseCdp(const CUserCDP &cdp);
 

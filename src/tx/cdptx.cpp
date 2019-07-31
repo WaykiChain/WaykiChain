@@ -128,8 +128,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         cw.cdpCache.NewCdp(height, cdp);
 
     } else { // further staking on one's existing CDP
-        CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
-        if (!cw.cdpCache.GetCdp(cdp)) {
+        CUserCDP cdp;
+        if (!cw.cdpCache.GetCdp(cdp_txid, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdp_txid %s", cdp_txid.ToString()),
                              REJECT_INVALID, "invalid-stake-cdp-txid");
         }
@@ -300,8 +300,8 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     //2. pay interest fees in wusd
-    CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
-    if (cw.cdpCache.GetCdp(cdp)) {
+    CUserCDP cdp;
+    if (cw.cdpCache.GetCdp(cdp_txid, cdp)) {
         if (height < cdp.block_height) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.block_height: %d",
                             height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
@@ -425,8 +425,9 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"),
                         REJECT_INVALID, "EMPTY_CDPTXID");
     }
-    CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
-    if (!cw.cdpCache.GetCdp(cdp)) {
+
+    CUserCDP cdp;
+    if (!cw.cdpCache.GetCdp(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
     }
@@ -477,8 +478,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
-    CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);
-    if (!cw.cdpCache.GetCdp(cdp)) {
+    CUserCDP cdp;
+    if (!cw.cdpCache.GetCdp(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
     }
