@@ -147,7 +147,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         cdp.total_staked_bcoins = bcoins_to_stake;
         cdp.total_owed_scoins = scoins_to_mint;
 
-        cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp);
+        cw.cdpCache.NewCdp(height, cdp);
 
     } else { // further staking on one's existing CDP
         CUserCDP cdp(txUid.get<CRegID>(), cdp_txid);

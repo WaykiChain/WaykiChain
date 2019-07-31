@@ -62,6 +62,9 @@ bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
     return true;
 }
 
+bool CCdpMemCache::HaveCdp(const CUserCDP &userCdp) {
+    return cdps.count(userCdp) > 0;
+}
 
 uint64_t CCdpMemCache::GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const {
     // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
@@ -132,10 +135,7 @@ bool CCdpDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, co
     cdpMemCache.EraseCdp(cdp);
 
     // 2. update cdp's properties before saving
-    cdp.block_height = blockHeight;
-    cdp.total_staked_bcoins += changedBcoins;
-    cdp.total_owed_scoins += changedScoins;
-    cdp.collateralRatioBase = double(cdp.total_staked_bcoins) / cdp.total_owed_scoins;
+    cdp.Update(blockHeight, changedBcoins, changedScoins);
 
     // 3. save or erase cdp in cache/memory cache
     // 3.1 erase cdp from cache if it's time to close cdp. Do not bother to erase cdp from
@@ -147,6 +147,11 @@ bool CCdpDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, co
     // 3.2 otherwise, save cdp to cache/memory cache.
         return SaveCdp(cdp) && cdpMemCache.SaveCdp(cdp);
     }
+}
+
+bool CCdpDBCache::NewCdp(const int32_t blockHeight, CUserCDP &cdp) {
+    assert(!cdpMemCache.HaveCdp(cdp));
+    return SaveCdp(cdp) && cdpMemCache.SaveCdp(cdp);
 }
 
 bool CCdpDBCache::StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,

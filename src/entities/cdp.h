@@ -60,7 +60,7 @@ struct CUserCDP {
         READWRITE(VARINT(total_staked_bcoins));
         READWRITE(VARINT(total_owed_scoins));
         if (fRead) {
-            collateralRatioBase = double (total_staked_bcoins) / total_owed_scoins;
+            InternalUpdate();
         }
     )
 
@@ -87,9 +87,21 @@ struct CUserCDP {
         return result;
     }
 
+    void Update(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins) {
+
+        block_height = blockHeight;
+        total_staked_bcoins += changedBcoins;
+        total_owed_scoins += changedScoins;
+        InternalUpdate();
+    }
+
     // FIXME: need to set other members empty?
     bool IsEmpty() const { return cdpid.IsEmpty(); }
     void SetEmpty() { cdpid.SetEmpty(); }
+private:
+    inline void InternalUpdate() const {
+        collateralRatioBase = double (total_staked_bcoins) / total_owed_scoins;
+    }
 };
 
 #endif //ENTITIES_CDP_H

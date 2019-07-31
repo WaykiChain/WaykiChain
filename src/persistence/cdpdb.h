@@ -31,6 +31,7 @@ public:
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
     bool SaveCdp(const CUserCDP &userCdp);
     bool EraseCdp(const CUserCDP &userCdp);
+    bool HaveCdp(const CUserCDP &userCdp);
 
     bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
                                      set<CUserCDP> &userCdps);
@@ -58,6 +59,9 @@ public:
     CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), regId2CdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
     CCdpDBCache(CCdpDBCache *pBaseIn)
         : cdpCache(pBaseIn->cdpCache), regId2CdpCache(pBaseIn->regId2CdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
+
+
+    bool NewCdp(const int32_t blockHeight, CUserCDP &cdp);
 
     bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp);
