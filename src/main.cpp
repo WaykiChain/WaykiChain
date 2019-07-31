@@ -1319,8 +1319,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         bool haveMedianPriceTx = block.vptx[1]->IsMedianPriceTx();
         bool havePriceFeedTx   = (haveMedianPriceTx && (block.vptx.size() > 2) && (block.vptx[2]->IsPriceFeedTx()));
-        int32_t lastPriceFeedTxIndex = 2;  // 0: block reward tx; 1: median price tx
-        bool needExecuteTx           = false; // Execute it after all price feed tx(s) executed.
+        int32_t lastPriceFeedTxIndex   = 2;      // 0: block reward tx; 1: median price tx
+        bool needExecuteTx             = false;  // Execute it after all price feed tx(s) executed.
+        uint32_t medianPriceTxOffset   = 0;
+        uint32_t lastPriceFeedTxOffset = 0;
         if (havePriceFeedTx) {
             while (block.vptx.size() > (uint32_t)lastPriceFeedTxIndex + 1 &&
                    block.vptx[lastPriceFeedTxIndex + 1]->IsPriceFeedTx()) {
@@ -1335,6 +1337,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (index == 1 && haveMedianPriceTx) {
                 if (havePriceFeedTx && !needExecuteTx) {
                     needExecuteTx = true;
+                    medianPriceTxOffset = pos.nTxOffset;
+                    pos.nTxOffset += ::GetSerializeSize(block.vptx[1], SER_DISK, CLIENT_VERSION);
                     continue;
                 } else {
                     // Execute median price tx normally.
@@ -1385,11 +1389,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             if (index == 1 && haveMedianPriceTx && needExecuteTx) {
                 // Jump to the tx refered to index = lastPriceFeedTxIndex + 1
-                index = lastPriceFeedTxIndex; // atuoincrement in loop for(;;)
+                index         = lastPriceFeedTxIndex;  // atuoincrement in loop for(;;)
+                pos.nTxOffset = lastPriceFeedTxOffset;
             } else if (havePriceFeedTx && index == lastPriceFeedTxIndex) {
                 // Jump to the median price tx refered to index = 1
                 assert(block.vptx[1]->IsMedianPriceTx());
-                index = 0; // atuoincrement in loop for(;;)
+                index                 = 0;  // atuoincrement in loop for(;;)
+                lastPriceFeedTxOffset = pos.nTxOffset;
+                pos.nTxOffset         = medianPriceTxOffset;
             }
 
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", totalFuel,
