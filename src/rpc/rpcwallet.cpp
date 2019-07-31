@@ -508,14 +508,14 @@ Value send(const Array& params, bool fHelp) {
             "\nSend asset to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"from\" (string, optional) The address where coins are sent from.\n"
-            "2.\"to\" (string, required) The address where coins are received.\n"
-            "3.\"coin_amount\" (number, required) The amount to transfer.\n"
-            "4.\"coin_symbol\" (string, required) The coin type to transfer. If transferring WUSD, must pay 0.01% to the risk reserve\n"
-            "5.\"fee\" (number, optional) The fee pay for miner.\n"
-            "6.\"fee_type\" (string, optional) The coin type of fee.\n"
+            "1.\"from\"         (string, optional) The address where coins are sent from.\n"
+            "2.\"to\"           (string, required) The address where coins are received.\n"
+            "3.\"coin_amount\"  (number, required) The amount to transfer.\n"
+            "4.\"coin_symbol\"  (string, required) The coin type to transfer. If transferring WUSD, must pay 0.01% to the risk reserve\n"
+            "5.\"fee\"          (number, optional) The fee pay for miner.\n"
+            "6.\"fee_type\"     (string, optional) The coin type of fee.\n"
             "\nResult:\n"
-            "\"txid\" (string) The transaction id.\n"
+            "\"txid\"           (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("send", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" 100000000 \"WICC\" 10000 \"WICC\"\n") +
             "\nAs json rpc call\n" +
