@@ -125,7 +125,11 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash(), height, bcoin_symbol, scoin_symbol, bcoins_to_stake, scoins_to_mint);
 
-        cw.cdpCache.NewCdp(height, cdp);
+        if (!cw.cdpCache.NewCdp(height, cdp)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, save new cdp to db failed"),
+                            READ_SYS_PARAM_FAIL, "save-new-cdp-failed");
+
+        }
 
     } else { // further staking on one's existing CDP
         CUserCDP cdp;
@@ -172,7 +176,10 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         // settle cdp state & persist
-        cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp);
+        if (!cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, save changed cdp to db failed"),
+                            READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
+        }
     }
 
     // update account accordingly
