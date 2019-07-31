@@ -111,9 +111,9 @@ public:
         *this = *(CCoinTransferTx *) pBaseTx;
     }
 
-    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, int32_t validHeightIn,
-                    const TokenSymbol &coinSymbol, uint64_t coinAmount, const TokenSymbol &feeSymbol, uint64_t feesIn,
-                    const UnsignedCharArray &memoIn)
+    CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, const int32_t validHeightIn,
+                    const TokenSymbol &coinSymbol, const uint64_t coinAmount, const TokenSymbol &feeSymbol,
+                    const uint64_t feesIn, const UnsignedCharArray &memoIn)
         : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         toUid        = toUidIn;
         coin_amount  = coinAmount;

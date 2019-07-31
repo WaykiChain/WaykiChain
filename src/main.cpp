@@ -1355,7 +1355,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             if (!pBaseTx->ExecuteTx(pIndex->height, index, cw, state)) {
                 if (SysCfg().IsLogFailures()) {
                     pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                        state.GetRejectReason());
+                                                      state.GetRejectReason());
                 }
                 cw.DisableTxUndoLog();
                 return false;
