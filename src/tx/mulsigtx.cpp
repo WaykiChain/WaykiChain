@@ -174,7 +174,7 @@ bool CMulsigTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationS
 }
 
 bool CMulsigTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (required < 1 || required > signaturePairs.size()) {

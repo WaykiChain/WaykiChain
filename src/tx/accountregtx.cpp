@@ -17,7 +17,7 @@
 #include "miner/miner.h"
 
 bool CAccountRegisterTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
 
     if (txUid.type() != typeid(CPubKey))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"),

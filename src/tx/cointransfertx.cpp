@@ -10,7 +10,7 @@
 
 /**################################ Base Coin (WICC) Transfer ########################################**/
 bool CBaseCoinTransferTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
@@ -143,7 +143,7 @@ bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyI
 
 bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     // TODO: fees in WICC/WGRT/WUSD
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());

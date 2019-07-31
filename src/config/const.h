@@ -15,6 +15,11 @@ namespace SYMB {
     static const string WICC                = "WICC";
     static const string WGRT                = "WGRT";
     static const string WUSD                = "WUSD";
+    static const string WCNY                = "WCNY";
+
+    static const string WBTC                = "WBTC";
+    static const string WETH                = "WETH";
+    static const string WEOS                = "WEOS";
 
     static const string USD                 = "USD";
     static const string CNY                 = "CNY";

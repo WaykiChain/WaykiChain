@@ -50,6 +50,19 @@ static const unordered_set<string> kCurrencyTypeSet = {
     SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::USDT, SYMB::GOLD, SYMB::KWH
 };
 
+static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCDPCoinPairSet = {
+    {SYMB::WICC, SYMB::WUSD},
+    {SYMB::WGRT, SYMB::WUSD},
+    {SYMB::WBTC, SYMB::WUSD},
+    {SYMB::WETH, SYMB::WUSD},
+    {SYMB::WEOS, SYMB::WUSD},
+
+    {SYMB::WICC, SYMB::WCNY},
+    {SYMB::WGRT, SYMB::WCNY},
+    {SYMB::WBTC, SYMB::WCNY},
+    {SYMB::WETH, SYMB::WCNY},
+    {SYMB::WEOS, SYMB::WCNY},
+};
 
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kTradingPairSet = {
     {SYMB::WICC, SYMB::WUSD},

@@ -15,8 +15,7 @@
 #include "config/version.h"
 
 bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (pricePoints.size() == 0 || pricePoints.size() > 3) { //FIXME: hardcode here

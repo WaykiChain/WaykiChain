@@ -12,39 +12,14 @@
 
 #include <cmath>
 
-bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &total_owed_scoins, uint64_t &interestOut) {
-    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
-    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
-
-    uint64_t A;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
-        return false;
-
-    uint64_t B;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
-        return false;
-
-    uint64_t N = total_owed_scoins;
-    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
-    interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
-
-    return true;
-}
-
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (bcoin_symbol != SYMB::WICC) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid bcoin symbol! "),
-                        REJECT_INVALID, "invalid-bcoin-symbol");
-    }
-
-    if (scoin_symbol != SYMB::WUSD) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid scoin symbol!!"),
-                        REJECT_INVALID, "invalid-scoin-symbol");
+    if (!kCDPCoinPairSet.count(std::pair<TokenSymbol, TokenSymbol>(bcoin_symbol, scoin_symbol))) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid bcoin-scoin CDPCoinPair! "),
+                        REJECT_INVALID, "invalid-CDPCoinPair-symbol");
     }
 
     if (scoins_to_mint == 0) {
@@ -267,7 +242,7 @@ bool CCDPStakeTx::SellInterestForFcoins(const CUserCDP &cdp, const uint64_t scoi
 
 /************************************<< CCDPRedeemTx >>***********************************************/
 bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     uint64_t globalCollateralRatioFloor = 0;
@@ -424,7 +399,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CUserCDP &cdp, const uint64_t sco
 
 /************************************<< CdpLiquidateTx >>***********************************************/
 bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     uint64_t globalCollateralRatioFloor = 0;
@@ -692,6 +667,27 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(const CUserCDP &cdp, uint64_t scoinPe
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
+
+    return true;
+}
+
+
+bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &total_owed_scoins, uint64_t &interestOut) {
+    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+
+    uint64_t A;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
+        return false;
+
+    uint64_t B;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
+        return false;
+
+    uint64_t N = total_owed_scoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
 
     return true;
 }

@@ -93,7 +93,7 @@ bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t height) 
             return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
 
         case MAJOR_VER_R2:  // StableCoin Release
-            return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
+            return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
 
         default:
             return true;

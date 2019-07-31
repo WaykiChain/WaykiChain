@@ -10,7 +10,7 @@
 #include "main.h"
 
 bool CFcoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (stakeType != BalanceOpType::STAKE && stakeType != BalanceOpType::UNSTAKE) {
