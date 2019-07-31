@@ -82,8 +82,8 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
                                 scoins_to_mint;
 
     if (collateralRatio < startingCdpCollateralRatio) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal",
-                        collateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal(%d)",
+                        collateralRatio, startingCdpCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
     }
 
     if (cdp_txid.IsNull()) {  // 1st-time CDP creation
