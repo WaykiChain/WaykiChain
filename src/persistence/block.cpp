@@ -78,22 +78,24 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
     return fees;
 }
 
-uint64_t CBlock::GetBlockMedianPrice(const CoinPricePair& coinPricePair) const {
-    if (vptx.size() == 1 || vptx[1]->nTxType != PRICE_MEDIAN_TX) {
-        return 0;
+map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
+    if (vptx.size() == 1 || !vptx[1]->nTxType.IsMedianPriceTx()) {
+        return map<CoinPricePair, uint64_>();
     }
 
-    auto mapMedianPricePoints = ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
-
-    return mapMedianPricePoints.count(coinPricePair) ? mapMedianPricePoints[coinPricePair] : 0;
+    return ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
 }
 
 void CBlock::Print(CAccountDBCache& accountCache) const {
+    string medianPrices;
+    for (const auto &item : GetBlockMedianPrice()) {
+        medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
+    }
+
     LogPrint("INFO", "block hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
-             "nFuelRate=%d, bcoinMedianPrice=%lu, fcoinMedianPrice=%lu\n",
+             "nFuelRate=%d, median prices: %s\n",
              GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
-             vptx.size(), nFuel, nFuelRate, GetBlockMedianPrice(std::make_pair(SYMB::WICC, SYMB::USD)),
-             GetBlockMedianPrice(std::make_pair(SYMB::WGRT, SYMB::USD)));
+             vptx.size(), nFuel, nFuelRate, medianPrices);
     // LogPrint("INFO", "list transactions:\n");
     // for (uint32_t i = 0; i < vptx.size(); i++) {
     //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));
