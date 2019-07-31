@@ -37,16 +37,31 @@ void CPricePointMemCache::SetLatestBlockMedianPricePoints(
 }
 
 bool CPricePointMemCache::AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId,
-                                                 const vector<CPricePoint> &pps) {
+                                                    const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
-        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPricePair()];
-        if (cbp.ExistBlockUserPrice(blockHeight, regId))
+        if (ExistBlockUserPrice(blockHeight, regId, pp.GetCoinPricePair())) {
+            LogPrint("PRICEFEED", "CPricePointMemCache::AddBlockPricePointInBatch, existed block user price, "
+                     "height: %d, redId: %s, pricePoint: %s", blockHeight, regId.ToString(), pp.ToString());
             return false;
+        }
 
+        CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPricePair()];
         cbp.AddUserPrice(blockHeight, regId, pp.GetPrice());
     }
 
     return true;
+}
+
+bool CPricePointMemCache::ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId,
+                                              const CoinPricePair &coinPricePair) {
+    if (mapCoinPricePointCache.count(coinPricePair) &&
+        mapCoinPricePointCache[coinPricePair].ExistBlockUserPrice(blockHeight, regId))
+        return true;
+
+    if (pBase)
+        return pBase->ExistBlockUserPrice(blockHeight, regId, coinPricePair);
+    else
+        return false;
 }
 
 bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {

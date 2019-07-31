@@ -2659,7 +2659,8 @@ bool static LoadBlockIndexDB() {
         if (pIndex->nStatus & BLOCK_FAILED_MASK &&
             (!pindexBestInvalid || pIndex->nChainWork > pindexBestInvalid->nChainWork))
             pindexBestInvalid = pIndex;
-        if (pIndex->pprev) pIndex->BuildSkip();
+        if (pIndex->pprev)
+            pIndex->BuildSkip();
     }
 
     // Load block file info
@@ -2754,8 +2755,9 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
             if (!fClean) {
                 nGoodTransactions = 0;
                 pIndexFailure     = pIndex;
-            } else
+            } else {
                 nGoodTransactions += block.vptx.size();
+            }
         }
     }
     if (pIndexFailure)

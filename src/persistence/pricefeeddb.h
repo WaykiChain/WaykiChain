@@ -63,6 +63,8 @@ public:
     void Flush();
 
 private:
+    bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);
+
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
 
     bool GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired, BlockUserPriceMap &blockUserPrices);
