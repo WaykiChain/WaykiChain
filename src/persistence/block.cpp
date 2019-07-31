@@ -79,8 +79,8 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
 }
 
 map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
-    if (vptx.size() == 1 || !vptx[1]->nTxType.IsMedianPriceTx()) {
-        return map<CoinPricePair, uint64_>();
+    if (vptx.size() == 1 || !vptx[1]->IsMedianPriceTx()) {
+        return map<CoinPricePair, uint64_t>();
     }
 
     return ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();

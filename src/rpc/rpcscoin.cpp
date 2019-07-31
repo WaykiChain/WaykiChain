@@ -313,15 +313,12 @@ Value getmedianprice(const Array& params, bool fHelp){
     }
 
     Array prices;
-    if (block.vptx.size() > 1 && block.vptx[1]->nTxType == PRICE_MEDIAN_TX) {
-        map<CoinPricePair, uint64_t> mapMedianPricePoints = ((CBlockPriceMedianTx*)block.vptx[1].get())->GetMedianPrice();
-        for (auto &item : mapMedianPricePoints) {
-            Object price;
-            price.push_back(Pair("coin_symbol",   item.first.first));
-            price.push_back(Pair("price_symbol",  item.first.second));
-            price.push_back(Pair("price",         (double)item.second/kPercentBoost));
-            prices.push_back(price);
-        }
+    for (auto& item : block.GetBlockMedianPrice()) {
+        Object price;
+        price.push_back(Pair("coin_symbol",     item.first.first));
+        price.push_back(Pair("price_symbol",    item.first.second));
+        price.push_back(Pair("price",           (double)item.second / kPercentBoost));
+        prices.push_back(price);
     }
 
     Object obj;
