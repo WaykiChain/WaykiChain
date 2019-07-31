@@ -73,7 +73,7 @@ struct CUserCDP {
     }
 
     Object ToJson(uint64_t bcoinMedianPrice) {
-        uint64_t collateralRatio = collateralRatioBase * bcoinMedianPrice * 100 / COIN;
+        uint64_t collateralRatio = collateralRatioBase * bcoinMedianPrice * 100 / kPercentBoost; //display as x%
 
         Object result;
         result.push_back(Pair("cdpid",              cdpid.GetHex()));
