@@ -56,6 +56,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(coin_symbol);
         READWRITE(asset_symbol);
@@ -68,8 +69,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << coin_symbol << asset_symbol << asset_amount << bid_price;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << coin_symbol << asset_symbol << asset_amount << bid_price;
             sigHash = ss.GetHash();
         }
 
@@ -87,6 +88,8 @@ public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 
 private:
+    TokenSymbol fee_symbol;
+
     TokenSymbol coin_symbol;          //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;        //!< asset type
     uint64_t asset_amount;       //!< amount of target asset to buy
@@ -122,6 +125,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(coin_symbol);
         READWRITE(asset_symbol);
@@ -134,8 +138,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << coin_symbol << asset_symbol << asset_amount << ask_price;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << coin_symbol << asset_symbol << asset_amount << ask_price;
             sigHash = ss.GetHash();
         }
 
@@ -153,6 +157,8 @@ public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 
 private:
+    TokenSymbol fee_symbol;
+
     TokenSymbol coin_symbol;       //!< coin type (wusd) to sell asset
     TokenSymbol asset_symbol;     //!< holding asset type (wicc or wgrt) to sell in coin_symbol
     uint64_t asset_amount;    //!< amount of holding asset to sell
@@ -183,6 +189,8 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
+
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(coin_symbol);
         READWRITE(asset_symbol);
@@ -194,8 +202,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << coin_symbol << asset_symbol << coin_amount;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << coin_symbol << asset_symbol << coin_amount;
             sigHash = ss.GetHash();
         }
 
@@ -213,6 +221,8 @@ public:
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
+    TokenSymbol fee_symbol;
+
     TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;    //!< asset type
     uint64_t coin_amount;    //!< amount of target coin to spend for buying asset
@@ -242,6 +252,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(coin_symbol);
         READWRITE(asset_symbol);
@@ -253,8 +264,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees)
-                << coin_symbol << asset_symbol << asset_amount;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << coin_symbol << asset_symbol << asset_amount;
             sigHash = ss.GetHash();
         }
 
@@ -272,6 +283,8 @@ public:
 public: // derive from CDEXOrderBaseTx
     virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
+    TokenSymbol fee_symbol;
+
     TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;    //!< asset type
     uint64_t asset_amount;   //!< amount of target asset to buy
@@ -299,6 +312,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(orderId);
 
@@ -308,7 +322,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees) << orderId;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << orderId;
             sigHash = ss.GetHash();
         }
 
@@ -323,6 +338,8 @@ public:
     virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
 public:
+    TokenSymbol fee_symbol;
+
     uint256  orderId;       //!< id of oder need to be canceled.
 };
 
@@ -365,6 +382,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(dealItems);
 
@@ -374,7 +392,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << VARINT(llFees) << dealItems;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << dealItems;
             sigHash = ss.GetHash();
         }
 
@@ -395,9 +414,10 @@ public:
 
     virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
-private:
 
 private:
+    TokenSymbol fee_symbol;
+
     vector<DEXDealItem> dealItems;
 };
 

@@ -38,6 +38,7 @@ public:
 
 class CMulsigTx : public CBaseTx {
 public:
+    TokenSymbol fee_symbol;
     mutable CUserID desUserId;              //!< keyid or regid
     uint64_t bcoins;                        //!< transfer amount
     uint8_t required;                       //!< number of required keys
@@ -89,6 +90,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(signaturePairs);
         READWRITE(desUserId);
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
         READWRITE(VARINT(required));
@@ -103,7 +105,7 @@ public:
             for (const auto &item : signaturePairs) {
                 ss << item.regid;
             }
-            ss << desUserId << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
+            ss << desUserId << fee_symbol << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
             sigHash = ss.GetHash();
         }
         return sigHash;

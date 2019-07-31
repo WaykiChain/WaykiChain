@@ -10,6 +10,7 @@
 
 class CFcoinStakeTx: public CBaseTx {
 private:
+    TokenSymbol fee_symbol;
     BalanceOpType stakeType;
     uint64_t fcoinsToStake;  // when negative, it means staking revocation
 
@@ -35,6 +36,7 @@ public:
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
 
+        READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE((uint8_t &)stakeType);
         READWRITE(VARINT(fcoinsToStake));
@@ -45,7 +47,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol
                << VARINT(llFees) << (uint8_t)stakeType << VARINT(fcoinsToStake);
 
             sigHash = ss.GetHash();

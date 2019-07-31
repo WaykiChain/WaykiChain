@@ -12,6 +12,14 @@
 
 #include <cmath>
 
+/**
+ *  Interest Ratio Formula: ( a / Log10(b + N) )
+ *
+ *  ==> ratio = a / Log10 (b+N)
+ */
+bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
+                        const uint64_t &total_owed_scoins, uint64_t &interestOut);
+
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
@@ -672,7 +680,7 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(const CUserCDP &cdp, uint64_t scoinPe
 }
 
 
-bool ComputeCdpInterest(const int32_t currBlockHeight, const int32_t cpdLastBlockHeight, CCacheWrapper &cw,
+bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
                         const uint64_t &total_owed_scoins, uint64_t &interestOut) {
     int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
     int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );

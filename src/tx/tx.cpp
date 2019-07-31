@@ -84,16 +84,23 @@ uint32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     return nFuelRate;
 }
 
-bool CBaseTx::CheckTxFeeSufficient(const uint64_t llFees, const int32_t height) const {
+bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
+    assert(feeSymbol == SYMB::WICC || feeSymbol == SYMB::WUSD);
+
     const auto &iter = kTxFeeTable.find(nTxType);
 
-    switch (GetFeatureForkVersion(height) ) {
-
-        case MAJOR_VER_R1: // Prior-stablecoin Release
-            return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
+    switch (GetFeatureForkVersion(height)) {
+        case MAJOR_VER_R1:  // Prior-stablecoin Release
+            if (feeSymbol == SYMB::WICC)
+                return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
+            else if (feeSymbol == SYMB::WUSD)
+                return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
 
         case MAJOR_VER_R2:  // StableCoin Release
-            return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
+            if (feeSymbol == SYMB::WICC)
+                return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
+            else if (feeSymbol == SYMB::WUSD)
+                return iter != kTxFeeTable.end() ? (llFees >= std::get<4>(iter->second)) : true;
 
         default:
             return true;

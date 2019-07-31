@@ -11,14 +11,6 @@
 class CUserCDP;
 
 /**
- *  Interest Ratio Formula: ( a / Log10(b + N) )
- *
- *  ==> ratio = a / Log10 (b+N)
- */
-bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &total_owed_scoins, uint64_t &interestOut);
-
-/**
  * Stake or ReStake bcoins into a CDP
  */
 class CCDPStakeTx: public CBaseTx {
