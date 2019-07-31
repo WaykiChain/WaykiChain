@@ -149,8 +149,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitstakecdptx",
-                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 2000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n"));
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", 2000000000, 3000000, "
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", \"WICC:1000000:sawi\"\n"));
     }
 
     auto cdpUid = CUserID::ParseUserId(params[0].get_str());
@@ -220,7 +220,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
             "\nExamples:\n"
             + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 \"1000000\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 30000 \"1000000\"\n")
+            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, 30000, \"1000000\"\n")
         );
     }
     EnsureWalletIsUnlocked();
@@ -259,9 +259,9 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 1000000:WICC\n")
+            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 \"1000000:WICC\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 2000000000 1000000:WICC\n")
+            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, \"1000000:WICC\"\n")
         );
     }
 
