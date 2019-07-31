@@ -196,7 +196,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
         uint64_t actualFee = cmFee.amount * unitBase;
         if (actualFee < minFee) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Error: Fee(%llu) < minFee (%llu)",
-                        actualFee, minFee);
+                        actualFee, minFee));
         }
     }
 
