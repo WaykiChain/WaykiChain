@@ -54,7 +54,7 @@ Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("uid",            txUid.ToString()));
+    result.push_back(Pair("tx_uid",            txUid.ToString()));
     result.push_back(Pair("addr",           txUid.get<CPubKey>().IsFullyValid() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : ""));
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("coin_amount",    coin_amount));
