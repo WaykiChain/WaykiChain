@@ -545,8 +545,9 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     } else if (collateralRatio > forcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
         totalBcoinsToReturnLiquidator = cdp.total_staked_bcoins; //M
         totalBcoinsToCdpOwner = 0;
-        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * cw.ppCache.GetBcoinMedianPrice(height)
-                                    * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
+        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator
+                                * ((double) cw.ppCache.GetBcoinMedianPrice(height) / kPercentBoost)
+                                * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins; // M * 97% - N
 
