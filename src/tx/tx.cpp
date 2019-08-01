@@ -34,7 +34,7 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
-uint64_t GetTxMinFee(const TxType nTxType, int height) {
+uint64_t GetTxMinFee(const TxType nTxType, int32_t height) {
     const auto &iter = kTxFeeTable.find(nTxType);
     switch (GetFeatureForkVersion(height)) {
         case MAJOR_VER_R1: // Prior-stablecoin Release

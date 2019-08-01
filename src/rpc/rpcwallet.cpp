@@ -558,9 +558,8 @@ Value send(const Array& params, bool fHelp) {
         fee     = params[4].get_uint64();
         feeType = params[5].get_str();
     } else {
-        //TODO : default WUSD fee amount
+        //TODO : default WICC fee amount
         fee = GetTxMinFee(UCOIN_TRANSFER_TX, chainActive.Height());
-        feeType = coinType;
     }
 
     //check params
