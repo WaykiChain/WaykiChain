@@ -85,7 +85,7 @@ uint32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
 }
 
 bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
-    if (feeSymbol == SYMB::WICC || feeSymbol == SYMB::WUSD)
+    if (feeSymbol != SYMB::WICC && feeSymbol != SYMB::WUSD)
         return false;
 
     const auto &iter = kTxFeeTable.find(nTxType);

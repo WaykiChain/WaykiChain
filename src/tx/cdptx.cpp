@@ -230,18 +230,8 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
 Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-
-    result.push_back(Pair("txid",               GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("addr",               keyId.ToAddress()));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("fee_symbol",         fee_symbol));
-    result.push_back(Pair("fees",               llFees));
-    result.push_back(Pair("valid_height",       nValidHeight));
-
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
     result.push_back(Pair("bcoin_symbol",       bcoin_symbol));
     result.push_back(Pair("scoin_symbol",       scoin_symbol));
@@ -399,6 +389,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     Object result;
 
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    result.push_back(Pair("fee_symbol",         fee_symbol));
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_repay",    scoins_to_repay));
     result.push_back(Pair("bcoins_to_redeem",   bcoins_to_redeem));
@@ -653,17 +644,7 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-
-    result.push_back(Pair("txid",               GetHash().GetHex()));
-    result.push_back(Pair("tx_type",            GetTxType(nTxType)));
-    result.push_back(Pair("ver",                nVersion));
-    result.push_back(Pair("tx_uid",             txUid.ToString()));
-    result.push_back(Pair("addr",               keyId.ToAddress()));
-    result.push_back(Pair("fees",               llFees));
-    result.push_back(Pair("valid_height",       nValidHeight));
-
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_liquidate", scoins_to_liquidate));
 
