@@ -91,21 +91,22 @@ bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t 
     const auto &iter = kTxFeeTable.find(nTxType);
 
     switch (GetFeatureForkVersion(height)) {
-        case MAJOR_VER_R1:  // Prior-stablecoin Release
+        case MAJOR_VER_R1: {  // Prior-stablecoin Release
             if (feeSymbol == SYMB::WICC)
                 return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
             else if (feeSymbol == SYMB::WUSD)
                 return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
-
-        case MAJOR_VER_R2:  // StableCoin Release
+            break;
+        }
+        case MAJOR_VER_R2: {  // StableCoin Release
             if (feeSymbol == SYMB::WICC)
                 return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
             else if (feeSymbol == SYMB::WUSD)
                 return iter != kTxFeeTable.end() ? (llFees >= std::get<4>(iter->second)) : true;
-
-        default:
-            return true;
+            break;
+        }
     }
+    return true;
 }
 
 // Transactions should check the signature size before verifying signature
