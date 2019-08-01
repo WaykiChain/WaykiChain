@@ -680,7 +680,6 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
 }
 
 bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state) {
-
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
@@ -688,10 +687,11 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
     }
 
     uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
-    // uint64_t halfFcoinsPenalty = halfScoinsPenalty / cw.ppCache.GetFcoinMedianPrice();
 
+    // 1) save 50% penalty fees into risk riserve
     fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty); // save to risk reserve
 
+    // 2) sell 50% penalty fees for Fcoins and burn
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
     if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
