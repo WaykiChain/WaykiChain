@@ -47,11 +47,6 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
                         REJECT_INVALID, "invalid-CDPCoinPair-symbol");
     }
 
-    if (scoins_to_mint == 0) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, scoins_to_mint is zero error!!"),
-                        REJECT_INVALID, "scoins_to_mint_zeror-err");
-    }
-
     uint64_t globalCollateralRatioMin;
     if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read GLOBAL_COLLATERAL_RATIO_MIN error!!"),
@@ -78,7 +73,9 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height) / scoins_to_mint;
+
+    uint64_t collateralRatio = scoins_to_mint == 0 ? 100000000 :
+                                        bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height) / scoins_to_mint;
 
     if (collateralRatio < startingCdpCollateralRatio) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal(%d)",
@@ -88,8 +85,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     if (cdp_txid.IsNull()) {  // 1st-time CDP creation
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"),
-                            REJECT_INVALID, "has-open-cdp");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"), REJECT_INVALID, "has-open-cdp");
         }
     }
 
@@ -121,8 +117,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
 
-    uint64_t partialCollateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height)
-                                        * kPercentBoost / scoins_to_mint;
+    uint64_t partialCollateralRatio = scoins_to_mint == 0 ? 100000000 :
+                                        bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height) / scoins_to_mint;
 
     if (cdp_txid.IsNull()) { // 1st-time CDP creation
         if (partialCollateralRatio < startingCdpCollateralRatio)
@@ -160,11 +156,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoins_to_stake;
         uint64_t totalScoinsToOwe   = cdp.total_owed_scoins + scoins_to_mint;
-        uint64_t totalCollateralRatio =
-            totalBcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost / totalScoinsToOwe;
+        uint64_t totalCollateralRatio = totalBcoinsToStake * cw.ppCache.GetBcoinMedianPrice(height) / totalScoinsToOwe;
 
-        if (partialCollateralRatio < startingCdpCollateralRatio &&
-            totalCollateralRatio < startingCdpCollateralRatio) {
+        if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (partial=%d, total=%d) is smaller than the minimal",
                         partialCollateralRatio, totalCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
