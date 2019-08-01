@@ -675,14 +675,25 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
 
     uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
 
-    // 1) save 50% penalty fees into risk riserve
-    fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
+    uint64_t minSysOrderPenaltyFee;
+    if (!cw.sysParamCache.GetParam(CDP_SYSORDER_PENALTY_FEE_MIN, minSysOrderPenaltyFee)) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read CDP_SYSORDER_PENALTY_FEE_MIN error!!"),
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+    }
 
-    // 2) sell 50% penalty fees for Fcoins and burn
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
-    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
-                        CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+    if (scoinPenaltyFees > minSysOrderPenaltyFee ) { //10+ WUSD
+        // 1) save 50% penalty fees into risk riserve
+        fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
+
+        // 2) sell 50% penalty fees for Fcoins and burn
+        auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
+        if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
+            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
+                            CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+        }
+    } else {
+        // save 50% penalty fees into risk riserve
+        fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees);
     }
 
     return true;
