@@ -16,10 +16,7 @@ public:
     CLuaContract contract;  // contract script content
 
 public:
-    CLuaContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
-        assert(LCONTRACT_DEPLOY_TX == pBaseTx->nTxType);
-        *this = *(CLuaContractDeployTx *)pBaseTx;
-    }
+
     CLuaContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
     ~CLuaContractDeployTx() {}
 
@@ -46,7 +43,7 @@ public:
     }
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractDeployTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractDeployTx>(*this); }
     virtual uint64_t GetFuel(uint32_t nFuelRate);
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual string ToString(CAccountDBCache &view);
@@ -65,11 +62,6 @@ public:
 
 public:
     CLuaContractInvokeTx() : CBaseTx(LCONTRACT_INVOKE_TX) {}
-
-    CLuaContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_INVOKE_TX) {
-        assert(LCONTRACT_INVOKE_TX == pBaseTx->nTxType);
-        *this = *(CLuaContractInvokeTx *)pBaseTx;
-    }
 
     CLuaContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
                 uint64_t bcoinsIn, int validHeightIn, string &argumentsIn):
@@ -125,7 +117,7 @@ public:
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CLuaContractInvokeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
@@ -143,10 +135,6 @@ public:
     CUniversalContract  contract;  // contract script content
 
 public:
-    CUniversalContractDeployTx(const CBaseTx *pBaseTx): CBaseTx(LCONTRACT_DEPLOY_TX) {
-        assert(LCONTRACT_DEPLOY_TX == pBaseTx->nTxType);
-        *this = *(CUniversalContractDeployTx *)pBaseTx;
-    }
     CUniversalContractDeployTx(): CBaseTx(LCONTRACT_DEPLOY_TX) {}
     ~CUniversalContractDeployTx() {}
 
@@ -176,7 +164,7 @@ public:
     }
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUniversalContractDeployTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployTx>(*this); }
     virtual uint64_t GetFuel(uint32_t nFuelRate);
     virtual map<TokenSymbol, uint64_t> GetValues() const {
             return map<TokenSymbol, uint64_t>{ {transfer_coin_symbol, transfer_coin_amount} };
@@ -199,11 +187,6 @@ public:
 
 public:
     CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_TX) {}
-
-    CUniversalContractInvokeTx(const CBaseTx *pBaseTx): CBaseTx(UCONTRACT_INVOKE_TX) {
-        assert(UCONTRACT_INVOKE_TX == pBaseTx->nTxType);
-        *this = *(CUniversalContractInvokeTx *)pBaseTx;
-    }
 
     CUniversalContractInvokeTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                 CUserID appUidIn, string &argumentsIn, TokenSymbol feeSymbol, TokenSymbol transferCoinSymbol,
@@ -253,7 +236,7 @@ public:
             return map<TokenSymbol, uint64_t>{{transfer_coin_symbol, transfer_coin_amount}};
     }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUniversalContractInvokeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

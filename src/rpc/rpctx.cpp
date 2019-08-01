@@ -1994,82 +1994,17 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     Object obj;
+
     switch (pBaseTx.get()->nTxType) {
-        case BCOIN_TRANSFER_TX: {
-            std::shared_ptr<CBaseCoinTransferTx> tx = std::make_shared<CBaseCoinTransferTx>(pBaseTx.get());
-            if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-            break;
+        case BLOCK_REWARD_TX:
+        case UCOIN_REWARD_TX:
+        case UCOIN_BLOCK_REWARD_TX: {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
         }
-
-        case ACCOUNT_REGISTER_TX: {
-            std::shared_ptr<CAccountRegisterTx> tx =
-                std::make_shared<CAccountRegisterTx>(pBaseTx.get());
-            if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-            break;
-        }
-
-        case LCONTRACT_INVOKE_TX: {
-            std::shared_ptr<CLuaContractInvokeTx> tx = std::make_shared<CLuaContractInvokeTx>(pBaseTx.get());
-            if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-            }
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-            break;
-        }
-
-        case BLOCK_REWARD_TX: {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block reward transation is forbidden");
-        }
-
-        case LCONTRACT_DEPLOY_TX: {
-            std::shared_ptr<CLuaContractDeployTx> tx =
-                std::make_shared<CLuaContractDeployTx>(pBaseTx.get());
-            if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-            }
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-            break;
-        }
-
-        case DELEGATE_VOTE_TX: {
-            std::shared_ptr<CDelegateVoteTx> tx = std::make_shared<CDelegateVoteTx>(pBaseTx.get());
-            if (!pWalletMain->Sign(*keyIds.begin(), tx.get()->ComputeSignatureHash(), tx.get()->signature)) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-            }
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-            break;
-        }
-
         case BCOIN_TRANSFER_MTX: {
-            std::shared_ptr<CMulsigTx> tx = std::make_shared<CMulsigTx>(pBaseTx.get());
+            CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
 
-            vector<CSignaturePair>& signaturePairs = tx.get()->signaturePairs;
+            vector<CSignaturePair>& signaturePairs = pTx->signaturePairs;
             for (const auto& keyIdItem : keyIds) {
                 CRegID regId;
                 if (!pCdMan->pAccountCache->GetRegId(CUserID(keyIdItem), regId)) {
@@ -2079,7 +2014,7 @@ Value signtxraw(const Array& params, bool fHelp) {
                 bool valid = false;
                 for (auto& signatureItem : signaturePairs) {
                     if (regId == signatureItem.regid) {
-                        if (!pWalletMain->Sign(keyIdItem, tx.get()->ComputeSignatureHash(),
+                        if (!pWalletMain->Sign(keyIdItem, pTx->ComputeSignatureHash(),
                                                signatureItem.signature)) {
                             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
                         } else {
@@ -2094,7 +2029,6 @@ Value signtxraw(const Array& params, bool fHelp) {
             }
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
-            std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();
             ds << pBaseTx;
             obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
 
@@ -2102,7 +2036,12 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         default: {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Unsupported transaction type");
+            if (!pWalletMain->Sign(*keyIds.begin(), pBaseTx->ComputeSignatureHash(), pBaseTx->signature))
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
+
+            CDataStream ds(SER_DISK, CLIENT_VERSION);
+            ds << pBaseTx;
+            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
         }
     }
     return obj;

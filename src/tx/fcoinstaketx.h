@@ -18,11 +18,6 @@ public:
     CFcoinStakeTx()
         : CBaseTx(FCOIN_STAKE_TX), fee_symbol(SYMB::WICC), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
 
-    CFcoinStakeTx(const CBaseTx *pBaseTx): CBaseTx(FCOIN_STAKE_TX) {
-        assert(FCOIN_STAKE_TX == pBaseTx->nTxType);
-        *this = *(CFcoinStakeTx *) pBaseTx;
-    }
-
     CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, BalanceOpType stakeTypeIn,
                   uint64_t fcoinsToStakeIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
@@ -62,7 +57,7 @@ public:
     virtual map<TokenSymbol, uint64_t> GetValues() const {
         return map<TokenSymbol, uint64_t>{{SYMB::WGRT, fcoinsToStake}};
     }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CFcoinStakeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CFcoinStakeTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

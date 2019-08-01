@@ -14,10 +14,7 @@ public:
 
 public:
     CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) {}
-    CPriceFeedTx(const CBaseTx *pBaseTx): CBaseTx(PRICE_FEED_TX) {
-        assert(PRICE_FEED_TX == pBaseTx->nTxType);
-        *this = *(CPriceFeedTx *)pBaseTx;
-    }
+
     CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
                 const CPricePoint &pricePointIn):
         CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
@@ -57,7 +54,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CPriceFeedTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CPriceFeedTx>(*this); }
     virtual double GetPriority() const { return kPriceFeedTransactionPriority; }    // Top priority
     virtual string ToString(CAccountDBCache &view);            // logging usage
     virtual Object ToJson(const CAccountDBCache &view) const;  // json-rpc usage

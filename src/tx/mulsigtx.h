@@ -50,11 +50,6 @@ public:
 public:
     CMulsigTx() : CBaseTx(BCOIN_TRANSFER_MTX) {}
 
-    CMulsigTx(const CBaseTx *pBaseTx) : CBaseTx(BCOIN_TRANSFER_MTX) {
-        assert(BCOIN_TRANSFER_MTX == pBaseTx->nTxType);
-        *this = *(CMulsigTx *)pBaseTx;
-    }
-
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
                 const uint8_t requiredIn, const UnsignedCharArray &memoIn)
@@ -113,7 +108,7 @@ public:
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CMulsigTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CMulsigTx>(*this); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

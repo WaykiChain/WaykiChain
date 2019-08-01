@@ -14,10 +14,6 @@ public:
     mutable CUserID minerUid;  // miner pubkey
 
 public:
-    CAccountRegisterTx(const CBaseTx *pBaseTx): CBaseTx(ACCOUNT_REGISTER_TX) {
-        assert(ACCOUNT_REGISTER_TX == pBaseTx->nTxType);
-        *this = *(CAccountRegisterTx *)pBaseTx;
-    }
     CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int validHeightIn) :
         CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
         minerUid    = minerUidIn;
@@ -52,7 +48,7 @@ public:
         return sigHash;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CAccountRegisterTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAccountRegisterTx>(*this); }
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds);

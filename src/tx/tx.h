@@ -86,7 +86,7 @@ public:
     virtual map<TokenSymbol, uint64_t> GetValues() const = 0;
 
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
-    virtual std::shared_ptr<CBaseTx> GetNewInstance()                 = 0;
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const                 = 0;
 
     virtual string ToString(CAccountDBCache &accountCache)                           = 0;
     virtual Object ToJson(const CAccountDBCache &accountCache) const                 = 0;

@@ -13,10 +13,6 @@ public:
     vector<CCandidateVote> candidateVotes;  //!< candidate-delegate votes, max size is 22
 
 public:
-    CDelegateVoteTx(const CBaseTx *pBaseTx): CBaseTx(DELEGATE_VOTE_TX) {
-        assert(DELEGATE_VOTE_TX == pBaseTx->nTxType);
-        *this = *(CDelegateVoteTx *)pBaseTx;
-    }
     CDelegateVoteTx(
             const UnsignedCharArray &accountIn,
             const vector<CCandidateVote> &candidateVotesIn,
@@ -70,7 +66,7 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDelegateVoteTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDelegateVoteTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

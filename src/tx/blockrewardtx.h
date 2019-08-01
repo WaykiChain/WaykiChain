@@ -15,10 +15,7 @@ public:
 
 public:
     CBlockRewardTx(): CBaseTx(BLOCK_REWARD_TX), reward(0) {}
-    CBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(BLOCK_REWARD_TX), reward(0) {
-        assert(BLOCK_REWARD_TX == pBaseTx->nTxType);
-        *this = *(CBlockRewardTx *)pBaseTx;
-    }
+
     CBlockRewardTx(const UnsignedCharArray &accountIn, const uint64_t rewardIn, const int32_t nValidHeightIn):
         CBaseTx(BLOCK_REWARD_TX) {
         if (accountIn.size() > 6) {
@@ -51,7 +48,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, reward}}; }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBlockRewardTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBlockRewardTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
@@ -68,10 +65,7 @@ public:
 
 public:
     CUCoinBlockRewardTx(): CBaseTx(UCOIN_BLOCK_REWARD_TX), profits(0) {}
-    CUCoinBlockRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_BLOCK_REWARD_TX), profits(0) {
-        assert(UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType);
-        *this = *(CUCoinBlockRewardTx *)pBaseTx;
-    }
+
     CUCoinBlockRewardTx(const CUserID &txUidIn, const map<TokenSymbol, uint64_t> rewardValuesIn,
                             const int32_t validHeightIn)
         : CBaseTx(UCOIN_BLOCK_REWARD_TX) {
@@ -107,7 +101,7 @@ public:
 
     map<TokenSymbol, uint64_t> GetValues() const { return rewards; }
     uint64_t GetProfits() const { return profits; }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CUCoinBlockRewardTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUCoinBlockRewardTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

@@ -196,31 +196,7 @@ public:
     }
 
     bool AddTx(const uint256 &hash, const CBaseTx *pTx) {
-        switch (pTx->nTxType) {
-        case BCOIN_TRANSFER_TX:
-            mapAccountTx[hash] = std::make_shared<CBaseCoinTransferTx>(pTx);
-            break;
-        case LCONTRACT_INVOKE_TX:
-            mapAccountTx[hash] = std::make_shared<CLuaContractInvokeTx>(pTx);
-            break;
-        case ACCOUNT_REGISTER_TX:
-            mapAccountTx[hash] = std::make_shared<CAccountRegisterTx>(pTx);
-            break;
-        case BLOCK_REWARD_TX:
-            mapAccountTx[hash] = std::make_shared<CBlockRewardTx>(pTx);
-            break;
-        case LCONTRACT_DEPLOY_TX:
-            mapAccountTx[hash] = std::make_shared<CLuaContractDeployTx>(pTx);
-            break;
-        case DELEGATE_VOTE_TX:
-            mapAccountTx[hash] = std::make_shared<CDelegateVoteTx>(pTx);
-            break;
-        case BCOIN_TRANSFER_MTX:
-            mapAccountTx[hash] = std::make_shared<CMulsigTx>(pTx);
-            break;
-        default:
-            return false;
-        }
+        mapAccountTx[hash] = pTx->GetNewInstance();
         return true;
     }
 

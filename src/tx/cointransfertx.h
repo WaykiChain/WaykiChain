@@ -18,11 +18,6 @@ public:
 public:
     CBaseCoinTransferTx(): CBaseTx(BCOIN_TRANSFER_TX) { }
 
-    CBaseCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(BCOIN_TRANSFER_TX) {
-        assert(BCOIN_TRANSFER_TX == pBaseTx->nTxType);
-        *this = *(CBaseCoinTransferTx *)pBaseTx;
-    }
-
     CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feesIn, uint64_t valueIn,
               int validHeightIn, UnsignedCharArray &memoIn) :
               CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
@@ -80,7 +75,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, bcoins}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CBaseCoinTransferTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBaseCoinTransferTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
@@ -105,11 +100,6 @@ public:
 public:
     CCoinTransferTx()
         : CBaseTx(UCOIN_TRANSFER_TX), coin_symbol(SYMB::WICC), coin_amount(0), fee_symbol(SYMB::WICC) {}
-
-    CCoinTransferTx(const CBaseTx *pBaseTx): CBaseTx(UCOIN_TRANSFER_TX) {
-        assert(UCOIN_TRANSFER_TX == pBaseTx->nTxType);
-        *this = *(CCoinTransferTx *) pBaseTx;
-    }
 
     CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, const int32_t validHeightIn,
                     const TokenSymbol &coinSymbol, const uint64_t coinAmount, const TokenSymbol &feeSymbol,
@@ -151,7 +141,7 @@ public:
     }
 
     map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coin_symbol, coin_amount}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinTransferTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinTransferTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

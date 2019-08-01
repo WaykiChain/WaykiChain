@@ -73,7 +73,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXBuyLimitOrderTx>(*this); }
     string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -137,7 +137,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellLimitOrderTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSellLimitOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -196,7 +196,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXBuyMarketOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -253,7 +253,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSellMarketOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -306,7 +306,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXCancelOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -377,7 +377,7 @@ public:
     vector<DEXDealItem>& GetDealItems() { return dealItems; }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);

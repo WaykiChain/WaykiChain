@@ -17,11 +17,6 @@ public:
 public:
     CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coin_symbol(SYMB::WICC), coin_amount(0) {}
 
-    CCoinRewardTx(const CBaseTx *pBaseTx) : CBaseTx(UCOIN_REWARD_TX), coin_symbol(SYMB::WICC), coin_amount(0) {
-        assert(UCOIN_REWARD_TX == pBaseTx->nTxType);
-        *this = *(CCoinRewardTx *)pBaseTx;
-    }
-
     CCoinRewardTx(const CUserID &txUidIn, const int32_t nValidHeightIn,
                 const TokenSymbol &coinSymbol, const uint64_t coinAmount)
         : CBaseTx(UCOIN_REWARD_TX) {
@@ -58,7 +53,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coin_symbol, coin_amount}}; }
-    std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCoinRewardTx>(this); }
+    std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinRewardTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

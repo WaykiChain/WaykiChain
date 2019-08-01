@@ -17,9 +17,6 @@ class CCDPStakeTx: public CBaseTx {
 public:
     CCDPStakeTx() : CBaseTx(CDP_STAKE_TX) {}
 
-    CCDPStakeTx(const CBaseTx *pBaseTx): CBaseTx(CDP_STAKE_TX) {
-        *this = *(CCDPStakeTx *)pBaseTx;
-    }
     /** Newly open a CDP */
     CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn,
                 const ComboMoney &cmFeeIn,
@@ -94,7 +91,7 @@ public:
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{bcoin_symbol, bcoins_to_stake}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPStakeTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPStakeTx>(*this); }
 
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
@@ -123,10 +120,6 @@ private:
 class CCDPRedeemTx: public CBaseTx {
 public:
     CCDPRedeemTx() : CBaseTx(CDP_REDEEM_TX) {}
-
-    CCDPRedeemTx(const CBaseTx *pBaseTx): CBaseTx(CDP_REDEEM_TX) {
-        *this = *(CCDPRedeemTx *)pBaseTx;
-    }
 
     CCDPRedeemTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
                 uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem):
@@ -175,7 +168,7 @@ public:
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WUSD, bcoins_to_redeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPRedeemTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPRedeemTx>(*this); }
 
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
@@ -200,10 +193,6 @@ private:
 class CCDPLiquidateTx: public CBaseTx {
 public:
     CCDPLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
-
-    CCDPLiquidateTx(const CBaseTx *pBaseTx): CBaseTx(CDP_LIQUIDATE_TX) {
-        *this = *(CCDPLiquidateTx *)pBaseTx;
-    }
 
     CCDPLiquidateTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
                     uint256 cdpTxId, uint64_t scoinsToLiquidate):
@@ -251,7 +240,7 @@ public:
     }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CCDPLiquidateTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPLiquidateTx>(*this); }
 
     virtual string ToString(CAccountDBCache &view);
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
