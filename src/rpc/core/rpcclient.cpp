@@ -290,10 +290,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitredeemcdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
     if (strMethod == "submitredeemcdptx" && n > 3) ConvertTo<uint64_t>(params[3]);
 
-    if (strMethod == "submitliquidatecdptx" && n > 1) ConvertTo<uint64_t>(params[1]);
     if (strMethod == "submitliquidatecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
-    if (strMethod == "submitliquidatecdptx" && n > 4) ConvertTo<uint64_t>(params[4]);
-    if (strMethod == "submitliquidatecdptx" && n > 5) ConvertTo<uint64_t>(params[5]);
 
     if (strMethod == "getmedianprice" && n > 0) ConvertTo<int>(params[0]);
 

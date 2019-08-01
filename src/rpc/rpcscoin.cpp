@@ -264,13 +264,9 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, \"WICC:1000000\"\n")
         );
     }
-
-    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid)
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid liquidator addr");
-
-    uint256 cdpTxId = uint256S(params[1].get_str());
-    uint64_t liquidateAmount = params[2].get_uint64();
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const uint256 &cdpTxId  = RPC_PARAM::GetTxid(params[1]);
+    uint64_t liquidateAmount  = AmountToRawValue(params[2]);
 
     ComboMoney cmFee;
     if (params.size() == 4) {
@@ -280,8 +276,8 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     }
 
     int validHeight = chainActive.Tip()->height;
-    CCDPLiquidateTx tx(*cdpUid, cmFee, validHeight, cdpTxId, liquidateAmount);
-    return SubmitTx(*cdpUid, tx);
+    CCDPLiquidateTx tx(userId, cmFee, validHeight, cdpTxId, liquidateAmount);
+    return SubmitTx(userId, tx);
 }
 
 Value getmedianprice(const Array& params, bool fHelp){
