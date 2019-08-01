@@ -283,19 +283,12 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitstakefcointx" && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "submitstakefcointx" && n > 2) ConvertTo<int64_t>(params[2]);
 
-    // if (strMethod == "submitstakecdptx" && n > 1) ConvertTo<uint64_t>(params[1]);
-    // if (strMethod == "submitstakecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
-    // if (strMethod == "submitstakecdptx" && n > 4) ConvertTo<uint64_t>(params[4]);
-
     if (strMethod == "submitredeemcdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
     if (strMethod == "submitredeemcdptx" && n > 3) ConvertTo<uint64_t>(params[3]);
 
     if (strMethod == "submitliquidatecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
 
     if (strMethod == "getmedianprice" && n > 0) ConvertTo<int>(params[0]);
-
-    if (strMethod == "send"  && n > 2) ConvertTo<uint64_t>(params[2]);
-    if (strMethod == "send"  && n > 4) ConvertTo<uint64_t>(params[4]);
 
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"        && n > 3) ConvertTo<uint64_t>(params[3]);
