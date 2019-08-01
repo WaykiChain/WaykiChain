@@ -87,7 +87,7 @@ bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType,
 
 // [symbol]:amount:[unit]
 // [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]
-bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, const TokenSymbol defaltSymbol) {
+bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, const TokenSymbol defaultSymbol) {
 	vector<string> comboMoneyArr = split(comboMoneyStr, ':');
 
     switch (comboMoneyArr.size()) {
@@ -99,7 +99,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
             if (iValue < 0)
                 return false;
 
-            comboMoney.symbol = defaltSymbol;
+            comboMoney.symbol = defaultSymbol;
             comboMoney.amount = (uint64_t) iValue;
             comboMoney.unit   = "sawi";
             break;
@@ -113,7 +113,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
                 if (!CoinUnitTypeTable.count(comboMoneyArr[1]))
                     return false;
 
-                comboMoney.symbol = defaltSymbol;
+                comboMoney.symbol = defaultSymbol;
                 comboMoney.amount = (uint64_t) iValue;
                 comboMoney.unit   = comboMoneyArr[1];
 

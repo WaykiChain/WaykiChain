@@ -77,6 +77,6 @@ bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType,
 
 // [symbol]:amount:[unit]
 // [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]
-bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, const TokenSymbol defaltSymbol = SYMB::WICC);
+bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, const TokenSymbol defaultSymbol = SYMB::WICC);
 
 #endif  // RPC_CORE_COMMONS_H
