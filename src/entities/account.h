@@ -211,32 +211,31 @@ enum ACCOUNT_TYPE {
  */
 class CVmOperate{
 public:
-	unsigned char accountType;      //!< regid or base58addr
-	unsigned char accountId[34];	//!< accountId: address
-	unsigned char opType;		    //!< OperType
-	unsigned int  timeoutHeight;    //!< the transacion Timeout height
-	unsigned char money[8];			//!< The transfer amount
+    uint8_t accountType;     //!< regid or base58addr
+    uint8_t accountId[34];   //!< accountId: address
+    uint8_t opType;          //!< OperType
+    uint32_t timeoutHeight;  //!< the transacion Timeout height
+    uint8_t money[8];        //!< The transfer amount
 
-	IMPLEMENT_SERIALIZE
-	(
-		READWRITE(accountType);
-		for (int i = 0; i < 34; i++)
-			READWRITE(accountId[i]);
-		READWRITE(opType);
-		READWRITE(timeoutHeight);
-		for (int i = 0; i < 8; i++)
-			READWRITE(money[i]);
-	)
+    IMPLEMENT_SERIALIZE(
+        READWRITE(accountType);
+        for (int8_t i = 0; i < 34; ++i)
+            READWRITE(accountId[i]);
+        READWRITE(opType);
+        READWRITE(timeoutHeight);
+        for (int8_t i = 0; i < 8; ++i)
+            READWRITE(money[i]);
+    )
 
-	CVmOperate() {
-		accountType = REGID;
-		memset(accountId, 0, 34);
-		opType = NULL_OP;
-		timeoutHeight = 0;
-		memset(money, 0, 8);
-	}
+    CVmOperate() {
+        accountType = REGID;
+        memset(accountId, 0, 34);
+        opType        = NULL_OP;
+        timeoutHeight = 0;
+        memset(money, 0, 8);
+    }
 
-	Object ToJson();
+    Object ToJson();
 };
 
 

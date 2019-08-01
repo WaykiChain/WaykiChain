@@ -148,8 +148,8 @@ class CRegTestParams: public CTestNetParams {
 public:
     CRegTestParams() {
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
-        nSubsidyHalvingInterval = IniCfg().GetHalvingInterval(REGTEST_NET);
-        nFeatureForkHeight      = IniCfg().GetFeatureForkHeight(REGTEST_NET);
+        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(REGTEST_NET);
+        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
         bnProofOfStakeLimit      = ~arith_uint256(0) >> 6;  // target:00000011 11111111 11111111
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));

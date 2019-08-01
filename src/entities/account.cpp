@@ -93,10 +93,10 @@ uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateVote> &ca
     LogPrint("DEBUG", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy,
              nEndSubsidy, nBeginHeight, nEndHeight);
 
-    auto computeInterest = [](uint64_t nValue, uint64_t nSubsidy, int nBeginHeight, int nEndHeight) -> uint64_t {
+    auto ComputeInterest = [](uint64_t nValue, uint64_t nSubsidy, int32_t nBeginHeight, int32_t nEndHeight) -> uint64_t {
         int64_t nHoldHeight        = nEndHeight - nBeginHeight;
-        static int64_t nYearHeight = SysCfg().GetSubsidyHalvingInterval();
-        uint64_t interest         = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
+        static int64_t nYearHeight = kYearBlockCount;
+        uint64_t interest          = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
         LogPrint("DEBUG", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d interest:%lld\n", nValue,
                  nSubsidy, nBeginHeight, nEndHeight, interest);
         return interest;
@@ -105,13 +105,13 @@ uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateVote> &ca
     uint64_t interest = 0;
     uint64_t nSubsidy  = nBeginSubsidy;
     while (nSubsidy != nEndSubsidy) {
-        int nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
-        interest += computeInterest(nValue, nSubsidy, nBeginHeight, nJumpHeight);
+        int32_t nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
+        interest += ComputeInterest(nValue, nSubsidy, nBeginHeight, nJumpHeight);
         nBeginHeight = nJumpHeight;
         nSubsidy -= 1;
     }
 
-    interest += computeInterest(nValue, nSubsidy, nBeginHeight, nEndHeight);
+    interest += ComputeInterest(nValue, nSubsidy, nBeginHeight, nEndHeight);
     LogPrint("DEBUG", "updateHeight:%d currHeight:%d freeze value:%lld\n", last_vote_height, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
@@ -124,7 +124,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint64_t currHeight) const 
 
     uint64_t subsidy          = IniCfg().GetBlockSubsidyCfg(currHeight);
     static int64_t holdHeight = 1;
-    static int64_t yearHeight = SysCfg().GetSubsidyHalvingInterval();
+    static int64_t yearHeight = kYearBlockCount;
     uint64_t profits = (long double)(received_votes * IniCfg().GetTotalDelegateNum() * holdHeight * subsidy) / yearHeight / 100;
     LogPrint("profits", "received_votes:%llu subsidy:%llu holdHeight:%lld yearHeight:%lld llProfits:%llu\n",
              received_votes, subsidy, holdHeight, yearHeight, profits);
@@ -156,7 +156,7 @@ uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, 
 bool CAccount::RegIDIsMature() const {
     return (!regid.IsEmpty()) &&
            ((regid.GetHeight() == 0) ||
-            (chainActive.Height() - (int)regid.GetHeight() > kRegIdMaturePeriodByBlock));
+            (chainActive.Height() - (int32_t)regid.GetHeight() > kRegIdMaturePeriodByBlock));
 }
 
 CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
@@ -276,7 +276,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
                         }
                     });
 
-        int voteType = VoteType(vote.GetCandidateVoteType());
+        int32_t voteType = VoteType(vote.GetCandidateVoteType());
         if (ADD_BCOIN == voteType) {
             if (itVote != candidateVotesInOut.end()) { //existing vote
                 uint64_t currVotes = itVote->GetVotedBcoins();
@@ -398,7 +398,7 @@ bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
 Object CVmOperate::ToJson() {
     Object obj;
     if (accountType == ACCOUNT_TYPE::REGID) {
-        vector<unsigned char> vRegId(accountId, accountId + 6);
+        vector<uint8_t> vRegId(accountId, accountId + 6);
         CRegID regId(vRegId);
         obj.push_back(Pair("regid", regId.ToString()));
     } else if (accountType == ACCOUNT_TYPE::BASE58ADDR) {
@@ -412,7 +412,8 @@ Object CVmOperate::ToJson() {
         obj.push_back(Pair("opertype", "minus"));
     }
 
-    if (timeoutHeight > 0) obj.push_back(Pair("outHeight", (int)timeoutHeight));
+    if (timeoutHeight > 0)
+        obj.push_back(Pair("outHeight", (int32_t)timeoutHeight));
 
     uint64_t amount;
     memcpy(&amount, money, sizeof(money));
