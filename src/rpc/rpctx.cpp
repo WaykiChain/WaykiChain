@@ -59,19 +59,19 @@ Value gettransaction(const Array& params, bool fHelp) {
     CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
     ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
     assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
-    for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
+    for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
         if (txid == genesisblock.GetTxid(i)) {
             double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValues()[SYMB::WICC]) / COIN;
-            obj.push_back(Pair("amount", dAmount));
+            obj.push_back(Pair("amount",        dAmount));
             obj.push_back(Pair("confirmations", chainActive.Tip()->height));
-            obj.push_back(Pair("block_hash", genesisblock.GetHash().GetHex()));
-            obj.push_back(Pair("block_index", (int)i));
-            obj.push_back(Pair("block_time", (int)genesisblock.GetTime()));
-            obj.push_back(Pair("txid", genesisblock.vptx.at(i)->GetHash().GetHex()));
-            obj.push_back(Pair("details", GetTxAddressDetail(genesisblock.vptx.at(i))));
+            obj.push_back(Pair("block_hash",    genesisblock.GetHash().GetHex()));
+            obj.push_back(Pair("block_index",   (int32_t)i));
+            obj.push_back(Pair("block_time",    (int32_t)genesisblock.GetTime()));
+            obj.push_back(Pair("txid",          genesisblock.vptx.at(i)->GetHash().GetHex()));
+            obj.push_back(Pair("details",       GetTxAddressDetail(genesisblock.vptx.at(i))));
             CDataStream ds(SER_DISK, CLIENT_VERSION);
             ds << genesisblock.vptx[i];
-            obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
+            obj.push_back(Pair("hex",           HexStr(ds.begin(), ds.end())));
             return obj;
         }
     }
@@ -88,16 +88,15 @@ Value gettransaction(const Array& params, bool fHelp) {
                 file >> pBaseTx;
                 // TODO:
                 double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
-                obj.push_back(Pair("amount", dAmount));
-                obj.push_back(
-                    Pair("confirmations", chainActive.Tip()->height - (int)header.GetHeight()));
-                obj.push_back(Pair("blockhash", header.GetHash().GetHex()));
-                obj.push_back(Pair("blocktime", (int)header.GetTime()));
-                obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
-                obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
+                obj.push_back(Pair("amount",        dAmount));
+                obj.push_back(Pair("confirmations", chainActive.Tip()->height - (int32_t)header.GetHeight()));
+                obj.push_back(Pair("blockhash",     header.GetHash().GetHex()));
+                obj.push_back(Pair("blocktime",     (int32_t)header.GetTime()));
+                obj.push_back(Pair("txid",          pBaseTx->GetHash().GetHex()));
+                obj.push_back(Pair("details",       GetTxAddressDetail(pBaseTx)));
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << pBaseTx;
-                obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
+                obj.push_back(Pair("hex",           HexStr(ds.begin(), ds.end())));
             } catch (std::exception& e) {
                 throw runtime_error(
                     tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
@@ -113,13 +112,13 @@ Value gettransaction(const Array& params, bool fHelp) {
         }
         // TODO:
         double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
-        obj.push_back(Pair("amount", dAmount));
+        obj.push_back(Pair("amount",        dAmount));
         obj.push_back(Pair("confirmations", 0));
-        obj.push_back(Pair("txid", pBaseTx->GetHash().GetHex()));
-        obj.push_back(Pair("details", GetTxAddressDetail(pBaseTx)));
+        obj.push_back(Pair("txid",          pBaseTx->GetHash().GetHex()));
+        obj.push_back(Pair("details",       GetTxAddressDetail(pBaseTx)));
         CDataStream ds(SER_DISK, CLIENT_VERSION);
         ds << pBaseTx;
-        obj.push_back(Pair("hex", HexStr(ds.begin(), ds.end())));
+        obj.push_back(Pair("hex",           HexStr(ds.begin(), ds.end())));
     }
 
     return obj;
@@ -139,9 +138,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
             + HelpExampleCli("gettxdetail","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("gettxdetail","c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\n"));
-
-    uint256 txid(uint256S(params[0].get_str()));
-    return GetTxDetailJSON(txid);
+    return GetTxDetailJSON(uint256S(params[0].get_str()));
 }
 
 //create a register account tx
@@ -239,7 +236,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "5.\"fee\":         (numeric, required) pay to miner\n"
             "6.\"height\":      (numberic, optional) valid height\n"
             "\nResult:\n"
-            "\"txid\":        (string)\n"
+            "\"txid\":          (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("callcontracttx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
@@ -267,7 +264,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     int64_t amount = AmountToRawValue(params[3]);
     int64_t fee    = AmountToRawValue(params[4]);
-    int height     = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
+    int32_t height     = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
     if (fee == 0) {
         fee = GetTxMinFee(TxType::LCONTRACT_INVOKE_TX, height);
     }
@@ -279,7 +276,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     CUserID sendUserId;
     CRegID sendRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) &&
+                  pCdMan->pAccountCache->RegIDIsMature(sendRegId))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
 
@@ -322,13 +320,13 @@ Value registercontracttx(const Array& params, bool fHelp)
         throw runtime_error("registercontracttx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) contract owner address from this wallet\n"
-            "2.\"filepath\": (string required), the file path of the app script\n"
-            "3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
-            "4.\"height\": (numeric optional) valid height, when not specified, the tip block hegiht in chainActive will be used\n"
-            "5.\"appdesc\": (string optional) new app description\n"
+            "1.\"addr\":        (string required) contract owner address from this wallet\n"
+            "2.\"filepath\":    (string required), the file path of the app script\n"
+            "3.\"fee\":         (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
+            "4.\"height\":      (numeric optional) valid height, when not specified, the tip block hegiht in chainActive will be used\n"
+            "5.\"appdesc\":     (string optional) new app description\n"
             "\nResult:\n"
-            "\"txid\": (string)\n"
+            "\"txid\":          (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("registercontracttx",
                 "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" 1000000 (10000) (\"appdesc\")") +
@@ -391,12 +389,12 @@ Value registercontracttx(const Array& params, bool fHelp)
     if (params.size() > 4) {
         luaContract.memo = params[4].get_str();
         if (luaContract.memo.size() > kContractMemoMaxSize) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "App desc is too large");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract description is too large");
         }
     }
 
     uint64_t fee = params[2].get_uint64();
-    int height   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    int32_t height   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
 
     if (fee > 0 && fee < CBaseTx::nMinTxFee) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is smaller than nMinTxFee");
@@ -495,7 +493,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fee    = params[2].get_uint64();  // real type
-    int height     = 0;
+    int32_t height     = 0;
     if (params.size() > 3) {
         height = params[3].get_int();
     }
@@ -538,8 +536,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         delegateVoteTx.txUid = account.regid;
 
         for (auto objVote : arrVotes) {
-
-            const Value& delegateAddr = find_value(objVote.get_obj(), "delegate");
+            const Value& delegateAddr  = find_value(objVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(objVote.get_obj(), "votes");
             if (delegateAddr.type() == null_type || delegateVotes == null_type) {
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
@@ -776,8 +773,8 @@ Value listtransactions(const Array& params, bool fHelp) {
     }
 
     Array arrayData;
-    int nCount = -1;
-    int nFrom = 0;
+    int32_t nCount = -1;
+    int32_t nFrom = 0;
     if(params.size() > 1) {
         nCount =  params[1].get_int();
     }
@@ -787,15 +784,15 @@ Value listtransactions(const Array& params, bool fHelp) {
 
     LOCK2(cs_main, pWalletMain->cs_wallet);
 
-    map<int, uint256, std::greater<int> > blockInfoMap;
+    map<int32_t, uint256, std::greater<int32_t> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
         if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
     }
 
-    int txnCount(0);
-    int index(0);
+    int32_t txnCount(0);
+    int32_t index(0);
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pWalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
@@ -988,8 +985,8 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
     }
 
     Array arrayData;
-    int nCount = -1;
-    int nFrom = 0;
+    int32_t nCount = -1;
+    int32_t nFrom = 0;
     if(params.size() > 1) {
         nCount =  params[1].get_int();
     }
@@ -999,8 +996,8 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
 
     LOCK2(cs_main, pWalletMain->cs_wallet);
 
-    int txnCount(0);
-    int index(0);
+    int32_t txnCount(0);
+    int32_t index(0);
     CAccountDBCache accView(*pCdMan->pAccountCache);
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         for (auto const & item : wtx.second.mapAccountTx) {
@@ -1071,8 +1068,8 @@ Value listcontracttx(const Array& params, bool fHelp)
     }
 
     Array arrayData;
-    int nCount = -1;
-    int nFrom = 0;
+    int32_t nCount = -1;
+    int32_t nFrom = 0;
     if (params.size() > 1) {
         nCount = params[1].get_int();
     }
@@ -1088,15 +1085,15 @@ Value listcontracttx(const Array& params, bool fHelp)
 
     LOCK2(cs_main, pWalletMain->cs_wallet);
 
-    map<int, uint256, std::greater<int> > blockInfoMap;
+    map<int32_t, uint256, std::greater<int32_t> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
         if (pIndex != nullptr)
             blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
     }
 
-    int txnCount(0);
-    int index(0);
+    int32_t txnCount(0);
+    int32_t index(0);
     for (auto const &wtx : blockInfoMap) {
         CAccountTx accountTx = pWalletMain->mapInBlockTx[wtx.second];
         for (auto const & item : accountTx.mapAccountTx) {
@@ -1155,8 +1152,8 @@ if (fHelp || params.size() > 2) {
     }
 
     Object retObj;
-    int nDefCount = 10;
-    int nFrom = 0;
+    int32_t nDefCount = 10;
+    int32_t nFrom = 0;
     if(params.size() > 0) {
         nDefCount = params[0].get_int();
     }
@@ -1166,8 +1163,8 @@ if (fHelp || params.size() > 2) {
     assert(pWalletMain != nullptr);
 
     Array confirmedTxArray;
-    int nCount = 0;
-    map<int, uint256, std::greater<int> > blockInfoMap;
+    int32_t nCount = 0;
+    map<int32_t, uint256, std::greater<int32_t> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
         CBlockIndex *pIndex = mapBlockIndex[wtx.first];
         if (pIndex != nullptr)
@@ -1257,7 +1254,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             }
         }
 
-        int height = chainActive.Tip()->height;
+        int32_t height = chainActive.Tip()->height;
         uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
         Array cdps;
         vector<CUserCDP> userCdps;
@@ -1337,7 +1334,7 @@ Value gettxoperationlog(const Array& params, bool fHelp) {
 
 }
 
-static Value TestDisconnectBlock(int number) {
+static Value TestDisconnectBlock(int32_t number) {
     CBlock block;
     Object obj;
 
@@ -1377,7 +1374,7 @@ Value disconnectblock(const Array& params, bool fHelp) {
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("disconnectblock", "\"1\""));
     }
-    int number = params[0].get_int();
+    int32_t number = params[0].get_int();
 
     Value te = TestDisconnectBlock(number);
 
@@ -1588,7 +1585,7 @@ Value getcontractdata(const Array& params, bool fHelp) {
     bool hexadecimal = params.size() > 2 ? params[2].get_bool() : false;
     string key;
     if (hexadecimal) {
-        vector<unsigned char> hexKey = ParseHex(params[1].get_str());
+        vector<uint8_t> hexKey = ParseHex(params[1].get_str());
         key                          = string(hexKey.begin(), hexKey.end());
     } else {
         key = params[1].get_str();
@@ -1684,7 +1681,7 @@ Value genregisteraccountraw(const Array& params, bool fHelp) {
                            strprintf("Input fee smaller than mintxfee: %ld sawi", nDefaultFee));
     }
 
-    int height = params[1].get_int();
+    int32_t height = params[1].get_int();
     if (height <= 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
     }
@@ -1729,7 +1726,7 @@ Value sendtxraw(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
     }
-    vector<unsigned char> vch(ParseHex(params[0].get_str()));
+    vector<uint8_t> vch(ParseHex(params[0].get_str()));
     if (vch.size() > MAX_RPC_SIG_STR_LEN) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx str is too long");
     }
@@ -1791,7 +1788,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     int64_t amount = AmountToRawValue(params[3]);;
     int64_t fee = AmountToRawValue(params[4]);
 
-    int height = chainActive.Tip()->height;
+    int32_t height = chainActive.Tip()->height;
     if (params.size() > 5)
         height = params[5].get_int();
 
@@ -1844,13 +1841,13 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
             "genregistercontractraw \"addr\" \"filepath\" \"fee\"  \"height\" (\"script description\")\n"
             "\nregister script\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required)\n from address that registers the contract"
-            "2.\"filepath\": (string required), script's file path\n"
-            "3.\"fee\": (numeric required) pay to miner\n"
-            "4.\"height\": (int optional) valid height\n"
-            "5.\"script description\":(string optional) new script description\n"
+            "1.\"addr\":                (string required)\n from address that registers the contract"
+            "2.\"filepath\":            (string required), script's file path\n"
+            "3.\"fee\":                 (numeric required) pay to miner\n"
+            "4.\"height\":              (number optional) valid height\n"
+            "5.\"script description\":  (string optional) new script description\n"
             "\nResult:\n"
-            "\"txid\": (string)\n"
+            "\"txid\":                  (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("genregistercontractraw",
                     "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/hello.lua\" \"10000\" ")
@@ -1975,7 +1972,7 @@ Value signtxraw(const Array& params, bool fHelp) {
                            "\\\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\\\"]\""));
     }
 
-    vector<unsigned char> vch(ParseHex(params[0].get_str()));
+    vector<uint8_t> vch(ParseHex(params[0].get_str()));
     if (vch.size() > MAX_RPC_SIG_STR_LEN) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "The sig str is too long");
     }
@@ -1994,7 +1991,7 @@ Value signtxraw(const Array& params, bool fHelp) {
 
     std::set<CKeyID> keyIds;
     CKeyID keyId;
-    for (unsigned int i = 0; i < addresses.size(); i++) {
+    for (uint32_t i = 0; i < addresses.size(); i++) {
         if (!GetKeyId(addresses[i].get_str(), keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId");
         }
@@ -2082,7 +2079,7 @@ Value decodemulsigscript(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(str_type));
 
-    vector<unsigned char> multiScript = ParseHex(params[0].get_str());
+    vector<uint8_t> multiScript = ParseHex(params[0].get_str());
     if (multiScript.empty() || multiScript.size() > KMultisigScriptMaxSize) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
     }
@@ -2132,7 +2129,7 @@ Value decodetxraw(const Array& params, bool fHelp) {
                            "7d02d2d2c3db62a1addaa8009ccd\""));
     }
     Object obj;
-    vector<unsigned char> vch(ParseHex(params[0].get_str()));
+    vector<uint8_t> vch(ParseHex(params[0].get_str()));
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx;
     stream >> pBaseTx;
@@ -2155,7 +2152,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     }
 
     Object retObj;
-    int nLimitCount(0);
+    int32_t nLimitCount(0);
     if(params.size() == 1)
         nLimitCount = params[0].get_int();
     assert(pWalletMain != nullptr);
@@ -2170,7 +2167,6 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         retObj.push_back(Pair("confirmed", confirmedTx));
 
         Array unconfirmedTx;
-        CAccountDBCache view(*pCdMan->pAccountCache);
         for (auto const &wtx : pWalletMain->unconfirmedTx) {
             Object objtx = GetTxDetailJSON(wtx.first);
             unconfirmedTx.push_back(objtx);
@@ -2178,21 +2174,21 @@ Value getalltxinfo(const Array& params, bool fHelp) {
         retObj.push_back(Pair("unconfirmed", unconfirmedTx));
     } else {
         Array confirmedTx;
-        multimap<int, Object, std::greater<int> > mapTx;
+        multimap<int32_t, Object, std::greater<int32_t> > mapTx;
         for (auto const &wtx : pWalletMain->mapInBlockTx) {
             for (auto const & item : wtx.second.mapAccountTx) {
                 Object objtx = GetTxDetailJSON(item.first);
-                int nConfHeight = find_value(objtx, "confirmedheight").get_int();
-                mapTx.insert(pair<int, Object>(nConfHeight, objtx));
+                int32_t nConfHeight = find_value(objtx, "confirmedheight").get_int();
+                mapTx.insert(pair<int32_t, Object>(nConfHeight, objtx));
             }
         }
-        int nSize(0);
+        int32_t nSize(0);
         for(auto & txItem : mapTx) {
             if(++nSize > nLimitCount)
                 break;
             confirmedTx.push_back(txItem.second);
         }
-        retObj.push_back(Pair("Confirmed", confirmedTx));
+        retObj.push_back(Pair("confirmed", confirmedTx));
     }
 
     return retObj;
@@ -2217,8 +2213,8 @@ Value gettxreceipt(const Array& params, bool fHelp) {
         Object obj;
 
         obj.push_back(Pair("tx_type",           std::get<0>(kTxFeeTable.at(receipt.tx_type))));
-        obj.push_back(Pair("from_uid",         receipt.from_uid.ToString()));
-        obj.push_back(Pair("to_uid",           receipt.to_uid.ToString()));
+        obj.push_back(Pair("from_uid",          receipt.from_uid.ToString()));
+        obj.push_back(Pair("to_uid",            receipt.to_uid.ToString()));
         obj.push_back(Pair("coin_symbol",       receipt.coin_symbol));
         obj.push_back(Pair("transfer_amount",   receipt.send_amount));
         retArray.push_back(obj);
@@ -2247,7 +2243,6 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
         throw runtime_error("getcontractaccountinfo: invalid contract regid: " + strAppRegId);
 
     CRegID appRegId(strAppRegId);
-
     string acctKey;
     if (CRegID::IsSimpleRegIdStr(params[1].get_str())) {
         CRegID acctRegId(params[1].get_str());
@@ -2334,7 +2329,7 @@ Value gethash(const Array& params, bool fHelp) {
     }
 
     string str = params[0].get_str();
-    vector<unsigned char> vTemp;
+    vector<uint8_t> vTemp;
     vTemp.assign(str.c_str(), str.c_str() + str.length());
     uint256 strhash = Hash(vTemp.begin(), vTemp.end());
     Object obj;
@@ -2447,7 +2442,7 @@ Value listtxbyaddr(const Array& params, bool fHelp) {
     }
 
     string address = params[0].get_str();
-    int height     = params[1].get_int();
+    int32_t height     = params[1].get_int();
     if (height < 0 || height > chainActive.Height())
         throw runtime_error("Height out of range.");
 
@@ -2484,7 +2479,7 @@ Value listdelegates(const Array& params, bool fHelp) {
                 + HelpExampleRpc("listdelegates", "11"));
     }
 
-    int delegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetTotalDelegateNum();
+    int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetTotalDelegateNum();
     if (delegateNum < 1 || delegateNum > 11) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
                            strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
@@ -2495,7 +2490,7 @@ Value listdelegates(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
     }
 
-    delegatesList.resize(std::min(delegateNum, (int)delegatesList.size()));
+    delegatesList.resize(std::min(delegateNum, (int32_t)delegatesList.size()));
 
     Object obj;
     Array delegateArray;
