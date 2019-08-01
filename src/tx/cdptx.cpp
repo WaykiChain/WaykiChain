@@ -563,7 +563,6 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
     if (scoins_to_liquidate >= totalScoinsToLiquidate) {
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToLiquidate);
-        account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToReturnSysFund); //penalty fees: 50%: sell2burn & 50%: risk-reserve
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
         cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
 
@@ -590,17 +589,12 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         totalBcoinsToReturnLiquidator *= liquidateRate;
 
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate);
-        account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToReturnSysFund);
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
 
         int32_t bcoinsToCDPOwner = totalBcoinsToCdpOwner * liquidateRate;
         cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, bcoinsToCDPOwner);
 
-        if (cdp.total_owed_scoins <= scoins_to_liquidate) {
-            cdp.total_owed_scoins = 0;
-        } else {
-            cdp.total_owed_scoins -= scoins_to_liquidate;
-        }
+        cdp.total_owed_scoins -= cdp.total_owed_scoins * liquidateRate;
 
         uint64_t totalBcoinsToDeduct = totalBcoinsToReturnLiquidator + bcoinsToCDPOwner;
         if (cdp.total_staked_bcoins <= totalBcoinsToDeduct) {
@@ -692,7 +686,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
     } else {
-        // save 50% penalty fees into risk riserve
+        // save penalty fees into risk riserve
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees);
     }
 
