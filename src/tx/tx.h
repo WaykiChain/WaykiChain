@@ -18,7 +18,6 @@
 #include "config/txbase.h"
 #include "config/scoin.h"
 
-#include <boost/variant.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -49,8 +48,8 @@ public:
     uint64_t llFees;
     UnsignedCharArray signature;
 
-    uint64_t nRunStep;        //!< only in memory
-    int32_t nFuelRate;        //!< only in memory
+    uint64_t nRunStep;     //!< only in memory
+    int32_t nFuelRate;     //!< only in memory
     mutable TxID sigHash;  //!< only in memory
 
 public:
