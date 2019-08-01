@@ -61,8 +61,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-    uint64_t collateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height) * kPercentBoost /
-                                scoins_to_mint;
+    uint64_t collateralRatio = bcoins_to_stake * cw.ppCache.GetBcoinMedianPrice(height) / scoins_to_mint;
 
     if (collateralRatio < startingCdpCollateralRatio) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, collateral ratio (%d) is smaller than the minimal(%d)",
