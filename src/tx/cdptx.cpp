@@ -194,8 +194,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
     // update account accordingly
     if (!account.OperateBalance(bcoin_symbol, BalanceOpType::SUB_FREE, bcoins_to_stake)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, wicc coins insufficient"),
-                        INTEREST_INSUFFICIENT, "wicc-insufficient-error");
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins insufficient"),
+                        INTEREST_INSUFFICIENT, "bcoins-insufficient-error");
     }
     account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint);
 

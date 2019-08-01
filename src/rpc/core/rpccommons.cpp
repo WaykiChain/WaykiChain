@@ -125,7 +125,12 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
                 if (iValue < 0)
                     return false;
 
-                comboMoney.symbol = comboMoneyArr[0];
+                string strSymbol = comboMoneyArr[0];
+                std::for_each(strSymbol.begin(), strSymbol.end(), [](char & c){
+                    c = ::toupper(c);
+                });
+
+                comboMoney.symbol = strSymbol;
                 comboMoney.amount = (uint64_t) iValue;
                 comboMoney.unit   = "sawi";
 
@@ -149,7 +154,12 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
             if (!CoinUnitTypeTable.count(comboMoneyArr[2]))
                 return false;
 
-            comboMoney.symbol = comboMoneyArr[0];
+            string strSymbol = comboMoneyArr[0];
+            std::for_each(strSymbol.begin(), strSymbol.end(), [](char & c){
+                c = ::toupper(c);
+            });
+
+            comboMoney.symbol = strSymbol;
             comboMoney.amount = (uint64_t) iValue;
             comboMoney.unit   = comboMoneyArr[2];
             break;
