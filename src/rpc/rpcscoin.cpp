@@ -25,8 +25,8 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "submitpricefeedtx {price_feeds_json} [fee]\n"
             "\nsubmit a Price Feed Tx.\n"
             "\nArguments:\n"
-            "1. \"address\" :   (string, required) Price Feeder's address\n"
-            "2. \"pricefeeds\": (string, required) A json array of pricefeeds\n"
+            "1. \"address\" :                   (string, required) Price Feeder's address\n"
+            "2. \"pricefeeds\":                 (string, required) A json array of pricefeeds\n"
             " [\n"
             "   {\n"
             "      \"coin\": \"WICC|WGRT\",     (string, required) The coin type\n"
@@ -35,13 +35,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\":         (numeric, optional) fee pay for miner, default is 10000\n"
+            "3.\"fee\":                         (numeric, optional) fee pay for miner, default is 10000\n"
             "\nResult:\n"
-            "\"txid\"           (string) The transaction id.\n"
+            "\"txid\"                           (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("submitpricefeedtx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
-                           "\"[{\\\"coin\\\": \"WICC\", \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 2500}]\"\n") +
+                           "\"[{\\\"coin\\\": \\\"WICC\\\", \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 2500}]\"\n") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitpricefeedtx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\": \"WICC\", \"currency\": \"USD\", "
