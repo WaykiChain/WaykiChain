@@ -507,12 +507,10 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     uint64_t collateralRatio = (double)cdp.total_staked_bcoins * cw.ppCache.GetBcoinMedianPrice(height)
-                            * kPercentBoost / cdp.total_owed_scoins;
+                                / cdp.total_owed_scoins;
 
     double liquidateRate; //unboosted on purpose
-    double totalScoinsToReturnLiquidator, totalScoinsToLiquidate, totalScoinsToReturnSysFund, totalBcoinsToCdpOwner;
-
-    uint64_t totalBcoinsToReturnLiquidator;
+    double totalBcoinsToReturnLiquidator, totalScoinsToLiquidate, totalScoinsToReturnSysFund, totalBcoinsToCdpOwner;
 
     uint64_t startingCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_START_LIQUIDATE_RATIO, startingCdpLiquidateRatio)) {
@@ -602,8 +600,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
     } else { //partial liquidation
         liquidateRate = (double) scoins_to_liquidate / totalScoinsToLiquidate;
-        uint64_t totalBcoinsToReturnLiquidator =
-            totalScoinsToReturnLiquidator * liquidateRate / cw.ppCache.GetBcoinMedianPrice(height);
+        totalBcoinsToReturnLiquidator *= liquidateRate;
 
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, scoins_to_liquidate);
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToReturnSysFund);
@@ -689,7 +686,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
     uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
 
     // 1) save 50% penalty fees into risk riserve
-    fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty); // save to risk reserve
+    fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
 
     // 2) sell 50% penalty fees for Fcoins and burn
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
