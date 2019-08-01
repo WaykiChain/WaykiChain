@@ -1265,7 +1265,6 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
          throw runtime_error("listunconfirmedtx \n"
                 "\nget the list  of unconfirmedtx.\n"
                 "\nArguments:\n"
-                "\nResult a object about the unconfirm transaction\n"
                 "\nResult:\n"
                 "\nExamples:\n"
                 + HelpExampleCli("listunconfirmedtx", "")
