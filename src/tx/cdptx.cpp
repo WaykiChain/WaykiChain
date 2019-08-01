@@ -582,7 +582,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
         cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
 
-        if (!SellPenaltyForFcoins(cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
+        if (!ProcessPenaltyFees(cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
             return false;
 
         //close CDP
@@ -616,7 +616,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         cdp.total_staked_bcoins -= bcoinsToCDPOwner;
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
-        if (!SellPenaltyForFcoins(cdp, scoinsToReturnSysFund, cw, state))
+        if (!ProcessPenaltyFees(cdp, scoinsToReturnSysFund, cw, state))
             return false;
 
         if (!cw.cdpCache.SaveCdp(cdp)) {
@@ -679,7 +679,7 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     return true;
 }
 
-bool CCDPLiquidateTx::SellPenaltyForFcoins(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state) {
 
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {

@@ -261,7 +261,7 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellPenaltyForFcoins(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state);
+    bool ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state);
 
 private:
     TokenSymbol fee_symbol;
