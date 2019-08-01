@@ -34,11 +34,6 @@ class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_LIMIT_BUY_ORDER_TX) {}
 
-    CDEXBuyLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_LIMIT_BUY_ORDER_TX) {
-        assert(DEX_LIMIT_BUY_ORDER_TX == pBaseTx->nTxType);
-        *this = *(CDEXBuyLimitOrderTx *)pBaseTx;
-    }
-
     CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                    TokenSymbol coinSymbol, TokenSymbol assetSymbol,
                    uint64_t assetAmountIn, uint64_t bid_priceIn)
@@ -78,7 +73,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyLimitOrderTx>(*this); }
     string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -101,11 +96,6 @@ class CDEXSellLimitOrderTx : public CDEXOrderBaseTx {
 
 public:
     CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX) {}
-
-    CDEXSellLimitOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX) {
-        assert(DEX_LIMIT_SELL_ORDER_TX == pBaseTx->nTxType);
-        *this = *(CDEXSellLimitOrderTx *)pBaseTx;
-    }
 
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                     TokenSymbol coinSymbol, TokenSymbol assetSymbol,
@@ -147,7 +137,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellLimitOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellLimitOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -169,11 +159,6 @@ private:
 class CDEXBuyMarketOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_MARKET_BUY_ORDER_TX) {}
-
-    CDEXBuyMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_MARKET_BUY_ORDER_TX) {
-        assert(DEX_MARKET_BUY_ORDER_TX == pBaseTx->nTxType);
-        *this = *(CDEXBuyMarketOrderTx *)pBaseTx;
-    }
 
     CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          TokenSymbol coinSymbol, TokenSymbol assetSymbol, uint64_t coinAmountIn)
@@ -211,7 +196,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXBuyMarketOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -231,11 +216,6 @@ private:
 class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_MARKET_SELL_ORDER_TX) {}
-
-    CDEXSellMarketOrderTx(const CBaseTx *pBaseTx): CDEXOrderBaseTx(DEX_MARKET_SELL_ORDER_TX) {
-        assert(DEX_MARKET_SELL_ORDER_TX == pBaseTx->nTxType);
-        *this = *(CDEXSellMarketOrderTx *)pBaseTx;
-    }
 
     CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          TokenSymbol coinSymbol, TokenSymbol assetSymbol, uint64_t assetAmountIn)
@@ -273,7 +253,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSellMarketOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -293,11 +273,6 @@ private:
 class CDEXCancelOrderTx : public CBaseTx {
 public:
     CDEXCancelOrderTx() : CBaseTx(DEX_CANCEL_ORDER_TX) {}
-
-    CDEXCancelOrderTx(const CBaseTx *pBaseTx): CBaseTx(DEX_CANCEL_ORDER_TX) {
-        assert(DEX_CANCEL_ORDER_TX == pBaseTx->nTxType);
-        *this = *(CDEXCancelOrderTx *)pBaseTx;
-    }
 
     CDEXCancelOrderTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
                          uint256 orderIdIn)
@@ -331,7 +306,7 @@ public:
     }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXCancelOrderTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
@@ -363,11 +338,6 @@ class CDEXSettleTx: public CBaseTx {
 
 public:
     CDEXSettleTx() : CBaseTx(DEX_TRADE_SETTLE_TX) {}
-
-    CDEXSettleTx(const CBaseTx *pBaseTx): CBaseTx(DEX_TRADE_SETTLE_TX) {
-        assert(DEX_TRADE_SETTLE_TX == pBaseTx->nTxType);
-        *this = *(CDEXSettleTx *)pBaseTx;
-    }
 
     CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, uint64_t feesIn,
         const vector<DEXDealItem> &dealItemsIn):
@@ -407,7 +377,7 @@ public:
     vector<DEXDealItem>& GetDealItems() { return dealItems; }
 
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() { return std::make_shared<CDEXSettleTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
