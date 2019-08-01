@@ -168,12 +168,12 @@ public:
         return state.DoS(100, ERRORMSG("%s::CheckTx, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                                                     \
+#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                                          \
     if (!CheckBaseCoinRange(llFees))                                                                               \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__), REJECT_INVALID,          \
                          "bad-tx-fee-toolarge");                                                                   \
                                                                                                                    \
-    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                                                   \
+    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                                        \
         return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee smaller than MinTxFee", __FUNCTION__), REJECT_INVALID, \
                          "bad-tx-fee-toosmall");                                                                   \
     }
