@@ -1330,7 +1330,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
         }
 
-        LogPrint("INFO", "Connect() : haveMedianPriceTx: %d, havePriceFeedTx: %d, lastPriceFeedTxIndex: %d, txCount: %llu\n",
+        LogPrint("INFO", "Connect() : haveMedianPriceTx: %d, havePriceFeedTx: %d, lastPriceFeedTxIndex: %d, tx: %llu\n",
                  haveMedianPriceTx, havePriceFeedTx, lastPriceFeedTxIndex, block.vptx.size());
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {

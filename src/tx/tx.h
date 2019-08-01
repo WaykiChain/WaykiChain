@@ -158,60 +158,59 @@ public:
     }
 };
 
-#define IMPLEMENT_CHECK_TX_MEMO                                                                             \
-    if (memo.size() > kCommonTxMemoMaxSize)                                                                 \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, memo's size too large", __FUNCTION__), REJECT_INVALID, \
+#define IMPLEMENT_CHECK_TX_MEMO                                                                    \
+    if (memo.size() > kCommonTxMemoMaxSize)                                                        \
+        return state.DoS(100, ERRORMSG("%s, memo's size too large", __FUNCTION__), REJECT_INVALID, \
                          "memo-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                             \
-    if (arguments.size() > kContractArgumentMaxSize)                                                             \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
+#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                    \
+    if (arguments.size() > kContractArgumentMaxSize)                                                    \
+        return state.DoS(100, ERRORMSG("%s, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                                         \
-    if (!CheckBaseCoinRange(llFees))                                                                              \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, tx fee out of range", __FUNCTION__), REJECT_INVALID,         \
-                         "bad-tx-fee-toolarge");                                                                  \
-                                                                                                                  \
-    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                                       \
-        return state.DoS(                                                                                         \
-            100, ERRORMSG("%s::CheckTx, tx fee(%s:%llu) smaller than MinTxFee", __FUNCTION__, feeSymbol, llFees), \
-            REJECT_INVALID, "bad-tx-fee-toosmall");                                                               \
+#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                                             \
+    if (!CheckBaseCoinRange(llFees))                                                                                  \
+        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,                      \
+                         "bad-tx-fee-toolarge");                                                                      \
+                                                                                                                      \
+    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                                           \
+        return state.DoS(100,                                                                                         \
+                         ERRORMSG("%s, tx fee too smqll(heihgt: %d, fee symbol: %s, fee: %llu", __FUNCTION__, height, \
+                                  feeSymbol, llFees),                                                                 \
+                         REJECT_INVALID, "bad-tx-fee-toosmall");                                                      \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                                \
-    if (txUidType != typeid(CRegID)) {                                                                     \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, txUid must be CRegID", __FUNCTION__), REJECT_INVALID, \
-                         "txUid-type-error");                                                              \
+#define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                                            \
+    if (txUidType != typeid(CRegID)) {                                                                                 \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID, "txUid-type-error"); \
     }
 
-#define IMPLEMENT_CHECK_TX_APPID(appUidType)                                                                \
-    if (appUidType != typeid(CRegID)) {                                                                     \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, appUid must be CRegID", __FUNCTION__), REJECT_INVALID, \
-                         "appUid-type-error");                                                              \
+#define IMPLEMENT_CHECK_TX_APPID(appUidType)                                                       \
+    if (appUidType != typeid(CRegID)) {                                                            \
+        return state.DoS(100, ERRORMSG("%s, appUid must be CRegID", __FUNCTION__), REJECT_INVALID, \
+                         "appUid-type-error");                                                     \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                                 \
-    if ((txUidType != typeid(CRegID)) && (txUidType != typeid(CPubKey))) {                                            \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, txUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
-                         "txUid-type-error");                                                                         \
+#define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                        \
+    if ((txUidType != typeid(CRegID)) && (txUidType != typeid(CPubKey))) {                                   \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
+                         "txUid-type-error");                                                                \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUidType)                                                                 \
-    if ((toUidType != typeid(CRegID)) && (toUidType != typeid(CKeyID))) {                                            \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, toUid must be CRegID or CKeyID", __FUNCTION__), REJECT_INVALID, \
-                         "toUid-type-error");                                                                        \
+#define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUidType)                                                        \
+    if ((toUidType != typeid(CRegID)) && (toUidType != typeid(CKeyID))) {                                   \
+        return state.DoS(100, ERRORMSG("%s, toUid must be CRegID or CKeyID", __FUNCTION__), REJECT_INVALID, \
+                         "toUid-type-error");                                                               \
     }
 
-#define IMPLEMENT_CHECK_TX_SIGNATURE(signatureVerifyPubKey)                                                     \
-    if (!CheckSignatureSize(signature)) {                                                                       \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, tx signature size invalid", __FUNCTION__), REJECT_INVALID, \
-                         "bad-tx-sig-size");                                                                    \
-    }                                                                                                           \
-    uint256 sighash = ComputeSignatureHash();                                                                   \
-    if (!VerifySignature(sighash, signature, signatureVerifyPubKey)) {                                          \
-        return state.DoS(100, ERRORMSG("%s::CheckTx, tx signature error", __FUNCTION__), REJECT_INVALID,        \
-                         "bad-tx-signature");                                                                   \
+#define IMPLEMENT_CHECK_TX_SIGNATURE(signatureVerifyPubKey)                                                          \
+    if (!CheckSignatureSize(signature)) {                                                                            \
+        return state.DoS(100, ERRORMSG("%s, tx signature size invalid", __FUNCTION__), REJECT_INVALID,               \
+                         "bad-tx-sig-size");                                                                         \
+    }                                                                                                                \
+    uint256 sighash = ComputeSignatureHash();                                                                        \
+    if (!VerifySignature(sighash, signature, signatureVerifyPubKey)) {                                               \
+        return state.DoS(100, ERRORMSG("%s, tx signature error", __FUNCTION__), REJECT_INVALID, "bad-tx-signature"); \
     }
 
 #define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)                                          \
