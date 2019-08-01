@@ -181,7 +181,7 @@ public:
     uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
 
     uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
-    uint64_t ComputeBlockInflateInterest(const uint64_t currHeight) const;
+    uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
     bool RegIDIsMature() const;
