@@ -18,7 +18,24 @@
  *  ==> ratio = a / Log10 (b+N)
  */
 bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &total_owed_scoins, uint64_t &interestOut);
+                        const uint64_t &total_owed_scoins, uint64_t &interestOut) {
+    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
+    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+
+    uint64_t A;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
+        return false;
+
+    uint64_t B;
+    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
+        return false;
+
+    uint64_t N = total_owed_scoins;
+    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+
+    return true;
+}
 
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
@@ -682,27 +699,6 @@ bool CCDPLiquidateTx::SellPenaltyForFcoins(const CUserCDP &cdp, uint64_t scoinPe
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
-
-    return true;
-}
-
-
-bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t &total_owed_scoins, uint64_t &interestOut) {
-    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
-    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
-
-    uint64_t A;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
-        return false;
-
-    uint64_t B;
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
-        return false;
-
-    uint64_t N = total_owed_scoins;
-    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
-    interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
 
     return true;
 }
