@@ -9,7 +9,7 @@
 #include "main.h"
 
 /**################################ Base Coin (WICC) Transfer ########################################**/
-bool CBaseCoinTransferTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -39,7 +39,7 @@ bool CBaseCoinTransferTx::CheckTx(int height, CCacheWrapper &cw, CValidationStat
     return true;
 }
 
-bool CBaseCoinTransferTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;

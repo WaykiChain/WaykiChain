@@ -321,9 +321,9 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CBaseCoinTransferTx tx;
-    tx.txUid    = sendUserId;
-    tx.toUid    = recvUserId;
-    tx.bcoins = nValue;
+    tx.txUid        = sendUserId;
+    tx.toUid        = recvUserId;
+    tx.bcoins       = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = height;
 
@@ -513,7 +513,7 @@ Value send(const Array& params, bool fHelp) {
             "3. \"symbol:coin:unit\":   (symbol:amount:unit, required) transfered coins\n"
             "4. \"symbol:fee:unit\":    (symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\"           (string) The transaction id.\n"
+            "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("send", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +

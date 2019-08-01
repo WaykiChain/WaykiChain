@@ -18,24 +18,9 @@ public:
 public:
     CBaseCoinTransferTx(): CBaseTx(BCOIN_TRANSFER_TX) { }
 
-    CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feesIn, uint64_t valueIn,
-              int validHeightIn, UnsignedCharArray &memoIn) :
-              CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        else if (txUidIn.type() == typeid(CPubKey))
-            assert(txUidIn.get<CPubKey>().IsFullyValid());
-
-        if (toUidIn.type() == typeid(CRegID))
-            assert(!toUidIn.get<CRegID>().IsEmpty());
-
-        toUid   = toUidIn;
-        bcoins  = valueIn;
-        memo    = memoIn;
-    }
-
-    CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, uint64_t feesIn, uint64_t valueIn,
-              int validHeightIn): CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
+    CBaseCoinTransferTx(const CUserID &txUidIn, CUserID toUidIn, int32_t validHeightIn, uint64_t bcoinsIn,
+                        uint64_t feesIn, UnsignedCharArray &memoIn)
+        : CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
         else if (txUidIn.type() == typeid(CPubKey))
@@ -45,7 +30,8 @@ public:
             assert(!toUidIn.get<CRegID>().IsEmpty());
 
         toUid  = toUidIn;
-        bcoins = valueIn;
+        bcoins = bcoinsIn;
+        memo   = memoIn;
     }
 
     ~CBaseCoinTransferTx() {}
@@ -80,8 +66,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 };
 
 /**################################ Universal Coin Transfer ########################################**/

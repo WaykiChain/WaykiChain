@@ -128,10 +128,10 @@ public:
             assert(!txUidIn.get<CRegID>().IsEmpty());
         }
 
-        uint64_t feeUnitBase  = CoinUnitTypeTable.at(cmFeeIn.unit);
+        uint64_t feeUnitBase = CoinUnitTypeTable.at(cmFeeIn.unit);
 
-        fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * feeUnitBase;
+        fee_symbol = cmFeeIn.symbol;
+        llFees     = cmFeeIn.amount * feeUnitBase;
 
         cdp_txid         = cdpTxId;
         scoins_to_repay  = scoinsToRepay;
