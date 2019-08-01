@@ -232,13 +232,11 @@ uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const Co
 }
 
 uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
-    //return GetMedianPrice(blockHeight, CoinPricePair(SYMB::WICC, SYMB::USD));
-    return 20000;
+    return GetMedianPrice(blockHeight, CoinPricePair(SYMB::WICC, SYMB::USD));
 }
 
 uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
-    //return GetMedianPrice(blockHeight, CoinPricePair(SYMB::WGRT, SYMB::USD));
-    return 20000;
+    return GetMedianPrice(blockHeight, CoinPricePair(SYMB::WGRT, SYMB::USD));
 }
 
 bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
