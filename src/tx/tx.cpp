@@ -95,12 +95,12 @@ bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t 
             if (feeSymbol == SYMB::WICC)
                 return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
             else if (feeSymbol == SYMB::WUSD)
-                return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
+                return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
             break;
         }
         case MAJOR_VER_R2: {  // StableCoin Release
             if (feeSymbol == SYMB::WICC)
-                return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
+                return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
             else if (feeSymbol == SYMB::WUSD)
                 return iter != kTxFeeTable.end() ? (llFees >= std::get<4>(iter->second)) : true;
             break;
