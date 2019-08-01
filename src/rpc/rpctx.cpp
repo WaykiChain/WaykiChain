@@ -1241,6 +1241,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             }
             obj = account.ToJsonObj();
             obj.push_back(Pair("position", "inblock"));
+
         } else {  // unregistered keyId
             CPubKey pubKey;
             CPubKey minerPubKey;
@@ -1255,7 +1256,19 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 obj.push_back(Pair("position", "inwallet"));
             }
         }
+
+        int height = chainActive.Tip()->height;
+        uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+        Array cdps;
+        vector<CUserCDP> userCdps;
+        if (pCdMan->pCdpCache->GetCdpList(account.regid, userCdps)) {
+            for (auto& cdp : userCdps) {
+                cdps.push_back(cdp.ToJson(bcoinMedianPrice));
+            }
+        }
+        obj.push_back(Pair("cdp_list", cdps));
     }
+
     return obj;
 }
 
