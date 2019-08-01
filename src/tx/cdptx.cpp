@@ -512,6 +512,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     double liquidateRate; //unboosted on purpose
     double totalScoinsToReturnLiquidator, totalScoinsToLiquidate, totalScoinsToReturnSysFund, totalBcoinsToCdpOwner;
 
+    uint64_t totalBcoinsToReturnLiquidator;
+
     uint64_t startingCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_START_LIQUIDATE_RATIO, startingCdpLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_START_LIQUIDATE_RATIO error!"),
@@ -541,38 +543,40 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
     } else if (collateralRatio > nonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
+        totalBcoinsToReturnLiquidator = (double) cdp.total_owed_scoins * nonReturnCdpLiquidateRatio
+                                            / cw.ppCache.GetBcoinMedianPrice(height) ; //1.13N
+
         totalScoinsToLiquidate = ((double) cdp.total_owed_scoins * nonReturnCdpLiquidateRatio / kPercentBoost )
                                 * cdpLiquidateDiscountRate / kPercentBoost; //1.096N
-        totalScoinsToReturnLiquidator = (double) cdp.total_owed_scoins * nonReturnCdpLiquidateRatio / kPercentBoost; //1.13N
-        totalScoinsToReturnSysFund = ((double) cdp.total_owed_scoins * nonReturnCdpLiquidateRatio / kPercentBoost )
-                                * cdpLiquidateDiscountRate / kPercentBoost - cdp.total_owed_scoins;
-        totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(height);
+
+        totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins;
+
+        totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalBcoinsToReturnLiquidator;
 
     } else if (collateralRatio > forcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
-        totalScoinsToReturnLiquidator = (double) cdp.total_staked_bcoins / cw.ppCache.GetBcoinMedianPrice(height); //M
-        totalScoinsToLiquidate = totalScoinsToReturnLiquidator * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
-        totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins; // M - N
-        totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(height);
+        totalBcoinsToReturnLiquidator = (double) cdp.total_staked_bcoins; //M
+
+        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * cw.ppCache.GetBcoinMedianPrice(height)
+                                    * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
+
+        totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins; // M * 97% - N
+
+        totalBcoinsToCdpOwner = 0;
 
     } else {                                                    // 0 ~ 1.04
-        //Although not likely to happen. but if it does, execute it accordingly.
-        totalScoinsToLiquidate = cdp.total_owed_scoins; //N
-        totalScoinsToReturnLiquidator = (double) cdp.total_staked_bcoins / cw.ppCache.GetBcoinMedianPrice(height); //M
-        if (scoins_to_liquidate < cdp.total_owed_scoins) {
-            totalScoinsToReturnLiquidator = scoins_to_liquidate * kPercentBoost / cdpLiquidateDiscountRate;
-            uint64_t totalCdpStakeInScoins = cdp.total_staked_bcoins * cw.ppCache.GetBcoinMedianPrice(height);
-            if (totalCdpStakeInScoins < totalScoinsToReturnLiquidator) {
-                totalScoinsToReturnLiquidator = totalCdpStakeInScoins;
-            }
-        }
+        //Although not likely to happen, but when it does, execute it accordingly.
+        totalScoinsToLiquidate = cdp.total_owed_scoins;         // N
+        totalBcoinsToReturnLiquidator = scoins_to_liquidate >= totalScoinsToLiquidate ?
+                        (double) cdp.total_staked_bcoins :      // M
+                        (double) cdp.total_staked_bcoins * scoins_to_liquidate / totalScoinsToLiquidate; // M * (L/N)
+
         totalScoinsToReturnSysFund = 0;
-        totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(height);
+        totalBcoinsToCdpOwner = 0;
     }
 
     vector<CReceipt> receipts;
-    if (scoins_to_liquidate >= totalScoinsToLiquidate) {
-        uint64_t totalBcoinsToReturnLiquidator = totalScoinsToReturnLiquidator / cw.ppCache.GetBcoinMedianPrice(height);
 
+    if (scoins_to_liquidate >= totalScoinsToLiquidate) {
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToLiquidate);
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToReturnSysFund); //penalty fees: 50%: sell2burn & 50%: risk-reserve
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
