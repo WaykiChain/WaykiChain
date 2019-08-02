@@ -167,8 +167,8 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint, SYMB::WUSD))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
 
-    if (cmScoinsToMint.amount == 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
+    // if (cmScoinsToMint.amount == 0)
+    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
 
     int validHeight = chainActive.Tip()->height;
 
