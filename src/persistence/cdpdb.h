@@ -46,6 +46,9 @@ private:
     void BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn);
 
 private:
+    enum CDPState { CDP_EXPIRED = 0, CDP_VALID = 1 };
+
+private:
     map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
     uint64_t total_staked_bcoins = 0;
     uint64_t total_owed_scoins   = 0;

@@ -15,9 +15,7 @@ bool CCdpMemCache::LoadAllCdpFromDB() {
     }
 
     for (const auto & item: rawCdps) {
-        static uint8_t valid = 1; // 0: invalid; 1: valid
-
-        cdps.emplace(item.second, valid);
+        cdps.emplace(item.second, CDPState::CDP_VALID);
         total_staked_bcoins += item.second.total_staked_bcoins;
         total_owed_scoins += item.second.total_owed_scoins;
     }
@@ -38,8 +36,7 @@ void CCdpMemCache::Flush() {
 }
 
 bool CCdpMemCache::SaveCdp(const CUserCDP &userCdp) {
-    static uint8_t valid = 1;  // 0: invalid; 1: valid
-    cdps.emplace(userCdp, valid);
+    cdps.emplace(userCdp, CDPState::CDP_VALID);
 
     total_staked_bcoins += userCdp.total_staked_bcoins;
     total_owed_scoins += userCdp.total_owed_scoins;
@@ -48,9 +45,7 @@ bool CCdpMemCache::SaveCdp(const CUserCDP &userCdp) {
 }
 
 bool CCdpMemCache::EraseCdp(const CUserCDP &userCdp) {
-    static uint8_t invalid = 0;  // 0: invalid; 1: valid
-
-    cdps[userCdp] = invalid;
+    cdps[userCdp] = CDPState::CDP_EXPIRED;
     total_staked_bcoins -= userCdp.total_staked_bcoins;
     total_owed_scoins -= userCdp.total_owed_scoins;
 
@@ -80,7 +75,7 @@ bool CCdpMemCache::GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, se
     static uint256 txid;
     static CUserCDP cdp;
     cdp.collateral_ratio_base = ratio;
-    cdp.owner_regid         = regId;
+    cdp.owner_regid           = regId;
 
     auto boundary = cdps.upper_bound(cdp);
     if (boundary != cdps.end()) {
