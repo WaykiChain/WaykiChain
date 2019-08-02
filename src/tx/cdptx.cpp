@@ -527,7 +527,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     if (collateralRatio > startingCdpLiquidateRatio) {        // 1.5++
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%d) > 150%!",
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%d) > 150%%!",
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
     } else if (collateralRatio > nonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
