@@ -222,7 +222,7 @@ public:
     CDelegateDBCache    *pDelegateCache;
 
     CDBAccess           *pCdpDb;
-    CCdpDBCache         *pCdpCache;
+    CCDPDBCache         *pCdpCache;
 
     CDBAccess           *pDexDb;
     CDexDBCache         *pDexCache;
@@ -254,7 +254,7 @@ public:
         pDelegateCache  = new CDelegateDBCache(pDelegateDb);
 
         pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pCdpCache       = new CCdpDBCache(pCdpDb);
+        pCdpCache       = new CCDPDBCache(pCdpDb);
 
         pDexDb          = new CDBAccess(DBNameType::DEX, nAccountDBCache, false, fReIndex); //TODO fix cache size
         pDexCache       = new CDexDBCache(pDexDb);

@@ -84,7 +84,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
 
     if (cdp_txid.IsNull()) {  // 1st-time CDP creation
         vector<CUserCDP> userCdps;
-        if (cw.cdpCache.GetCdpList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
+        if (cw.cdpCache.GetCDPList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"), REJECT_INVALID, "has-open-cdp");
         }
     }
@@ -137,7 +137,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         CUserCDP cdp(txUid.get<CRegID>(), GetHash(), height, bcoin_symbol, scoin_symbol, bcoins_to_stake, scoins_to_mint);
 
-        if (!cw.cdpCache.NewCdp(height, cdp)) {
+        if (!cw.cdpCache.NewCDP(height, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, save new cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-new-cdp-failed");
 
@@ -145,7 +145,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
     } else { // further staking on one's existing CDP
         CUserCDP cdp;
-        if (!cw.cdpCache.GetCdp(cdp_txid, cdp)) {
+        if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdp_txid %s", cdp_txid.ToString()),
                              REJECT_INVALID, "invalid-stake-cdp-txid");
         }
@@ -186,7 +186,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         // settle cdp state & persist
-        if (!cw.cdpCache.StakeBcoinsToCdp(height, bcoins_to_stake, scoins_to_mint, cdp)) {
+        if (!cw.cdpCache.StakeBcoinsToCDP(height, bcoins_to_stake, scoins_to_mint, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
         }
@@ -308,7 +308,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     //2. pay interest fees in wusd
     CUserCDP cdp;
-    if (cw.cdpCache.GetCdp(cdp_txid, cdp)) {
+    if (cw.cdpCache.GetCDP(cdp_txid, cdp)) {
         if (height < cdp.block_height) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.block_height: %d",
                             height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
@@ -342,7 +342,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total_staked_bcoins %d <= target %d",
                         cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
     }
-    if (!cw.cdpCache.RedeemBcoinsFromCdp(height, bcoins_to_redeem, scoins_to_repay, cdp)) {
+    if (!cw.cdpCache.RedeemBcoinsFromCDP(height, bcoins_to_redeem, scoins_to_repay, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.owner_regid.ToString()),
                          UPDATE_CDP_FAIL, "bad-save-cdp");
     }
@@ -435,7 +435,7 @@ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
     }
 
     CUserCDP cdp;
-    if (!cw.cdpCache.GetCdp(cdp_txid, cdp)) {
+    if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
     }
@@ -487,7 +487,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
     CUserCDP cdp;
-    if (!cw.cdpCache.GetCdp(cdp_txid, cdp)) {
+    if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
     }
@@ -570,7 +570,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             return false;
 
         //close CDP
-        if (!cw.cdpCache.EraseCdp(cdp))
+        if (!cw.cdpCache.EraseCDP(cdp))
             return false;
 
         CUserID nullUid;
@@ -607,7 +607,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         if (!ProcessPenaltyFees(cdp, scoinsToReturnSysFund, cw, state))
             return false;
 
-        if (!cw.cdpCache.SaveCdp(cdp)) {
+        if (!cw.cdpCache.SaveCDP(cdp)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, update CDP %s failed",
                         cdp.owner_regid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }

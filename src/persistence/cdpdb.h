@@ -17,21 +17,21 @@
 
 using namespace std;
 
-class CCdpMemCache {
+class CCDPMemCache {
 public:
-    CCdpMemCache() {}
-    CCdpMemCache(CCdpMemCache *pBaseIn) : pBase(pBaseIn) {}
+    CCDPMemCache() {}
+    CCDPMemCache(CCDPMemCache *pBaseIn) : pBase(pBaseIn) {}
     // Only apply to construct the global mem-cache.
-    CCdpMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
+    CCDPMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
 
-    bool LoadAllCdpFromDB();
-    void SetBase(CCdpMemCache *pBaseIn);
+    bool LoadAllCDPFromDB();
+    void SetBase(CCDPMemCache *pBaseIn);
     void Flush();
 
     // Usage: before modification, erase the old cdp; after modification, save the new cdp.
-    bool SaveCdp(const CUserCDP &userCdp);
-    bool EraseCdp(const CUserCDP &userCdp);
-    bool HaveCdp(const CUserCDP &userCdp);
+    bool SaveCDP(const CUserCDP &userCdp);
+    bool EraseCDP(const CUserCDP &userCdp);
+    bool HaveCDP(const CUserCDP &userCdp);
 
     bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
                                      set<CUserCDP> &userCdps);
@@ -40,8 +40,8 @@ public:
     uint64_t GetGlobalCollateral() const;
 
 private:
-    bool GetCdpList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
-    bool GetCdpList(const double ratio, set<CUserCDP> &userCdps);
+    bool GetCDPList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);
+    bool GetCDPList(const double ratio, set<CUserCDP> &userCdps);
 
     void BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn);
 
@@ -52,30 +52,30 @@ private:
     map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
     uint64_t total_staked_bcoins = 0;
     uint64_t total_owed_scoins   = 0;
-    CCdpMemCache *pBase          = nullptr;
+    CCDPMemCache *pBase          = nullptr;
     CDBAccess *pAccess           = nullptr;
 };
 
-class CCdpDBCache {
+class CCDPDBCache {
 public:
-    CCdpDBCache() {}
-    CCdpDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), regId2CdpCache(pDbAccess), cdpMemCache(pDbAccess) {}
-    CCdpDBCache(CCdpDBCache *pBaseIn)
-        : cdpCache(pBaseIn->cdpCache), regId2CdpCache(pBaseIn->regId2CdpCache), cdpMemCache(pBaseIn->cdpMemCache) {}
+    CCDPDBCache() {}
+    CCDPDBCache(CDBAccess *pDbAccess) : cdpCache(pDbAccess), regId2CDPCache(pDbAccess), cdpMemCache(pDbAccess) {}
+    CCDPDBCache(CCDPDBCache *pBaseIn)
+        : cdpCache(pBaseIn->cdpCache), regId2CDPCache(pBaseIn->regId2CDPCache), cdpMemCache(pBaseIn->cdpMemCache) {}
 
 
-    bool NewCdp(const int32_t blockHeight, CUserCDP &cdp);
+    bool NewCDP(const int32_t blockHeight, CUserCDP &cdp);
 
-    bool StakeBcoinsToCdp(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
+    bool StakeBcoinsToCDP(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp);
-    bool RedeemBcoinsFromCdp(const int32_t blockHeight, const uint64_t bcoinsToRedeem, const uint64_t scoinsToRepay,
+    bool RedeemBcoinsFromCDP(const int32_t blockHeight, const uint64_t bcoinsToRedeem, const uint64_t scoinsToRepay,
                              CUserCDP &cdp);
 
-    bool GetCdpList(const CRegID &regId, vector<CUserCDP> &cdpList);
+    bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
-    bool GetCdp(const uint256 cdpid, CUserCDP &cdp);
-    bool SaveCdp(CUserCDP &cdp);
-    bool EraseCdp(const CUserCDP &cdp);
+    bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
+    bool SaveCDP(CUserCDP &cdp);
+    bool EraseCDP(const CUserCDP &cdp);
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
                                                 const uint64_t globalCollateralRatioLimit);
@@ -84,9 +84,9 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
 
-    void SetBaseViewPtr(CCdpDBCache *pBaseIn) {
+    void SetBaseViewPtr(CCDPDBCache *pBaseIn) {
         cdpCache.SetBase(&pBaseIn->cdpCache);
-        regId2CdpCache.SetBase(&pBaseIn->regId2CdpCache);
+        regId2CDPCache.SetBase(&pBaseIn->regId2CDPCache);
         cdpMemCache.SetBase(&pBaseIn->cdpMemCache);
     }
 
@@ -108,11 +108,11 @@ private:
     // cdp$CTxID -> CUserCDP
     CCompositeKVCache< dbk::CDP,         uint256,       CUserCDP >       cdpCache;
     // rcdp${CRegID} -> set<CTxID>
-    CCompositeKVCache< dbk::REGID_CDP,   string,        set<uint256>>    regId2CdpCache;
+    CCompositeKVCache< dbk::REGID_CDP,   string,        set<uint256>>    regId2CDPCache;
 
 public:
     // Memory only cache
-    CCdpMemCache cdpMemCache;
+    CCDPMemCache cdpMemCache;
 };
 
 #endif  // PERSIST_CDPDB_H

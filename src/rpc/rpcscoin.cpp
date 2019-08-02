@@ -357,7 +357,7 @@ Value getusercdp(const Array& params, bool fHelp){
 
     Array cdps;
     vector<CUserCDP> userCdps;
-    if (pCdMan->pCdpCache->GetCdpList(txAccount.regid, userCdps)) {
+    if (pCdMan->pCdpCache->GetCDPList(txAccount.regid, userCdps)) {
         for (auto& cdp : userCdps) {
             cdps.push_back(cdp.ToJson(bcoinMedianPrice));
         }
@@ -388,7 +388,7 @@ Value getcdp(const Array& params, bool fHelp){
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
-    if (!pCdMan->pCdpCache->GetCdp(cdpTxId, cdp)) {
+    if (!pCdMan->pCdpCache->GetCDP(cdpTxId, cdp)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdpTxId.GetHex()));
     }
 

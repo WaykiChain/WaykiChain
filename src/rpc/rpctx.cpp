@@ -1258,7 +1258,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
         Array cdps;
         vector<CUserCDP> userCdps;
-        if (pCdMan->pCdpCache->GetCdpList(account.regid, userCdps)) {
+        if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
             for (auto& cdp : userCdps) {
                 cdps.push_back(cdp.ToJson(bcoinMedianPrice));
             }

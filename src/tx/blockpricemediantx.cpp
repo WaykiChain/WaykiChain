@@ -109,7 +109,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         }
 
         // d) Close the CDP
-        cw.cdpCache.EraseCdp(cdp);
+        cw.cdpCache.EraseCDP(cdp);
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                 "Placed BcoinSellMarketOrder:  %s\n"
                 "Placed FcoinSellMarketOrder:  %s\n"

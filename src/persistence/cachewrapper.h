@@ -25,7 +25,7 @@ public:
     CAccountDBCache     accountCache;
     CContractDBCache    contractCache;
     CDelegateDBCache    delegateCache;
-    CCdpDBCache         cdpCache;
+    CCDPDBCache         cdpCache;
     CDexDBCache         dexCache;
     CTxReceiptDBCache   txReceiptCache;
 
@@ -41,7 +41,7 @@ public:
                   CAccountDBCache* pAccountCacheIn,
                   CContractDBCache* pContractCacheIn,
                   CDelegateDBCache* pDelegateCacheIn,
-                  CCdpDBCache* pCdpCacheIn,
+                  CCDPDBCache* pCdpCacheIn,
                   CDexDBCache* pDexCacheIn,
                   CTxReceiptDBCache* pTxReceiptCacheIn,
                   CTxMemCache *pTxCacheIn,
