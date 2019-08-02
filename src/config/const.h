@@ -52,6 +52,20 @@ struct CoinUnitTypeHash {
     }
 };
 
+namespace COIN_UNIT {
+    static const string SAWI = "sawi";
+    static const string QUWI = "quwi";
+    static const string MUWI = "muwi";
+    static const string HUWI = "huwi";
+    static const string SIWI = "siwi";
+    static const string MIWI = "miwi";
+    static const string LEWI = "lewi";
+    static const string FEWI = "fewi";
+    static const string WI   = "wi";
+    static const string KWI  = "kwi";
+    static const string MWI  = "mwi";
+}
+
 static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeTable {
     {"sawi", 1                  },  // 0.00000001
     {"quwi", 10                 },  // 0.0000001

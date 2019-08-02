@@ -31,11 +31,15 @@ Object SubmitTx(const CUserID &userId, CBaseTx &tx);
 
 namespace JSON {
     const Value& GetObjectFieldValue(const Value &jsonObj, const string &fieldName);
+    const char* GetValueTypeName(Value_type valueType);
 }
 
 namespace RPC_PARAM {
 
-    uint64_t GetFee(const Array& params, size_t index, TxType txType);
+    ComboMoney GetComboMoney(const Value &jsonValue,
+                                        const TokenSymbol &defaultSymbol = SYMB::WICC);
+
+    ComboMoney GetFee(const Array& params, size_t index, TxType txType);
 
     CUserID GetUserId(const Value &jsonValue);
 
