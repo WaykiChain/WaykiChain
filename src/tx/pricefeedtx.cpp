@@ -104,8 +104,3 @@ bool CPriceFeedTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     // TODO:
     return true;
 }
-
-bool CPriceFeedTx::GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts) {
-    // TODO:
-    return true;
-}

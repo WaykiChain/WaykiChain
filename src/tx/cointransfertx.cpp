@@ -115,10 +115,10 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID desKeyId;
     accountCache.GetKeyId(toUid, desKeyId);
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-    result.push_back(Pair("to_uid",    toUid.ToString()));
-    result.push_back(Pair("to_addr",   desKeyId.ToAddress()));
+    result.push_back(Pair("to_uid",         toUid.ToString()));
+    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("transer_bcoins", bcoins));
-    result.push_back(Pair("memo",      HexStr(memo)));
+    result.push_back(Pair("memo",           HexStr(memo)));
 
     return result;
 }

@@ -56,14 +56,12 @@ public:
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CPriceFeedTx>(*this); }
     virtual double GetPriority() const { return kPriceFeedTransactionPriority; }    // Top priority
-    virtual string ToString(CAccountDBCache &view);            // logging usage
-    virtual Object ToJson(const CAccountDBCache &view) const;  // json-rpc usage
+    virtual string ToString(CAccountDBCache &accountCache);            // logging usage
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
-
-    bool GetTopPriceFeederList(CCacheWrapper &cw, vector<CAccount> &priceFeederAccts);
 };
 
 #endif //TX_PRICE_FEED_H
