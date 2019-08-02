@@ -40,15 +40,15 @@ public:
     const string GetDexMatchServicePubKey(NET_TYPE type) const;
     const string GetInitFcoinOwnerPubKey(NET_TYPE type) const;
 
-    vector<unsigned int> GetSeedNodeIP() const;
-    unsigned char* GetMagicNumber(NET_TYPE type) const;
-    vector<unsigned char> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
-    unsigned int GetDefaultPort(NET_TYPE type) const;
-    unsigned int GetRPCPort(NET_TYPE type) const;
-    unsigned int GetStartTimeInit(NET_TYPE type) const;
-    unsigned int GetHalvingInterval(NET_TYPE type) const;
-    uint64_t GetBlockSubsidyCfg(int height) const;
-    int GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
+    vector<uint32_t> GetSeedNodeIP() const;
+    uint8_t* GetMagicNumber(NET_TYPE type) const;
+    vector<uint8_t> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
+    uint32_t GetDefaultPort(NET_TYPE type) const;
+    uint32_t GetRPCPort(NET_TYPE type) const;
+    uint32_t GetStartTimeInit(NET_TYPE type) const;
+    uint32_t GetHalvingInterval(NET_TYPE type) const;
+    uint64_t GetBlockSubsidyCfg(int32_t height) const;
+    int32_t GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
     uint32_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
@@ -102,39 +102,39 @@ private:
     static vector<string> stableCoinGenesisTxid_regNet;
 
     /* Peer IP seeds */
-    static vector<unsigned int> pnSeed;
+    static vector<uint32_t> pnSeed;
 
     /* Network Magic Number */
-    static unsigned char Message_mainNet[MESSAGE_START_SIZE];
-    static unsigned char Message_testNet[MESSAGE_START_SIZE];
-    static unsigned char Message_regTest[MESSAGE_START_SIZE];
+    static uint8_t Message_mainNet[MESSAGE_START_SIZE];
+    static uint8_t Message_testNet[MESSAGE_START_SIZE];
+    static uint8_t Message_regTest[MESSAGE_START_SIZE];
 
     /* Address Prefix */
-    static vector<unsigned char> AddrPrefix_mainNet[MAX_BASE58_TYPES];
-    static vector<unsigned char> AddrPrefix_testNet[MAX_BASE58_TYPES];
+    static vector<uint8_t> AddrPrefix_mainNet[MAX_BASE58_TYPES];
+    static vector<uint8_t> AddrPrefix_testNet[MAX_BASE58_TYPES];
 
     /* P2P Port */
-    static unsigned int nDefaultPort_mainNet;
-    static unsigned int nDefaultPort_testNet;
-    static unsigned int nDefaultPort_regTest;
+    static uint32_t nDefaultPort_mainNet;
+    static uint32_t nDefaultPort_testNet;
+    static uint32_t nDefaultPort_regTest;
 
     /* RPC Port */
-    static unsigned int nRPCPort_mainNet;
-    static unsigned int nRPCPort_testNet;
+    static uint32_t nRPCPort_mainNet;
+    static uint32_t nRPCPort_testNet;
 
     /* UI Port */
-    static unsigned int nUIPort_mainNet;
-    static unsigned int nUIPort_testNet;
+    static uint32_t nUIPort_mainNet;
+    static uint32_t nUIPort_testNet;
 
     /* Start Time */
-    static unsigned int StartTime_mainNet;
-    static unsigned int StartTime_testNet;
-    static unsigned int StartTime_regTest;
+    static uint32_t StartTime_mainNet;
+    static uint32_t StartTime_testNet;
+    static uint32_t StartTime_regTest;
 
     /* Subsidy Halving Interval*/
-    static unsigned int nSubsidyHalvingInterval_mainNet;
-    static unsigned int nSubsidyHalvingInterval_testNet;
-    static unsigned int nSubsidyHalvingInterval_regNet;
+    static uint32_t nSubsidyHalvingInterval_mainNet;
+    static uint32_t nSubsidyHalvingInterval_testNet;
+    static uint32_t nSubsidyHalvingInterval_regNet;
 
     /* Initial Coin */
     static uint64_t InitialCoin;
@@ -171,7 +171,7 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(int32_t blockHeight) {
 		return MAJOR_VER_R1;
 }
 
-static const int g_BlockVersion = 1;
+static const int32_t g_BlockVersion = 1;
 
 /* No amount larger than this (in sawi) is valid */
 static const int64_t BASECOIN_MAX_MONEY = IniCfg().GetCoinInitValue() * COIN;	// 210 million

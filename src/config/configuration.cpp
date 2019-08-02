@@ -140,9 +140,9 @@ uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(NET_TYPE type) const {
     return 0;
 }
 
-vector<unsigned int> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
+vector<uint32_t> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
-unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
+uint8_t* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return Message_mainNet;
         case TEST_NET: return Message_testNet;
@@ -152,17 +152,17 @@ unsigned char* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
     return NULL;
 }
 
-vector<unsigned char> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const {
+vector<uint8_t> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const {
     switch (type) {
         case MAIN_NET: return AddrPrefix_mainNet[BaseType];
         case TEST_NET: return AddrPrefix_testNet[BaseType];
         // case REGTEST_NET: return Message_regTest;
         default: assert(0);
     }
-    return vector<unsigned char>();
+    return vector<uint8_t>();
 }
 
-unsigned int G_CONFIG_TABLE::GetDefaultPort(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetDefaultPort(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nDefaultPort_mainNet;
         case TEST_NET: return nDefaultPort_testNet;
@@ -173,7 +173,7 @@ unsigned int G_CONFIG_TABLE::GetDefaultPort(NET_TYPE type) const {
     return 0;
 }
 
-unsigned int G_CONFIG_TABLE::GetRPCPort(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetRPCPort(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nRPCPort_mainNet;
         case TEST_NET: return nRPCPort_testNet;
@@ -184,7 +184,7 @@ unsigned int G_CONFIG_TABLE::GetRPCPort(NET_TYPE type) const {
     return 0;
 }
 
-unsigned int G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return StartTime_mainNet;
         case TEST_NET: return StartTime_testNet;
@@ -195,7 +195,7 @@ unsigned int G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
     return 0;
 }
 
-unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nSubsidyHalvingInterval_mainNet;
         case TEST_NET: return nSubsidyHalvingInterval_testNet;
@@ -206,29 +206,29 @@ unsigned int G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
     return 0;
 }
 
-uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int height) const {
-    uint64_t nSubsidy = nInitialSubsidy;
-    int nHalvings     = height / SysCfg().GetSubsidyHalvingInterval();
+uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int32_t height) const {
+    uint64_t subsidy = nInitialSubsidy;
+    int32_t halving  = height / SysCfg().GetSubsidyHalvingInterval();
     // Force block reward to a fixed value when right shift is more than 3.
-    if (nHalvings > 4) {
+    if (halving > 4) {
         return nFixedSubsidy;
     } else {
         // Subsidy is cut by 1% every 3,153,600 blocks which will occur approximately every 1 year and the profit will
         // be 1 percent
-        nSubsidy -= nHalvings;
+        subsidy -= halving;
     }
-    return nSubsidy;
+    return subsidy;
 }
 
-int G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
+int32_t G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
     assert(nSubsidyValue >= nFixedSubsidy && nSubsidyValue <= nInitialSubsidy);
-    uint64_t nSubsidy = nInitialSubsidy;
-    int nHalvings     = 0;
-    map<uint64_t /*subsidy*/, int /*height*/> mSubsidyHeight;
-    while (nSubsidy >= nFixedSubsidy) {
-        mSubsidyHeight[nSubsidy] = nHalvings * SysCfg().GetSubsidyHalvingInterval();
-        nHalvings += 1;
-        nSubsidy -= 1;
+    uint64_t subsidy = nInitialSubsidy;
+    int32_t halving  = 0;
+    map<uint64_t /*subsidy*/, int32_t /*height*/> mSubsidyHeight;
+    while (subsidy >= nFixedSubsidy) {
+        mSubsidyHeight[subsidy] = halving * SysCfg().GetSubsidyHalvingInterval();
+        halving += 1;
+        subsidy -= 1;
     }
 
     return mSubsidyHeight[nSubsidyValue];
@@ -338,42 +338,42 @@ vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_regNet = {
     "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
 
 // IP Address
-vector<unsigned int> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
+vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
                                                0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
 // Network Magic No.
-unsigned char G_CONFIG_TABLE::Message_mainNet[MESSAGE_START_SIZE] = {0xff, 0x42, 0x1d, 0x1a};
-unsigned char G_CONFIG_TABLE::Message_testNet[MESSAGE_START_SIZE] = {0xfd, 0x7d, 0x5c, 0xd0};
-unsigned char G_CONFIG_TABLE::Message_regTest[MESSAGE_START_SIZE] = {0xfe, 0xfa, 0xd3, 0xc6};
+uint8_t G_CONFIG_TABLE::Message_mainNet[MESSAGE_START_SIZE] = {0xff, 0x42, 0x1d, 0x1a};
+uint8_t G_CONFIG_TABLE::Message_testNet[MESSAGE_START_SIZE] = {0xfd, 0x7d, 0x5c, 0xd0};
+uint8_t G_CONFIG_TABLE::Message_regTest[MESSAGE_START_SIZE] = {0xfe, 0xfa, 0xd3, 0xc6};
 
 // Address Prefix
-vector<unsigned char> G_CONFIG_TABLE::AddrPrefix_mainNet[MAX_BASE58_TYPES] = {
+vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_mainNet[MAX_BASE58_TYPES] = {
     {73}, {51}, {153}, {0x4c, 0x1d, 0x3d, 0x5f}, {0x4c, 0x23, 0x3f, 0x4b}, {0}};
-vector<unsigned char> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {
+vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {
     {135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}};
 
 // Default P2P Port
-unsigned int G_CONFIG_TABLE::nDefaultPort_mainNet = 8920;
-unsigned int G_CONFIG_TABLE::nDefaultPort_testNet = 18920;
-unsigned int G_CONFIG_TABLE::nDefaultPort_regTest = 18921;
+uint32_t G_CONFIG_TABLE::nDefaultPort_mainNet = 8920;
+uint32_t G_CONFIG_TABLE::nDefaultPort_testNet = 18920;
+uint32_t G_CONFIG_TABLE::nDefaultPort_regTest = 18921;
 
 // Default RPC Port
-unsigned int G_CONFIG_TABLE::nRPCPort_mainNet = 18900;
-unsigned int G_CONFIG_TABLE::nRPCPort_testNet = 18901;
+uint32_t G_CONFIG_TABLE::nRPCPort_mainNet = 18900;
+uint32_t G_CONFIG_TABLE::nRPCPort_testNet = 18901;
 
 // Default UI Port
-unsigned int G_CONFIG_TABLE::nUIPort_mainNet = 4245;
-unsigned int G_CONFIG_TABLE::nUIPort_testNet = 4246;
+uint32_t G_CONFIG_TABLE::nUIPort_mainNet = 4245;
+uint32_t G_CONFIG_TABLE::nUIPort_testNet = 4246;
 
 // Blockchain Start Time
-unsigned int G_CONFIG_TABLE::StartTime_mainNet = 1525404897;
-unsigned int G_CONFIG_TABLE::StartTime_testNet = 1505401100;
-unsigned int G_CONFIG_TABLE::StartTime_regTest = 1504305600;
+uint32_t G_CONFIG_TABLE::StartTime_mainNet = 1525404897;
+uint32_t G_CONFIG_TABLE::StartTime_testNet = 1505401100;
+uint32_t G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 // Subsidy Halving Interval
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = kYearBlockCount;
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = kYearBlockCount;
-unsigned int G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
+uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = kYearBlockCount;
+uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = kYearBlockCount;
+uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 // Initial Coin
 uint64_t G_CONFIG_TABLE::InitialCoin = kTotalBaseCoinCount;  // 210 million

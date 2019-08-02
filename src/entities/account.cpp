@@ -78,40 +78,54 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
     }
 }
 
-uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateReceivedVote> &candidateVotes,
-                                                const uint64_t currHeight) {
+uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVote> &candidateVotes,
+                                              const uint32_t currHeight,
+                                              const FeatureForkVersionEnum &featureForkVersion) {
     if (candidateVotes.empty()) {
         LogPrint("DEBUG", "1st-time vote by the account, hence interest inflation.");
         return 0;  // 0 for the very 1st vote
     }
 
-    uint64_t nBeginHeight  = last_vote_height;
-    uint64_t nEndHeight    = currHeight;
-    uint64_t nBeginSubsidy = IniCfg().GetBlockSubsidyCfg(last_vote_height);
-    uint64_t nEndSubsidy   = IniCfg().GetBlockSubsidyCfg(currHeight);
-    uint64_t nValue        = candidateVotes.begin()->GetVotedBcoins();
-    LogPrint("DEBUG", "nBeginSubsidy:%lld nEndSubsidy:%lld nBeginHeight:%d nEndHeight:%d\n", nBeginSubsidy,
-             nEndSubsidy, nBeginHeight, nEndHeight);
+    uint64_t beginHeight  = last_vote_height;
+    uint64_t endHeight    = currHeight;
+    uint64_t beginSubsidy = IniCfg().GetBlockSubsidyCfg(last_vote_height);
+    uint64_t endSubsidy   = IniCfg().GetBlockSubsidyCfg(currHeight);
+    uint64_t amount       = 0;
+    switch (featureForkVersion) {
+        case MAJOR_VER_R1:
+            amount = candidateVotes.begin()->GetVotedBcoins();  // one bcoin eleven votes
+            break;
+        case MAJOR_VER_R2:
+            for (const auto &item : candidateVotes) {
+                amount += item.GetVotedBcoins();  // one bcoin one vote
+            }
+            break;
+        default:
+            LogPrint("ERROR", "CAccount::ComputeVoteStakingInterest, ");
+            break;
+    }
+    LogPrint("DEBUG", "beginSubsidy:%lld endSubsidy:%lld beginHeight:%d endHeight:%d\n", beginSubsidy, endSubsidy,
+             beginHeight, endHeight);
 
-    auto ComputeInterest = [](uint64_t nValue, uint64_t nSubsidy, int32_t nBeginHeight, int32_t nEndHeight) -> uint64_t {
-        int64_t nHoldHeight        = nEndHeight - nBeginHeight;
-        static int64_t nYearHeight = kYearBlockCount;
-        uint64_t interest          = (uint64_t)(nValue * ((long double)nHoldHeight * nSubsidy / nYearHeight / 100));
-        LogPrint("DEBUG", "nValue:%lld nSubsidy:%lld nBeginHeight:%d nEndHeight:%d interest:%lld\n", nValue,
-                 nSubsidy, nBeginHeight, nEndHeight, interest);
+    auto ComputeInterest = [](uint64_t amount, uint64_t subsidy, int32_t beginHeight, int32_t endHeight) -> uint64_t {
+        int64_t holdHeight        = endHeight - beginHeight;
+        static int64_t yearHeight = kYearBlockCount;
+        uint64_t interest         = (uint64_t)(amount * ((long double)holdHeight * subsidy / yearHeight / 100));
+        LogPrint("DEBUG", "amount:%lld subsidy:%lld beginHeight:%d endHeight:%d interest:%lld\n", amount, subsidy,
+                 beginHeight, endHeight, interest);
         return interest;
     };
 
     uint64_t interest = 0;
-    uint64_t nSubsidy  = nBeginSubsidy;
-    while (nSubsidy != nEndSubsidy) {
-        int32_t nJumpHeight = IniCfg().GetBlockSubsidyJumpHeight(nSubsidy - 1);
-        interest += ComputeInterest(nValue, nSubsidy, nBeginHeight, nJumpHeight);
-        nBeginHeight = nJumpHeight;
-        nSubsidy -= 1;
+    uint64_t subsidy  = beginSubsidy;
+    while (subsidy != endSubsidy) {
+        int32_t jumpHeight = IniCfg().GetBlockSubsidyJumpHeight(subsidy - 1);
+        interest += ComputeInterest(amount, subsidy, beginHeight, jumpHeight);
+        beginHeight = jumpHeight;
+        subsidy -= 1;
     }
 
-    interest += ComputeInterest(nValue, nSubsidy, nBeginHeight, nEndHeight);
+    interest += ComputeInterest(amount, subsidy, beginHeight, endHeight);
     LogPrint("DEBUG", "updateHeight:%d currHeight:%d freeze value:%lld\n", last_vote_height, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
@@ -149,12 +163,6 @@ uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidat
     }
     return votes;
 }
-
-// uint64_t CAccount::GetTotalBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
-//     uint64_t votedBcoins = GetVotedBcoins(candidateVotes, currHeight);
-//     auto wicc_token = GetToken(SYMB::WICC);
-//     return (votedBcoins + wicc_token.free_amount);
-// }
 
 bool CAccount::RegIDIsMature() const {
     return (!regid.IsEmpty()) &&
@@ -249,7 +257,7 @@ bool CAccount::IsFcoinWithinRange(uint64_t nAddMoney) {
 }
 
 bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotesIn,
-                                    vector<CCandidateReceivedVote> &candidateVotesInOut, const uint64_t currHeight,
+                                    vector<CCandidateReceivedVote> &candidateVotesInOut, const uint32_t currHeight,
                                     const CAccountDBCache *pAccountCache) {
     if (currHeight < last_vote_height) {
         LogPrint("ERROR", "currHeight (%d) < last_vote_height (%d)", currHeight, last_vote_height);
@@ -270,7 +278,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
                                 pAccountCache->GetAccount(voteId, account);
                                 return vote.GetCandidateUid() == account.owner_pubkey;
 
-                            } else {  // vote.GetCandidateUid().type() == typeid(CRegID)
+                            } else {  // vote.GetCandidateUid().type() == typeid(CPubKey)
                                 pAccountCache->GetAccount(vote.GetCandidateUid(), account);
                                 return account.owner_pubkey == voteId;
                             }
@@ -346,11 +354,12 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, currBcoinAmt - free_bcoins);
     }
 
-    uint64_t interestAmountToInflate = ComputeVoteStakingInterest(candidateVotesInOut, currHeight);
+    auto featureForkVersion          = GetFeatureForkVersion(currHeight);
+    uint64_t interestAmountToInflate = ComputeVoteStakingInterest(candidateVotesInOut, currHeight, featureForkVersion);
     if (!IsBcoinWithinRange(interestAmountToInflate))
         return false;
 
-    switch (GetFeatureForkVersion(currHeight)) {
+    switch (featureForkVersion) {
         case MAJOR_VER_R1: // for backward compatibility
             OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, interestAmountToInflate);
             break;

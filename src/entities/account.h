@@ -151,7 +151,8 @@ public:
         READWRITE(miner_pubkey);
         READWRITE(tokens);
         READWRITE(VARINT(received_votes));
-        READWRITE(VARINT(last_vote_height));)
+        READWRITE(VARINT(last_vote_height));
+    )
 
     uint256 GetHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
@@ -173,14 +174,13 @@ public:
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
-                              vector<CCandidateReceivedVote>& candidateVotesInOut,
-                              const uint64_t currHeight,
+                              vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
                               const CAccountDBCache* pAccountCache);
 
-    // uint64_t GetTotalBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
     uint64_t GetVotedBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
 
-    uint64_t ComputeVoteStakingInterest(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight);
+    uint64_t ComputeVoteStakingInterest(const vector<CCandidateReceivedVote>& candidateVotes, const uint32_t currHeight,
+                                        const FeatureForkVersionEnum& featureForkVersion);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
@@ -200,7 +200,6 @@ private:
 };
 
 enum ACCOUNT_TYPE {
-    // account type
     REGID      = 0x01,  //!< Registration account id
     BASE58ADDR = 0x02,  //!< Public key
 };
@@ -214,7 +213,7 @@ public:
     uint8_t accountType;     //!< regid or base58addr
     uint8_t accountId[34];   //!< accountId: address
     uint8_t opType;          //!< OperType
-    uint32_t timeoutHeight;  //!< the transacion Timeout height
+    uint32_t timeoutHeight;  //!< the transacion timeout height
     uint8_t money[8];        //!< The transfer amount
 
     IMPLEMENT_SERIALIZE(
