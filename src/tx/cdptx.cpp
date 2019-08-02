@@ -140,7 +140,6 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         if (!cw.cdpCache.NewCDP(height, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, save new cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-new-cdp-failed");
-
         }
 
     } else { // further staking on one's existing CDP
