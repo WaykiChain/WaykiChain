@@ -551,7 +551,7 @@ Value send(const Array& params, bool fHelp) {
     ComboMoney cmFee;
     cmFee.symbol = SYMB::WICC;
     cmFee.amount = 10000;
-    cmFee.unit   = "sawi";
+    cmFee.unit   = COIN_UNIT::SAWI;
     if (params.size() > 3) {
         if (!ParseRpcInputMoney(params[3].get_str(), cmFee, SYMB::WICC))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "fee ComboMoney format error");

@@ -101,7 +101,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 
             comboMoney.symbol = defaultSymbol;
             comboMoney.amount = (uint64_t) iValue;
-            comboMoney.unit   = "sawi";
+            comboMoney.unit   = COIN_UNIT::SAWI;
             break;
         }
         case 2: {
@@ -132,7 +132,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 
                 comboMoney.symbol = strSymbol;
                 comboMoney.amount = (uint64_t) iValue;
-                comboMoney.unit   = "sawi";
+                comboMoney.unit   = COIN_UNIT::SAWI;
 
             } else {
                 return false;
@@ -509,23 +509,51 @@ const Value& JSON::GetObjectFieldValue(const Value &jsonObj, const string &field
     return jsonValue;
 }
 
+const char* JSON::GetValueTypeName(Value_type valueType) {
+    if (valueType >= 0 && valueType <= json_spirit::Value_type::null_type) {
+        return json_spirit::Value_type_name[valueType];
+    }
+    return "unknown";
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // namespace RPC_PARAM
 
-uint64_t RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
+ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
+                                    const TokenSymbol &defaultSymbol) {
+    ComboMoney money;
+    Value_type valueType = jsonValue.type();
+    if (valueType == json_spirit::Value_type::int_type ) {
+        money.symbol = defaultSymbol;
+        money.amount = AmountToRawValue(jsonValue.get_int64());
+        money.unit = COIN_UNIT::SAWI;
+
+    } else if (valueType == json_spirit::Value_type::int_type) {
+        if (!ParseRpcInputMoney(jsonValue.get_str(), money, defaultSymbol)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid combo money format");
+        }
+    } else {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type: %s", JSON::GetValueTypeName(valueType)));
+    }
+    return money;
+}
+
+ComboMoney RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
+    ComboMoney money;
     uint64_t fee = 0;
     uint64_t minFee = GetTxMinFee(txType, chainActive.Height());
     if (params.size() > index) {
-        fee = AmountToRawValue(params[index]);
+        money = GetComboMoney(params[index], SYMB::WICC);
         if (fee < minFee)
             throw JSONRPCError(RPC_WALLET_ERROR,
                 strprintf("The given fee is too small: %d < %d(min fee)", fee, minFee));
     } else {
-        fee = minFee;
+        money.symbol = SYMB::WICC;
+        money.amount = minFee;
+        money.unit = COIN_UNIT::SAWI;
     }
 
-    return fee;
+    return money;
 }
 
 CUserID RPC_PARAM::GetUserId(const Value &jsonValue) {

@@ -39,7 +39,17 @@ struct ComboMoney {
     uint64_t        amount;
     CoinUnitName    unit;       //E.g. sawi
 
-    ComboMoney() : symbol(SYMB::WICC), amount(0), unit("sawi"){};
+    ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
+
+    uint64_t GetSawiAmount() {        
+        auto it = CoinUnitTypeTable.find(unit);
+        if (it != CoinUnitTypeTable.end()) {
+            return amount * it->second;
+        } else {
+            assert(false && "coin unit not found");
+            return amount;
+        }        
+    }
 };
 
 static const unordered_set<string> kCoinTypeSet = {
