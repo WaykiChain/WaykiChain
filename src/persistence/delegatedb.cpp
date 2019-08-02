@@ -80,11 +80,11 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
 }
 
 bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
-                                       const vector<CCandidateVote> &candidateVotes) {
+                                       const vector<CCandidateReceivedVote> &candidateVotes) {
     return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes);
 }
 
-bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes) {
+bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes) {
     return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
 }
 

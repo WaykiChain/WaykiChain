@@ -1200,7 +1200,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
             CUserID uid(pDelegateTx->txUid);
             uint64_t maxVotes = 0;
-            vector<CCandidateVote> candidateVotes;
+            vector<CCandidateReceivedVote> candidateVotes;
             int j = i;
             for (const auto &vote : pDelegateTx->candidateVotes) {
                 assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
@@ -1230,9 +1230,9 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                     assert(cw.delegateCache.SetDelegateVotes(votedAcct.regid, votedAcct.received_votes));
                 }
 
-                candidateVotes.push_back(vote);
+                candidateVotes.push_back( CCandidateReceivedVote(vote) );
                 sort(candidateVotes.begin(), candidateVotes.end(),
-                     [](const CCandidateVote &vote1, const CCandidateVote &vote2) {
+                     [](const CCandidateReceivedVote &vote1, const CCandidateReceivedVote &vote2) {
                          return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
                      });
             }

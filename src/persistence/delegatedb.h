@@ -32,8 +32,8 @@ public:
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateVote> &candidateVotes);
-    bool GetCandidateVotes(const CRegID &regId, vector<CCandidateVote> &candidateVotes);
+    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateReceivedVote> &candidateVotes);
+    bool GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes);
 
     bool Flush();
     uint32_t GetCacheSize() const;
@@ -58,7 +58,7 @@ private:
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
     CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
-    CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateVote>> regId2VoteCache;
+    CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateReceivedVote>> regId2VoteCache;
 
     vector<CRegID> delegateRegIds;
 };

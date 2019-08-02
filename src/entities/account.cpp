@@ -78,7 +78,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
     }
 }
 
-uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateVote> &candidateVotes,
+uint64_t CAccount::ComputeVoteStakingInterest(  const vector<CCandidateReceivedVote> &candidateVotes,
                                                 const uint64_t currHeight) {
     if (candidateVotes.empty()) {
         LogPrint("DEBUG", "1st-time vote by the account, hence interest inflation.");
@@ -135,7 +135,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const 
     return profits;
 }
 
-uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
+uint64_t CAccount::GetVotedBCoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votes = 0;
     if (!candidateVotes.empty()) {
         if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
@@ -150,7 +150,7 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateVote> &candidateVotes, 
     return votes;
 }
 
-uint64_t CAccount::GetTotalBcoins(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight) {
+uint64_t CAccount::GetTotalBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votedBcoins = GetVotedBCoins(candidateVotes, currHeight);
     auto wicc_token = GetToken(SYMB::WICC);
     return (votedBcoins + wicc_token.free_amount);
@@ -176,7 +176,7 @@ bool CAccount::SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &acc
 }
 
 Object CAccount::ToJsonObj() const {
-    vector<CCandidateVote> candidateVotes;
+    vector<CCandidateReceivedVote> candidateVotes;
     pCdMan->pDelegateCache->GetCandidateVotes(regid, candidateVotes);
 
     Array candidateVoteArray;
@@ -225,7 +225,7 @@ string CAccount::ToString() const {
         strTokens, received_votes, last_vote_height);
     str += "candidate vote list: \n";
 
-    vector<CCandidateVote> candidateVotes;
+    vector<CCandidateReceivedVote> candidateVotes;
     pCdMan->pDelegateCache->GetCandidateVotes(regid, candidateVotes);
     for (auto & vote : candidateVotes) {
         str += vote.ToString();
@@ -249,7 +249,7 @@ bool CAccount::IsFcoinWithinRange(uint64_t nAddMoney) {
 }
 
 bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotesIn,
-                                    vector<CCandidateVote> &candidateVotesInOut, const uint64_t currHeight,
+                                    vector<CCandidateReceivedVote> &candidateVotesInOut, const uint64_t currHeight,
                                     const CAccountDBCache *pAccountCache) {
     if (currHeight < last_vote_height) {
         LogPrint("ERROR", "currHeight (%d) < last_vote_height (%d)", currHeight, last_vote_height);
@@ -261,9 +261,9 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
-        vector<CCandidateVote>::iterator itVote =
+        vector<CCandidateReceivedVote>::iterator itVote =
             find_if(candidateVotesInOut.begin(), candidateVotesInOut.end(),
-                    [&voteId, pAccountCache](const CCandidateVote &vote) {
+                    [&voteId, pAccountCache](const CCandidateReceivedVote &vote) {
                         if (voteId.type() != vote.GetCandidateUid().type()) {
                             CAccount account;
                             if (voteId.type() == typeid(CRegID)) {
@@ -327,7 +327,8 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
     }
 
     // sort account votes after the operations against the new votes
-    std::sort(candidateVotesInOut.begin(), candidateVotesInOut.end(), [](CCandidateVote vote1, CCandidateVote vote2) {
+    std::sort(candidateVotesInOut.begin(), candidateVotesInOut.end(),
+            [](CCandidateReceivedVote vote1, CCandidateReceivedVote vote2) {
         return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
     });
 

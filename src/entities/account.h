@@ -173,14 +173,14 @@ public:
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
-                              vector<CCandidateVote>& candidateVotesInOut,
+                              vector<CCandidateReceivedVote>& candidateVotesInOut,
                               const uint64_t currHeight,
                               const CAccountDBCache* pAccountCache);
 
-    uint64_t GetTotalBcoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
-    uint64_t GetVotedBCoins(const vector<CCandidateVote>& candidateVotes, const uint64_t currHeight);
+    uint64_t GetTotalBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
+    uint64_t GetVotedBCoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
 
-    uint64_t ComputeVoteStakingInterest(const vector<CCandidateVote> &candidateVotes, const uint64_t currHeight);
+    uint64_t ComputeVoteStakingInterest(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }

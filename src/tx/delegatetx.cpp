@@ -135,7 +135,7 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
     }
 
-    vector<CCandidateVote> candidateVotesInOut;
+    vector<CCandidateReceivedVote> candidateVotesInOut;
     CRegID regId = txUid.get<CRegID>();
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 

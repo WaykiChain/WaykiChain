@@ -124,4 +124,53 @@ private:
     }
 };
 
+
+class CCandidateReceivedVote {
+public:
+    CCandidateReceivedVote() {};
+
+    CCandidateReceivedVote(const CCandidateVote &vote):
+        candidate_uid(vote.GetCandidateUid()),
+        voted_bcoins(vote.GetVotedBcoins()) { };
+
+public:
+    friend bool operator<(const CCandidateReceivedVote &fa, const CCandidateReceivedVote &fb) {
+        return (fa.voted_bcoins <= fb.voted_bcoins);
+    }
+    friend bool operator>(const CCandidateReceivedVote &fa, const CCandidateReceivedVote &fb) {
+        return !operator<(fa, fb);
+    }
+    friend bool operator==(const CCandidateReceivedVote &fa, const CCandidateReceivedVote &fb) {
+        return (fa.candidate_uid == fb.candidate_uid && fa.voted_bcoins == fb.voted_bcoins);
+    }
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(candidate_uid);
+        READWRITE(VARINT(voted_bcoins));
+    );
+
+     json_spirit::Object ToJson() const {
+        json_spirit::Object obj;
+
+        obj.push_back(json_spirit::Pair("candidate_uid", candidate_uid.ToJson()));
+        obj.push_back(json_spirit::Pair("voted_bcoins", voted_bcoins));
+
+        return obj;
+    }
+
+    string ToString() const {
+        string str = strprintf("candidate_uid: %s, voted_bcoins: %lld \n", candidate_uid.ToString(), voted_bcoins);
+        return str;
+    }
+
+    const CUserID &GetCandidateUid() const { return candidate_uid; }
+    uint64_t GetVotedBcoins() const { return voted_bcoins; }
+    void SetVotedBcoins(uint64_t votedBcoinsIn) { voted_bcoins = votedBcoinsIn; }
+
+private:
+    CUserID candidate_uid;    //!< candidate RegId or PubKey
+    uint64_t voted_bcoins;    //!< count of votes to the candidate
+
+};
+
 #endif //ENTITIES_VOTE_H
