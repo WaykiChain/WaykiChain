@@ -135,7 +135,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const 
     return profits;
 }
 
-uint64_t CAccount::GetVotedBCoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
+uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
     uint64_t votes = 0;
     if (!candidateVotes.empty()) {
         if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
@@ -150,11 +150,11 @@ uint64_t CAccount::GetVotedBCoins(const vector<CCandidateReceivedVote> &candidat
     return votes;
 }
 
-uint64_t CAccount::GetTotalBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
-    uint64_t votedBcoins = GetVotedBCoins(candidateVotes, currHeight);
-    auto wicc_token = GetToken(SYMB::WICC);
-    return (votedBcoins + wicc_token.free_amount);
-}
+// uint64_t CAccount::GetTotalBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
+//     uint64_t votedBcoins = GetVotedBcoins(candidateVotes, currHeight);
+//     auto wicc_token = GetToken(SYMB::WICC);
+//     return (votedBcoins + wicc_token.free_amount);
+// }
 
 bool CAccount::RegIDIsMature() const {
     return (!regid.IsEmpty()) &&
@@ -257,7 +257,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
     }
 
     last_vote_height = currHeight;
-    uint64_t lastTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
+    uint64_t lastTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -332,7 +332,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
     });
 
-    uint64_t newTotalVotes = GetVotedBCoins(candidateVotesInOut, currHeight);
+    uint64_t newTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
     uint64_t totalBcoins = GetToken(SYMB::WICC).free_amount + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVotes() : delegate votes exceeds account bcoins");

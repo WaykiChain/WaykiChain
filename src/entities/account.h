@@ -177,8 +177,8 @@ public:
                               const uint64_t currHeight,
                               const CAccountDBCache* pAccountCache);
 
-    uint64_t GetTotalBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
-    uint64_t GetVotedBCoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
+    // uint64_t GetTotalBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
+    uint64_t GetVotedBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
 
     uint64_t ComputeVoteStakingInterest(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
