@@ -389,7 +389,7 @@ Value getcdp(const Array& params, bool fHelp){
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
     if (!pCdMan->pCdpCache->GetCdp(cdpTxId, cdp)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdp.cdpid.GetHex()));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("CDP (%s) does not exist!", cdpTxId.GetHex()));
     }
 
     Object obj;
