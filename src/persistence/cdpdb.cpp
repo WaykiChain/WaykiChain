@@ -5,11 +5,6 @@
 
 #include "cdpdb.h"
 
-#include "entities/id.h"
-#include "main.h"
-
-#include <cstdint>
-
 bool CCdpMemCache::LoadAllCdpFromDB() {
     assert(pAccess != nullptr);
     map<std::pair<string, string>, CUserCDP> rawCdps;

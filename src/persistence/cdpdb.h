@@ -9,11 +9,11 @@
 #include "commons/uint256.h"
 #include "entities/cdp.h"
 #include "dbaccess.h"
-#include "tx/tx.h"  // TODO: constant definitions
 
 #include <map>
 #include <set>
 #include <string>
+#include <cstdint>
 
 using namespace std;
 
@@ -49,8 +49,8 @@ private:
     map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
     uint64_t total_staked_bcoins = 0;
     uint64_t total_owed_scoins   = 0;
-    CCdpMemCache *pBase         = nullptr;
-    CDBAccess *pAccess          = nullptr;
+    CCdpMemCache *pBase          = nullptr;
+    CDBAccess *pAccess           = nullptr;
 };
 
 class CCdpDBCache {
