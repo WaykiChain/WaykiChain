@@ -31,3 +31,9 @@ bool CAssetDBCache::EraseAssetTradingPair(const CAssetTradingPair &assetTradingP
 bool CAssetDBCache::ExistAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
     return assetTradingPairCache.HaveData(assetTradingPair);
 }
+
+bool CAssetDBCache::Flush() {
+    assetCache.Flush();
+    assetTradingPairCache.Flush();
+    return true;
+}

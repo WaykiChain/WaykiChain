@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef PERSIST_ACCOUNTDB_H
-#define PERSIST_ACCOUNTDB_H
+#ifndef PERSIST_ASSETDB_H
+#define PERSIST_ASSETDB_H
 
 #include "entities/asset.h"
 #include "leveldbwrapper.h"
@@ -46,6 +46,15 @@ public:
         assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);
     };
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        assetCache.SetDbOpLogMap(pDbOpLogMapIn);
+        assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return assetCache.UndoDatas() &&
+               assetTradingPairCache.UndoDatas();
+    }
 private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
@@ -55,4 +64,4 @@ private:
     CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
 };
 
-#endif  // PERSIST_ACCOUNTDB_H
+#endif  // PERSIST_ASSETDB_H

@@ -214,6 +214,8 @@ public:
 
     CDBAccess           *pAccountDb;
     CAccountDBCache     *pAccountCache;
+    CDBAccess           *pAssetDb;
+    CAssetDBCache       *pAssetCache;
 
     CDBAccess           *pContractDb;
     CContractDBCache    *pContractCache;
@@ -247,6 +249,9 @@ public:
         pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
         pAccountCache   = new CAccountDBCache(pAccountDb);
 
+        pAssetDb        = new CDBAccess(DBNameType::ASSET, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pAssetCache     = new CAssetDBCache(pAssetDb);
+
         pContractDb     = new CDBAccess(DBNameType::CONTRACT, nContractDBCache, false, fReIndex);
         pContractCache  = new CContractDBCache(pContractDb);
 
@@ -275,6 +280,7 @@ public:
     ~CCacheDBManager() {
         delete pSysParamCache;  pSysParamCache = nullptr;
         delete pAccountCache;   pAccountCache = nullptr;
+        delete pAssetCache;     pAssetCache = nullptr;
         delete pContractCache;  pContractCache = nullptr;
         delete pDelegateCache;  pDelegateCache = nullptr;
         delete pCdpCache;       pCdpCache = nullptr;
@@ -284,6 +290,7 @@ public:
 
         delete pSysParamDb;     pSysParamDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
+        delete pAssetDb;        pAssetDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
         delete pBlockTreeDb;    pBlockTreeDb = nullptr;

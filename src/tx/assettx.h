@@ -13,6 +13,8 @@
  */
 class CAssetIssueTx: public CBaseTx {
 public:
+    TokenSymbol fee_symbol;
+
     CRegID      owner_regid;    // owner RegID, can be transferred though
     TokenSymbol asset_symbol;   // asset symbol, E.g WICC | WUSD            len <= 12 chars
     TokenName   asset_name;     // asset long name, E.g WaykiChain coin,    len <= 32 chars
@@ -22,7 +24,18 @@ public:
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
-  ~CAssetIssueTx() {}
+    CAssetIssueTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                  uint64_t fees, const CRegID &ownerRegid, const TokenSymbol &assetSymbol,
+                  const TokenName &assetName, const uint64_t totalSupply, const bool mintable)
+        : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, fees),
+          fee_symbol(feeSymbol),
+          owner_regid(ownerRegid),
+          asset_symbol(assetSymbol),
+          asset_name(assetName),
+          total_supply(totalSupply),
+          mintable(mintable) {}
+
+    ~CAssetIssueTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));

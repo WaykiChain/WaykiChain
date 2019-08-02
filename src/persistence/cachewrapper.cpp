@@ -10,8 +10,8 @@ CCacheWrapper::CCacheWrapper() {}
 
 CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CAccountDBCache* pAccountCacheIn,
-                             CContractDBCache* pContractCacheIn,
                              CAssetDBCache* pAssetCache,
+                             CContractDBCache* pContractCacheIn,
                              CDelegateDBCache* pDelegateCacheIn,
                              CCDPDBCache* pCdpCacheIn,
                              CDexDBCache* pDexCacheIn,

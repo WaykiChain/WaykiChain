@@ -85,11 +85,29 @@ public:
     TokenSymbol quote_asset_symbol;
 
 public:
+    CAssetTradingPair() {}
+
     CAssetTradingPair(const TokenSymbol& baseSymbol, const TokenSymbol& quoteSymbol) :
         base_asset_symbol(baseSymbol), quote_asset_symbol(quoteSymbol) {}
 
+     IMPLEMENT_SERIALIZE(
+        READWRITE(base_asset_symbol);
+        READWRITE(quote_asset_symbol);
+    )
+
+    friend bool operator<(const CAssetTradingPair& a, const CAssetTradingPair& b) {
+        return a.base_asset_symbol < a.base_asset_symbol || b.quote_asset_symbol < b.quote_asset_symbol;
+    }
+
     string ToString() {
         return strprintf("%s-%s", base_asset_symbol, quote_asset_symbol);
+    }
+
+    bool IsEmpty() const { return base_asset_symbol.empty() && quote_asset_symbol.empty(); }
+
+    void SetEmpty() {
+        base_asset_symbol.clear();
+        quote_asset_symbol.clear();
     }
 };
 
@@ -104,6 +122,8 @@ public:
     mutable uint256 sigHash;  //!< in-memory only
 
 public:
+    CAsset(): mintable(false), total_supply(0) {}
+
     CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, bool mintableIn, uint64_t totalSupplyIn) :
         owner_regid(ownerRegIdIn), symbol(symbolIn), name(nameIn), mintable(mintableIn), total_supply(totalSupplyIn) {};
 
@@ -122,7 +142,18 @@ public:
         READWRITE(symbol);
         READWRITE(name);
         READWRITE(mintable);
-        READWRITE(VARINT(total_supply));)
+        READWRITE(VARINT(total_supply));
+    )
+
+    bool IsEmpty() const { return owner_regid.IsEmpty(); }
+
+    void SetEmpty() {
+        owner_regid.SetEmpty();
+        symbol.clear();
+        name.clear();
+        mintable = false;
+        total_supply = 0;
+    }
 };
 
 #endif //ENTITIES_ASSET_H

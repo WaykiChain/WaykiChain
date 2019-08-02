@@ -310,6 +310,7 @@ libcoin_common_a_SOURCES = \
   persistence/block.cpp \
   persistence/cdpdb.cpp \
   persistence/accountdb.cpp \
+  persistence/assetdb.cpp \
   persistence/blockdb.cpp \
   persistence/cachewrapper.cpp \
   persistence/contractdb.cpp \

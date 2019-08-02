@@ -15,6 +15,7 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
+#include "assetdb.h"
 
 class CCacheDBManager;
 class CBlockUndo;
