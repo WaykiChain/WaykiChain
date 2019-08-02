@@ -23,6 +23,7 @@ class CCacheWrapper {
 public:
     CSysParamDBCache    sysParamCache;
     CAccountDBCache     accountCache;
+    CAssetDBCache       assetCache;
     CContractDBCache    contractCache;
     CDelegateDBCache    delegateCache;
     CCDPDBCache         cdpCache;
@@ -39,6 +40,7 @@ public:
 
     CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                   CAccountDBCache* pAccountCacheIn,
+                  CAssetDBCache* pAssetCache,
                   CContractDBCache* pContractCacheIn,
                   CDelegateDBCache* pDelegateCacheIn,
                   CCDPDBCache* pCdpCacheIn,

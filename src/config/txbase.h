@@ -31,7 +31,9 @@ enum TxType: uint8_t {
     BCOIN_TRANSFER_MTX          = 7,    //!< Multisig Tx
     FCOIN_STAKE_TX              = 8,    //!< Stake Fund Coin Tx in order to become a price feeder
 
-    ASSET_ISSUE_TX              = 10,   //!< a user issues onchain asset
+    ASSET_ISSUE_TX              = 9,    //!< a user issues onchain asset
+    ASSET_UPDATE_TX             = 10,   //!< a user update onchain asset
+
     UCOIN_TRANSFER_TX           = 11,   //!< Universal Coin Transfer Tx
     UCOIN_REWARD_TX             = 12,   //!< Universal Coin Reward Tx
     UCOIN_BLOCK_REWARD_TX       = 13,   //!< Universal Coin Miner Block Reward Tx
@@ -85,7 +87,9 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { BCOIN_TRANSFER_MTX,       std::make_tuple("BCOIN_TRANSFER_MTX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 { FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 
-{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,0,        50000000000,50000000000) }, //500 WICC
+{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,          0,         55000000000,55000000000  ) }, //550 WICC: 50 WICC/miner
+{ ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          0,          0,         11000000000,11000000000  ) }, //110 WICC: 10 WICC/miner
+
 { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,         0,          0            ) },
 { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,         0,          0            ) },

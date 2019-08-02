@@ -11,6 +11,7 @@ CCacheWrapper::CCacheWrapper() {}
 CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CAccountDBCache* pAccountCacheIn,
                              CContractDBCache* pContractCacheIn,
+                             CAssetDBCache* pAssetCache,
                              CDelegateDBCache* pDelegateCacheIn,
                              CCDPDBCache* pCdpCacheIn,
                              CDexDBCache* pDexCacheIn,
@@ -19,6 +20,7 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CPricePointMemCache *pPpCacheIn) {
     sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
     accountCache.SetBaseViewPtr(pAccountCacheIn);
+    assetCache.SetBaseViewPtr(pAssetCache);
     contractCache.SetBaseViewPtr(pContractCacheIn);
     delegateCache.SetBaseViewPtr(pDelegateCacheIn);
     cdpCache.SetBaseViewPtr(pCdpCacheIn);
@@ -32,6 +34,7 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
 CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
     sysParamCache.SetBaseViewPtr(&cwIn.sysParamCache);
     accountCache.SetBaseViewPtr(&cwIn.accountCache);
+    assetCache.SetBaseViewPtr(&cwIn.assetCache);
     contractCache.SetBaseViewPtr(&cwIn.contractCache);
     delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
     cdpCache.SetBaseViewPtr(&cwIn.cdpCache);
@@ -45,6 +48,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     sysParamCache.SetBaseViewPtr(pCdMan->pSysParamCache);
     accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
+    assetCache.SetBaseViewPtr(pCdMan->pAssetCache);
     contractCache.SetBaseViewPtr(pCdMan->pContractCache);
     delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
     cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
@@ -69,12 +73,13 @@ bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
         // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
         SetDbOpMapLog(&it->dbOpLogMap);
         bool ret = sysParamCache.UndoDatas() &&
-            accountCache.UndoDatas() &&
-            contractCache.UndoDatas() &&
-            delegateCache.UndoDatas() &&
-            cdpCache.UndoDatas() &&
-            dexCache.UndoDatas() &&
-            txReceiptCache.UndoDatas();
+                    accountCache.UndoDatas() &&
+                    assetCache.UndoDatas() &&
+                    contractCache.UndoDatas() &&
+                    delegateCache.UndoDatas() &&
+                    cdpCache.UndoDatas() &&
+                    dexCache.UndoDatas() &&
+                    txReceiptCache.UndoDatas();
         if (!ret) {
             return ERRORMSG("CCacheWrapper::UndoDatas() : undo datas of tx failed! txUndo=%s", txUndo.ToString());
         }
@@ -86,6 +91,7 @@ bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
 void CCacheWrapper::Flush() {
     sysParamCache.Flush();
     accountCache.Flush();
+    assetCache.Flush();
     contractCache.Flush();
     delegateCache.Flush();
     cdpCache.Flush();
@@ -99,6 +105,7 @@ void CCacheWrapper::Flush() {
 void CCacheWrapper::SetDbOpMapLog(CDBOpLogMap *pDbOpLogMap) {
     sysParamCache.SetDbOpLogMap(pDbOpLogMap);
     accountCache.SetDbOpLogMap(pDbOpLogMap);
+    assetCache.SetDbOpLogMap(pDbOpLogMap);
     contractCache.SetDbOpLogMap(pDbOpLogMap);
     delegateCache.SetDbOpLogMap(pDbOpLogMap);
     cdpCache.SetDbOpLogMap(pDbOpLogMap);
