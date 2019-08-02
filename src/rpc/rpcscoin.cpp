@@ -161,19 +161,19 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake, SYMB::WICC))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "bcoinsToStake ComboMoney format error");
 
-    if (cmBcoinsToStake.amount == 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
-
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint, SYMB::WUSD))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
-
-    // if (cmScoinsToMint.amount == 0)
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
 
     int validHeight = chainActive.Tip()->height;
 
     ComboMoney cmFee;
     if (params.size() == 3) {
+        if (cmBcoinsToStake.amount == 0)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
+
+        if (cmScoinsToMint.amount == 0)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
+
         CCDPStakeTx tx(*cdpUid, validHeight, cmFee, cmBcoinsToStake, cmScoinsToMint);
         return SubmitTx(*cdpUid, tx);
     }
