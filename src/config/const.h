@@ -71,8 +71,11 @@ static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
 /** the max token symbol len */
 static const unsigned int MAX_TOKEN_SYMBOL_LEN = 12;
+
 /** the total blocks of burn fee need */
 static const uint32_t DEFAULT_BURN_BLOCK_SIZE = 50;
+static const uint64_t MAX_BLOCK_RUN_STEP      = 12000000;
+
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const uint32_t MAX_BLOCK_SIZE = 4000000;
 /** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/
@@ -82,8 +85,14 @@ static const uint32_t DEFAULT_BLOCK_MIN_SIZE = 1024 * 10;
 static const uint32_t DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 /** The maximum size for transactions we're willing to relay/mine */
 static const uint32_t MAX_STANDARD_TX_SIZE = 100000;
+
 /** The maximum number of orphan blocks kept in memory */
 static const uint32_t MAX_ORPHAN_BLOCKS = 750;
+/** Number of blocks that can be requested at any given time from a single peer. */
+static const int32_t MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
+/** Timeout in seconds before considering a block download peer unresponsive. */
+static const uint32_t BLOCK_DOWNLOAD_TIMEOUT  = 60;
+
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const uint32_t MAX_BLOCKFILE_SIZE = 0x8000000;  // 128 MiB
 /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
@@ -92,21 +101,10 @@ static const uint32_t BLOCKFILE_CHUNK_SIZE = 0x1000000;  // 16 MiB
 static const uint32_t UNDOFILE_CHUNK_SIZE = 0x100000;  // 1 MiB
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int32_t COINBASE_MATURITY = 100;
-/** Threshold for nLockTime: below this value it is interpreted as block number, otherwise as UNIX timestamp. */
-static const uint32_t LOCKTIME_THRESHOLD = 500000000;  // Tue Nov  5 00:53:20 1985 UTC
-/** Maximum number of script-checking threads allowed */
-static const int32_t MAX_SCRIPTCHECK_THREADS = 16;
-/** -par default (number of script-checking threads, 0 = auto) */
-static const int32_t DEFAULT_SCRIPTCHECK_THREADS = 0;
-/** Number of blocks that can be requested at any given time from a single peer. */
-static const int32_t MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
-/** Timeout in seconds before considering a block download peer unresponsive. */
-static const uint32_t BLOCK_DOWNLOAD_TIMEOUT = 60;
-static const unsigned long MAX_BLOCK_RUN_STEP    = 12000000;
-static const int64_t POS_REWARD                  = 10 * COIN;
 
-/** max size of signature of tx or block */
-static const int32_t MAX_BLOCK_SIGNATURE_SIZE = 100;
+/** max size of tx or block signature */
+static const uint32_t MAX_SIGNATURE_SIZE = 100;
+
 // -dbcache default (MiB)
 static const int64_t nDefaultDbCache = 100;
 // max. -dbcache in (MiB)

@@ -111,7 +111,7 @@ bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t 
 
 // Transactions should check the signature size before verifying signature
 bool CBaseTx::CheckSignatureSize(const vector<unsigned char> &signature) const {
-    return signature.size() > 0 && signature.size() < MAX_BLOCK_SIGNATURE_SIZE;
+    return signature.size() > 0 && signature.size() < MAX_SIGNATURE_SIZE;
 }
 
 string CBaseTx::ToString(CAccountDBCache &view) {

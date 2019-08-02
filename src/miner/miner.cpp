@@ -234,7 +234,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         const auto &blockHash      = pBlock->ComputeSignatureHash();
         const auto &blockSignature = pBlock->GetSignature();
 
-        if (blockSignature.size() == 0 || blockSignature.size() > MAX_BLOCK_SIGNATURE_SIZE) {
+        if (blockSignature.size() == 0 || blockSignature.size() > MAX_SIGNATURE_SIZE) {
             return ERRORMSG("VerifyPosTx() : invalid block signature size, hash=%s", blockHash.ToString());
         }
 
