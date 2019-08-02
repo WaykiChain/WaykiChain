@@ -34,9 +34,10 @@ class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXBuyLimitOrderTx() : CDEXOrderBaseTx(DEX_LIMIT_BUY_ORDER_TX) {}
 
-    CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, TokenSymbol feeSymbol, uint64_t fees,
-                   TokenSymbol coinSymbol, TokenSymbol assetSymbol,
-                   uint64_t assetAmountIn, uint64_t bid_priceIn)
+    CDEXBuyLimitOrderTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                        uint64_t fees, const TokenSymbol &coinSymbol,
+                        const TokenSymbol &assetSymbol, uint64_t assetAmountIn,
+                        uint64_t bid_priceIn)
         : CDEXOrderBaseTx(DEX_LIMIT_BUY_ORDER_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
           coin_symbol(coinSymbol),
@@ -98,9 +99,9 @@ class CDEXSellLimitOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXSellLimitOrderTx() : CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX) {}
 
-    CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, TokenSymbol feeSymbol, uint64_t fees,
-                    TokenSymbol coinSymbol, TokenSymbol assetSymbol,
-                    uint64_t assetAmount, uint64_t askPrice)
+    CDEXSellLimitOrderTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                         uint64_t fees, TokenSymbol coinSymbol, const TokenSymbol &assetSymbol,
+                         uint64_t assetAmount, uint64_t askPrice)
         : CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
           coin_symbol(coinSymbol),
@@ -161,8 +162,9 @@ class CDEXBuyMarketOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXBuyMarketOrderTx() : CDEXOrderBaseTx(DEX_MARKET_BUY_ORDER_TX) {}
 
-    CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, TokenSymbol feeSymbol, uint64_t fees,
-                         TokenSymbol coinSymbol, TokenSymbol assetSymbol, uint64_t coinAmountIn)
+    CDEXBuyMarketOrderTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                         uint64_t fees, TokenSymbol coinSymbol, const TokenSymbol &assetSymbol,
+                         uint64_t coinAmountIn)
         : CDEXOrderBaseTx(DEX_MARKET_BUY_ORDER_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
           coin_symbol(coinSymbol),
@@ -219,8 +221,9 @@ class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
 public:
     CDEXSellMarketOrderTx() : CDEXOrderBaseTx(DEX_MARKET_SELL_ORDER_TX) {}
 
-    CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, TokenSymbol feeSymbol, uint64_t fees,
-                         TokenSymbol coinSymbol, TokenSymbol assetSymbol, uint64_t assetAmountIn)
+    CDEXSellMarketOrderTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                          uint64_t fees, TokenSymbol coinSymbol, const TokenSymbol &assetSymbol,
+                          uint64_t assetAmountIn)
         : CDEXOrderBaseTx(DEX_MARKET_SELL_ORDER_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
           coin_symbol(coinSymbol),
@@ -277,11 +280,11 @@ class CDEXCancelOrderTx : public CBaseTx {
 public:
     CDEXCancelOrderTx() : CBaseTx(DEX_CANCEL_ORDER_TX) {}
 
-    CDEXCancelOrderTx(const CUserID &txUidIn, int validHeightIn, TokenSymbol feeSymbol, uint64_t fees,
-                         uint256 orderIdIn)
+    CDEXCancelOrderTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                      uint64_t fees, uint256 orderIdIn)
         : CBaseTx(DEX_CANCEL_ORDER_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
-          orderId(orderIdIn){}
+          orderId(orderIdIn) {}
 
     ~CDEXCancelOrderTx() {}
 
@@ -343,12 +346,11 @@ class CDEXSettleTx: public CBaseTx {
 public:
     CDEXSettleTx() : CBaseTx(DEX_TRADE_SETTLE_TX) {}
 
-    CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, TokenSymbol feeSymbol, uint64_t fees,
-        const vector<DEXDealItem> &dealItemsIn):
-        CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, fees), 
-        fee_symbol(feeSymbol),
-        dealItems(dealItemsIn) {
-    }
+    CDEXSettleTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+                 uint64_t fees, const vector<DEXDealItem> &dealItemsIn)
+        : CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, fees),
+          fee_symbol(feeSymbol),
+          dealItems(dealItemsIn) {}
 
     ~CDEXSettleTx() {}
 
