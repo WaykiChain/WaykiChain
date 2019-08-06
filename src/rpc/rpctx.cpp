@@ -2486,7 +2486,7 @@ Value listdelegates(const Array& params, bool fHelp) {
     }
 
     vector<CRegID> delegatesList;
-    if (!pCdMan->pDelegateCache->GetTopDelegates(delegatesList)) {
+    if (!pCdMan->pDelegateCache->GetTopDelegateList(delegatesList)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
     }
 

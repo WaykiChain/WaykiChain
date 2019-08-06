@@ -1644,7 +1644,7 @@ bool static DisconnectTip(CValidationState &state) {
         // Need to re-sync all to global cache layer.
         spCW->Flush();
         // Attention: need to reload top N delegates.
-        pCdMan->pDelegateCache->LoadTopDelegates();
+        pCdMan->pDelegateCache->LoadTopDelegateList();
     }
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
@@ -1694,7 +1694,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         // Need to re-sync all to global cache layer.
         spCW->Flush();
         // Attention: need to reload top N delegates.
-        pCdMan->pDelegateCache->LoadTopDelegates();
+        pCdMan->pDelegateCache->LoadTopDelegateList();
 
         uint256 uBestblockHash = pCdMan->pAccountCache->GetBestBlock();
         LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());

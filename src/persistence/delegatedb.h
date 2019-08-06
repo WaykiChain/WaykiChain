@@ -25,15 +25,18 @@ public:
     CDelegateDBCache(CDelegateDBCache *pBaseIn)
         : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache){};
 
-    bool LoadTopDelegates();
+    bool LoadTopDelegateList();
     bool ExistDelegate(const CRegID &regId);
-    bool GetTopDelegates(vector<CRegID> &delegatesList);
+    bool GetTopDelegateList(vector<CRegID> &delegatesList);
 
     bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
 
     bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateReceivedVote> &candidateVotes);
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes);
+
+    // There’s no reason to worry about performance issues as it will used only in stable coin genesis height.
+    bool GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> regId2Vote);
 
     bool Flush();
     uint32_t GetCacheSize() const;

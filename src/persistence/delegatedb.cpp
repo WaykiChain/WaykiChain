@@ -7,7 +7,7 @@
 
 #include "config/configuration.h"
 
-bool CDelegateDBCache::LoadTopDelegates() {
+bool CDelegateDBCache::LoadTopDelegateList() {
     delegateRegIds.clear();
 
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
@@ -26,19 +26,19 @@ bool CDelegateDBCache::LoadTopDelegates() {
 
 bool CDelegateDBCache::ExistDelegate(const CRegID &delegateRegId) {
     if (delegateRegIds.empty()) {
-        LoadTopDelegates();
+        LoadTopDelegateList();
     }
 
     return std::find(delegateRegIds.begin(), delegateRegIds.end(), delegateRegId) != delegateRegIds.end();
 }
 
-bool CDelegateDBCache::GetTopDelegates(vector<CRegID> &delegatesList) {
+bool CDelegateDBCache::GetTopDelegateList(vector<CRegID> &delegatesList) {
     if (delegateRegIds.empty()) {
-        LoadTopDelegates();
+        LoadTopDelegateList();
     }
 
     if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
-        LogPrint("ERROR", "CDelegateDBCache::GetTopDelegates, only got %lu delegates(need %u)\n", delegateRegIds.size(),
+        LogPrint("ERROR", "CDelegateDBCache::GetTopDelegateList, only got %lu delegates(need %u)\n", delegateRegIds.size(),
                  IniCfg().GetTotalDelegateNum());
         return false;
     }
@@ -86,6 +86,10 @@ bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
 
 bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes) {
     return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
+}
+
+bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> regId2Vote) {
+    return regId2VoteCache.GetAllElements(regId2Vote);
 }
 
 bool CDelegateDBCache::Flush() {

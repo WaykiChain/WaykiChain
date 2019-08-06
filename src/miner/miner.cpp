@@ -188,7 +188,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     uint32_t maxNonce = SysCfg().GetBlockMaxNonce();
 
     vector<CRegID> delegateList;
-    if (!cwIn.delegateCache.GetTopDelegates(delegateList))
+    if (!cwIn.delegateCache.GetTopDelegateList(delegateList))
         return false;
 
     ShuffleDelegates(pBlock->GetHeight(), delegateList);
@@ -636,7 +636,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         } ();
 
         vector<CRegID> delegateList;
-        if (!cw.delegateCache.GetTopDelegates(delegateList)) {
+        if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
             LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
             return false;
         }
