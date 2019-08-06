@@ -1388,13 +1388,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
             if (index == 1 && haveMedianPriceTx && needExecuteTx) {
-                // Jump to the tx refered to index = lastPriceFeedTxIndex + 1
-                index         = lastPriceFeedTxIndex;  // atuoincrement in loop for(;;)
+                // Jump to the tx referred to index = lastPriceFeedTxIndex + 1
+                index         = lastPriceFeedTxIndex;  // autoincrement in loop for(;;)
                 pos.nTxOffset = lastPriceFeedTxOffset;
             } else if (havePriceFeedTx && index == lastPriceFeedTxIndex) {
-                // Jump to the median price tx refered to index = 1
+                // Jump to the median price tx referred to index = 1
                 assert(block.vptx[1]->IsMedianPriceTx());
-                index                 = 0;  // atuoincrement in loop for(;;)
+                index                 = 0;  // autoincrement in loop for(;;)
                 lastPriceFeedTxOffset = pos.nTxOffset;
                 pos.nTxOffset         = medianPriceTxOffset;
             }
@@ -1487,7 +1487,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Connect %u transactions: %.2fms (%.3fms/tx)\n",
-                 (unsigned)block.vptx.size(), 0.001 * nTime, 0.001 * nTime / block.vptx.size());
+                 (uint32_t)block.vptx.size(), 0.001 * nTime, 0.001 * nTime / block.vptx.size());
 
     if (fJustCheck)
         return true;
