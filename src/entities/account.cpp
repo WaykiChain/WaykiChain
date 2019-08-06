@@ -101,17 +101,18 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVot
             }
             break;
         default:
-            LogPrint("ERROR", "CAccount::ComputeVoteStakingInterest, ");
+            LogPrint("ERROR", "CAccount::ComputeVoteStakingInterest, unexpected feature fork version: %d\n",
+                     featureForkVersion);
             break;
     }
-    LogPrint("DEBUG", "beginSubsidy:%lld endSubsidy:%lld beginHeight:%d endHeight:%d\n", beginSubsidy, endSubsidy,
+    LogPrint("DEBUG", "beginSubsidy: %lld, endSubsidy: %lld, beginHeight: %d, endHeight: %d\n", beginSubsidy, endSubsidy,
              beginHeight, endHeight);
 
     auto ComputeInterest = [](uint64_t amount, uint64_t subsidy, int32_t beginHeight, int32_t endHeight) -> uint64_t {
         int64_t holdHeight        = endHeight - beginHeight;
         static int64_t yearHeight = kYearBlockCount;
         uint64_t interest         = (uint64_t)(amount * ((long double)holdHeight * subsidy / yearHeight / 100));
-        LogPrint("DEBUG", "amount:%lld subsidy:%lld beginHeight:%d endHeight:%d interest:%lld\n", amount, subsidy,
+        LogPrint("DEBUG", "amount: %lld, subsidy: %lld, beginHeight: %d, endHeight: %d, interest: %lld\n", amount, subsidy,
                  beginHeight, endHeight, interest);
         return interest;
     };
@@ -126,7 +127,7 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVot
     }
 
     interest += ComputeInterest(amount, subsidy, beginHeight, endHeight);
-    LogPrint("DEBUG", "updateHeight:%d currHeight:%d freeze value:%lld\n", last_vote_height, currHeight,
+    LogPrint("DEBUG", "updateHeight: %d, currHeight: %d, freeze value: %lld\n", last_vote_height, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
     return interest;
