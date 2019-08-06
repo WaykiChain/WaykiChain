@@ -570,7 +570,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
         //close CDP
         if (!cw.cdpCache.EraseCDP(cdp))
-            return false;
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, erase CDP failed! cdpid=%s",
+                        cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
 
         CUserID nullUid;
         CReceipt receipt1(nTxType, txUid, nullUid, cdp.scoin_symbol, (totalScoinsToLiquidate + totalScoinsToReturnSysFund));
@@ -607,8 +608,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             return false;
 
         if (!cw.cdpCache.SaveCDP(cdp)) {
-            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, update CDP %s failed",
-                        cdp.owner_regid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, update CDP failed! cdpid=%s",
+                        cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
 
         CUserID nullUid;
@@ -622,10 +623,22 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         CReceipt receipt3(nTxType, nullUid, ownerUserId, cdp.bcoin_symbol, bcoinsToCDPOwner);
         receipts.push_back(receipt3);
     }
-    cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
-    bool ret = SaveTxAddresses(height, index, cw, state, {txUid});
-    return ret;
+    if (!cw.accountCache.SetAccount(txUid, account))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write txUid %s account info error",
+            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+
+    if (!cw.accountCache.SetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
+            cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write tx receipt failed! txid=%s",
+            GetHash().ToString()), REJECT_INVALID, "write-tx-receipt-failed");
+
+    if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
+
+    return true;
 }
 
 string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
@@ -662,7 +675,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
 
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ProcessPenaltyFees, read fcoinGenesisUid %s account info error"),
                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
@@ -670,7 +683,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
 
     uint64_t minSysOrderPenaltyFee;
     if (!cw.sysParamCache.GetParam(CDP_SYSORDER_PENALTY_FEE_MIN, minSysOrderPenaltyFee)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read CDP_SYSORDER_PENALTY_FEE_MIN error!!"),
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ProcessPenaltyFees, read CDP_SYSORDER_PENALTY_FEE_MIN error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
@@ -681,7 +694,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
         // 2) sell 50% penalty fees for Fcoins and burn
         auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
-            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ExecuteTx, create system buy order failed"),
+            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, create system buy order failed"),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }
     } else {
