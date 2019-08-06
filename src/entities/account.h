@@ -64,8 +64,8 @@ inline string GetBalanceOpTypeName(const BalanceOpType opType) {
 class CAccountToken {
 public:
     uint64_t free_amount;
-    uint64_t frozen_amount; //held within open DEX orders
-    uint64_t staked_amount; //for staking purposes
+    uint64_t frozen_amount;  // held within open DEX orders
+    uint64_t staked_amount;  // for staking purposes
 
 public:
     CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0) { }
@@ -74,7 +74,8 @@ public:
                     free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount) { }
 
     CAccountToken& operator=(const CAccountToken& other) {
-        if (this == &other) return *this;
+        if (this == &other)
+            return *this;
 
         this->free_amount       = other.free_amount;
         this->frozen_amount     = other.frozen_amount;
@@ -86,7 +87,8 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(free_amount));
         READWRITE(VARINT(frozen_amount));
-        READWRITE(VARINT(staked_amount));)
+        READWRITE(VARINT(staked_amount));
+    )
 };
 
 typedef map<TokenSymbol, CAccountToken> AccountTokenMap;
@@ -118,7 +120,8 @@ public:
     CAccount() : CAccount(CKeyID(), CNickID(), CPubKey()) {}
     CAccount(const CAccount& other) { *this = other; }
     CAccount& operator=(const CAccount& other) {
-        if (this == &other) return *this;
+        if (this == &other)
+            return *this;
 
         this->keyid             = other.keyid;
         this->regid             = other.regid;
@@ -153,18 +156,6 @@ public:
         READWRITE(VARINT(received_votes));
         READWRITE(VARINT(last_vote_height));
     )
-
-    uint256 GetHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss  << keyid << regid << nickid << owner_pubkey << miner_pubkey
-                << tokens << VARINT(received_votes) << VARINT(last_vote_height);
-
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
 
     CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
