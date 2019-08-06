@@ -241,49 +241,56 @@ static int math_max (lua_State *L) {
 ** all bits from 'l_rand' can be represented, and that 'RANDMAX + 1.0'
 ** will keep full precision (ensuring that 'r' is always less than 1.0.)
 */
+// static int math_random (lua_State *L) {
+//   lua_Integer low, up;
+//   double r = (double)l_rand() * (1.0 / ((double)L_RANDMAX + 1.0));
+//   switch (lua_gettop(L)) {  /* check number of arguments */
+//     case 0: {  /* no arguments */
+//       lua_pushnumber(L, (lua_Number)r);  /* Number between 0 and 1 */
+//       return 1;
+//     }
+//     case 1: {  /* only upper limit */
+//       low = 1;
+//       up = luaL_checkinteger(L, 1);
+//       break;
+//     }
+//     case 2: {  /* lower and upper limits */
+//       low = luaL_checkinteger(L, 1);
+//       up = luaL_checkinteger(L, 2);
+//       break;
+//     }
+//     default: return luaL_error(L, "wrong number of arguments");
+//   }
+//   /* random integer in the interval [low, up] */
+//   luaL_argcheck(L, low <= up, 1, "interval is empty");
+//   luaL_argcheck(L, low >= 0 || up <= LUA_MAXINTEGER + low, 1,
+//                    "interval too large");
+//   r *= (double)(up - low) + 1.0;
+//   lua_pushinteger(L, (lua_Integer)r + low);
+//   return 1;
+// }
+
+// static int math_randomseed (lua_State *L) {
+//   l_srand((unsigned int)(lua_Integer)luaL_checknumber(L, 1));
+//   (void)rand(); /* discard first value to avoid undesirable correlations */
+//   return 0;
+// }
+
 static int math_random (lua_State *L) {
-  lua_Integer low, up;
-  double r = (double)l_rand() * (1.0 / ((double)L_RANDMAX + 1.0));
-  switch (lua_gettop(L)) {  /* check number of arguments */
-    case 0: {  /* no arguments */
-      lua_pushnumber(L, (lua_Number)r);  /* Number between 0 and 1 */
-      return 1;
-    }
-    case 1: {  /* only upper limit */
-      low = 1;
-      up = luaL_checkinteger(L, 1);
-      break;
-    }
-    case 2: {  /* lower and upper limits */
-      low = luaL_checkinteger(L, 1);
-      up = luaL_checkinteger(L, 2);
-      break;
-    }
-    default: return luaL_error(L, "wrong number of arguments");
-  }
-  /* random integer in the interval [low, up] */
-  luaL_argcheck(L, low <= up, 1, "interval is empty"); 
-  luaL_argcheck(L, low >= 0 || up <= LUA_MAXINTEGER + low, 1,
-                   "interval too large");
-  r *= (double)(up - low) + 1.0;
-  lua_pushinteger(L, (lua_Integer)r + low);
+  lua_pushinteger(L, (lua_Integer)0);
   return 1;
 }
 
-
 static int math_randomseed (lua_State *L) {
-  l_srand((unsigned int)(lua_Integer)luaL_checknumber(L, 1));
-  (void)rand(); /* discard first value to avoid undesirable correlations */
   return 0;
 }
-
 
 static int math_type (lua_State *L) {
   if (lua_type(L, 1) == LUA_TNUMBER) {
       if (lua_isinteger(L, 1))
-        lua_pushliteral(L, "integer"); 
+        lua_pushliteral(L, "integer");
       else
-        lua_pushliteral(L, "float"); 
+        lua_pushliteral(L, "float");
   }
   else {
     luaL_checkany(L, 1);
@@ -364,8 +371,8 @@ static const luaL_Reg mathlib[] = {
   {"min",   math_min},
   {"modf",   math_modf},
   {"rad",   math_rad},
-  // {"random",     math_random},
-  // {"randomseed", math_randomseed},
+  {"random",     math_random},
+  {"randomseed", math_randomseed},
   {"sin",   math_sin},
   {"sqrt",  math_sqrt},
   {"tan",   math_tan},
