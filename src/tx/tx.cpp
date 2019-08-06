@@ -49,7 +49,7 @@ uint64_t GetTxMinFee(const TxType nTxType, int32_t height) {
 }
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
-    if (BLOCK_REWARD_TX == nTxType || PRICE_MEDIAN_TX == nTxType)
+    if (BLOCK_REWARD_TX == nTxType || UCOIN_BLOCK_REWARD_TX == nTxType || PRICE_MEDIAN_TX == nTxType)
         return true;
 
     if (nValidHeight > nCurrHeight + nTxCacheHeight / 2)

@@ -88,7 +88,7 @@ bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateR
     return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
 }
 
-bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> regId2Vote) {
+bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote) {
     return regId2VoteCache.GetAllElements(regId2Vote);
 }
 

@@ -165,22 +165,22 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
 }
 
 void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
-    uint32_t TotalDelegateNum = IniCfg().GetTotalDelegateNum();
-    string seedSource = strprintf("%u", nCurHeight / TotalDelegateNum + (nCurHeight % TotalDelegateNum > 0 ? 1 : 0));
+    uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
+    string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
     ss << seedSource;
-    uint256 currendSeed  = ss.GetHash();
-    uint64_t currendTemp = 0;
-    for (uint32_t i = 0, delCount = TotalDelegateNum; i < delCount; i++) {
-        for (uint32_t x = 0; x < 4 && i < delCount; i++, x++) {
-            memcpy(&currendTemp, currendSeed.begin() + (x * 8), 8);
-            uint32_t newIndex      = currendTemp % delCount;
+    uint256 currentSeed  = ss.GetHash();
+    uint64_t newIndexSource = 0;
+    for (uint32_t i = 0; i < totalDelegateNum; i++) {
+        for (uint32_t x = 0; x < 4 && i < totalDelegateNum; i++, x++) {
+            memcpy(&newIndexSource, currentSeed.begin() + (x * 8), 8);
+            uint32_t newIndex      = newIndexSource % totalDelegateNum;
             CRegID regId           = delegateList[newIndex];
             delegateList[newIndex] = delegateList[i];
             delegateList[i]        = regId;
         }
-        ss << currendSeed;
-        currendSeed = ss.GetHash();
+        ss << currentSeed;
+        currentSeed = ss.GetHash();
     }
 }
 

@@ -59,6 +59,11 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
     IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (height == (int32_t)SysCfg().GetFeatureForkHeight()) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, not allowed to vote"), REJECT_INVALID,
+                         "not-allowed-to-vote");
+    }
+
     if (0 == candidateVotes.size()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"),
             REJECT_INVALID, "oper-fund-empty-error");
@@ -136,7 +141,7 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     }
 
     vector<CCandidateReceivedVote> candidateVotesInOut;
-    CRegID regId = txUid.get<CRegID>();
+    CRegID &regId = txUid.get<CRegID>();
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, height, &cw.accountCache)) {

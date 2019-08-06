@@ -6,6 +6,7 @@
 
 #include "main.h"
 
+#include "entities/id.h"
 #include "addrman.h"
 #include "alert.h"
 #include "config/chainparams.h"
@@ -47,7 +48,7 @@ CCacheDBManager *pCdMan = nullptr;
 CCriticalSection cs_main;
 CTxMemPool mempool;
 map<uint256, CBlockIndex *> mapBlockIndex;
-int nSyncTipHeight(0);
+int32_t nSyncTipHeight = 0;
 map<uint256, std::shared_ptr<CCacheWrapper> > mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
@@ -60,12 +61,12 @@ uint64_t CBaseTx::nMinRelayTxFee = 1000;
 /** Amount smaller than this (in sawi) is considered dust amount */
 uint64_t CBaseTx::nDustAmountThreshold = 10000;
 /** Amount of blocks that other nodes claim to have */
-static CMedianFilter<int> cPeerBlockCounts(8, 0);
+static CMedianFilter<int32_t> cPeerBlockCounts(8, 0);
 
 struct COrphanBlock {
     uint256 blockHash;
     uint256 prevBlockHash;
-    int height;
+    int32_t height;
     vector<uint8_t> vchBlock;
 };
 map<uint256, COrphanBlock *> mapOrphanBlocks;
@@ -1438,7 +1439,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     // Execute block reward transaction
-    LogPrint("op_account", "tx index:%d tx hash:%s\n", 0, block.vptx[0]->GetHash().GetHex());
     cw.EnableTxUndoLog(block.vptx[0]->GetHash());
     if (!block.vptx[0]->ExecuteTx(pIndex->height, 0, cw, state)) {
         if (SysCfg().IsLogFailures()) {
@@ -1454,6 +1454,97 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return false;
     }
 
+    // compute vote staking interest && revoke votes
+    int32_t currHeight = pIndex->height;
+    if (currHeight + 1 == (int32_t)SysCfg().GetFeatureForkHeight()) {
+        // acquire votes list
+        map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
+        if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
+            return state.DoS(100, ERRORMSG("ConnectBlock() : failed to get vote list"), REJECT_INVALID,
+                             "bad-get-vote-list");
+        }
+
+        // revoke votes if necessary
+        map<CRegID, vector<CCandidateVote>> regId2CandidateVotes;
+        for (auto &item : regId2ReceivedVotes) {
+            CRegID regId(UnsignedCharArray(item.first.begin(), item.first.end()));
+            auto &candidateReceivedVotes = item.second;
+            vector<CCandidateVote> candidateVotes;
+            assert(!candidateReceivedVotes.empty());
+            // If the voter only votes to one candidate, not bother to revoke votes.
+            if (candidateReceivedVotes.size() == 1) {
+                regId2CandidateVotes.emplace(regId, candidateVotes/* empty */);
+                continue;
+            }
+
+            // If the voter votes to more than one candidates, need to revoke votes from the second
+            // candidates.
+            auto it = candidateReceivedVotes.begin();
+            ++it;  // skip the first item
+            for (; it < candidateReceivedVotes.end(); ++ it) {
+                const auto &uid  = it->GetCandidateUid();
+                const auto votes = it->GetVotedBcoins();
+                candidateVotes.emplace_back(VoteType::MINUS_BCOIN, uid, votes);  // revoke votes
+            }
+
+            regId2CandidateVotes.emplace(regId, candidateVotes);
+        }
+
+        // compute vote staking interest
+        for (const auto &item : regId2CandidateVotes) {
+            const auto &regId          = item.first;
+            const auto &candidateVotes = item.second;
+
+            vector<CCandidateReceivedVote> candidateVotesInOut;
+            cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
+            CAccount account;
+            cw.accountCache.GetAccount(regId, account);
+            if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, currHeight, &cw.accountCache)) {
+                return state.DoS(100,ERRORMSG("ConnectBlock() : operate delegate vote failed, regId=%s", regId.ToString()),
+                    UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
+            }
+            if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
+                return state.DoS(100, ERRORMSG("ConnectBlock() : write candidate votes failed, regId=%s", regId.ToString()),
+                    WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
+            }
+
+            if (!cw.accountCache.SaveAccount(account)) {
+                return state.DoS(100, ERRORMSG("ConnectBlock() : create new account script id %s script info error",
+                    account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            }
+
+            for (const auto &vote : candidateVotes) {
+                CAccount delegate;
+                const CUserID &delegateUId = vote.GetCandidateUid();
+                if (!cw.accountCache.GetAccount(delegateUId, delegate)) {
+                    return state.DoS(100, ERRORMSG("ConnectBlock() : read KeyId(%s) account info error",
+                        delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                }
+                uint64_t oldVotes = delegate.received_votes;
+                if (!delegate.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
+                    return state.DoS(100, ERRORMSG("ConnectBlock() : operate delegate address %s vote fund error",
+                        delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
+                }
+
+                // Votes: set the new value and erase the old value
+                if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes)) {
+                    return state.DoS(100, ERRORMSG("ConnectBlock() : save account id %s vote info error",
+                        delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                }
+
+                if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes)) {
+                    return state.DoS(100, ERRORMSG("ConnectBlock() : erase account id %s vote info error",
+                        delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                }
+
+                if (!cw.accountCache.SaveAccount(delegate)) {
+                    return state.DoS(100, ERRORMSG("ConnectBlock() : create new account script id %s script info error",
+                        account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                }
+            }
+        }
+    }
+
     blockUndo.vtxundo.push_back(cw.txUndo);
     cw.DisableTxUndoLog();
 
@@ -1467,8 +1558,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         if (nullptr != pMatureIndex) {
             CBlock matureBlock;
             if (!ReadBlockFromDisk(pMatureIndex, matureBlock)) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"),
-                                REJECT_INVALID, "bad-read-block");
+                return state.DoS(100, ERRORMSG("ConnectBlock() : read mature block error"), REJECT_INVALID,
+                                 "bad-read-block");
             }
 
             cw.EnableTxUndoLog(block.vptx[0]->GetHash());
@@ -3483,8 +3574,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     else if (strCommand == "tx") {
         std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-        if (BLOCK_REWARD_TX == pBaseTx->nTxType || UCOIN_BLOCK_REWARD_TX == pBaseTx->nTxType ||
-            PRICE_MEDIAN_TX == pBaseTx->nTxType) {
+        if (pBaseTx->IsCoinBase() || pBaseTx->IsMedianPriceTx()) {
             return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, PRICE_MEDIAN_TX from network "
                 "should be accepted, raw string: %s", HexStr(vRecv.begin(), vRecv.end()));
         }

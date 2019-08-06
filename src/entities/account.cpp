@@ -265,7 +265,6 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         return false;
     }
 
-    last_vote_height = currHeight;
     uint64_t lastTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
 
     for (const auto &vote : candidateVotesIn) {
@@ -373,8 +372,11 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
             return false;
     }
 
-    LogPrint("INFLATE", "Account(%s) received vote staking interest amount (fcoins): %lld\n",
+    LogPrint("INFLATE", "Account(%s) received vote staking interest amount (bcoin/fcoins): %lld\n",
             regid.ToString(), interestAmountToInflate);
+
+    // Attention: update last vote height after computing vote staking interest.
+    last_vote_height = currHeight;
 
     return true;
 }
