@@ -116,28 +116,15 @@ public:
     CRegID owner_regid;     // creator or owner of the asset
     TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
     TokenName name;         // asset long name, E.g WaykiChain coin
-    bool mintable;          // whether this token can be minted in the future.
     uint64_t total_supply;  // boosted by 1e8 for the decimal part, max is 90 billion.
-
-    mutable uint256 sigHash;  //!< in-memory only
-
+    bool mintable;          // whether this token can be minted in the future.
 public:
-    CAsset(): mintable(false), total_supply(0) {}
+    CAsset(): total_supply(0), mintable(false) {}
 
-    CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, bool mintableIn, uint64_t totalSupplyIn) :
-        owner_regid(ownerRegIdIn), symbol(symbolIn), name(nameIn), mintable(mintableIn), total_supply(totalSupplyIn) {};
+    CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, uint64_t totalSupplyIn, bool mintableIn) :
+        owner_regid(ownerRegIdIn), symbol(symbolIn), name(nameIn), total_supply(totalSupplyIn), mintable(mintableIn) {};
 
-    uint256 GetHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << owner_regid << symbol << name << mintable << VARINT(total_supply);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-     IMPLEMENT_SERIALIZE(
+      IMPLEMENT_SERIALIZE(
         READWRITE(owner_regid);
         READWRITE(symbol);
         READWRITE(name);

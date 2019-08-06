@@ -47,8 +47,8 @@ enum SysParamType : uint8_t {
     CDP_INTEREST_PARAM_A                    = 16,
     CDP_INTEREST_PARAM_B                    = 17,
     CDP_SYSORDER_PENALTY_FEE_MIN            = 18,
-    ASSET_ISSUE_FEE_MIN                     = 19,
-    ASSET_UPDATE_FEE_MIN                    = 20,
+    ASSET_ISSUE_FEE                         = 19,
+    ASSET_UPDATE_FEE                        = 20,
 
     NULL_SYS_PARAM_TYPE = 0,
 };
@@ -79,9 +79,8 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          },  // a = 2
     { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          },  // b = 1
     { CDP_SYSORDER_PENALTY_FEE_MIN,                 std::make_tuple("R",    10)         },  // min. pentalty = 10
-    { ASSET_ISSUE_FEE_MIN,                          std::make_tuple("S",    550)        },  // min. fee = 550
-    { ASSET_UPDATE_FEE_MIN,                         std::make_tuple("T",    110)        },  // min. fee = 110
-
+    { ASSET_ISSUE_FEE,                              std::make_tuple("S",    550)        },  // asset issue fee = 550
+    { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110)        },  // asset update fee = 110
 
 };
 

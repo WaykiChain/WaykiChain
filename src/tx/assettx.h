@@ -15,25 +15,17 @@ class CAssetIssueTx: public CBaseTx {
 public:
     TokenSymbol fee_symbol;
 
-    CRegID      owner_regid;    // owner RegID, can be transferred though
-    TokenSymbol asset_symbol;   // asset symbol, E.g WICC | WUSD            len <= 12 chars
-    TokenName   asset_name;     // asset long name, E.g WaykiChain coin,    len <= 32 chars
-    uint64_t    total_supply;   // boosted by 1e8 for the decimal part, max is 90 billion.
-    bool        mintable;       // whether this token can be minted in the future.
-
+    CAsset      asset;          // asset
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
+    CAssetIssueTx(TxType nTxTypeIn): CBaseTx(nTxTypeIn) {};
+
     CAssetIssueTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
-                  uint64_t fees, const CRegID &ownerRegid, const TokenSymbol &assetSymbol,
-                  const TokenName &assetName, const uint64_t totalSupply, const bool mintable)
+                  uint64_t fees, const CAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
-          owner_regid(ownerRegid),
-          asset_symbol(assetSymbol),
-          asset_name(assetName),
-          total_supply(totalSupply),
-          mintable(mintable) {}
+          asset(assetIn){}
 
     ~CAssetIssueTx() {}
 
@@ -45,12 +37,7 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
-        READWRITE(owner_regid);
-        READWRITE(asset_symbol);
-        READWRITE(asset_name);
-        READWRITE(VARINT(total_supply));
-        READWRITE(mintable);
-
+        READWRITE(asset);
         READWRITE(signature);
     )
 
@@ -58,13 +45,15 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
-               << owner_regid << asset_symbol << asset_name << VARINT(total_supply) << mintable;
+               << asset;
             sigHash = ss.GetHash();
         }
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{asset_symbol, total_supply}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const {
+        return map<TokenSymbol, uint64_t>{{asset.symbol, asset.total_supply}};
+    }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetIssueTx>(*this); }
@@ -83,7 +72,7 @@ public:
  */
 class CAssetUpdateTx: public CAssetIssueTx {
 public:
-    CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {};
+    CAssetUpdateTx() : CAssetIssueTx(ASSET_UPDATE_TX) {};
 
     ~CAssetUpdateTx() {}
 

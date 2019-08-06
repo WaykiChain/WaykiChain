@@ -85,6 +85,8 @@ static const uint64_t CENT = 1000000;    //10^6 = 0.01 WICC
 
 /** the max token symbol len */
 static const unsigned int MAX_TOKEN_SYMBOL_LEN = 12;
+/** the max asset name len */
+static const unsigned int MAX_ASSET_NAME_LEN = 12;
 
 /** the total blocks of burn fee need */
 static const uint32_t DEFAULT_BURN_BLOCK_SIZE = 50;
