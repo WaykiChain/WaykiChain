@@ -100,7 +100,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
 
     // is it within valid height
     static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Height() + 1, validHeight)) {
+    if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Height(), validHeight)) {
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
                              REJECT_INVALID, "tx-invalid-height");
     }
@@ -108,9 +108,9 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     auto spCW = std::make_shared<CCacheWrapper>(*cw);
 
     if (bExecute) {
-        if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height() + 1, 0, *spCW, state)) {
+        if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height(), 0, *spCW, state)) {
             if (SysCfg().IsLogFailures()) {
-                pCdMan->pLogCache->SetExecuteFail(chainActive.Height() + 1, memPoolEntry.GetTransaction()->GetHash(),
+                pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
                                                   state.GetRejectCode(), state.GetRejectReason());
             }
             return false;
