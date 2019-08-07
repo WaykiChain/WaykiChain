@@ -1257,6 +1257,98 @@ bool SaveTxIndex(CBaseTx &baseTx, CCacheWrapper &cw, CValidationState &state, CD
     return true;
 }
 
+// compute vote staking interest && revoke votes
+bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, CCacheWrapper &cw, CValidationState &state) {
+    // acquire votes list
+    map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
+    if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
+        return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : failed to get vote list"),
+                         REJECT_INVALID, "bad-get-vote-list");
+    }
+
+    // revoke votes if necessary
+    map<CRegID, vector<CCandidateVote>> regId2CandidateVotes;
+    for (auto &item : regId2ReceivedVotes) {
+        CRegID regId(UnsignedCharArray(item.first.begin(), item.first.end()));
+        auto &candidateReceivedVotes = item.second;
+        vector<CCandidateVote> candidateVotes;
+        assert(!candidateReceivedVotes.empty());
+        // If the voter only votes to one candidate, not bother to revoke votes.
+        if (candidateReceivedVotes.size() == 1) {
+            regId2CandidateVotes.emplace(regId, candidateVotes /* empty */);
+            continue;
+        }
+
+        // If the voter votes to more than one candidates, need to revoke votes from the second
+        // candidates.
+        auto it = candidateReceivedVotes.begin();
+        ++it;  // skip the first item
+        for (; it < candidateReceivedVotes.end(); ++it) {
+            const auto &uid  = it->GetCandidateUid();
+            const auto votes = it->GetVotedBcoins();
+            candidateVotes.emplace_back(VoteType::MINUS_BCOIN, uid, votes);  // revoke votes
+        }
+
+        regId2CandidateVotes.emplace(regId, candidateVotes);
+    }
+
+    // compute vote staking interest
+    for (const auto &item : regId2CandidateVotes) {
+        const auto &regId          = item.first;
+        const auto &candidateVotes = item.second;
+
+        vector<CCandidateReceivedVote> candidateVotesInOut;
+        cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
+        CAccount account;
+        cw.accountCache.GetAccount(regId, account);
+        if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, currHeight, &cw.accountCache)) {
+            return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate delegate vote failed, regId=%s",
+                            regId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
+        }
+        if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
+            return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : write candidate votes failed, regId=%s",
+                            regId.ToString()), WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
+        }
+
+        if (!cw.accountCache.SaveAccount(account)) {
+            return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : save account id %s info error",
+                            account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+        }
+
+        for (const auto &vote : candidateVotes) {
+            CAccount delegate;
+            const CUserID &delegateUId = vote.GetCandidateUid();
+            if (!cw.accountCache.GetAccount(delegateUId, delegate)) {
+                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : read KeyId(%s) account info error",
+                                delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+            }
+            uint64_t oldVotes = delegate.received_votes;
+            if (!delegate.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
+                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate delegate address %s vote fund error",
+                                delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
+            }
+
+            // Votes: set the new value and erase the old value
+            if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes)) {
+                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : save account id %s vote info error",
+                                delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
+            }
+
+            if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes)) {
+                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : erase account id %s vote info error",
+                                delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
+            }
+
+            if (!cw.accountCache.SaveAccount(delegate)) {
+                return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : save account id %s info error",
+                                account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+            }
+        }
+    }
+
+    return true;
+}
+
 bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool fJustCheck) {
     AssertLockHeld(cs_main);
 
@@ -1449,100 +1541,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
     }
 
-    if (!SaveTxIndex(*block.vptx[0], cw, state, rewardPos)) {
-        cw.DisableTxUndoLog();
+    if (pIndex->height + 1 == (int32_t)SysCfg().GetFeatureForkHeight() &&
+        !ComputeVoteStakingInterestAndRevokeVotes(pIndex->height, cw, state)) {
         return false;
     }
 
-    // compute vote staking interest && revoke votes
-    int32_t currHeight = pIndex->height;
-    if (currHeight + 1 == (int32_t)SysCfg().GetFeatureForkHeight()) {
-        // acquire votes list
-        map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
-        if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : failed to get vote list"), REJECT_INVALID,
-                             "bad-get-vote-list");
-        }
-
-        // revoke votes if necessary
-        map<CRegID, vector<CCandidateVote>> regId2CandidateVotes;
-        for (auto &item : regId2ReceivedVotes) {
-            CRegID regId(UnsignedCharArray(item.first.begin(), item.first.end()));
-            auto &candidateReceivedVotes = item.second;
-            vector<CCandidateVote> candidateVotes;
-            assert(!candidateReceivedVotes.empty());
-            // If the voter only votes to one candidate, not bother to revoke votes.
-            if (candidateReceivedVotes.size() == 1) {
-                regId2CandidateVotes.emplace(regId, candidateVotes/* empty */);
-                continue;
-            }
-
-            // If the voter votes to more than one candidates, need to revoke votes from the second
-            // candidates.
-            auto it = candidateReceivedVotes.begin();
-            ++it;  // skip the first item
-            for (; it < candidateReceivedVotes.end(); ++ it) {
-                const auto &uid  = it->GetCandidateUid();
-                const auto votes = it->GetVotedBcoins();
-                candidateVotes.emplace_back(VoteType::MINUS_BCOIN, uid, votes);  // revoke votes
-            }
-
-            regId2CandidateVotes.emplace(regId, candidateVotes);
-        }
-
-        // compute vote staking interest
-        for (const auto &item : regId2CandidateVotes) {
-            const auto &regId          = item.first;
-            const auto &candidateVotes = item.second;
-
-            vector<CCandidateReceivedVote> candidateVotesInOut;
-            cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
-            CAccount account;
-            cw.accountCache.GetAccount(regId, account);
-            if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, currHeight, &cw.accountCache)) {
-                return state.DoS(100,ERRORMSG("ConnectBlock() : operate delegate vote failed, regId=%s", regId.ToString()),
-                    UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
-            }
-            if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : write candidate votes failed, regId=%s", regId.ToString()),
-                    WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
-            }
-
-            if (!cw.accountCache.SaveAccount(account)) {
-                return state.DoS(100, ERRORMSG("ConnectBlock() : create new account script id %s script info error",
-                    account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-            }
-
-            for (const auto &vote : candidateVotes) {
-                CAccount delegate;
-                const CUserID &delegateUId = vote.GetCandidateUid();
-                if (!cw.accountCache.GetAccount(delegateUId, delegate)) {
-                    return state.DoS(100, ERRORMSG("ConnectBlock() : read KeyId(%s) account info error",
-                        delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-                }
-                uint64_t oldVotes = delegate.received_votes;
-                if (!delegate.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
-                    return state.DoS(100, ERRORMSG("ConnectBlock() : operate delegate address %s vote fund error",
-                        delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
-                }
-
-                // Votes: set the new value and erase the old value
-                if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes)) {
-                    return state.DoS(100, ERRORMSG("ConnectBlock() : save account id %s vote info error",
-                        delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-                }
-
-                if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes)) {
-                    return state.DoS(100, ERRORMSG("ConnectBlock() : erase account id %s vote info error",
-                        delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-                }
-
-                if (!cw.accountCache.SaveAccount(delegate)) {
-                    return state.DoS(100, ERRORMSG("ConnectBlock() : create new account script id %s script info error",
-                        account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
-                }
-            }
-        }
+    if (!SaveTxIndex(*block.vptx[0], cw, state, rewardPos)) {
+        cw.DisableTxUndoLog();
+        return false;
     }
 
     blockUndo.vtxundo.push_back(cw.txUndo);

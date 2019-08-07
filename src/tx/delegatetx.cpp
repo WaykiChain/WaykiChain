@@ -154,8 +154,8 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     }
 
     if (!cw.accountCache.SaveAccount(account)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
-                        account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s info error",
+                        account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     }
 
     for (const auto &vote : candidateVotes) {
@@ -174,17 +174,17 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
         // Votes: set the new value and erase the old value
         if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
-                            delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                            delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
 
         if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
-                            delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+                            delegate.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
 
         if (!cw.accountCache.SaveAccount(delegate)) {
-            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, create new account script id %s script info error",
-                            account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
+            return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s info error",
+                            account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
         }
     }
 
