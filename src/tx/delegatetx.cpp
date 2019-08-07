@@ -17,15 +17,15 @@
 
 string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
     string str;
-
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, keyid=%s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, keyId.ToAddress(), keyId.ToString());
-    str += "vote:\n";
+    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, ", GetTxType(nTxType), GetHash().ToString(), nVersion,
+                     keyId.ToAddress());
+    str += "vote: ";
     for (const auto &vote : candidateVotes) {
         str += strprintf("%s", vote.ToString());
     }
+
     return str;
 }
 

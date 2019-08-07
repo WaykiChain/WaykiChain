@@ -347,7 +347,8 @@ public:
     vector<CTxUndo> vtxundo;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(vtxundo);)
+        READWRITE(vtxundo);
+    )
 
     bool WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash) {
         // Open history file to append

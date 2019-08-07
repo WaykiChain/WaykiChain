@@ -217,13 +217,10 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
-
-    str += strprintf("cdp_txid=%s, bcoins_to_stake=%d, scoins_to_mint=%d",
-                    cdp_txid.ToString(), bcoins_to_stake, scoins_to_mint);
-
-    return str;
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, cdp_txid=%s, bcoins_to_stake=%d, scoins_to_mint=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), cdp_txid.ToString(),
+        bcoins_to_stake, scoins_to_mint);
 }
 
 Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {

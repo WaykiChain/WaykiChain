@@ -737,7 +737,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     int64_t nStart = GetTimeMillis();
-    bool fLoaded = false;
+    bool fLoaded   = false;
     while (!fLoaded) {
         bool fReset = SysCfg().IsReindex();
         string strLoadError;
@@ -844,40 +844,40 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (!ActivateBestChain(state))
         return InitError("Failed to connect best block");
 
-    nStart                  = GetTimeMillis();
-    CBlockIndex *blockIndex = chainActive.Tip();
-    int nCacheHeight        = SysCfg().GetTxCacheHeight();
-    int nCount              = 0;
+    nStart                   = GetTimeMillis();
+    CBlockIndex *pBlockIndex = chainActive.Tip();
+    int nCacheHeight         = SysCfg().GetTxCacheHeight();
+    int nCount               = 0;
     CBlock block;
-    while (blockIndex && nCacheHeight-- > 0) {
-        if (!ReadBlockFromDisk(blockIndex, block))
+    while (pBlockIndex && nCacheHeight-- > 0) {
+        if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
 
         if (!pCdMan->pTxCache->AddBlockToCache(block))
             return InitError("Failed to add block to transaction memory cache");
 
-        blockIndex = blockIndex->pprev;
+        pBlockIndex = pBlockIndex->pprev;
         ++nCount;
     }
     LogPrint("INFO", "Added the latest %d blocks to transaction memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
 
     nStart       = GetTimeMillis();
-    blockIndex   = chainActive.Tip();
+    pBlockIndex  = chainActive.Tip();
     nCacheHeight = 11;  // TODO: parameterize 11.
     nCount       = 0;
 
-    if (!ReadBlockFromDisk(blockIndex, block))
+    if (!ReadBlockFromDisk(pBlockIndex, block))
         return InitError("Failed to read block from disk");
     pCdMan->pPpCache->SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
 
-    while (blockIndex && nCacheHeight-- > 0) {
-        if (!ReadBlockFromDisk(blockIndex, block))
+    while (pBlockIndex && nCacheHeight-- > 0) {
+        if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
 
         if (!pCdMan->pPpCache->AddBlockToCache(block))
             return InitError("Failed to add block to price point memory cache");
 
-        blockIndex = blockIndex->pprev;
+        pBlockIndex = pBlockIndex->pprev;
         ++nCount;
     }
     LogPrint("INFO", "Added the latest %d blocks to price point memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);

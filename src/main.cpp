@@ -1092,7 +1092,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     // TODO: parameterize 11.
     if (pIndex->height > 11) {
         CBlockIndex *pReLoadBlockIndex = pIndex;
-        int nCacheHeight               = 11;
+        int32_t nCacheHeight           = 11;
         while (pReLoadBlockIndex && nCacheHeight-- > 0) {
             pReLoadBlockIndex = pReLoadBlockIndex->pprev;
         }
@@ -1617,7 +1617,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     if (pIndex->height > SysCfg().GetTxCacheHeight()) {
         CBlockIndex *pDeleteBlockIndex = pIndex;
-        int nCacheHeight               = SysCfg().GetTxCacheHeight();
+        int32_t nCacheHeight           = SysCfg().GetTxCacheHeight();
         while (pDeleteBlockIndex && nCacheHeight-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
@@ -1638,7 +1638,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // TODO: parameterize 11.
     if (pIndex->height > 11) {
         CBlockIndex *pDeleteBlockIndex = pIndex;
-        int nCacheHeight               = 11;
+        int32_t nCacheHeight           = 11;
         while (pDeleteBlockIndex && nCacheHeight-- > 0) {
             pDeleteBlockIndex = pDeleteBlockIndex->pprev;
         }
@@ -2818,7 +2818,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
 
     CBlockIndex *pIndexState   = chainActive.Tip();
     CBlockIndex *pIndexFailure = nullptr;
-    int nGoodTransactions      = 0;
+    int32_t nGoodTransactions  = 0;
     CValidationState state;
 
     for (CBlockIndex *pIndex = chainActive.Tip(); pIndex && pIndex->pprev; pIndex = pIndex->pprev) {
@@ -2833,7 +2833,7 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
                             pIndex->height, pIndex->GetBlockHash().ToString());
 
         // check level 1: verify block validity
-        if (nCheckLevel >= 1 && !CheckBlock(block, state, *spCW))
+        if (nCheckLevel >= 1 && !CheckBlock(block, state, *spCW, false))
             return ERRORMSG("VerifyDB() : *** found bad block at %d, hash=%s\n",
                             pIndex->height, pIndex->GetBlockHash().ToString());
 
@@ -2850,7 +2850,6 @@ bool VerifyDB(int nCheckLevel, int nCheckDepth) {
         // check level 3: check for inconsistencies during memory-only disconnect of tip blocks
         if (nCheckLevel >= 3 && pIndex == pIndexState) {
             bool fClean = true;
-
             if (!DisconnectBlock(block, *spCW, pIndex, state, &fClean))
                 return ERRORMSG("VerifyDB() : *** irrecoverable inconsistency in block data at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
