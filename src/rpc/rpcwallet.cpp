@@ -527,6 +527,11 @@ Value send(const Array& params, bool fHelp) {
     if (!GetKeyId(params[1].get_str(), recvKeyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
 
+    CAccount account;
+    if (!pCdMan->pAccountCache->GetAccount(sendKeyId, account)) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender account not exist");
+    }
+
     CPubKey sendPubKey;
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender account not found in wallet");
@@ -542,10 +547,10 @@ Value send(const Array& params, bool fHelp) {
 
     ComboMoney cmCoin;
     if (!ParseRpcInputMoney(params[2].get_str(), cmCoin, SYMB::WICC))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "coin ComboMoney format error");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coin ComboMoney format error");
 
     if (cmCoin.amount == 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "coins is zero!");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
     // TODO:
     ComboMoney cmFee;
@@ -554,10 +559,10 @@ Value send(const Array& params, bool fHelp) {
     cmFee.unit   = COIN_UNIT::SAWI;
     if (params.size() > 3) {
         if (!ParseRpcInputMoney(params[3].get_str(), cmFee, SYMB::WICC))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "fee ComboMoney format error");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
 
         if (cmFee.amount == 0)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "fee is zero!");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is zero");
 
         uint64_t minFee = 0;
         if (cmFee.symbol == SYMB::WICC) {
@@ -565,7 +570,7 @@ Value send(const Array& params, bool fHelp) {
         } else if (cmFee.symbol == SYMB::WUSD) {
             minFee = std::get<3>(kTxFeeTable.at(UCOIN_TRANSFER_TX));
         } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee Symbol not supported!");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee symbol not supported");
         }
         uint64_t unitBase =  CoinUnitTypeTable.at(cmFee.unit);
         uint64_t actualFee = cmFee.amount * unitBase;
@@ -581,12 +586,6 @@ Value send(const Array& params, bool fHelp) {
     uint64_t totalAmount = coinAmount;
     if (coinSymbol == feeSymbol) {
         totalAmount += fee;
-    }
-
-    CAccount account;
-    if (!pCdMan->pAccountCache->GetAccount(sendUserId, account)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", sendUserId.ToString()));
     }
 
     if (coinSymbol == SYMB::WICC) {
