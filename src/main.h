@@ -137,9 +137,6 @@ struct CNodeStateStats {
 
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree);
 
-// Context-independent validity checks
-bool CheckTx(int height, CBaseTx *ptx, CCacheWrapper &cacheWrapper, CValidationState &state);
-
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */

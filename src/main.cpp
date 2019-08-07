@@ -464,14 +464,6 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     return true;
 }
 
-bool CheckTx(int height, CBaseTx *pTx, CCacheWrapper &cw, CValidationState &state) {
-    if (BLOCK_REWARD_TX == pTx->nTxType || UCOIN_BLOCK_REWARD_TX == pTx->nTxType) {
-        return true;
-    }
-
-    return (pTx->CheckTx(height, cw, state));
-}
-
 int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
     uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
     int64_t nMinFee   = (1 + (int64_t)nBytes / 1000) * nBaseFee;
@@ -514,7 +506,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     auto spCW = std::make_shared<CCacheWrapper>(*mempool.cw);
 
-    if (!CheckTx(chainActive.Height(), pBaseTx, *spCW, state))
+    if (!pBaseTx->CheckTx(chainActive.Height(), *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
@@ -2249,7 +2241,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     for (unsigned int i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
-        if (fCheckTx && !CheckTx(block.GetHeight(), block.vptx[i].get(), cw, state))
+        if (fCheckTx && !block.vptx[i]->CheckTx(block.GetHeight(), cw, state))
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
