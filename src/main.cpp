@@ -501,8 +501,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s already in mempool", hash.GetHex()),
             REJECT_INVALID, "tx-already-in-mempool");
 
-    // is it a miner reward tx?
-    if (pBaseTx->IsCoinBase())
+    // is it a miner reward tx or median price tx?
+    if (pBaseTx->IsCoinBase() || pBaseTx->IsMedianPriceTx())
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward transaction, can't put into mempool",
             hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
