@@ -161,7 +161,7 @@ void CDEXBuyLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     orderDetail.order_side   = ORDER_BUY;
     orderDetail.coin_symbol    = coin_symbol;                //!< coin type
     orderDetail.asset_symbol   = asset_symbol;               //!< asset type
-    orderDetail.coin_amount  = bid_price * asset_amount;  //!< amount of coin to buy asset
+    orderDetail.coin_amount  = CalcCoinAmount(asset_amount, bid_price);  //!< amount of coin to buy asset
     orderDetail.asset_amount = asset_amount;             //!< amount of asset to buy/sell
     orderDetail.price       = bid_price;                //!< price in coin_symbol want to buy asset
 }
@@ -265,7 +265,7 @@ void CDEXSellLimitOrderTx::GetOrderDetail(CDEXOrderDetail &orderDetail) {
     orderDetail.order_side   = ORDER_SELL;
     orderDetail.coin_symbol    = coin_symbol;                //!< coin type
     orderDetail.asset_symbol   = asset_symbol;               //!< asset type
-    orderDetail.coin_amount  = ask_price * asset_amount;  //!< amount of coin to buy asset
+    orderDetail.coin_amount  = CalcCoinAmount(asset_amount, ask_price);  //!< amount of coin to buy asset
     orderDetail.asset_amount = asset_amount;             //!< amount of asset to buy/sell
     orderDetail.price       = ask_price;                //!< price in coin_symbol want to buy asset
 }
