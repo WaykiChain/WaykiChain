@@ -3207,22 +3207,10 @@ void static ProcessGetData(CNode *pFrom) {
                 }
                 if (!pushed && inv.type == MSG_TX) {
                     std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(inv.hash);
-                    if (pBaseTx.get()) {
+                    if (pBaseTx.get() && !pBaseTx->IsCoinBase() && !pBaseTx->IsMedianPriceTx()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
-                        if (BCOIN_TRANSFER_TX == pBaseTx->nTxType) {
-                            ss << *((CBaseCoinTransferTx *)(pBaseTx.get()));
-                        } else if (LCONTRACT_INVOKE_TX == pBaseTx->nTxType) {
-                            ss << *((CLuaContractInvokeTx *)(pBaseTx.get()));
-                        } else if (ACCOUNT_REGISTER_TX == pBaseTx->nTxType) {
-                            ss << *((CAccountRegisterTx *)pBaseTx.get());
-                        } else if (LCONTRACT_DEPLOY_TX == pBaseTx->nTxType) {
-                            ss << *((CLuaContractDeployTx *)pBaseTx.get());
-                        } else if (DELEGATE_VOTE_TX == pBaseTx->nTxType) {
-                            ss << *((CDelegateVoteTx *)pBaseTx.get());
-                        } else if (BCOIN_TRANSFER_MTX == pBaseTx->nTxType) {
-                            ss << *((CMulsigTx *)pBaseTx.get());
-                        }
+                        ss << pBaseTx;
                         pFrom->PushMessage("tx", ss);
                         pushed = true;
                     }
