@@ -34,14 +34,14 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
 
-    uint64_t priceFeedstaked_fcoinsMin;
-    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, priceFeedstaked_fcoinsMin)) {
+    uint64_t stakedAmountMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
 
     CAccountToken accountToken = account.GetToken(SYMB::WGRT);
-    if (accountToken.staked_amount < priceFeedstaked_fcoinsMin) // must stake enough fcoins
+    if (accountToken.staked_amount < stakedAmountMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
@@ -54,6 +54,18 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+
+    // Attention: DON'T remove the mininum staked fcoin amount check.
+    uint64_t stakedAmountMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN error",
+                        txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
+    }
+
+    CAccountToken accountToken = account.GetToken(SYMB::WGRT);
+    if (accountToken.staked_amount < stakedAmountMin) // must stake enough fcoins
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, Staked Fcoins insufficient by txUid %s account error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
     if (!account.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
