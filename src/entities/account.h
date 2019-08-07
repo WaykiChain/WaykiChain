@@ -185,6 +185,8 @@ public:
 
     void SetRegId(CRegID & regIdIn) { regid = regIdIn; }
 
+    bool IsMyUid(const CUserID &uid);
+
 private:
     bool IsBcoinWithinRange(uint64_t nAddMoney);
     bool IsFcoinWithinRange(uint64_t nAddMoney);

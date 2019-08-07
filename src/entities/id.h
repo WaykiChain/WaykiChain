@@ -207,6 +207,12 @@ public:
         }
     }
 
+    bool IsEmpty() const { return type() == typeid(CNullID); }
+
+    void SetEmpty() {
+        uid = CNullID();
+    }
+
     json_spirit::Object ToJson() const {
         json_spirit::Object obj;
         string id = ToString();

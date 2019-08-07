@@ -408,6 +408,17 @@ bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
     return true;
 }
 
+bool CAccount::IsMyUid(const CUserID &uid) {
+    if (uid.type() == typeid(CKeyID)) {
+        return keyid == uid.get<CKeyID>();
+    } else if (uid.type() == typeid(CRegID)) {
+        return !regid.IsEmpty() && regid == uid.get<CRegID>();
+    } else if (uid.type() == typeid(CPubKey)) {
+        return owner_pubkey.IsValid() && owner_pubkey == uid.get<CPubKey>();
+    }
+    return false;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CVmOperate
 

@@ -19,8 +19,6 @@ public:
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
-    CAssetIssueTx(TxType nTxTypeIn): CBaseTx(nTxTypeIn) {};
-
     CAssetIssueTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
                   uint64_t fees, const CAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, fees),
@@ -58,8 +56,8 @@ public:
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetIssueTx>(*this); }
 
-    virtual string ToString(CAccountDBCache &view);
-    virtual Object ToJson(const CAccountDBCache &AccountView) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
@@ -70,11 +68,65 @@ public:
 /**
  * Update an existing asset from Chain
  */
-class CAssetUpdateTx: public CAssetIssueTx {
+class CAssetUpdateTx: public CBaseTx {
 public:
-    CAssetUpdateTx() : CAssetIssueTx(ASSET_UPDATE_TX) {};
+    TokenSymbol fee_symbol;
+
+    TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
+    CUserID owner_userid;           // new owner userid of the asset
+    TokenName asset_name;           // new asset long name, E.g WaykiChain coin
+    uint64_t mint_amount;           // mint amount, boosted by 1e8
+public:
+    CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {};
+
+    CAssetUpdateTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbolIn,
+                   uint64_t feesIn, TokenSymbol assetSymbolIn, CUserID ownerUseridIn,
+                   TokenName assetNameIn, uint64_t mintAmountIn)
+        : CBaseTx(ASSET_UPDATE_TX, txUidIn, validHeightIn, feesIn),
+          fee_symbol(feeSymbolIn),
+          asset_symbol(assetSymbolIn),
+          owner_userid(ownerUseridIn),
+          asset_name(assetNameIn),
+          mint_amount(mintAmountIn) {}
 
     ~CAssetUpdateTx() {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(nValidHeight));
+        READWRITE(txUid);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(llFees));
+
+        READWRITE(asset_symbol);
+        READWRITE(owner_userid);
+        READWRITE(asset_name);
+        READWRITE(VARINT(mint_amount));
+        READWRITE(signature);
+    )
+
+    TxID ComputeSignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << fee_symbol << VARINT(llFees)
+               << asset_symbol << owner_userid << asset_name << VARINT(mint_amount);
+            sigHash = ss.GetHash();
+        }
+        return sigHash;
+    }
+
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {}; }
+    virtual TxID GetHash() const { return ComputeSignatureHash(); }
+    // virtual uint64_t GetFees() const { return llFees; }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetUpdateTx>(*this); }
+
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 };
 

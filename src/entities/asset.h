@@ -113,7 +113,7 @@ public:
 
 class CAsset {
 public:
-    CRegID owner_regid;     // creator or owner of the asset
+    CUserID owner_userid;   // creator or owner user id of the asset
     TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
     TokenName name;         // asset long name, E.g WaykiChain coin
     uint64_t total_supply;  // boosted by 1e8 for the decimal part, max is 90 billion.
@@ -122,20 +122,20 @@ public:
     CAsset(): total_supply(0), mintable(false) {}
 
     CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, uint64_t totalSupplyIn, bool mintableIn) :
-        owner_regid(ownerRegIdIn), symbol(symbolIn), name(nameIn), total_supply(totalSupplyIn), mintable(mintableIn) {};
+        owner_userid(ownerRegIdIn), symbol(symbolIn), name(nameIn), total_supply(totalSupplyIn), mintable(mintableIn) {};
 
       IMPLEMENT_SERIALIZE(
-        READWRITE(owner_regid);
+        READWRITE(owner_userid);
         READWRITE(symbol);
         READWRITE(name);
         READWRITE(mintable);
         READWRITE(VARINT(total_supply));
     )
 
-    bool IsEmpty() const { return owner_regid.IsEmpty(); }
+    bool IsEmpty() const { return owner_userid.IsEmpty(); }
 
     void SetEmpty() {
-        owner_regid.SetEmpty();
+        owner_userid.SetEmpty();
         symbol.clear();
         name.clear();
         mintable = false;
