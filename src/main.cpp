@@ -4172,8 +4172,8 @@ class CMainCleanup {
     }
 } instance_of_cmaincleanup;
 
-std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t uType) {
-    switch (uType) {
+std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
+    switch (txType) {
         case BCOIN_TRANSFER_TX:
             return std::make_shared<CBaseCoinTransferTx>();
         case LCONTRACT_INVOKE_TX:

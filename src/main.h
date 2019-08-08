@@ -97,7 +97,7 @@ void UnregisterNodeSignals(CNodeSignals &nodeSignals);
 bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 
 /** Verify consistency of the block and coin databases */
-bool VerifyDB(int nCheckLevel, int nCheckDepth);
+bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth);
 
 /** Process protocol messages received from a given node */
 bool ProcessMessages(CNode *pFrom);
@@ -107,35 +107,35 @@ bool SendMessages(CNode *pTo, bool fSendTrickle);
 void ThreadScriptCheck();
 
 /** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
-unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime);
+uint32_t ComputeMinWork(uint32_t nBase, int64_t nTime);
 
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
-int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache);
+int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache);
 
 /** Abort with a message */
 bool AbortNode(const string &msg);
 /** Get statistics from node state */
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats);
 /** Increase a node's misbehavior score. */
-void Misbehaving(NodeId nodeid, int howmuch);
+void Misbehaving(NodeId nodeid, int32_t howmuch);
 
-bool VerifySignature(const uint256 &sigHash, const std::vector<unsigned char> &signature, const CPubKey &pubKey);
+bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signature, const CPubKey &pubKey);
 
 /** (try to) add transaction to memory pool **/
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
-std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(unsigned char uType);
+std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType);
 
 struct CNodeStateStats {
-    int nMisbehavior;
+    int32_t nMisbehavior;
 };
 
-int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree);
+int64_t GetMinRelayFee(const CBaseTx *pBaseTx, uint32_t nBytes, bool fAllowFree);
 
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
@@ -354,14 +354,14 @@ public:
             return ERRORMSG("CBlockUndo::WriteToDisk : OpenUndoFile failed");
 
         // Write index header
-        unsigned int nSize = fileout.GetSerializeSize(*this);
+        uint32_t nSize = fileout.GetSerializeSize(*this);
         fileout << FLATDATA(SysCfg().MessageStart()) << nSize;
 
         // Write undo data
         long fileOutPos = ftell(fileout);
         if (fileOutPos < 0)
             return ERRORMSG("CBlockUndo::WriteToDisk : ftell failed");
-        pos.nPos = (unsigned int)fileOutPos;
+        pos.nPos = (uint32_t)fileOutPos;
         fileout << *this;
 
         // calculate & write checksum
@@ -445,7 +445,7 @@ public:
 class CPartialMerkleTree {
 protected:
     // the total number of transactions in the block
-    unsigned int nTransactions;
+    uint32_t nTransactions;
 
     // node-is-parent-of-matched-txid bits
     vector<bool> vBits;
@@ -457,36 +457,36 @@ protected:
     bool fBad;
 
     // helper function to efficiently calculate the number of nodes at given height in the merkle tree
-    unsigned int CalcTreeWidth(int height) {
+    uint32_t CalcTreeWidth(int32_t height) {
         return (nTransactions + (1 << height) - 1) >> height;
     }
 
     // calculate the hash of a node in the merkle tree (at leaf level: the txid's themself)
-    uint256 CalcHash(int height, unsigned int pos, const vector<uint256> &vTxid);
+    uint256 CalcHash(int32_t height, uint32_t pos, const vector<uint256> &vTxid);
 
     // recursive function that traverses tree nodes, storing the data as bits and hashes
-    void TraverseAndBuild(int height, unsigned int pos, const vector<uint256> &vTxid, const vector<bool> &vMatch);
+    void TraverseAndBuild(int32_t height, uint32_t pos, const vector<uint256> &vTxid, const vector<bool> &vMatch);
 
     // recursive function that traverses tree nodes, consuming the bits and hashes produced by TraverseAndBuild.
     // it returns the hash of the respective node.
-    uint256 TraverseAndExtract(int height, unsigned int pos, unsigned int &nBitsUsed, unsigned int &nHashUsed, vector<uint256> &vMatch);
+    uint256 TraverseAndExtract(int32_t height, uint32_t pos, uint32_t &nBitsUsed, uint32_t &nHashUsed, vector<uint256> &vMatch);
 
 public:
     // serialization implementation
     IMPLEMENT_SERIALIZE(
         READWRITE(nTransactions);
         READWRITE(vHash);
-        vector<unsigned char> vBytes;
+        vector<uint8_t> vBytes;
         if (fRead) {
             READWRITE(vBytes);
             CPartialMerkleTree &us = *(const_cast<CPartialMerkleTree *>(this));
             us.vBits.resize(vBytes.size() * 8);
-            for (unsigned int p = 0; p < us.vBits.size(); p++)
+            for (uint32_t p = 0; p < us.vBits.size(); p++)
                 us.vBits[p] = (vBytes[p / 8] & (1 << (p % 8))) != 0;
             us.fBad = false;
         } else {
             vBytes.resize((vBits.size() + 7) / 8);
-            for (unsigned int p = 0; p < vBits.size(); p++)
+            for (uint32_t p = 0; p < vBits.size(); p++)
                 vBytes[p / 8] |= vBits[p] << (p % 8);
             READWRITE(vBytes);
         })
@@ -510,14 +510,14 @@ private:
         MODE_INVALID,  // network rule violation (DoS value may be set)
         MODE_ERROR,    // run-time error
     } mode;
-    int nDoS;
+    int32_t nDoS;
     string rejectReason;
     uint8_t rejectCode;
     bool corruptionPossible;
 
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
-    bool DoS(int level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
+    bool DoS(int32_t level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
              bool corruptionIn = false) {
         rejectCode         = rejectCodeIn;
         rejectReason       = rejectReasonIn;
@@ -544,7 +544,7 @@ public:
     bool IsValid() const { return mode == MODE_VALID; }
     bool IsInvalid() const { return mode == MODE_INVALID; }
     bool IsError() const { return mode == MODE_ERROR; }
-    bool IsInvalid(int &nDoSOut) const {
+    bool IsInvalid(int32_t &nDoSOut) const {
         if (IsInvalid()) {
             nDoSOut = nDoS;
             return true;
@@ -560,12 +560,12 @@ public:
 extern CChain chainMostWork;
 extern CCacheDBManager *pCdMan;
 /** nSyncTipHight  */
-extern int nSyncTipHeight;
-extern std::tuple<bool, boost::thread *> RunCoin(int argc, char *argv[]);
+extern int32_t nSyncTipHeight;
+extern std::tuple<bool, boost::thread *> RunCoin(int32_t argc, char *argv[]);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
-uint64_t GetBlockSubsidy(int height);
+uint64_t GetBlockSubsidy(int32_t height);
 
 /** Used to relay blocks as header + vector<merkle branch>
  * to filtered nodes.
@@ -579,7 +579,7 @@ public:
 public:
     // Public only for unit testing and relay testing
     // (not relayed)
-    vector<pair<unsigned int, uint256> > vMatchedTxn;
+    vector<pair<uint32_t, uint256> > vMatchedTxn;
 
     // Create from a CBlock, filtering transactions according to filter
     // Note that this will call IsRelevantAndUpdate on the filter for each transaction,
@@ -631,7 +631,7 @@ bool DisconnectBlockFromTip(CValidationState &state);
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
 
-int64_t GetBlockValue(int height, int64_t nFees);
+int64_t GetBlockValue(int32_t height, int64_t nFees);
 /** Open a block file (blk?????.dat) */
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
@@ -683,13 +683,13 @@ bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
 }
 
 // global overloadding fun
-inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
+inline uint32_t GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
 template <typename Stream>
-void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-    unsigned char nTxType = pa->nTxType;
+void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
+    uint8_t nTxType = pa->nTxType;
     Serialize(os, nTxType, nType, nVersion);
     switch (pa->nTxType) {
         case ACCOUNT_REGISTER_TX:
@@ -755,8 +755,8 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int nType, int nV
 
 
 template <typename Stream>
-void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion) {
-    unsigned char nTxType;
+void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
+    uint8_t nTxType;
     is.read((char *)&(nTxType), sizeof(nTxType));
     switch((TxType)nTxType) {
         case ACCOUNT_REGISTER_TX: {
