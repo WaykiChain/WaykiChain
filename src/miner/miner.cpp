@@ -352,8 +352,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
             CValidationState state;
             pBaseTx->nFuelRate = fuelRate;
-            if (!pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
-                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to execute transaction, txid: %s\n",
+            if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
 
                 if (SysCfg().IsLogFailures())
@@ -517,9 +517,9 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
-                if (!pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
-                    LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to execute transaction, txid: %s\n",
-                            pBaseTx->GetHash().GetHex());
+                if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                    LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction, txid: %s\n",
+                             pBaseTx->GetHash().GetHex());
 
                     if (SysCfg().IsLogFailures())
                         pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
