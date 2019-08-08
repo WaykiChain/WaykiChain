@@ -350,22 +350,28 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
             auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
-            CValidationState state;
-            pBaseTx->nFuelRate = fuelRate;
-            if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
-                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
-                         pBaseTx->GetHash().GetHex());
+            try {
+                CValidationState state;
+                pBaseTx->nFuelRate = fuelRate;
+                if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                    LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
+                            pBaseTx->GetHash().GetHex());
 
-                if (SysCfg().IsLogFailures())
-                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                      state.GetRejectReason());
-                continue;
-            }
+                    if (SysCfg().IsLogFailures())
+                        pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                        state.GetRejectReason());
+                    continue;
+                }
 
-            // Run step limits
-            if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
-                LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : exceed max block run steps, txid: %s\n",
-                         pBaseTx->GetHash().GetHex());
+                // Run step limits
+                if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
+                    LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : exceed max block run steps, txid: %s\n",
+                            pBaseTx->GetHash().GetHex());
+                    continue;
+                }
+            } catch (std::exception &e) {
+                LogPrint("ERROR", "[FATAL]CreateNewBlockStableCoinRelease() : unexpected exception: %s\n",
+                        e.what());
                 continue;
             }
 
@@ -512,9 +518,10 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                          pBaseTx->GetHash().GetHex());
                 continue;
             }
-            auto spCW = std::make_shared<CCacheWrapper>(cwIn);
-            try {
 
+            auto spCW = std::make_shared<CCacheWrapper>(cwIn);
+
+            try {
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
                 if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
@@ -533,17 +540,17 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                             pBaseTx->GetHash().GetHex());
                     continue;
                 }
-
-                // Need to re-sync all to cache layer except for transaction cache, as it depends on
-                // the global transaction cache to verify whether a transaction(txid) has been confirmed
-                // already in block.
             } catch (std::exception &e) {
                 LogPrint("ERROR", "[FATAL]CreateNewBlockStableCoinRelease() : unexpected exception: %s\n",
                         e.what());
                 continue;
             }
 
+            // Need to re-sync all to cache layer except for transaction cache, as it depends on
+            // the global transaction cache to verify whether a transaction(txid) has been confirmed
+            // already in block.
             spCW->Flush();
+
             auto fuel        = pBaseTx->GetFuel(fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
