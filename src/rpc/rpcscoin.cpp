@@ -83,9 +83,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
-    int64_t fees = params.size() == 3 ? params[2].get_int64() : 0;
-    if (fees < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid fees: %ld", fees));
+    uint64_t minFee = GetTxMinFee(PRICE_FEED_TX, chainActive.Height());
+    uint64_t fees = minFee;
+    if (params.size() == 3) {
+        fees = AmountToRawValue(params[2]);
+        if (fees < minFee)
+            throw JSONRPCError(RPC_WALLET_ERROR,
+                               strprintf("Tx fee given is too small: %d < %d", fees, minFee));
     }
 
     int32_t validHeight = chainActive.Height();
@@ -111,21 +115,22 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         );
     }
 
-    auto pUserId = CUserID::ParseUserId(params[0].get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str());
 
     int64_t stakeAmount = params[1].get_int64();
-    int64_t fees        = params.size() > 2 ? params[2].get_int64() : 0;
-    if (fees < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid fees");
+    uint64_t minFee = GetTxMinFee(FCOIN_STAKE_TX, chainActive.Height());
+    uint64_t fees = minFee;
+    if (params.size() == 3) {
+        fees = AmountToRawValue(params[2]);
+        if (fees < minFee)
+            throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Tx fee given is too small: %d < %d",
+                            fees, minFee));
     }
     int32_t validHeight = chainActive.Tip()->height;
 
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
-    CFcoinStakeTx tx(*pUserId, validHeight, fees, stakeType, std::abs(stakeAmount));
-    return SubmitTx(*pUserId, tx);
+    CFcoinStakeTx tx(userId, validHeight, fees, stakeType, std::abs(stakeAmount));
+    return SubmitTx(userId, tx);
 }
 
 /*************************************************<< CDP >>**************************************************/
@@ -154,9 +159,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", \"WICC:1000000:sawi\"\n"));
     }
 
-    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid)
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+    const CUserID &cdpUid = RPC_PARAM::GetUserId(params[0]);
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
     if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake, SYMB::WICC))
@@ -167,42 +170,24 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     int validHeight = chainActive.Tip()->height;
 
-    ComboMoney cmFee;
-    if (params.size() == 3) {
+    uint256 cdpId;
+    if (params.size() > 3) {
+        // TODO: check the txid format
+        cdpId.SetHex(params[3].get_str());
+    }
+
+    const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
+
+    if (cdpId.IsEmpty()) { // new stake cdp
         if (cmBcoinsToStake.amount == 0)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
 
         if (cmScoinsToMint.amount == 0)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
-
-        CCDPStakeTx tx(*cdpUid, validHeight, cmFee, cmBcoinsToStake, cmScoinsToMint);
-        return SubmitTx(*cdpUid, tx);
     }
 
-    uint256 cdpId = uint256S(params[3].get_str());
-
-    if (params.size() == 5) {
-        if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
-
-        uint64_t minFee;
-        if (cmFee.symbol == SYMB::WICC) {
-            minFee = std::get<1>(kTxFeeTable.at(CDP_STAKE_TX));
-        } else if (cmFee.symbol == SYMB::WUSD) {
-            minFee = std::get<3>(kTxFeeTable.at(CDP_STAKE_TX));
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee Symbol not supported!");
-        }
-        uint64_t unitBase =  CoinUnitTypeTable.at(cmFee.unit);
-        uint64_t actualFee = cmFee.amount * unitBase;
-        if (actualFee < minFee) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Error: Fee(%llu) < minFee (%llu)",
-                        actualFee, minFee));
-        }
-    }
-
-    CCDPStakeTx tx(*cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
-    return SubmitTx(*cdpUid, tx);
+    CCDPStakeTx tx(cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
+    return SubmitTx(cdpUid, tx);
 }
 
 Value submitredeemcdptx(const Array& params, bool fHelp) {
@@ -226,25 +211,18 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     }
     EnsureWalletIsUnlocked();
 
-    auto cdpUid = CUserID::ParseUserId(params[0].get_str());
-    if (!cdpUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
+    const CUserID &cdpUid = RPC_PARAM::GetUserId(params[0].get_str());
 
     uint256 cdpTxId     = uint256S(params[1].get_str());
     uint64_t repayAmount = params[2].get_uint64();
     uint64_t redeemAmount = params[3].get_uint64();
 
-    ComboMoney cmFee;
-    if (params.size() == 5) {
-        if (!ParseRpcInputMoney(params[4].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
-    }
+    const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
 
     int validHeight = chainActive.Tip()->height;
 
-    CCDPRedeemTx tx(*cdpUid, cmFee, validHeight, cdpTxId, repayAmount, redeemAmount);
-    return SubmitTx(*cdpUid, tx);
+    CCDPRedeemTx tx(cdpUid, cmFee, validHeight, cdpTxId, repayAmount, redeemAmount);
+    return SubmitTx(cdpUid, tx);
 }
 
 Value submitliquidatecdptx(const Array& params, bool fHelp) {
@@ -268,13 +246,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
     const uint256 &cdpTxId  = RPC_PARAM::GetTxid(params[1]);
     uint64_t liquidateAmount  = AmountToRawValue(params[2]);
-
-    ComboMoney cmFee;
-    if (params.size() == 4) {
-        //fee = params[3].get_uint64();  // real type, 0 if empty and thence minFee
-        if (!ParseRpcInputMoney(params[3].get_str(), cmFee))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
-    }
+    const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 3, CDP_STAKE_TX);
 
     int validHeight = chainActive.Tip()->height;
     CCDPLiquidateTx tx(userId, cmFee, validHeight, cdpTxId, liquidateAmount);

@@ -172,13 +172,6 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 }
 
 Object SubmitTx(const CUserID &userId, CBaseTx &tx) {
-    uint64_t minFee = GetTxMinFee(tx.nTxType, chainActive.Height());
-    if (tx.llFees == 0) {
-        tx.llFees = minFee;
-    } else if (tx.llFees < minFee) {
-        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Tx fee given is too small: %d < %d",
-                            tx.llFees, minFee));
-    }
 
     CAccount account;
     if (pCdMan->pAccountCache->GetAccount(userId, account) && account.HaveOwnerPubKey()) {
@@ -547,9 +540,9 @@ ComboMoney RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
                 strprintf("Fee symbol is %s, but expect %s", money.symbol, GetFeeSymbolSetStr()));
 
         uint64_t minFee = GetTxMinFee(txType, chainActive.Height(), money.symbol);
-        if (money.amount < minFee)
+        if (money.GetSawiAmount() < minFee)
             throw JSONRPCError(RPC_INVALID_PARAMS,
-                strprintf("The given fee is too small: %d < %d(min fee)", money.amount, minFee));
+                strprintf("The given fee is too small: %d < %d sawi", money.amount, minFee));
     } else {
         money.symbol = SYMB::WICC;
         money.amount = GetTxMinFee(txType, chainActive.Height());
