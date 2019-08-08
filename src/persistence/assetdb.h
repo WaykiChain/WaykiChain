@@ -32,6 +32,7 @@ public:
 
 public:
     bool GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset);
+    bool HaveAsset(const TokenSymbol &tokenSymbol);
     bool SaveAsset(const CAsset &asset);
     bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
 

@@ -66,6 +66,10 @@ bool CAssetIssueTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidat
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
+    if (cw.assetCache.HaveAsset(asset.symbol))
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset has been issued! symbol=%s",
+            asset.symbol), REJECT_INVALID, "asset-existed-error");
+
     uint64_t assetIssueFee; //550 WICC
     if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetIssueFee)) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, read param ASSET_ISSUE_FEE error"),
@@ -147,7 +151,7 @@ Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CAssetUpdateTx
 
 string CAssetUpdateTx::ToString(CAccountDBCache &view) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n"
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
         "owner_uid=%s, asset_name=%s, mint_amount=%llu",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
         owner_uid.ToString(), asset_name, mint_amount);

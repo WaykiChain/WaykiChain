@@ -15,6 +15,11 @@ using namespace std;
 bool CAssetDBCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
     return assetCache.GetData(tokenSymbol, asset);
 }
+
+bool CAssetDBCache::HaveAsset(const TokenSymbol &tokenSymbol) {
+    return assetCache.HaveData(tokenSymbol);
+}
+
 bool CAssetDBCache::SaveAsset(const CAsset &asset) {
     return assetCache.SetData(asset.symbol, asset);
 }
