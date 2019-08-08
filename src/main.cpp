@@ -4174,20 +4174,55 @@ class CMainCleanup {
 
 std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
     switch (txType) {
+        case BLOCK_REWARD_TX:
+            return std::make_shared<CBlockRewardTx>();
+        case ACCOUNT_REGISTER_TX:
+            return std::make_shared<CAccountRegisterTx>();
         case BCOIN_TRANSFER_TX:
             return std::make_shared<CBaseCoinTransferTx>();
         case LCONTRACT_INVOKE_TX:
             return std::make_shared<CLuaContractInvokeTx>();
-        case ACCOUNT_REGISTER_TX:
-            return std::make_shared<CAccountRegisterTx>();
-        case BLOCK_REWARD_TX:
-            return std::make_shared<CBlockRewardTx>();
         case LCONTRACT_DEPLOY_TX:
             return std::make_shared<CLuaContractDeployTx>();
         case DELEGATE_VOTE_TX:
             return std::make_shared<CDelegateVoteTx>();
+
         case BCOIN_TRANSFER_MTX:
             return std::make_shared<CMulsigTx>();
+        case FCOIN_STAKE_TX:
+            return std::make_shared<CFcoinStakeTx>();
+
+        case UCOIN_TRANSFER_TX:
+            return std::make_shared<CCoinTransferTx>();
+        case UCOIN_REWARD_TX:
+            return std::make_shared<CCoinRewardTx>();
+        case UCOIN_BLOCK_REWARD_TX:
+            return std::make_shared<CUCoinBlockRewardTx>();
+        case PRICE_FEED_TX:
+            return std::make_shared<CPriceFeedTx>();
+        case PRICE_MEDIAN_TX:
+            return std::make_shared<CBlockPriceMedianTx>();
+
+        case CDP_STAKE_TX:
+            return std::make_shared<CCDPStakeTx>();
+        case CDP_REDEEM_TX:
+            return std::make_shared<CCDPRedeemTx>();
+        case CDP_LIQUIDATE_TX:
+            return std::make_shared<CCDPLiquidateTx>();
+
+        case DEX_TRADE_SETTLE_TX:
+            return std::make_shared<CDEXSettleTx>();
+        case DEX_CANCEL_ORDER_TX:
+            return std::make_shared<CDEXCancelOrderTx>();
+        case DEX_LIMIT_BUY_ORDER_TX:
+            return std::make_shared<CDEXBuyLimitOrderTx>();
+        case DEX_LIMIT_SELL_ORDER_TX:
+            return std::make_shared<CDEXSellLimitOrderTx>();
+        case DEX_MARKET_BUY_ORDER_TX:
+            return std::make_shared<CDEXBuyMarketOrderTx>();
+        case DEX_MARKET_SELL_ORDER_TX:
+            return std::make_shared<CDEXSellMarketOrderTx>();
+
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");
             break;
