@@ -27,20 +27,20 @@ using namespace json_spirit;
 class CAccountDBCache;
 
 enum BalanceType : uint8_t {
-    NULL_TYPE   = 0,
-    FREE_VALUE,
-    STAKED_VALUE,
-    FROZEN_VALUE
+    NULL_TYPE    = 0,  //!< invalid type
+    FREE_VALUE   = 1,
+    STAKED_VALUE = 2,
+    FROZEN_VALUE = 3
 };
 
 enum BalanceOpType : uint8_t {
-    NULL_OP     = 0,    //!< invalid op
-    ADD_FREE    = 1,    //!< external send coins to this account
-    SUB_FREE    = 2,    //!< send coins to external account
-    STAKE,              //!< free   -> staked
-    UNSTAKE,            //!< staked -> free
-    FREEZE,             //!< free   -> frozen
-    UNFREEZE            //!< frozen -> free
+    NULL_OP  = 0,  //!< invalid op
+    ADD_FREE = 1,  //!< external send coins to this account
+    SUB_FREE = 2,  //!< send coins to external account
+    STAKE    = 3,  //!< free   -> staked
+    UNSTAKE  = 4,  //!< staked -> free
+    FREEZE   = 5,  //!< free   -> frozen
+    UNFREEZE = 6   //!< frozen -> free
 };
 
 struct BalanceOpTypeHash {
@@ -70,16 +70,16 @@ public:
 public:
     CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0) { }
 
-    CAccountToken(uint64_t &freeAmount, uint64_t &frozenAmount, uint64_t &stakedAmount) :
-                    free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount) { }
+    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount)
+        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other)
             return *this;
 
-        this->free_amount       = other.free_amount;
-        this->frozen_amount     = other.frozen_amount;
-        this->staked_amount     = other.staked_amount;
+        this->free_amount   = other.free_amount;
+        this->frozen_amount = other.frozen_amount;
+        this->staked_amount = other.staked_amount;
 
         return *this;
     }
@@ -123,14 +123,14 @@ public:
         if (this == &other)
             return *this;
 
-        this->keyid             = other.keyid;
-        this->regid             = other.regid;
-        this->nickid            = other.nickid;
-        this->owner_pubkey      = other.owner_pubkey;
-        this->miner_pubkey      = other.miner_pubkey;
-        this->tokens            = other.tokens;
-        this->received_votes    = other.received_votes;
-        this->last_vote_height  = other.last_vote_height;
+        this->keyid            = other.keyid;
+        this->regid            = other.regid;
+        this->nickid           = other.nickid;
+        this->owner_pubkey     = other.owner_pubkey;
+        this->miner_pubkey     = other.miner_pubkey;
+        this->tokens           = other.tokens;
+        this->received_votes   = other.received_votes;
+        this->last_vote_height = other.last_vote_height;
 
         return *this;
     }
