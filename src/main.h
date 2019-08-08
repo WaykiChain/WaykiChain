@@ -51,6 +51,7 @@
 #include "tx/pricefeedtx.h"
 #include "tx/tx.h"
 #include "tx/txmempool.h"
+#include "tx/assettx.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -709,6 +710,10 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
         case FCOIN_STAKE_TX:
             Serialize(os, *((CFcoinStakeTx *)(pa.get())), nType, nVersion); break;
+        case ASSET_ISSUE_TX:
+            Serialize(os, *((CAssetIssueTx *)(pa.get())), nType, nVersion); break;
+        case ASSET_UPDATE_TX:
+            Serialize(os, *((CAssetUpdateTx *)(pa.get())), nType, nVersion); break;
 
         case UCOIN_TRANSFER_TX:
             Serialize(os, *((CCoinTransferTx *)(pa.get())), nType, nVersion); break;
@@ -791,9 +796,22 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
             Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
             break;
         }
+
         case FCOIN_STAKE_TX: {
             pa = std::make_shared<CFcoinStakeTx>();
             Unserialize(is, *((CFcoinStakeTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case ASSET_ISSUE_TX: {
+            pa = std::make_shared<CAssetIssueTx>();
+            Unserialize(is, *((CAssetIssueTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case ASSET_UPDATE_TX: {
+            pa = std::make_shared<CAssetUpdateTx>();
+            Unserialize(is, *((CAssetUpdateTx *)(pa.get())), nType, nVersion);
             break;
         }
 
