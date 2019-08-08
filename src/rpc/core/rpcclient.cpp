@@ -290,6 +290,11 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getmedianprice" && n > 0) ConvertTo<int>(params[0]);
 
+    if (strMethod == "submitassetissuetx" && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitassetissuetx" && n > 5) ConvertTo<bool>(params[5]);
+
+    if (strMethod == "submitassetupdatetx" && n > 4) ConvertTo<int64_t>(params[4]);
+
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"        && n > 3) ConvertTo<uint64_t>(params[3]);
 

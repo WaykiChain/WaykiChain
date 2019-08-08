@@ -75,6 +75,7 @@ struct TxTypeHash {
  * Fees are boosted by 10^8
  */
 static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64_t, uint64_t>, TxTypeHash> kTxFeeTable = {
+/* tx type                                   tx type name               V1:WICC     V2:WICC    V1:WUSD     V2:WUSD           */
 { NULL_TX,                  std::make_tuple("NULL_TX",                  0,          0,         0,          0            ) },
 
 { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",          0,          0,         0,          0            ) },
@@ -87,8 +88,8 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { BCOIN_TRANSFER_MTX,       std::make_tuple("BCOIN_TRANSFER_MTX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 { FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 
-{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,          0,         55000000000,55000000000  ) }, //550 WICC: 50 WICC/miner
-{ ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          0,          0,         11000000000,11000000000  ) }, //110 WICC: 10 WICC/miner
+{ ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 
 { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,         0,          0            ) },

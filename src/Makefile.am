@@ -116,6 +116,7 @@ coin_CORE_H = \
   rpc/rpcwallet.h \
   support/cleanse.h \
   sigcache.h \
+  tx/assettx.h \
   tx/accountregtx.h \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
@@ -261,6 +262,7 @@ libcoin_server_a_SOURCES = \
   rpc/rpcvm.cpp \
   rpc/rpcwallet.cpp \
   sigcache.cpp \
+  tx/assettx.cpp \
   tx/accountregtx.cpp \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \

@@ -113,29 +113,29 @@ public:
 
 class CAsset {
 public:
-    CUserID owner_userid;   // creator or owner user id of the asset
     TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
+    CUserID owner_uid;   // creator or owner user id of the asset
     TokenName name;         // asset long name, E.g WaykiChain coin
     uint64_t total_supply;  // boosted by 1e8 for the decimal part, max is 90 billion.
     bool mintable;          // whether this token can be minted in the future.
 public:
     CAsset(): total_supply(0), mintable(false) {}
 
-    CAsset(CRegID ownerRegIdIn, TokenSymbol symbolIn, TokenName nameIn, uint64_t totalSupplyIn, bool mintableIn) :
-        owner_userid(ownerRegIdIn), symbol(symbolIn), name(nameIn), total_supply(totalSupplyIn), mintable(mintableIn) {};
+    CAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
+           uint64_t totalSupplyIn, bool mintableIn)
+        : symbol(symbolIn),
+          owner_uid(ownerUseridIn),
+          name(nameIn),
+          total_supply(totalSupplyIn),
+          mintable(mintableIn){};
 
-      IMPLEMENT_SERIALIZE(
-        READWRITE(owner_userid);
-        READWRITE(symbol);
-        READWRITE(name);
-        READWRITE(mintable);
-        READWRITE(VARINT(total_supply));
-    )
+    IMPLEMENT_SERIALIZE(READWRITE(symbol); READWRITE(owner_uid); READWRITE(name);
+                        READWRITE(mintable); READWRITE(VARINT(total_supply));)
 
-    bool IsEmpty() const { return owner_userid.IsEmpty(); }
+    bool IsEmpty() const { return owner_uid.IsEmpty(); }
 
     void SetEmpty() {
-        owner_userid.SetEmpty();
+        owner_uid.SetEmpty();
         symbol.clear();
         name.clear();
         mintable = false;

@@ -335,6 +335,10 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
     { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
 
+    /* for asset */
+    { "submitassetissuetx",         &submitassetissuetx,         true,     false,      false },
+    { "submitassetupdatetx",        &submitassetupdatetx,        true,     false,      false },
+
     /* for test code */
     { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

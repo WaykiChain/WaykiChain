@@ -18,6 +18,7 @@
 #include "tx/cdptx.h"
 #include "tx/dextx.h"
 #include "tx/pricefeedtx.h"
+#include "tx/assettx.h"
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
@@ -647,4 +648,95 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     int validHeight = chainActive.Height();
     CDEXSettleTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), dealItems);
     return SubmitTx(userId, tx);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// asset tx rpc
+
+Value submitassetissuetx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 6 || params.size() > 7) {
+        throw runtime_error(
+            "submitassetissuetx \"addr\" \"asset_symbol\" \"asset_owner_addr\" \"asset_name\" total_supply mintable [symbol:fee:unit]\n"
+            "\nsubmit an asset issue tx.\n"
+            "\nthe tx creator must have enough WICC for issued fee(550 WICC).\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) tx owner address\n"
+            "2.\"asset_symbol\": (string required) asset symbol, E.g WICC | WUSD\n"
+            "3.\"asset_owner_addr\": (string required) asset owner address, can be same as tx owner address\n"
+            "4.\"asset_name\": (string required) asset long name, E.g WaykiChain coin\n"
+            "5.\"total_supply\": (numeric required) asset total supply\n"
+            "6.\"mintable\": (boolean required) whether this asset token can be minted in the future\n"
+            "7.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "\nResult:\n"
+            "\"txid\" (string) The new transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitassetissuetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 1000000000000000 true")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitassetissuetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 1000000000000000 true")
+        );
+    }
+    const CUserID &uid = RPC_PARAM::GetUserId(params[0]);
+    const TokenSymbol &assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
+    const CUserID &assetOwnerUid = RPC_PARAM::GetUserId(params[2]);
+    const TokenName &assetName = RPC_PARAM::GetAssetName(params[3]);
+    int64_t totalSupply = params[4].get_int64();
+    if (totalSupply <= 0 || (uint64_t)totalSupply > MAX_ASSET_TOTAL_SUPPLY) 
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+                           strprintf("asset total_supply=%lld can not <= 0 or > %llu", totalSupply, MAX_ASSET_TOTAL_SUPPLY));
+    bool mintable = params[5].get_bool();
+    ComboMoney fee = RPC_PARAM::GetFee(params, 6, DEX_MARKET_SELL_ORDER_TX);
+
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, ASSET_ISSUE_FEE);
+    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    CAsset asset(assetSymbol, assetOwnerUid, assetName, (uint64_t)totalSupply, mintable);
+    int validHeight = chainActive.Height();
+    CAssetIssueTx tx(uid, validHeight, fee.symbol, fee.GetSawiAmount(), asset);
+    return SubmitTx(uid, tx);
+}
+
+Value submitassetupdatetx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 5 || params.size() > 6) {
+        throw runtime_error(
+            "submitassetupdatetx \"addr\" \"asset_symbol\" \"asset_owner_addr\" \"asset_name\" mint_amount [symbol:fee:unit]\n"
+            "\nsubmit an asset issue tx.\n"
+            "\nthe tx creator must have enough WICC for issued fee(550 WICC).\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) tx owner address\n"
+            "2.\"asset_symbol\": (string required) asset symbol, E.g WICC | WUSD\n"
+            "3.\"asset_owner_addr\": (string required) asset owner address, can be same as tx owner address\n"
+            "4.\"asset_name\": (string required) asset long name, E.g WaykiChain coin\n"
+            "5.\"mint_amount\": (numeric required) mint amount\n"
+            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "\nResult:\n"
+            "\"txid\" (string) The new transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitassetupdatetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 100000000")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("submitassetupdatetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 100000000")
+        );
+    }
+
+    const CUserID &uid = RPC_PARAM::GetUserId(params[0]);
+    const TokenSymbol &assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
+    const CUserID &assetOwnerUid = RPC_PARAM::GetUserId(params[2]);
+    const TokenName &assetName = RPC_PARAM::GetAssetName(params[3]);
+    int64_t mintAmount = params[4].get_int64();
+    if (mintAmount < 0 || (uint64_t)mintAmount > MAX_ASSET_TOTAL_SUPPLY) 
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+                           strprintf("asset min_amount=%lld can not < 0 or > %llu", mintAmount, MAX_ASSET_TOTAL_SUPPLY));
+    ComboMoney fee = RPC_PARAM::GetFee(params, 5, DEX_MARKET_SELL_ORDER_TX);
+
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, ASSET_UPDATE_FEE);
+    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    int validHeight = chainActive.Height();
+    CAssetUpdateTx tx(uid, validHeight, fee.symbol, fee.GetSawiAmount(), assetSymbol,
+                      assetOwnerUid, assetName, mintAmount);
+
+    return SubmitTx(uid, tx);
 }

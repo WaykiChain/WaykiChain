@@ -53,6 +53,8 @@ namespace RPC_PARAM {
     TokenSymbol GetOrderCoinSymbol(const Value &jsonValue);
     TokenSymbol GetOrderAssetSymbol(const Value &jsonValue);
 
+    TokenSymbol GetAssetIssueSymbol(const Value &jsonValue);
+    TokenName GetAssetName(const Value &jsonValue);
 
     void CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
                             const BalanceOpType opType, const uint64_t &value);

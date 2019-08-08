@@ -26,14 +26,14 @@ bool CAssetIssueTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &sta
             asset.name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
     }
 
-    if (asset.total_supply > MAX_ASSET_TOTAL_SUPPLY) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset total_supply=%uul greater than %uul",
+    if (asset.total_supply == 0 || asset.total_supply > MAX_ASSET_TOTAL_SUPPLY) {
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset total_supply=%llu can not == 0 or > %llu",
             asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
     }
 
-    if (asset.owner_userid.type() == typeid(CRegID) && !cw.accountCache.RegIDIsMature(asset.owner_userid.get<CRegID>())) {
+    if (asset.owner_uid.type() == typeid(CRegID) && !cw.accountCache.RegIDIsMature(asset.owner_uid.get<CRegID>())) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s not mature yet",
-            asset.owner_userid.get<CRegID>().ToString), REJECT_INVALID, "asset-owner-regid-not-mature");
+            asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
@@ -82,7 +82,7 @@ bool CAssetIssueTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidat
     }
     assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
 
-    for (int i =0; i < delegateList.size(); i++) {
+    for (size_t i =0; i < delegateList.size(); i++) {
         const CRegID &delegateRegid = delegateList[i];
         CAccount delegateAccount;
         if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
@@ -112,7 +112,7 @@ bool CAssetIssueTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidat
 
 
     vector<CUserID> relatedUids = {txUid};
-    if (!account.IsMyUid(asset.owner_userid)) relatedUids.push_back(asset.owner_userid);
+    if (!account.IsMyUid(asset.owner_uid)) relatedUids.push_back(asset.owner_uid);
 
     if (!SaveTxAddresses(height, index, cw, state, relatedUids)) return false;
 
@@ -120,22 +120,21 @@ bool CAssetIssueTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidat
 }
 
 bool CAssetIssueTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyIds) {
-    return AddInvolvedKeyIds({txUid, asset.owner_userid}, cw, keyIds);
+    return AddInvolvedKeyIds({txUid, asset.owner_uid}, cw, keyIds);
 }
 
 string CAssetIssueTx::ToString(CAccountDBCache &view) {
-    return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n"
-                     "owner_userid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,
-                     txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight,
-                     asset.owner_userid, asset.symbol, asset.name, asset.total_supply, asset.mintable);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
+        "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
+        asset.owner_uid.ToString(), asset.symbol, asset.name, asset.total_supply, asset.mintable);
 }
 
 Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
 
-    result.push_back(Pair("owner_userid",    asset.owner_userid.ToString));
+    result.push_back(Pair("owner_uid",    asset.owner_uid.ToString()));
     result.push_back(Pair("asset_symbol",   asset.symbol));
     result.push_back(Pair("asset_name",     asset.name));
     result.push_back(Pair("total_supply",   asset.total_supply));
@@ -148,19 +147,17 @@ Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CAssetUpdateTx
 
 string CAssetUpdateTx::ToString(CAccountDBCache &view) {
-    return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n"
-                     "owner_userid=%s, asset_name=%s, mint_amount=%llu",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,
-                     txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight,
-                     owner_userid, asset_name, mint_amount);
-
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n"
+        "owner_uid=%s, asset_name=%s, mint_amount=%llu",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
+        owner_uid.ToString(), asset_name, mint_amount);
 }
 
 Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
 
-    result.push_back(Pair("owner_userid",   owner_userid.ToString));
+    result.push_back(Pair("owner_uid",   owner_uid.ToString()));
     result.push_back(Pair("asset_name",     asset_name));
     result.push_back(Pair("mint_amount",    mint_amount));
 
@@ -168,7 +165,7 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CAssetUpdateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return AddInvolvedKeyIds({txUid, owner_userid}, cw, keyIds);
+    return AddInvolvedKeyIds({txUid, owner_uid}, cw, keyIds);
 }
 
 bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
@@ -188,13 +185,13 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
     }
 
     if (mint_amount > MAX_ASSET_TOTAL_SUPPLY) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, asset total_supply=%uul greater than %uul",
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, asset total_supply=%llu greater than %llu",
             mint_amount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-asset-name");
     }
 
-    if (owner_userid.type() == typeid(CRegID) && !cw.accountCache.RegIDIsMature(owner_userid.get<CRegID>())) {
+    if (owner_uid.type() == typeid(CRegID) && !cw.accountCache.RegIDIsMature(owner_uid.get<CRegID>())) {
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, owner regid=%s not mature yet",
-            owner_userid.get<CRegID>().ToString), REJECT_INVALID, "asset-owner-regid-not-mature");
+            owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
@@ -227,10 +224,10 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get asset by symbol=%s failed",
             asset_symbol), REJECT_INVALID, "get-asset-failed");
     
-    if (!account.IsMyUid(asset.owner_userid))
+    if (!account.IsMyUid(asset.owner_uid))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, no privilege to update asset, uid dismatch,"
             " txUid=%s, old_asset_uid=%s",
-            txUid.ToString(), asset.owner_userid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
+            txUid.ToString(), asset.owner_uid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
 
     if (!asset.mintable)
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset is not mintable"), 
@@ -239,12 +236,12 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
     uint64_t newTotalSupply = asset.total_supply + mint_amount;
     assert(newTotalSupply >= asset.total_supply);
     if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, new_total_supply=%llu greater than %uul,"
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, new_total_supply=%llu greater than %llu,"
                      " old_total_supply=%llu, mint_amount=%llu", newTotalSupply, MAX_ASSET_TOTAL_SUPPLY, 
                      asset.total_supply, mint_amount), REJECT_INVALID, "invalid-mint-amount");
     }
 
-    asset.owner_userid = owner_userid;
+    asset.owner_uid = owner_uid;
     asset.name = asset_name;
     asset.total_supply += mint_amount;
 
@@ -269,7 +266,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
     }
     assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
 
-    for (int i =0; i < delegateList.size(); i++) {
+    for (size_t i =0; i < delegateList.size(); i++) {
         const CRegID &delegateRegid = delegateList[i];
         CAccount delegateAccount;
         if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
@@ -298,7 +295,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     vector<CUserID> relatedUids = {txUid};
-    if (!account.IsMyUid(owner_userid)) relatedUids.push_back(owner_userid);
+    if (!account.IsMyUid(owner_uid)) relatedUids.push_back(owner_uid);
 
     if (!SaveTxAddresses(height, index, cw, state, relatedUids)) return false;
 

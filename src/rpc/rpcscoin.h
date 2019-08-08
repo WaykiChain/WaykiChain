@@ -35,4 +35,8 @@ extern Value getusercdp(const Array& params, bool fHelp);
 extern Value listcdps(const Array& params, bool fHelp);
 extern Value listcdpstoliquidate(const Array& params, bool fHelp);
 
+
+extern Value submitassetissuetx(const Array& params, bool fHelp);
+extern Value submitassetupdatetx(const Array& params, bool fHelp);
+
 #endif /* RPC_SCOIN_H_ */

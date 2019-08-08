@@ -594,6 +594,24 @@ TokenSymbol RPC_PARAM::GetOrderAssetSymbol(const Value &jsonValue) {
     return jsonValue.get_str();
 }
 
+TokenSymbol RPC_PARAM::GetAssetIssueSymbol(const Value &jsonValue) {
+    TokenSymbol symbol = jsonValue.get_str();
+    if (symbol.empty() || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+                           strprintf("asset_symbol is empty or len=%d greater than %d",
+                                     symbol.size(), MAX_TOKEN_SYMBOL_LEN));
+    return symbol;
+}
+
+TokenName RPC_PARAM::GetAssetName(const Value &jsonValue) {
+    TokenName name = jsonValue.get_str();
+    if (name.empty() || name.size() > MAX_ASSET_NAME_LEN)
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+                           strprintf("asset name is empty or len=%d greater than %d", name.size(),
+                                     MAX_ASSET_NAME_LEN));
+    return name;
+}
+
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
                                     const BalanceOpType opType, const uint64_t &value) {
     if (!account.OperateBalance(tokenSymbol, opType, value))
