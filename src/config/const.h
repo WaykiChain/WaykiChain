@@ -30,22 +30,6 @@ namespace SYMB {
     static const string KWH                 = "KWH";
 }
 
-// namespace txfield {
-//     static const string TXID                = "txid" ;
-//     static const string TXTYPE              = "tx_type" ;
-//     static const string RAWTX               = "rawtx" ;
-//     static const string TRIGGER_UID         = "tx_uid" ;
-//     static const string TRIGGER_ADDR        = "addr" ;
-//     static const string DEST_UID            = "to_uid" ;
-//     static const string DEST_ADDR           = "to_addr";
-//     static const string BLOCK_HASH          = "block_hash" ;
-//     static const string FEES_AMOUNT         = "fees" ;
-//     static const string FEES_COIN_TYPE      = "fees_coin_type" ;
-//     static const string VERSION             = "ver" ;
-//     static const string VALID_HEIGHT        = "valid_height" ;
-//     static const string CONFIRMED_HEIGHT    = "confirmed_height" ;
-// }
-
 struct CoinUnitTypeHash {
     size_t operator()(const string &unit) const noexcept {
         return std::hash<string>{}(unit);
@@ -148,7 +132,7 @@ static const int32_t kMultisigNumberLimit           = 15;           // m-n multi
 static const int32_t KMultisigScriptMaxSize         = 1000;         // multisig script max size
 static const int32_t kRegIdMaturePeriodByBlock      = 100;          // RegId's mature period measured by blocks
 
-const uint16_t kMaxMinedBlocks                      = 100;          // maximun cache size for mined blocks
+static const uint16_t kMaxMinedBlocks               = 100;          // maximun cache size for mined blocks
 
 static const string kContractScriptPathPrefix       = "/tmp/lua/";
 

@@ -29,6 +29,7 @@ static const double kTransactionPriorityCeiling             = 1000.0;
 static const double kPriceFeedTransactionPriority           = 10000.0;
 
 enum SysParamType : uint8_t {
+    NULL_SYS_PARAM_TYPE                     = 0,
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
     PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN       = 2,
     PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX = 3,
@@ -50,7 +51,6 @@ enum SysParamType : uint8_t {
     ASSET_ISSUE_FEE                         = 19,
     ASSET_UPDATE_FEE                        = 20,
 
-    NULL_SYS_PARAM_TYPE = 0,
 };
 
 struct SysParamTypeHash {
