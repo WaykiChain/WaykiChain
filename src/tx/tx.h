@@ -32,7 +32,7 @@ class CContractDBCache;
 typedef uint256 TxID;
 
 string GetTxType(const TxType txType);
-uint64_t GetTxMinFee(const TxType nTxType, int height);
+uint64_t GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol = SYMB::WICC);
 
 class CBaseTx {
 public:

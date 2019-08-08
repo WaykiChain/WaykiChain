@@ -34,19 +34,32 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
-uint64_t GetTxMinFee(const TxType nTxType, int32_t height) {
+uint64_t GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol) {
     const auto &iter = kTxFeeTable.find(nTxType);
-    switch (GetFeatureForkVersion(height)) {
-        case MAJOR_VER_R1: // Prior-stablecoin Release
-            return iter != kTxFeeTable.end() ? std::get<1>(iter->second) : 0;
-
-        case MAJOR_VER_R2:  // StableCoin Release
-            return iter != kTxFeeTable.end() ? std::get<2>(iter->second) : 0;
-
-        default:
-            return 10000; //10^-8 WICC
+    if (iter != kTxFeeTable.end()) {
+        FeatureForkVersionEnum version = GetFeatureForkVersion(height);
+        if (symbol == SYMB::WICC) {
+            switch (version) {
+                case MAJOR_VER_R1: // Prior-stablecoin Release
+                    return std::get<1>(iter->second);
+                case MAJOR_VER_R2:  // StableCoin Release
+                    return std::get<2>(iter->second);
+            }        
+        } else if (symbol == SYMB::WUSD) {
+            switch (version) {
+                case MAJOR_VER_R1: // Prior-stablecoin Release
+                    return std::get<3>(iter->second);
+                case MAJOR_VER_R2:  // StableCoin Release
+                    return std::get<4>(iter->second);
+            }        
+        } 
     }
+    // default:
+    assert(false && "not found the min fee for tx");
+    return 10000;
+  
 }
+
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     if (BLOCK_REWARD_TX == nTxType || UCOIN_BLOCK_REWARD_TX == nTxType || PRICE_MEDIAN_TX == nTxType)

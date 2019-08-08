@@ -66,6 +66,22 @@ struct TxTypeHash {
     }
 };
 
+static const unordered_set<string> kFeeSymbolSet = {
+    SYMB::WICC, SYMB::WUSD
+};
+
+inline string GetFeeSymbolSetStr() {
+    string ret = "";
+    for (auto symbol : kFeeSymbolSet) {
+        if (ret.empty()) {
+            ret = symbol;
+        } else {
+            ret += "|" + symbol;
+        }
+    }
+    return ret;
+};
+
 /**
  * TxTypeKey -> {   TxTypeName,
  *                  InterimPeriodTxFees(WICC), EffectivePeriodTxFees(WICC),
