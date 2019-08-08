@@ -118,7 +118,7 @@ set<COrphanBlock *, COrphanBlockComparator> setOrphanBlock;  //存的孤立块
 
 CCriticalSection cs_LastBlockFile;
 CBlockFileInfo infoLastBlockFile;
-int nLastBlockFile = 0;
+int32_t nLastBlockFile = 0;
 
 // Every received block is assigned a unique and increasing identifier, so we
 // know which one to give priority in case of a fork.
@@ -135,7 +135,7 @@ map<uint256, NodeId> mapBlockSource;  // Remember who we got this block from.
 struct QueuedBlock {
     uint256 hash;
     int64_t nTime;      // Time of "getdata" request in microseconds.
-    int nQueuedBefore;  // Number of blocks in flight at the time of request.
+    int32_t nQueuedBefore;  // Number of blocks in flight at the time of request.
 };
 map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
 map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;  //存放待下载到的块，下载后执行erase
@@ -214,7 +214,7 @@ struct CBlockReject {
 // and we're no longer holding the node's locks.
 struct CNodeState {
     // Accumulated misbehaviour score for this peer.
-    int nMisbehavior;
+    int32_t nMisbehavior;
     // Whether this peer should be disconnected and banned.
     bool fShouldBan;
     // String name of this peer (debugging/logging purposes).
@@ -222,9 +222,9 @@ struct CNodeState {
     // List of asynchronously-determined block rejections to notify this peer about.
     vector<CBlockReject> rejects;
     list<QueuedBlock> vBlocksInFlight;
-    int nBlocksInFlight;              //每个节点,单独能下载的最大块数量   MAX_BLOCKS_IN_TRANSIT_PER_PEER
+    int32_t nBlocksInFlight;              //每个节点,单独能下载的最大块数量   MAX_BLOCKS_IN_TRANSIT_PER_PEER
     list<uint256> vBlocksToDownload;  //待下载的块
-    int nBlocksToDownload;            //待下载的块个数
+    int32_t nBlocksToDownload;            //待下载的块个数
     int64_t nLastBlockReceive;        //上一次收到块的时间
     int64_t nLastBlockProcess;        //收到块，处理消息时的时间
 
@@ -249,7 +249,7 @@ CNodeState *State(NodeId pNode) {
     return &it->second;
 }
 
-int GetHeight() {
+int32_t GetHeight() {
     LOCK(cs_main);
     return chainActive.Height();
 }
@@ -376,7 +376,7 @@ CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
 }
 
 CBlockLocator CChain::GetLocator(const CBlockIndex *pIndex) const {
-    int nStep = 1;
+    int32_t nStep = 1;
     vector<uint256> vHave;
     vHave.reserve(32);
 
@@ -388,7 +388,7 @@ CBlockLocator CChain::GetLocator(const CBlockIndex *pIndex) const {
         if (pIndex->height == 0)
             break;
         // Exponentially larger steps back, plus the genesis block.
-        int height = max(pIndex->height - nStep, 0);
+        int32_t height = max(pIndex->height - nStep, 0);
         // Jump back quickly to the same height as the chain.
         if (pIndex->height > height)
             pIndex = pIndex->GetAncestor(height);
@@ -419,8 +419,8 @@ CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
     return Genesis();
 }
 
-unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans) {
-    unsigned int nEvicted = 0;
+uint32_t LimitOrphanTxSize(uint32_t nMaxOrphans) {
+    uint32_t nEvicted = 0;
     while (mapOrphanTransactions.size() > nMaxOrphans) {
         // Evict a random orphan:
         uint256 randomhash                                   = GetRandHash();
@@ -444,7 +444,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     // almost as much to process as they cost the sender in fees, because
     // computing signature hashes is O(ninputs*txsize). Limiting transactions
     // to MAX_STANDARD_TX_SIZE mitigates CPU exhaustion attacks.
-    unsigned int sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTx::CURRENT_VERSION);
+    uint32_t sz = ::GetSerializeSize(pBaseTx->GetNewInstance(), SER_NETWORK, CBaseTx::CURRENT_VERSION);
     if (sz >= MAX_STANDARD_TX_SIZE) {
         reason = "tx-size";
         return false;
@@ -464,7 +464,7 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     return true;
 }
 
-int64_t GetMinRelayFee(const CBaseTx *pBaseTx, unsigned int nBytes, bool fAllowFree) {
+int64_t GetMinRelayFee(const CBaseTx *pBaseTx, uint32_t nBytes, bool fAllowFree) {
     uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
     int64_t nMinFee   = (1 + (int64_t)nBytes / 1000) * nBaseFee;
 
@@ -560,7 +560,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     return pool.AddUnchecked(hash, entry, state);
 }
 
-int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
+int32_t CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
     if (blockHash.IsNull() || index == -1)
         return 0;
     AssertLockHeld(cs_main);
@@ -584,22 +584,22 @@ int CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
     return chainActive.Height() - pIndex->height + 1;
 }
 
-int CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
+int32_t CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
     AssertLockHeld(cs_main);
-    int nResult = GetDepthInMainChainINTERNAL(pindexRet);
+    int32_t nResult = GetDepthInMainChainINTERNAL(pindexRet);
     if (nResult == 0 && !mempool.Exists(pTx->GetHash()))
         return -1;  // Not in chain, not in mempool
 
     return nResult;
 }
 
-int CMerkleTx::GetBlocksToMaturity() const {
+int32_t CMerkleTx::GetBlocksToMaturity() const {
     if (!pTx->IsCoinBase())
         return 0;
     return max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
 }
 
-int GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
+int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos diskTxPos;
         if (scriptDBCache.ReadTxIndex(hash, diskTxPos)) {
@@ -663,14 +663,14 @@ bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos) {
         return ERRORMSG("WriteBlockToDisk : OpenBlockFile failed");
 
     // Write index header
-    unsigned int nSize = fileout.GetSerializeSize(block);
+    uint32_t nSize = fileout.GetSerializeSize(block);
     fileout << FLATDATA(SysCfg().MessageStart()) << nSize;
 
     // Write block
-    long fileOutPos = ftell(fileout);
+    int32_t fileOutPos = ftell(fileout);
     if (fileOutPos < 0)
         return ERRORMSG("WriteBlockToDisk : ftell failed");
-    pos.nPos = (unsigned int)fileOutPos;
+    pos.nPos = (uint32_t)fileOutPos;
     fileout << block;
 
     // Flush stdio buffers and commit to disk before returning
@@ -744,7 +744,7 @@ uint256 static GetOrphanRoot(const uint256 &hash) {
 }
 
 // Remove a random orphan block (which does not have any dependent orphans).
-bool static PruneOrphanBlocks(int height) {
+bool static PruneOrphanBlocks(int32_t height) {
     if (mapOrphanBlocksByPrev.size() <= MAX_ORPHAN_BLOCKS) {
         return true;
     }
@@ -770,9 +770,9 @@ bool static PruneOrphanBlocks(int height) {
     return true;
 }
 
-int64_t GetBlockValue(int height, int64_t nFees) {
+int64_t GetBlockValue(int32_t height, int64_t nFees) {
     int64_t nSubsidy = 50 * COIN;
-    int halves       = height / SysCfg().GetSubsidyHalvingInterval();
+    int32_t halves       = height / SysCfg().GetSubsidyHalvingInterval();
 
     // Force block reward to zero when right shift is undefined.
     if (halves >= 64) {
@@ -788,7 +788,7 @@ int64_t GetBlockValue(int height, int64_t nFees) {
 // minimum amount of work that could possibly be required nTime after
 // minimum work required was nBase
 //
-unsigned int ComputeMinWork(unsigned int nBase, int64_t nTime) {
+uint32_t ComputeMinWork(uint32_t nBase, int64_t nTime) {
     arith_uint256 bnLimit = SysCfg().ProofOfWorkLimit();
     // LogPrint("INFO", "bnLimit:%s\n", bnLimit.getuint256().GetHex());
     bool fNegative;
@@ -899,7 +899,7 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
 }
 
 // Requires cs_main.
-void Misbehaving(NodeId pNode, int howmuch) {
+void Misbehaving(NodeId pNode, int32_t howmuch) {
     if (howmuch == 0)
         return;
 
@@ -939,7 +939,7 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
 }
 
 void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state) {
-    int nDoS = 0;
+    int32_t nDoS = 0;
     if (state.IsInvalid(nDoS)) {
         map<uint256, NodeId>::iterator it = mapBlockSource.find(pIndex->GetBlockHash());
         if (it != mapBlockSource.end() && State(it->second)) {
@@ -997,7 +997,7 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex) {
 
     // Remove the invalidity flag from this block and all its descendants.
     map<uint256, CBlockIndex *>::const_iterator it = mapBlockIndex.begin();
-    int height                                    = pIndex->height;
+    int32_t height                                    = pIndex->height;
     while (it != mapBlockIndex.end()) {
         if (it->second->nStatus & BLOCK_FAILED_MASK && it->second->GetAncestor(height) == pIndex) {
             it->second->nStatus &= ~BLOCK_FAILED_MASK;
@@ -1129,12 +1129,12 @@ void static FlushBlockFile(bool fFinalize = false) {
     }
 }
 
-static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigned int nAddSize) {
+static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &pos, uint32_t nAddSize) {
     pos.nFile = nFile;
 
     LOCK(cs_LastBlockFile);
 
-    unsigned int nNewSize;
+    uint32_t nNewSize;
     if (nFile == nLastBlockFile) {
         pos.nPos = infoLastBlockFile.nUndoSize;
         nNewSize = (infoLastBlockFile.nUndoSize += nAddSize);
@@ -1150,8 +1150,8 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
             return state.Abort(_("Failed to write block info"));
     }
 
-    unsigned int nOldChunks = (pos.nPos + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
-    unsigned int nNewChunks = (nNewSize + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
+    uint32_t nOldChunks = (pos.nPos + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
+    uint32_t nNewChunks = (nNewSize + UNDOFILE_CHUNK_SIZE - 1) / UNDOFILE_CHUNK_SIZE;
     if (nNewChunks > nOldChunks) {
         if (CheckDiskSpace(nNewChunks * UNDOFILE_CHUNK_SIZE - pos.nPos)) {
             FILE *file = OpenUndoFile(pos);
@@ -1169,7 +1169,7 @@ static bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, 
 
 static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex) {
     cw.accountCache.SetBestBlock(pIndex->GetBlockHash());
-    for (unsigned int i = 1; i < block.vptx.size(); i++) {
+    for (uint32_t i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
             assert(i <= 1);
             CBlockRewardTx *pRewardTx = (CBlockRewardTx *)block.vptx[i].get();
@@ -1194,7 +1194,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             CUserID uid(pDelegateTx->txUid);
             uint64_t maxVotes = 0;
             vector<CCandidateReceivedVote> candidateVotes;
-            int j = i;
+            int32_t j = i;
             for (const auto &vote : pDelegateTx->candidateVotes) {
                 assert(vote.GetCandidateVoteType() == ADD_BCOIN);  // it has to be ADD in GensisBlock
                 if (vote.GetVotedBcoins() > maxVotes) {
@@ -1653,7 +1653,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 // Update the on-disk chain state.
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
-    unsigned int cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize() +
+    uint32_t cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize() +
                              pCdMan->pDelegateCache->GetCacheSize() + pCdMan->pCdpCache->GetCacheSize();
 
     if (!IsInitialBlockDownload()
@@ -1692,21 +1692,21 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
     LogPrint("INFO", "UpdateTip: new best=%s  height=%d  tx=%lu  date=%s txnumber=%d nFuelRate=%d\n",
-             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), (unsigned long)chainActive.Tip()->nChainTx,
+             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), chainActive.Tip()->nChainTx,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
              block.vptx.size(), chainActive.Tip()->nFuelRate);
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload) {
-        int nUpgraded             = 0;
+        int32_t nUpgraded             = 0;
         const CBlockIndex *pIndex = chainActive.Tip();
-        for (int i = 0; i < 100 && pIndex != nullptr; i++) {
+        for (int32_t i = 0; i < 100 && pIndex != nullptr; i++) {
             if (pIndex->nVersion > CBlock::CURRENT_VERSION)
                 ++nUpgraded;
             pIndex = pIndex->pprev;
         }
         if (nUpgraded > 0)
-            LogPrint("INFO", "SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (int)CBlock::CURRENT_VERSION);
+            LogPrint("INFO", "SetBestChain: %d of last 100 blocks above version %d\n", nUpgraded, (int32_t)CBlock::CURRENT_VERSION);
         if (nUpgraded > 100 / 2)
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
@@ -1970,7 +1970,8 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
     return true;
 }
 
-bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAddSize, unsigned int height, uint64_t nTime, bool fKnown = false) {
+bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, uint32_t nAddSize, uint32_t height, uint64_t nTime,
+                  bool fKnown = false) {
     bool fUpdatedLast = false;
 
     LOCK(cs_LastBlockFile);
@@ -1999,8 +2000,8 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, unsigned int nAdd
     infoLastBlockFile.AddBlock(height, nTime);
 
     if (!fKnown) {
-        unsigned int nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
-        unsigned int nNewChunks = (infoLastBlockFile.nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
+        uint32_t nOldChunks = (pos.nPos + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
+        uint32_t nNewChunks = (infoLastBlockFile.nSize + BLOCKFILE_CHUNK_SIZE - 1) / BLOCKFILE_CHUNK_SIZE;
         if (nNewChunks > nOldChunks) {
             if (CheckDiskSpace(nNewChunks * BLOCKFILE_CHUNK_SIZE - pos.nPos)) {
                 FILE *file = OpenBlockFile(pos);
@@ -2063,8 +2064,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
-        uint256 blockHash = pPreBlockIndex->GetBlockHash();
-        int blockHeight   = pPreBlockIndex->height;
+        uint256 blockHash   = pPreBlockIndex->GetBlockHash();
+        int32_t blockHeight = pPreBlockIndex->height;
 
         spCW->sysParamCache = mapForkCache[blockHash]->sysParamCache;
         spCW->accountCache  = mapForkCache[blockHash]->accountCache;
@@ -2129,7 +2130,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     uint256 forkChainBestBlockHash = spForkCW->accountCache.GetBestBlock();
-    int forkChainBestBlockHeight   = mapBlockIndex[forkChainBestBlockHash]->height;
+    int32_t forkChainBestBlockHeight   = mapBlockIndex[forkChainBestBlockHash]->height;
     LogPrint("INFO", "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
 
@@ -2238,7 +2239,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
-    for (unsigned int i = 0; i < block.vptx.size(); i++) {
+    for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
         if (fCheckTx && !block.vptx[i]->CheckTx(block.GetHeight(), cw, state))
@@ -2331,7 +2332,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     // Write block to history file
     try {
-        unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+        uint32_t nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
         CDiskBlockPos blockPos;
         if (dbp != nullptr)
             blockPos = *dbp;
@@ -2361,9 +2362,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     return true;
 }
 
-bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex *pstart, unsigned int nRequired, unsigned int nToCheck) {
-    unsigned int nFound = 0;
-    for (unsigned int i = 0; i < nToCheck && nFound < nRequired && pstart != nullptr; i++) {
+bool CBlockIndex::IsSuperMajority(int32_t minVersion, const CBlockIndex *pstart, uint32_t nRequired, uint32_t nToCheck) {
+    uint32_t nFound = 0;
+    for (uint32_t i = 0; i < nToCheck && nFound < nRequired && pstart != nullptr; i++) {
         if (pstart->nVersion >= minVersion)
             ++nFound;
         pstart = pstart->pprev;
@@ -2375,7 +2376,7 @@ bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex *pstart, uns
 int64_t CBlockIndex::GetMedianTime() const {
     AssertLockHeld(cs_main);
     const CBlockIndex *pIndex = this;
-    for (int i = 0; i < nMedianTimeSpan / 2; i++) {
+    for (int32_t i = 0; i < nMedianTimeSpan / 2; i++) {
         if (!chainActive.Next(pIndex))
             return GetBlockTime();
 
@@ -2386,10 +2387,10 @@ int64_t CBlockIndex::GetMedianTime() const {
 }
 
 /** Turn the lowest '1' bit in the binary representation of a number into a '0'. */
-int static inline InvertLowestOne(int n) { return n & (n - 1); }
+int32_t static inline InvertLowestOne(int32_t n) { return n & (n - 1); }
 
 /** Compute what height to jump back to with the CBlockIndex::pskip pointer. */
-int static inline GetSkipHeight(int height) {
+int32_t static inline GetSkipHeight(int32_t height) {
     if (height < 2)
         return 0;
 
@@ -2399,15 +2400,15 @@ int static inline GetSkipHeight(int height) {
     return (height & 1) ? InvertLowestOne(InvertLowestOne(height - 1)) + 1 : InvertLowestOne(height);
 }
 
-CBlockIndex *CBlockIndex::GetAncestor(int heightIn) {
+CBlockIndex *CBlockIndex::GetAncestor(int32_t heightIn) {
     if (heightIn > height || heightIn < 0)
         return nullptr;
 
     CBlockIndex *pindexWalk = this;
-    int heightWalk          = height;
+    int32_t heightWalk          = height;
     while (heightWalk > heightIn) {
-        int heightSkip     = GetSkipHeight(heightWalk);
-        int heightSkipPrev = GetSkipHeight(heightWalk - 1);
+        int32_t heightSkip     = GetSkipHeight(heightWalk);
+        int32_t heightSkipPrev = GetSkipHeight(heightWalk - 1);
         if (heightSkip == heightIn ||
             (heightSkip > heightIn && !(heightSkipPrev < heightSkip - 2 && heightSkipPrev >= heightIn))) {
             // Only follow pskip if pprev->pskip isn't better than pskip->pprev.
@@ -2421,7 +2422,7 @@ CBlockIndex *CBlockIndex::GetAncestor(int heightIn) {
     return pindexWalk;
 }
 
-const CBlockIndex *CBlockIndex::GetAncestor(int heightIn) const {
+const CBlockIndex *CBlockIndex::GetAncestor(int32_t heightIn) const {
     return const_cast<CBlockIndex *>(this)->GetAncestor(heightIn);
 }
 
@@ -2452,7 +2453,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
     if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
-        static unsigned int count = 0;
+        static uint32_t count = 0;
         string key                = to_string(pNode->id) + ":" + to_string((GetTime() / 2));
         if (!filter.contains(vector<uint8_t>(key.begin(), key.end()))) {
             filter.insert(vector<uint8_t>(key.begin(), key.end()));
@@ -2503,7 +2504,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
 
     // If we don't already have its previous block, shunt it off to holding area until we get it
     if (!pBlock->GetPrevBlockHash().IsNull() && !mapBlockIndex.count(pBlock->GetPrevBlockHash())) {
-        if (pBlock->GetHeight() > (unsigned int) nSyncTipHeight) {
+        if (pBlock->GetHeight() > (uint32_t)nSyncTipHeight) {
             LogPrint("DEBUG", "blockHeight=%d syncTipHeight=%d\n", pBlock->GetHeight(), nSyncTipHeight );
             nSyncTipHeight = pBlock->GetHeight();
         }
@@ -2547,7 +2548,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     // Recursively process any orphan blocks that depended on this one
     vector<uint256> vWorkQueue;
     vWorkQueue.push_back(blockHash);
-    for (unsigned int i = 0; i < vWorkQueue.size(); i++) {
+    for (uint32_t i = 0; i < vWorkQueue.size(); i++) {
         uint256 prevBlockHash = vWorkQueue[i];
         for (multimap<uint256, COrphanBlock *>::iterator mi = mapOrphanBlocksByPrev.lower_bound(prevBlockHash);
              mi != mapOrphanBlocksByPrev.upper_bound(prevBlockHash); ++mi) {
@@ -2585,7 +2586,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     vMatch.reserve(block.vptx.size());
     vHashes.reserve(block.vptx.size());
 
-    for (unsigned int i = 0; i < block.vptx.size(); i++) {
+    for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uint256 hash = block.vptx[i]->GetHash();
         if (filter.contains(block.vptx[i]->GetHash())) {
             vMatch.push_back(true);
@@ -2598,7 +2599,7 @@ CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
     txn = CPartialMerkleTree(vHashes, vMatch);
 }
 
-uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos, const vector<uint256> &vTxid) {
+uint256 CPartialMerkleTree::CalcHash(int32_t height, uint32_t pos, const vector<uint256> &vTxid) {
     if (height == 0) {
         // hash at height 0 is the txids themself
         return vTxid[pos];
@@ -2615,10 +2616,10 @@ uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos, const vector<
     }
 }
 
-void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos, const vector<uint256> &vTxid, const vector<bool> &vMatch) {
+void CPartialMerkleTree::TraverseAndBuild(int32_t height, uint32_t pos, const vector<uint256> &vTxid, const vector<bool> &vMatch) {
     // determine whether this node is the parent of at least one matched txid
     bool fParentOfMatch = false;
-    for (unsigned int p = pos << height; p < (pos + 1) << height && p < nTransactions; p++)
+    for (uint32_t p = pos << height; p < (pos + 1) << height && p < nTransactions; p++)
         fParentOfMatch |= vMatch[p];
     // store as flag bit
     vBits.push_back(fParentOfMatch);
@@ -2633,8 +2634,8 @@ void CPartialMerkleTree::TraverseAndBuild(int height, unsigned int pos, const ve
     }
 }
 
-uint256 CPartialMerkleTree::TraverseAndExtract(int height, unsigned int pos,
-                                               unsigned int &nBitsUsed, unsigned int &nHashUsed, vector<uint256> &vMatch) {
+uint256 CPartialMerkleTree::TraverseAndExtract(int32_t height, uint32_t pos,
+                                               uint32_t &nBitsUsed, uint32_t &nHashUsed, vector<uint256> &vMatch) {
     if (nBitsUsed >= vBits.size()) {
         // overflowed the bits array - failure
         fBad = true;
@@ -2671,7 +2672,7 @@ CPartialMerkleTree::CPartialMerkleTree(const vector<uint256> &vTxid, const vecto
     vHash.clear();
 
     // calculate height of tree
-    int height = 0;
+    int32_t height = 0;
     while (CalcTreeWidth(height) > 1)
         height++;
 
@@ -2696,11 +2697,11 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
     if (vBits.size() < vHash.size())
         return uint256();
     // calculate height of tree
-    int height = 0;
+    int32_t height = 0;
     while (CalcTreeWidth(height) > 1)
         height++;
     // traverse the partial tree
-    unsigned int nBitsUsed = 0, nHashUsed = 0;
+    uint32_t nBitsUsed = 0, nHashUsed = 0;
     uint256 merkleRootHash = TraverseAndExtract(height, 0, nBitsUsed, nHashUsed, vMatch);
     // verify that no problems occurred during the tree traversal
     if (fBad)
@@ -2739,7 +2740,7 @@ bool static LoadBlockIndexDB() {
     boost::this_thread::interruption_point();
 
     // Calculate nChainWork
-    vector<pair<int, CBlockIndex *> > vSortedByHeight;
+    vector<pair<int32_t, CBlockIndex *> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
     for (const auto &item : mapBlockIndex) {
         CBlockIndex *pIndex = item.second;
@@ -2793,7 +2794,7 @@ bool static LoadBlockIndexDB() {
     return true;
 }
 
-bool VerifyDB(int nCheckLevel, int nCheckDepth) {
+bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
     LOCK(cs_main);
     if (chainActive.Tip() == nullptr || chainActive.Tip()->pprev == nullptr)
         return true;
@@ -2912,7 +2913,7 @@ bool InitBlockIndex() {
         try {
             CBlock &block = const_cast<CBlock &>(SysCfg().GenesisBlock());
             // Start new block file
-            unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
+            uint32_t nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
             CDiskBlockPos blockPos;
             CValidationState state;
             if (!FindBlockPos(state, blockPos, nBlockSize + 8, 0, block.GetTime()))
@@ -2941,29 +2942,29 @@ void PrintBlockTree() {
         mapNext[pIndex->pprev].push_back(pIndex);
     }
 
-    vector<pair<int, CBlockIndex *> > vStack;
+    vector<pair<int32_t, CBlockIndex *> > vStack;
     vStack.push_back(make_pair(0, chainActive.Genesis()));
 
-    int nPrevCol = 0;
+    int32_t nPrevCol = 0;
     while (!vStack.empty()) {
-        int nCol            = vStack.back().first;
+        int32_t nCol            = vStack.back().first;
         CBlockIndex *pIndex = vStack.back().second;
         vStack.pop_back();
 
         // print split or gap
         if (nCol > nPrevCol) {
-            for (int i = 0; i < nCol - 1; i++)
+            for (int32_t i = 0; i < nCol - 1; i++)
                 LogPrint("INFO", "| ");
             LogPrint("INFO", "|\\\n");
         } else if (nCol < nPrevCol) {
-            for (int i = 0; i < nCol; i++)
+            for (int32_t i = 0; i < nCol; i++)
                 LogPrint("INFO", "| ");
             LogPrint("INFO", "|\n");
         }
         nPrevCol = nCol;
 
         // print columns
-        for (int i = 0; i < nCol; i++)
+        for (int32_t i = 0; i < nCol; i++)
             LogPrint("INFO", "| ");
 
         // print item
@@ -2977,7 +2978,7 @@ void PrintBlockTree() {
 
         // put the main time-chain first
         vector<CBlockIndex *> &vNext = mapNext[pIndex];
-        for (unsigned int i = 0; i < vNext.size(); i++) {
+        for (uint32_t i = 0; i < vNext.size(); i++) {
             if (chainActive.Next(vNext[i])) {
                 swap(vNext[0], vNext[i]);
                 break;
@@ -2985,14 +2986,14 @@ void PrintBlockTree() {
         }
 
         // iterate children
-        for (unsigned int i = 0; i < vNext.size(); i++)
+        for (uint32_t i = 0; i < vNext.size(); i++)
             vStack.push_back(make_pair(nCol + i, vNext[i]));
     }
 }
 
 bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp) {
     int64_t nStart = GetTimeMillis();
-    int nLoaded    = 0;
+    int32_t nLoaded    = 0;
     try {
         CBufferedFile blkdat(fileIn, 2 * MAX_BLOCK_SIZE, MAX_BLOCK_SIZE + 8, SER_DISK, CLIENT_VERSION);
         uint64_t nStartByte = 0;
@@ -3011,7 +3012,7 @@ bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp) {
             blkdat.SetPos(nRewind);
             nRewind++;          // start one byte further next time, in case of failure
             blkdat.SetLimit();  // remove former limit
-            unsigned int nSize = 0;
+            uint32_t nSize = 0;
             try {
                 // locate a header
                 uint8_t buf[MESSAGE_START_SIZE];
@@ -3066,7 +3067,7 @@ bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp) {
 //
 
 string GetWarnings(string strFor) {
-    int nPriority = 0;
+    int32_t nPriority = 0;
     string strStatusBar;
     string strRPC;
 
@@ -3407,13 +3408,13 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
                     for (auto pNode : vNodes) {
                         //                        if (pNode->nVersion < CADDR_TIME_VERSION)
                         //                            continue;
-                        unsigned int nPointer;
+                        uint32_t nPointer;
                         memcpy(&nPointer, &pNode, sizeof(nPointer));
                         uint256 hashKey = ArithToUint256(UintToArith256(hashRand) ^ nPointer);
                         hashKey         = Hash(BEGIN(hashKey), END(hashKey));
                         mapMix.insert(make_pair(hashKey, pNode));
                     }
-                    int nRelayNodes = fReachable ? 2 : 1;  // limited relaying of addresses outside our network(s)
+                    int32_t nRelayNodes = fReachable ? 2 : 1;  // limited relaying of addresses outside our network(s)
                     for (multimap<uint256, CNode *>::iterator mi = mapMix.begin(); mi != mapMix.end() && nRelayNodes-- > 0; ++mi)
                         ((*mi).second)->PushAddress(addr);
                 }
@@ -3439,14 +3440,14 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 
         LOCK(cs_main);
 
-        for (unsigned int nInv = 0; nInv < vInv.size(); nInv++) {
+        for (uint32_t nInv = 0; nInv < vInv.size(); nInv++) {
             const CInv &inv = vInv[nInv];
 
             boost::this_thread::interruption_point();
             pFrom->AddInventoryKnown(inv);
             bool fAlreadyHave = AlreadyHave(inv);
 
-            int nBlockHeight = 0;
+            int32_t nBlockHeight = 0;
             if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
                 nBlockHeight = mapBlockIndex[inv.hash]->height;
 
@@ -3505,7 +3506,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         // Send the rest of the chain
         if (pIndex)
             pIndex = chainActive.Next(pIndex);
-        int nLimit = 500;
+        int32_t nLimit = 500;
         LogPrint("net", "getblocks %d to %s limit %d\n", (pIndex ? pIndex->height : -1), hashStop.ToString(), nLimit);
         for (; pIndex; pIndex = chainActive.Next(pIndex)) {
             if (pIndex->GetBlockHash() == hashStop) {
@@ -3546,7 +3547,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 
         // We must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
         vector<CBlock> vHeaders;
-        int nLimit = 2000;
+        int32_t nLimit = 2000;
         LogPrint("NET", "getheaders %d to %s\n", (pIndex ? pIndex->height : -1), hashStop.ToString());
         for (; pIndex; pIndex = chainActive.Next(pIndex)) {
             vHeaders.push_back(pIndex->GetBlockHeader());
@@ -3581,7 +3582,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
                 mempool.memPoolTxs.size());
         }
 
-        int nDoS = 0;
+        int32_t nDoS = 0;
         if (state.IsInvalid(nDoS)) {
             LogPrint("INFO", "%s from %s %s was not accepted into the memory pool: %s\n",
                 pBaseTx->GetHash().ToString(),
@@ -3889,12 +3890,12 @@ bool ProcessMessages(CNode *pFrom) {
         string strCommand = hdr.GetCommand();
 
         // Message size
-        unsigned int nMessageSize = hdr.nMessageSize;
+        uint32_t nMessageSize = hdr.nMessageSize;
 
         // Checksum
-        CDataStream &vRecv     = msg.vRecv;
-        uint256 hash           = Hash(vRecv.begin(), vRecv.begin() + nMessageSize);
-        unsigned int nChecksum = 0;
+        CDataStream &vRecv = msg.vRecv;
+        uint256 hash       = Hash(vRecv.begin(), vRecv.begin() + nMessageSize);
+        uint32_t nChecksum = 0;
         memcpy(&nChecksum, &hash, sizeof(nChecksum));
         if (nChecksum != hdr.nChecksum) {
             LogPrint("INFO", "ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
@@ -4114,7 +4115,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         // Message: getdata (blocks)
         //
         vector<CInv> vGetData;
-        int index(0);
+        int32_t index(0);
         while (!pTo->fDisconnect && state.nBlocksToDownload && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
@@ -4288,7 +4289,7 @@ bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
     return setBlockIndexValid.erase(pIndex) > 0;
 }
 
-uint64_t GetBlockSubsidy(int height) {
+uint64_t GetBlockSubsidy(int32_t height) {
     return IniCfg().GetBlockSubsidyCfg(height);
 }
 
