@@ -65,6 +65,7 @@ public:
 
 
     bool NewCDP(const int32_t blockHeight, CUserCDP &cdp);
+    bool UpdateCdp(CUserCDP &cdp);
 
     bool StakeBcoinsToCDP(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
                           CUserCDP &cdp);

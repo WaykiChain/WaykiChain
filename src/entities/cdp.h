@@ -85,37 +85,29 @@ struct CUserCDP {
         }
     )
 
-    string ToString() {
-        return strprintf(
-            "cdpid=%s, owner_regid=%s, block_height=%d, bcoin_symbol=%s, total_staked_bcoins=%d, "
-            "scoin_symbol=%s, tatal_owed_scoins=%d, collateral_ratio_base=%f",
-            cdpid.ToString(), owner_regid.ToString(), block_height, bcoin_symbol, total_staked_bcoins,
-            scoin_symbol, total_owed_scoins, collateral_ratio_base);
-    }
+    string ToString();
 
-    Object ToJson(uint64_t bcoinMedianPrice) {
-        double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / kPercentBoost;
+    Object ToJson(uint64_t bcoinMedianPrice);
 
-        Object result;
-        result.push_back(Pair("cdpid",              cdpid.GetHex()));
-        result.push_back(Pair("regid",              owner_regid.ToString()));
-        result.push_back(Pair("last_height",        block_height));
-        result.push_back(Pair("bcoin_symbol",       bcoin_symbol));
-        result.push_back(Pair("total_bcoin",        total_staked_bcoins));
-        result.push_back(Pair("scoin_symbol",       scoin_symbol));
-        result.push_back(Pair("total_scoin",        total_owed_scoins));
-        result.push_back(Pair("collateral_ratio",   strprintf("%.2f%%", collateralRatio)));
-        return result;
-    }
     inline void Update() const {
-        collateral_ratio_base = double (total_staked_bcoins) / total_owed_scoins;
+        if (total_owed_scoins == 0 || total_staked_bcoins == 0)
+            collateral_ratio_base = 0;
+        else
+            collateral_ratio_base = total_staked_bcoins / (double)total_owed_scoins;
     }
-    void Update(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins) {
 
-        block_height = blockHeight;
-        total_staked_bcoins += changedBcoins;
-        total_owed_scoins += changedScoins;
-        Update();
+    void Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t scoinsToRepay);
+
+    void AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mintedScoins);
+
+    void Update(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins);
+
+    uint64_t ComputeCollateralRatio(uint64_t price) {
+        return collateral_ratio_base * price;
+    }
+
+    bool IsFinished() {
+        return total_owed_scoins == 0 && total_staked_bcoins == 0;
     }
 
     // FIXME: need to set other members empty?

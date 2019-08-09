@@ -184,7 +184,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         // settle cdp state & persist
-        if (!cw.cdpCache.StakeBcoinsToCDP(height, bcoins_to_stake, scoins_to_mint, cdp)) {
+        cdp.AddStake(height, bcoins_to_stake, scoins_to_mint);
+        if (!cw.cdpCache.UpdateCdp(cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
         }
@@ -335,22 +336,51 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                     txUid.ToString()), REJECT_INVALID, "target-cdp-not-exist");
     }
 
+    uint64_t startingCdpCollateralRatio;
+    if (!cw.sysParamCache.GetParam(CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, read CDP_START_COLLATERAL_RATIO error!!"),
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
+
     //3. redeem in scoins and update cdp
-    if (scoins_to_repay > cdp.total_owed_scoins)
-        scoins_to_repay = cdp.total_owed_scoins;
-
-    if (cdp.total_staked_bcoins <= bcoins_to_redeem) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total_staked_bcoins %d <= target %d",
-                        cdp.total_staked_bcoins, bcoins_to_redeem), REJECT_INVALID, "scoins_to_repay-larger-error");
-    }
-    if (!cw.cdpCache.RedeemBcoinsFromCDP(height, bcoins_to_redeem, scoins_to_repay, cdp)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.owner_regid.ToString()),
-                         UPDATE_CDP_FAIL, "bad-save-cdp");
+    if (bcoins_to_redeem > cdp.total_staked_bcoins) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu can not bigger than total_staked_bcoins=%llu",
+                        bcoins_to_redeem, cdp.total_staked_bcoins), UPDATE_CDP_FAIL, "scoins_to_repay-larger-error");
     }
 
-    if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoins_to_repay)) {
+    uint64_t realRepayScoins = scoins_to_repay;
+    if (scoins_to_repay >= cdp.total_owed_scoins) {
+        realRepayScoins = cdp.total_owed_scoins;
+    }
+    cdp.Redeem(height, bcoins_to_redeem, realRepayScoins);
+
+    if (cdp.IsFinished()) {
+        if (!cw.cdpCache.EraseCDP(cdp))
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, erase the finished CDP %s failed",
+                            cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
+    } else {
+        uint64_t slideWindowBlockCount;
+        if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
+                            READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+        }
+
+        uint64_t collateralRatio;
+        cdp.ComputeCollateralRatio(cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount));
+        if (collateralRatio < startingCdpCollateralRatio) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
+                            collateralRatio / (double)kPercentBoost, startingCdpCollateralRatio / (double)kPercentBoost), 
+                            UPDATE_CDP_FAIL, "invalid-collatera-ratio");
+        }
+        assert(cdp.total_owed_scoins != 0 && cdp.total_staked_bcoins != 0); // invalid cdp, the collateralRatio will be 0
+        if (!cw.cdpCache.UpdateCdp(cdp)) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.cdpid.ToString()),
+                            UPDATE_CDP_FAIL, "bad-save-cdp");
+        }
+    }
+
+    if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, realRepayScoins)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
-                        account.regid.ToString(), scoins_to_repay), UPDATE_CDP_FAIL, "bad-operate-account");
+                        account.regid.ToString(), realRepayScoins), UPDATE_CDP_FAIL, "bad-operate-account");
     }
     if (!account.OperateBalance(cdp.bcoin_symbol, BalanceOpType::ADD_FREE, bcoins_to_redeem)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
@@ -363,7 +393,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     vector<CReceipt> receipts;
     CUserID nullUid;
-    CReceipt receipt1(nTxType, txUid, nullUid, cdp.scoin_symbol, scoins_to_repay);
+    CReceipt receipt1(nTxType, txUid, nullUid, cdp.scoin_symbol, realRepayScoins);
     receipts.push_back(receipt1);
     CReceipt receipt2(nTxType, nullUid, txUid, cdp.bcoin_symbol, bcoins_to_redeem);
     receipts.push_back(receipt2);
