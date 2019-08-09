@@ -161,80 +161,34 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CLuaContractInvokeTx
 
-bool CLuaContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
+bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
+    IMPLEMENT_CHECK_TX_ARGUMENTS;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_APPID(app_uid.type());
 
-    keyIds.insert(keyId);
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(app_uid, desKeyId))
-        return false;
+    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
+                         "bad-publickey");
 
-    keyIds.insert(desKeyId);
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(txUid, srcAccount))
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read account failed, regId=%s",
+                        txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
 
-    //FIXME below:
+    if (!srcAccount.HaveOwnerPubKey())
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, account unregistered"),
+                        REJECT_INVALID, "bad-account-unregistered");
 
-    // CVmRunEnv vmRunEnv;
-    // std::shared_ptr<CBaseTx> pTx = GetNewInstance();
-    // uint64_t fuelRate = GetFuelRate(cw.contractCache);
+    CUniversalContract contract;
+    if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read script failed, regId=%s",
+                        app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
 
-    // if (!pCdMan->pTxCache->HaveTx(GetHash())) {
-    //     tuple<bool, uint64_t, string> ret =
-    //         vmRunEnv.ExecuteContract(pTx, chainActive.Height() + 1, cw, fuelRate, nRunStep);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
-    //     if (!std::get<0>(ret))
-    //         return ERRORMSG("CLuaContractInvokeTx::GetInvolvedKeyIds, %s", std::get<2>(ret));
-
-    //     vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccount();
-
-    //     for (auto & item : vpAccount)
-    //         keyIds.insert(item->keyid);
-
-    //     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
-    //     for (auto & itemUserAccount : vAppUserAccount) {
-    //         CKeyID itemKeyID;
-    //         bool bValid = GetKeyId(cw.accountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
-    //         if (bValid)
-    //             keyIds.insert(itemKeyID);
-    //     }
-    // } else {
-    //     set<CKeyID> vTxRelAccount;
-    //     if (!cw.contractCache.GetTxRelAccount(GetHash(), vTxRelAccount))
-    //         return false;
-
-    //     keyIds.insert(vTxRelAccount.begin(), vTxRelAccount.end());
-    // }
     return true;
-}
-
-string CLuaContractInvokeTx::ToString(CAccountDBCache &view) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
-        "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), bcoins, llFees,
-        HexStr(arguments), nValidHeight);
-}
-
-Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    // auto GetRegIdString = [&](CUserID const &userId) {
-    //     if (userId.type() == typeid(CRegID))
-    //         return userId.get<CRegID>().ToString();
-    //     return string("");
-    // };
-
-    CKeyID desKeyId;
-    accountCache.GetKeyId(app_uid, desKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-    result.push_back(Pair("regid",          txUid.ToString()));
-    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
-    result.push_back(Pair("app_uid",        app_uid.ToString()));
-    result.push_back(Pair("transfer_bcoins",bcoins));
-    result.push_back(Pair("arguments",      HexStr(arguments)));
-
-    return result;
 }
 
 bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
@@ -343,32 +297,78 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     return true;
 }
 
-bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
-    IMPLEMENT_CHECK_TX_ARGUMENTS;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    IMPLEMENT_CHECK_TX_APPID(app_uid.type());
+bool CLuaContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    CKeyID keyId;
+    if (!cw.accountCache.GetKeyId(txUid, keyId))
+        return false;
 
-    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
-                         "bad-publickey");
+    keyIds.insert(keyId);
+    CKeyID desKeyId;
+    if (!cw.accountCache.GetKeyId(app_uid, desKeyId))
+        return false;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read account failed, regId=%s",
-                        txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
+    keyIds.insert(desKeyId);
 
-    if (!srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, account unregistered"),
-                        REJECT_INVALID, "bad-account-unregistered");
+    //FIXME below:
 
-    CUniversalContract contract;
-    if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read script failed, regId=%s",
-                        app_uid.get<CRegID>().ToString()), REJECT_INVALID, "bad-read-script");
+    // CVmRunEnv vmRunEnv;
+    // std::shared_ptr<CBaseTx> pTx = GetNewInstance();
+    // uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+    // if (!pCdMan->pTxCache->HaveTx(GetHash())) {
+    //     tuple<bool, uint64_t, string> ret =
+    //         vmRunEnv.ExecuteContract(pTx, chainActive.Height() + 1, cw, fuelRate, nRunStep);
 
+    //     if (!std::get<0>(ret))
+    //         return ERRORMSG("CLuaContractInvokeTx::GetInvolvedKeyIds, %s", std::get<2>(ret));
+
+    //     vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccount();
+
+    //     for (auto & item : vpAccount)
+    //         keyIds.insert(item->keyid);
+
+    //     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
+    //     for (auto & itemUserAccount : vAppUserAccount) {
+    //         CKeyID itemKeyID;
+    //         bool bValid = GetKeyId(cw.accountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
+    //         if (bValid)
+    //             keyIds.insert(itemKeyID);
+    //     }
+    // } else {
+    //     set<CKeyID> vTxRelAccount;
+    //     if (!cw.contractCache.GetTxRelAccount(GetHash(), vTxRelAccount))
+    //         return false;
+
+    //     keyIds.insert(vTxRelAccount.begin(), vTxRelAccount.end());
+    // }
     return true;
+}
+
+string CLuaContractInvokeTx::ToString(CAccountDBCache &view) {
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
+        "nValidHeight=%d\n",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), bcoins, llFees,
+        HexStr(arguments), nValidHeight);
+}
+
+Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+
+    // auto GetRegIdString = [&](CUserID const &userId) {
+    //     if (userId.type() == typeid(CRegID))
+    //         return userId.get<CRegID>().ToString();
+    //     return string("");
+    // };
+
+    CKeyID desKeyId;
+    accountCache.GetKeyId(app_uid, desKeyId);
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+    result.push_back(Pair("regid",          txUid.ToString()));
+    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
+    result.push_back(Pair("app_uid",        app_uid.ToString()));
+    result.push_back(Pair("transfer_bcoins",bcoins));
+    result.push_back(Pair("arguments",      HexStr(arguments)));
+
+    return result;
 }
