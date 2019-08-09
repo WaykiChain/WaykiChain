@@ -163,7 +163,8 @@ bool CPricePointMemCache::GetBlockUserPrices(const CoinPricePair &coinPricePair,
     return true;
 }
 
-uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const CoinPricePair &coinPricePair) {
+uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindowBlockCount,
+                                                      const CoinPricePair &coinPricePair) {
     // 1. merge block user prices with base cache.
     BlockUserPriceMap blockUserPrices;
     if (!GetBlockUserPrices(coinPricePair, blockUserPrices) || blockUserPrices.empty()) {
@@ -171,25 +172,23 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
     }
 
     // 2. compute block median price.
-    return ComputeBlockMedianPrice(blockHeight, blockUserPrices);
+    return ComputeBlockMedianPrice(blockHeight, slideWindowBlockCount, blockUserPrices);
 }
 
-uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const BlockUserPriceMap &blockUserPrices) {
-    // TODO:
-    assert(blockHeight >= 11);
+uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight, const uint64_t slideWindowBlockCount,
+                                                      const BlockUserPriceMap &blockUserPrices) {
+    // for (const auto &item : blockUserPrices) {
+    //     string price;
+    //     for (const auto &userPrice : item.second) {
+    //         price += strprintf("{user:%s, price:%lld}", userPrice.first.ToString(), userPrice.second);
+    //     }
 
-    for (const auto &item : blockUserPrices) {
-        string price;
-        for (const auto &userPrice : item.second) {
-            price += strprintf("{user:%s, price:%lld}", userPrice.first.ToString(), userPrice.second);
-        }
-
-        LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, height: %d, userPrice: %s\n",
-                 item.first, price);
-    }
+    //     LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, height: %d, userPrice: %s\n",
+    //              item.first, price);
+    // }
 
     vector<uint64_t> prices;
-    int32_t beginBlockHeight = blockHeight - 11;
+    int32_t beginBlockHeight = std::max((blockHeight - slideWindowBlockCount), uint64_t(0));
     for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
         const auto &iter = blockUserPrices.find(height);
         if (iter != blockUserPrices.end()) {
@@ -199,9 +198,9 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
         }
     }
 
-    for (const auto &item : prices) {
-        LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, found a candidate price: %llu\n", item);
-    }
+    // for (const auto &item : prices) {
+    //     LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, found a candidate price: %llu\n", item);
+    // }
 
     uint64_t medianPrice = ComputeMedianNumber(prices);
     LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, computed median number: %llu\n", medianPrice);
@@ -218,8 +217,9 @@ uint64_t CPricePointMemCache::ComputeMedianNumber(vector<uint64_t> &numbers) {
     return (size % 2 == 0) ? (numbers[size / 2 - 1] + numbers[size / 2]) / 2 : numbers[size / 2];
 }
 
-uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const CoinPricePair &coinPricePair) {
-    uint64_t medianPrice = ComputeBlockMedianPrice(blockHeight, coinPricePair);
+uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindowBlockCount,
+                                             const CoinPricePair &coinPricePair) {
+    uint64_t medianPrice = ComputeBlockMedianPrice(blockHeight, slideWindowBlockCount, coinPricePair);
 
     if (medianPrice == 0) {
         medianPrice =
@@ -231,24 +231,24 @@ uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const Co
     return medianPrice;
 }
 
-uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight) {
-    return GetMedianPrice(blockHeight, CoinPricePair(SYMB::WICC, SYMB::USD));
+uint64_t CPricePointMemCache::GetBcoinMedianPrice(const int32_t blockHeight, const uint64_t slideWindowBlockCount) {
+    return GetMedianPrice(blockHeight, slideWindowBlockCount, CoinPricePair(SYMB::WICC, SYMB::USD));
 }
 
-uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight) {
-    return GetMedianPrice(blockHeight, CoinPricePair(SYMB::WGRT, SYMB::USD));
+uint64_t CPricePointMemCache::GetFcoinMedianPrice(const int32_t blockHeight, const uint64_t slideWindowBlockCount) {
+    return GetMedianPrice(blockHeight, slideWindowBlockCount, CoinPricePair(SYMB::WGRT, SYMB::USD));
 }
 
-bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight,
+bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight, const uint64_t slideWindowBlockCount,
                                                     map<CoinPricePair, uint64_t> &mapMedianPricePoints) {
     CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
-    uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, bcoinPricePair);
+    uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindowBlockCount,bcoinPricePair);
     mapMedianPricePoints.emplace(bcoinPricePair, bcoinMedianPrice);
     LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, %s/%s -> %llu\n", SYMB::WICC, SYMB::USD,
              bcoinMedianPrice);
 
     CoinPricePair fcoinPricePair(SYMB::WGRT, SYMB::USD);
-    uint64_t fcoinMedianPrice = GetMedianPrice(blockHeight, fcoinPricePair);
+    uint64_t fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindowBlockCount, fcoinPricePair);
     mapMedianPricePoints.emplace(fcoinPricePair, fcoinMedianPrice);
     LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, %s/%s -> %llu\n", SYMB::WGRT, SYMB::USD,
              fcoinMedianPrice);

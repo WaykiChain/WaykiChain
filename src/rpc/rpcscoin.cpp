@@ -110,7 +110,6 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 
     int64_t stakeAmount = params[1].get_int64();
     uint64_t fees = RPC_PARAM::GetWiccFee(params, 2, FCOIN_STAKE_TX);
-
     int32_t validHeight = chainActive.Height();
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
     CFcoinStakeTx tx(userId, validHeight, fees, stakeType, std::abs(stakeAmount));
@@ -152,7 +151,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint, SYMB::WUSD))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
 
     uint256 cdpId;
     if (params.size() > 3) {
@@ -203,7 +202,7 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
 
     const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
 
-    int validHeight = chainActive.Tip()->height;
+    int32_t validHeight = chainActive.Height();
 
     CCDPRedeemTx tx(cdpUid, cmFee, validHeight, cdpTxId, repayAmount, redeemAmount);
     return SubmitTx(cdpUid, tx);
@@ -232,7 +231,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     uint64_t liquidateAmount  = AmountToRawValue(params[2]);
     const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 3, CDP_STAKE_TX);
 
-    int validHeight = chainActive.Tip()->height;
+    int32_t validHeight = chainActive.Height();
     CCDPLiquidateTx tx(userId, cmFee, validHeight, cdpTxId, liquidateAmount);
     return SubmitTx(userId, tx);
 }
@@ -252,7 +251,7 @@ Value getmedianprice(const Array& params, bool fHelp){
         );
     }
 
-    int height = chainActive.Tip()->height;
+    int32_t height = chainActive.Height();
     if (params.size() > 0){
         height = params[0].get_int();
         if (height < 0 || height > chainActive.Height())
@@ -309,8 +308,10 @@ Value getusercdp(const Array& params, bool fHelp){
     }
     assert(!txAccount.regid.IsEmpty());
 
-    int height = chainActive.Tip()->height;
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+    int32_t height = chainActive.Height();
+    uint64_t slideWindowBlockCount;
+    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
 
     Array cdps;
     vector<CUserCDP> userCdps;
@@ -340,8 +341,10 @@ Value getcdp(const Array& params, bool fHelp){
         );
     }
 
-    int32_t height = chainActive.Tip()->height;
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+    int32_t height = chainActive.Height();
+    uint64_t slideWindowBlockCount;
+    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
@@ -388,7 +391,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetAmount, price);
     RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CDEXBuyLimitOrderTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), coinSymbol,
                            assetSymbol, assetAmount, price);
     return SubmitTx(userId, tx);
@@ -427,7 +430,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
     RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CDEXSellLimitOrderTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), coinSymbol, assetSymbol, assetAmount, price);
     return SubmitTx(userId, tx);
 }
@@ -463,7 +466,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
     RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CDEXBuyMarketOrderTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), coinSymbol, assetSymbol, coinAmount);
     return SubmitTx(userId, tx);
 }
@@ -499,7 +502,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
     RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CDEXSellMarketOrderTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), coinSymbol, assetSymbol, assetAmount);
     return SubmitTx(userId, tx);
 }
@@ -535,7 +538,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
     // check active order tx
     RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, txid);
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CDEXCancelOrderTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), txid);
     return SubmitTx(userId, tx);
 }
@@ -601,7 +604,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CDEXSettleTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), dealItems);
     return SubmitTx(userId, tx);
 }
@@ -636,7 +639,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     const CUserID &assetOwnerUid = RPC_PARAM::GetUserId(params[2]);
     const TokenName &assetName = RPC_PARAM::GetAssetName(params[3]);
     int64_t totalSupply = params[4].get_int64();
-    if (totalSupply <= 0 || (uint64_t)totalSupply > MAX_ASSET_TOTAL_SUPPLY) 
+    if (totalSupply <= 0 || (uint64_t)totalSupply > MAX_ASSET_TOTAL_SUPPLY)
         throw JSONRPCError(RPC_INVALID_PARAMS,
                            strprintf("asset total_supply=%lld can not <= 0 or > %llu", totalSupply, MAX_ASSET_TOTAL_SUPPLY));
     bool mintable = params[5].get_bool();
@@ -648,7 +651,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
     CAsset asset(assetSymbol, assetOwnerUid, assetName, (uint64_t)totalSupply, mintable);
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CAssetIssueTx tx(uid, validHeight, fee.symbol, fee.GetSawiAmount(), asset);
     return SubmitTx(uid, tx);
 }
@@ -680,7 +683,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     const CUserID &assetOwnerUid = RPC_PARAM::GetUserId(params[2]);
     const TokenName &assetName = RPC_PARAM::GetAssetName(params[3]);
     int64_t mintAmount = params[4].get_int64();
-    if (mintAmount < 0 || (uint64_t)mintAmount > MAX_ASSET_TOTAL_SUPPLY) 
+    if (mintAmount < 0 || (uint64_t)mintAmount > MAX_ASSET_TOTAL_SUPPLY)
         throw JSONRPCError(RPC_INVALID_PARAMS,
                            strprintf("asset min_amount=%lld can not < 0 or > %llu", mintAmount, MAX_ASSET_TOTAL_SUPPLY));
     ComboMoney fee = RPC_PARAM::GetFee(params, 5, DEX_MARKET_SELL_ORDER_TX);
@@ -690,7 +693,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, ASSET_UPDATE_FEE);
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-    int validHeight = chainActive.Height();
+    int32_t validHeight = chainActive.Height();
     CAssetUpdateTx tx(uid, validHeight, fee.symbol, fee.GetSawiAmount(), assetSymbol,
                       assetOwnerUid, assetName, mintAmount);
 

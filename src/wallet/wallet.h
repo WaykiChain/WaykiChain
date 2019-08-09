@@ -38,7 +38,7 @@ enum WalletFeature
 };
 
 // -paytxfee will warn if called with a higher fee than this amount (in satoshis) per KB
-static const int nHighTransactionFeeWarning = 0.01 * COIN;
+static const int32_t nHighTransactionFeeWarning = 0.01 * COIN;
 
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
@@ -51,7 +51,7 @@ private:
 
     static bool StartUp(string &strWalletFile);
 
-    int nWalletVersion;
+    int32_t nWalletVersion;
     CBlockLocator  bestBlock;
     uint256 GetCheckSum() const;
 
@@ -65,9 +65,9 @@ public:
     map<uint256, std::shared_ptr<CBaseTx> > unconfirmedTx;
     mutable CCriticalSection cs_wallet;
 
-    typedef std::map<unsigned int, CMasterKey> MasterKeyMap;
+    typedef std::map<uint32_t, CMasterKey> MasterKeyMap;
     MasterKeyMap mapMasterKeys;
-    unsigned int nMasterKeyMaxID;
+    uint32_t nMasterKeyMaxID;
     static string defaultFileName;  // default to wallet.dat
 
     IMPLEMENT_SERIALIZE
@@ -116,7 +116,7 @@ public:
     CWallet(string strWalletFileIn);
     void SetNull() ;
 
-    bool LoadMinVersion(int nVersion);
+    bool LoadMinVersion(int32_t nVersion);
 
     void SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock* pblock);
     void EraseTransaction(const uint256 &hash);
@@ -135,7 +135,7 @@ public:
     bool ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase, const SecureString& strNewWalletPassphrase);
 
     // get the current wallet format (the oldest client version guaranteed to understand this wallet)
-    int GetVersion() ;
+    int32_t GetVersion() ;
 
     bool SetMinVersion(enum WalletFeature nVersion, CWalletDB* pWalletDbIn);
 
@@ -176,10 +176,10 @@ private:
 
 public:
     uint256 blockHash;
-    int blockHeight;
+    int32_t blockHeight;
     map<uint256, std::shared_ptr<CBaseTx> > mapAccountTx;
 public:
-    CAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int height = 0) {
+    CAccountTx(CWallet* pWalletIn = NULL, uint256 hash = uint256(), int32_t height = 0) {
         pWallet = pWalletIn;
         blockHash = hash;
         mapAccountTx.clear();

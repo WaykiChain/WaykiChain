@@ -19,8 +19,14 @@ bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 100%)
  */
 bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+    uint64_t slideWindowBlockCount;
+    if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error"),
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+    }
+
     map<CoinPricePair, uint64_t> mapMedianPricePoints;
-    if (!cw.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints)) {
+    if (!cw.ppCache.GetBlockMedianPricePoints(height, slideWindowBlockCount, mapMedianPricePoints)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, failed to get block median price points"),
                          READ_PRICE_POINT_FAIL, "bad-read-price-points");
     }
@@ -57,7 +63,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
-    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height);
+    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
         return true;
@@ -100,7 +106,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
         assert(cdp.total_owed_scoins > cdp.total_staked_bcoins * bcoinMedianPrice);
         uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - cdp.total_staked_bcoins * bcoinMedianPrice;
-        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height);
+        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
         auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
         if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",

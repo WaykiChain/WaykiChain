@@ -79,8 +79,10 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     static uint64_t nFees    = 0;
 
     int32_t height            = chainActive.Height();
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
-    uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height);
+    uint64_t slideWindowBlockCount;
+    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height, slideWindowBlockCount);
     auto GetCoinMedianPrice   = [&](const TokenSymbol coinType) -> uint64_t {
         if (coinType == SYMB::WICC)
             return bcoinMedianPrice;
@@ -582,7 +584,9 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
         CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         map<CoinPricePair, uint64_t> mapMedianPricePoints;
-        cwIn.ppCache.GetBlockMedianPricePoints(height, mapMedianPricePoints);
+        uint64_t slideWindowBlockCount;
+        cwIn.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+        cwIn.ppCache.GetBlockMedianPricePoints(height, slideWindowBlockCount, mapMedianPricePoints);
         pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
 
         // Fill in header

@@ -63,7 +63,7 @@ Value gettransaction(const Array& params, bool fHelp) {
         if (txid == genesisblock.GetTxid(i)) {
             double dAmount = static_cast<double>(genesisblock.vptx.at(i)->GetValues()[SYMB::WICC]) / COIN;
             obj.push_back(Pair("amount",        dAmount));
-            obj.push_back(Pair("confirmations", chainActive.Tip()->height));
+            obj.push_back(Pair("confirmations", chainActive.Height()));
             obj.push_back(Pair("block_hash",    genesisblock.GetHash().GetHex()));
             obj.push_back(Pair("block_index",   (int32_t)i));
             obj.push_back(Pair("block_time",    (int32_t)genesisblock.GetTime()));
@@ -89,7 +89,7 @@ Value gettransaction(const Array& params, bool fHelp) {
                 // TODO:
                 double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
                 obj.push_back(Pair("amount",        dAmount));
-                obj.push_back(Pair("confirmations", chainActive.Tip()->height - (int32_t)header.GetHeight()));
+                obj.push_back(Pair("confirmations", chainActive.Height() - (int32_t)header.GetHeight()));
                 obj.push_back(Pair("blockhash",     header.GetHash().GetHex()));
                 obj.push_back(Pair("blocktime",     (int32_t)header.GetTime()));
                 obj.push_back(Pair("txid",          pBaseTx->GetHash().GetHex()));
@@ -207,7 +207,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         }
         rtx.txUid        = pubkey;
         rtx.llFees       = fee;
-        rtx.nValidHeight = chainActive.Tip()->height;
+        rtx.nValidHeight = chainActive.Height();
 
         if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
@@ -432,7 +432,7 @@ Value registercontracttx(const Array& params, bool fHelp)
         tx.llFees         = fee;
         tx.nRunStep       = tx.contract.GetContractSize();
         if (0 == height) {
-            height = chainActive.Tip()->height;
+            height = chainActive.Height();
         }
         tx.nValidHeight = height;
 
@@ -528,7 +528,7 @@ Value votedelegatetx(const Array& params, bool fHelp) {
         if (0 != height) {
             delegateVoteTx.nValidHeight = height;
         } else {
-            delegateVoteTx.nValidHeight = chainActive.Tip()->height;
+            delegateVoteTx.nValidHeight = chainActive.Height();
         }
         delegateVoteTx.txUid = account.regid;
 
@@ -609,7 +609,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fees   = params[2].get_uint64();
-    int32_t height = chainActive.Tip()->height;
+    int32_t height = chainActive.Height();
     if (params.size() > 3) {
         height = params[3].get_int();
         if (height <= 0) {
@@ -839,7 +839,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValues()[SYMB::WICC]) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Height() - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -859,7 +859,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("category", "receive"));
                         double dAmount = static_cast<double>(item.second->GetValues()[SYMB::WICC]) / COIN;
                         obj.push_back(Pair("amount", dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Height() - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -915,7 +915,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("category", "send"));
                         double dAmount = static_cast<double>(item.second->GetValues()[SYMB::WICC]) / COIN;
                         obj.push_back(Pair("amount", -dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Height() - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -936,7 +936,7 @@ Value listtransactions(const Array& params, bool fHelp) {
                         obj.push_back(Pair("address", recvKeyId.ToAddress()));
                         obj.push_back(Pair("category", "receive"));
                         obj.push_back(Pair("amount", dAmount));
-                        obj.push_back(Pair("confirmations", chainActive.Tip()->height - accountTx.blockHeight));
+                        obj.push_back(Pair("confirmations", chainActive.Height() - accountTx.blockHeight));
                         obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
                         obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
                         obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
@@ -1020,14 +1020,14 @@ Value listtransactionsv2(const Array& params, bool fHelp) {
                 if (nCount > 0 && txnCount++ > nCount) {
                     return arrayData;
                 }
-                obj.push_back(Pair("srcaddr", srcAddr));
-                obj.push_back(Pair("desaddr", desAddr));
+                obj.push_back(Pair("srcaddr",   srcAddr));
+                obj.push_back(Pair("desaddr",   desAddr));
                 double dAmount = static_cast<double>(item.second->GetValues()[SYMB::WICC]) / COIN;
-                obj.push_back(Pair("amount", dAmount));
-                obj.push_back(Pair("confirmations", chainActive.Tip()->height - wtx.second.blockHeight));
-                obj.push_back(Pair("blockhash", (chainActive[wtx.second.blockHeight]->GetBlockHash().GetHex())));
-                obj.push_back(Pair("blocktime", (int64_t)(chainActive[wtx.second.blockHeight]->nTime)));
-                obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
+                obj.push_back(Pair("amount",        dAmount));
+                obj.push_back(Pair("confirmations", chainActive.Height() - wtx.second.blockHeight));
+                obj.push_back(Pair("blockhash",     (chainActive[wtx.second.blockHeight]->GetBlockHash().GetHex())));
+                obj.push_back(Pair("blocktime",     (int64_t)(chainActive[wtx.second.blockHeight]->nTime)));
+                obj.push_back(Pair("txid",          item.second->GetHash().GetHex()));
                 arrayData.push_back(obj);
             }
         }
@@ -1110,18 +1110,17 @@ Value listcontracttx(const Array& params, bool fHelp)
                 CKeyID keyId;
                 Object obj;
 
-                CAccountDBCache accView(*pCdMan->pAccountCache);
-                obj.push_back(Pair("txid",  ptx->GetHash().GetHex()));
-                obj.push_back(Pair("regid",  getregidstring(ptx->txUid)));
+                obj.push_back(Pair("txid",          ptx->GetHash().GetHex()));
+                obj.push_back(Pair("regid",         getregidstring(ptx->txUid)));
                 pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
-                obj.push_back(Pair("addr",  keyId.ToAddress()));
-                obj.push_back(Pair("dest_regid", getregidstring(ptx->app_uid)));
+                obj.push_back(Pair("addr",          keyId.ToAddress()));
+                obj.push_back(Pair("dest_regid",    getregidstring(ptx->app_uid)));
                 pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
-                obj.push_back(Pair("dest_addr", keyId.ToAddress()));
-                obj.push_back(Pair("money", ptx->bcoins));
-                obj.push_back(Pair("fees", ptx->llFees));
-                obj.push_back(Pair("valid_height", ptx->nValidHeight));
-                obj.push_back(Pair("arguments", HexStr(ptx->arguments)));
+                obj.push_back(Pair("dest_addr",     keyId.ToAddress()));
+                obj.push_back(Pair("money",         ptx->bcoins));
+                obj.push_back(Pair("fees",          ptx->llFees));
+                obj.push_back(Pair("valid_height",  ptx->nValidHeight));
+                obj.push_back(Pair("arguments",     HexStr(ptx->arguments)));
                 arrayData.push_back(obj);
 
                 txnCount++;
@@ -1251,8 +1250,10 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             }
         }
 
-        int32_t height = chainActive.Tip()->height;
-        uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height);
+        int32_t height                 = chainActive.Height();
+        uint64_t slideWindowBlockCount = 0;
+        pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+        uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
@@ -1336,7 +1337,7 @@ static Value TestDisconnectBlock(int32_t number) {
     Object obj;
 
     CValidationState state;
-    if ((chainActive.Tip()->height - number) < 0) {
+    if ((chainActive.Height() - number) < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "restclient Error: number");
     }
     if (number > 0) {
@@ -1354,7 +1355,7 @@ static Value TestDisconnectBlock(int32_t number) {
         } while (--number);
     }
 
-    obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Tip()->height)));
+    obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Height())));
     return obj;
 }
 
@@ -1538,8 +1539,8 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     }
     pCdMan->pTxCache->Clear();
     CBlockIndex *pIndex = chainActive.Tip();
-    if ((chainActive.Tip()->height - SysCfg().GetTxCacheHeight()) >= 0) {
-        pIndex = chainActive[(chainActive.Tip()->height - SysCfg().GetTxCacheHeight())];
+    if ((chainActive.Height() - SysCfg().GetTxCacheHeight()) >= 0) {
+        pIndex = chainActive[(chainActive.Height() - SysCfg().GetTxCacheHeight())];
     } else {
         pIndex = chainActive.Genesis();
     }
@@ -1785,7 +1786,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     int64_t amount = AmountToRawValue(params[3]);;
     int64_t fee = AmountToRawValue(params[4]);
 
-    int32_t height = chainActive.Tip()->height;
+    int32_t height = chainActive.Height();
     if (params.size() > 5)
         height = params[5].get_int();
 
@@ -1924,7 +1925,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     tx->contract.memo  = memo;
     tx->llFees         = fee;
 
-    uint32_t height = chainActive.Tip()->height;
+    int32_t height = chainActive.Height();
     if (params.size() > 3) {
         height =  params[3].get_int();
         if (height <= 0) {
@@ -2259,7 +2260,7 @@ Value getcontractaccountinfo(const Array& params, bool fHelp) {
             appUserAccount = std::make_shared<CAppUserAccount>(acctKey);
         }
     }
-    appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
+    appUserAccount.get()->AutoMergeFreezeToFree(chainActive.Height());
 
     return Value(appUserAccount.get()->ToJson());
 }
@@ -2299,7 +2300,7 @@ Value listcontractassets(const Array& params, bool fHelp) {
             if (!contractScriptTemp.GetContractAccount(script, key, *tem.get())) {
                 tem = std::make_shared<CAppUserAccount>(key);
             }
-            tem.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
+            tem.get()->AutoMergeFreezeToFree(chainActive.Height());
 
             Object obj;
             obj.push_back(Pair("addr", key));

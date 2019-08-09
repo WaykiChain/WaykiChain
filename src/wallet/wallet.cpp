@@ -595,14 +595,14 @@ void CWallet::SetNull() {
     pWalletDbEncryption = nullptr;
 }
 
-bool CWallet::LoadMinVersion(int nVersion) {
+bool CWallet::LoadMinVersion(int32_t nVersion) {
     AssertLockHeld(cs_wallet);
     nWalletVersion = nVersion;
 
     return true;
 }
 
-int CWallet::GetVersion() {
+int32_t CWallet::GetVersion() {
     LOCK(cs_wallet);
     return nWalletVersion;
 }
