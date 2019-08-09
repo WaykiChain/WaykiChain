@@ -378,14 +378,14 @@ Value sendtoaddress(const Array& params, bool fHelp) {
 
         nAmount = AmountToRawValue(params[1]);
 
-        set<CKeyID> sKeyIds;
-        sKeyIds.clear();
-        pWalletMain->GetKeys(sKeyIds);
-        if (sKeyIds.empty())
+        set<CKeyID> keyids;
+        keyids.clear();
+        pWalletMain->GetKeys(keyids);
+        if (keyids.empty())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key");
 
         bool sufficientFee = false;
-        for (auto keyId : sKeyIds) {
+        for (auto keyId : keyids) {
             if (keyId != recvKeyId &&
                 (pCdMan->pAccountCache->GetAccountFreeAmount(keyId, SYMB::WICC) >= (uint64_t(nAmount + nDefaultFee)))) {
                 sendKeyId     = keyId;
@@ -469,14 +469,14 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
                                strprintf("Given fee(%ld) < Default fee (%ld)", nFee, nDefaultFee));
         }
 
-        set<CKeyID> sKeyIds;
-        sKeyIds.clear();
-        pWalletMain->GetKeys(sKeyIds);
-        if (sKeyIds.empty()) {
+        set<CKeyID> keyids;
+        keyids.clear();
+        pWalletMain->GetKeys(keyids);
+        if (keyids.empty()) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Wallet has no key!");
         }
         bool sufficientFee = false;
-        for (auto keyId : sKeyIds) {
+        for (auto keyId : keyids) {
             if (keyId != recvKeyId &&
                 (pCdMan->pAccountCache->GetAccountFreeAmount(keyId, SYMB::WICC) >= (uint64_t(nAmount + nDefaultFee)))) {
                 sendKeyId     = keyId;

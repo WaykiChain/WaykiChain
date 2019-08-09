@@ -2342,20 +2342,21 @@ Value validateaddr(const Array& params, bool fHelp) {
             "validateaddr \"wicc_address\"\n"
             "\ncheck whether address is valid or not\n"
             "\nArguments:\n"
-            "1. \"wicc_address\"  (string, required) WICC address\n"
+            "1.\"wicc_address\"     (string, required) WICC address\n"
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\"") +
             HelpExampleRpc("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\""));
-
     Object obj;
-    CKeyID keyId;
+
     string addr = params[0].get_str();
-    if (!GetKeyId(addr, keyId)) {
+    CKeyID keyid;
+    if (!GetKeyId(addr, keyid)) {
         obj.push_back(Pair("is_valid", false));
     } else {
         obj.push_back(Pair("is_valid", true));
     }
+
     return obj;
 }
 

@@ -94,15 +94,12 @@ bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
 bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
     if (userId.type() == typeid(CRegID)) {
         return GetKeyId(userId.get<CRegID>(), keyId);
-
     } else if (userId.type() == typeid(CPubKey)) {
         keyId = userId.get<CPubKey>().GetKeyId();
         return true;
-
     } else if (userId.type() == typeid(CKeyID)) {
         keyId = userId.get<CKeyID>();
         return true;
-
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("GetKeyId: userId can't be of CNullID type");
     }

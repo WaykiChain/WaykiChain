@@ -26,10 +26,10 @@ using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
 
-static bool GetKeyId(string const &addr, CKeyID &KeyId) {
-    if (!CRegID::GetKeyId(addr, KeyId)) {
-        KeyId = CKeyID(addr);
-        if (KeyId.IsEmpty())
+static bool GetKeyId(string const &addr, CKeyID &keyid) {
+    if (!CRegID::GetKeyId(addr, keyid)) {
+        keyid = CKeyID(addr);
+        if (keyid.IsEmpty())
             return false;
     }
 

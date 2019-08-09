@@ -122,9 +122,9 @@ string CRegID::ToString() const {
     return strprintf("%d-%d", height, index);
 }
 
-CKeyID CRegID::GetKeyId(const CAccountDBCache &view) const {
+CKeyID CRegID::GetKeyId(const CAccountDBCache &accountCache) const {
     CKeyID retKeyId;
-    CAccountDBCache(view).GetKeyId(*this, retKeyId);
+    CAccountDBCache(accountCache).GetKeyId(*this, retKeyId);
     return retKeyId;
 }
 

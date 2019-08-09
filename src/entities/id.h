@@ -56,7 +56,7 @@ public:
     const vector<unsigned char> &GetRegIdRaw() const;
     string ToRawString() const;
     void SetRegID(const vector<unsigned char> &vIn);
-    CKeyID GetKeyId(const CAccountDBCache &view) const;
+    CKeyID GetKeyId(const CAccountDBCache &accountCache) const;
     uint32_t GetHeight() const { return height; }
     uint16_t GetIndex() const { return index; }
     bool operator==(const CRegID &other) const {
