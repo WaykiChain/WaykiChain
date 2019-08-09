@@ -77,20 +77,6 @@ public:
         arguments = argumentsIn;
     }
 
-    CLuaContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn, uint64_t bcoinsIn, int32_t validHeightIn):
-                CBaseTx(LCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        else if (txUidIn.type() == typeid(CPubKey))
-            assert(txUidIn.get<CPubKey>().IsFullyValid());
-
-        if (appUidIn.type() == typeid(CRegID))
-            assert(!appUidIn.get<CRegID>().IsEmpty());
-
-        app_uid = appUidIn;
-        bcoins  = bcoinsIn;
-    }
-
     ~CLuaContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
