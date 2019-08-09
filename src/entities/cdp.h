@@ -102,8 +102,8 @@ struct CUserCDP {
 
     void Update(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins);
 
-    uint64_t ComputeCollateralRatio(uint64_t price) {
-        return collateral_ratio_base * price;
+    uint64_t ComputeCollateralRatio(uint64_t bcoinPrice) {
+        return collateral_ratio_base * bcoinPrice;
     }
 
     bool IsFinished() {

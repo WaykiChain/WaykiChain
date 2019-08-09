@@ -31,7 +31,7 @@ bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlo
         return false;
 
     uint64_t N = total_owed_scoins;
-    double annualInterestRate = 0.1 * (double) A / log10( 1 + B * N);
+    double annualInterestRate = 0.1 * A / log10( 1.0 + B * N / (double)COIN);
     interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
 
     return true;
@@ -363,9 +363,9 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
                             READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
         }
+        uint64_t bcoinPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
 
-        uint64_t collateralRatio;
-        cdp.ComputeCollateralRatio(cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount));
+        uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
         if (collateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
                             collateralRatio / (double)kPercentBoost, startingCdpCollateralRatio / (double)kPercentBoost), 
