@@ -263,11 +263,8 @@ Value callcontracttx(const Array& params, bool fHelp) {
     }
 
     int64_t amount = AmountToRawValue(params[3]);
-    int64_t fee    = AmountToRawValue(params[4]);
+    int64_t fee    = RPC_PARAM::GetWiccFee(params, 4, LCONTRACT_INVOKE_TX);
     int32_t height     = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
-    if (fee == 0) {
-        fee = GetTxMinFee(TxType::LCONTRACT_INVOKE_TX, height);
-    }
 
     CPubKey sendPubKey;
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {

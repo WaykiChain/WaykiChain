@@ -10,24 +10,17 @@
 
 class CPriceFeedTx : public CBaseTx {
 public:
-    vector<CPricePoint> pricePoints;
+    TokenSymbol fee_symbol;
+    vector<CPricePoint> price_points;
 
 public:
     CPriceFeedTx(): CBaseTx(PRICE_FEED_TX) {}
 
-    CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
-                const CPricePoint &pricePointIn):
-        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
-        pricePoints.push_back(pricePointIn);
-    }
-    CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
-                const vector<CPricePoint> &pricePointsIn):
-        CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn) {
-        if (pricePointsIn.size() > 3 || pricePointsIn.size() == 0)
-            return; // limit max # of price points to be three in one shot
-
-        pricePoints = pricePointsIn;
-    }
+    CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+                 uint64_t feesIn, const vector<CPricePoint> &pricePointsIn)
+        : CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn),
+          fee_symbol(feeSymbolIn),
+          price_points(pricePointsIn) {}
 
     ~CPriceFeedTx() {}
 
@@ -38,7 +31,8 @@ public:
         READWRITE(txUid);
         READWRITE(VARINT(llFees));
 
-        READWRITE(pricePoints);
+        READWRITE(fee_symbol);
+        READWRITE(price_points);
         READWRITE(signature);
     )
 
@@ -46,7 +40,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees)
-               << pricePoints;
+               << fee_symbol << price_points;
             sigHash = ss.GetHash();
         }
 

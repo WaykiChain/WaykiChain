@@ -34,32 +34,33 @@ string GetTxType(const TxType txType) {
         return "";
 }
 
-uint64_t GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol) {
+bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
     const auto &iter = kTxFeeTable.find(nTxType);
     if (iter != kTxFeeTable.end()) {
         FeatureForkVersionEnum version = GetFeatureForkVersion(height);
         if (symbol == SYMB::WICC) {
             switch (version) {
                 case MAJOR_VER_R1: // Prior-stablecoin Release
-                    return std::get<1>(iter->second);
+                    feeOut = std::get<1>(iter->second);
+                    return true;
                 case MAJOR_VER_R2:  // StableCoin Release
-                    return std::get<2>(iter->second);
+                    feeOut = std::get<2>(iter->second);
+                    return true;
             }        
         } else if (symbol == SYMB::WUSD) {
             switch (version) {
                 case MAJOR_VER_R1: // Prior-stablecoin Release
-                    return std::get<3>(iter->second);
+                    feeOut = std::get<3>(iter->second);
+                    return true;
                 case MAJOR_VER_R2:  // StableCoin Release
-                    return std::get<4>(iter->second);
+                    feeOut = std::get<4>(iter->second);
+                    return true;
             }        
         } 
     }
-    // default:
-    assert(false && "not found the min fee for tx");
-    return 10000;
+    return false;
   
 }
-
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     if (BLOCK_REWARD_TX == nTxType || UCOIN_BLOCK_REWARD_TX == nTxType || PRICE_MEDIAN_TX == nTxType)
@@ -98,28 +99,12 @@ uint32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
 }
 
 bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
-    if (feeSymbol != SYMB::WICC && feeSymbol != SYMB::WUSD)
+    uint64_t minFee;
+    if (!GetTxMinFee(nTxType, height, feeSymbol, minFee)) {
+        assert(false && "Get tx min fee for WICC or WUSD");
         return false;
-
-    const auto &iter = kTxFeeTable.find(nTxType);
-
-    switch (GetFeatureForkVersion(height)) {
-        case MAJOR_VER_R1: {  // Prior-stablecoin Release
-            if (feeSymbol == SYMB::WICC)
-                return iter != kTxFeeTable.end() ? (llFees >= std::get<1>(iter->second)) : true;
-            else if (feeSymbol == SYMB::WUSD)
-                return iter != kTxFeeTable.end() ? (llFees >= std::get<3>(iter->second)) : true;
-            break;
-        }
-        case MAJOR_VER_R2: {  // StableCoin Release
-            if (feeSymbol == SYMB::WICC)
-                return iter != kTxFeeTable.end() ? (llFees >= std::get<2>(iter->second)) : true;
-            else if (feeSymbol == SYMB::WUSD)
-                return iter != kTxFeeTable.end() ? (llFees >= std::get<4>(iter->second)) : true;
-            break;
-        }
     }
-    return true;
+    return llFees >= minFee;
 }
 
 // Transactions should check the signature size before verifying signature

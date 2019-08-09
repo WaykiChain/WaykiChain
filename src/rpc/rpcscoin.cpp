@@ -23,7 +23,7 @@
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitpricefeedtx {price_feeds_json} [fee]\n"
+            "submitpricefeedtx {price_feeds_json} [\"symbol:fee:unit\"]\n"
             "\nsubmit a Price Feed Tx.\n"
             "\nArguments:\n"
             "1. \"address\" :                   (string, required) Price Feeder's address\n"
@@ -36,7 +36,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\":                         (numeric, optional) fee pay for miner, default is 10000\n"
+            "3. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"                           (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -51,10 +51,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, boost::assign::list_of(str_type)(array_type)(int_type));
 
-    auto feedUid = CUserID::ParseUserId(params[0].get_str());
-    if (!feedUid) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
-    }
+    const CUserID &feedUid = RPC_PARAM::GetUserId(params[0].get_str());
 
     Array arrPricePoints = params[1].get_array();
     vector<CPricePoint> pricePoints;
@@ -83,18 +80,12 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
-    uint64_t minFee = GetTxMinFee(PRICE_FEED_TX, chainActive.Height());
-    uint64_t fees = minFee;
-    if (params.size() == 3) {
-        fees = AmountToRawValue(params[2]);
-        if (fees < minFee)
-            throw JSONRPCError(RPC_WALLET_ERROR,
-                               strprintf("Tx fee given is too small: %d < %d", fees, minFee));
-    }
+    const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 2, CDP_STAKE_TX);
 
     int32_t validHeight = chainActive.Height();
-    CPriceFeedTx tx(*feedUid, validHeight, fees, pricePoints);
-    return SubmitTx(*feedUid, tx);
+    CPriceFeedTx tx(feedUid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), pricePoints);
+
+    return SubmitTx(feedUid, tx);
 }
 
 Value submitstakefcointx(const Array& params, bool fHelp) {
@@ -118,16 +109,9 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str());
 
     int64_t stakeAmount = params[1].get_int64();
-    uint64_t minFee = GetTxMinFee(FCOIN_STAKE_TX, chainActive.Height());
-    uint64_t fees = minFee;
-    if (params.size() == 3) {
-        fees = AmountToRawValue(params[2]);
-        if (fees < minFee)
-            throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Tx fee given is too small: %d < %d",
-                            fees, minFee));
-    }
-    int32_t validHeight = chainActive.Tip()->height;
+    uint64_t fees = RPC_PARAM::GetWiccFee(params, 2, FCOIN_STAKE_TX);
 
+    int32_t validHeight = chainActive.Height();
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
     CFcoinStakeTx tx(userId, validHeight, fees, stakeType, std::abs(stakeAmount));
     return SubmitTx(userId, tx);
@@ -168,7 +152,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     if (!ParseRpcInputMoney(params[2].get_str(), cmScoinsToMint, SYMB::WUSD))
         throw JSONRPCError(RPC_INVALID_PARAMETER, "scoinsToMint ComboMoney format error");
 
-    int validHeight = chainActive.Tip()->height;
+    int validHeight = chainActive.Height();
 
     uint256 cdpId;
     if (params.size() > 3) {

@@ -80,7 +80,7 @@ bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {
         }
 
         CPriceFeedTx *priceFeedTx = (CPriceFeedTx *)block.vptx[i].get();
-        AddBlockPricePointInBatch(block.GetHeight(), priceFeedTx->txUid.get<CRegID>(), priceFeedTx->pricePoints);
+        AddBlockPricePointInBatch(block.GetHeight(), priceFeedTx->txUid.get<CRegID>(), priceFeedTx->price_points);
     }
 
     return true;

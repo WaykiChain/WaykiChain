@@ -32,7 +32,7 @@ class CContractDBCache;
 typedef uint256 TxID;
 
 string GetTxType(const TxType txType);
-uint64_t GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol = SYMB::WICC);
+bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
 class CBaseTx {
 public:
@@ -166,21 +166,22 @@ public:
         return state.DoS(100, ERRORMSG("%s, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                                             \
-    if (!CheckBaseCoinRange(llFees))                                                                                  \
-        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,                      \
-                         "bad-tx-fee-toolarge");                                                                      \
-                                                                                                                      \
-    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                                           \
-        return state.DoS(100,                                                                                         \
-                         ERRORMSG("%s, tx fee too smqll(heihgt: %d, fee symbol: %s, fee: %llu", __FUNCTION__, height, \
-                                  feeSymbol, llFees),                                                                 \
-                         REJECT_INVALID, "bad-tx-fee-toosmall");                                                      \
+#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                              \
+    if (!CheckBaseCoinRange(llFees))                                                                   \
+        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,       \
+                         "bad-tx-fee-toolarge");                                                       \
+     if (!kFeeSymbolSet.count(feeSymbol))                                                              \
+        return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
+            __FUNCTION__, feeSymbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");      \
+    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                            \
+        return state.DoS(100, ERRORMSG("%s, tx fee too smqll(heihgt: %d, fee symbol: %s, fee: %llu",   \
+            __FUNCTION__, height, feeSymbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");          \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                                            \
-    if (txUidType != typeid(CRegID)) {                                                                                 \
-        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID, "txUid-type-error"); \
+#define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \
+    if (txUidType != typeid(CRegID)) {                                                                 \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID,      \
+            "txUid-type-error");                                                                       \
     }
 
 #define IMPLEMENT_CHECK_TX_APPID(appUidType)                                                       \

@@ -15,10 +15,10 @@
 #include "config/version.h"
 
 bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
+    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (pricePoints.size() == 0 || pricePoints.size() > 3) { //FIXME: hardcode here
+    if (price_points.size() == 0 || price_points.size() > 3) { //FIXME: hardcode here
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
             REJECT_INVALID, "bad-tx-pricepoint-size-error");
     }
@@ -55,7 +55,7 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (!account.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!account.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
@@ -66,7 +66,7 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     // update the price feed cache accordingly
-    if (!cw.ppCache.AddBlockPricePointInBatch(height, txUid.get<CRegID>(), pricePoints)) {
+    if (!cw.ppCache.AddBlockPricePointInBatch(height, txUid.get<CRegID>(), price_points)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }
@@ -79,22 +79,23 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
 
 string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
     string str;
-    for (auto pp : pricePoints) {
+    for (auto pp : price_points) {
         str += pp.ToString() + ", ";
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, pricePoints=%s, nValidHeight=%d\n",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, str, nValidHeight);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol, llFees=%ld, price_points=%s, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, str, nValidHeight);
 }
 
 Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
     Array pricePointArray;
-    for (const auto &pp : pricePoints) {
+    for (const auto &pp : price_points) {
         pricePointArray.push_back(pp.ToJson());
     }
 
     Object result;
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    result.push_back(Pair("fee_symbol", fee_symbol));
     result.push_back(Pair("price_points", pricePointArray));
 
     return result;
