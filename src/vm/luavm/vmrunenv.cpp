@@ -20,10 +20,10 @@ CVmRunEnv::CVmRunEnv() {
     newAccount.clear();
     rawAppUserAccount.clear();
     newAppUserAccount.clear();
-    runTimeHeight      = 0;
+    runtimeHeight  = 0;
     pContractCache = nullptr;
     pAccountCache  = nullptr;
-    isCheckAccount     = false;
+    isCheckAccount = false;
 }
 
 vector<shared_ptr<CAccount>>& CVmRunEnv::GetRawAccont() { return rawAccount; }
@@ -34,11 +34,11 @@ vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return 
 
 vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int height) {
+bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountView, int32_t height) {
     vmOperateOutput.clear();
     pBaseTx       = tx;
-    runTimeHeight = height;
-    pAccountCache = &view;
+    runtimeHeight = height;
+    pAccountCache = &accountView;
     CUniversalContract contract;
 
     if (tx.get()->nTxType != LCONTRACT_INVOKE_TX) {
@@ -79,7 +79,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int h
 
 CVmRunEnv::~CVmRunEnv() {}
 
-tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int height, CCacheWrapper& cw,
+tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int32_t height, CCacheWrapper& cw,
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
     if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
@@ -366,7 +366,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
 //}
 
 bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
-                               const int nCurHeight) {
+                               const int32_t nCurHeight) {
     newAccount.clear();
     for (auto& it : listoperate) {
         //      CTransaction* tx = static_cast<CTransaction*>(pBaseTx.get());
@@ -451,11 +451,11 @@ const string& CVmRunEnv::GetTxContract() {
     return tx->arguments;
 }
 
-int CVmRunEnv::GetConfirmHeight() { return runTimeHeight; }
+int32_t CVmRunEnv::GetConfirmHeight() { return runtimeHeight; }
 
-int CVmRunEnv::GetBurnVersion() {
+int32_t CVmRunEnv::GetBurnVersion() {
     // the burn version belong to the Feature Fork Version
-    return GetFeatureForkVersion(runTimeHeight);
+    return GetFeatureForkVersion(runtimeHeight);
 }
 
 uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
@@ -497,7 +497,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
         sptrAcc = tem;
         return true;
     }
-    if (!tem.get()->AutoMergeFreezeToFree(runTimeHeight)) {
+    if (!tem.get()->AutoMergeFreezeToFree(runtimeHeight)) {
         return false;
     }
     sptrAcc = tem;
@@ -517,7 +517,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
                 return false;
             }
 
-            if (!sptrAcc.get()->AutoMergeFreezeToFree(runTimeHeight)) {
+            if (!sptrAcc.get()->AutoMergeFreezeToFree(runtimeHeight)) {
                 LogPrint("vm", "AutoMergeFreezeToFreefailed \n appuser :%s\n",
                          sptrAcc.get()->ToString());
                 return false;
@@ -531,7 +531,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
 
             LogPrint("vm", "before user: %s\n", sptrAcc.get()->ToString());
             if (!sptrAcc.get()->Operate(tem.second)) {
-                int i = 0;
+                int32_t i = 0;
                 for (auto const pint : tem.second) {
                     LogPrint("vm", "GOperate failed \n Operate %d : %s\n", i++, pint.ToString());
                 }

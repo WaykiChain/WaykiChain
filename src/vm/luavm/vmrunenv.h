@@ -41,7 +41,7 @@ private:
 	/**
 	 * the block height
 	 */
-	unsigned int runTimeHeight;
+	uint32_t runtimeHeight;
 	/**
 	 * vm before the app account state
 	 */
@@ -66,7 +66,7 @@ private:
      * @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& view, int height);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& accountView, int32_t height);
     /**
      * @brief check aciton
      * @param listoperate: run the script return the code,check the code
@@ -80,7 +80,7 @@ private:
      * @return true operate account success
      */
     bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
-                        const int nCurHeight);
+                        const int32_t nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
      * @param vOldAccount: the argument
@@ -133,7 +133,7 @@ public:
      * uint64_t if the script run sucess Run the script calls the money ,string represent run the
      * failed's  Reason
      */
-    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, int nheight, CCacheWrapper &cw,
+    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& Tx, int32_t nheight, CCacheWrapper &cw,
                                                   uint64_t nBurnFactor, uint64_t& uRunStep);
 
     /**
@@ -147,9 +147,9 @@ public:
     const string& GetTxContract();
     CContractDBCache* GetScriptDB();
     CAccountDBCache* GetCatchView();
-    int GetConfirmHeight();
+    int32_t GetConfirmHeight();
     // Get burn version for fuel burning
-    int GetBurnVersion();
+    int32_t GetBurnVersion();
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
     void InsertOutAPPOperte(const vector<unsigned char>& userId, const CAppFundOperate& source);
