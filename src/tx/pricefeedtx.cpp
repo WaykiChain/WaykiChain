@@ -83,8 +83,8 @@ string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
         str += pp.ToString() + ", ";
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol, llFees=%ld, price_points=%s, nValidHeight=%d\n",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, str, nValidHeight);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, price_points=%s, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees, str, nValidHeight);
 }
 
 Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
