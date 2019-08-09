@@ -47,7 +47,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, reward}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, reward}}; }
     std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBlockRewardTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);

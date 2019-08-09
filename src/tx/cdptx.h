@@ -88,7 +88,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{bcoin_symbol, bcoins_to_stake}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{bcoin_symbol, bcoins_to_stake}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPStakeTx>(*this); }
@@ -165,7 +165,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WUSD, bcoins_to_redeem}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WUSD, bcoins_to_redeem}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPRedeemTx>(*this); }
@@ -235,9 +235,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const {
-        return map<TokenSymbol, uint64_t>{{SYMB::WUSD, scoins_to_liquidate}};
-    }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WUSD, scoins_to_liquidate}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPLiquidateTx>(*this); }

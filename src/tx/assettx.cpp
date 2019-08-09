@@ -11,7 +11,7 @@
 #include "persistence/assetdb.h"
 
 
-bool CAssetIssueTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
 
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -48,14 +48,14 @@ bool CAssetIssueTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &sta
     if ((txUid.type() == typeid(CRegID)) && !account.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
- 
+
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }
 
-bool CAssetIssueTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, read source txUid %s account info error",
@@ -103,7 +103,7 @@ bool CAssetIssueTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidat
 
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write delegate account info error, delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");      
+                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!cw.accountCache.SetAccount(txUid, account))
@@ -177,7 +177,7 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
 
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    
+
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",
             asset_symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symobl");
@@ -210,7 +210,7 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
     if ((txUid.type() == typeid(CRegID)) && !account.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
- 
+
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -227,21 +227,21 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
     if (!cw.assetCache.GetAsset(asset_symbol, asset))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get asset by symbol=%s failed",
             asset_symbol), REJECT_INVALID, "get-asset-failed");
-    
+
     if (!account.IsMyUid(asset.owner_uid))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, no privilege to update asset, uid dismatch,"
             " txUid=%s, old_asset_uid=%s",
             txUid.ToString(), asset.owner_uid.ToString()), REJECT_INVALID, "asset-uid-dismatch");
 
     if (!asset.mintable)
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset is not mintable"), 
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset is not mintable"),
                     REJECT_INVALID, "asset-not-mintable");
 
     uint64_t newTotalSupply = asset.total_supply + mint_amount;
     assert(newTotalSupply >= asset.total_supply);
     if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY) {
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, new_total_supply=%llu greater than %llu,"
-                     " old_total_supply=%llu, mint_amount=%llu", newTotalSupply, MAX_ASSET_TOTAL_SUPPLY, 
+                     " old_total_supply=%llu, mint_amount=%llu", newTotalSupply, MAX_ASSET_TOTAL_SUPPLY,
                      asset.total_supply, mint_amount), REJECT_INVALID, "invalid-mint-amount");
     }
 
@@ -287,7 +287,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
 
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, write delegate account info error, delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");      
+                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!cw.assetCache.SaveAsset(asset))

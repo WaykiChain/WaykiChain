@@ -14,7 +14,7 @@ public:
     mutable CUserID minerUid;  // miner pubkey
 
 public:
-    CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int validHeightIn) :
+    CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int32_t validHeightIn) :
         CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
         minerUid    = minerUidIn;
     }
@@ -32,7 +32,7 @@ public:
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
-    map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
+    map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, 0}}; }
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
@@ -53,8 +53,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &AccountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper& cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper& cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper& cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper& cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper& cw, CValidationState &state);
 };
 
 #endif

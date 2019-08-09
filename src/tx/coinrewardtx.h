@@ -52,7 +52,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{coin_symbol, coin_amount}}; }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{coin_symbol, coin_amount}}; }
     std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinRewardTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);

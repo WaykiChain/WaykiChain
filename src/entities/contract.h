@@ -26,31 +26,31 @@ public:
     CLuaContract(const string codeIn, const string memoIn): code(codeIn), memo(memoIn) { };
 
 public:
-    inline unsigned int GetContractSize() const {
+    inline uint32_t GetContractSize() const {
         return GetContractSize(SER_DISK, CLIENT_VERSION);
     }
 
-    inline unsigned int GetContractSize(int nType, int nVersion) const {
-        unsigned int sz = ::GetSerializeSize(code, nType, nVersion);
+    inline uint32_t GetContractSize(int32_t nType, int32_t nVersion) const {
+        uint32_t sz = ::GetSerializeSize(code, nType, nVersion);
         sz += ::GetSerializeSize(memo, nType, nVersion);
         return sz;
     }
 
-    inline unsigned int GetSerializeSize(int nType, int nVersion) const {
-        unsigned int sz = GetContractSize(nType, nVersion);
+    inline uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const {
+        uint32_t sz = GetContractSize(nType, nVersion);
         return GetSizeOfCompactSize(sz) + sz;
     }
 
     template <typename Stream>
-    void Serialize(Stream &s, int nType, int nVersion) const {
-        unsigned int sz = GetContractSize(nType, nVersion);
+    void Serialize(Stream &s, int32_t nType, int32_t nVersion) const {
+        uint32_t sz = GetContractSize(nType, nVersion);
         WriteCompactSize(s, sz);
         s << code << memo;
     }
 
     template <typename Stream>
-    void Unserialize(Stream &s, int nType, int nVersion) {
-        unsigned int sz = ReadCompactSize(s);
+    void Unserialize(Stream &s, int32_t nType, int32_t nVersion) {
+        uint32_t sz = ReadCompactSize(s);
         s >> code >> memo;
         if (sz != GetContractSize(nType, nVersion)) {
             assert(false && "contractSize != SerializeSize(code) + SerializeSize(memo)");
@@ -99,16 +99,6 @@ public:
                         const string &codeIn, const string &memoIn, const string &abiIn) :
         vm_type(vmTypeIn), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) { };
 
-    uint256 GetHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << (uint8_t&)vm_type << upgradable << code << memo << abi;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
     bool IsEmpty() const {
         // FIXME:
         return vm_type == VMType::NULL_VM || code.empty();
@@ -128,9 +118,6 @@ public:
         READWRITE(memo);
         READWRITE(abi);
     )
-
-private:
-    mutable uint256 sigHash;  //!< only in memory
 };
 
 #endif //ENTITIES_CONTRACT_H

@@ -42,7 +42,7 @@ static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyI
 ///////////////////////////////////////////////////////////////////////////////
 // class CLuaContractDeployTx
 
-bool CLuaContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -60,8 +60,8 @@ bool CLuaContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationSta
 
     // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
+        int32_t nTxSize  = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+        double dFeePerKb = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
         if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
             return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fees/Kb "
                              "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
@@ -85,7 +85,7 @@ bool CLuaContractDeployTx::CheckTx(int height, CCacheWrapper &cw, CValidationSta
     return true;
 }
 
-bool CLuaContractDeployTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, read regist addr %s account info error",
@@ -237,7 +237,7 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CLuaContractInvokeTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
@@ -343,7 +343,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int height, int index, CCacheWrapper &cw, C
     return true;
 }
 
-bool CLuaContractInvokeTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());

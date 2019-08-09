@@ -19,7 +19,7 @@ public:
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
-    CAssetIssueTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbol,
+    CAssetIssueTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                   uint64_t fees, const CAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, fees),
           fee_symbol(feeSymbol),
@@ -49,9 +49,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const {
-        return map<TokenSymbol, uint64_t>{{asset.symbol, asset.total_supply}};
-    }
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{asset.symbol, asset.total_supply}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetIssueTx>(*this); }
@@ -79,7 +77,7 @@ public:
 public:
     CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {};
 
-    CAssetUpdateTx(const CUserID &txUidIn, int validHeightIn, const TokenSymbol &feeSymbolIn,
+    CAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                    uint64_t feesIn, TokenSymbol assetSymbolIn, CUserID ownerUseridIn,
                    TokenName assetNameIn, uint64_t mintAmountIn)
         : CBaseTx(ASSET_UPDATE_TX, txUidIn, validHeightIn, feesIn),

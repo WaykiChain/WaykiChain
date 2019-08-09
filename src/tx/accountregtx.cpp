@@ -16,7 +16,7 @@
 #include "vm/luavm/vmrunenv.h"
 #include "miner/miner.h"
 
-bool CAccountRegisterTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
 
     if (txUid.type() != typeid(CPubKey))
@@ -36,7 +36,7 @@ bool CAccountRegisterTx::CheckTx(int height, CCacheWrapper &cw, CValidationState
     return true;
 }
 
-bool CAccountRegisterTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     CRegID regId(height, index);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
