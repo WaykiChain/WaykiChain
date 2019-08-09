@@ -508,10 +508,10 @@ Value send(const Array& params, bool fHelp) {
             "\nSend coins to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"from\"                 (string, optional) The address where coins are sent from.\n"
+            "1.\"from\"                 (string, required) The address where coins are sent from.\n"
             "2.\"to\"                   (string, required) The address where coins are received.\n"
-            "3. \"symbol:coin:unit\":   (symbol:amount:unit, required) transfered coins\n"
-            "4. \"symbol:fee:unit\":    (symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transfered coins\n"
+            "4.\"symbol:fee:unit\":     (symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
