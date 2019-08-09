@@ -59,8 +59,6 @@ public:
 
 public:
     bool IsValid();
-    bool IsCheckAccount(void);
-
 };
 
 /** ###################################### Universal Contract ######################################*/

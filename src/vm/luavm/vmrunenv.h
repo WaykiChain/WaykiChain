@@ -55,7 +55,7 @@ private:
 	CAccountDBCache *pAccountCache;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
-    bool  isCheckAccount;  //校验账户平衡开关
+    bool isCheckAccount;  //校验账户平衡开关
 
     map<vector<unsigned char>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
 private:

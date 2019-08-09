@@ -6,12 +6,9 @@
  */
 #include "vmrunenv.h"
 #include <algorithm>
-#include <boost/foreach.hpp>
 #include "commons/SafeInt3.hpp"
 #include "tx/tx.h"
 #include "commons/util.h"
-
-// CVmRunEnv *pVmRunEnv = NULL;
 
 #define MAX_OUTPUT_COUNT 100
 
@@ -53,12 +50,6 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountView
         return false;
     }
 
-    // if (!contract.IsValid()) {
-    //     LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() contract is invalid");
-    //     return false;
-    // }
-    // TODO: need contract.IsCheckAccount() ?
-    //isCheckAccount = vmScript.IsCheckAccount();
     if (contractTx->arguments.size() >= kContractArgumentMaxSize) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size too large");
         return false;
@@ -182,18 +173,19 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
 
 UnsignedCharArray CVmRunEnv::GetAccountID(CVmOperate value) {
     UnsignedCharArray accountId;
-    if (value.accountType == REGID) {
+    if (value.accountType == ACCOUNT_TYPE::REGID) {
         accountId.assign(value.accountId, value.accountId + 6);
     } else if (value.accountType == ACCOUNT_TYPE::BASE58ADDR) {
         string addr(value.accountId, value.accountId + sizeof(value.accountId));
-        CKeyID KeyId = CKeyID(addr);
+        CKeyID keyid = CKeyID(addr);
         CRegID regid;
-        if (pAccountCache->GetRegId(CUserID(KeyId), regid)) {
+        if (pAccountCache->GetRegId(CUserID(keyid), regid)) {
             accountId.assign(regid.GetRegIdRaw().begin(), regid.GetRegIdRaw().end());
         } else {
             accountId.assign(value.accountId, value.accountId + 34);
         }
     }
+
     return accountId;
 }
 
