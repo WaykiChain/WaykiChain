@@ -62,7 +62,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
             cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount), globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralFloorReached!!"),
-                        REJECT_INVALID, "global-cdp-lock-is-on");
+                        REJECT_INVALID, "global-collateral-floor-reached");
     }
 
     uint64_t globalCollateralCeiling;
@@ -72,10 +72,14 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     }
     if (cw.cdpCache.CheckGlobalCollateralCeilingReached(bcoins_to_stake, globalCollateralCeiling)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralCeilingReached!"),
-                        REJECT_INVALID, "global-cdp-lock-is-on");
+                        REJECT_INVALID, "global-collateral-ceiling-reached");
     }
 
-    if (cdp_txid.IsNull()) {  // 1st-time CDP creation
+    LogPrint("CDP", "CCDPStakeTx::CheckTx, globalCollateralRatioMin: %llu, slideWindowBlockCount: %llu, "
+             "globalCollateralCeiling: %llu\n",
+             globalCollateralRatioMin, slideWindowBlockCount, globalCollateralCeiling)
+
+        if (cdp_txid.IsNull()) {  // 1st-time CDP creation
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCDPList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"), REJECT_INVALID, "has-open-cdp");

@@ -20,11 +20,12 @@ using namespace std;
 class CCDPMemCache {
 public:
     CCDPMemCache() {}
-    CCDPMemCache(CCDPMemCache *pBaseIn) : pBase(pBaseIn) {}
+    CCDPMemCache(CCDPMemCache *pBaseIn) : pBase(pBaseIn) {
+        SetGlobalItem(pBaseIn->global_staked_bcoins, pBaseIn->global_owed_scoins);
+    }
     // Only apply to construct the global mem-cache.
-    CCDPMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) {}
+    CCDPMemCache(CDBAccess *pAccessIn) : pAccess(pAccessIn) { LoadAllCDPFromDB(); }
 
-    bool LoadAllCDPFromDB();
     void SetBase(CCDPMemCache *pBaseIn);
     void Flush();
 
@@ -44,16 +45,18 @@ private:
     bool GetCDPList(const double ratio, set<CUserCDP> &userCdps);
 
     void BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn);
+    void SetGlobalItem(const uint64_t globalStakedBcoins, const uint64_t globalOwedScoins);
+    bool LoadAllCDPFromDB();
 
 private:
     enum CDPState { CDP_EXPIRED = 0, CDP_VALID = 1 };
 
 private:
-    map<CUserCDP, uint8_t> cdps;  // map: CUserCDP -> flag(0: valid; 1: invalid)
-    uint64_t total_staked_bcoins = 0;
-    uint64_t total_owed_scoins   = 0;
-    CCDPMemCache *pBase          = nullptr;
-    CDBAccess *pAccess           = nullptr;
+    map<CUserCDP, uint8_t /* CDPState */> cdps;
+    uint64_t global_staked_bcoins = 0;
+    uint64_t global_owed_scoins   = 0;
+    CCDPMemCache *pBase           = nullptr;
+    CDBAccess *pAccess            = nullptr;
 };
 
 class CCDPDBCache {

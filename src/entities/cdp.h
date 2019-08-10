@@ -38,16 +38,6 @@ struct CUserCDP {
 
     CUserCDP() : block_height(0), total_staked_bcoins(0), total_owed_scoins(0), collateral_ratio_base(0) {}
 
-    // CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn)
-    //     : cdpid(cdpTxIdIn),
-    //       owner_regid(regId),
-    //       block_height(0),
-    //       bcoin_symbol(SYMB::WICC),
-    //       scoin_symbol(SYMB::WUSD),
-    //       total_staked_bcoins(0),
-    //       total_owed_scoins(0),
-    //       collateral_ratio_base(0) {}
-
     CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn, int32_t blockHeight,
              TokenSymbol bcoinSymbol, TokenSymbol scoinSymbol, uint64_t totalStakedBcoins,
              uint64_t totalOwedScoins)
