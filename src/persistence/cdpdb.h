@@ -65,17 +65,11 @@ public:
 
 
     bool NewCDP(const int32_t blockHeight, CUserCDP &cdp);
-    bool UpdateCdp(CUserCDP &cdp);
-
-    bool StakeBcoinsToCDP(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                          CUserCDP &cdp);
-    bool RedeemBcoinsFromCDP(const int32_t blockHeight, const uint64_t bcoinsToRedeem, const uint64_t scoinsToRepay,
-                             CUserCDP &cdp);
+    bool UpdateCDP(const CUserCDP &cdp);
 
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
-    bool SaveCDP(CUserCDP &cdp);
     bool EraseCDP(const CUserCDP &cdp);
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
@@ -100,9 +94,7 @@ public:
     }
 
 private:
-    // Attention: changedBcoins/changedScoins could be positive or negative values.
-    bool UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins, CUserCDP &cdp);
-
+    bool SaveCDPToDB(const CUserCDP &cdp);
 private:
 /*  CCompositeKVCache     prefixType     key              value             variable  */
 /*  ----------------   --------------   ------------   --------------    -------------*/

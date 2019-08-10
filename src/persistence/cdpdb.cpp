@@ -124,48 +124,19 @@ void CCDPMemCache::BatchWrite(const map<CUserCDP, uint8_t> &cdpsIn) {
 // class CCDPDBCache
 
 
-bool CCDPDBCache::UpdateCdp(CUserCDP &cdp) {
+bool CCDPDBCache::UpdateCDP(const CUserCDP &cdp) {
 
     cdpMemCache.EraseCDP(cdp);
     if (cdp.IsFinished()) {
         return EraseCDP(cdp);
     } else {
-        return SaveCDP(cdp) && cdpMemCache.SaveCDP(cdp);
+        return SaveCDPToDB(cdp) && cdpMemCache.SaveCDP(cdp);
     }    
-}
-
-bool CCDPDBCache::UpdateCdp(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins, CUserCDP &cdp) {
-    // 1. erase the old cdp in memory cache
-    cdpMemCache.EraseCDP(cdp);
-
-    // 2. update cdp's properties before saving
-    cdp.Update(blockHeight, changedBcoins, changedScoins);
-
-    // 3. save or erase cdp in cache/memory cache
-    // 3.1 erase cdp from cache if it's time to close cdp. Do not bother to erase cdp from
-    //     memory cache as it had never existed.
-    if (cdp.IsFinished()) {
-        return EraseCDP(cdp);
-
-    } else {
-    // 3.2 otherwise, save cdp to cache/memory cache.
-        return SaveCDP(cdp) && cdpMemCache.SaveCDP(cdp);
-    }
 }
 
 bool CCDPDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
     assert(!cdpMemCache.HaveCDP(cdp));
-    return SaveCDP(cdp) && cdpMemCache.SaveCDP(cdp);
-}
-
-bool CCDPDBCache::StakeBcoinsToCDP(const int32_t blockHeight, const uint64_t bcoinsToStake, const uint64_t mintedScoins,
-                                   CUserCDP &cdp) {
-    return UpdateCdp(blockHeight, bcoinsToStake, mintedScoins, cdp);
-}
-
-bool CCDPDBCache::RedeemBcoinsFromCDP(const int32_t blockHeight, const uint64_t bcoinsToRedeem,
-                                      const uint64_t scoinsToRepay, CUserCDP &cdp) {
-    return UpdateCdp(blockHeight, -1 * bcoinsToRedeem, -1 * scoinsToRepay, cdp);
+    return SaveCDPToDB(cdp) && cdpMemCache.SaveCDP(cdp);
 }
 
 bool CCDPDBCache::GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList) {
@@ -194,7 +165,7 @@ bool CCDPDBCache::GetCDP(const uint256 cdpid, CUserCDP &cdp) {
 }
 
 // Attention: update cdpCache and regId2CDPCache synchronously.
-bool CCDPDBCache::SaveCDP(CUserCDP &cdp) {
+bool CCDPDBCache::SaveCDPToDB(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
     regId2CDPCache.GetData(cdp.owner_regid.ToRawString(), cdpTxids);
     cdpTxids.insert(cdp.cdpid);   // failed to insert if txid existed.

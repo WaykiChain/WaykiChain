@@ -47,10 +47,11 @@ void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mi
     Update();       
 }
 
-void CUserCDP::Update(const int32_t blockHeight, int64_t changedBcoins, const int64_t changedScoins) {
-
+void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate) {
+    assert(total_staked_bcoins >= bcoinsToLiquidate);
+    assert(total_owed_scoins >= scoinsToLiquidate);
     block_height = blockHeight;
-    total_staked_bcoins += changedBcoins;
-    total_owed_scoins += changedScoins;
+    total_staked_bcoins -= bcoinsToLiquidate;
+    total_owed_scoins -= scoinsToLiquidate;
     Update();
 }
