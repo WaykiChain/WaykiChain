@@ -368,7 +368,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
         if (collateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
-                            collateralRatio / (double)kPercentBoost, startingCdpCollateralRatio / (double)kPercentBoost), 
+                            100.0 * collateralRatio / (double)kPercentBoost, 100.0 * startingCdpCollateralRatio / (double)kPercentBoost), 
                             UPDATE_CDP_FAIL, "invalid-collatera-ratio");
         }
         assert(cdp.total_owed_scoins != 0 && cdp.total_staked_bcoins != 0); // invalid cdp, the collateralRatio will be 0
