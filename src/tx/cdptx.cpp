@@ -353,23 +353,26 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
     cdp.Redeem(height, bcoins_to_redeem, realRepayScoins);
 
+    // check and save CDP to db
     if (cdp.IsFinished()) {
         if (!cw.cdpCache.EraseCDP(cdp))
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, erase the finished CDP %s failed",
                             cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
-    } else {
-        uint64_t slideWindowBlockCount;
-        if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
-            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
-                            READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
-        }
-        uint64_t bcoinPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+    } else { // partial redeem
+        if (bcoins_to_redeem != 0) {
+            uint64_t slideWindowBlockCount;
+            if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
+                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
+                                READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+            }
+            uint64_t bcoinPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
 
-        uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
-        if (collateralRatio < startingCdpCollateralRatio) {
-            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
-                            100.0 * collateralRatio / (double)kPercentBoost, 100.0 * startingCdpCollateralRatio / (double)kPercentBoost), 
-                            UPDATE_CDP_FAIL, "invalid-collatera-ratio");
+            uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
+            if (collateralRatio < startingCdpCollateralRatio) {
+                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
+                                100.0 * collateralRatio / (double)kPercentBoost, 100.0 * startingCdpCollateralRatio / (double)kPercentBoost), 
+                                UPDATE_CDP_FAIL, "invalid-collatera-ratio");
+            }
         }
         assert(cdp.total_owed_scoins != 0 && cdp.total_staked_bcoins != 0); // invalid cdp, the collateralRatio will be 0
         if (!cw.cdpCache.UpdateCDP(cdp)) {
