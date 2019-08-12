@@ -71,6 +71,11 @@ uint64_t CCDPMemCache::GetGlobalCollateral() const {
     return global_staked_bcoins;
 }
 
+void CCDPMemCache::GetGlobalItem(uint64_t &globalStakedBcoins, uint64_t &globalOwedScoins) {
+    globalStakedBcoins = global_staked_bcoins;
+    globalOwedScoins   = global_owed_scoins;
+}
+
 bool CCDPMemCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
                                          set<CUserCDP> &userCdps) {
     return GetCDPList(collateralRatio * bcoinMedianPrice, userCdps);

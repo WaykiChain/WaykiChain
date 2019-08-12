@@ -235,45 +235,77 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
     return SubmitTx(userId, tx);
 }
 
-Value getmedianprice(const Array& params, bool fHelp){
-    if (fHelp) {
+Value getscoininfo(const Array& params, bool fHelp){
+    if (fHelp || params.size() != 0) {
         throw runtime_error(
-            "getmedianprice [height]\n"
-            "\nget current median price or query at specified height.\n"
+            "getscoininfo\n"
+            "\nget stable coin info.\n"
             "\nArguments:\n"
-            "1.\"height\": (numeric, optional), specified height. If not provided, use the tip block height in chainActive\n\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmedianprice","")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("getmedianprice","")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getscoininfo", "") + "\nAs json rpc call\n" + HelpExampleRpc("getscoininfo", ""));
     }
 
     int32_t height = chainActive.Height();
-    if (params.size() > 0){
-        height = params[0].get_int();
-        if (height < 0 || height > chainActive.Height())
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range.");
+
+    uint64_t slideWindowBlockCount = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price slide window blockcount error");
     }
 
-    CBlock block;
-    CBlockIndex* pBlockIndex = chainActive[height];
-    if (!ReadBlockFromDisk(pBlockIndex, block)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
+    uint64_t globalCollateralCeiling = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
     }
 
+    uint64_t globalCollateralRatioFloor = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
+    }
+
+    map<CoinPricePair, uint64_t> medianPricePoints;
+    if (!pCdMan->pPpCache->GetBlockMedianPricePoints(height, slideWindowBlockCount, medianPricePoints)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price error");
+    }
+
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    bool globalCollateralRatioFloorReached =
+        pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
+
+    uint64_t globalStakedBcoins = 0;
+    uint64_t globalOwedScoins   = 0;
+    pCdMan->pCdpCache->cdpMemCache.GetGlobalItem(globalStakedBcoins, globalOwedScoins);
+
+    set<CUserCDP> forceLiquidateCdps;
+    uint64_t forceLiquidateRatio = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
+    }
+
+    pCdMan->pCdpCache->cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
+                                                               forceLiquidateCdps);
+
+    Object obj;
     Array prices;
-    for (auto& item : block.GetBlockMedianPrice()) {
+    for (auto& item : medianPricePoints) {
         Object price;
-        price.push_back(Pair("coin_symbol",     item.first.first));
-        price.push_back(Pair("price_symbol",    item.first.second));
-        price.push_back(Pair("price",           (double)item.second / kPercentBoost));
+        price.push_back(Pair("coin_symbol", item.first.first));
+        price.push_back(Pair("price_symbol", item.first.second));
+        price.push_back(Pair("price", (double)item.second / kPercentBoost));
         prices.push_back(price);
     }
 
-    Object obj;
-    obj.push_back(Pair("median_price", prices));
+    obj.push_back(Pair("height",                                height));
+    obj.push_back(Pair("median_price",                          prices));
+    obj.push_back(Pair("slide_window_block_count",              slideWindowBlockCount));
+    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling));
+    obj.push_back(Pair("global_collateral_ratio_floor",         globalCollateralRatioFloor));
+    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
+    obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
+    obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
+    obj.push_back(Pair("force_liquidate_ratio",                 forceLiquidateRatio));
+    obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
+
     return obj;
 }
 

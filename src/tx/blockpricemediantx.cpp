@@ -58,7 +58,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
     //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
     uint64_t globalCollateralRatioFloor = 0;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
@@ -72,7 +72,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     //1. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
-    if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+    if (!cw.sysParamCache.GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
                          READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
     }

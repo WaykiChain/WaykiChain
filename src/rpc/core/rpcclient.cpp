@@ -251,17 +251,17 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
 
     /* for dex */
-    if (strMethod == "submitdexbuylimitordertx" && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexbuylimitordertx" && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
 
-    if (strMethod == "submitdexselllimitordertx" && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexselllimitordertx" && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitdexselllimitordertx"    && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexselllimitordertx"    && n > 4) ConvertTo<int64_t>(params[4]);
 
-    if (strMethod == "submitdexbuymarketordertx" && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitdexbuymarketordertx"    && n > 2) ConvertTo<int64_t>(params[2]);
 
-    if (strMethod == "submitdexsellmarketordertx" && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx"   && n > 3) ConvertTo<int64_t>(params[3]);
 
-    if (strMethod == "submitdexsettletx" && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "submitdexsettletx"        && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "startcommontpstest"       && n > 0)    ConvertTo<int64_t>(params[0]);
     if (strMethod == "startcommontpstest"       && n > 1)    ConvertTo<int64_t>(params[1]);
@@ -272,23 +272,21 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     /* for cdp */
     if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]);
 
-    if (strMethod == "submitstakefcointx" && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "submitstakefcointx" && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitstakefcointx"       && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "submitstakefcointx"       && n > 2) ConvertTo<int64_t>(params[2]);
 
-    if (strMethod == "submitredeemcdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
-    if (strMethod == "submitredeemcdptx" && n > 3) ConvertTo<uint64_t>(params[3]);
+    if (strMethod == "submitredeemcdptx"        && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "submitredeemcdptx"        && n > 3) ConvertTo<uint64_t>(params[3]);
 
-    if (strMethod == "submitliquidatecdptx" && n > 2) ConvertTo<uint64_t>(params[2]);
+    if (strMethod == "submitliquidatecdptx"     && n > 2) ConvertTo<uint64_t>(params[2]);
 
-    if (strMethod == "getmedianprice" && n > 0) ConvertTo<int>(params[0]);
+    if (strMethod == "submitassetissuetx"       && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
 
-    if (strMethod == "submitassetissuetx" && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "submitassetissuetx" && n > 5) ConvertTo<bool>(params[5]);
-
-    if (strMethod == "submitassetupdatetx" && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitassetupdatetx"      && n > 4) ConvertTo<int64_t>(params[4]);
 
     /* vm functions work in vm simulator */
-    if (strMethod == "vmexecutescript"        && n > 3) ConvertTo<uint64_t>(params[3]);
+    if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<uint64_t>(params[3]);
 
     return params;
 }

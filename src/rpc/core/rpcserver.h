@@ -196,7 +196,7 @@ extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bo
 extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitliquidatecdptx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getmedianprice(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getscoininfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcdp(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getusercdp(const json_spirit::Array& params, bool fHelp);
 

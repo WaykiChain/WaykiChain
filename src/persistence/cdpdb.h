@@ -39,6 +39,7 @@ public:
 
     uint64_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
     uint64_t GetGlobalCollateral() const;
+    void GetGlobalItem(uint64_t &globalStakedBcoins, uint64_t &globalOwedScoins);
 
 private:
     bool GetCDPList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps);

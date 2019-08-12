@@ -28,7 +28,7 @@ extern Value submitstakecdptx(const Array& params, bool fHelp);
 extern Value submitredeemcdptx(const Array& params, bool fHelp);
 extern Value submitliquidatecdptx(const Array& params, bool fHelp);
 
-extern Value getmedianprice(const Array& params, bool fHelp);
+extern Value getscoininfo(const Array& params, bool fHelp);
 extern Value getcdp(const Array& params, bool fHelp);
 extern Value getusercdp(const Array& params, bool fHelp);
 
