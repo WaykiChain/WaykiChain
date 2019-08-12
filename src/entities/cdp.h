@@ -92,9 +92,7 @@ struct CUserCDP {
 
     void LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate);
 
-    uint64_t ComputeCollateralRatio(uint64_t bcoinPrice) {
-        return collateral_ratio_base * bcoinPrice;
-    }
+    uint64_t ComputeCollateralRatio(uint64_t bcoinPrice);
 
     bool IsFinished() const {
         return total_owed_scoins == 0 && total_staked_bcoins == 0;
