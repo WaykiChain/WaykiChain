@@ -79,7 +79,7 @@ inline bool is_number(const std::string& s) {
 
 // [N|R|A]:address
 // NickID (default) | RegID | Address
-bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId);
+bool ParseRpcInputAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId);
 
 // [symbol]:amount:[unit]
 // [WICC(default)|WUSD|WGRT|...]:amount:[sawi(default)]

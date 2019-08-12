@@ -174,7 +174,7 @@ public:
         return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
             __FUNCTION__, feeSymbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");      \
     if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                            \
-        return state.DoS(100, ERRORMSG("%s, tx fee too smqll(heihgt: %d, fee symbol: %s, fee: %llu",   \
+        return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu",   \
             __FUNCTION__, height, feeSymbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");          \
     }
 

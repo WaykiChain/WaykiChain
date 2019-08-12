@@ -50,7 +50,7 @@ std::vector<std::string> split(std::string stringToBeSplitted, std::string delim
 
 // [N|R|A]:address
 // NickID (default) | RegID | Address
-bool ParseRpcInpuAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
+bool ParseRpcInputAccountId(const string &comboAccountIdStr, tuple<AccountIDType, string> &comboAccountId) {
     vector<string> comboAccountIdArr = split(comboAccountIdStr, ':');
     switch (comboAccountIdArr.size()) {
         case 0: {

@@ -128,10 +128,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
                                                                       " default symbol=WICC, default unit=sawi\n"
             "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint from the CDP,"
                                                                       " default symbol=WUSD, default unit=sawi\n"
-            "4. \"cdp_id\":         (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
-            "5. \"symbol:fee:unit\": (symbol:amount:unit, optional) fee paid to miner, default is WICC:100000:sawi\n"
+            "4. \"cdp_id\":             (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
+            "5. \"symbol:fee:unit\":    (symbol:amount:unit, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
-            "\"txid\"               (string) The transaction id.\n"
+            "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("submitstakecdptx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 3000000 "
