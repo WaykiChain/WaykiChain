@@ -147,8 +147,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     } else { // further staking on one's existing CDP
         CUserCDP cdp;
         if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid cdp_txid %s", cdp_txid.ToString()),
-                             REJECT_INVALID, "invalid-stake-cdp-txid");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
+                             REJECT_INVALID, "cdp-not-exist");
         }
         if (height < cdp.block_height) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.block_height: %d",

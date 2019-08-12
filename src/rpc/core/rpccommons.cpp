@@ -690,7 +690,7 @@ bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStr
             errStrOut = strprintf("Invalid hex char in the position %d or %d", begin, begin + 1);
             return false;
         }
-        binStrOut.push_back(c1 | c2);
+        binStrOut.push_back((c1 << 4) | c2);
         begin += 2;
     }
     return true;
