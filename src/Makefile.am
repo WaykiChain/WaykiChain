@@ -46,6 +46,7 @@ coin_CORE_H = \
   entities/assett.h \
   entities/cdp.h \
   entities/contract.h \
+  entities/dexorder.h \
   entities/id.h \
   entities/key.h \
   entities/keystore.h \
@@ -237,6 +238,7 @@ libcoin_server_a_SOURCES = \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
+  entities/dexorder.cpp \
   entities/id.cpp \
   entities/key.cpp \
   entities/keystore.cpp \
