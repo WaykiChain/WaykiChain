@@ -591,8 +591,22 @@ uint64_t RPC_PARAM::GetPrice(const Value &jsonValue) {
     return AmountToRawValue(jsonValue);
 }
 
-uint256 RPC_PARAM::GetTxid(const Value &jsonValue) {
-    return uint256S(jsonValue.get_str()); // TODO: need to check txid??
+uint256 RPC_PARAM::GetTxid(const Value &jsonValue, const string &paramName, bool canBeEmpty) {
+    string binStr, errStr;
+    if (!ParseHex(jsonValue.get_str(), binStr, errStr))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! %s", paramName, errStr));
+    
+    if (binStr.empty()) {
+        if (!canBeEmpty)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! Can not be emtpy", paramName));
+        return uint256();
+    }
+
+    if (binStr.size() != uint256::WIDTH) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! The hex str size should be %d", 
+            paramName, uint256::WIDTH * 2));
+    }
+    return uint256(binStr.rbegin(), binStr.rend());
 }
 
 CAccount RPC_PARAM::GetUserAccount(CAccountDBCache &accountCache, const CUserID &userId) {
@@ -644,4 +658,40 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
     CDEXActiveOrder activeOrder;
     if (!dexCache.GetActiveOrder(orderTxid, activeOrder))
         throw JSONRPCError(RPC_DEX_ORDER_INACTIVE, "Order is inactive or not existed");
+}
+
+
+bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {
+    int begin = 0;
+    int end = hexStr.size();
+    // skip left spaces
+    while (begin != end && isspace(hexStr[begin]))
+        begin++;
+    // skip right spaces
+    while (begin != end && isspace(hexStr[end - 1]))
+        end--;
+    
+    // skip 0x
+    if (begin + 1 < end && hexStr[begin] == '0' && tolower(hexStr[begin + 1]) == 'x')
+        begin += 2;
+
+    if (begin == end) return true; // ignore empty hex str
+
+    if ((end - begin) % 2 != 0) {
+        errStrOut = "Invalid hex format! Hex digit count is not even number";
+        return false;
+    }
+
+    binStrOut.reserve((end - begin) / 2);
+    while (begin != end) {
+        uint8_t c1 = HexDigit(hexStr[begin]);
+        uint8_t c2 = HexDigit(hexStr[begin + 1]);
+        if (c1 == (uint8_t)-1 || c2 == (uint8_t)-1) {
+            errStrOut = strprintf("Invalid hex char in the position %d or %d", begin, begin + 1);
+            return false;
+        }
+        binStrOut.push_back(c1 | c2);
+        begin += 2;
+    }
+    return true;
 }

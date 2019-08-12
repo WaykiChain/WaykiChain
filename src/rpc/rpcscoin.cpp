@@ -155,8 +155,7 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
 
     uint256 cdpId;
     if (params.size() > 3) {
-        // TODO: check the txid format
-        cdpId.SetHex(params[3].get_str());
+        cdpId = RPC_PARAM::GetTxid(params[3], "cdp_id", true);
     }
 
     const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
@@ -227,7 +226,7 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
         );
     }
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
-    const uint256 &cdpTxId  = RPC_PARAM::GetTxid(params[1]);
+    const uint256 &cdpTxId  = RPC_PARAM::GetTxid(params[1], "cdp_id");
     uint64_t liquidateAmount  = AmountToRawValue(params[2]);
     const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 3, CDP_STAKE_TX);
 
@@ -528,7 +527,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
     }
 
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
-    const uint256 &txid = RPC_PARAM::GetTxid(params[1]);
+    const uint256 &txid = RPC_PARAM::GetTxid(params[1], "txid");
     ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance
@@ -588,9 +587,9 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     for (auto dealItemObj : dealItemArray) {
         DEXDealItem dealItem;
         const Value& buy_order_txid = JSON::GetObjectFieldValue(dealItemObj, "buy_order_txid");
-        dealItem.buyOrderId = RPC_PARAM::GetTxid(buy_order_txid);
+        dealItem.buyOrderId = RPC_PARAM::GetTxid(buy_order_txid, "buy_order_txid");
         const Value& sell_order_txid = JSON::GetObjectFieldValue(dealItemObj, "sell_order_txid");
-        dealItem.sellOrderId = RPC_PARAM::GetTxid(sell_order_txid.get_str());
+        dealItem.sellOrderId = RPC_PARAM::GetTxid(sell_order_txid.get_str(), "sell_order_txid");
         const Value& deal_price = JSON::GetObjectFieldValue(dealItemObj, "deal_price");
         dealItem.dealPrice = RPC_PARAM::GetPrice(deal_price);
         const Value& deal_coin_amount = JSON::GetObjectFieldValue(dealItemObj, "deal_coin_amount");

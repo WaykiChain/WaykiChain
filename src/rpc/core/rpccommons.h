@@ -45,7 +45,7 @@ namespace RPC_PARAM {
 
     uint64_t GetPrice(const Value &jsonValue);
 
-    uint256 GetTxid(const Value &jsonValue);
+    uint256 GetTxid(const Value &jsonValue, const string &paramName, bool canBeEmpty = false);
 
     CAccount GetUserAccount(CAccountDBCache &accountCache, const CUserID &userId);
 
@@ -60,6 +60,9 @@ namespace RPC_PARAM {
                             const BalanceOpType opType, const uint64_t &value);
 
     void CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid);
+
+    // parse hex str
+    bool ParseHex(const string &hexStr, string &binStrOut, string &errStrOut);
 }
 
 /*

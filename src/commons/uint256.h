@@ -21,14 +21,26 @@ inline signed char HexDigit(char c) { return p_util_hexdigit[(unsigned char)c]; 
 /** Template base class for fixed-sized opaque blobs. */
 template <unsigned int BITS>
 class base_blob {
+public:
+    enum { WIDTH = BITS / 8 };    
 protected:
-    enum { WIDTH = BITS / 8 };
     uint8_t data[WIDTH];
 
 public:
     base_blob() { memset(data, 0, sizeof(data)); }
 
     explicit base_blob(const std::vector<unsigned char>& vch);
+
+    template<typename T>
+    explicit base_blob(const T begin, const T end) {
+        if (end - begin == sizeof(data)) {
+            uint8_t* p = data; T it = begin;
+            for (; it != end; it++, p++)
+                *p = *it;
+        } else {
+            assert(false);
+        }
+    };
 
     bool IsNull() const {
         for (int i = 0; i < WIDTH; i++)
@@ -102,6 +114,9 @@ public:
     uint256() {}
     uint256(const base_blob<256>& b) : base_blob<256>(b) {}
     explicit uint256(const std::vector<unsigned char>& vch) : base_blob<256>(vch) {}
+
+    template<typename T>
+    explicit uint256(const T begin, const T end) : base_blob<256>(begin, end) {}
 
     /** A cheap hash function that just returns 64 bits from the result, it can be
      * used when the contents are considered uniformly random. It is not appropriate
