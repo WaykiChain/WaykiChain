@@ -88,7 +88,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         if (++cdpIndex > kForceSettleCDPMaxCountPerBlock)
             break;
 
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)", cdp.ToString());
+        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)\n", cdp.ToString());
         if (currRiskReserveScoins < cdp.total_owed_scoins) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                     currRiskReserveScoins, cdp.total_owed_scoins);

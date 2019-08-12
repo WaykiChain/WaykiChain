@@ -57,7 +57,6 @@ struct CUserCDP {
                 return cdpid < cdp.cdpid;
             else
                 return owner_regid < cdp.owner_regid;
-
         } else
             return collateral_ratio_base < cdp.collateral_ratio_base;
     }
@@ -75,9 +74,9 @@ struct CUserCDP {
         }
     )
 
-    string ToString();
+    string ToString() const;
 
-    Object ToJson(uint64_t bcoinMedianPrice);
+    Object ToJson(uint64_t bcoinMedianPrice) const;
 
     inline void Update() const {
         if (total_owed_scoins == 0 || total_staked_bcoins == 0)

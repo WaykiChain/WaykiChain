@@ -5,7 +5,7 @@
 
 #include "cdp.h"
 
-string CUserCDP::ToString() {
+string CUserCDP::ToString() const {
     return strprintf(
         "cdpid=%s, owner_regid=%s, block_height=%d, bcoin_symbol=%s, total_staked_bcoins=%d, "
         "scoin_symbol=%s, tatal_owed_scoins=%d, collateral_ratio_base=%f",
@@ -13,7 +13,7 @@ string CUserCDP::ToString() {
         scoin_symbol, total_owed_scoins, collateral_ratio_base);
 }
 
-Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) {
+Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) const {
     double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / kPercentBoost;
 
     Object result;
@@ -44,7 +44,7 @@ void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mi
     block_height = blockHeight;
     total_staked_bcoins += bcoinsToStake;
     total_owed_scoins += mintedScoins;
-    Update();       
+    Update();
 }
 
 void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate) {

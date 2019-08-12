@@ -78,28 +78,31 @@ void CCDPMemCache::GetGlobalItem(uint64_t &globalStakedBcoins, uint64_t &globalO
 
 bool CCDPMemCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
                                          set<CUserCDP> &userCdps) {
-    return GetCDPList(collateralRatio * bcoinMedianPrice, userCdps);
+    return GetCDPList(double(collateralRatio) / bcoinMedianPrice, userCdps);
 }
 
 bool CCDPMemCache::GetCDPList(const double ratio, set<CUserCDP> &expiredCdps, set<CUserCDP> &userCdps) {
+    for (const auto item : cdps) {
+        LogPrint("CDP", "CCDPMemCache::GetCDPList, candidate cdp: %s, valid: %d, ratio: %f\n", item.first.ToString(),
+                 item.second, ratio);
+    }
+
     static CRegID regId(std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint16_t>::max());
-    static uint256 txid;
     static CUserCDP cdp;
     cdp.collateral_ratio_base = ratio;
     cdp.owner_regid           = regId;
 
     auto boundary = cdps.upper_bound(cdp);
-    if (boundary != cdps.end()) {
-        for (auto iter = cdps.begin(); iter != boundary; ++ iter) {
-            if (db_util::IsEmpty(iter->second)) {
-                expiredCdps.insert(iter->first);
-            } else if (expiredCdps.count(iter->first) || userCdps.count(iter->first)) {
-                LogPrint("CDP", "CCDPMemCache::GetCDPList, found an expired item, ignore\n");
-                continue;
-            } else {
-                // Got a valid cdp
-                userCdps.insert(iter->first);
-            }
+    for (auto iter = cdps.begin(); iter != boundary; ++ iter) {
+        if (db_util::IsEmpty(iter->second)) {
+            expiredCdps.insert(iter->first);
+        } else if (expiredCdps.count(iter->first) || userCdps.count(iter->first)) {
+            LogPrint("CDP", "CCDPMemCache::GetCDPList, found an expired item, ignore\n");
+            continue;
+        } else {
+            // Got a valid cdp
+            LogPrint("CDP", "CCDPMemCache::GetCDPList, found an valid item, %s\n", iter->first.ToString());
+            userCdps.insert(iter->first);
         }
     }
 
