@@ -65,7 +65,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
     uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!");
+        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
         return true;
     }
 
