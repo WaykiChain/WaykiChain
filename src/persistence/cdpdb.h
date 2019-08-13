@@ -69,7 +69,7 @@ public:
 
 
     bool NewCDP(const int32_t blockHeight, CUserCDP &cdp);
-    bool UpdateCDP(const CUserCDP &cdp);
+    bool UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP);
 
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
 

@@ -159,6 +159,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
                              REJECT_INVALID, "cdp-not-exist");
         }
+
+        CUserCDP oldCDP = cdp; // copy before modify.
+
         if (height < cdp.block_height) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.block_height: %d",
                     height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
@@ -196,7 +199,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         // settle cdp state & persist
         cdp.AddStake(height, bcoins_to_stake, scoins_to_mint);
-        if (!cw.cdpCache.UpdateCDP(cdp)) {
+        if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
         }
@@ -252,7 +255,7 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, 
+bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
     const uint64_t scoinsInterestToRepay,  CCacheWrapper &cw, CValidationState &state) {
 
     if (scoinsInterestToRepay == 0) return true;
@@ -325,6 +328,8 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                     txUid.ToString()), REJECT_INVALID, "not-cdp-owner");
     }
 
+    CUserCDP oldCDP = cdp; // copy before modify.
+
     if (height < cdp.block_height) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.block_height: %d",
                         height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
@@ -386,7 +391,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
             }
         }
 
-        if (!cw.cdpCache.UpdateCDP(cdp)) {
+        if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update CDP %s failed", cdp.cdpid.ToString()),
                             UPDATE_CDP_FAIL, "bad-save-cdp");
         }
@@ -447,7 +452,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
      return true;
  }
 
-bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, 
+bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
     const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state) {
 
     if (scoinsInterestToRepay == 0) return true;
@@ -547,6 +552,9 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
                         txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
     }
+
+    CUserCDP oldCDP = cdp; // copy before modify.
+
     CAccount cdpOwnerAccount;
     if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
@@ -652,7 +660,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         CReceipt receipt3(nTxType, nullUid, ownerUserId, cdp.bcoin_symbol, (uint64_t)totalBcoinsToCdpOwner);
         receipts.push_back(receipt3);
 
-    } else { //partial liquidation
+    } else {    // partial liquidation
         double liquidateRate = (double) scoins_to_liquidate / totalScoinsToLiquidate; //unboosted on purpose
         assert(liquidateRate < 1);
         totalBcoinsToReturnLiquidator *= liquidateRate;
@@ -676,7 +684,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         if (!ProcessPenaltyFees(CTxCord(height, index), cdp, scoinsToReturnSysFund, cw, state))
             return false;
 
-        if (!cw.cdpCache.UpdateCDP(cdp)) {
+        if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, update CDP failed! cdpid=%s",
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
@@ -738,7 +746,7 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     return true;
 }
 
-bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees, 
+bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
     CCacheWrapper &cw, CValidationState &state) {
 
     if (scoinPenaltyFees == 0)

@@ -146,12 +146,13 @@ void CCDPMemCache::SetGlobalItem(const uint64_t globalStakedBcoins, const uint64
              global_staked_bcoins, global_owed_scoins);
 }
 
-bool CCDPDBCache::UpdateCDP(const CUserCDP &cdp) {
-    cdpMemCache.EraseCDP(cdp);
-    if (cdp.IsFinished()) {
-        return EraseCDP(cdp);
+// Need to delete the old cdp(before updating cdp), then save the new cdp if necessary.
+bool CCDPDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
+    cdpMemCache.EraseCDP(oldCDP);
+    if (newCDP.IsFinished()) {
+        return EraseCDP(newCDP);
     } else {
-        return SaveCDPToDB(cdp) && cdpMemCache.SaveCDP(cdp);
+        return SaveCDPToDB(newCDP) && cdpMemCache.SaveCDP(newCDP);
     }
 }
 
