@@ -268,7 +268,8 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price error");
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t bcoinMedianPrice      = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t globalCollateralRatio = pCdMan->pCdpCache->cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice);
     bool globalCollateralRatioFloorReached =
         pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
 
@@ -300,9 +301,10 @@ Value getscoininfo(const Array& params, bool fHelp){
     obj.push_back(Pair("slide_window_block_count",              slideWindowBlockCount));
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling));
     obj.push_back(Pair("global_collateral_ratio_floor",         globalCollateralRatioFloor));
-    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
     obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
     obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
+    obj.push_back(Pair("global_collateral_ratio",               globalCollateralRatio));
+    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
     obj.push_back(Pair("force_liquidate_ratio",                 forceLiquidateRatio));
     obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
 
