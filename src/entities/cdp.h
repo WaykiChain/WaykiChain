@@ -79,10 +79,13 @@ struct CUserCDP {
     Object ToJson(uint64_t bcoinMedianPrice) const;
 
     inline void Update() const {
-        if (total_owed_scoins == 0 || total_staked_bcoins == 0)
+        if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
+            collateral_ratio_base = UINT64_MAX;  // big safe percent
+        } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
             collateral_ratio_base = 0;
-        else
-            collateral_ratio_base = total_staked_bcoins / (double)total_owed_scoins;
+        } else {
+            collateral_ratio_base = double(total_staked_bcoins) / total_owed_scoins;
+        }
     }
 
     void Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t scoinsToRepay);

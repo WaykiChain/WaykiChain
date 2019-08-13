@@ -101,7 +101,8 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellInterestForFcoins(const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, 
+        CCacheWrapper &cw, CValidationState &state);
 
 private:
     TokenSymbol fee_symbol;
@@ -177,7 +178,8 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    bool SellInterestForFcoins(const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state);
+    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, 
+        CCacheWrapper &cw, CValidationState &state);
 
 private:
     TokenSymbol fee_symbol;
@@ -248,7 +250,8 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state);
+    bool ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees, 
+        CCacheWrapper &cw, CValidationState &state);
 
 private:
     TokenSymbol fee_symbol;

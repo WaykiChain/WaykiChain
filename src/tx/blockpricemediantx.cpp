@@ -100,27 +100,38 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         currRiskReserveScoins -= cdp.total_owed_scoins;
 
         // b) sell WICC for WUSD to return to risk reserve pool
-        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
-        if (!cw.dexCache.CreateSysOrder(GetHash(), *pBcoinSellMarketOrder)) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellBcoinForScoin (%s) failed!!",
+        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
+            CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
+        if (!cw.dexCache.CreateActiveOrder(GetHash(), *pBcoinSellMarketOrder)) {
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed!!",
                     pBcoinSellMarketOrder->ToString());
             break;
         }
 
-        // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool
-        assert(cdp.total_owed_scoins > cdp.total_staked_bcoins * bcoinMedianPrice);
-        uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - cdp.total_staked_bcoins * bcoinMedianPrice;
-        uint64_t fcoinsToInflate = fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
-        auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
-        if (!cw.dexCache.CreateSysOrder(GetHash(), *pFcoinSellMarketOrder)) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, CreateSysOrder SellFcoinForScoin (%s) failed!!",
-                    pFcoinSellMarketOrder->ToString());
-            break;
-        }
+        // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
+        uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / kPercentBoost);
+        if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
+                "Placed BcoinSellMarketOrder:  %s\n"
+                "No need to infate WGRT coins: %llu vs %llu\n"
+                "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
+                pBcoinSellMarketOrder->ToString(),
+                bcoinsValueInScoin, cdp.total_owed_scoins,
+                prevRiskReserveScoins,
+                currRiskReserveScoins);
+        } else {  // 0 ~ 1
+            uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
+            uint64_t fcoinsToInflate =
+                fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
+            auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
+                CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
+            if (!cw.dexCache.CreateActiveOrder(GetHash(), *pFcoinSellMarketOrder)) {
+                LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed!!",
+                        pFcoinSellMarketOrder->ToString());
+                break;
+            }
 
-        // d) Close the CDP
-        cw.cdpCache.EraseCDP(cdp);
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                 "Placed BcoinSellMarketOrder:  %s\n"
                 "Placed FcoinSellMarketOrder:  %s\n"
                 "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
@@ -128,13 +139,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 pFcoinSellMarketOrder->ToString(),
                 prevRiskReserveScoins,
                 currRiskReserveScoins);
+        }
 
-        //TODO: double check state consistence between MemCache & DBCache for CDP
+        // d) Close the CDP
+        cw.cdpCache.EraseCDP(cdp);
     }
 
     uint64_t prevScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, currRiskReserveScoins - prevScoins);
-
     cw.accountCache.SaveAccount(fcoinGenesisAccount);
 
     return SaveTxAddresses(height, index, cw, state, {txUid});

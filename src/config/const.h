@@ -136,5 +136,6 @@ static const uint16_t kMaxMinedBlocks               = 100;          // maximun c
 
 static const string kContractScriptPathPrefix       = "/tmp/lua/";
 
+static const string EMPTY_STRING = "";
 
 #endif //CONFIG_CONST_H

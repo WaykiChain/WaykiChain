@@ -11,16 +11,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 // class CDexDBCache
 
-bool CDexDBCache::GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder &activeOrder) {
+bool CDexDBCache::GetActiveOrder(const uint256 &orderTxId, CDEXOrderDetail &activeOrder) {
     return activeOrderCache.GetData(orderTxId, activeOrder);
 };
 
-bool CDexDBCache::CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder) {
+bool CDexDBCache::HaveActiveOrder(const uint256 &orderTxId) {
+    return activeOrderCache.HaveData(orderTxId);
+};
+
+bool CDexDBCache::CreateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail &activeOrder) {
     assert(!activeOrderCache.HaveData(orderTxId));
     return activeOrderCache.SetData(orderTxId, activeOrder);
 }
 
-bool CDexDBCache::ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder &activeOrder) {
+bool CDexDBCache::UpdateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.SetData(orderTxId, activeOrder);
 };
 
@@ -28,18 +32,3 @@ bool CDexDBCache::EraseActiveOrder(const uint256 &orderTxId) {
     return activeOrderCache.EraseData(orderTxId);
 };
 
-bool CDexDBCache::GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &sysOrder) {
-    return sysOrderCache.GetData(orderTxId, sysOrder);
-}
-
-bool CDexDBCache::CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder) {
-    if (sysOrderCache.HaveData(orderTxId)) {
-        return ERRORMSG("CDexDBCache::CreateOrder failed. the order exists. txid=%s",
-                        orderTxId.ToString());
-    }
-    if (!sysOrderCache.SetData(orderTxId, buyOrder)) return false;
-    CDEXActiveOrder activeOrder;
-    activeOrder.generate_type = SYSTEM_GEN_ORDER;  //!< generate type
-    if (!CreateActiveOrder(orderTxId, activeOrder)) return false;
-    return true;
-};

@@ -23,13 +23,11 @@ public:
     CDexDBCache(CDBAccess *pDbAccess) : activeOrderCache(pDbAccess), sysOrderCache(pDbAccess) {};
 
 public:
-    bool GetActiveOrder(const uint256 &orderTxId, CDEXActiveOrder& activeOrder);
-    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder);
-    bool ModifyActiveOrder(const uint256 &orderTxId, const CDEXActiveOrder& activeOrder);
+    bool GetActiveOrder(const uint256 &orderTxId, CDEXOrderDetail& activeOrder);
+    bool HaveActiveOrder(const uint256 &orderTxId);
+    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail& activeOrder);
+    bool UpdateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail& activeOrder);
     bool EraseActiveOrder(const uint256 &orderTxId);
-
-    bool GetSysOrder(const uint256 &orderTxId, CDEXSysOrder &buyOrder);
-    bool CreateSysOrder(const uint256 &orderTxId, const CDEXSysOrder &buyOrder);
 
     bool Flush() {
         activeOrderCache.Flush();
@@ -55,8 +53,8 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// DexDB
     // order tx id -> active order
-    CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXActiveOrder >     activeOrderCache;
-    CCompositeKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
+    CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXOrderDetail >     activeOrderCache;
+    CCompositeKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXOrderDetail >        sysOrderCache;
 };
 
 #endif //PERSIST_DEX_H

@@ -58,10 +58,10 @@ void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate,
 
 uint64_t CUserCDP::ComputeCollateralRatio(uint64_t bcoinPrice) {
     if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
-        return (uint64_t)100000000 * kPercentBoost; // big safe percent
+        return UINT64_MAX; // big safe percent
     } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
         return 0;
     } else {
-        return bcoinPrice * total_staked_bcoins / (double)total_owed_scoins;
+        return  double(bcoinPrice) * total_staked_bcoins / total_owed_scoins;
     }
 }

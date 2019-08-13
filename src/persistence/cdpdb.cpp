@@ -64,7 +64,8 @@ bool CCDPMemCache::HaveCDP(const CUserCDP &userCdp) {
 
 uint64_t CCDPMemCache::GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const {
     // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
-    return (global_owed_scoins == 0) ? UINT64_MAX : global_staked_bcoins * bcoinMedianPrice / global_owed_scoins;
+    return (global_owed_scoins == 0) ? UINT64_MAX : uint64_t(double(global_staked_bcoins)
+        * bcoinMedianPrice / global_owed_scoins);
 }
 
 uint64_t CCDPMemCache::GetGlobalCollateral() const {
