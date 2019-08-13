@@ -7,14 +7,13 @@
 #define TX_DEX_H
 
 #include "entities/asset.h"
+#include "entities/dexorder.h"
 #include "tx.h"
 #include "persistence/dexdb.h"
 
 class CDEXOrderBaseTx : public CBaseTx {
 public:
     using CBaseTx::CBaseTx;
-
-    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail) = 0;
 
 public:
     bool CheckOrderAmountRange(CValidationState &state, const string &title,
@@ -81,9 +80,6 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
-public: // derive from CDEXOrderBaseTx
-    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
-
 private:
     TokenSymbol fee_symbol;
 
@@ -145,9 +141,6 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
-public: // derive from CDEXOrderBaseTx
-    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
-
 private:
     TokenSymbol fee_symbol;
 
@@ -206,9 +199,6 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
-
-public: // derive from CDEXOrderBaseTx
-    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     TokenSymbol fee_symbol;
 
@@ -265,9 +255,6 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
-
-public: // derive from CDEXOrderBaseTx
-    virtual void GetOrderDetail(CDEXOrderDetail &orderDetail);
 private:
     TokenSymbol fee_symbol;
 
@@ -392,6 +379,10 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+
+private:
+    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &txid,
+        const OrderSide orderSide, CDEXOrderDetail &dealOrder);
 
 private:
     TokenSymbol fee_symbol;

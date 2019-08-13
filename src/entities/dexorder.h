@@ -11,17 +11,18 @@
 
 #include "id.h"
 #include "asset.h"
+#include "commons/types.h"
 
-enum OrderSide {
-    ORDER_BUY  = 0,
-    ORDER_SELL = 1,
+enum OrderSide: uint8_t {
+    ORDER_BUY  = 1,
+    ORDER_SELL = 2,
 };
 
 const static std::string OrderSideTitles[] = {"Buy", "Sell"};
 
-enum OrderType {
-    ORDER_LIMIT_PRICE   = 0, //!< limit price order type
-    ORDER_MARKET_PRICE  = 1  //!< market price order type
+enum OrderType: uint8_t {
+    ORDER_LIMIT_PRICE   = 1, //!< limit price order type
+    ORDER_MARKET_PRICE  = 2  //!< market price order type
 };
 
 const static std::string OrderTypeTitles[] = {"LimitPrice", "MarketPrice"};
@@ -32,15 +33,76 @@ enum OrderGenerateType {
     SYSTEM_GEN_ORDER    = 2
 };
 
+static const EnumTypeMap<OrderGenerateType, string> ORDER_GEN_TYPE_NAMES = {
+    {EMPTY_ORDER, "EMPTY_ORDER"},
+    {USER_GEN_ORDER, "USER_GEN_ORDER"},
+    {SYSTEM_GEN_ORDER, "SYSTEM_GEN_ORDER"}
+};
+
+inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
+    static const string empty = "";
+    auto it = ORDER_GEN_TYPE_NAMES.find(genType);
+    if (it != ORDER_GEN_TYPE_NAMES.end())
+        return it->second;
+    return empty;
+}
+
 struct CDEXOrderDetail {
-    CRegID user_regid;         //!< user regid
-    OrderType order_type;      //!< order type
-    OrderSide order_side;      //!< order side
-    TokenSymbol coin_symbol;   //!< coin symbol
-    TokenSymbol asset_symbol;  //!< asset symbol
-    uint64_t coin_amount;      //!< amount of coin to buy/sell asset
-    uint64_t asset_amount;     //!< amount of asset to buy/sell
-    uint64_t price;            //!< price in coinType want to buy/sell asset
+    OrderGenerateType generate_type    = EMPTY_ORDER;       //!< generate type
+    OrderType order_type               = ORDER_LIMIT_PRICE; //!< order type
+    OrderSide order_side               = ORDER_BUY;         //!< order side
+    TokenSymbol coin_symbol            = "";                //!< coin symbol
+    TokenSymbol asset_symbol           = "";                //!< asset symbol
+    uint64_t coin_amount               = 0;                 //!< amount of coin to buy/sell asset
+    uint64_t asset_amount              = 0;                 //!< amount of asset to buy/sell
+    uint64_t price                     = 0;                 //!< price in coinType want to buy/sell asset
+    CTxCord  tx_cord                   = CTxCord();         //!< related tx cord
+    CRegID user_regid                  = CRegID();          //!< user regid
+    uint64_t total_deal_coin_amount    = 0;                 //!< total deal coin amount
+    uint64_t total_deal_asset_amount   = 0;                 //!< total deal asset amount
+
+public:
+    static shared_ptr<CDEXOrderDetail> CreateUserBuyLimitOrder(
+        const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol, const uint64_t assetAmountIn,
+        const uint64_t priceIn, const CTxCord &txCord, const CRegID &userRegid);
+
+public:
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)generate_type);
+        READWRITE((uint8_t&)order_type);
+        READWRITE((uint8_t&)order_side);
+        READWRITE(coin_symbol);
+        READWRITE(asset_symbol);
+        READWRITE(VARINT(coin_amount));
+        READWRITE(VARINT(asset_amount));
+        READWRITE(VARINT(price));
+        READWRITE(tx_cord);
+        READWRITE(user_regid);
+        READWRITE(VARINT(total_deal_coin_amount));
+        READWRITE(VARINT(total_deal_asset_amount));
+
+        READWRITE(tx_cord);
+    )
+
+    bool IsEmpty() const {
+        return generate_type == EMPTY_ORDER;
+    }
+    void SetEmpty() {
+        generate_type             = EMPTY_ORDER;
+        order_type                = ORDER_LIMIT_PRICE;
+        order_side                = ORDER_BUY;
+        coin_symbol               = "";
+        asset_symbol              = "";
+        coin_amount               = 0;
+        asset_amount              = 0;
+        price                     = 0;
+        tx_cord.SetEmpty();
+        user_regid.SetEmpty();
+        total_deal_coin_amount    = 0;
+        total_deal_asset_amount   = 0;
+    }
+
+    string ToString() const;
 };
 
 
@@ -93,17 +155,17 @@ private:
     uint64_t        asset_amount;   //!< amount of coin to buy asset
     uint64_t        price;          //!< price in coin_symbol want to buy/sell asset
 public:// create functions
-    static shared_ptr<CDEXSysOrder> CreateBuyLimitOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
-                                                        const uint64_t assetAmountIn, const uint64_t priceIn);
+    static shared_ptr<CDEXOrderDetail> CreateBuyLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
+        const TokenSymbol &assetSymbol, const uint64_t assetAmountIn, const uint64_t priceIn);
 
-    static shared_ptr<CDEXSysOrder> CreateSellLimitOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
-                                                         const uint64_t assetAmountIn, const uint64_t priceIn);
+    static shared_ptr<CDEXOrderDetail> CreateSellLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
+        const TokenSymbol &assetSymbol, const uint64_t assetAmountIn, const uint64_t priceIn);
 
-    static shared_ptr<CDEXSysOrder> CreateBuyMarketOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
-                                                         const uint64_t coinAmountIn);
+    static shared_ptr<CDEXOrderDetail> CreateBuyMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
+        const TokenSymbol &assetSymbol, const uint64_t coinAmountIn);
 
-    static shared_ptr<CDEXSysOrder> CreateSellMarketOrder(const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol,
-                                                          const uint64_t assetAmountIn);
+    static shared_ptr<CDEXOrderDetail> CreateSellMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
+        const TokenSymbol &assetSymbol, const uint64_t assetAmountIn);
 
 public:
     // default constructor

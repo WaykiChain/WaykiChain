@@ -187,10 +187,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                             free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
 
-        if (!SellInterestForFcoins(cdp, scoinsInterestToRepay, cw, state)) {
-            //TODO add to error Log
-            return false;
-        }
+        if (!SellInterestForFcoins(CTxCord(height, index), cdp, scoinsInterestToRepay, cw, state)) return false;
 
         if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: < scoinsInterestToRepay: %d",
@@ -255,9 +252,13 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     return true;
 }
 
-bool CCDPStakeTx::SellInterestForFcoins(const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state) {
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
-    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
+bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, 
+    const uint64_t scoinsInterestToRepay,  CCacheWrapper &cw, CValidationState &state) {
+
+    if (scoinsInterestToRepay == 0) return true;
+
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
+    if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -330,20 +331,18 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     uint64_t scoinsInterestToRepay = 0;
-    if (cdp.total_owed_scoins != 0 &&
-        !ComputeCDPInterest(height, cdp.block_height, cw, cdp.total_owed_scoins,
+    if (!ComputeCdpInterest(height, cdp.block_height, cw, cdp.total_owed_scoins,
                             scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCDPInterest error!"),
                          REJECT_INVALID, "interest-insufficient-error");
     }
 
-    if (scoinsInterestToRepay != 0 &&
-        !account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
+    if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, Deduct interest error!"),
                          REJECT_INVALID, "deduct-interest-error");
     }
 
-    if (scoinsInterestToRepay != 0 && !SellInterestForFcoins(cdp, scoinsInterestToRepay, cw, state)) {
+    if (!SellInterestForFcoins(CTxCord(height, index), cdp, scoinsInterestToRepay, cw, state)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, SellInterestForFcoins error!"),
                             REJECT_INVALID, "sell-interest-for-fcoins-error");
     }
@@ -448,10 +447,14 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
      return true;
  }
 
+bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, 
+    const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state) {
 
-bool CCDPRedeemTx::SellInterestForFcoins(const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state) {
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
-    if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
+    if (scoinsInterestToRepay == 0) return true;
+
+    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
+                                                                 SYMB::WGRT, scoinsInterestToRepay);
+    if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
@@ -630,7 +633,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
         cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
 
-        if (!ProcessPenaltyFees(cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
+        if (!ProcessPenaltyFees(CTxCord(height, index), cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
             return false;
 
         //close CDP
@@ -670,7 +673,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         // TODO: need to limit the min value for the rest of cdp?
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
-        if (!ProcessPenaltyFees(cdp, scoinsToReturnSysFund, cw, state))
+        if (!ProcessPenaltyFees(CTxCord(height, index), cdp, scoinsToReturnSysFund, cw, state))
             return false;
 
         if (!cw.cdpCache.UpdateCDP(cdp)) {
@@ -735,7 +738,9 @@ bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) 
     return true;
 }
 
-bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPenaltyFees, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees, 
+    CCacheWrapper &cw, CValidationState &state) {
+
     if (scoinPenaltyFees == 0)
         return true;
 
@@ -758,8 +763,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CUserCDP &cdp, uint64_t scoinPena
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
 
         // 2) sell 50% penalty fees for Fcoins and burn
-        auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
-        if (!cw.dexCache.CreateSysOrder(GetHash(), *pSysBuyMarketOrder)) {
+        auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
+        if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, create system buy order failed"),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
         }

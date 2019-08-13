@@ -655,8 +655,7 @@ void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenS
 }
 
 void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid) {
-    CDEXActiveOrder activeOrder;
-    if (!dexCache.GetActiveOrder(orderTxid, activeOrder))
+    if (!dexCache.HaveActiveOrder(orderTxid))
         throw JSONRPCError(RPC_DEX_ORDER_INACTIVE, "Order is inactive or not existed");
 }
 
