@@ -17,10 +17,16 @@
  *
  *  ==> ratio = a / Log10 (b+N)
  */
-bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlockHeight, CCacheWrapper &cw,
+bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlockHeight, CCacheWrapper &cw,
                         const uint64_t total_owed_scoins, uint64_t &interestOut) {
-    int32_t blockInterval = currBlockHeight - cpdLastBlockHeight;
-    int32_t loanedDays = ceil( (double) blockInterval / kDayBlockTotalCount );
+    if (total_owed_scoins == 0) {
+        interestOut = 0;
+
+        return true;
+    }
+
+    int32_t blockInterval = currBlockHeight - cdpLastBlockHeight;
+    int32_t loanedDays    = ceil((double)blockInterval / kDayBlockTotalCount);
 
     uint64_t A;
     if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
@@ -30,9 +36,13 @@ bool ComputeCdpInterest(const int32_t currBlockHeight, const uint32_t cpdLastBlo
     if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
         return false;
 
-    uint64_t N = total_owed_scoins;
-    double annualInterestRate = 0.1 * A / log10( 1.0 + B * N / (double)COIN);
-    interestOut = (uint64_t) (((double) N / 365) * loanedDays * annualInterestRate);
+    uint64_t N                = total_owed_scoins;
+    double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
+    interestOut               = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
+
+    LogPrint("CDP", "ComputeCDPInterest, currBlockHeight: %d, cdpLastBlockHeight: %d, loanedDays: %d, A: %llu, B: %llu, N: "
+             "%llu, annualInterestRate: %f, interestOut: %llu\n",
+             currBlockHeight, cdpLastBlockHeight, loanedDays, A, B, N, annualInterestRate, interestOut);
 
     return true;
 }
@@ -166,14 +176,14 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         uint64_t scoinsInterestToRepay;
-        if (!ComputeCdpInterest(height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCdpInterest error!"),
+        if (!ComputeCDPInterest(height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
                              REJECT_INVALID, "compute-interest-error");
         }
 
         uint64_t free_scoins = account.GetToken(scoin_symbol).free_amount;
         if (free_scoins < scoinsInterestToRepay) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %d < scoinsInterestToRepay: %d",
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %llu < scoinsInterestToRepay: %llu",
                             free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
 
@@ -321,9 +331,9 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     uint64_t scoinsInterestToRepay = 0;
     if (cdp.total_owed_scoins != 0 &&
-        !ComputeCdpInterest(height, cdp.block_height, cw, cdp.total_owed_scoins,
+        !ComputeCDPInterest(height, cdp.block_height, cw, cdp.total_owed_scoins,
                             scoinsInterestToRepay)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCdpInterest error!"),
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCDPInterest error!"),
                          REJECT_INVALID, "interest-insufficient-error");
     }
 
