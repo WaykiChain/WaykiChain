@@ -15,7 +15,7 @@ string CDEXOrderDetail::ToString() const {
             "generate_type=%s, order_side=%s, order_type=%s, coin_symbol=%d, asset_symbol=%s, coin_amount=%lu,"
             " asset_amount=%lu, price=%lu, tx_cord=%s, user_regid=%s, total_deal_coin_amount=%llu,"
             " total_deal_asset_amount=%llu",
-            GetOrderGenTypeName(generate_type), OrderSideTitles[order_side], OrderTypeTitles[order_type],
+            GetOrderGenTypeName(generate_type), GetOrderSideName(order_side), GetOrderTypeName(order_type),
             coin_symbol, asset_symbol, coin_amount, asset_amount, price, tx_cord.ToString(), 
             user_regid.ToString(), total_deal_coin_amount, total_deal_asset_amount);
 }
@@ -98,22 +98,4 @@ shared_ptr<CDEXOrderDetail> CDEXSysOrder::CreateSellMarketOrder(const CTxCord& t
     return pSysOrder;
 }
 
-bool CDEXSysOrder::IsEmpty() const { return coin_amount == 0 && asset_amount == 0 && price == 0; }
-
-void CDEXSysOrder::SetEmpty() {
-    coin_amount  = 0;
-    asset_amount = 0;
-    price        = 0;
-}
-
-void CDEXSysOrder::GetOrderDetail(CDEXOrderDetail &orderDetail) const {
-    orderDetail.user_regid   = SysCfg().GetFcoinGenesisRegId();
-    orderDetail.order_type   = order_type;
-    orderDetail.order_side   = order_side;
-    orderDetail.coin_symbol  = coin_symbol;
-    orderDetail.asset_symbol = asset_symbol;
-    orderDetail.coin_amount  = coin_amount;
-    orderDetail.asset_amount = asset_amount;
-    orderDetail.price        = price;
-}
 

@@ -331,7 +331,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     uint64_t scoinsInterestToRepay = 0;
-    if (!ComputeCdpInterest(height, cdp.block_height, cw, cdp.total_owed_scoins,
+    if (!ComputeCDPInterest(height, cdp.block_height, cw, cdp.total_owed_scoins,
                             scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCDPInterest error!"),
                          REJECT_INVALID, "interest-insufficient-error");

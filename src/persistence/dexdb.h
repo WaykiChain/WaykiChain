@@ -54,7 +54,7 @@ private:
     /////////// DexDB
     // order tx id -> active order
     CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,       uint256,             CDEXOrderDetail >     activeOrderCache;
-    CCompositeKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXSysOrder >        sysOrderCache;
+    CCompositeKVCache< dbk::DEX_SYS_ORDER,          uint256,             CDEXOrderDetail >        sysOrderCache;
 };
 
 #endif //PERSIST_DEX_H

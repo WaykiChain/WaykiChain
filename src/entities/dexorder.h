@@ -18,14 +18,28 @@ enum OrderSide: uint8_t {
     ORDER_SELL = 2,
 };
 
-const static std::string OrderSideTitles[] = {"Buy", "Sell"};
+const static vector<std::string> ORDER_SIDE_NAMES = {"Buy", "Sell"};
+
+inline const std::string &GetOrderSideName(OrderSide orderSide) {
+    if (orderSide < ORDER_SIDE_NAMES.size())
+        return ORDER_SIDE_NAMES[orderSide];
+    assert(false && "not support unknown OrderSide");
+    return EMPTY_STRING;
+}
 
 enum OrderType: uint8_t {
     ORDER_LIMIT_PRICE   = 1, //!< limit price order type
     ORDER_MARKET_PRICE  = 2  //!< market price order type
 };
 
-const static std::string OrderTypeTitles[] = {"LimitPrice", "MarketPrice"};
+const static vector<std::string> ORDER_TYPE_NAMES = {"LimitPrice", "MarketPrice"};
+
+inline const std::string &GetOrderTypeName(OrderType orderType) {
+    if (orderType < ORDER_TYPE_NAMES.size())
+        return ORDER_TYPE_NAMES[orderType];
+    assert(false && "not support unknown OrderType");
+    return EMPTY_STRING;
+}
 
 enum OrderGenerateType {
     EMPTY_ORDER         = 0,
@@ -40,11 +54,10 @@ static const EnumTypeMap<OrderGenerateType, string> ORDER_GEN_TYPE_NAMES = {
 };
 
 inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
-    static const string empty = "";
     auto it = ORDER_GEN_TYPE_NAMES.find(genType);
     if (it != ORDER_GEN_TYPE_NAMES.end())
         return it->second;
-    return empty;
+    return EMPTY_STRING;
 }
 
 struct CDEXOrderDetail {
@@ -145,15 +158,6 @@ struct CDEXActiveOrder {
 
 // txid -> sys order data
 class CDEXSysOrder {
-private:
-    OrderSide       order_side;     //!< order side: buy or sell
-    OrderType       order_type;     //!< order type
-    TokenSymbol     coin_symbol;    //!< coin type
-    TokenSymbol     asset_symbol;   //!< asset type
-
-    uint64_t        coin_amount;    //!< amount of coin to buy/sell asset
-    uint64_t        asset_amount;   //!< amount of coin to buy asset
-    uint64_t        price;          //!< price in coin_symbol want to buy/sell asset
 public:// create functions
     static shared_ptr<CDEXOrderDetail> CreateBuyLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
         const TokenSymbol &assetSymbol, const uint64_t assetAmountIn, const uint64_t priceIn);
@@ -166,54 +170,6 @@ public:// create functions
 
     static shared_ptr<CDEXOrderDetail> CreateSellMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
         const TokenSymbol &assetSymbol, const uint64_t assetAmountIn);
-
-public:
-    // default constructor
-    CDEXSysOrder():
-        order_side(ORDER_BUY),
-        order_type(ORDER_LIMIT_PRICE),
-        coin_symbol(SYMB::WUSD),
-        asset_symbol(SYMB::WICC),
-        coin_amount(0),
-        asset_amount(0),
-        price(0)
-        { }
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t&)order_side);
-        READWRITE((uint8_t&)order_type);
-        READWRITE(coin_symbol);
-        READWRITE(asset_symbol);
-
-        READWRITE(VARINT(coin_amount));
-        READWRITE(VARINT(asset_amount));
-        READWRITE(VARINT(price));
-    )
-
-    string ToString() {
-        return strprintf(
-                "order_side=%s, order_type=%s, coin_symbol=%d, asset_symbol=%s, coin_amount=%lu, asset_amount=%lu, price=%lu",
-                OrderSideTitles[order_side], OrderTypeTitles[order_type],
-                coin_symbol, asset_symbol, coin_amount, asset_amount, price);
-    }
-
-    bool IsEmpty() const;
-    void SetEmpty();
-    void GetOrderDetail(CDEXOrderDetail &orderDetail) const;
-};
-
-// System-generated Market Order
-// wicc -> wusd (cdp forced liquidation)
-// wgrt -> wusd (inflate wgrt to get wusd)
-// wusd -> wgrt (pay interest to get wgrt to burn)
-struct CDEXSysForceSellBcoinsOrder {
-    CUserID cdp_owner_uid;
-    uint64_t bcoins_amount;
-    uint64_t scoins_amount;
-    double collateral_ratio_by_amount; // fixed: 100 *  bcoinsAmount / scoinsAmount
-    double collateral_ratio_by_value;  // collateralRatioAmount * wiccMedianPrice
-    uint64_t order_discount; // *1000 E.g. 97% * 1000 = 970
-
 };
 
 #endif //ENTITIES_DEX_ORDER_H
