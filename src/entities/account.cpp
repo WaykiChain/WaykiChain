@@ -26,7 +26,7 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
 
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
     if (!kCoinTypeSet.count(tokenSymbol)) {
-        assert(false && "Unsupport token symbol");
+        assert(false && "Unsupported token symbol");
         return false;
     }
     CAccountToken &accountToken = tokens[tokenSymbol];
@@ -37,14 +37,16 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         }
         case SUB_FREE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu)",
+                                accountToken.free_amount, value);
 
             accountToken.free_amount -= value;
             return true;
         }
         case STAKE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu)",
+                                accountToken.free_amount, value);
 
             accountToken.free_amount -= value;
             accountToken.staked_amount += value;
@@ -52,7 +54,8 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         }
         case UNSTAKE: {
             if (accountToken.staked_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, staked_amount insufficient");
+                return ERRORMSG("CAccount::OperateBalance, staked_amount insufficient(%llu vs %llu)",
+                                accountToken.staked_amount, value);
 
             accountToken.free_amount += value;
             accountToken.staked_amount -= value;
@@ -60,7 +63,8 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         }
         case FREEZE: {
             if (accountToken.free_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient");
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu)",
+                                accountToken.free_amount, value);
 
             accountToken.free_amount -= value;
             accountToken.frozen_amount += value;
@@ -68,7 +72,8 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
         }
         case UNFREEZE: {
             if (accountToken.frozen_amount < value)
-                return ERRORMSG("CAccount::OperateBalance, frozen_amount insufficient");
+                return ERRORMSG("CAccount::OperateBalance, frozen_amount insufficient(%llu vs %llu)",
+                                accountToken.frozen_amount, value);
 
             accountToken.free_amount += value;
             accountToken.frozen_amount -= value;
