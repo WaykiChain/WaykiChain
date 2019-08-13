@@ -192,6 +192,7 @@ extern json_spirit::Value submitdexbuymarketordertx(const json_spirit::Array& pa
 extern json_spirit::Value submitdexsellmarketordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexcancelordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexorder(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);

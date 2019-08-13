@@ -12,17 +12,21 @@
 #include "id.h"
 #include "asset.h"
 #include "commons/types.h"
+#include "json/json_spirit.h"
 
 enum OrderSide: uint8_t {
     ORDER_BUY  = 1,
     ORDER_SELL = 2,
 };
 
-const static vector<std::string> ORDER_SIDE_NAMES = {"Buy", "Sell"};
+static const EnumTypeMap<OrderSide, string> ORDER_SIDE_NAMES = {
+    {ORDER_BUY, "Buy"}, {ORDER_SELL, "Sell"}
+};
 
 inline const std::string &GetOrderSideName(OrderSide orderSide) {
-    if (orderSide < ORDER_SIDE_NAMES.size())
-        return ORDER_SIDE_NAMES[orderSide];
+    auto it = ORDER_SIDE_NAMES.find(orderSide);
+    if (it != ORDER_SIDE_NAMES.end())
+        return it->second;
     assert(false && "not support unknown OrderSide");
     return EMPTY_STRING;
 }
@@ -32,11 +36,14 @@ enum OrderType: uint8_t {
     ORDER_MARKET_PRICE  = 2  //!< market price order type
 };
 
-const static vector<std::string> ORDER_TYPE_NAMES = {"LimitPrice", "MarketPrice"};
+static const EnumTypeMap<OrderType, string> ORDER_TYPE_NAMES = {
+    {ORDER_LIMIT_PRICE, "LimitPrice"}, {ORDER_MARKET_PRICE, "MarketPrice"}
+};
 
 inline const std::string &GetOrderTypeName(OrderType orderType) {
-    if (orderType < ORDER_TYPE_NAMES.size())
-        return ORDER_TYPE_NAMES[orderType];
+    auto it = ORDER_TYPE_NAMES.find(orderType);
+    if (it != ORDER_TYPE_NAMES.end())
+        return it->second;
     assert(false && "not support unknown OrderType");
     return EMPTY_STRING;
 }
@@ -116,6 +123,7 @@ public:
     }
 
     string ToString() const;
+    json_spirit::Object ToJson() const;
 };
 
 

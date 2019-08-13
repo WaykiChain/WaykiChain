@@ -334,6 +334,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexsellmarketordertx", &submitdexsellmarketordertx, true,     false,      false },
     { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
     { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
+    { "getdexorder",                &getdexorder,                true,     false,      false },
+    
 
     /* for asset */
     { "submitassetissuetx",         &submitassetissuetx,         true,     false,      false },

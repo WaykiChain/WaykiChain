@@ -640,6 +640,33 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     return SubmitTx(userId, tx);
 }
 
+Value getdexorder(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 1) {
+        throw runtime_error(
+            "getdexorder \"order_txid\"\n"
+            "\nget dex order detail.\n"
+            "\nArguments:\n"
+            "1.\"order_txid\": (string required) order txid\n"
+            "\nResult: object of order detail\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+        );
+    }
+    const uint256 &orderTxid = RPC_PARAM::GetTxid(params[0], "order_txid");
+
+    auto pDexCache = pCdMan->pDexCache;
+    CDEXOrderDetail orderDetail;
+    if (!pDexCache->GetActiveOrder(orderTxid, orderDetail))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_txid=%s", orderTxid.ToString()));
+
+    Object obj = orderDetail.ToJson();
+    obj.insert(obj.begin(), Pair("order_txid", orderTxid.ToString()));
+    return obj;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 // asset tx rpc
 
