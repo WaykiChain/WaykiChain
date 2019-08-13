@@ -52,11 +52,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                          "bad-median-price-points");
     }
 
-    CAccount fcoinGenesisAccount;
-    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
-    uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
-
-    //0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
+    // 0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
     uint64_t globalCollateralRatioFloor = 0;
     if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
@@ -69,7 +65,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         return true;
     }
 
-    //1. get all CDPs to be force settled
+    // 1. get fcoin median price
+    uint64_t fcoinMedianPrice = cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
+    if (fcoinMedianPrice == 0) {
+        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
+        return true;
+    }
+
+    // 2. get all CDPs to be force settled
     set<CUserCDP> forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
     if (!cw.sysParamCache.GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
@@ -82,17 +85,24 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
              "forceLiquidateRatio: %llu, forceLiquidateCdps: %llu\n",
              globalCollateralRatioFloor, bcoinMedianPrice, forceLiquidateRatio, forceLiquidateCdps.size());
 
-    //2. force settle each cdp
+    // 3. force settle each cdp
     int32_t cdpIndex = 0;
+    CAccount fcoinGenesisAccount;
+    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+    uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     for (auto cdp : forceLiquidateCdps) {
         if (++cdpIndex > kForceSettleCDPMaxCountPerBlock)
             break;
 
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s)\n", cdp.ToString());
+        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s), currRiskReserveScoins: %llu\n",
+                 cdp.ToString(), currRiskReserveScoins);
+
+        // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
+        // then skip the 120 cdp and settle the 30 and 50 cdp.
         if (currRiskReserveScoins < cdp.total_owed_scoins) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                     currRiskReserveScoins, cdp.total_owed_scoins);
-            break;
+            continue;
         }
 
         // a) minus scoins from the risk reserve pool to repay CDP scoins
@@ -112,7 +122,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / kPercentBoost);
         if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
-                "Placed BcoinSellMarketOrder:  %s\n"
+                "Placed BcoinSellMarketOrder: %s\n"
                 "No need to infate WGRT coins: %llu vs %llu\n"
                 "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
                 pBcoinSellMarketOrder->ToString(),
@@ -121,10 +131,10 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 currRiskReserveScoins);
         } else {  // 0 ~ 1
             uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
-            uint64_t fcoinsToInflate =
-                fcoinsValueToInflate / cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
-            auto pFcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
-                CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
+            assert(fcoinMedianPrice != 0);
+            uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
+            auto pFcoinSellMarketOrder =
+                CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
             if (!cw.dexCache.CreateActiveOrder(GetHash(), *pFcoinSellMarketOrder)) {
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed!!",
                         pFcoinSellMarketOrder->ToString());
