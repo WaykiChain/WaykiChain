@@ -20,6 +20,25 @@ string CDEXOrderDetail::ToString() const {
             user_regid.ToString(), total_deal_coin_amount, total_deal_asset_amount);
 }
 
+
+json_spirit::Object CDEXOrderDetail::ToJson() const {
+    json_spirit::Object obj;
+
+    obj.push_back(Pair("generate_type", GetOrderGenTypeName(generate_type)));
+    obj.push_back(Pair("order_type", GetOrderTypeName(order_type)));
+    obj.push_back(Pair("order_side", GetOrderSideName(order_side)));
+    obj.push_back(Pair("coin_symbol", coin_symbol));
+    obj.push_back(Pair("asset_symbol", asset_symbol));
+    obj.push_back(Pair("coin_amount", coin_amount));
+    obj.push_back(Pair("asset_amount", asset_amount));
+    obj.push_back(Pair("price", price));
+    obj.push_back(Pair("tx_cord", tx_cord.ToString()));
+    obj.push_back(Pair("user_regid", user_regid.ToString()));
+    obj.push_back(Pair("total_deal_coin_amount", total_deal_coin_amount));
+    obj.push_back(Pair("total_deal_asset_amount", total_deal_asset_amount));
+    return obj;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSysOrder
 

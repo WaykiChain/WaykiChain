@@ -268,7 +268,8 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price error");
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t bcoinMedianPrice      = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t globalCollateralRatio = pCdMan->pCdpCache->cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice);
     bool globalCollateralRatioFloorReached =
         pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
 
@@ -300,9 +301,10 @@ Value getscoininfo(const Array& params, bool fHelp){
     obj.push_back(Pair("slide_window_block_count",              slideWindowBlockCount));
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling));
     obj.push_back(Pair("global_collateral_ratio_floor",         globalCollateralRatioFloor));
-    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
     obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
     obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
+    obj.push_back(Pair("global_collateral_ratio",               globalCollateralRatio));
+    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
     obj.push_back(Pair("force_liquidate_ratio",                 forceLiquidateRatio));
     obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
 
@@ -639,6 +641,33 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     CDEXSettleTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), dealItems);
     return SubmitTx(userId, tx);
 }
+
+Value getdexorder(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 1) {
+        throw runtime_error(
+            "getdexorder \"order_txid\"\n"
+            "\nget dex order detail.\n"
+            "\nArguments:\n"
+            "1.\"order_txid\": (string required) order txid\n"
+            "\nResult: object of order detail\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+        );
+    }
+    const uint256 &orderTxid = RPC_PARAM::GetTxid(params[0], "order_txid");
+
+    auto pDexCache = pCdMan->pDexCache;
+    CDEXOrderDetail orderDetail;
+    if (!pDexCache->GetActiveOrder(orderTxid, orderDetail))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_txid=%s", orderTxid.ToString()));
+
+    Object obj = orderDetail.ToJson();
+    obj.insert(obj.begin(), Pair("order_txid", orderTxid.ToString()));
+    return obj;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // asset tx rpc
