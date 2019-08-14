@@ -90,6 +90,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
+    string orderIdFactor           = GetHash().GetHex();
+    uint32_t orderIndex            = 0;
     for (auto cdp : forceLiquidateCdps) {
         if (++cdpIndex > kForceSettleCDPMaxCountPerBlock)
             break;
@@ -112,7 +114,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // b) sell WICC for WUSD to return to risk reserve pool
         auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
             CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
-        string bcoinSellMarketOrderId = GetHash().GetHex() + SYMB::WICC;
+        string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
         if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pBcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed!!",
                      pBcoinSellMarketOrder->ToString());
@@ -136,7 +138,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
             auto pFcoinSellMarketOrder =
                 CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
-            string bcoinSellMarketOrderId = GetHash().GetHex() + SYMB::WGRT;
+            string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
             if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pFcoinSellMarketOrder)) {
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed!!",
                          pFcoinSellMarketOrder->ToString());
