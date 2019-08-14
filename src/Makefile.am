@@ -249,7 +249,6 @@ libcoin_server_a_SOURCES = \
   crypto/sha256.cpp \
   init.cpp \
   main.cpp \
-  p2p/chainmessage.cpp \
   miner/miner.cpp \
   net.cpp \
   rpc/core/httpserver.cpp \

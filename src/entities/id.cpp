@@ -27,7 +27,7 @@ CRegID::CRegID(const vector<unsigned char>& vIn) {
 }
 
 
-bool isDigitalString(const string str){
+bool IsDigitalString(const string str){
 
     if (str.length() > 10 || str.length() == 0) //int max is 4294967295 can not over 10
         return false;
@@ -50,7 +50,7 @@ bool CRegID::IsSimpleRegIdStr(const string & str) {
         string firtstr = str.substr(0, pos);
         string endstr = str.substr(pos + 1);
 
-        return isDigitalString(firtstr) && isDigitalString(endstr) ;
+        return IsDigitalString(firtstr) && IsDigitalString(endstr) ;
     }
     return false;
 }
