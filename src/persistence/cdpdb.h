@@ -99,6 +99,7 @@ public:
 
 private:
     bool SaveCDPToDB(const CUserCDP &cdp);
+    bool EraseCDPFromDB(const CUserCDP &cdp);
 private:
 /*  CCompositeKVCache     prefixType     key              value             variable  */
 /*  ----------------   --------------   ------------   --------------    -------------*/

@@ -112,9 +112,10 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // b) sell WICC for WUSD to return to risk reserve pool
         auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
             CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
-        if (!cw.dexCache.CreateActiveOrder(GetHash(), *pBcoinSellMarketOrder)) {
+        string bcoinSellMarketOrderId = GetHash().GetHex() + SYMB::WICC;
+        if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pBcoinSellMarketOrder)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed!!",
-                    pBcoinSellMarketOrder->ToString());
+                     pBcoinSellMarketOrder->ToString());
             break;
         }
 
@@ -122,10 +123,10 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / kPercentBoost);
         if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
-                "Placed BcoinSellMarketOrder: %s\n"
+                "Placed BcoinSellMarketOrder: %s, orderId: %s\n"
                 "No need to infate WGRT coins: %llu vs %llu\n"
                 "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
-                pBcoinSellMarketOrder->ToString(),
+                pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId,
                 bcoinsValueInScoin, cdp.total_owed_scoins,
                 prevRiskReserveScoins,
                 currRiskReserveScoins);
@@ -135,18 +136,19 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
             auto pFcoinSellMarketOrder =
                 CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
-            if (!cw.dexCache.CreateActiveOrder(GetHash(), *pFcoinSellMarketOrder)) {
+            string bcoinSellMarketOrderId = GetHash().GetHex() + SYMB::WGRT;
+            if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pFcoinSellMarketOrder)) {
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed!!",
-                        pFcoinSellMarketOrder->ToString());
+                         pFcoinSellMarketOrder->ToString());
                 break;
             }
 
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
-                "Placed BcoinSellMarketOrder:  %s\n"
-                "Placed FcoinSellMarketOrder:  %s\n"
+                "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
+                "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
                 "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
-                pBcoinSellMarketOrder->ToString(),
-                pFcoinSellMarketOrder->ToString(),
+                pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId,
+                pFcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId,
                 prevRiskReserveScoins,
                 currRiskReserveScoins);
         }
