@@ -75,16 +75,8 @@ string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &accountCache) {
 
 Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
 
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
 
     result.push_back(Pair("coin_symbol",      coin_symbol));
     result.push_back(Pair("asset_symbol",     asset_symbol));
@@ -181,16 +173,7 @@ string CDEXSellLimitOrderTx::ToString(CAccountDBCache &accountCache) {
 Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    CKeyID srcKeyId;
-    if(!accountCache.GetKeyId(txUid, srcKeyId)) { assert(false && "GetKeyId() failed"); }
-
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",         txUid.ToString()));
-    result.push_back(Pair("addr",           srcKeyId.ToAddress()));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
 
     result.push_back(Pair("coin_symbol",      coin_symbol));
     result.push_back(Pair("asset_symbol",     asset_symbol));

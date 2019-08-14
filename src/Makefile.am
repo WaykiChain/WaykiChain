@@ -77,6 +77,7 @@ coin_CORE_H = \
   init.h \
   limitedmap.h \
   main.h \
+  p2p/chainmessage.h \
   miner/miner.h \
   mruset.h \
   netbase.h \
