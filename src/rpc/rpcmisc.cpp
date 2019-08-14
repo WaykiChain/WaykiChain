@@ -93,16 +93,16 @@ Value getbalance(const Array& params, bool fHelp)
         } else {
             CKeyID keyid;
             if (!GetKeyId(addr, keyid)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unregistered address");
             }
             if (pWalletMain->HaveKey(keyid)) {
                 CAccount account;
                 if (pCdMan->pAccountCache->GetAccount(CUserID(keyid), account)) {
-                    obj.push_back( Pair("balance", ValueFromAmount(account.GetToken(SYMB::WICC).free_amount)) );
+                    obj.push_back(Pair("balance", ValueFromAmount(account.GetToken(SYMB::WICC).free_amount)));
                     return obj;
                 }
             } else {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not in wallet");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not in wallet");
             }
         }
     } else if (size == 2) {
@@ -110,7 +110,7 @@ Value getbalance(const Array& params, bool fHelp)
         int nConf = params[1].get_int();
         int nMaxConf = SysCfg().GetArg("-maxconf", 30);
         if(nConf > nMaxConf) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "parameter minconf exceed maxconf");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Parameter minconf exceed maxconf");
         }
         if (addr == "*") {
             if (0 != nConf) {
@@ -144,7 +144,7 @@ Value getbalance(const Array& params, bool fHelp)
         } else {
             CKeyID keyid;
             if (!GetKeyId(addr, keyid)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Unregistered address");
             }
             if (pWalletMain->HaveKey(keyid)) {
                 if (0 != nConf) {
@@ -175,7 +175,7 @@ Value getbalance(const Array& params, bool fHelp)
                     return obj;
                 }
             } else {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "address not inwallet");
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address not in wallet");
             }
         }
     }
