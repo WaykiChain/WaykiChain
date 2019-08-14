@@ -128,7 +128,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 "Placed BcoinSellMarketOrder: %s, orderId: %s\n"
                 "No need to infate WGRT coins: %llu vs %llu\n"
                 "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
-                pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId,
+                pBcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
                 bcoinsValueInScoin, cdp.total_owed_scoins,
                 prevRiskReserveScoins,
                 currRiskReserveScoins);
@@ -149,8 +149,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
                 "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
                 "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
-                pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId,
-                pFcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId,
+                pBcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
+                pFcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
                 prevRiskReserveScoins,
                 currRiskReserveScoins);
         }
