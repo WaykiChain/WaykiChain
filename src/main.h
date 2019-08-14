@@ -107,9 +107,6 @@ bool SendMessages(CNode *pTo, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
-/** Calculate the minimum amount of work a received block needs, without knowing its direct parent */
-uint32_t ComputeMinWork(uint32_t nBase, int64_t nTime);
-
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */

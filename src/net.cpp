@@ -1200,7 +1200,8 @@ void ThreadOpenConnections() {
             break;
         }
 
-        if (addrConnect.IsValid()) OpenNetworkConnection(addrConnect, &grant);
+        if (addrConnect.IsValid())
+            OpenNetworkConnection(addrConnect, &grant);
     }
 }
 

@@ -36,7 +36,6 @@ public:
         nDefaultPort             = IniCfg().GetDefaultPort(MAIN_NET);
         nRPCPort                 = IniCfg().GetRPCPort(MAIN_NET);
         strDataDir               = "main";
-        bnProofOfStakeLimit      = ~arith_uint256(0) >> 10;  // 00 3f ff ff
         nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(MAIN_NET);
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(MAIN_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
@@ -101,13 +100,13 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(TEST_NET), sizeof(pchMessageStart));
-        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(TEST_NET);
-        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
-        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(TEST_NET));
         nDefaultPort             = IniCfg().GetDefaultPort(TEST_NET);
         nRPCPort                 = IniCfg().GetRPCPort(TEST_NET);
         strDataDir               = "testnet";
+        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(TEST_NET);
+        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
+        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(99);
@@ -148,10 +147,11 @@ class CRegTestParams: public CTestNetParams {
 public:
     CRegTestParams() {
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
+        nDefaultPort             = IniCfg().GetDefaultPort(REGTEST_NET);
+        strDataDir               = "regtest";
         nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(REGTEST_NET);
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
-        bnProofOfStakeLimit      = ~arith_uint256(0) >> 6;  // target:00000011 11111111 11111111
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(68);
         genesis.vptx.clear();
@@ -159,8 +159,6 @@ public:
         assert(CreateGenesisDelegateTx(genesis.vptx, REGTEST_NET));
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
         genesisBlockHash = genesis.GetHash();
-        nDefaultPort = IniCfg().GetDefaultPort(REGTEST_NET) ;
-        strDataDir = "regtest";
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(REGTEST_NET));
 
         vFixedSeeds.clear();

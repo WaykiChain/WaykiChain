@@ -3,10 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #include "blockpricemediantx.h"
 #include "main.h"
-
 
 bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     // TODO: txUid == miner?
@@ -16,7 +14,7 @@ bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
 }
 
 /**
- *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 100%)
+ *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 104%)
  */
 bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     uint64_t slideWindowBlockCount;

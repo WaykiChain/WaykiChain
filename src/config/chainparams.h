@@ -214,7 +214,6 @@ public:
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }
-    const arith_uint256 ProofOfWorkLimit() { return bnProofOfStakeLimit; }
     int32_t GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
@@ -269,7 +268,6 @@ protected:
     int nDefaultPort;
     int nRPCPort;
     string alartPKey;
-    arith_uint256 bnProofOfStakeLimit;
     int nSubsidyHalvingInterval;
     string strDataDir;
     vector<CDNSSeedData> vSeeds;

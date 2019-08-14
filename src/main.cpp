@@ -681,30 +681,6 @@ int64_t GetBlockValue(int32_t height, int64_t nFees) {
     return nSubsidy + nFees;
 }
 
-//
-// minimum amount of work that could possibly be required nTime after
-// minimum work required was nBase
-//
-uint32_t ComputeMinWork(uint32_t nBase, int64_t nTime) {
-    arith_uint256 bnLimit = SysCfg().ProofOfWorkLimit();
-    // LogPrint("INFO", "bnLimit:%s\n", bnLimit.getuint256().GetHex());
-    bool fNegative;
-    bool fOverflow;
-
-    arith_uint256 bnResult;
-    bnResult.SetCompact(nBase, &fNegative, &fOverflow);
-    bnResult *= 2;
-    while (nTime > 0 && bnResult < bnLimit) {
-        // Maximum 200% adjustment per day...
-        bnResult *= 2;
-        nTime -= 24 * 60 * 60;
-    }
-    if (fNegative || bnResult == 0 || fOverflow || bnResult > bnLimit)
-        bnResult = bnLimit;
-
-    return bnResult.GetCompact();
-}
-
 arith_uint256 GetBlockProof(const CBlockIndex &block) {
     arith_uint256 bnTarget;
     bool fNegative;
