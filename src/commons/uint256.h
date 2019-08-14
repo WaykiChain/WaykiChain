@@ -22,7 +22,7 @@ inline signed char HexDigit(char c) { return p_util_hexdigit[(unsigned char)c]; 
 template <unsigned int BITS>
 class base_blob {
 public:
-    enum { WIDTH = BITS / 8 };    
+    enum { WIDTH = BITS / 8 };
 protected:
     uint8_t data[WIDTH];
 
@@ -161,11 +161,7 @@ inline uint256 uint256S(const char* str) {
  * This is a separate function because the constructor uint256(const std::string &str) can result
  * in dangerously catching uint256(0) via std::string(const char*).
  */
-inline uint256 uint256S(const std::string& str) {
-    uint256 rv;
-    rv.SetHex(str);
-    return rv;
-}
+inline uint256 uint256S(const std::string& str) { return uint256S(str.c_str()); }
 
 class CUint256Hasher {
 public:
