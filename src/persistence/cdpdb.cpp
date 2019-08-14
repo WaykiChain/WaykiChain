@@ -186,6 +186,10 @@ bool CCDPDBCache::GetCDP(const uint256 cdpid, CUserCDP &cdp) {
     return true;
 }
 
+bool CCDPDBCache::EraseCDP(const CUserCDP &cdp) {
+    return EraseCDPFromDB(cdp) && cdpMemCache.EraseCDP(cdp);
+}
+
 // Attention: update cdpCache and regId2CDPCache synchronously.
 bool CCDPDBCache::SaveCDPToDB(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
@@ -195,7 +199,7 @@ bool CCDPDBCache::SaveCDPToDB(const CUserCDP &cdp) {
     return cdpCache.SetData(cdp.cdpid, cdp) && regId2CDPCache.SetData(cdp.owner_regid.ToRawString(), cdpTxids);
 }
 
-bool CCDPDBCache::EraseCDP(const CUserCDP &cdp) {
+bool CCDPDBCache::EraseCDPFromDB(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
     regId2CDPCache.GetData(cdp.owner_regid.ToRawString(), cdpTxids);
     cdpTxids.erase(cdp.cdpid);
