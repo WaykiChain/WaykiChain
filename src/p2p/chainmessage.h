@@ -1,17 +1,20 @@
-//
-// Created by yehuan on 2019-08-13.
-//
+// Copyright (c) 2010 Satoshi Nakamoto
+// Copyright (c) 2009-2014 The WaykiChain developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef WAYKICHAIN_CHAINMESSAGE_H
-#define WAYKICHAIN_CHAINMESSAGE_H
+#ifndef CHAINMESSAGE_H
+#define CHAINMESSAGE_H
+
+#include "alert.h"
+#include "commons/uint256.h"
+#include "commons/util.h"
+#include "main.h"
+#include "net.h"
 
 #include <string>
 #include <vector>
-#include "commons/uint256.h"
-#include "commons/util.h"
-#include "net.h"
-#include "alert.h"
-#include "main.h"
+
 using namespace std ;
 
 class CNode ;
@@ -804,5 +807,4 @@ void inline ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv){
 
 }
 
-
-#endif //WAYKICHAIN_CHAINMESSAGE_H
+#endif  // CHAINMESSAGE_H
