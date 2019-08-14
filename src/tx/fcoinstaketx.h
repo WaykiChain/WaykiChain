@@ -18,13 +18,12 @@ public:
     CFcoinStakeTx()
         : CBaseTx(FCOIN_STAKE_TX), fee_symbol(SYMB::WICC), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
 
-    CFcoinStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn, BalanceOpType stakeTypeIn,
-                  uint64_t fcoinsToStakeIn)
+    CFcoinStakeTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol,
+                  const uint64_t feesIn, const BalanceOpType stakeTypeIn, const uint64_t fcoinsToStakeIn)
         : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
+          fee_symbol(feeSymbol),
           stakeType(stakeTypeIn),
-          fcoinsToStake(fcoinsToStakeIn) {
-              fee_symbol = SYMB::WICC; // TODO:
-          }
+          fcoinsToStake(fcoinsToStakeIn) {}
 
     ~CFcoinStakeTx() {}
 

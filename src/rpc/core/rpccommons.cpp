@@ -174,12 +174,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 Object SubmitTx(const CUserID &userId, CBaseTx &tx) {
 
     CAccount account;
-    if (pCdMan->pAccountCache->GetAccount(userId, account) && account.HaveOwnerPubKey()) {
-        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
-        if (balance < tx.llFees) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
-        }
-    } else {
+    if (!pCdMan->pAccountCache->GetAccount(userId, account) || !account.HaveOwnerPubKey()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
 
@@ -595,7 +590,7 @@ uint256 RPC_PARAM::GetTxid(const Value &jsonValue, const string &paramName, bool
     string binStr, errStr;
     if (!ParseHex(jsonValue.get_str(), binStr, errStr))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! %s", paramName, errStr));
-    
+
     if (binStr.empty()) {
         if (!canBeEmpty)
             throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! Can not be emtpy", paramName));
@@ -603,7 +598,7 @@ uint256 RPC_PARAM::GetTxid(const Value &jsonValue, const string &paramName, bool
     }
 
     if (binStr.size() != uint256::WIDTH) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! The hex str size should be %d", 
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! The hex str size should be %d",
             paramName, uint256::WIDTH * 2));
     }
     return uint256(binStr.rbegin(), binStr.rend());
@@ -669,7 +664,7 @@ bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStr
     // skip right spaces
     while (begin != end && isspace(hexStr[end - 1]))
         end--;
-    
+
     // skip 0x
     if (begin + 1 < end && hexStr[begin] == '0' && tolower(hexStr[begin + 1]) == 'x')
         begin += 2;
