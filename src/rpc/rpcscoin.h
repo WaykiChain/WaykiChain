@@ -24,6 +24,8 @@ extern Value submitdexsellmarketordertx(const Array& params, bool fHelp);
 extern Value submitdexcancelordertx(const Array& params, bool fHelp);
 extern Value submitdexsettletx(const Array& params, bool fHelp);
 extern Value getdexorder(const Array& params, bool fHelp);
+extern Value getdexorders(const Array& params, bool fHelp);
+extern Value getdexsysorders(const Array& params, bool fHelp);
 
 extern Value submitstakecdptx(const Array& params, bool fHelp);
 extern Value submitredeemcdptx(const Array& params, bool fHelp);

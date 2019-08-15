@@ -674,6 +674,33 @@ Value getdexorder(const Array& params, bool fHelp) {
     return obj;
 }
 
+extern Value getdexsysorders(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 1) {
+        throw runtime_error(
+            "getdexsysorders \"height\"\n"
+            "\nget dex system orders by block height.\n"
+            "\nArguments:\n"
+            "1.\"height\": (numeric required) block height\n"
+            "\nResult: list of order object\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexsysorders", "10 ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexsysorders", "10")
+        );
+    }
+    int64_t height = params[0].get_int64();
+    int64_t tipHeight = chainActive.Height();
+    if (height < 0 || height > tipHeight) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Height must >= 0 and <= tip_height=%d", height, tipHeight));
+    }
+
+    CDEXSysOrderListGetter getter(*pCdMan->pDexDb);
+    if (!getter.Execute(height)) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system order list error! height=%d", height));
+    }
+    Object obj = getter.ToJson();
+    return obj;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // asset tx rpc

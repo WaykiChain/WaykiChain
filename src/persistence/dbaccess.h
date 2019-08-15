@@ -160,7 +160,7 @@ public:
                          set<KeyType> &keys) {
         KeyType key;
         uint32_t count             = 0;
-        leveldb::Iterator *pCursor = db.NewIterator();
+        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &prefix = dbk::GetKeyPrefix(prefixType);
@@ -187,8 +187,6 @@ public:
             }
         }
 
-        delete pCursor;
-
         return true;
     }
 
@@ -196,7 +194,7 @@ public:
     bool GetAllElements(const dbk::PrefixType prefixType, map<KeyType, ValueType> &elements) {
         KeyType key;
         ValueType value;
-        leveldb::Iterator *pCursor = db.NewIterator();
+        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &prefix = dbk::GetKeyPrefix(prefixType);
@@ -217,8 +215,6 @@ public:
             assert(ret.second);  // TODO: throw error
         }
 
-        delete pCursor;
-
         return true;
     }
 
@@ -228,7 +224,7 @@ public:
                         map<string, ValueType> &elements) {
         string key;
         ValueType value;
-        leveldb::Iterator *pCursor = db.NewIterator();
+        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
@@ -257,8 +253,6 @@ public:
             }
         }
 
-        delete pCursor;
-
         return true;
     }
 
@@ -269,7 +263,7 @@ public:
                         map<std::pair<string, string>, ValueType> &elements) {
         std::pair<string, string> key;
         ValueType value;
-        leveldb::Iterator *pCursor = db.NewIterator();
+        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
@@ -298,8 +292,6 @@ public:
             }
         }
 
-        delete pCursor;
-
         return true;
     }
 
@@ -308,7 +300,7 @@ public:
                         map<KeyType, ValueType> &elements) {
         KeyType key;
         ValueType value;
-        leveldb::Iterator *pCursor = db.NewIterator();
+        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &prefix = dbk::GetKeyPrefix(prefixType);
         ssKey.write(prefix.c_str(), prefix.size());
@@ -334,8 +326,6 @@ public:
                 assert(ret.second);  // TODO: throw error
             }
         }
-
-        delete pCursor;
 
         return true;
     }
@@ -373,6 +363,10 @@ public:
     }
 
     DBNameType GetDbNameType() const { return dbNameType; }
+
+    shared_ptr<leveldb::Iterator> NewIterator() {
+        return shared_ptr<leveldb::Iterator>(db.NewIterator());
+    }
 private:
     DBNameType dbNameType;
     mutable CLevelDBWrapper db; // // TODO: remove the mutable declare

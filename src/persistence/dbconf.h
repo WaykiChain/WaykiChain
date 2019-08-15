@@ -95,7 +95,7 @@ namespace dbk {
         DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
         /**** dex db                                                                    */ \
         DEFINE( DEX_ACTIVE_ORDER,     "dato",  DEX )           /* [prefix]{txid} --> active order */ \
-        DEFINE( DEX_SYS_ORDER,        "dsso",  DEX )           /* [prefix]{txid} --> system order */ \
+        DEFINE( DEX_BLOCK_ORDER,      "dblo",  DEX )           /* [prefix]{height, generate_type, txid} --> active order */ \
         /**** log db                                                                   */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /**** tx receipt db                                                                   */ \

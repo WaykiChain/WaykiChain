@@ -856,7 +856,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                 }
             }
             // erase active order
-            if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId)) {
+            if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId, buyOrder)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active buy order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
@@ -869,7 +869,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
 
         if (sellResidualAmount == 0) { // sell order fulfilled
             // erase active order
-            if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId)) {
+            if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, sellOrder)) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, erase active sell order failed"),
                                     REJECT_INVALID, "write-dexdb-failed");
             }
