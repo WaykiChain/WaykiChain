@@ -117,7 +117,9 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("to_uid",         toUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
-    result.push_back(Pair("transer_bcoins", bcoins));
+    result.push_back(Pair("coin_symbol",    SYMB::WICC));
+    result.push_back(Pair("coin_amount",    bcoins));
+    result.push_back(Pair("fee_symbol",     SYMB::WICC));
     result.push_back(Pair("memo",           HexStr(memo)));
 
     return result;
