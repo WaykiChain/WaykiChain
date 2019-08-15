@@ -76,6 +76,8 @@ enum RPCErrorCode
 
     RPC_SCRIPT_FILEPATH_INVALID     = -18, // Register contract script file not inside /tmp/lua dir
     RPC_SCRIPT_FILEPATH_NOT_EXIST   = -19, // Register contract script file not exist
+
+    RPC_MEMO_SIZE_TOO_LONG          = -103
 };
 
 //
