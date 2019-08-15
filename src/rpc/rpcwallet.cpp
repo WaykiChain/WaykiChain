@@ -280,7 +280,7 @@ Value sendtoaddresswithmemo(const Array& params, bool fHelp) {
     CKeyID sendKeyId, recvKeyId;
     int64_t nAmount = 0;
     int64_t nDefaultFee = SysCfg().GetTxFee();
-    string memo = ""
+    string memo = "" ;
 
     if (!GetKeyId(params[0].get_str(), sendKeyId))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
@@ -406,9 +406,9 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
 
     std::tuple<bool,string> ret;
     if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
-        ret = SendMoney(sendRegId, recvRegId, nAmount, nFee);
+        ret = SendMoney(sendRegId, recvRegId, nAmount, nFee, "");
     } else { //receiver key not registered yet
-        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nFee);
+        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nFee, "");
     }
 
     if (!std::get<0>(ret)) {
