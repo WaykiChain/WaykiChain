@@ -53,19 +53,20 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter to afford fuel "
-                         "(actual:%lld vs need:%lld)", llFees, llFuel),
-                         REJECT_INVALID, "fee-too-litter-to-afford-fuel");
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter to afford fuel: %lld < %lld",
+                        llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
 
     // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        int32_t nTxSize  = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
-        if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
-            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fees/Kb "
-                             "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
-                             REJECT_INVALID, "fee-too-litter-in-fees/Kb");
+        uint64_t slideWindowBlockCount;
+        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+        uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+        int32_t txSize            = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
+        double dFeePerKb          = double(bcoinMedianPrice) / kPercentBoost * (llFees - llFuel) / (txSize / 1000.0);
+        if (dFeePerKb != 0 && dFeePerKb < CBaseTx::nMinRelayTxFee) {
+            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fee/kb: %.4f < %lld",
+                            dFeePerKb, CBaseTx::nMinRelayTxFee), REJECT_INVALID, "fee-too-litter-in-fee/kb");
         }
     }
 

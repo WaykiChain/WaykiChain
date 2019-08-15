@@ -78,9 +78,9 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     static TokenSymbol coinType = SYMB::WUSD;
     static uint64_t nFees    = 0;
 
-    int32_t height            = chainActive.Height();
     uint64_t slideWindowBlockCount;
     pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
+    int32_t height            = chainActive.Height();
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
     uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height, slideWindowBlockCount);
     auto GetCoinMedianPrice   = [&](const TokenSymbol coinType) -> uint64_t {
@@ -100,8 +100,10 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
             nTxSize   = mi->second.GetTxSize();
             coinType  = std::get<0>(mi->second.GetFees());
             nFees     = std::get<1>(mi->second.GetFees());
-            dFeePerKb = 1.0 * GetCoinMedianPrice(coinType) / kPercentBoost *
-                        (nFees - pBaseTx->GetFuel(nFuelRate)) / nTxSize / 1000.0;
+            dFeePerKb = double(GetCoinMedianPrice(coinType)) / kPercentBoost *
+                        (nFees - pBaseTx->GetFuel(nFuelRate)) / (nTxSize / 1000.0);
+            LogPrint("MINER", "GetPriority, medianPrice: %llu, nFees: %llu, fuel: %llu, nTxSize: %u\n",
+                GetCoinMedianPrice(coinType), nFees, pBaseTx->GetFuel(nFuelRate), nTxSize);
             dPriority = mi->second.GetPriority();
             vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTransaction()));
         }
@@ -515,8 +517,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             // Skip trx with MinRelayTxFee fee for this block once the accumulated tx size surpasses the minimum block size.
             const double dFeePerKb = std::get<1>(item);
             if ((dFeePerKb != 0) && (dFeePerKb < CBaseTx::nMinRelayTxFee) && (totalBlockSize + txSize >= nBlockMinSize)) {
-                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : skip free transaction, txid: %s\n",
-                         pBaseTx->GetHash().GetHex());
+                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : skip fee too litter in fee/kb: %.4f < %lld, txid: %s\n",
+                         dFeePerKb, CBaseTx::nMinRelayTxFee, pBaseTx->GetHash().GetHex());
                 continue;
             }
 
