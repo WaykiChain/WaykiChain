@@ -120,7 +120,8 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("coin_symbol",    SYMB::WICC));
     result.push_back(Pair("coin_amount",    bcoins));
     result.push_back(Pair("fee_symbol",     SYMB::WICC));
-    result.push_back(Pair("memo",           HexStr(memo)));
+    string memoString(memo.begin(), memo.end()) ;
+    result.push_back(Pair("memo",           memoString));
 
     return result;
 }
