@@ -343,11 +343,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
-            obj.push_back(Pair("from_address", sendKeyID.ToAddress()));
-            obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
-            obj.push_back(Pair("transfer_amount", dAmount));
-            obj.push_back(Pair("memo", HexStr(ptx->memo)));
+            obj.push_back(Pair("tx_type",           "BCOIN_TRANSFER_TX"));
+            obj.push_back(Pair("from_address",      sendKeyID.ToAddress()));
+            obj.push_back(Pair("to_address",        recvKeyId.ToAddress()));
+            obj.push_back(Pair("transfer_amount",   dAmount));
+            obj.push_back(Pair("memo",              HexStr(ptx->memo)));
             arrayDetail.push_back(obj);
 
             break;
@@ -457,11 +457,11 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
             }
 
-            obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_MTX"));
-            obj.push_back(Pair("from_address", sendKeyId.ToAddress()));
-            obj.push_back(Pair("to_address", recvKeyId.ToAddress()));
-            obj.push_back(Pair("transfer_amount", dAmount));
-            obj.push_back(Pair("memo", HexStr(ptx->memo)));
+            obj.push_back(Pair("tx_type",           "BCOIN_TRANSFER_MTX"));
+            obj.push_back(Pair("from_address",      sendKeyId.ToAddress()));
+            obj.push_back(Pair("to_address",        recvKeyId.ToAddress()));
+            obj.push_back(Pair("transfer_amount",   dAmount));
+            obj.push_back(Pair("memo",              HexStr(ptx->memo)));
 
             arrayDetail.push_back(obj);
             break;

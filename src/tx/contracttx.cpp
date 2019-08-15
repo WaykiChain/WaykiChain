@@ -153,8 +153,8 @@ string CLuaContractDeployTx::ToString(CAccountDBCache &view) {
 Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-    result.push_back(Pair("contract_code", contract.code));
-    result.push_back(Pair("contract_memo", contract.memo));
+    result.push_back(Pair("contract_code", HexStr(contract.code)));
+    result.push_back(Pair("contract_memo", HexStr(contract.memo)));
 
     return result;
 }

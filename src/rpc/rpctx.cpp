@@ -835,16 +835,16 @@ Value listtransactions(const Array& params, bool fHelp) {
                 if (bSend) {
                     if (pWalletMain->HaveKey(sendKeyID)) {
                         Object obj;
-                        obj.push_back(Pair("address", recvKeyId.ToAddress()));
-                        obj.push_back(Pair("category", "send"));
+                        obj.push_back(Pair("address",   recvKeyId.ToAddress()));
+                        obj.push_back(Pair("category",  "send"));
                         double dAmount = static_cast<double>(item.second->GetValues()[SYMB::WICC]) / COIN;
-                        obj.push_back(Pair("amount", -dAmount));
+                        obj.push_back(Pair("amount",        -dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Height() - accountTx.blockHeight));
-                        obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
-                        obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
-                        obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
-                        obj.push_back(Pair("memo", HexStr(ptx->memo)));
+                        obj.push_back(Pair("blockhash",     (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
+                        obj.push_back(Pair("blocktime",     (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
+                        obj.push_back(Pair("txid",          item.second->GetHash().GetHex()));
+                        obj.push_back(Pair("tx_type",       "BCOIN_TRANSFER_TX"));
+                        obj.push_back(Pair("memo",          HexStr(ptx->memo)));
                         arrayData.push_back(obj);
 
                         txnCount++;
@@ -854,17 +854,17 @@ Value listtransactions(const Array& params, bool fHelp) {
                 if (bRecv) {
                     if (pWalletMain->HaveKey(recvKeyId)) {
                         Object obj;
-                        obj.push_back(Pair("srcaddr", sendKeyID.ToAddress()));
-                        obj.push_back(Pair("address", recvKeyId.ToAddress()));
-                        obj.push_back(Pair("category", "receive"));
+                        obj.push_back(Pair("srcaddr",   sendKeyID.ToAddress()));
+                        obj.push_back(Pair("address",   recvKeyId.ToAddress()));
+                        obj.push_back(Pair("category",  "receive"));
                         double dAmount = static_cast<double>(item.second->GetValues()[SYMB::WICC]) / COIN;
-                        obj.push_back(Pair("amount", dAmount));
+                        obj.push_back(Pair("amount",        dAmount));
                         obj.push_back(Pair("confirmations", chainActive.Height() - accountTx.blockHeight));
-                        obj.push_back(Pair("blockhash", (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
-                        obj.push_back(Pair("blocktime", (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
-                        obj.push_back(Pair("txid", item.second->GetHash().GetHex()));
-                        obj.push_back(Pair("tx_type", "BCOIN_TRANSFER_TX"));
-                        obj.push_back(Pair("memo", HexStr(ptx->memo)));
+                        obj.push_back(Pair("blockhash",     (chainActive[accountTx.blockHeight]->GetBlockHash().GetHex())));
+                        obj.push_back(Pair("blocktime",     (int64_t)(chainActive[accountTx.blockHeight]->nTime)));
+                        obj.push_back(Pair("txid",          item.second->GetHash().GetHex()));
+                        obj.push_back(Pair("tx_type",       "BCOIN_TRANSFER_TX"));
+                        obj.push_back(Pair("memo",          HexStr(ptx->memo)));
 
                         arrayData.push_back(obj);
 
@@ -1405,16 +1405,16 @@ Value listcontracts(const Array& params, bool fHelp) {
         Object scriptObject;
         const CUniversalContract &contract = item.second;
         CRegID regid(item.first);
-        scriptObject.push_back( Pair("contract_regid", regid.ToString()) );
-        scriptObject.push_back( Pair("memo", HexStr(contract.memo)) );
+        scriptObject.push_back(Pair("contract_regid",   regid.ToString()));
+        scriptObject.push_back(Pair("memo",             HexStr(contract.memo)));
         if (showDetail) {
-            scriptObject.push_back(Pair("contract", HexStr(contract.code)));
+            scriptObject.push_back(Pair("contract",     HexStr(contract.code)));
         }
 
         scriptArray.push_back(scriptObject);
     }
 
-    obj.push_back(Pair("count", contracts.size()));
+    obj.push_back(Pair("count",     contracts.size()));
     obj.push_back(Pair("contracts", scriptArray));
 
     return obj;

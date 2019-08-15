@@ -64,10 +64,10 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     CKeyID desKeyId;
     view.GetKeyId(desUserId, desKeyId);
 
-    result.push_back(Pair("txid", GetHash().GetHex()));
-    result.push_back(Pair("tx_type", GetTxType(nTxType)));
-    result.push_back(Pair("ver", nVersion));
-    result.push_back(Pair("required_sigs", required));
+    result.push_back(Pair("txid",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("required_sigs",  required));
     Array signatureArray;
     CAccount account;
     std::set<CPubKey> pubKeys;
@@ -84,14 +84,14 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     script.SetMultisig(required, pubKeys);
     CKeyID scriptId = script.GetID();
 
-    result.push_back(Pair("addr", scriptId.ToAddress()));
-    result.push_back(Pair("signatures", signatureArray));
-    result.push_back(Pair("dest_regid", GetRegIdString(desUserId)));
-    result.push_back(Pair("dest_addr", desKeyId.ToAddress()));
-    result.push_back(Pair("money", bcoins));
-    result.push_back(Pair("fees", llFees));
-    result.push_back(Pair("memo", HexStr(memo)));
-    result.push_back(Pair("valid_height", nValidHeight));
+    result.push_back(Pair("addr",           scriptId.ToAddress()));
+    result.push_back(Pair("signatures",     signatureArray));
+    result.push_back(Pair("dest_regid",     GetRegIdString(desUserId)));
+    result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
+    result.push_back(Pair("money",          bcoins));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("memo",           HexStr(memo)));
+    result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
 }
