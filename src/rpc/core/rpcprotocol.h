@@ -90,6 +90,7 @@ enum RPCErrorCode
     RPC_COIN_TYPE_INVALID       = -100, // coin type invalid
     RPC_ASSET_TYPE_INVALID      = -101, // asset type invalid
     RPC_DEX_ORDER_INACTIVE      = -102, // the order is inactive or not exists
+    RPC_MEMO_SIZE_TOO_LONG      = -103
 };
 
 //
