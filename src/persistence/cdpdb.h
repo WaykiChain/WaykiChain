@@ -74,7 +74,7 @@ public:
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
 
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
-    bool EraseCDP(const CUserCDP &cdp);
+    bool EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp);
 
     bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
                                                 const uint64_t globalCollateralRatioLimit);

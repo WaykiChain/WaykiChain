@@ -159,7 +159,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             }
 
             // d) Close the CDP
-            cw.cdpCache.EraseCDP(cdp);
+            const CUserCDP &oldCDP = cdp;
+            cw.cdpCache.EraseCDP(oldCDP, cdp);
         }
 
         // 4. update fcoin genesis account

@@ -371,7 +371,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     // check and save CDP to db
     if (cdp.IsFinished()) {
-        if (!cw.cdpCache.EraseCDP(cdp))
+        if (!cw.cdpCache.EraseCDP(oldCDP, cdp))
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, erase the finished CDP %s failed",
                             cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
     } else { // partial redeem
@@ -645,7 +645,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             return false;
 
         //close CDP
-        if (!cw.cdpCache.EraseCDP(cdp))
+        if (!cw.cdpCache.EraseCDP(oldCDP, cdp))
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, erase CDP failed! cdpid=%s",
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
 
