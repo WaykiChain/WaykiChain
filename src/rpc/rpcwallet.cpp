@@ -291,8 +291,8 @@ Value signmessage(const Array& params, bool fHelp)
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID& recvKeyId,
-                                          int64_t nValue, int64_t nFee, string memo) {
+static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID& recvKeyId, const int64_t nValue,
+                                          const int64_t nFee, const string memo) {
     /**
      * We need to choose the proper field as the sender/receiver's account according to
      * the two factor: whether the sender's account is registered or not, whether the
@@ -326,23 +326,20 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     tx.toUid        = recvUserId;
     tx.bcoins       = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
-
-    UnsignedCharArray arr ;
-    for(auto s : memo){
-        arr.push_back((unsigned char)s ) ;
-    }
-
-    tx.memo         = arr ;
+    tx.memo         = memo;
     tx.nValidHeight = height;
 
-    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
+    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         return std::make_tuple(false, "Sign failed");
+    }
 
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
-    bool flag = std::get<0>(ret);
-    string te = std::get<1>(ret);
-    if (flag)
+    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
+    bool flag                    = std::get<0>(ret);
+    string te                    = std::get<1>(ret);
+    if (flag) {
         te = tx.GetHash().ToString();
+    }
+
     return std::make_tuple(flag, te.c_str());
 }
 
@@ -552,7 +549,7 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         }
     }
 
-    std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nFee,"");
+    std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nFee, "");
 
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
@@ -677,9 +674,7 @@ Value send(const Array& params, bool fHelp) {
     }
 
     // TOOD: memo
-    int32_t height = chainActive.Height();
-    UnsignedCharArray memo;
-    CCoinTransferTx tx(sendUserId, recvUserId, height, coinSymbol, coinAmount, feeSymbol, fee, memo);
+    CCoinTransferTx tx(sendUserId, recvUserId, chainActive.Height(), coinSymbol, coinAmount, feeSymbol, fee, "");
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
