@@ -222,5 +222,6 @@ public:
     result.push_back(Pair("from_addr",      srcKeyId.ToAddress()));                             \
     result.push_back(Pair("fees",           llFees));                                           \
     result.push_back(Pair("valid_height",   nValidHeight));                                     \
+    result.push_back(Pair("signature",      HexStr(signature)));
 
 #endif //COIN_BASETX_H
