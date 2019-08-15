@@ -372,8 +372,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
                     continue;
                 }
             } catch (std::exception &e) {
-                LogPrint("ERROR", "[FATAL]CreateNewBlockStableCoinRelease() : unexpected exception: %s\n",
-                        e.what());
+                LogPrint("ERROR", "CreateNewBlockStableCoinRelease() : unexpected exception: %s\n", e.what());
                 continue;
             }
 
@@ -543,8 +542,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                     continue;
                 }
             } catch (std::exception &e) {
-                LogPrint("ERROR", "[FATAL]CreateNewBlockStableCoinRelease() : unexpected exception: %s\n",
-                        e.what());
+                LogPrint("ERROR", "CreateNewBlockStableCoinRelease() : unexpected exception: %s\n", e.what());
                 continue;
             }
 
@@ -805,12 +803,12 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
 }
 
 void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t targetHeight) {
-    static boost::thread_group *minerThreads = NULL;
+    static boost::thread_group *minerThreads = nullptr;
 
-    if (minerThreads != NULL) {
+    if (minerThreads != nullptr) {
         minerThreads->interrupt_all();
         delete minerThreads;
-        minerThreads = NULL;
+        minerThreads = nullptr;
     }
 
     if (!fGenerate)

@@ -106,8 +106,12 @@ void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointC
                 mapCoinPricePointCache[item.first /* CoinPricePair */].mapBlockUserPrices.erase(
                     userPrice.first /* height */);
             } else {
-                mapCoinPricePointCache[item.first /* CoinPricePair */].mapBlockUserPrices[userPrice.first /* height */] =
-                    userPrice.second;
+                // typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
+                for (const auto &priceItem : userPrice.second) {
+                    mapCoinPricePointCache[item.first /* CoinPricePair */]
+                        .mapBlockUserPrices[userPrice.first /* height */]
+                        .emplace(priceItem.first /* CRegID */, priceItem.second /* price */);
+                }
             }
         }
     }
@@ -129,7 +133,7 @@ void CPricePointMemCache::Flush() {
 }
 
 bool CPricePointMemCache::GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired,
-                                          BlockUserPriceMap &blockUserPrices) {
+                                             BlockUserPriceMap &blockUserPrices) {
     const auto &iter = mapCoinPricePointCache.find(coinPricePair);
     if (iter != mapCoinPricePointCache.end()) {
         const auto &mapBlockUserPrices = iter->second.mapBlockUserPrices;
