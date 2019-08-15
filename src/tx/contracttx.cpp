@@ -59,7 +59,7 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 
     // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        uint64_t slideWindowBlockCount;
+        uint64_t slideWindowBlockCount = 0;
         cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
         uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
         int32_t txSize            = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
