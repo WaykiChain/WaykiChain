@@ -140,7 +140,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     orderDetail.generate_type = USER_GEN_ORDER;
     orderDetail.order_type    = ORDER_LIMIT_PRICE;
     orderDetail.order_side    = ORDER_BUY;
-    orderDetail.coin_symbol   = coin_symbol; 
+    orderDetail.coin_symbol   = coin_symbol;
     orderDetail.asset_symbol  = asset_symbol;
     orderDetail.coin_amount   = CalcCoinAmount(asset_amount, bid_price);
     orderDetail.asset_amount  = asset_amount;
@@ -236,7 +236,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     orderDetail.generate_type = USER_GEN_ORDER;
     orderDetail.order_type    = ORDER_LIMIT_PRICE;
     orderDetail.order_side    = ORDER_SELL;
-    orderDetail.coin_symbol   = coin_symbol; 
+    orderDetail.coin_symbol   = coin_symbol;
     orderDetail.asset_symbol  = asset_symbol;
     orderDetail.coin_amount   = CalcCoinAmount(asset_amount, ask_price);
     orderDetail.asset_amount  = asset_amount;
@@ -329,12 +329,12 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     orderDetail.generate_type = USER_GEN_ORDER;
     orderDetail.order_type    = ORDER_MARKET_PRICE;
     orderDetail.order_side    = ORDER_BUY;
-    orderDetail.coin_symbol   = coin_symbol; 
+    orderDetail.coin_symbol   = coin_symbol;
     orderDetail.asset_symbol  = asset_symbol;
     orderDetail.coin_amount   = coin_amount;
     orderDetail.asset_amount  = 0; // unkown in buy market price order
     orderDetail.price         = 0; // unkown in buy market price order
-    orderDetail.tx_cord       = CTxCord(height, index);  
+    orderDetail.tx_cord       = CTxCord(height, index);
     orderDetail.user_regid = srcAcct.regid;
     // other fields keep the default value
 
@@ -421,7 +421,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapp
     orderDetail.generate_type = USER_GEN_ORDER;
     orderDetail.order_type    = ORDER_MARKET_PRICE;
     orderDetail.order_side    = ORDER_SELL;
-    orderDetail.coin_symbol   = coin_symbol; 
+    orderDetail.coin_symbol   = coin_symbol;
     orderDetail.asset_symbol  = asset_symbol;
     orderDetail.coin_amount   = 0; // unkown in sell market price order
     orderDetail.asset_amount  = asset_amount;
@@ -779,7 +779,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         sellOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
         sellOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
 
-        //8. check the order limit amount and get residual amount
+        // 8. check the order limit amount and get residual amount
         uint64_t buyResidualAmount = 0;
         uint64_t sellResidualAmount = 0;
 
@@ -799,7 +799,8 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             buyResidualAmount = limitAssetAmount - buyOrder.total_deal_asset_amount;
         }
 
-        { // get and check sell order residualAmount
+        {
+            // get and check sell order residualAmount
             uint64_t limitAssetAmount = sellOrder.asset_amount;
             if (limitAssetAmount < sellOrder.total_deal_asset_amount) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal asset amount exceed the limit asset amount of buy order"),
@@ -823,7 +824,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             // give the fee to settler
             srcAcct.OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee);
         }
-        //9.2 seller sells assets to get WUSD
+        // 9.2 seller sells assets to get WUSD
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (sellOrder.generate_type == USER_GEN_ORDER) {
             uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / kPercentBoost;
@@ -900,13 +901,13 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
 
 bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &txid,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
-    if (!cw.dexCache.GetActiveOrder(txid, dealOrder)) 
+    if (!cw.dexCache.GetActiveOrder(txid, dealOrder))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! txid=%s", txid.ToString()),
                         REJECT_INVALID, "get-active-order-failed");
     if (dealOrder.order_side != orderSide)
         return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s, "
             "but get order_side=%s! txid=%s", orderSide, dealOrder.order_side, txid.ToString()),
-                        REJECT_INVALID, "order-side-unmatch");
+                        REJECT_INVALID, "order-side-unmatched");
 
     return true;
 }

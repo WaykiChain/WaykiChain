@@ -258,7 +258,21 @@ bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
 bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
     const uint64_t scoinsInterestToRepay,  CCacheWrapper &cw, CValidationState &state) {
 
-    if (scoinsInterestToRepay == 0) return true;
+    if (scoinsInterestToRepay == 0)
+        return true;
+
+    CAccount fcoinGenesisAccount;
+    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+
+    // should freeze user's coin for buying the asset
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, FREEZE, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, account has insufficient funds"),
+                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+    }
+
+    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, set account info error"),
+                        WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
@@ -381,8 +395,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
                                 READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
             }
-            uint64_t bcoinPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
-
+            uint64_t bcoinPrice      = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
             uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
@@ -420,7 +433,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     bool ret = SaveTxAddresses(height, index, cw, state, {txUid});
     return ret;
- }
+}
 
 string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
@@ -433,9 +446,9 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
                     cdp_txid.ToString(), scoins_to_repay, bcoins_to_redeem);
 
     return str;
- }
+}
 
- Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
@@ -445,20 +458,34 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     result.push_back(Pair("bcoins_to_redeem",   bcoins_to_redeem));
 
     return result;
- }
+}
 
- bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-     //TODO
-     return true;
- }
+bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    //TODO
+    return true;
+}
 
 bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
-    const uint64_t scoinsInterestToRepay, CCacheWrapper &cw, CValidationState &state) {
+                                        const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
+                                        CValidationState &state) {
+    if (scoinsInterestToRepay == 0)
+        return true;
 
-    if (scoinsInterestToRepay == 0) return true;
+    CAccount fcoinGenesisAccount;
+    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
-                                                                 SYMB::WGRT, scoinsInterestToRepay);
+    // should freeze user's coin for buying the asset
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, FREEZE, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
+                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+    }
+
+    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, set account info error"),
+                        WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+
+    auto pSysBuyMarketOrder =
+        CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -467,52 +494,53 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     return true;
 }
 
-/************************************<< CdpLiquidateTx >>***********************************************/
-bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+ /************************************<< CdpLiquidateTx >>***********************************************/
+ bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     uint64_t globalCollateralRatioFloor = 0;
     if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read global collateral ratio floor error"),
-                         READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
+                        READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
     uint64_t slideWindowBlockCount;
     if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
-                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
             cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount), globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
-                         "gloalcdplock_is_on");
+                        "global-cdp-lock-is-on");
     }
 
     if (cdp_txid.IsEmpty()) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"),
-                        REJECT_INVALID, "EMPTY_CDPTXID");
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"), REJECT_INVALID,
+                        "empty-cdpid");
     }
 
     CUserCDP cdp;
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!",
-                        txUid.ToString()), REJECT_INVALID, "cdp-not-exist");
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!", txUid.ToString()),
+                        REJECT_INVALID, "cdp-not-exist");
     }
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error",
-                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", txUid.ToString()),
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     uint64_t free_scoins = account.GetToken(cdp.scoin_symbol).free_amount;
-    if (free_scoins < scoins_to_liquidate) { // more applicable when scoinPenalty is omitted
-        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoins_to_liquidate: %d",
-                        free_scoins, scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
+    if (free_scoins < scoins_to_liquidate) {  // more applicable when scoinPenalty is omitted
+        return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, account scoins %d < scoins_to_liquidate: %d", free_scoins,
+                        scoins_to_liquidate), CDP_LIQUIDATE_FAIL, "account-scoins-insufficient");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
+
     return true;
 }
 
@@ -771,6 +799,12 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
 
         // 2) sell 50% penalty fees for Fcoins and burn
+        // should freeze user's coin for buying the asset
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, FREEZE, halfScoinsPenalty)) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
+                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+        }
+
         auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, halfScoinsPenalty);
         if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, create system buy order failed"),

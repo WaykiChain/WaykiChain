@@ -60,12 +60,14 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
         // 1. get median prices
         uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+        // check global collateral ratio
         if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
             break;
         }
 
         uint64_t fcoinMedianPrice = cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
+        // ensure acquire valid fcoin median price
         if (fcoinMedianPrice == 0) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
             break;
@@ -110,11 +112,9 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 continue;
             }
 
-            // a) minus scoins from the risk reserve pool to repay CDP scoins
-            uint64_t prevRiskReserveScoins = currRiskReserveScoins;
-            currRiskReserveScoins -= cdp.total_owed_scoins;
-
-            // b) sell WICC for WUSD to return to risk reserve pool
+            // a) sell WICC for WUSD to return to risk reserve pool
+            // Attention: do NOT to freeze fcoin genesis account's bcoins, as bcoins have never been transferred from
+            // cdp to fcoin genesis account.
             auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
                 CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
             string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
@@ -124,7 +124,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 break;
             }
 
-            // c) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
+            // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
             uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / kPercentBoost);
             if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
@@ -133,12 +133,18 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
                     pBcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
                     bcoinsValueInScoin, cdp.total_owed_scoins,
-                    prevRiskReserveScoins,
-                    currRiskReserveScoins);
+                    currRiskReserveScoins,
+                    currRiskReserveScoins - cdp.total_owed_scoins);
             } else {  // 0 ~ 1
                 uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
                 assert(fcoinMedianPrice != 0);
                 uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
+                // should freeze user's asset for selling
+                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, FREEZE, fcoinsToInflate)) {
+                    return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
+                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+                }
+
                 auto pFcoinSellMarketOrder =
                     CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
                 string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
@@ -154,13 +160,16 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
                     pBcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
                     pFcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
-                    prevRiskReserveScoins,
-                    currRiskReserveScoins);
+                    currRiskReserveScoins,
+                    currRiskReserveScoins - cdp.total_owed_scoins);
             }
 
-            // d) Close the CDP
+            // c) Close the CDP
             const CUserCDP &oldCDP = cdp;
             cw.cdpCache.EraseCDP(oldCDP, cdp);
+
+            // d) minus scoins from the risk reserve pool to repay CDP scoins
+            currRiskReserveScoins -= cdp.total_owed_scoins;
         }
 
         // 4. update fcoin genesis account
