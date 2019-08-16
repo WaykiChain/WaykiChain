@@ -82,7 +82,8 @@ bool AppInit(int argc, char* argv[], boost::thread_group& threadGroup) {
         // Command-line RPC
         bool fCommandLine = false;
         for (int i = 1; i < argc; i++)
-            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "Coin:")) fCommandLine = true;
+            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "Coin:"))
+                fCommandLine = true;
 
         if (fCommandLine) {
             int ret = CommandLineRPC(argc, argv);

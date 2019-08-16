@@ -456,9 +456,7 @@ Value sendtoaddresswithmemo(const Array& params, bool fHelp) {
     if( memo.size() > kCommonTxMemoMaxSize)
         throw JSONRPCError(RPC_MEMO_SIZE_TOO_LONG, "the size of memo is too long");
 
-
-
-    std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nDefaultFee,memo);
+    std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nDefaultFee, memo);
 
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));

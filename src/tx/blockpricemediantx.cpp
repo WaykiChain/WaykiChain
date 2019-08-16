@@ -113,15 +113,18 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             }
 
             // a) sell WICC for WUSD to return to risk reserve pool
-            // Attention: do NOT to freeze fcoin genesis account's bcoins, as bcoins have never been transferred from
-            // cdp to fcoin genesis account.
+            // transfer bcoin from cdp to fcoin genesis account
+            if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, ADD_FREE, cdp.total_staked_bcoins)) {
+                return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),
+                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+            }
+            // should freeze user's asset for selling
             auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
                 CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
             string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
             if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pBcoinSellMarketOrder)) {
-                LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed!!",
-                        pBcoinSellMarketOrder->ToString());
-                break;
+                return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed",
+                                pBcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
             }
 
             // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
@@ -139,6 +142,11 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
                 assert(fcoinMedianPrice != 0);
                 uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
+                // inflate fcoin to fcoin genesis account
+                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, ADD_FREE, fcoinsToInflate)) {
+                    return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),
+                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+                }
                 // should freeze user's asset for selling
                 if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, FREEZE, fcoinsToInflate)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
@@ -149,9 +157,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                     CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
                 string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
                 if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pFcoinSellMarketOrder)) {
-                    LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed!!",
-                            pFcoinSellMarketOrder->ToString());
-                    break;
+                    return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed",
+                            pFcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
                 }
 
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
