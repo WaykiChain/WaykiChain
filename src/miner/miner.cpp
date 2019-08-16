@@ -20,7 +20,7 @@
 #include <boost/circular_buffer.hpp>
 
 
-#define PACKING_TIME_PICKER                                                                                                      \
+#define PACKAGE_TIME_PICKER                                                                                                      \
             auto endTime = std::chrono::steady_clock::now();                                                             \
             std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(endTime - startTime);\
             totalPacketTime += time_span.count() ;
@@ -533,7 +533,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             if (totalBlockSize + txSize >= nBlockMaxSize) {
                 LogPrint("MINER", "CreateNewBlockStableCoinRelease() : exceed max block size, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
-                PACKING_TIME_PICKER
+                PACKAGE_TIME_PICKER
                 continue;
             }
 
@@ -543,7 +543,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 LogPrint("MINER", "CreateNewBlockStableCoinRelease() : skip fee too litter in fee/kb: %.4f < %lld, txid: %s\n",
                          dFeePerKb, CBaseTx::nMinRelayTxFee, pBaseTx->GetHash().GetHex());
 
-                PACKING_TIME_PICKER
+                PACKAGE_TIME_PICKER
                 continue;
             }
 
@@ -559,7 +559,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                     if (SysCfg().IsLogFailures())
                         pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                         state.GetRejectReason());
-                    PACKING_TIME_PICKER
+                    PACKAGE_TIME_PICKER
                     continue;
                 }
 
@@ -567,13 +567,13 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 if (totalRunStep + pBaseTx->nRunStep >= MAX_BLOCK_RUN_STEP) {
                     LogPrint("MINER", "CreateNewBlockStableCoinRelease() : exceed max block run steps, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
-                    PACKING_TIME_PICKER
+                    PACKAGE_TIME_PICKER
                     continue;
                 }
             } catch (std::exception &e) {
                 LogPrint("ERROR", "CreateNewBlockStableCoinRelease() : unexpected exception: %s\n", e.what());
 
-                PACKING_TIME_PICKER
+                PACKAGE_TIME_PICKER
                 continue;
             }
 
@@ -602,7 +602,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
 
-            PACKING_TIME_PICKER
+            PACKAGE_TIME_PICKER
 
         }
 
