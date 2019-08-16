@@ -141,13 +141,19 @@ Value signmessage(const Array& params, bool fHelp)
 }
 
 static std::tuple<bool, string> SendMoney(const CRegID &sendRegId, const CUserID &recvRegId,
-    int64_t nValue, int64_t nFee) {
+    int64_t nValue, int64_t nFee,const string memo) {
     CCommonTx tx;
     tx.srcRegId = sendRegId;
     tx.desUserId = recvRegId;
     tx.llValues = nValue;
     tx.llFees = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.nValidHeight = chainActive.Tip()->nHeight;
+
+    vector_unsigned_char arr ;
+    for(auto s : memo){
+        arr.push_back((unsigned char)s ) ;
+    }
+    tx.memo         = arr ;
 
     CKeyID keyID;
     if (!pAccountViewTip->GetKeyId(sendRegId, keyID)) {
@@ -233,9 +239,9 @@ Value sendtoaddress(const Array& params, bool fHelp) {
 
     std::tuple<bool, string> ret;
     if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
-        ret = SendMoney(sendRegId, recvRegId, nAmount, nDefaultFee);
+        ret = SendMoney(sendRegId, recvRegId, nAmount, nDefaultFee,"");
     } else { //receiver key not registered yet
-        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nDefaultFee);
+        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nDefaultFee,"");
     }
 
     if (!std::get<0>(ret)) {
@@ -246,6 +252,69 @@ Value sendtoaddress(const Array& params, bool fHelp) {
     obj.push_back(Pair("hash", std::get<1>(ret)));
     return obj;
 }
+
+
+
+Value sendtoaddresswithmemo(const Array& params, bool fHelp) {
+    int size = params.size();
+    if (fHelp || (size != 4))
+        throw runtime_error(
+                "sendtoaddresswithmemo (\"sendaddresswithmemo\") \"sendaddress\" \"recvaddress\" \"amount\" \"memo\" \n"
+                "\nSend an amount to a given address.\n" +
+                HelpRequiringPassphrase() +
+                "\nArguments:\n"
+                "1.\"sendaddress\" (string, required) The address where coins are sent from.\n"
+                "2.\"recvaddress\" (string, required) The address where coins are received.\n"
+                "3.\"amount\" (string, required)\n"
+                "4. \"memo\" (string, required) \n"
+                "\nResult:\n"
+                "\"txid\" (string) The transaction id.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("sendtoaddresswithmemo", "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" 10000000") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("sendtoaddresswithmemo", "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", 10000000"));
+
+    EnsureWalletIsUnlocked();
+
+    CRegID sendRegId, recvRegId;
+    CKeyID sendKeyId, recvKeyId;
+    int64_t nAmount = 0;
+    int64_t nDefaultFee = SysCfg().GetTxFee();
+    string memo = "" ;
+
+    if (!GetKeyId(params[0].get_str(), sendKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+    if (!GetKeyId(params[1].get_str(), recvKeyId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
+
+    if (!pAccountViewTip->GetRegId(CUserID(sendKeyId), sendRegId))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendadress not registered or invalid");
+
+    nAmount = AmountToRawValue(params[2]);
+    if (pAccountViewTip->GetRawBalance(sendKeyId) < nAmount + nDefaultFee)
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+
+    memo = params[3].get_str() ;
+    if( memo.size() > 100)
+        throw JSONRPCError(RPC_MEMO_SIZE_TOO_LONG, "the size of memo is too long");
+
+    std::tuple<bool, string> ret;
+    if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
+        ret = SendMoney(sendRegId, recvRegId, nAmount, nDefaultFee, memo);
+    } else { //receiver key not registered yet
+        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nDefaultFee, memo);
+    }
+
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
+    }
+
+    Object obj;
+    obj.push_back(Pair("hash", std::get<1>(ret)));
+    return obj;
+}
+
 
 Value sendtoaddresswithfee(const Array& params, bool fHelp) {
     int size = params.size();
@@ -337,9 +406,9 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
 
     std::tuple<bool,string> ret;
     if (pAccountViewTip->GetRegId(CUserID(recvKeyId), recvRegId)) {
-        ret = SendMoney(sendRegId, recvRegId, nAmount, nFee);
+        ret = SendMoney(sendRegId, recvRegId, nAmount, nFee, "");
     } else { //receiver key not registered yet
-        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nFee);
+        ret = SendMoney(sendRegId, CUserID(recvKeyId), nAmount, nFee, "");
     }
 
     if (!std::get<0>(ret)) {
