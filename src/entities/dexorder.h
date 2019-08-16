@@ -20,7 +20,7 @@ enum OrderSide: uint8_t {
 };
 
 static const EnumTypeMap<OrderSide, string> ORDER_SIDE_NAMES = {
-    {ORDER_BUY, "Buy"}, {ORDER_SELL, "Sell"}
+    {ORDER_BUY, "BUY"}, {ORDER_SELL, "SELL"}
 };
 
 inline const std::string &GetOrderSideName(OrderSide orderSide) {
@@ -37,7 +37,7 @@ enum OrderType: uint8_t {
 };
 
 static const EnumTypeMap<OrderType, string> ORDER_TYPE_NAMES = {
-    {ORDER_LIMIT_PRICE, "LimitPrice"}, {ORDER_MARKET_PRICE, "MarketPrice"}
+    {ORDER_LIMIT_PRICE, "LIMIT_PRICE"}, {ORDER_MARKET_PRICE, "MARKET_PRICE"}
 };
 
 inline const std::string &GetOrderTypeName(OrderType orderType) {

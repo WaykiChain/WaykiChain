@@ -58,10 +58,13 @@ public:
 class CDEXSysOrderListGetter {
 public:
     CDBDexBlockList data_list; // exec result
+    typedef CCompositeKVCache< CDBDexBlockList::PREFIX_TYPE, CDBDexBlockList::KeyType, CDEXOrderDetail> DBBlockOrderCache;
 private:
+    DBBlockOrderCache &db_cache;
     CDBAccess &db_access;
 public:
-    CDEXSysOrderListGetter(CDBAccess &dbAccess): db_access(dbAccess) {
+    CDEXSysOrderListGetter(DBBlockOrderCache &dbCache)
+        : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
         assert(db_access.GetDbNameType() == dbk::GetDbNameEnumByPrefix(CDBDexBlockList::PREFIX_TYPE));
     }    
     bool Execute(uint32_t height);
@@ -99,6 +102,11 @@ public:
     bool UndoDatas() {
         return activeOrderCache.UndoDatas() &&
                blockOrderCache.UndoDatas();
+    }
+
+    shared_ptr<CDEXSysOrderListGetter> CreateSysOrderListGetter() {
+        assert(blockOrderCache.GetBasePtr() == nullptr && "only support top level cache");
+        return make_shared<CDEXSysOrderListGetter>(blockOrderCache);
     }
 private:
 /*       type               prefixType                      key                        value                variable             */

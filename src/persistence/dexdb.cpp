@@ -11,11 +11,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 // class CDBDexBlockList 
 Object CDBDexBlockList::ToJson() {
-    Object obj;
+    Array array;
     for (auto &item : list) {
         Object objItem = item.second.ToJson();
         objItem.insert(objItem.begin(), Pair("txid", std::get<2>(item.first).ToString()));
+        array.push_back(objItem);
     }
+    Object obj;
+    obj.push_back(Pair("orders", array));
     return obj;
 }
 
@@ -81,31 +84,135 @@ bool CDEXOrderListGetter::Execute(uint32_t fromHeight, uint32_t toHeight, const 
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSysOrderListGetter
-bool CDEXSysOrderListGetter::Execute(uint32_t height) {
 
-    string prefix = dbk::GenDbKey(CDBDexBlockList::PREFIX_TYPE, make_pair(height, (uint8_t)SYSTEM_GEN_ORDER));
-    auto pCursor = db_access.NewIterator();
-    pCursor->Seek(prefix);
-    for (; pCursor->Valid(); pCursor->Next()) {
-        const leveldb::Slice &slKey = pCursor->key();
-        const leveldb::Slice &slValue = pCursor->value();
-        if (!slKey.starts_with(prefix))
-            break; // finish
-        
-        CDBDexBlockList::KeyType curKey;
-        if (!ParseDbKey(slKey, CDBDexBlockList::PREFIX_TYPE, curKey)) {
-            return ERRORMSG("CDBSysOrderListGetter::Execute Parse db key error! key=%s", HexStr(slKey.ToString()));
+class CDBDexOrderIt {
+public:    
+    CDBDexBlockList::KeyType key;
+    CDEXOrderDetail value;
+private:
+    shared_ptr<leveldb::Iterator> p_db_it;
+    uint32_t height;
+    bool is_valid;
+    string prefix;    
+public:
+    CDBDexOrderIt(CDBAccess &dbAccess, uint32_t heightIn)
+        : key(), value(), height(heightIn), is_valid(false) {
+
+        p_db_it = dbAccess.NewIterator();
+        prefix = dbk::GenDbKey(CDBDexBlockList::PREFIX_TYPE, make_pair(height, (uint8_t)SYSTEM_GEN_ORDER));
+    }
+
+    bool First() {
+        p_db_it->Seek(prefix);
+        return Parse();
+    }
+
+    bool Next() {
+        p_db_it->Next();        
+        return Parse();
+    }
+
+    bool IsValid() {return is_valid;}
+private:
+    inline bool Parse() {
+        is_valid = false;
+        if (!p_db_it->Valid() || !p_db_it->key().starts_with(prefix)) return false;
+
+        const leveldb::Slice &slKey = p_db_it->key();
+        const leveldb::Slice &slValue = p_db_it->value();
+        CDBDexBlockList::KeyType cur_key;
+        if (!ParseDbKey(slKey, CDBDexBlockList::PREFIX_TYPE, key)) {
+            throw runtime_error(strprintf("CDBDexOrderIt::Parse db key error! key=%s", HexStr(slKey.ToString())));
         }
+        assert(std::get<0>(key) == height || std::get<1>(key) == (uint8_t)SYSTEM_GEN_ORDER);
 
-        CDEXOrderDetail value;
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
             ssValue >> value;
         } catch(std::exception &e) {
-            return ERRORMSG("CDBSysOrderListGetter::Execute unserialize value error! %s", e.what());
+            throw runtime_error(strprintf("CDBDexOrderIt::Parse db value error! %s", HexStr(slValue.ToString())));
         }
+        is_valid = true;
+        return true;
+    }
+};
 
-        data_list.list.push_back(make_pair(curKey, value));
+class CMapDexOrderIt {
+public:
+    CDBDexBlockList::KeyType key;
+    CDEXOrderDetail value;
+private:        
+    CDEXSysOrderListGetter::DBBlockOrderCache::Map &data_map;
+    CDEXSysOrderListGetter::DBBlockOrderCache::Iterator map_it;
+    uint32_t height;
+    bool is_valid;
+public:
+    CMapDexOrderIt(CDEXSysOrderListGetter::DBBlockOrderCache &dbCache, uint32_t heightIn)
+        : key(), value(), data_map(dbCache.GetMapData()), map_it(data_map.end()), height(heightIn), is_valid(false) {}
+
+    bool First() {
+        map_it = data_map.upper_bound(make_tuple(height, (uint8_t)SYSTEM_GEN_ORDER, uint256()));
+        return Parse();
+    }
+    bool Next() {
+        map_it++;
+        return Parse();
+    }
+
+    bool IsValid() {return is_valid;}
+private:
+    inline bool Parse() {
+        is_valid = false;
+        if (map_it == data_map.end())  return false;
+        key = map_it->first;
+        if (std::get<0>(key) != height || std::get<1>(key) != (uint8_t)SYSTEM_GEN_ORDER)
+            return false;
+        value = map_it->second;
+        return true;
+    }
+};
+
+bool CDEXSysOrderListGetter::Execute(uint32_t height) {
+
+    CMapDexOrderIt mapIt(db_cache, height);
+    CDBDexOrderIt dbIt(db_access, height);
+    mapIt.First();
+    dbIt.First();
+    //auto mapIt = mapRangePair.first;
+    while(mapIt.IsValid() || dbIt.IsValid()) {
+        bool useMap = true, isSameKey = false;
+        if (mapIt.IsValid() && !dbIt.IsValid()) {
+            if (dbIt.key < mapIt.key) {
+                useMap = false;
+            } else if (dbIt.key > mapIt.key) { // dbIt.key >= mapIt.key
+                useMap = true;
+            } else {// dbIt.key == mapIt.key
+                useMap = true;
+                isSameKey = true;
+            }
+        } else if (mapIt.IsValid()) {
+            useMap = true;
+        } else { // dbIt.IsValid())
+            useMap = false;
+        }
+            
+        if (useMap) {
+            if (!mapIt.value.IsEmpty()) {
+                data_list.list.push_back(make_pair(mapIt.key, mapIt.value));
+            } // else ignore
+            mapIt.Next();
+            if (isSameKey && !mapIt.IsValid() && dbIt.IsValid()) {
+                // if the same key and map has no more valid data, must use db next data
+                dbIt.Next();
+            }
+        } else { // use db
+            data_list.list.push_back(make_pair(dbIt.key, dbIt.value));
+            dbIt.Next();
+            if (isSameKey && !dbIt.IsValid() && mapIt.IsValid()) {
+                // if the same key and db has no more valid data, must use map next data
+                mapIt.Next();
+            }
+        }
     }
 
     return true;

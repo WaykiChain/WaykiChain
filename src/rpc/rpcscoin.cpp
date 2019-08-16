@@ -694,11 +694,11 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Height must >= 0 and <= tip_height=%d", height, tipHeight));
     }
 
-    CDEXSysOrderListGetter getter(*pCdMan->pDexDb);
-    if (!getter.Execute(height)) {
+    auto pGetter = pCdMan->pDexCache->CreateSysOrderListGetter();
+    if (!pGetter->Execute(height)) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system order list error! height=%d", height));
     }
-    Object obj = getter.ToJson();
+    Object obj = pGetter->ToJson();
     return obj;
 }
 

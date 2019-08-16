@@ -377,7 +377,8 @@ class CCompositeKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
-    typedef typename map<KeyType, ValueType>::iterator Iterator;
+    typedef typename std::map<KeyType, ValueType> Map;
+    typedef typename std::map<KeyType, ValueType>::iterator Iterator;
 
 public:
     /**
@@ -616,6 +617,18 @@ public:
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 
+    CDBAccess* GetDbAccessPtr() {
+        CDBAccess* pRet = pDbAccess;
+        if (pRet == nullptr && pBase != nullptr) {
+            pRet = pBase->GetDbAccessPtr();
+        }
+        assert(pRet != nullptr);
+        return pRet;
+    }
+
+    CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType>* GetBasePtr() { return pBase; }
+
+    map<KeyType, ValueType>& GetMapData() { return mapData; };
 private:
     Iterator GetDataIt(const KeyType &key) const {
         Iterator it = mapData.find(key);
