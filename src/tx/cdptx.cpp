@@ -374,7 +374,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     //3. redeem in scoins and update cdp
     if (bcoins_to_redeem > cdp.total_staked_bcoins) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu can not bigger than total_staked_bcoins=%llu",
-                        bcoins_to_redeem, cdp.total_staked_bcoins), UPDATE_CDP_FAIL, "scoins_to_repay-larger-error");
+                        bcoins_to_redeem, cdp.total_staked_bcoins), UPDATE_CDP_FAIL, "bcoin_to_redeem-too-large");
     }
 
     uint64_t realRepayScoins = scoins_to_repay;
