@@ -428,7 +428,7 @@ CBaseParams::CBaseParams() {
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nViewCacheSize          = 2000000;
-    nBlockInterval          = 10;
+    nBlockInterval          = 3;
     nSubsidyHalvingInterval = 0;
     payTxFee                = 10000;
     nDefaultPort            = 0;
