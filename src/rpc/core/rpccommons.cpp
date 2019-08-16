@@ -642,6 +642,13 @@ TokenName RPC_PARAM::GetAssetName(const Value &jsonValue) {
     return name;
 }
 
+string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramName) {
+    string binStr, errStr;
+    if (!ParseHex(jsonValue.get_str(), binStr, errStr))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! %s", paramName, errStr));
+    return binStr;
+}
+
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
                                     const BalanceOpType opType, const uint64_t &value) {
     if (!account.OperateBalance(tokenSymbol, opType, value))

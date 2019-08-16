@@ -56,6 +56,8 @@ namespace RPC_PARAM {
     TokenSymbol GetAssetIssueSymbol(const Value &jsonValue);
     TokenName GetAssetName(const Value &jsonValue);
 
+    string GetBinStrFromHex(const Value &jsonValue, const string &paramName);
+
     void CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
                             const BalanceOpType opType, const uint64_t &value);
 

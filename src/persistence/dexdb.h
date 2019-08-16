@@ -108,6 +108,11 @@ public:
         assert(blockOrderCache.GetBasePtr() == nullptr && "only support top level cache");
         return make_shared<CDEXSysOrderListGetter>(blockOrderCache);
     }
+
+    // shared_ptr<CDEXOrderListGetter> CreateOrderListGetter() {
+    //     assert(blockOrderCache.GetBasePtr() == nullptr && "only support top level cache");
+    //     return make_shared<CDEXOrderListGetter>(blockOrderCache);
+    // }
 private:
 /*       type               prefixType                      key                        value                variable             */
 /*  ----------------   -----------------------------  ---------------------------  ------------------   ------------------------ */

@@ -679,7 +679,7 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 1) {
         throw runtime_error(
             "getdexsysorders \"height\"\n"
-            "\nget dex system orders by block height.\n"
+            "\nget dex system-generated active orders by block height.\n"
             "\nArguments:\n"
             "1.\"height\": (numeric optional) block height, default is current tip block height\n"
             "\nResult:\n"
@@ -697,7 +697,7 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
         height = params[0].get_int64();
 
     if (height < 0 || height > tipHeight) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Height must >= 0 and <= tip_height=%d", height, tipHeight));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("height=%d must >= 0 and <= tip_height=%d", height, tipHeight));
     }
 
     auto pGetter = pCdMan->pDexCache->CreateSysOrderListGetter();
@@ -707,6 +707,67 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("height", height));
     pGetter->ToJson(obj);
+    return obj;
+}
+
+extern Value getdexorders(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 1) {
+        throw runtime_error(
+            "getdexsysorders \"height\"\n"
+            "\nget dex all active orders by block height range.\n"
+            "\nArguments:\n"
+            "1.\"begin_height\": (numeric optional) the begin block height, default is 0\n"
+            "2.\"end_height\": (numeric optional) the end block height, default is current tip block height\n"
+            "3.\"max_count\": (numeric optional) the max order count to get, default is 500\n"
+            "4.\"last_pos_info\": (string optional) the last position info to get more orders, default is empty\n"
+            "\nResult:\n"
+            "\"begin_height\" (numeric) the begin block height of orders.\n"
+            "\"end_height\" (numeric) the end block height of orders.\n"
+            "\"count\" (numeric) the count of orders.\n"
+            "\"has_more\" (bool) has more orders in db.\n"
+            "\"last_pos_info\" (string) the last position info to get more orders.\n"
+            "\"orders\" (string) a list of system-generated DEX orders.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexsysorders", "10 ")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexsysorders", "10")
+        );
+    }
+    int64_t tipHeight = chainActive.Height();
+    int64_t beginHeight = 0;
+    if (params.size() > 0)
+        beginHeight = params[0].get_int64();
+    if (beginHeight < 0 || beginHeight > tipHeight) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("begin_height=%d must >= 0 and <= tip_height=%d", beginHeight, tipHeight));
+    }
+
+    int64_t endHeight = tipHeight;
+    if (params.size() > 1)
+        endHeight = params[1].get_int64();
+    if (endHeight < beginHeight || endHeight > tipHeight) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("end_height=%d must >= begin_height=%d and <= tip_height=%d", 
+            endHeight, beginHeight, tipHeight));
+    }
+
+
+    int64_t maxCount = 500;
+    if (params.size() > 2)
+        endHeight = params[2].get_int64();
+    if (maxCount < 0)
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("max_count=%d must >= 0", maxCount));
+
+    string lastPosInfo = "";
+    if (params.size() > 3)
+        lastPosInfo = RPC_PARAM::GetBinStrFromHex(params[3], "last_pos_info");
+
+
+    // auto pGetter = pCdMan->pDexCache->CreateSysOrderListGetter();
+    // if (!pGetter->Execute(height)) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system order list error! height=%d", height));
+    // }
+    Object obj;
+    // obj.push_back(Pair("height", height));
+    // pGetter->ToJson(obj);
     return obj;
 }
 
