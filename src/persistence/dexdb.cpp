@@ -9,13 +9,19 @@
 #include "main.h"
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CDBDexBlockList 
-void CDBDexBlockList::ToJson(Object &obj) {
+// class DEX_DB 
+
+void DEX_DB::OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj) {
+        obj.push_back(Pair("order_id", orderId.ToString()));
+        order.ToJson(obj);
+}
+
+void DEX_DB::BlockOrdersToJson(const BlockOrders &orders, Object &obj) {
+    obj.push_back(Pair("count", orders.size()));
     Array array;
-    for (auto &item : list) {
+    for (auto &item : orders) {
         Object objItem;
-        objItem.push_back(Pair("order_id", std::get<2>(item.first).ToString()));
-        item.second.ToJson(objItem);
+        OrderToJson(GetOrderId(item.first), item.second, objItem);
         array.push_back(objItem);
     }
     obj.push_back(Pair("orders", array));
@@ -28,11 +34,11 @@ bool CDEXOrderListGetter::Execute(uint32_t fromHeight, uint32_t toHeight, const 
     uint32_t count = 0;
     string prestartKey;
     if (lastPosInfo.empty()) {
-        prestartKey = dbk::GenDbKey(CDBDexBlockList::PREFIX_TYPE, fromHeight);
+        prestartKey = dbk::GenDbKey(DEXBlockOrdersCache::PREFIX_TYPE, fromHeight);
     } else {
         prestartKey = lastPosInfo;
     }
-    const string prefix = dbk::GetKeyPrefix(CDBDexBlockList::PREFIX_TYPE);
+    const string prefix = dbk::GetKeyPrefix(DEXBlockOrdersCache::PREFIX_TYPE);
     auto pCursor = db_access.NewIterator();
     pCursor->Seek(prestartKey);
     for (; pCursor->Valid(); pCursor->Next()) {
@@ -46,8 +52,8 @@ bool CDEXOrderListGetter::Execute(uint32_t fromHeight, uint32_t toHeight, const 
                 continue; // ignore last pos
             }
         }
-        CDBDexBlockList::KeyType curKey;
-        if (!ParseDbKey(slKey, CDBDexBlockList::PREFIX_TYPE, curKey)) {
+        DEXBlockOrdersCache::KeyType curKey;
+        if (!ParseDbKey(slKey, DEXBlockOrdersCache::PREFIX_TYPE, curKey)) {
             return ERRORMSG("CDBOrderListGetter::Execute Parse db key error! key=%s", HexStr(slKey.ToString()));
         }
         assert(std::get<0>(curKey) < fromHeight);
@@ -63,7 +69,7 @@ bool CDEXOrderListGetter::Execute(uint32_t fromHeight, uint32_t toHeight, const 
             return ERRORMSG("CDBOrderListGetter::Execute unserialize value error! %s", e.what());
         }
 
-        data_list.list.push_back(make_pair(curKey, value));
+        orders.push_back(make_pair(curKey, value));
         if (maxCount > 0 && count >= maxCount) {
             // finish, but has more
             has_more = true;
@@ -85,9 +91,9 @@ bool CDEXOrderListGetter::Execute(uint32_t fromHeight, uint32_t toHeight, const 
 // class CDEXSysOrderListGetter
 
 class CDBDexOrderIt {
-public:    
-    CDBDexBlockList::KeyType key;
-    CDEXOrderDetail value;
+public:
+    DEXBlockOrdersCache::KeyType key;
+    DEXBlockOrdersCache::ValueType value;
 private:
     shared_ptr<leveldb::Iterator> p_db_it;
     uint32_t height;
@@ -98,7 +104,7 @@ public:
         : key(), value(), height(heightIn), is_valid(false) {
 
         p_db_it = dbAccess.NewIterator();
-        prefix = dbk::GenDbKey(CDBDexBlockList::PREFIX_TYPE, make_pair(height, (uint8_t)SYSTEM_GEN_ORDER));
+        prefix = dbk::GenDbKey(DEXBlockOrdersCache::PREFIX_TYPE, make_pair(height, (uint8_t)SYSTEM_GEN_ORDER));
     }
 
     bool First() {
@@ -119,11 +125,10 @@ private:
 
         const leveldb::Slice &slKey = p_db_it->key();
         const leveldb::Slice &slValue = p_db_it->value();
-        CDBDexBlockList::KeyType cur_key;
-        if (!ParseDbKey(slKey, CDBDexBlockList::PREFIX_TYPE, key)) {
+        if (!ParseDbKey(slKey, DEXBlockOrdersCache::PREFIX_TYPE, key)) {
             throw runtime_error(strprintf("CDBDexOrderIt::Parse db key error! key=%s", HexStr(slKey.ToString())));
         }
-        assert(std::get<0>(key) == height || std::get<1>(key) == (uint8_t)SYSTEM_GEN_ORDER);
+        assert(DEX_DB::GetHeight(key) == height || DEX_DB::GetGenerateType(key) == (uint8_t)SYSTEM_GEN_ORDER);
 
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
@@ -138,15 +143,15 @@ private:
 
 class CMapDexOrderIt {
 public:
-    CDBDexBlockList::KeyType key;
-    CDEXOrderDetail value;
+    DEXBlockOrdersCache::KeyType key;
+    DEXBlockOrdersCache::ValueType value;
 private:        
-    CDEXSysOrderListGetter::DBBlockOrderCache::Map &data_map;
-    CDEXSysOrderListGetter::DBBlockOrderCache::Iterator map_it;
+    DEXBlockOrdersCache::Map &data_map;
+    DEXBlockOrdersCache::Iterator map_it;
     uint32_t height;
     bool is_valid;
 public:
-    CMapDexOrderIt(CDEXSysOrderListGetter::DBBlockOrderCache &dbCache, uint32_t heightIn)
+    CMapDexOrderIt(DEXBlockOrdersCache &dbCache, uint32_t heightIn)
         : key(), value(), data_map(dbCache.GetMapData()), map_it(data_map.end()), height(heightIn), is_valid(false) {}
 
     bool First() {
@@ -164,7 +169,7 @@ private:
         is_valid = false;
         if (map_it == data_map.end())  return false;
         key = map_it->first;
-        if (std::get<0>(key) != height || std::get<1>(key) != (uint8_t)SYSTEM_GEN_ORDER)
+        if (DEX_DB::GetHeight(key) != height || DEX_DB::GetGenerateType(key) != SYSTEM_GEN_ORDER)
             return false;
         value = map_it->second;
         return true;
@@ -197,7 +202,7 @@ bool CDEXSysOrderListGetter::Execute(uint32_t height) {
             
         if (useMap) {
             if (!mapIt.value.IsEmpty()) {
-                data_list.list.push_back(make_pair(mapIt.key, mapIt.value));
+                orders.push_back(make_pair(mapIt.key, mapIt.value));
             } // else ignore
             mapIt.Next();
             if (isSameKey && !mapIt.IsValid() && dbIt.IsValid()) {
@@ -205,7 +210,7 @@ bool CDEXSysOrderListGetter::Execute(uint32_t height) {
                 dbIt.Next();
             }
         } else { // use db
-            data_list.list.push_back(make_pair(dbIt.key, dbIt.value));
+            orders.push_back(make_pair(dbIt.key, dbIt.value));
             dbIt.Next();
             if (isSameKey && !dbIt.IsValid() && mapIt.IsValid()) {
                 // if the same key and db has no more valid data, must use map next data
@@ -218,7 +223,7 @@ bool CDEXSysOrderListGetter::Execute(uint32_t height) {
 }
 
 void CDEXSysOrderListGetter::ToJson(Object &obj) {
-    data_list.ToJson(obj);
+    DEX_DB::BlockOrdersToJson(orders, obj);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -235,15 +240,15 @@ bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) {
 bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     assert(!activeOrderCache.HaveData(orderId));
     return activeOrderCache.SetData(orderId, activeOrder)
-        && blockOrderCache.SetData(CDBDexBlockList::MakeKey(orderId, activeOrder), activeOrder);
+        && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
 }
 
 bool CDexDBCache::UpdateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.SetData(orderId, activeOrder)
-        && blockOrderCache.SetData(CDBDexBlockList::MakeKey(orderId, activeOrder), activeOrder);
+        && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
 };
 
 bool CDexDBCache::EraseActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.EraseData(orderId)
-        && blockOrderCache.EraseData(CDBDexBlockList::MakeKey(orderId, activeOrder));
+        && blockOrdersCache.EraseData(MakeBlockOrderKey(orderId, activeOrder));
 };

@@ -662,16 +662,15 @@ Value getdexorder(const Array& params, bool fHelp) {
             + HelpExampleRpc("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
         );
     }
-    const uint256 &orderTxid = RPC_PARAM::GetTxid(params[0], "order_id");
+    const uint256 &orderId = RPC_PARAM::GetTxid(params[0], "order_id");
 
     auto pDexCache = pCdMan->pDexCache;
     CDEXOrderDetail orderDetail;
-    if (!pDexCache->GetActiveOrder(orderTxid, orderDetail))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_id=%s", orderTxid.ToString()));
+    if (!pDexCache->GetActiveOrder(orderId, orderDetail))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_id=%s", orderId.ToString()));
 
     Object obj;
-    obj.push_back(Pair("order_id", orderTxid.ToString()));
-    orderDetail.ToJson(obj);
+    DEX_DB::OrderToJson(orderId, orderDetail, obj);
     return obj;
 }
 

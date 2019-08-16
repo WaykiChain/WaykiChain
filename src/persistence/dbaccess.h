@@ -372,11 +372,13 @@ private:
     mutable CLevelDBWrapper db; // // TODO: remove the mutable declare
 };
 
-template<int PREFIX_TYPE_VALUE, typename KeyType, typename ValueType>
+template<int PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
 class CCompositeKVCache {
 public:
-    static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
+    static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;    
 public:
+    typedef __KeyType   KeyType;
+    typedef __ValueType ValueType;
     typedef typename std::map<KeyType, ValueType> Map;
     typedef typename std::map<KeyType, ValueType>::iterator Iterator;
 
