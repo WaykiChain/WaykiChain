@@ -186,7 +186,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         cw.accountCache.SaveAccount(fcoinGenesisAccount);
     } while (false);
 
-    return SaveTxAddresses(height, index, cw, state, {txUid});
+    return true;
 }
 
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {

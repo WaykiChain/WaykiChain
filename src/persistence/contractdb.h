@@ -34,7 +34,6 @@ public:
     CContractDBCache(CDBAccess *pDbAccess):
         contractCache(pDbAccess),
         txOutputCache(pDbAccess),
-        acctTxListCache(pDbAccess),
         txDiskPosCache(pDbAccess),
         contractRelatedKidCache(pDbAccess),
         contractDataCache(pDbAccess),
@@ -45,7 +44,6 @@ public:
     CContractDBCache(CContractDBCache *pBaseIn):
         contractCache(pBaseIn->contractCache),
         txOutputCache(pBaseIn->txOutputCache),
-        acctTxListCache(pBaseIn->acctTxListCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
         contractRelatedKidCache(pBaseIn->contractRelatedKidCache),
         contractDataCache(pBaseIn->contractDataCache),
@@ -88,7 +86,6 @@ public:
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
         contractCache.SetBase(&pBaseIn->contractCache);
         txOutputCache.SetBase(&pBaseIn->txOutputCache);
-        acctTxListCache.SetBase(&pBaseIn->acctTxListCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
         contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
         contractDataCache.SetBase(&pBaseIn->contractDataCache);
@@ -98,7 +95,6 @@ public:
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         contractCache.SetDbOpLogMap(pDbOpLogMapIn);
         txOutputCache.SetDbOpLogMap(pDbOpLogMapIn);
-        acctTxListCache.SetDbOpLogMap(pDbOpLogMapIn);
         txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractRelatedKidCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractDataCache.SetDbOpLogMap(pDbOpLogMapIn);
@@ -108,7 +104,6 @@ public:
     bool UndoDatas() {
         return contractCache.UndoDatas() &&
                txOutputCache.UndoDatas() &&
-               acctTxListCache.UndoDatas() &&
                txDiskPosCache.UndoDatas() &&
                contractRelatedKidCache.UndoDatas() &&
                contractDataCache.UndoDatas() &&
@@ -122,8 +117,6 @@ private:
     CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
     // txId -> vector<CVmOperate>
     CCompositeKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
-    // keyId, height, index -> txid
-    CCompositeKVCache< dbk::LIST_KEYID_TX,        tuple<CKeyID, uint32_t, uint32_t>,  uint256 >    acctTxListCache;
     // txId -> DiskTxPos
     CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> set<CKeyID>

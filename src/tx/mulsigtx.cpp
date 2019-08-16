@@ -162,14 +162,6 @@ bool CMulsigTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationS
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                          desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    vector<CUserID> uids;
-    for (const auto &item : signaturePairs) {
-        uids.push_back(CUserID(item.regid));
-    }
-    uids.push_back(desUserId);
-
-    if (!SaveTxAddresses(height, index, cw, state, uids)) return false;
-
     return true;
 }
 

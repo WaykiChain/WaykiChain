@@ -79,7 +79,6 @@ protected:
     mutable int32_t nTxCacheHeight;
     uint32_t nLogMaxSize;    // to limit the maximum log file size in bytes
     bool bContractLog;  // whether to save contract script operation account log
-    bool bAddressToTx;  // whether to save the mapping of address to Tx
 
 public:
     virtual ~CBaseParams() {}
@@ -108,7 +107,6 @@ public:
 
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
         bContractLog = GetBoolArg("-contractlog", false); //contract account change log
-        bAddressToTx = GetBoolArg("-addresstotx", false);
         nBlockInterval = GetArg("-blockinterval", 3) ;
 
         return true;
@@ -211,7 +209,6 @@ public:
     void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
     void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }
     bool IsContractLogOn() const { return bContractLog; }
-    bool GetAddressToTxFlag() const { return bAddressToTx; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }

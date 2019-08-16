@@ -188,8 +188,5 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
         }
     }
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }

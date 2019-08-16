@@ -118,7 +118,6 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     vector<CUserID> relatedUids = {txUid};
     if (!account.IsMyUid(asset.owner_uid)) relatedUids.push_back(asset.owner_uid);
 
-    if (!SaveTxAddresses(height, index, cw, state, relatedUids)) return false;
 
     return true;
 }
@@ -297,11 +296,6 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
     if (!cw.accountCache.SetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, write txUid %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    vector<CUserID> relatedUids = {txUid};
-    if (!account.IsMyUid(owner_uid)) relatedUids.push_back(owner_uid);
-
-    if (!SaveTxAddresses(height, index, cw, state, relatedUids)) return false;
 
     return true;
 }

@@ -223,8 +223,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     receipts.push_back(receipt);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
-    bool ret = SaveTxAddresses(height, index, cw, state, {txUid});
-    return ret;
+    return true;
 }
 
 string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
@@ -303,7 +302,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
             cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount), globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"),
-                        REJECT_INVALID, "gloalcdplock_is_on");
+                        REJECT_INVALID, "global-cdp-lock-is-on");
     }
 
     CAccount account;
@@ -314,7 +313,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     if (cdp_txid.IsEmpty()) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdp_txid is empty"),
-                        REJECT_INVALID, "EMPTY_CDP_TXID");
+                        REJECT_INVALID, "empty-cdpid");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -431,8 +430,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     receipts.push_back(receipt2);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
-    bool ret = SaveTxAddresses(height, index, cw, state, {txUid});
-    return ret;
+    return true;
 }
 
 string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
@@ -740,8 +738,6 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write tx receipt failed! txid=%s",
             GetHash().ToString()), REJECT_INVALID, "write-tx-receipt-failed");
-
-    if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
 
     return true;
 }

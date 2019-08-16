@@ -75,7 +75,6 @@ namespace dbk {
         DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",  ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_amount, $frozen_amount */ \
         DEFINE( BEST_BLOCKHASH,       "bbkh",  ACCOUNT )       /* [prefix] --> $BestBlockHash */ \
         /**** contract db                                                                     */ \
-        DEFINE( LIST_KEYID_TX,        "lktx",  CONTRACT )      /* lktx{$KeyId}{$Height}{$Index} --> $txid */ \
         DEFINE( TXID_DISKINDEX,       "tidx",  CONTRACT )      /* tidx{$txid} --> $DiskTxPos */ \
         DEFINE( CONTRACT_DEF,         "cdef",  CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
         DEFINE( CONTRACT_DATA,        "cdat",  CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \

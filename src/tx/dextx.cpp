@@ -153,9 +153,6 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }
 
@@ -249,9 +246,6 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }
 
@@ -343,9 +337,6 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }
 
@@ -434,9 +425,6 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapp
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
-
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
 
     return true;
 }
@@ -528,9 +516,6 @@ bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
 
     return true;
 }
@@ -892,9 +877,6 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
 
     return true;
 }

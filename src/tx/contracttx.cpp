@@ -123,8 +123,6 @@ bool CLuaContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
     nRunStep = contract.GetContractSize();
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
-
     return true;
 }
 
@@ -292,8 +290,6 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
     if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
-
-    if (!SaveTxAddresses(height, index, cw, state, {txUid, app_uid})) return false;
 
     return true;
 }

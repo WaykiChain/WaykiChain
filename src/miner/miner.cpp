@@ -517,11 +517,10 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         auto startTime = std::chrono::steady_clock::now() ;
         // Collect transactions into the block.
         for (auto item : txPriorities) {
-
-            auto endTime = std::chrono::steady_clock::now();
-            double costTime =std::chrono::duration<double>( endTime - startTime ).count();
-            if(costTime >= SysCfg().GetBlockInterval() - 1){
-                break ;
+            auto endTime    = std::chrono::steady_clock::now();
+            double costTime = std::chrono::duration<double>(endTime - startTime).count();
+            if (costTime >= SysCfg().GetBlockInterval() - 1) {
+                break;
             }
 
             CBaseTx *pBaseTx = std::get<2>(item).get();

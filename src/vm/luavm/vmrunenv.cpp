@@ -134,16 +134,12 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
         if (!pContractCache->WriteTxOutput(txid, vmOperateOutput))
             return std::make_tuple(false, 0, string("write tx out put Failed"));
     }
-    /*
-        uint64_t spend = uRunStep * nBurnFactor;
-            if((spend < uRunStep) || (spend < nBurnFactor)){
-            return std::make_tuple (false, 0, string("mul error\n"));
-        }
-    */
+
     uint64_t spend = 0;
     if (!SafeMultiply(uRunStep, nBurnFactor, spend)) {
         return std::make_tuple(false, 0, string("mul error"));
     }
+
     return std::make_tuple(true, spend, string("VmScript Success"));
 }
 

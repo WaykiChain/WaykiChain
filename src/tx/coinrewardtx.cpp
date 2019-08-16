@@ -34,9 +34,6 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }
 

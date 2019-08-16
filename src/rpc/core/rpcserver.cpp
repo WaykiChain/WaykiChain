@@ -220,7 +220,6 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                   &stop,                   true,      true,       false },
     { "validateaddr",           &validateaddr,           true,      true,       false },
     { "createmulsig",           &createmulsig,           true,      true ,      false },
-    { "listtxbyaddr",           &listtxbyaddr,           true,      true,       false },
 
     /* P2P networking */
     { "getnetworkinfo",         &getnetworkinfo,         true,      false,      false },
@@ -336,7 +335,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
     { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
     { "getdexorder",                &getdexorder,                true,     false,      false },
-    { "getdexsysorders",            &getdexsysorders,            true,     false,      false },    
+    { "getdexsysorders",            &getdexsysorders,            true,     false,      false },
 
     /* for asset */
     { "submitassetissuetx",         &submitassetissuetx,         true,     false,      false },

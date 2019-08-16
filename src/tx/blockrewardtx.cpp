@@ -34,10 +34,6 @@ bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
-    // Block reward transaction will execute twice, but need to save once when index equals to zero.
-    if (index == 0 && !SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }
 
@@ -117,10 +113,6 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
         return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, write secure account info error"),
             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
-
-    // Block reward transaction will execute twice, but need to save once when index equals to zero.
-    if (index == 0 && !SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
 
     return true;
 }

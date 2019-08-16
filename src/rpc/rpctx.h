@@ -65,7 +65,6 @@ extern Value getsignature(const Array& params, bool fHelp);
 
 extern Value listaddr(const Array& params, bool fHelp);
 extern Value listtx(const Array& params, bool fHelp);
-extern Value listtxbyaddr(const Array& params, bool fHelp);
 extern Value listcontractassets(const Array& params, bool fHelp);
 extern Value listunconfirmedtx(const Array& params, bool fHelp);
 extern Value listcontracts(const Array& params, bool fHelp);

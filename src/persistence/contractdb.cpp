@@ -90,7 +90,6 @@ bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<std::
 bool CContractDBCache::Flush() {
     contractCache.Flush();
     txOutputCache.Flush();
-    acctTxListCache.Flush();
     txDiskPosCache.Flush();
     contractRelatedKidCache.Flush();
     contractDataCache.Flush();
@@ -102,7 +101,6 @@ bool CContractDBCache::Flush() {
 uint32_t CContractDBCache::GetCacheSize() const {
     return contractCache.GetCacheSize() +
         txOutputCache.GetCacheSize() +
-        acctTxListCache.GetCacheSize() +
         txDiskPosCache.GetCacheSize() +
         contractRelatedKidCache.GetCacheSize() +
         contractDataCache.GetCacheSize() +
@@ -111,39 +109,6 @@ uint32_t CContractDBCache::GetCacheSize() const {
 
 bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput) {
     return txOutputCache.SetData(txid, vOutput);
-}
-
-bool CContractDBCache::SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid) {
-    auto key = make_tuple(keyId, height, index);
-    return acctTxListCache.SetData(key, txid);
-}
-
-bool CContractDBCache::GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string> &mapTxHash) {
-    return false;
-    /* TODO: implements get list in cache
-        pBase->GetTxHashByAddress(keyId, height, mapTxHash);
-
-        string vPreKey = {'A', 'D', 'D', 'R'};
-        CDataStream ds1(SER_DISK, CLIENT_VERSION);
-        ds1 << keyId;
-        ds1 << height;
-        vPreKey.insert(vPreKey.end(), ds1.begin(), ds1.end());
-
-        map<string, string >::iterator iterFindKey =
-            mapContractDb.upper_bound(vPreKey);
-        while (iterFindKey != mapContractDb.end()) {
-            if (0 == memcmp((char *)&iterFindKey->first[0], (char *)&vPreKey[0], 28)) {
-                if (iterFindKey->second.empty())
-                    mapTxHash.erase(iterFindKey->first);
-                else {
-                    mapTxHash.insert(make_pair(iterFindKey->first, iterFindKey->second));
-                }
-            } else {
-                break;
-            }
-        }
-        return true;
-    */
 }
 
 bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, string> &mapAcc) {

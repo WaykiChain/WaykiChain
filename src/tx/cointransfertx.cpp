@@ -95,9 +95,6 @@ bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                          desAcct.keyid.ToString()),
                          UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid, toUid}))
-        return false;
-
     return true;
 }
 
@@ -227,9 +224,6 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     if (!cw.accountCache.SaveAccount(desAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-
-    if (!SaveTxAddresses(height, index, cw, state, {txUid, toUid}))
-        return false;
 
     return true;
 }

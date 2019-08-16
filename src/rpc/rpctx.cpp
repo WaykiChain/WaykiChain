@@ -2425,46 +2425,6 @@ Value gettotalassets(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value listtxbyaddr(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2) {
-        throw runtime_error(
-            "listtxbyaddr \n"
-            "\nlist all transactions by their sender/receiver addresss\n"
-            "\nArguments:\n"
-            "1.\"address\":     (string, required)\n"
-            "2.\"height\":      (numeric, required)\n"
-            "\nResult: address related tx hash as array\n"
-            "\nExamples:\n" +
-            HelpExampleCli("listtxbyaddr", "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\" \"10000\"") +
-            "\nAs json rpc call\n" +
-            HelpExampleRpc("listtxbyaddr", "\"wcoA7yUW4fc4m6a2HSk36t4VVxzKUnvq4S\", \"10000\""));
-    }
-
-    string address = params[0].get_str();
-    int32_t height     = params[1].get_int();
-    if (height < 0 || height > chainActive.Height())
-        throw runtime_error("Height out of range.");
-
-    CKeyID keyId;
-    if (!GetKeyId(address, keyId))
-        throw runtime_error("Address invalid.");
-
-    map<string, string> mapTxHash;
-    if (!pCdMan->pContractCache->GetTxHashByAddress(keyId, height, mapTxHash))
-        throw runtime_error("Failed to fetch data.");
-
-    Object obj;
-    Array arrayObj;
-    for (auto item : mapTxHash) {
-        arrayObj.push_back(item.second);
-    }
-    obj.push_back(Pair("address", address));
-    obj.push_back(Pair("height", height));
-    obj.push_back(Pair("tx_array", arrayObj));
-
-    return obj;
-}
-
 Value listdelegates(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {
         throw runtime_error(

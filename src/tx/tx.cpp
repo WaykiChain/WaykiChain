@@ -46,7 +46,7 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
                 case MAJOR_VER_R2:  // StableCoin Release
                     feeOut = std::get<2>(iter->second);
                     return true;
-            }        
+            }
         } else if (symbol == SYMB::WUSD) {
             switch (version) {
                 case MAJOR_VER_R1: // Prior-stablecoin Release
@@ -55,11 +55,11 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
                 case MAJOR_VER_R2:  // StableCoin Release
                     feeOut = std::get<4>(iter->second);
                     return true;
-            }        
-        } 
+            }
+        }
     }
     return false;
-  
+
 }
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
@@ -147,23 +147,4 @@ bool CBaseTx::CheckCoinRange(TokenSymbol symbol, int64_t amount) {
         // TODO: need to check other token range
         return amount >= 0;
     }
-}
-
-bool CBaseTx::SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw,
-                              CValidationState &state, const vector<CUserID> &userIds) {
-    if (SysCfg().GetAddressToTxFlag()) {
-        for (auto userId : userIds) {
-            if (userId.type() != typeid(CNullID)) {
-                CKeyID keyId;
-                if (!cw.accountCache.GetKeyId(userId, keyId))
-                    return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, get keyid by uid error"),
-                                    READ_ACCOUNT_FAIL, "bad-get-keyid-uid");
-
-                if (!cw.contractCache.SetTxHashByAddress(keyId, height, index + 1, GetHash()))
-                    return state.DoS(100, ERRORMSG("CBaseTx::SaveTxAddresses, SetTxHashByAddress to db cache failed!"),
-                                    READ_ACCOUNT_FAIL, "bad-set-txHashByAddress");
-            }
-        }
-    }
-    return true;
 }

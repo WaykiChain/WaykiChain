@@ -103,8 +103,6 @@ protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
-    bool SaveTxAddresses(uint32_t height, uint32_t index, CCacheWrapper &cw, CValidationState &state,
-                         const vector<CUserID> &userIds);
 };
 
 class CPricePoint {

@@ -60,9 +60,6 @@ bool CFcoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!SaveTxAddresses(height, index, cw, state, {txUid}))
-        return false;
-
     return true;
 }
 
