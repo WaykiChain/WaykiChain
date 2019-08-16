@@ -113,12 +113,16 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             }
 
             // a) sell WICC for WUSD to return to risk reserve pool
-            // transfer bcoin from cdp to fcoin genesis account
-            if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, ADD_FREE, cdp.total_staked_bcoins)) {
+            // send bcoin from cdp to fcoin genesis account
+            if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, cdp.total_staked_bcoins)) {
                 return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),
                                  UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
             // should freeze user's asset for selling
+            if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::FREEZE, cdp.total_staked_bcoins)) {
+                return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
+                                    UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+            }
             auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
                 CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
             string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
@@ -143,12 +147,12 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 assert(fcoinMedianPrice != 0);
                 uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
                 // inflate fcoin to fcoin genesis account
-                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, ADD_FREE, fcoinsToInflate)) {
+                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinsToInflate)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),
                                      UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
                 // should freeze user's asset for selling
-                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, FREEZE, fcoinsToInflate)) {
+                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::FREEZE, fcoinsToInflate)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
                                      UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }

@@ -262,9 +262,14 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+    // send interest to fcoin genesis account
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, operate balance failed"),
+                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+    }
 
     // should freeze user's coin for buying the asset
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, FREEZE, scoinsInterestToRepay)) {
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
@@ -471,9 +476,14 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
 
     CAccount fcoinGenesisAccount;
     cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+    // send interest to fcoin genesis account
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, scoinsInterestToRepay)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, operate balance failed"),
+                        UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+    }
 
     // should freeze user's coin for buying the asset
-    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, FREEZE, scoinsInterestToRepay)) {
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
                         UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
@@ -795,9 +805,15 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
 
         // 2) sell 50% penalty fees for Fcoins and burn
+        // send half scoin penalty to fcoin genesis account
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, halfScoinsPenalty)) {
+            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, operate balance failed"),
+                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+        }
+
         // should freeze user's coin for buying the asset
-        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, FREEZE, halfScoinsPenalty)) {
-            return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, account has insufficient funds"),
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::FREEZE, halfScoinsPenalty)) {
+            return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, account has insufficient funds"),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
