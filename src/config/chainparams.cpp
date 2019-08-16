@@ -177,7 +177,7 @@ public:
         CTestNetParams::InitialConfig();
 
         nSubsidyHalvingInterval   = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
-        nBlockInterval            = GetArg("-blockinterval", 10);
+        nBlockInterval            = GetArg("-blockinterval", 3);
         nFeatureForkHeight        = std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer                   = true;
 
