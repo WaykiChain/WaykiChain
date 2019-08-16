@@ -71,7 +71,7 @@ protected:
     mutable bool fLogFailures;
     mutable int64_t nTimeBestReceived;
     mutable uint64_t payTxFee;
-    uint32_t nMaxForkHeight = 24 * 60 * 6;  // 8640, i.e. forked distance by a day block height
+    uint32_t nMaxForkHeight = 24 * 60 * 20;  // 28800, i.e. forked distance by a day block height
     uint32_t nBlockInterval;                // to limit block creation time
     uint32_t nFeatureForkHeight;
     uint32_t nStableCoinGenesisHeight;
