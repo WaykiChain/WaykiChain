@@ -680,16 +680,21 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
             "getdexsysorders \"height\"\n"
             "\nget dex system orders by block height.\n"
             "\nArguments:\n"
-            "1.\"height\": (numeric required) block height\n"
-            "\nResult: list of order object\n"
+            "1.\"height\": (numeric optional) block height, default is current tip block height\n"
+            "\nResult:\n"
+            "\"height\" (string) the specified block height.\n"
+            "\"orders\" (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
             + HelpExampleCli("getdexsysorders", "10 ")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("getdexsysorders", "10")
         );
     }
-    int64_t height = params[0].get_int64();
     int64_t tipHeight = chainActive.Height();
+    int64_t height = tipHeight;
+    if (params.size() > 0)
+        height = params[0].get_int64();
+
     if (height < 0 || height > tipHeight) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Height must >= 0 and <= tip_height=%d", height, tipHeight));
     }
@@ -698,7 +703,9 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
     if (!pGetter->Execute(height)) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system order list error! height=%d", height));
     }
-    Object obj = pGetter->ToJson();
+    Object obj;
+    obj.push_back(Pair("height", height));
+    pGetter->ToJson(obj);
     return obj;
 }
 

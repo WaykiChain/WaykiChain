@@ -10,16 +10,14 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDBDexBlockList 
-Object CDBDexBlockList::ToJson() {
+void CDBDexBlockList::ToJson(Object &obj) {
     Array array;
     for (auto &item : list) {
         Object objItem = item.second.ToJson();
         objItem.insert(objItem.begin(), Pair("txid", std::get<2>(item.first).ToString()));
         array.push_back(objItem);
     }
-    Object obj;
     obj.push_back(Pair("orders", array));
-    return obj;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,8 +216,8 @@ bool CDEXSysOrderListGetter::Execute(uint32_t height) {
     return true;
 }
 
-Object CDEXSysOrderListGetter::ToJson() {
-    return data_list.ToJson();
+void CDEXSysOrderListGetter::ToJson(Object &obj) {
+    data_list.ToJson(obj);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

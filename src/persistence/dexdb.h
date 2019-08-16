@@ -35,7 +35,7 @@ public:
         return item.second;
     }
 
-    Object ToJson();
+    void ToJson(Object &obj);
 };
 
 
@@ -69,7 +69,7 @@ public:
     }    
     bool Execute(uint32_t height);
 
-    Object ToJson();
+    void ToJson(Object &obj);
 };
 
 class CDexDBCache {
