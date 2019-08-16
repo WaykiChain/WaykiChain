@@ -300,26 +300,25 @@ public:
     }
 
     bool Flush() {
-        if (pSysParamCache)
-            pSysParamCache->Flush();
+        if (pSysParamCache) pSysParamCache->Flush();
 
-        if (pAccountCache)
-            pAccountCache->Flush();
+        if (pAccountCache) pAccountCache->Flush();
 
-        if (pContractCache)
-            pContractCache->Flush();
+        if (pAssetCache) pAccountCache->Flush();
 
-        if (pDelegateDb)
-            pDelegateCache->Flush();
+        if (pContractCache) pContractCache->Flush();
 
-        if (pCdpCache)
-            pCdpCache->Flush();
+        if (pDelegateCache) pDelegateCache->Flush();
 
-        if (pBlockTreeDb)
-            pBlockTreeDb->Flush();
+        if (pCdpCache) pCdpCache->Flush();
 
-        if (pLogCache)
-            pLogCache->Flush();
+        if (pDexCache) pDexCache->Flush();
+
+        if (pBlockTreeDb) pBlockTreeDb->Flush();
+
+        if (pLogCache) pLogCache->Flush();
+
+        if (pTxReceiptCache) pTxReceiptCache->Flush();
 
         // Memory only cache, not bother to flush.
         // if (pTxCache)

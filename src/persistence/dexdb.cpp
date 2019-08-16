@@ -82,10 +82,10 @@ bool CDEXOrderListGetter::Execute(uint32_t fromHeight, uint32_t toHeight, const 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSysOrderListGetter
 bool CDEXSysOrderListGetter::Execute(uint32_t height) {
-    string prestartKey;
-    string prefix = dbk::GenDbKey(CDBDexBlockList::PREFIX_TYPE, make_pair(height, (uint32_t)SYSTEM_GEN_ORDER));
+
+    string prefix = dbk::GenDbKey(CDBDexBlockList::PREFIX_TYPE, make_pair(height, (uint8_t)SYSTEM_GEN_ORDER));
     auto pCursor = db_access.NewIterator();
-    pCursor->Seek(prestartKey);
+    pCursor->Seek(prefix);
     for (; pCursor->Valid(); pCursor->Next()) {
         const leveldb::Slice &slKey = pCursor->key();
         const leveldb::Slice &slValue = pCursor->value();

@@ -48,7 +48,7 @@ inline const std::string &GetOrderTypeName(OrderType orderType) {
     return EMPTY_STRING;
 }
 
-enum OrderGenerateType {
+enum OrderGenerateType: uint8_t {
     EMPTY_ORDER         = 0,
     USER_GEN_ORDER      = 1,
     SYSTEM_GEN_ORDER    = 2
