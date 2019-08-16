@@ -592,8 +592,8 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
             "2.\"deal_items\": (string required) deal items in json format\n"
             " [\n"
             "   {\n"
-            "      \"buy_order_txid\":\"txid\", (string, required) order txid of buyer\n"
-            "      \"sell_order_txid\":\"txid\", (string, required) order txid of seller\n"
+            "      \"buy_order_id\":\"txid\", (string, required) order txid of buyer\n"
+            "      \"sell_order_id\":\"txid\", (string, required) order txid of seller\n"
             "      \"deal_price\":n (numeric, required) deal price\n"
             "      \"deal_coin_amount\":n (numeric, required) deal amount of coin\n"
             "      \"deal_asset_amount\":n (numeric, required) deal amount of asset\n"
@@ -605,15 +605,15 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
-                           "\"[{\\\"buy_order_txid\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\\\", "
-                           "\\\"sell_order_txid\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\\\", "
+                           "\"[{\\\"buy_order_id\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\\\", "
+                           "\\\"sell_order_id\\\":\\\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\\\", "
                            "\\\"deal_price\\\":100000000,"
                            "\\\"deal_coin_amount\\\":100000000,"
                            "\\\"deal_asset_amount\\\":100000000}]\" ")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "\
-                           "[{\"buy_order_txid\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\", "
-                           "\"sell_order_txid\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\", "
+                           "[{\"buy_order_id\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\", "
+                           "\"sell_order_id\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\", "
                            "\"deal_price\":100000000,"
                            "\"deal_coin_amount\":100000000,"
                            "\"deal_asset_amount\":100000000}]")
@@ -626,10 +626,10 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     vector<DEXDealItem> dealItems;
     for (auto dealItemObj : dealItemArray) {
         DEXDealItem dealItem;
-        const Value& buy_order_txid    = JSON::GetObjectFieldValue(dealItemObj, "buy_order_txid");
-        dealItem.buyOrderId            = RPC_PARAM::GetTxid(buy_order_txid, "buy_order_txid");
-        const Value& sell_order_txid   = JSON::GetObjectFieldValue(dealItemObj, "sell_order_txid");
-        dealItem.sellOrderId           = RPC_PARAM::GetTxid(sell_order_txid.get_str(), "sell_order_txid");
+        const Value& buy_order_id    = JSON::GetObjectFieldValue(dealItemObj, "buy_order_id");
+        dealItem.buyOrderId            = RPC_PARAM::GetTxid(buy_order_id, "buy_order_id");
+        const Value& sell_order_id   = JSON::GetObjectFieldValue(dealItemObj, "sell_order_id");
+        dealItem.sellOrderId           = RPC_PARAM::GetTxid(sell_order_id.get_str(), "sell_order_id");
         const Value& deal_price        = JSON::GetObjectFieldValue(dealItemObj, "deal_price");
         dealItem.dealPrice             = RPC_PARAM::GetPrice(deal_price);
         const Value& deal_coin_amount  = JSON::GetObjectFieldValue(dealItemObj, "deal_coin_amount");
@@ -651,10 +651,10 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 Value getdexorder(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 1) {
         throw runtime_error(
-            "getdexorder \"order_txid\"\n"
+            "getdexorder \"order_id\"\n"
             "\nget dex order detail.\n"
             "\nArguments:\n"
-            "1.\"order_txid\": (string required) order txid\n"
+            "1.\"order_id\": (string required) order txid\n"
             "\nResult: object of order detail\n"
             "\nExamples:\n"
             + HelpExampleCli("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
@@ -662,15 +662,16 @@ Value getdexorder(const Array& params, bool fHelp) {
             + HelpExampleRpc("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
         );
     }
-    const uint256 &orderTxid = RPC_PARAM::GetTxid(params[0], "order_txid");
+    const uint256 &orderTxid = RPC_PARAM::GetTxid(params[0], "order_id");
 
     auto pDexCache = pCdMan->pDexCache;
     CDEXOrderDetail orderDetail;
     if (!pDexCache->GetActiveOrder(orderTxid, orderDetail))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_txid=%s", orderTxid.ToString()));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The order not exists or inactive! order_id=%s", orderTxid.ToString()));
 
-    Object obj = orderDetail.ToJson();
-    obj.insert(obj.begin(), Pair("order_txid", orderTxid.ToString()));
+    Object obj;
+    obj.push_back(Pair("order_id", orderTxid.ToString()));
+    orderDetail.ToJson(obj);
     return obj;
 }
 

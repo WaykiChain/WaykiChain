@@ -13,8 +13,9 @@
 void CDBDexBlockList::ToJson(Object &obj) {
     Array array;
     for (auto &item : list) {
-        Object objItem = item.second.ToJson();
-        objItem.insert(objItem.begin(), Pair("txid", std::get<2>(item.first).ToString()));
+        Object objItem;
+        objItem.push_back(Pair("order_id", std::get<2>(item.first).ToString()));
+        item.second.ToJson(objItem);
         array.push_back(objItem);
     }
     obj.push_back(Pair("orders", array));

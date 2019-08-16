@@ -123,7 +123,7 @@ public:
     }
 
     string ToString() const;
-    json_spirit::Object ToJson() const;
+    void ToJson(json_spirit::Object &obj) const;
 };
 
 

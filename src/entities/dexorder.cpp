@@ -21,9 +21,7 @@ string CDEXOrderDetail::ToString() const {
 }
 
 
-json_spirit::Object CDEXOrderDetail::ToJson() const {
-    json_spirit::Object obj;
-
+void CDEXOrderDetail::ToJson(json_spirit::Object &obj) const {
     obj.push_back(Pair("generate_type", GetOrderGenTypeName(generate_type)));
     obj.push_back(Pair("order_type", GetOrderTypeName(order_type)));
     obj.push_back(Pair("order_side", GetOrderSideName(order_side)));
@@ -36,7 +34,6 @@ json_spirit::Object CDEXOrderDetail::ToJson() const {
     obj.push_back(Pair("user_regid", user_regid.ToString()));
     obj.push_back(Pair("total_deal_coin_amount", total_deal_coin_amount));
     obj.push_back(Pair("total_deal_asset_amount", total_deal_asset_amount));
-    return obj;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
