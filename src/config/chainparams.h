@@ -109,6 +109,7 @@ public:
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
         bContractLog = GetBoolArg("-contractlog", false); //contract account change log
         bAddressToTx = GetBoolArg("-addresstotx", false);
+        nBlockInterval = GetArg("-blockinterval", 3) ;
 
         return true;
     }
