@@ -99,7 +99,7 @@ Object CAccountRegisterTx::ToJson(const CAccountDBCache &AccountView) const {
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("addr",           address));
+    result.push_back(Pair("from_addr",      address));
     result.push_back(Pair("pubkey",         userPubKey));
     result.push_back(Pair("miner_pubkey",   userMinerPubKey));
     result.push_back(Pair("fees",           llFees));

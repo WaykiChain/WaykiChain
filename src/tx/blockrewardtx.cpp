@@ -57,8 +57,8 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",            txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("to_addr",        keyId.ToAddress()));
     result.push_back(Pair("reward_value",   reward));
     result.push_back(Pair("valid_height",   nValidHeight));
 
@@ -151,8 +151,8 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
     result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("tx_uid",            txUid.ToString()));
-    result.push_back(Pair("addr",           keyId.ToAddress()));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("to_addr",        keyId.ToAddress()));
     result.push_back(Pair("reward_value",   reward));
     result.push_back(Pair("valid_height",   nValidHeight));
 
