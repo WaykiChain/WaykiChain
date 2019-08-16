@@ -155,8 +155,8 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
                 auto pFcoinSellMarketOrder =
                     CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
-                string bcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
-                if (!cw.dexCache.CreateActiveOrder(uint256S(bcoinSellMarketOrderId), *pFcoinSellMarketOrder)) {
+                string fcoinSellMarketOrderId = orderIdFactor + std::to_string(orderIndex ++);
+                if (!cw.dexCache.CreateActiveOrder(uint256S(fcoinSellMarketOrderId), *pFcoinSellMarketOrder)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed",
                             pFcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
                 }
@@ -166,7 +166,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                     "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
                     pBcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
-                    pFcoinSellMarketOrder->ToString(), uint256S(bcoinSellMarketOrderId).GetHex(),
+                    pFcoinSellMarketOrder->ToString(), uint256S(fcoinSellMarketOrderId).GetHex(),
                     currRiskReserveScoins,
                     currRiskReserveScoins - cdp.total_owed_scoins);
             }
