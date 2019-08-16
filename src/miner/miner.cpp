@@ -19,6 +19,10 @@
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 
+
+                                                                                                   \
+
+
 extern CWallet *pWalletMain;
 extern void SetMinerStatus(bool bStatus);
 //////////////////////////////////////////////////////////////////////////////
@@ -32,6 +36,10 @@ uint64_t nLastBlockSize = 0;
 MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(kMaxMinedBlocks);
 CCriticalSection csMinedBlocks;
+
+
+
+
 
 // base on the last 50 blocks
 uint32_t GetElementForBurn(CBlockIndex *pIndex) {
@@ -335,6 +343,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
         // Collect transactions into the block.
         for (auto item : txPriorities) {
+
             CBaseTx *pBaseTx = std::get<2>(item).get();
 
             uint32_t txSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
@@ -349,6 +358,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             if ((dFeePerKb != 0) && (dFeePerKb < CBaseTx::nMinRelayTxFee) && (totalBlockSize + txSize >= nBlockMinSize)) {
                 LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : skip free transaction, txid: %s\n",
                          pBaseTx->GetHash().GetHex());
+
                 continue;
             }
 
@@ -457,6 +467,7 @@ std::unique_ptr<CBlock> CreateStableCoinGenesisBlock() {
     return pBlock;
 }
 
+
 std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
     // Create new block
     std::unique_ptr<CBlock> pBlock(new CBlock());
@@ -503,8 +514,16 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         LogPrint("MINER", "CreateNewBlockStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
 
+        auto startTime = std::chrono::steady_clock::now() ;
         // Collect transactions into the block.
         for (auto item : txPriorities) {
+
+            auto endTime = std::chrono::steady_clock::now();
+            double costTime =std::chrono::duration<double>( endTime - startTime ).count();
+            if(costTime >= SysCfg().GetBlockInterval() - 1){
+                break ;
+            }
+
             CBaseTx *pBaseTx = std::get<2>(item).get();
 
             uint32_t txSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
@@ -545,6 +564,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 }
             } catch (std::exception &e) {
                 LogPrint("ERROR", "CreateNewBlockStableCoinRelease() : unexpected exception: %s\n", e.what());
+
+
                 continue;
             }
 
@@ -572,6 +593,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+
         }
 
         nLastBlockTx                   = index + 1;
@@ -603,6 +625,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
     return pBlock;
 }
+
+
 
 bool CheckWork(CBlock *pBlock, CWallet &wallet) {
     // Print block information

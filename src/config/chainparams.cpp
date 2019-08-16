@@ -133,6 +133,7 @@ public:
 
     virtual bool InitialConfig() {
         CMainParams::InitialConfig();
+        nBlockInterval = GetArg("-blockinterval", 3) ;
         fServer = true;
         return true;
     }
@@ -177,7 +178,7 @@ public:
         CTestNetParams::InitialConfig();
 
         nSubsidyHalvingInterval   = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
-        nBlockInterval            = GetArg("-blockinterval", 10);
+        nBlockInterval            = GetArg("-blockinterval", 3);
         nFeatureForkHeight        = std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer                   = true;
 
@@ -427,7 +428,7 @@ CBaseParams::CBaseParams() {
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nViewCacheSize          = 2000000;
-    nBlockInterval          = 10;
+    nBlockInterval          = 3;
     nSubsidyHalvingInterval = 0;
     payTxFee                = 10000;
     nDefaultPort            = 0;
