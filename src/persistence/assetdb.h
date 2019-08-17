@@ -24,7 +24,7 @@ class CAssetDBCache {
 public:
     CAssetDBCache() {}
 
-    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
+    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess), assetTradingPairCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     }
 

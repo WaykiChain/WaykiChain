@@ -304,7 +304,7 @@ public:
 
         if (pAccountCache) pAccountCache->Flush();
 
-        if (pAssetCache) pAccountCache->Flush();
+        if (pAssetCache) pAssetCache->Flush();
 
         if (pContractCache) pContractCache->Flush();
 
