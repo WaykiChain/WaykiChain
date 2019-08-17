@@ -64,11 +64,11 @@ Object CallRPC(const string& strMethod, const Array& params)
 
     // Send request
     string strRequest = JSONRPCRequest(strMethod, params, 1);
-    string strPost = HTTPPost(strRequest, mapRequestHeaders);
+    string strPost    = HTTPPost(strRequest, mapRequestHeaders);
     stream << strPost << flush;
 
     // Receive HTTP reply status
-    int nProto = 0;
+    int nProto  = 0;
     int nStatus = ReadHTTPStatus(stream, nProto);
 
     // Receive HTTP reply message headers and body

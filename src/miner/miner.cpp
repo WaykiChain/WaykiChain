@@ -104,7 +104,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
 
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTransaction().get();
-        if (!pBaseTx->IsCoinBase() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
+        if (!pBaseTx->IsBlockRewardTx() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = mi->second.GetTxSize();
             coinType  = std::get<0>(mi->second.GetFees());
             nFees     = std::get<1>(mi->second.GetFees());

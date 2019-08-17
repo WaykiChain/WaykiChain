@@ -136,7 +136,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
 
         auto DisConnectBlockProgress = [&]() {
             for (const auto &sptx : pBlock->vptx) {
-                if (sptx->IsCoinBase()) {
+                if (sptx->IsBlockRewardTx()) {
                     continue;
                 }
                 if (IsMine(sptx.get())) {

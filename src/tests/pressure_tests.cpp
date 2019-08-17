@@ -281,7 +281,7 @@ public:
 		totalValue += scriptaccValue;
 
 		uint64_t uTotalRewardValue(0);
-		if (chainActive.Tip()->height - 1 > COINBASE_MATURITY)  //height 1 is generate by another account
+		if (chainActive.Tip()->height - 1 > BLOCK_REWARD_MATURITY)  //height 1 is generate by another account
 			uTotalRewardValue = 10 * COIN * (chainActive.Tip()->height - 101);
 		dFee.push_back(llFees);
 		dFuel.push_back(llFuelValue);
@@ -374,7 +374,7 @@ BOOST_FIXTURE_TEST_CASE(tests, PressureTest)
 			//检测Block最大值
 			BOOST_CHECK(block.GetSerializeSize(SER_DISK, CLIENT_VERSION) <= MAX_BLOCK_SIZE);
 			for (auto & ptx : block.vptx) {
-				if (ptx->IsCoinBase()) {
+				if (ptx->IsBlockRewardTx()) {
 					continue;
 				}
 				if (ACCOUNT_REGISTER_TX == ptx->nTxType) {

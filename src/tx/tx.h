@@ -94,7 +94,7 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
-    bool IsCoinBase() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
+    bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsMedianPriceTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
 

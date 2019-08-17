@@ -391,7 +391,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             REJECT_INVALID, "tx-already-in-mempool");
 
     // is it a miner reward tx or median price tx?
-    if (pBaseTx->IsCoinBase() || pBaseTx->IsMedianPriceTx())
+    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsMedianPriceTx())
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward transaction, can't put into mempool",
             hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
@@ -491,9 +491,9 @@ int32_t CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
 }
 
 int32_t CMerkleTx::GetBlocksToMaturity() const {
-    if (!pTx->IsCoinBase())
+    if (!pTx->IsBlockRewardTx())
         return 0;
-    return max(0, (COINBASE_MATURITY + 1) - GetDepthInMainChain());
+    return max(0, (BLOCK_REWARD_MATURITY + 1) - GetDepthInMainChain());
 }
 
 int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
@@ -1421,10 +1421,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     blockUndo.vtxundo.push_back(cw.txUndo);
     cw.DisableTxUndoLog();
 
-    if (pIndex->height - COINBASE_MATURITY > 0) {
+    if (pIndex->height - BLOCK_REWARD_MATURITY > 0) {
         // Deal mature block reward transaction
         CBlockIndex *pMatureIndex = pIndex;
-        for (int32_t i = 0; i < COINBASE_MATURITY; ++i) {
+        for (int32_t i = 0; i < BLOCK_REWARD_MATURITY; ++i) {
             pMatureIndex = pMatureIndex->pprev;
         }
 
@@ -1621,7 +1621,7 @@ bool static DisconnectTip(CValidationState &state) {
     for (const auto &ptx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
         CValidationState stateDummy;
-        if (!ptx->IsCoinBase()) {
+        if (!ptx->IsBlockRewardTx()) {
             if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
                 mempool.Remove(ptx.get(), removed, true);
             }
@@ -2103,7 +2103,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
                              "time-too-new");
 
     // First transaction must be coinbase, the rest must not be
-    if (block.vptx.empty() || !block.vptx[0]->IsCoinBase())
+    if (block.vptx.empty() || !block.vptx[0]->IsBlockRewardTx())
         return state.DoS(100, ERRORMSG("CheckBlock() : first tx is not coinbase"), REJECT_INVALID, "bad-cb-missing");
 
     // Build the merkle tree already. We need it anyway later, and it makes the
@@ -2121,7 +2121,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
-            if (0 != i && block.vptx[i]->IsCoinBase())
+            if (0 != i && block.vptx[i]->IsBlockRewardTx())
                 return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-coinbase-multiple");
 
             // Second transaction must be median price transaction if existed.
