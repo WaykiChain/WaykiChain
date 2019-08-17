@@ -53,8 +53,6 @@ public:
     mutable TxID sigHash;  //!< only in memory
 
 public:
-    CBaseTx(const CBaseTx &other) { *this = other; }
-
     CBaseTx(int32_t nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
         nVersion(nVersionIn), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn), llFees(llFeesIn),
         nRunStep(0), nFuelRate(0) {}

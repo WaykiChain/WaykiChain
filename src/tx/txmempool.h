@@ -83,8 +83,8 @@ public:
     void Clear();
 
     uint64_t Size();
-    bool Exists(uint256 txid);
-    std::shared_ptr<CBaseTx> Lookup(uint256 txid) const;
+    bool Exists(const uint256 txid);
+    std::shared_ptr<CBaseTx> Lookup(const uint256 txid) const;
 
 private:
     bool fSanityCheck; // Normally false, true if -checkmempool or -regtest

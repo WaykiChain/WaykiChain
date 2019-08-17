@@ -159,12 +159,12 @@ uint64_t CTxMemPool::Size() {
     return memPoolTxs.size();
 }
 
-bool CTxMemPool::Exists(uint256 txid) {
+bool CTxMemPool::Exists(const uint256 txid) {
     LOCK(cs);
     return ((memPoolTxs.count(txid) != 0));
 }
 
-std::shared_ptr<CBaseTx> CTxMemPool::Lookup(uint256 txid) const {
+std::shared_ptr<CBaseTx> CTxMemPool::Lookup(const uint256 txid) const {
     LOCK(cs);
     typename map<uint256, CTxMemPoolEntry>::const_iterator i = memPoolTxs.find(txid);
     if (i == memPoolTxs.end())
