@@ -51,25 +51,30 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     }
 
     do {
-        // 0. Check Global Collateral Ratio floor & Collateral Ceiling if reached
+
+        // 0. acquire median prices
+        uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+        if (bcoinMedianPrice == 0) {
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire bcoin median price\n");
+            break;
+        }
+
+        uint64_t fcoinMedianPrice = cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
+        if (fcoinMedianPrice == 0) {
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
+            break;
+        }
+
+        // 1. Check Global Collateral Ratio floor & Collateral Ceiling if reached
         uint64_t globalCollateralRatioFloor = 0;
         if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
             return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
                             READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
         }
 
-        // 1. get median prices
-        uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
         // check global collateral ratio
         if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
-            break;
-        }
-
-        uint64_t fcoinMedianPrice = cw.ppCache.GetFcoinMedianPrice(height, slideWindowBlockCount);
-        // ensure acquire valid fcoin median price
-        if (fcoinMedianPrice == 0) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
             break;
         }
 
