@@ -341,7 +341,7 @@ bool CLuaContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &key
     return true;
 }
 
-string CLuaContractInvokeTx::ToString(CAccountDBCache &view) {
+string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
         "nValidHeight=%d\n",
@@ -352,19 +352,14 @@ string CLuaContractInvokeTx::ToString(CAccountDBCache &view) {
 Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    // auto GetRegIdString = [&](CUserID const &userId) {
-    //     if (userId.type() == typeid(CRegID))
-    //         return userId.get<CRegID>().ToString();
-    //     return string("");
-    // };
-
     CKeyID desKeyId;
     accountCache.GetKeyId(app_uid, desKeyId);
     IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("regid",          txUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("app_uid",        app_uid.ToString()));
-    result.push_back(Pair("transfer_bcoins",bcoins));
+    result.push_back(Pair("coin_symbol",    SYMB::WICC));
+    result.push_back(Pair("coin_amount",    bcoins));
     result.push_back(Pair("arguments",      HexStr(arguments)));
 
     return result;

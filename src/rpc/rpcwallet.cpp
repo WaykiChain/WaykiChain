@@ -292,7 +292,7 @@ Value signmessage(const Array& params, bool fHelp)
 }
 
 static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID& recvKeyId, const int64_t nValue,
-                                          const int64_t nFee, const string memo) {
+                                          const int64_t nFee, const string &memo) {
     /**
      * We need to choose the proper field as the sender/receiver's account according to
      * the two factor: whether the sender's account is registered or not, whether the

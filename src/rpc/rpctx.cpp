@@ -190,7 +190,6 @@ Value registeraccounttx(const Array& params, bool fHelp) {
 
         uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fee) {
-            LogPrint("ERROR", "balance=%d, vs fee=%d", balance, fee);
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
 
