@@ -1634,8 +1634,8 @@ instance_of_cnetcleanup;
 
 void RelayTransaction(CBaseTx* pBaseTx, const uint256& hash) {
     CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
-    ss.reserve(10000);
-    std::shared_ptr<CBaseTx> pTx = pBaseTx->GetNewInstance();
+    ss.reserve(1000);
+    auto pTx = pBaseTx->GetNewInstance();
     ss << pTx;
     RelayTransaction(pBaseTx, hash, ss);
 }

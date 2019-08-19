@@ -14,38 +14,35 @@
 /*
 std::string split implementation by using delimeter as a character.
 */
-std::vector<std::string> split(std::string strToSplit, char delimeter)
-{
+std::vector<std::string> split(std::string strToSplit, char delimeter) {
     std::stringstream ss(strToSplit);
     std::string item;
-	std::vector<std::string> splittedStrings;
-    while (std::getline(ss, item, delimeter))
-	{
-		splittedStrings.push_back(item);
+    std::vector<std::string> splittedStrings;
+    while (std::getline(ss, item, delimeter)) {
+        splittedStrings.push_back(item);
     }
-	return splittedStrings;
+    return splittedStrings;
 }
 
 /*
 std::string split implementation by using delimeter as an another string
 */
-std::vector<std::string> split(std::string stringToBeSplitted, std::string delimeter)
-{
-	std::vector<std::string> splittedString;
-	size_t startIndex = 0;
-	size_t  endIndex = 0;
-	while( (endIndex = stringToBeSplitted.find(delimeter, startIndex)) < stringToBeSplitted.size() ) {
-		std::string val = stringToBeSplitted.substr(startIndex, endIndex - startIndex);
-		splittedString.push_back(val);
-		startIndex = endIndex + delimeter.size();
-	}
+std::vector<std::string> split(std::string stringToBeSplitted, std::string delimeter) {
+    std::vector<std::string> splittedString;
+    size_t startIndex = 0;
+    size_t endIndex   = 0;
+    while ((endIndex = stringToBeSplitted.find(delimeter, startIndex)) < stringToBeSplitted.size()) {
+        std::string val = stringToBeSplitted.substr(startIndex, endIndex - startIndex);
+        splittedString.push_back(val);
+        startIndex = endIndex + delimeter.size();
+    }
 
-	if(startIndex < stringToBeSplitted.size()) {
-		std::string val = stringToBeSplitted.substr(startIndex);
-		splittedString.push_back(val);
-	}
+    if (startIndex < stringToBeSplitted.size()) {
+        std::string val = stringToBeSplitted.substr(startIndex);
+        splittedString.push_back(val);
+    }
 
-	return splittedString;
+    return splittedString;
 }
 
 // [N|R|A]:address
@@ -235,12 +232,12 @@ Object GetTxDetailJSON(const uint256& txid) {
         CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
         ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
         assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
-        for (unsigned int i = 0; i < genesisblock.vptx.size(); ++i) {
+        for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txid == genesisblock.GetTxid(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
-                obj.push_back(Pair("block_hash", SysCfg().GetGenesisBlockHash().GetHex()));
-                obj.push_back(Pair("confirmed_height", (int) 0));
-                obj.push_back(Pair("confirmed_time", (int) genesisblock.GetTime()));
+                obj.push_back(Pair("block_hash",        SysCfg().GetGenesisBlockHash().GetHex()));
+                obj.push_back(Pair("confirmed_height",  (int32_t)0));
+                obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -258,9 +255,9 @@ Object GetTxDetailJSON(const uint256& txid) {
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
-                    obj.push_back(Pair("confirmed_height", (int) header.GetHeight()));
-                    obj.push_back(Pair("confirmed_time", (int) header.GetTime()));
-                    obj.push_back(Pair("block_hash", header.GetHash().GetHex()));
+                    obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
+                    obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
+                    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
 
                     if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
                         vector<CVmOperate> vOutput;
@@ -378,7 +375,7 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
             pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
             Array outputArray;
             for (auto& item : vOutput) {
-                Object objOutPut;
+                Object objOutput;
                 string address;
                 if (item.accountType == ACCOUNT_TYPE::REGID) {
                     vector<unsigned char> vRegId(item.accountId, item.accountId + 6);
@@ -390,24 +387,24 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                     address.assign(item.accountId[0], sizeof(item.accountId));
                 }
 
-                objOutPut.push_back(Pair("address", address));
+                objOutput.push_back(Pair("address", address));
 
                 uint64_t amount;
                 memcpy(&amount, item.money, sizeof(item.money));
                 double dAmount = amount / COIN;
 
                 if (item.opType == ADD_BCOIN) {
-                    objOutPut.push_back(Pair("category", "receive"));
-                    objOutPut.push_back(Pair("amount", dAmount));
+                    objOutput.push_back(Pair("category", "receive"));
+                    objOutput.push_back(Pair("amount", dAmount));
                 } else if (item.opType == MINUS_BCOIN) {
-                    objOutPut.push_back(Pair("category", "send"));
-                    objOutPut.push_back(Pair("amount", -dAmount));
+                    objOutput.push_back(Pair("category", "send"));
+                    objOutput.push_back(Pair("amount", -dAmount));
                 }
 
                 if (item.timeoutHeight > 0)
-                    objOutPut.push_back(Pair("freeze_height", (int)item.timeoutHeight));
+                    objOutput.push_back(Pair("freeze_height", (int32_t)item.timeoutHeight));
 
-                arrayDetail.push_back(objOutPut);
+                arrayDetail.push_back(objOutput);
             }
 
             break;
@@ -663,8 +660,8 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
 
 
 bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {
-    int begin = 0;
-    int end = hexStr.size();
+    int32_t begin = 0;
+    int32_t end   = hexStr.size();
     // skip left spaces
     while (begin != end && isspace(hexStr[begin]))
         begin++;
