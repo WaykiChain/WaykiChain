@@ -828,8 +828,12 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, ASSET_ISSUE_FEE);
     RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+
+    uint64_t assetIssueFee; //550 WICC
+    if (!pCdMan->pSysParamCache->GetParam(ASSET_ISSUE_FEE, assetIssueFee))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "read system param ASSET_ISSUE_FEE error");
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetIssueFee);
 
     CAsset asset(assetSymbol, assetOwnerUid, assetName, (uint64_t)totalSupply, mintable);
     int32_t validHeight = chainActive.Height();
@@ -871,8 +875,12 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, ASSET_UPDATE_FEE);
     RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+
+    uint64_t assetUpdateFee;
+    if (!pCdMan->pSysParamCache->GetParam(ASSET_UPDATE_FEE, assetUpdateFee))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "read system param ASSET_UPDATE_FEE error");
+    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetUpdateFee);
 
     int32_t validHeight = chainActive.Height();
     CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, assetOwnerUid, assetName,
