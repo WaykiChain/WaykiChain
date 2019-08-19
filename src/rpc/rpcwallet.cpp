@@ -351,9 +351,9 @@ Value sendtoaddress(const Array& params, bool fHelp) {
             "\nSend an amount to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"sendaddress\" (string, optional) The address where coins are sent from.\n"
-            "2.\"recvaddress\" (string, required) The address where coins are received.\n"
-            "3.\"amount\" (string, required)\n"
+            "1.\"sendaddress\"  (string, optional) The address where coins are sent from.\n"
+            "2.\"recvaddress\"  (string, required) The address where coins are received.\n"
+            "3.\"amount\"       (numberic, required)\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n" +
