@@ -44,7 +44,7 @@ enum SysParamType : uint8_t {
     CDP_NONRETURN_LIQUIDATE_RATIO           = 12,
     CDP_FORCE_LIQUIDATE_RATIO               = 13,
     CDP_LIQUIDATE_DISCOUNT_RATIO            = 14,
-    CDP_BCOINSTOSTAKE_AMOUNT_MIN            = 15,
+    CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   = 15,
     CDP_INTEREST_PARAM_A                    = 16,
     CDP_INTEREST_PARAM_B                    = 17,
     CDP_SYSORDER_PENALTY_FEE_MIN            = 18,
@@ -75,10 +75,10 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { CDP_NONRETURN_LIQUIDATE_RATIO,                std::make_tuple("L",    11300)      },  // 1.04 ~ 1.13 : Non-return to CDP owner
     { CDP_FORCE_LIQUIDATE_RATIO,                    std::make_tuple("M",    10400)      },  // 0 ~ 1.04    : forced liquidation only
     { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       },  // discount: 97%
-    { CDP_BCOINSTOSTAKE_AMOUNT_MIN,                 std::make_tuple("O",    100000000)  },  // 1 WICC, dust amount (<1) rejected
+    { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,        std::make_tuple("O",    90000000)   },  // 0.9 WUSD, dust amount (<0.9) rejected
     { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          },  // a = 2
     { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          },  // b = 1
-    { CDP_SYSORDER_PENALTY_FEE_MIN,                 std::make_tuple("R",    10)         },  // min. pentalty = 10
+    { CDP_SYSORDER_PENALTY_FEE_MIN,                 std::make_tuple("R",    10)         },  // min penalty fee = 10
     { ASSET_ISSUE_FEE,                              std::make_tuple("S",    550)        },  // asset issue fee = 550
     { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110)        },  // asset update fee = 110
 

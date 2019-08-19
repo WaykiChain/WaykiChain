@@ -24,17 +24,16 @@ public:
 public:
     CReceipt() {};
 
-    CReceipt(TxType txType, CUserID &fromUid, CUserID &toUid,
-            TokenSymbol coinSymbol, uint64_t sendAmount) :
-            tx_type(txType), from_uid(fromUid), to_uid(toUid),
-            coin_symbol(coinSymbol), send_amount(sendAmount) {};
+    CReceipt(TxType txType, CUserID &fromUid, CUserID &toUid, TokenSymbol coinSymbol, uint64_t sendAmount)
+        : tx_type(txType), from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), send_amount(sendAmount){};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t &) tx_type);
+        READWRITE((uint8_t &)tx_type);
         READWRITE(from_uid);
         READWRITE(to_uid);
-        READWRITE((uint8_t &) coin_symbol);
-        READWRITE(VARINT(send_amount));)
+        READWRITE((uint8_t &)coin_symbol);
+        READWRITE(VARINT(send_amount));
+    )
 };
 
 #endif //ENTITIES_RECEIPT_H

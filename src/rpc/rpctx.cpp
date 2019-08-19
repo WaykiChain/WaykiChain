@@ -2194,7 +2194,7 @@ Value getalltxinfo(const Array& params, bool fHelp) {
 Value gettxreceipt(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "gettxreceipt \n"
+            "gettxreceipt\n"
             "\nget tx receipts by txid\n"
             "\nArguments:\n"
             "1.\"txid\":    (string) txid\n"

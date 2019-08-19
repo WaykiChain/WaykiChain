@@ -129,29 +129,37 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    uint64_t partialCollateralRatio = scoins_to_mint == 0 ? UINT64_MAX : uint64_t(double(bcoins_to_stake) *
-        cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount) / scoins_to_mint);
+    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+    if (bcoinMedianPrice == 0) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price!!"),
+                         REJECT_INVALID, "acquire-bcoin-median-price-err");
+    }
+
+    uint64_t partialCollateralRatio =
+        scoins_to_mint == 0 ? UINT64_MAX : uint64_t(double(bcoins_to_stake) * bcoinMedianPrice / scoins_to_mint);
 
     if (cdp_txid.IsNull()) { // 1st-time CDP creation
         if (partialCollateralRatio < startingCdpCollateralRatio)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (%llu) is smaller than the minimal (%llu)",
                             partialCollateralRatio, startingCdpCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
-        uint64_t bcoinsToStakeAmountMin;
-        if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN, bcoinsToStakeAmountMin)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read min coins to stake error"),
-                            READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
-        }
-        if (bcoins_to_stake < bcoinsToStakeAmountMin) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins to stake %d is too small,",
-                        bcoins_to_stake), REJECT_INVALID, "bcoins-too-small-to-stake");
-        }
-
         CUserCDP cdp(txUid.get<CRegID>(), GetHash(), height, bcoin_symbol, scoin_symbol, bcoins_to_stake, scoins_to_mint);
 
         if (!cw.cdpCache.NewCDP(height, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save new cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-new-cdp-failed");
+        }
+
+        uint64_t bcoinsToStakeAmountMinInScoin;
+        if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN, bcoinsToStakeAmountMinInScoin)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read min coins to stake error"),
+                            READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
+        }
+
+        uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / kPercentBoost);
+        if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
+                        cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
         }
     } else { // further staking on one's existing CDP
         CUserCDP cdp;
@@ -167,11 +175,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                     height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
-        uint64_t totalBcoinsToStake = cdp.total_staked_bcoins + bcoins_to_stake;
-        uint64_t totalScoinsToOwe   = cdp.total_owed_scoins + scoins_to_mint;
-        uint64_t totalCollateralRatio =
-            uint64_t(double(totalBcoinsToStake) * cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount) /
-                     totalScoinsToOwe);
+        uint64_t totalBcoinsToStake   = cdp.total_staked_bcoins + bcoins_to_stake;
+        uint64_t totalScoinsToOwe     = cdp.total_owed_scoins + scoins_to_mint;
+        uint64_t totalCollateralRatio = uint64_t(double(totalBcoinsToStake) * bcoinMedianPrice / totalScoinsToOwe);
 
         if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (partial=%d, total=%d) is smaller than the minimal",
@@ -400,12 +406,29 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
                                 READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
             }
-            uint64_t bcoinPrice      = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
-            uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
+            uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+            if (bcoinMedianPrice == 0) {
+                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
+                                 REJECT_INVALID, "acquire-bcoin-median-price-err");
+            }
+            uint64_t collateralRatio  = cdp.ComputeCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
                                 100.0 * collateralRatio / (double)kPercentBoost, 100.0 * startingCdpCollateralRatio / (double)kPercentBoost),
                                 UPDATE_CDP_FAIL, "invalid-collatera-ratio");
+            }
+
+            uint64_t bcoinsToStakeAmountMinInScoin;
+            if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN, bcoinsToStakeAmountMinInScoin)) {
+                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read min coins to stake error"),
+                                 READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
+            }
+
+            uint64_t bcoinsToStakeAmountMin =
+                bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / kPercentBoost);
+            if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
+                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
+                                 cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
             }
         }
 
@@ -604,17 +627,18 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    uint64_t bcoinPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
-    if (bcoinPrice == 0)
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, get bcoin median price error! price=0"),
-                         REJECT_INVALID, "get-bcoin-median-price-error");
+    uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
+    if (bcoinMedianPrice == 0) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
+                         REJECT_INVALID, "acquire-bcoin-median-price-err");
+    }
 
-    uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinPrice);
+    uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinMedianPrice);
 
     uint64_t totalBcoinsToReturnLiquidator = 0;
-    uint64_t totalScoinsToLiquidate = 0;
-    uint64_t totalScoinsToReturnSysFund = 0;
-    uint64_t totalBcoinsToCdpOwner = 0;
+    uint64_t totalScoinsToLiquidate        = 0;
+    uint64_t totalScoinsToReturnSysFund    = 0;
+    uint64_t totalBcoinsToCdpOwner         = 0;
 
     uint64_t startingCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_START_LIQUIDATE_RATIO, startingCdpLiquidateRatio)) {
@@ -637,7 +661,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     uint64_t forcedCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_FORCE_LIQUIDATE_RATIO, forcedCdpLiquidateRatio)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_FORCE_LIQUIDATE_RATIO error!"),
-                        READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
     if (collateralRatio > startingCdpLiquidateRatio) {        // 1.5++
@@ -645,7 +669,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
     } else if (collateralRatio > nonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
-        totalBcoinsToReturnLiquidator =  cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / bcoinPrice; //1.13N
+        totalBcoinsToReturnLiquidator =  cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / bcoinMedianPrice; //1.13N
         assert(cdp.total_staked_bcoins >= totalBcoinsToReturnLiquidator);
 
         totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalBcoinsToReturnLiquidator;
@@ -658,17 +682,17 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     } else if (collateralRatio > forcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
         totalBcoinsToReturnLiquidator = cdp.total_staked_bcoins; //M
         totalBcoinsToCdpOwner = 0;
-        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * ((double) bcoinPrice / kPercentBoost)
+        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * ((double) bcoinMedianPrice / kPercentBoost)
                                 * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins; // M * 97% - N
 
     } else {                                                    // 0 ~ 1.04
-        //Although not likely to happen, but when it does, execute it accordingly.
+        // Although not likely to happen, but when it does, execute it accordingly.
         totalBcoinsToReturnLiquidator = cdp.total_staked_bcoins;
-        totalBcoinsToCdpOwner = 0;
-        totalScoinsToLiquidate = cdp.total_owed_scoins;         // N
-        totalScoinsToReturnSysFund = 0;
+        totalBcoinsToCdpOwner         = 0;
+        totalScoinsToLiquidate        = cdp.total_owed_scoins;  // N
+        totalScoinsToReturnSysFund    = 0;
     }
 
     vector<CReceipt> receipts;
@@ -681,7 +705,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         if (!ProcessPenaltyFees(CTxCord(height, index), cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
             return false;
 
-        //close CDP
+        // close CDP
         if (!cw.cdpCache.EraseCDP(oldCDP, cdp))
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, erase CDP failed! cdpid=%s",
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
@@ -715,7 +739,17 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         assert(cdp.total_staked_bcoins > bcoinsToLiquidate);
         cdp.LiquidatePartial(height, bcoinsToLiquidate, scoinsToLiquidate);
 
-        // TODO: need to limit the min value for the rest of cdp?
+        uint64_t bcoinsToStakeAmountMinInScoin;
+        if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN, bcoinsToStakeAmountMinInScoin)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read min coins to stake error"),
+                             READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
+        }
+
+        uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / kPercentBoost);
+        if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
+                            cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
+        }
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
         if (!ProcessPenaltyFees(CTxCord(height, index), cdp, scoinsToReturnSysFund, cw, state))
