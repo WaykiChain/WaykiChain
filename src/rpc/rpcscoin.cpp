@@ -412,9 +412,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
         );
     }
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
@@ -451,9 +451,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" \"WUSD\" 1000000 200000000\n")
+            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
         );
     }
 
@@ -489,9 +489,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" 200000000 \"WUSD\"\n")
+            + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD\" 200000000 \"WICC\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuymarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" 200000000 \"WUSD\"\n")
+            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\" \"WUSD\" 200000000 \"WICC\"\n")
         );
     }
 
@@ -526,9 +526,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleCli("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexsellmarketordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC\" 200000000\n")
         );
     }
 
