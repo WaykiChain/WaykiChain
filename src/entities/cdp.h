@@ -38,10 +38,10 @@ struct CUserCDP {
 
     CUserCDP() : block_height(0), total_staked_bcoins(0), total_owed_scoins(0), collateral_ratio_base(0) {}
 
-    CUserCDP(const CRegID &regId, const uint256 &cdpTxIdIn, int32_t blockHeight,
+    CUserCDP(const CRegID &regId, const uint256 &cdpidIn, int32_t blockHeight,
              TokenSymbol bcoinSymbol, TokenSymbol scoinSymbol, uint64_t totalStakedBcoins,
              uint64_t totalOwedScoins)
-        : cdpid(cdpTxIdIn),
+        : cdpid(cdpidIn),
           owner_regid(regId),
           block_height(blockHeight),
           bcoin_symbol(bcoinSymbol),
@@ -96,9 +96,7 @@ struct CUserCDP {
 
     uint64_t ComputeCollateralRatio(uint64_t bcoinPrice);
 
-    bool IsFinished() const {
-        return total_owed_scoins == 0 && total_staked_bcoins == 0;
-    }
+    bool IsFinished() const { return total_owed_scoins == 0 && total_staked_bcoins == 0; }
 
     // FIXME: need to set other members empty?
     bool IsEmpty() const { return cdpid.IsEmpty(); }

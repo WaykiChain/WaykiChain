@@ -2192,14 +2192,17 @@ Value getalltxinfo(const Array& params, bool fHelp) {
 }
 
 Value gettxreceipt(const Array& params, bool fHelp) {
-    if (fHelp || (params.size() != 0 && params.size() != 1)) {
-        throw runtime_error("gettxreceipt \n"
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+            "gettxreceipt \n"
             "\nget tx receipts by txid\n"
             "\nArguments:\n"
-            "1.\"txid\": (string) txid \n"
+            "1.\"txid\":    (string) txid\n"
             "\nResult:\n"
-            "\nExamples:\n" + HelpExampleCli("gettxreceipt", "") + "\nAs json rpc call\n"
-            + HelpExampleRpc("gettxreceipt", ""));
+            "\nExamples:\n" +
+            HelpExampleCli("gettxreceipt", "\"e2d6f2c1ba5fc862aacf5324d7e7da048f562486d37d45dbd91ebcd3a347c609\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("gettxreceipt", "\"e2d6f2c1ba5fc862aacf5324d7e7da048f562486d37d45dbd91ebcd3a347c609\""));
     }
     uint256 txid = uint256S(params[0].get_str());
     vector<CReceipt> receipts;
@@ -2216,6 +2219,7 @@ Value gettxreceipt(const Array& params, bool fHelp) {
         obj.push_back(Pair("transfer_amount",   receipt.send_amount));
         retArray.push_back(obj);
     }
+
     return retArray;
 }
 
