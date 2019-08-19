@@ -715,7 +715,7 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
 extern Value getdexorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 4) {
         throw runtime_error(
-            "getdexsysorders \"height\"\n"
+            "getdexorders \"height\"\n"
             "\nget dex all active orders by block height range.\n"
             "\nArguments:\n"
             "1.\"begin_height\": (numeric optional) the begin block height, default is 0\n"
@@ -730,9 +730,9 @@ extern Value getdexorders(const Array& params, bool fHelp) {
             "\"count\" (numeric) the count of returned orders.\n"
             "\"orders\" (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexsysorders", "10 ")
+            + HelpExampleCli("getdexorders", "0 100 500")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexsysorders", "10")
+            + HelpExampleRpc("getdexorders", "0 100 500")
         );
     }
     int64_t tipHeight = chainActive.Height();
