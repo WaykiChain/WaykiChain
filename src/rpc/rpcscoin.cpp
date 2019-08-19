@@ -715,7 +715,7 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
 extern Value getdexorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 4) {
         throw runtime_error(
-            "getdexorders \"height\"\n"
+            "getdexorders [\"begin_height\"] [\"end_height\"] [\"max_count\"] [\"last_pos_info\"]\n"
             "\nget dex all active orders by block height range.\n"
             "\nArguments:\n"
             "1.\"begin_height\": (numeric optional) the begin block height, default is 0\n"
