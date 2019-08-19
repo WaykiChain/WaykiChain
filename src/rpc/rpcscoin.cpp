@@ -652,7 +652,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 }
 
 Value getdexorder(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 1) {
+     if (fHelp || params.size() != 1) {
         throw runtime_error(
             "getdexorder \"order_id\"\n"
             "\nget dex order detail.\n"
@@ -678,7 +678,7 @@ Value getdexorder(const Array& params, bool fHelp) {
 }
 
 extern Value getdexsysorders(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 1) {
+     if (fHelp || params.size() > 1) {
         throw runtime_error(
             "getdexsysorders \"height\"\n"
             "\nget dex system-generated active orders by block height.\n"
