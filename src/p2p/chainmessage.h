@@ -129,9 +129,7 @@ struct COrphanBlock {
 
 static CMedianFilter<int32_t> cPeerBlockCounts(8, 0);
 
-
-
-void  inline ProcessGetData(CNode *pFrom) {
+inline void ProcessGetData(CNode *pFrom) {
     deque<CInv>::iterator it = pFrom->vRecvGetData.begin();
 
     vector<CInv> vNotFound;
@@ -254,8 +252,9 @@ bool AlreadyHave(const CInv &inv) {
     // Don't know what it is, just say we already got one
     return true;
 }
+
 // Requires cs_main.
-bool  inline AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
+inline bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
 
     if (mapBlocksToDownload.count(hash) || mapBlocksInFlight.count(hash)) {
         return false;
@@ -276,7 +275,7 @@ bool  inline AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
     return true;
 }
 
-int inline ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStream &vRecv){
+inline int ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStream &vRecv){
     // Each connection can only send one version message
     if (pFrom->nVersion != 0) {
         pFrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
@@ -382,7 +381,7 @@ int inline ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStream &v
     return -1 ;
 }
 
-void inline ProcessPongMessage(CNode *pFrom, CDataStream &vRecv){
+inline void ProcessPongMessage(CNode *pFrom, CDataStream &vRecv){
     int64_t pingUsecEnd = GetTimeMicros();
     uint64_t nonce      = 0;
     size_t nAvail       = vRecv.in_avail();
@@ -437,7 +436,7 @@ void inline ProcessPongMessage(CNode *pFrom, CDataStream &vRecv){
     }
 }
 
-bool inline ProcessAddrMessage(CNode* pFrom, CDataStream &vRecv){
+inline bool ProcessAddrMessage(CNode* pFrom, CDataStream &vRecv){
     vector<CAddress> vAddr;
     vRecv >> vAddr;
 
@@ -501,8 +500,7 @@ bool inline ProcessAddrMessage(CNode* pFrom, CDataStream &vRecv){
     return true;
 }
 
-
-bool inline ProcessTxMessage(CNode* pFrom, string strCommand , CDataStream& vRecv){
+inline bool ProcessTxMessage(CNode* pFrom, string strCommand , CDataStream& vRecv){
     std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsMedianPriceTx()) {
@@ -545,7 +543,7 @@ bool inline ProcessTxMessage(CNode* pFrom, string strCommand , CDataStream& vRec
     return true ;
 }
 
-bool inline ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv){
+inline bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv){
 
     CBlockLocator locator;
     uint256 hashStop;
@@ -580,7 +578,8 @@ bool inline ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv){
 
     return false;
 }
-void inline ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv){
+
+inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv){
 
     CBlockLocator locator;
     uint256 hashStop;
@@ -612,7 +611,8 @@ void inline ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv){
     }
 
 }
-bool inline ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
+
+inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
     vector<CInv> vInv;
     vRecv >> vInv;
     if (vInv.size() > MAX_INV_SZ) {
@@ -658,7 +658,7 @@ bool inline ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
     return true ;
 }
 
-bool inline ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv){
+inline bool ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv){
     vector<CInv> vInv;
     vRecv >> vInv;
     if (vInv.size() > MAX_INV_SZ) {
@@ -677,7 +677,7 @@ bool inline ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv){
     return true ;
 }
 
-void inline ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv){
+inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv){
     CBlock block;
     vRecv >> block;
 
@@ -695,7 +695,8 @@ void inline ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv){
     CValidationState state;
     ProcessBlock(state, pFrom, &block);
 }
-void inline ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv){
+
+inline void ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv){
     LOCK2(cs_main, pFrom->cs_filter);
 
     vector<uint256> vtxid;
@@ -719,7 +720,8 @@ void inline ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv){
     if (vInv.size() > 0)
         pFrom->PushMessage("inv", vInv);
 }
-void inline ProcessAlertMessage(CNode *pFrom, CDataStream &vRecv){
+
+inline void ProcessAlertMessage(CNode *pFrom, CDataStream &vRecv){
 
     CAlert alert;
     vRecv >> alert;
@@ -745,7 +747,8 @@ void inline ProcessAlertMessage(CNode *pFrom, CDataStream &vRecv){
         }
     }
 }
-void inline ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv){
+
+inline void ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv){
     CBloomFilter filter;
     vRecv >> filter;
 
@@ -761,7 +764,8 @@ void inline ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv){
     }
     pFrom->fRelayTxes = true;
 }
-void inline ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv){
+
+inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv){
     vector<uint8_t> vData;
     vRecv >> vData;
 
@@ -782,7 +786,7 @@ void inline ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv){
     }
 }
 
-void inline ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv){
+inline void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv){
     if (SysCfg().IsDebug()) {
         string strMsg;
         uint8_t ccode;
