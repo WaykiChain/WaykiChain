@@ -115,7 +115,6 @@ public:
 /**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
 class CUniversalContractDeployTx : public CBaseTx {
 public:
-    TokenSymbol         fee_symbol;
     TokenSymbol         coin_symbol;
     uint64_t            coin_amount;
     CUniversalContract  contract;  // contract script content
@@ -166,7 +165,6 @@ class CUniversalContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID app_uid;  // app regid or address
     string arguments;         // arguments to invoke a contract method
-    TokenSymbol fee_symbol;
     TokenSymbol coin_symbol;
     uint64_t coin_amount;  // transfer amount to contract account
 
@@ -174,20 +172,18 @@ public:
     CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_TX) {}
 
     CUniversalContractInvokeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
-                CUserID appUidIn, string &argumentsIn, TokenSymbol feeSymbol, TokenSymbol coinSymbol,
-                uint64_t coinAmount):
-                CBaseTx(UCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
+                               CUserID appUidIn, string &argumentsIn, TokenSymbol feeSymbol,
+                               TokenSymbol coinSymbol, uint64_t coinAmount)
+        : CBaseTx(UCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
+          app_uid(appUidIn),
+          arguments(argumentsIn),
+          coin_symbol(coinSymbol),
+          coin_amount(coinAmount) {
         if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
+            assert(!txUidIn.get<CRegID>().IsEmpty());  // FIXME: shouldnot be using assert here, throw an error instead.
 
         if (appUidIn.type() == typeid(CRegID))
             assert(!appUidIn.get<CRegID>().IsEmpty());
-
-        app_uid     = appUidIn;
-        arguments   = argumentsIn;
-        fee_symbol  = feeSymbol;
-        coin_symbol = coinSymbol;
-        coin_amount = coinAmount;
     }
 
     ~CUniversalContractInvokeTx() {}

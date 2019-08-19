@@ -10,7 +10,6 @@
 
 class CPriceFeedTx : public CBaseTx {
 public:
-    TokenSymbol fee_symbol;
     vector<CPricePoint> price_points;
 
 public:
@@ -18,8 +17,7 @@ public:
 
     CPriceFeedTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                  uint64_t feesIn, const vector<CPricePoint> &pricePointsIn)
-        : CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feesIn),
-          fee_symbol(feeSymbolIn),
+        : CBaseTx(PRICE_FEED_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
           price_points(pricePointsIn) {}
 
     ~CPriceFeedTx() {}

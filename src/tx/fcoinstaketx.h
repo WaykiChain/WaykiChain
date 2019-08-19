@@ -10,18 +10,16 @@
 
 class CFcoinStakeTx: public CBaseTx {
 private:
-    TokenSymbol fee_symbol;
     BalanceOpType stakeType;
     uint64_t fcoinsToStake;  // when negative, it means staking revocation
 
 public:
     CFcoinStakeTx()
-        : CBaseTx(FCOIN_STAKE_TX), fee_symbol(SYMB::WICC), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
+        : CBaseTx(FCOIN_STAKE_TX), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
 
     CFcoinStakeTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol,
                   const uint64_t feesIn, const BalanceOpType stakeTypeIn, const uint64_t fcoinsToStakeIn)
-        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feesIn),
-          fee_symbol(feeSymbol),
+        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
           stakeType(stakeTypeIn),
           fcoinsToStake(fcoinsToStakeIn) {}
 
@@ -32,9 +30,9 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(nValidHeight));
         READWRITE(txUid);
-
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
+
         READWRITE((uint8_t &)stakeType);
         READWRITE(VARINT(fcoinsToStake));
 

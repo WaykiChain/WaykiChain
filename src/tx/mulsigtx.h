@@ -38,7 +38,6 @@ public:
 
 class CMulsigTx : public CBaseTx {
 public:
-    TokenSymbol fee_symbol;
     mutable CUserID desUserId;              //!< keyid or regid
     uint64_t bcoins;                        //!< transfer amount
     uint8_t required;                       //!< number of required keys

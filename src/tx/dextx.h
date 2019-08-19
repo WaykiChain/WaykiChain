@@ -37,8 +37,7 @@ public:
                         uint64_t fees, const TokenSymbol &coinSymbol,
                         const TokenSymbol &assetSymbol, uint64_t assetAmountIn,
                         uint64_t bid_priceIn)
-        : CDEXOrderBaseTx(DEX_LIMIT_BUY_ORDER_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CDEXOrderBaseTx(DEX_LIMIT_BUY_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees),
           coin_symbol(coinSymbol),
           asset_symbol(assetSymbol),
           asset_amount(assetAmountIn),
@@ -81,8 +80,6 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol fee_symbol;
-
     TokenSymbol coin_symbol;          //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;        //!< asset type
     uint64_t asset_amount;       //!< amount of target asset to buy
@@ -98,8 +95,7 @@ public:
     CDEXSellLimitOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                          uint64_t fees, TokenSymbol coinSymbol, const TokenSymbol &assetSymbol,
                          uint64_t assetAmount, uint64_t askPrice)
-        : CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CDEXOrderBaseTx(DEX_LIMIT_SELL_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees),
           coin_symbol(coinSymbol),
           asset_symbol(assetSymbol),
           asset_amount(assetAmount),
@@ -142,8 +138,6 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol fee_symbol;
-
     TokenSymbol coin_symbol;       //!< coin type (wusd) to sell asset
     TokenSymbol asset_symbol;     //!< holding asset type (wicc or wgrt) to sell in coin_symbol
     uint64_t asset_amount;    //!< amount of holding asset to sell
@@ -158,8 +152,7 @@ public:
     CDEXBuyMarketOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                          uint64_t fees, TokenSymbol coinSymbol, const TokenSymbol &assetSymbol,
                          uint64_t coinAmountIn)
-        : CDEXOrderBaseTx(DEX_MARKET_BUY_ORDER_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CDEXOrderBaseTx(DEX_MARKET_BUY_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees),
           coin_symbol(coinSymbol),
           asset_symbol(assetSymbol),
           coin_amount(coinAmountIn) {}
@@ -200,8 +193,6 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol fee_symbol;
-
     TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;    //!< asset type
     uint64_t coin_amount;    //!< amount of target coin to spend for buying asset
@@ -214,8 +205,7 @@ public:
     CDEXSellMarketOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                           uint64_t fees, TokenSymbol coinSymbol, const TokenSymbol &assetSymbol,
                           uint64_t assetAmountIn)
-        : CDEXOrderBaseTx(DEX_MARKET_SELL_ORDER_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CDEXOrderBaseTx(DEX_MARKET_SELL_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees),
           coin_symbol(coinSymbol),
           asset_symbol(assetSymbol),
           asset_amount(assetAmountIn) {}
@@ -256,8 +246,6 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol fee_symbol;
-
     TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
     TokenSymbol asset_symbol;    //!< asset type
     uint64_t asset_amount;   //!< amount of target asset to buy
@@ -269,8 +257,7 @@ public:
 
     CDEXCancelOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                       uint64_t fees, uint256 orderIdIn)
-        : CBaseTx(DEX_CANCEL_ORDER_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CBaseTx(DEX_CANCEL_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees),
           orderId(orderIdIn) {}
 
     ~CDEXCancelOrderTx() {}
@@ -307,8 +294,6 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 public:
-    TokenSymbol fee_symbol;
-
     uint256  orderId;       //!< id of oder need to be canceled.
 };
 
@@ -335,8 +320,7 @@ public:
 
     CDEXSettleTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                  uint64_t fees, const vector<DEXDealItem> &dealItemsIn)
-        : CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees),
           dealItems(dealItemsIn) {}
 
     ~CDEXSettleTx() {}
@@ -385,8 +369,6 @@ private:
         const OrderSide orderSide, CDEXOrderDetail &dealOrder);
 
 private:
-    TokenSymbol fee_symbol;
-
     vector<DEXDealItem> dealItems;
 };
 

@@ -20,18 +20,16 @@ public:
 
     CBaseCoinTransferTx(const CUserID &txUidIn, const CUserID toUidIn, const int32_t validHeightIn,
                         const uint64_t bcoinsIn, const uint64_t feesIn, const string &memoIn)
-        : CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
+        : CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn),
+          toUid(toUidIn),
+          bcoins(bcoinsIn),
+          memo(memoIn) {
         if (txUidIn.type() == typeid(CRegID))
             assert(!txUidIn.get<CRegID>().IsEmpty());
         else if (txUidIn.type() == typeid(CPubKey))
             assert(txUidIn.get<CPubKey>().IsFullyValid());
 
-        if (toUidIn.type() == typeid(CRegID))
-            assert(!toUidIn.get<CRegID>().IsEmpty());
-
-        toUid  = toUidIn;
-        bcoins = bcoinsIn;
-        memo   = memoIn;
+        if (toUidIn.type() == typeid(CRegID)) assert(!toUidIn.get<CRegID>().IsEmpty());
     }
 
     ~CBaseCoinTransferTx() {}
@@ -80,23 +78,20 @@ public:
     mutable CUserID toUid;
     TokenSymbol coin_symbol;
     uint64_t coin_amount;
-    TokenSymbol fee_symbol;
     string memo;
 
 public:
     CCoinTransferTx()
-        : CBaseTx(UCOIN_TRANSFER_TX), coin_symbol(SYMB::WICC), coin_amount(0), fee_symbol(SYMB::WICC) {}
+        : CBaseTx(UCOIN_TRANSFER_TX), coin_symbol(SYMB::WICC), coin_amount(0) {}
 
     CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, const int32_t validHeightIn,
-                    const TokenSymbol &coinSymbol, const uint64_t coinAmount, const TokenSymbol &feeSymbol,
-                    const uint64_t feesIn, const string &memoIn)
-        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn) {
-        toUid        = toUidIn;
-        coin_amount  = coinAmount;
-        coin_symbol  = coinSymbol;
-        fee_symbol   = feeSymbol;
-        memo         = memoIn;
-    }
+                    const TokenSymbol &coinSymbol, const uint64_t coinAmount,
+                    const TokenSymbol &feeSymbol, const uint64_t feesIn, const string &memoIn)
+        : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
+          toUid(toUidIn),
+          coin_symbol(coinSymbol),
+          coin_amount(coinAmount),
+          memo(memoIn) {}
 
     ~CCoinTransferTx() {}
 

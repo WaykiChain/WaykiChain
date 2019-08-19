@@ -13,16 +13,13 @@
  */
 class CAssetIssueTx: public CBaseTx {
 public:
-    TokenSymbol fee_symbol;
-
     CAsset      asset;          // asset
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
     CAssetIssueTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                   uint64_t fees, const CAsset &assetIn)
-        : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, fees),
-          fee_symbol(feeSymbol),
+        : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, feeSymbol, fees),
           asset(assetIn){}
 
     ~CAssetIssueTx() {}
@@ -68,8 +65,6 @@ public:
  */
 class CAssetUpdateTx: public CBaseTx {
 public:
-    TokenSymbol fee_symbol;
-
     TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
     CUserID owner_uid;           // new owner userid of the asset
     TokenName asset_name;           // new asset long name, E.g WaykiChain coin
@@ -80,8 +75,7 @@ public:
     CAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                    uint64_t feesIn, TokenSymbol assetSymbolIn, CUserID ownerUseridIn,
                    TokenName assetNameIn, uint64_t mintAmountIn)
-        : CBaseTx(ASSET_UPDATE_TX, txUidIn, validHeightIn, feesIn),
-          fee_symbol(feeSymbolIn),
+        : CBaseTx(ASSET_UPDATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
           asset_symbol(assetSymbolIn),
           owner_uid(ownerUseridIn),
           asset_name(assetNameIn),

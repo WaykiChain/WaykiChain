@@ -18,46 +18,21 @@ public:
     CCDPStakeTx() : CBaseTx(CDP_STAKE_TX) {}
 
     /** Newly open a CDP */
-    CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn,
-                const ComboMoney &cmFeeIn,
-                const ComboMoney &cmBcoinsToStake,
-                const ComboMoney &cmScoinsToMint):
-                CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, 0) {
-
-        uint64_t feeUnitBase    = CoinUnitTypeTable.at(cmFeeIn.unit);
-        uint64_t bcoinUnitBase  = CoinUnitTypeTable.at(cmBcoinsToStake.unit);
-        uint64_t scoinUnitBase  = CoinUnitTypeTable.at(cmScoinsToMint.unit);
-
-        fee_symbol              = cmFeeIn.symbol;
-        llFees                  = cmFeeIn.amount * feeUnitBase;
-        bcoin_symbol            = cmBcoinsToStake.symbol;
-        scoin_symbol            = cmScoinsToMint.symbol;
-        bcoins_to_stake         = cmBcoinsToStake.amount * bcoinUnitBase;
-        scoins_to_mint          = cmScoinsToMint.amount * scoinUnitBase;
+    CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn, const ComboMoney &cmFeeIn,
+                const ComboMoney &cmBcoinsToStake, const ComboMoney &cmScoinsToMint)
+        : CCDPStakeTx(txUidIn, validHeightIn, uint256(), cmFeeIn, cmBcoinsToStake, cmScoinsToMint) {
     }
+
     /** Stake an existing CDP */
     CCDPStakeTx(const CUserID &txUidIn, int32_t validHeightIn, uint256 cdpTxId,
-                const ComboMoney &cmFeeIn,
-                const ComboMoney &cmBcoinsToStake,
+                const ComboMoney &cmFeeIn, const ComboMoney &cmBcoinsToStake,
                 const ComboMoney &cmScoinsToMint)
-        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, 0) {
-        if (txUidIn.type() == typeid(CRegID)) {
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        }
-
-        uint64_t feeUnitBase    = CoinUnitTypeTable.at(cmFeeIn.unit);
-        uint64_t bcoinUnitBase  = CoinUnitTypeTable.at(cmBcoinsToStake.unit);
-        uint64_t scoinUnitBase  = CoinUnitTypeTable.at(cmScoinsToMint.unit);
-
-        cdp_txid                = cdpTxId;
-
-        fee_symbol              = cmFeeIn.symbol;
-        llFees                  = cmFeeIn.amount * feeUnitBase;
-        bcoin_symbol            = cmBcoinsToStake.symbol;
-        scoin_symbol            = cmScoinsToMint.symbol;
-        bcoins_to_stake         = cmBcoinsToStake.amount * bcoinUnitBase;
-        scoins_to_mint          = cmScoinsToMint.amount * scoinUnitBase;
-    }
+        : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetSawiAmount()),
+          cdp_txid(cdpTxId),
+          bcoin_symbol(cmBcoinsToStake.symbol),
+          scoin_symbol(cmScoinsToMint.symbol),
+          bcoins_to_stake(cmBcoinsToStake.GetSawiAmount()),
+          scoins_to_mint(cmScoinsToMint.GetSawiAmount()) {}
 
     ~CCDPStakeTx() {}
 
@@ -101,12 +76,10 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, 
+    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
         CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TokenSymbol fee_symbol;
-
     TxID cdp_txid;             // optional: only required for staking existing CDPs
     TokenSymbol bcoin_symbol;  // optional: only required for 1st-time CDP staking
     TokenSymbol scoin_symbol;  // ditto
@@ -123,21 +96,11 @@ public:
     CCDPRedeemTx() : CBaseTx(CDP_REDEEM_TX) {}
 
     CCDPRedeemTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
-                uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem):
-                CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, 0) {
-        if (txUidIn.type() == typeid(CRegID)) {
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        }
-
-        uint64_t feeUnitBase = CoinUnitTypeTable.at(cmFeeIn.unit);
-
-        fee_symbol = cmFeeIn.symbol;
-        llFees     = cmFeeIn.amount * feeUnitBase;
-
-        cdp_txid         = cdpTxId;
-        scoins_to_repay  = scoinsToRepay;
-        bcoins_to_redeem = bcoinsToRedeem;
-    }
+                 uint256 cdpTxId, uint64_t scoinsToRepay, uint64_t bcoinsToRedeem)
+        : CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetSawiAmount()),
+          cdp_txid(cdpTxId),
+          scoins_to_repay(scoinsToRepay),
+          bcoins_to_redeem(bcoinsToRedeem) {}
 
     ~CCDPRedeemTx() {}
 
@@ -178,12 +141,10 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay, 
+    bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
         CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TokenSymbol fee_symbol;
-
     uint256 cdp_txid;           // CDP cdpTxId
     uint64_t scoins_to_repay;   // stablecoin amount to redeem or burn, including interest
     uint64_t bcoins_to_redeem;
@@ -197,19 +158,11 @@ public:
     CCDPLiquidateTx() : CBaseTx(CDP_LIQUIDATE_TX) {}
 
     CCDPLiquidateTx(const CUserID &txUidIn, const ComboMoney &cmFeeIn, int32_t validHeightIn,
-                    uint256 cdpTxId, uint64_t scoinsToLiquidate):
-                CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, 0) {
-
-        if (txUidIn.type() == typeid(CRegID)) {
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        }
-        uint64_t feeUnitBase  = CoinUnitTypeTable.at(cmFeeIn.unit);
-
-        fee_symbol          = cmFeeIn.symbol;
-        llFees              = cmFeeIn.amount * feeUnitBase;
-        cdp_txid            = cdpTxId;
-        scoins_to_liquidate = scoinsToLiquidate;
-    }
+                    uint256 cdpTxId, uint64_t scoinsToLiquidate)
+        : CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, cmFeeIn.symbol,
+                  cmFeeIn.GetSawiAmount()),
+          cdp_txid(cdpTxId),
+          scoins_to_liquidate(scoinsToLiquidate) {}
 
     ~CCDPLiquidateTx() {}
 
@@ -250,12 +203,10 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees, 
+    bool ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
         CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TokenSymbol fee_symbol;
-
     uint256     cdp_txid;            // target CDP to liquidate
     uint64_t    scoins_to_liquidate;  // partial liquidation is allowed, must include penalty fees in
 };

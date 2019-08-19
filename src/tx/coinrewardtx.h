@@ -17,14 +17,11 @@ public:
 public:
     CCoinRewardTx() : CBaseTx(UCOIN_REWARD_TX), coin_symbol(SYMB::WICC), coin_amount(0) {}
 
-    CCoinRewardTx(const CUserID &txUidIn, const int32_t nValidHeightIn,
-                const TokenSymbol &coinSymbol, const uint64_t coinAmount)
-        : CBaseTx(UCOIN_REWARD_TX) {
-        txUid        = txUidIn;
-        nValidHeight = nValidHeightIn;
-        coin_symbol  = coinSymbol;
-        coin_amount  = coinAmount;
-    }
+    CCoinRewardTx(const CUserID &txUidIn, const int32_t validHeightIn,
+                  const TokenSymbol &coinSymbol, const uint64_t coinAmount)
+        : CBaseTx(UCOIN_REWARD_TX, txUidIn, validHeightIn, 0),
+          coin_symbol(coinSymbol),
+          coin_amount(coinAmount) {}
 
     ~CCoinRewardTx() {}
 
