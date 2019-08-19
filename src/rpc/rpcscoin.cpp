@@ -699,9 +699,9 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("height=%d must >= 0 and <= tip_height=%d", height, tipHeight));
     }
 
-    auto pGetter = pCdMan->pDexCache->CreateSysOrderListGetter();
+    auto pGetter = pCdMan->pDexCache->CreateSysOrdersGetter();
     if (!pGetter->Execute(height)) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system order list error! height=%d", height));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system-generated orders error! height=%d", height));
     }
     Object obj;
     obj.push_back(Pair("height", height));
@@ -710,7 +710,7 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
 }
 
 extern Value getdexorders(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 1) {
+     if (fHelp || params.size() > 4) {
         throw runtime_error(
             "getdexsysorders \"height\"\n"
             "\nget dex all active orders by block height range.\n"
@@ -720,11 +720,11 @@ extern Value getdexorders(const Array& params, bool fHelp) {
             "3.\"max_count\": (numeric optional) the max order count to get, default is 500\n"
             "4.\"last_pos_info\": (string optional) the last position info to get more orders, default is empty\n"
             "\nResult:\n"
-            "\"begin_height\" (numeric) the begin block height of orders.\n"
-            "\"end_height\" (numeric) the end block height of orders.\n"
-            "\"count\" (numeric) the count of orders.\n"
+            "\"begin_height\" (numeric) the begin block height of returned orders.\n"
+            "\"end_height\" (numeric) the end block height of returned orders.\n"
             "\"has_more\" (bool) has more orders in db.\n"
             "\"last_pos_info\" (string) the last position info to get more orders.\n"
+            "\"count\" (numeric) the count of returned orders.\n"
             "\"orders\" (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
             + HelpExampleCli("getdexsysorders", "10 ")
@@ -755,18 +755,38 @@ extern Value getdexorders(const Array& params, bool fHelp) {
     if (maxCount < 0)
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("max_count=%d must >= 0", maxCount));
 
-    string lastPosInfo = "";
-    if (params.size() > 3)
-        lastPosInfo = RPC_PARAM::GetBinStrFromHex(params[3], "last_pos_info");
+    DEXBlockOrdersCache::KeyType lastKey;
+    if (params.size() > 3) {
+        string lastPosInfo = RPC_PARAM::GetBinStrFromHex(params[3], "last_pos_info");
+        auto err = DEX_DB::ParseLastPos(lastPosInfo, lastKey);
+        if (err)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid last_pos_info! %s", *err));
+        uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
+        if (lastHeight < beginHeight || lastHeight > endHeight)
+            throw JSONRPCError(RPC_INVALID_PARAMS,
+                               strprintf("Invalid last_pos_info! height of last_pos_info is not in "
+                                         "range(begin=%d,end=%d) ",
+                                         beginHeight, endHeight));
+    }
 
+    auto pGetter = pCdMan->pDexCache->CreateOrdersGetter();
+    if (!pGetter->Execute(beginHeight, endHeight, maxCount, lastKey)) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get all active orders error! begin_height=%d, end_height=%d", 
+            beginHeight, endHeight));
+    }
 
-    // auto pGetter = pCdMan->pDexCache->CreateSysOrderListGetter();
-    // if (!pGetter->Execute(height)) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system order list error! height=%d", height));
-    // }
+    string newLastPosInfo;
+    if (pGetter->has_more) {
+        auto err = DEX_DB::MakeLastPos(pGetter->last_key, newLastPosInfo);
+        if (err)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Make new last_pos_info error! %s", *err));
+    }
     Object obj;
-    // obj.push_back(Pair("height", height));
-    // pGetter->ToJson(obj);
+    obj.push_back(Pair("begin_height", (int64_t)pGetter->begin_height));
+    obj.push_back(Pair("end_height", (int64_t)pGetter->end_height));
+    obj.push_back(Pair("has_more", pGetter->has_more));
+    obj.push_back(Pair("last_pos_info", newLastPosInfo));
+    pGetter->ToJson(obj);
     return obj;
 }
 

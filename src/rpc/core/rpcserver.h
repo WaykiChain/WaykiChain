@@ -195,6 +195,7 @@ extern json_spirit::Value submitdexcancelordertx(const json_spirit::Array& param
 extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexorder(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexsysorders(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexorders(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);

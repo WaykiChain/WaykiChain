@@ -41,34 +41,44 @@ namespace DEX_DB {
         return std::get<2>(key);
     }
 
+    // return err str if err happens
+    shared_ptr<string> ParseLastPos(const string &lastPosInfo, DEXBlockOrdersCache::KeyType &lastKey);
+
+    shared_ptr<string> MakeLastPos(const DEXBlockOrdersCache::KeyType &lastKey, string &lastPosInfo);
+
     void OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj);
 
     void BlockOrdersToJson(const BlockOrders &orderList, Object &obj);
 };
 
-class CDEXOrderListGetter {
+class CDEXOrdersGetter {
 public:
-    string last_pos_info; // exec result
-    bool    has_more;     // exec result
-    uint32_t last_height;
-    DEX_DB::BlockOrders orders; // exec result
+    uint32_t    begin_height    = 0;        // the begin block height of returned orders
+    uint32_t    end_height      = 0;        // the end block height of returned orders
+    bool        has_more        = false;    // has more orders in db
+    DEXBlockOrdersCache::KeyType  last_key;       // the key of last position to get more orders
+    DEX_DB::BlockOrders orders;             // the returned orders
 private:
+    DEXBlockOrdersCache &db_cache;
     CDBAccess &db_access;
 public:
-    CDEXOrderListGetter(CDBAccess &dbAccess): db_access(dbAccess) {
+    CDEXOrdersGetter(DEXBlockOrdersCache &dbCache)
+        : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
     }
-    bool Execute(uint32_t fromHeight, uint32_t toHeight, const string &lastPosInfo, uint32_t maxCount);
+
+    bool Execute(uint32_t fromHeight, uint32_t toHeight, uint32_t maxCount, const DEXBlockOrdersCache::KeyType &lastPosInfo);
+    void ToJson(Object &obj);
 };
 
 
-class CDEXSysOrderListGetter {
+class CDEXSysOrdersGetter {
 public:
     DEX_DB::BlockOrders orders; // exec result
 private:
     DEXBlockOrdersCache &db_cache;
     CDBAccess &db_access;
 public:
-    CDEXSysOrderListGetter(DEXBlockOrdersCache &dbCache)
+    CDEXSysOrdersGetter(DEXBlockOrdersCache &dbCache)
         : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
     }    
     bool Execute(uint32_t height);
@@ -108,15 +118,15 @@ public:
                blockOrdersCache.UndoDatas();
     }
 
-    shared_ptr<CDEXSysOrderListGetter> CreateSysOrderListGetter() {
+    shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {
         assert(blockOrdersCache.GetBasePtr() == nullptr && "only support top level cache");
-        return make_shared<CDEXSysOrderListGetter>(blockOrdersCache);
+        return make_shared<CDEXOrdersGetter>(blockOrdersCache);
     }
 
-    // shared_ptr<CDEXOrderListGetter> CreateOrderListGetter() {
-    //     assert(blockOrdersCache.GetBasePtr() == nullptr && "only support top level cache");
-    //     return make_shared<CDEXOrderListGetter>(blockOrdersCache);
-    // }
+    shared_ptr<CDEXSysOrdersGetter> CreateSysOrdersGetter() {
+        assert(blockOrdersCache.GetBasePtr() == nullptr && "only support top level cache");
+        return make_shared<CDEXSysOrdersGetter>(blockOrdersCache);
+    }
 private:
     DEXBlockOrdersCache::KeyType MakeBlockOrderKey(const uint256 &orderid, const CDEXOrderDetail &activeOrder) {
         return make_tuple(activeOrder.tx_cord.GetHeight(), (uint8_t)activeOrder.generate_type, orderid);
