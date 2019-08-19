@@ -118,7 +118,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     }
     // TODO: process txUid is pubkey
 
-    if (!srcAcct.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!srcAcct.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -212,7 +212,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     }
     // TODO: process txUid is pubkey
 
-    if (!srcAcct.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!srcAcct.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -303,7 +303,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     }
     // TODO: process txUid is pubkey
 
-    if (!srcAcct.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!srcAcct.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -391,7 +391,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapp
     }
     // TODO: process txUid is pubkey
 
-    if (!srcAcct.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!srcAcct.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -475,7 +475,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &
     }
     // TODO: process txUid is pubkey
 
-    if (!srcAccount.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -694,7 +694,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!srcAcct.OperateBalance(SYMB::WICC, SUB_FREE, llFees)) {
+    if (!srcAcct.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
