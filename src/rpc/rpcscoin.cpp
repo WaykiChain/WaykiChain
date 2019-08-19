@@ -71,10 +71,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid currency type: %s", currencyStr));
         }
 
-        uint64_t price = priceValue.get_int64();
+        int64_t price = priceValue.get_int64();
+        if (price <= 0) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price: %lld", price));
+        }
 
         CoinPricePair cpp(coinStr, currencyStr);
-        CPricePoint pp(cpp, price);
+        CPricePoint pp(cpp, uint64_t(price));
         pricePoints.push_back(pp);
     }
 
@@ -744,7 +747,7 @@ extern Value getdexorders(const Array& params, bool fHelp) {
     if (params.size() > 1)
         endHeight = params[1].get_int64();
     if (endHeight < beginHeight || endHeight > tipHeight) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("end_height=%d must >= begin_height=%d and <= tip_height=%d", 
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("end_height=%d must >= begin_height=%d and <= tip_height=%d",
             endHeight, beginHeight, tipHeight));
     }
 
@@ -771,7 +774,7 @@ extern Value getdexorders(const Array& params, bool fHelp) {
 
     auto pGetter = pCdMan->pDexCache->CreateOrdersGetter();
     if (!pGetter->Execute(beginHeight, endHeight, maxCount, lastKey)) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get all active orders error! begin_height=%d, end_height=%d", 
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get all active orders error! begin_height=%d, end_height=%d",
             beginHeight, endHeight));
     }
 
