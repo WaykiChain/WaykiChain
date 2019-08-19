@@ -38,19 +38,19 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
 
 bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &title,
                           const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol) {
-    if (kCoinTypeSet.count(coinSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s, invalid coin symbol=%s", title, coinSymbol),
+    if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
+        return state.DoS(100, ERRORMSG("%s invalid coin symbol=%s", title, coinSymbol),
                         REJECT_INVALID, "invalid-coin-symbol");
     }
 
-    if (kCoinTypeSet.count(assetSymbol) == 0) {
+    if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
         return state.DoS(100, ERRORMSG("%s invalid asset symbol=%s", title, assetSymbol),
                         REJECT_INVALID, "invalid-asset-symbol");
     }
 
-    if (coinSymbol == assetSymbol) {
-        return state.DoS(100, ERRORMSG("%s coin symbol can not be same as asset symbol=%s", title, assetSymbol),
-                        REJECT_INVALID, "invalid-same-symbol");
+    if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
+        return state.DoS(100, ERRORMSG("%s not support the trading pair! coin_symbol=%s, asset_symbol=%s", 
+            title, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
     }
 
     return true;
