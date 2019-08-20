@@ -609,32 +609,7 @@ Value send(const Array& params, bool fHelp) {
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
-    // TODO:
-    ComboMoney cmFee;
-    cmFee.symbol = SYMB::WICC;
-    cmFee.amount = 10000;
-    cmFee.unit   = COIN_UNIT::SAWI;
-    if (params.size() > 3) {
-        if (!ParseRpcInputMoney(params[3].get_str(), cmFee, SYMB::WICC))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee ComboMoney format error");
-
-        if (cmFee.amount == 0)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is zero");
-
-        uint64_t minFee = 0;
-        if (cmFee.symbol == SYMB::WICC) {
-            minFee = std::get<1>(kTxFeeTable.at(UCOIN_TRANSFER_TX));
-        } else if (cmFee.symbol == SYMB::WUSD) {
-            minFee = std::get<3>(kTxFeeTable.at(UCOIN_TRANSFER_TX));
-        } else {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee symbol not supported");
-        }
-        uint64_t unitBase =  CoinUnitTypeTable.at(cmFee.unit);
-        uint64_t actualFee = cmFee.amount * unitBase;
-        if (actualFee < minFee) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Fee(%llu) < minFee (%llu)", actualFee, minFee));
-        }
-    }
+    ComboMoney cmFee = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
 
     TokenSymbol coinSymbol = cmCoin.symbol;
     uint64_t coinAmount    = cmCoin.amount * CoinUnitTypeTable.at(cmCoin.unit);
