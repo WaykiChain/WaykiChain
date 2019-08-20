@@ -141,8 +141,8 @@ int LogPrintStr(const std::string& logName, DebugLogFile& logFile, const string&
 #define MAKE_ERROR_AND_TRACE_FUNC(n)                                                                                 \
     /*   Print to debug.log if -debug=category switch is given OR category is NULL. */                               \
     template <TINYFORMAT_ARGTYPES(n)>                                                                                \
-    static inline int LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile, int line,    \
-                               const char* file, const char* format, TINYFORMAT_VARARGS(n)) {                        \
+    static inline int32_t LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile,          \
+                                   int32_t line, const char* file, const char* format, TINYFORMAT_VARARGS(n)) {      \
         return LogPrintStr(logName, logFile,                                                                         \
                            GetLogHead(line, file, category) + tfm::format(format, TINYFORMAT_PASSARGS(n)));          \
     }                                                                                                                \
@@ -163,8 +163,8 @@ static inline bool error2(int line, const char* file, const char* format) {
 
 extern string GetLogHead(int line, const char* file, const char* category);
 
-static inline int LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile, int line,
-                           const char* file, const char* format) {
+static inline int32_t LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile, int32_t line,
+                               const char* file, const char* format) {
     return LogPrintStr(logName, logFile, GetLogHead(line, file, category) + format);
 }
 
@@ -246,9 +246,9 @@ inline int64_t atoi64(const string& str) {
 #endif
 }
 
-inline int atoi(const string& str) { return atoi(str.c_str()); }
+inline int32_t atoi(const string& str) { return atoi(str.c_str()); }
 
-inline int roundint(double d) { return (int)(d > 0 ? d + 0.5 : d - 0.5); }
+inline int32_t roundint(double d) { return (int)(d > 0 ? d + 0.5 : d - 0.5); }
 
 inline int64_t roundint64(double d) { return (int64_t)(d > 0 ? d + 0.5 : d - 0.5); }
 

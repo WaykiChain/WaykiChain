@@ -84,23 +84,20 @@ public:
 public:
     CUniversalContract(): vm_type(NULL_VM) {}
 
-    CUniversalContract(const string &codeIn, const string &memoIn) :
-        vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi("") { };
+    CUniversalContract(const string &codeIn, const string &memoIn)
+        : vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi("") {}
 
-    CUniversalContract(const string &codeIn, const string &memoIn, const string &abiIn) :
-        vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi(abiIn) { };
+    CUniversalContract(const string &codeIn, const string &memoIn, const string &abiIn)
+        : vm_type(LUA_VM), upgradable(true), code(codeIn), memo(memoIn), abi(abiIn) {}
 
-    CUniversalContract(bool upgradableIn, const string &codeIn, const string &memoIn, const string &abiIn) :
-        vm_type(LUA_VM), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) { };
+    CUniversalContract(const bool upgradableIn, const string &codeIn, const string &memoIn, const string &abiIn)
+        : vm_type(LUA_VM), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) {}
 
-    CUniversalContract(VMType vmTypeIn, bool upgradableIn,
-                        const string &codeIn, const string &memoIn, const string &abiIn) :
-        vm_type(vmTypeIn), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) { };
+    CUniversalContract(VMType vmTypeIn, bool upgradableIn, const string &codeIn, const string &memoIn,
+                       const string &abiIn)
+        : vm_type(vmTypeIn), upgradable(upgradableIn), code(codeIn), memo(memoIn), abi(abiIn) {}
 
-    bool IsEmpty() const {
-        // FIXME:
-        return vm_type == VMType::NULL_VM || code.empty();
-    }
+    bool IsEmpty() const { return vm_type == VMType::NULL_VM && code.empty() && memo.empty() && abi.empty(); }
 
     void SetEmpty() {
         vm_type = VMType::NULL_VM;
@@ -118,4 +115,4 @@ public:
     )
 };
 
-#endif //ENTITIES_CONTRACT_H
+#endif  // ENTITIES_CONTRACT_H

@@ -48,9 +48,9 @@ static void stackDump(lua_State *L){
 
 /*
  *  //3.往函数私有栈里存运算后的结果*/
-static inline int RetRstToLua(lua_State *L, const vector<unsigned char> &resultData,
+static inline int32_t RetRstToLua(lua_State *L, const vector<unsigned char> &resultData,
                               bool needToTruncate = true) {
-    int len = resultData.size();
+    int32_t len = resultData.size();
     // truncate data by default
     if (needToTruncate) {
         len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
@@ -73,9 +73,9 @@ static inline int RetRstToLua(lua_State *L, const vector<unsigned char> &resultD
     return 0;
 }
 
-static inline int RetRstToLua(lua_State *L, const string &resultData,
+static inline int32_t RetRstToLua(lua_State *L, const string &resultData,
                               bool needToTruncate = true) {
-    int len = resultData.size();
+    int32_t len = resultData.size();
     // truncate data by default
     if (needToTruncate) {
         len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
@@ -100,7 +100,7 @@ static inline int RetRstToLua(lua_State *L, const string &resultData,
 
 /*
  *  //3.往函数私有栈里存布尔类型返回值*/
-static inline int RetRstBooleanToLua(lua_State *L,bool flag)
+static inline int32_t RetRstBooleanToLua(lua_State *L,bool flag)
 {
     //检测栈空间是否够
    if (lua_checkstack(L,sizeof(int))) {
@@ -113,7 +113,7 @@ static inline int RetRstBooleanToLua(lua_State *L,bool flag)
    }
 }
 
-static inline int RetFalse(const string reason)
+static inline int32_t RetFalse(const string reason)
 {
      LogPrint("vm","%s\n", reason.c_str());
      return 0;
@@ -121,7 +121,7 @@ static inline int RetFalse(const string reason)
 static CVmRunEnv* GetVmRunEnv(lua_State *L)
 {
     CVmRunEnv* pVmRunEnv = NULL;
-    int res = lua_getglobal(L, "VmScriptRun");
+    int32_t res = lua_getglobal(L, "VmScriptRun");
     //LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
 
     if (LUA_TLIGHTUSERDATA == res) {

@@ -592,16 +592,18 @@ CNetAddr::CNetAddr(const struct in6_addr& ipv6Addr) { memcpy(ip, &ipv6Addr, 16);
 CNetAddr::CNetAddr(const char* pszIp, bool fAllowLookup) {
     Init();
     vector<CNetAddr> vIP;
-    if (LookupHost(pszIp, vIP, 1, fAllowLookup)) *this = vIP[0];
+    if (LookupHost(pszIp, vIP, 1, fAllowLookup))
+        *this = vIP[0];
 }
 
 CNetAddr::CNetAddr(const string& strIp, bool fAllowLookup) {
     Init();
     vector<CNetAddr> vIP;
-    if (LookupHost(strIp.c_str(), vIP, 1, fAllowLookup)) *this = vIP[0];
+    if (LookupHost(strIp.c_str(), vIP, 1, fAllowLookup))
+        *this = vIP[0];
 }
 
-unsigned int CNetAddr::GetByte(int n) const { return ip[15 - n]; }
+uint32_t CNetAddr::GetByte(int32_t n) const { return ip[15 - n]; }
 
 bool CNetAddr::IsIPv4() const { return (memcmp(ip, pchIPv4, sizeof(pchIPv4)) == 0); }
 
@@ -673,7 +675,7 @@ bool CNetAddr::IsValid() const {
         return false;
 
     // unspecified IPv6 address (::/128)
-    unsigned char ipNone[16] = {};
+    uint8_t ipNone[16] = {};
     if (memcmp(ip, ipNone, 16) == 0)
         return false;
 
@@ -754,9 +756,9 @@ bool CNetAddr::GetIn6Addr(struct in6_addr* pipv6Addr) const {
 // no two connections will be attempted to addresses with the same group
 vector<unsigned char> CNetAddr::GetGroup() const {
     vector<unsigned char> vchRet;
-    int nClass     = NET_IPV6;
-    int nStartByte = 0;
-    int nBits      = 16;
+    int32_t nClass     = NET_IPV6;
+    int32_t nStartByte = 0;
+    int32_t nBits      = 16;
 
     // all local addresses belong to the same group
     if (IsLocal()) {
@@ -820,16 +822,18 @@ void CNetAddr::Print() const { LogPrint("INFO", "CNetAddr(%s)\n", ToString()); }
 
 // private extensions to enum Network, only returned by GetExtNetwork,
 // and only used in GetReachabilityFrom
-static const int NET_UNKNOWN = NET_MAX + 0;
-static const int NET_TEREDO  = NET_MAX + 1;
-int static GetExtNetwork(const CNetAddr* addr) {
-    if (addr == nullptr) return NET_UNKNOWN;
-    if (addr->IsRFC4380()) return NET_TEREDO;
+static const int32_t NET_UNKNOWN = NET_MAX + 0;
+static const int32_t NET_TEREDO  = NET_MAX + 1;
+static int32_t GetExtNetwork(const CNetAddr* addr) {
+    if (addr == nullptr)
+        return NET_UNKNOWN;
+    if (addr->IsRFC4380())
+        return NET_TEREDO;
     return addr->GetNetwork();
 }
 
 /** Calculates a metric for how reachable (*this) is from a given partner */
-int CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const {
+int32_t CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const {
     enum Reachability {
         REACH_UNREACHABLE,
         REACH_DEFAULT,
@@ -843,9 +847,9 @@ int CNetAddr::GetReachabilityFrom(const CNetAddr* paddrPartner) const {
     if (!IsRoutable())
         return REACH_UNREACHABLE;
 
-    int ourNet   = GetExtNetwork(this);
-    int theirNet = GetExtNetwork(paddrPartner);
-    bool fTunnel = IsRFC3964() || IsRFC6052() || IsRFC6145();
+    int32_t ourNet   = GetExtNetwork(this);
+    int32_t theirNet = GetExtNetwork(paddrPartner);
+    bool fTunnel     = IsRFC3964() || IsRFC6052() || IsRFC6145();
 
     switch (theirNet) {
         case NET_IPV4:
@@ -943,7 +947,7 @@ CService::CService(const char* pszIpPort, bool fAllowLookup) {
         *this = ip;
 }
 
-CService::CService(const char* pszIpPort, int portDefault, bool fAllowLookup) {
+CService::CService(const char* pszIpPort, int32_t portDefault, bool fAllowLookup) {
     Init();
     CService ip;
     if (Lookup(pszIpPort, ip, portDefault, fAllowLookup))
@@ -957,7 +961,7 @@ CService::CService(const string& strIpPort, bool fAllowLookup) {
         *this = ip;
 }
 
-CService::CService(const string& strIpPort, int portDefault, bool fAllowLookup) {
+CService::CService(const string& strIpPort, int32_t portDefault, bool fAllowLookup) {
     Init();
     CService ip;
     if (Lookup(strIpPort.c_str(), ip, portDefault, fAllowLookup))
@@ -1037,7 +1041,7 @@ CSubNet::CSubNet(const CNetAddr& addr, int32_t mask) {
     memset(netmask, 255, sizeof(netmask));
 
     // IPv4 addresses start at offset 12, and first 12 bytes must match, so just offset n
-    const int astartofs = network.IsIPv4() ? 12 : 0;
+    const int32_t astartofs = network.IsIPv4() ? 12 : 0;
 
     int32_t n = mask;
     if (n >= 0 && n <= (128 - astartofs * 8))  // Only valid if in range of bits of address
@@ -1049,7 +1053,8 @@ CSubNet::CSubNet(const CNetAddr& addr, int32_t mask) {
         valid = false;
 
     // Normalize network according to netmask
-    for (int x = 0; x < 16; ++x) network.ip[x] &= netmask[x];
+    for (int32_t x = 0; x < 16; ++x)
+        network.ip[x] &= netmask[x];
 }
 
 CSubNet::CSubNet(const CNetAddr& addr, const CNetAddr& mask) {
@@ -1059,13 +1064,13 @@ CSubNet::CSubNet(const CNetAddr& addr, const CNetAddr& mask) {
     memset(netmask, 255, sizeof(netmask));
 
     // IPv4 addresses start at offset 12, and first 12 bytes must match, so just offset n
-    const int astartofs = network.IsIPv4() ? 12 : 0;
+    const int32_t astartofs = network.IsIPv4() ? 12 : 0;
 
-    for (int x = astartofs; x < 16; ++x)
+    for (int32_t x = astartofs; x < 16; ++x)
         netmask[x] = mask.ip[x];
 
     // Normalize network according to netmask
-    for (int x = 0; x < 16; ++x)
+    for (int32_t x = 0; x < 16; ++x)
         network.ip[x] &= netmask[x];
 }
 
@@ -1083,7 +1088,7 @@ bool CSubNet::Match(const CNetAddr& addr) const {
     return true;
 }
 
-static inline int NetmaskBits(uint8_t x) {
+static inline int32_t NetmaskBits(uint8_t x) {
     switch (x) {
         case 0x00: return 0;
         case 0x80: return 1;
@@ -1100,12 +1105,12 @@ static inline int NetmaskBits(uint8_t x) {
 
 std::string CSubNet::ToString() const {
     /* Parse binary 1{n}0{N-n} to see if mask can be represented as /n */
-    int cidr        = 0;
+    int32_t cidr    = 0;
     bool valid_cidr = true;
-    int n           = network.IsIPv4() ? 12 : 0;
+    int32_t n       = network.IsIPv4() ? 12 : 0;
     for (; n < 16 && netmask[n] == 0xff; ++n) cidr += 8;
     if (n < 16) {
-        int bits = NetmaskBits(netmask[n]);
+        int32_t bits = NetmaskBits(netmask[n]);
         if (bits < 0)
             valid_cidr = false;
         else
@@ -1144,7 +1149,7 @@ bool operator<(const CSubNet& a, const CSubNet& b) {
 }
 
 #ifdef WIN32
-string NetworkErrorString(int err) {
+string NetworkErrorString(int32_t err) {
     char buf[256];
     buf[0] = 0;
     if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, nullptr,
@@ -1155,7 +1160,7 @@ string NetworkErrorString(int err) {
     }
 }
 #else
-string NetworkErrorString(int err) {
+string NetworkErrorString(int32_t err) {
     char buf[256];
     const char* s = buf;
     buf[0] = 0;

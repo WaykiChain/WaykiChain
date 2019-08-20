@@ -3003,7 +3003,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     }
 
     if (strCommand == "version") {
-        int res = ProcessVersionMessage(pFrom,strCommand, vRecv);
+        int32_t res = ProcessVersionMessage(pFrom,strCommand, vRecv);
         if(res !=-1)
             return res == 1 ;
     }
