@@ -629,9 +629,9 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     vector<DEXDealItem> dealItems;
     for (auto dealItemObj : dealItemArray) {
         DEXDealItem dealItem;
-        const Value& buy_order_id    = JSON::GetObjectFieldValue(dealItemObj, "buy_order_id");
+        const Value& buy_order_id      = JSON::GetObjectFieldValue(dealItemObj, "buy_order_id");
         dealItem.buyOrderId            = RPC_PARAM::GetTxid(buy_order_id, "buy_order_id");
-        const Value& sell_order_id   = JSON::GetObjectFieldValue(dealItemObj, "sell_order_id");
+        const Value& sell_order_id     = JSON::GetObjectFieldValue(dealItemObj, "sell_order_id");
         dealItem.sellOrderId           = RPC_PARAM::GetTxid(sell_order_id.get_str(), "sell_order_id");
         const Value& deal_price        = JSON::GetObjectFieldValue(dealItemObj, "deal_price");
         dealItem.dealPrice             = RPC_PARAM::GetPrice(deal_price);

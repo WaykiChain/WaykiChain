@@ -263,7 +263,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     int64_t amount = AmountToRawValue(params[3]);
     int64_t fee    = RPC_PARAM::GetWiccFee(params, 4, LCONTRACT_INVOKE_TX);
-    int32_t height     = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
+    int32_t height = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
 
     CPubKey sendPubKey;
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {
@@ -1781,8 +1781,8 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
-    int64_t amount = AmountToRawValue(params[3]);;
-    int64_t fee = AmountToRawValue(params[4]);
+    int64_t amount = AmountToRawValue(params[3]);
+    int64_t fee    = AmountToRawValue(params[4]);
 
     int32_t height = chainActive.Height();
     if (params.size() > 5)

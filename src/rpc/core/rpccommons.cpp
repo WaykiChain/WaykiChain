@@ -511,7 +511,7 @@ ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
     if (valueType == json_spirit::Value_type::int_type ) {
         money.symbol = defaultSymbol;
         money.amount = AmountToRawValue(jsonValue.get_int64());
-        money.unit = COIN_UNIT::SAWI;
+        money.unit   = COIN_UNIT::SAWI;
 
     } else if (valueType == json_spirit::Value_type::str_type) {
         if (!ParseRpcInputMoney(jsonValue.get_str(), money, defaultSymbol)) {

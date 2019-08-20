@@ -503,8 +503,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         if (!GetKeyId(params[1].get_str(), recvKeyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
         }
-        nAmount = AmountToRawValue(params[2]);
-        nFee = AmountToRawValue(params[3]);
+        nAmount    = AmountToRawValue(params[2]);
+        nFee       = AmountToRawValue(params[3]);
         nActualFee = max(nDefaultFee, nFee);
         if (nFee < nDefaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
@@ -518,8 +518,8 @@ Value sendtoaddresswithfee(const Array& params, bool fHelp) {
         if (!GetKeyId(params[0].get_str(), recvKeyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
         }
-        nAmount = AmountToRawValue(params[1]);
-        nFee = AmountToRawValue(params[2]);
+        nAmount    = AmountToRawValue(params[1]);
+        nFee       = AmountToRawValue(params[2]);
         nActualFee = max(nDefaultFee, nFee);
         if (nFee < nDefaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
