@@ -82,32 +82,31 @@ protected:
 
 public:
     virtual ~CBaseParams() {}
-    std::shared_ptr<vector<string> > GetMultiArgsMap(string str) const{
-        std::shared_ptr<vector<string> > temp = std::make_shared<vector<string> >();
-        vector<string> te = m_mapMultiArgs[str];
-        temp.get()->assign(te.begin(), te.end());
-        return temp;
+
+    vector<string> GetMultiArgsMap(const string& str) const {
+        const auto& iter = m_mapMultiArgs.find(str);
+        return iter == m_mapMultiArgs.end() ? vector<string>() : iter->second;
     }
+
     virtual bool InitialConfig() {
         fServer = GetBoolArg("-server", false);
 
         m_mapMultiArgs["-debug"].push_back("ERROR");  // Enable ERROR logger by default
         fDebug = !m_mapMultiArgs["-debug"].empty();
         if (fDebug) {
-            fDebugAll = GetBoolArg("-logprintall", false);
+            fDebugAll          = GetBoolArg("-logprintall", false);
             fPrintLogToConsole = GetBoolArg("-logprinttoconsole", false);
-            fLogTimestamps = GetBoolArg("-logtimestamps", true);
-            fPrintLogToFile = GetBoolArg("-logprinttofile", false);
-            fLogPrintFileLine = GetBoolArg("-logprintfileline", false);
+            fLogTimestamps     = GetBoolArg("-logtimestamps", true);
+            fPrintLogToFile    = GetBoolArg("-logprinttofile", false);
+            fLogPrintFileLine  = GetBoolArg("-logprintfileline", false);
         }
         int64_t nTransactionFee ;
         if (ParseMoney(GetArg("-paytxfee", ""), nTransactionFee) && nTransactionFee > 0) {
             payTxFee = nTransactionFee;
         }
 
-        nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
-        bContractLog = GetBoolArg("-contractlog", false); //contract account change log
-        nBlockInterval = GetArg("-blockinterval", 3) ;
+        nLogMaxSize    = GetArg("-logmaxsize", 100) * 1024 * 1024;
+        bContractLog   = GetBoolArg("-contractlog", false);  // contract account change log
 
         return true;
     }

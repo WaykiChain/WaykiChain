@@ -36,7 +36,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3. \"symbol:fee:unit\":            (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
+            "3. \"symbol:fee:unit\":            (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"                           (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -81,7 +81,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         pricePoints.push_back(pp);
     }
 
-    const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 2, CDP_STAKE_TX);
+    const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 2, PRICE_FEED_TX);
 
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, feedUid);
@@ -101,9 +101,9 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1.\"addr\":             (string, required)\n"
             "2.\"fcoin amount\":     (numeric, required) amount of fcoins to stake\n"
-            "3. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
+            "3. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\"               (string) The transaction id.\n"
+            "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
             + "\nAs json rpc call\n"

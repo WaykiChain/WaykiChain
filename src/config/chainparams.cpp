@@ -133,7 +133,6 @@ public:
 
     virtual bool InitialConfig() {
         CMainParams::InitialConfig();
-        nBlockInterval = GetArg("-blockinterval", 3) ;
         fServer = true;
         return true;
     }
