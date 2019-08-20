@@ -68,7 +68,7 @@ case "$ARCH" in
         yum install -y epel-release
 
         printf "Install all prerequisite libraries/tools ...\\n"
-        yum install -y autoconf automake boost-devel libdb4-cxx libdb4-cxx-devel \
+        yum install -y make cmake autoconf automake boost-devel libdb4-cxx libdb4-cxx-devel \
         libevent-devel libtool openssl-devel gcc-c++ git
       ;;
       *)
