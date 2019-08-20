@@ -139,13 +139,13 @@ uint64_t CLuaContractDeployTx::GetFuel(uint32_t nFuelRate) {
     return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
 }
 
-string CLuaContractDeployTx::ToString(CAccountDBCache &view) {
+string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
-    view.GetKeyId(txUid, keyId);
+    accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, accountId=%s, keyid=%s, llFees=%ld, nValidHeight=%d\n",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(),
-                     llFees, nValidHeight);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, llFees=%llu, nValidHeight=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), llFees,
+                     nValidHeight);
 }
 
 Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -342,7 +342,7 @@ bool CLuaContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &key
 
 string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, bcoins=%ld, llFees=%ld, arguments=%s, "
+        "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, bcoins=%llu, llFees=%llu, arguments=%s, "
         "nValidHeight=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), bcoins, llFees,
         HexStr(arguments), nValidHeight);
@@ -353,9 +353,8 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 
     CKeyID desKeyId;
     accountCache.GetKeyId(app_uid, desKeyId);
-    result.push_back(Pair("regid",          txUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
-    result.push_back(Pair("app_uid",        app_uid.ToString()));
+    result.push_back(Pair("to_uid",         app_uid.ToString()));
     result.push_back(Pair("coin_symbol",    SYMB::WICC));
     result.push_back(Pair("coin_amount",    bcoins));
     result.push_back(Pair("arguments",      HexStr(arguments)));
