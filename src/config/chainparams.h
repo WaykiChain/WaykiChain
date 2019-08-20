@@ -71,7 +71,6 @@ protected:
     mutable bool fLogFailures;
     mutable int64_t nTimeBestReceived;
     mutable uint64_t payTxFee;
-    uint32_t nMaxForkHeight = 24 * 60 * 20;  // 28800, i.e. forked distance by a day block height
     uint32_t nBlockInterval;                // to limit block creation time
     uint32_t nFeatureForkHeight;
     uint32_t nStableCoinGenesisHeight;
@@ -82,11 +81,6 @@ protected:
 
 public:
     virtual ~CBaseParams() {}
-
-    vector<string> GetMultiArgsMap(const string& str) const {
-        const auto& iter = m_mapMultiArgs.find(str);
-        return iter == m_mapMultiArgs.end() ? vector<string>() : iter->second;
-    }
 
     virtual bool InitialConfig() {
         fServer = GetBoolArg("-server", false);
@@ -143,9 +137,7 @@ public:
         return te;
     }
 
-    virtual uint32_t GetBlockMaxNonce() const {
-        return 1000;
-    }
+    virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     int64_t GetTxFee() const;
     int64_t SetDefaultTxFee(int64_t fee) const;
     virtual string GetDefaultTestDataPath() const {

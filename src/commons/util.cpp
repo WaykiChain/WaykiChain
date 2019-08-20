@@ -194,10 +194,10 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
 static map<string, DebugLogFile> g_DebugLogs;
 
 static void DebugPrintInit() {
-    const vector<string>& categories = SysCfg().GetMultiArgsMap("-debug");
+    const vector<string>& categories = SysCfg().GetMultiArgs("-debug");
     set<string> logfiles(categories.begin(), categories.end());
 
-    const vector<string>& nocategories = SysCfg().GetMultiArgsMap("-nodebug");
+    const vector<string>& nocategories = SysCfg().GetMultiArgs("-nodebug");
     set<string> nologfiles(nocategories.begin(), nocategories.end());
 
     if (SysCfg().IsDebugAll()) {
