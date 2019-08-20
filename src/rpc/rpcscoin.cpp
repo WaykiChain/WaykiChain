@@ -96,12 +96,12 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 Value submitstakefcointx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitstakefcointx \"addr\" \"fcoin amount\" [fee]\n"
+            "submitstakefcointx \"addr\" \"fcoin amount\" [\"symbol:fee:unit\"]\n"
             "\nstake fcoins\n"
             "\nArguments:\n"
-            "1.\"addr\":            (string, required)\n"
-            "2.\"fcoin amount\":    (numeric, required) amount of fcoins to stake\n"
-            "6.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "1.\"addr\":             (string, required)\n"
+            "2.\"fcoin amount\":     (numeric, required) amount of fcoins to stake\n"
+            "3. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n"
@@ -111,9 +111,9 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
         );
     }
 
-    const CUserID& userId   = RPC_PARAM::GetUserId(params[0].get_str());
-    int64_t stakeAmount     = params[1].get_int64();
-    ComboMoney cmFee        = RPC_PARAM::GetFee(params, 3, FCOIN_STAKE_TX);
+    const CUserID& userId   = RPC_PARAM::GetUserId(params[0]);
+    int64_t stakeAmount     = AmountToRawValue(params[1]);
+    ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, FCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
 
