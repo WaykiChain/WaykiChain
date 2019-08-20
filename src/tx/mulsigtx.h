@@ -108,8 +108,8 @@ public:
     virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CMulsigTx>(*this); }
-    virtual string ToString(CAccountDBCache &view);
-    virtual Object ToJson(const CAccountDBCache &AccountView) const;
+    virtual string ToString(CAccountDBCache &accountView);
+    virtual Object ToJson(const CAccountDBCache &accountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);

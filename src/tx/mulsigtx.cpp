@@ -28,7 +28,7 @@ Object CSignaturePair::ToJson() const {
     return obj;
 }
 
-string CMulsigTx::ToString(CAccountDBCache &view) {
+string CMulsigTx::ToString(CAccountDBCache &accountCache) {
     string desId;
     if (desUserId.type() == typeid(CKeyID)) {
         desId = desUserId.get<CKeyID>().ToString();
@@ -52,7 +52,6 @@ string CMulsigTx::ToString(CAccountDBCache &view) {
 
 Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     Object result;
-    CAccountDBCache view(accountView);
 
     auto GetRegIdString = [&](CUserID const &userId) {
         if (userId.type() == typeid(CRegID)) {
@@ -62,7 +61,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     };
 
     CKeyID desKeyId;
-    view.GetKeyId(desUserId, desKeyId);
+    accountView.GetKeyId(desUserId, desKeyId);
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
@@ -73,7 +72,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     std::set<CPubKey> pubKeys;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
-        if (!view.GetAccount(item.regid, account)) {
+        if (!accountView.GetAccount(item.regid, account)) {
             LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n",
                      item.regid.ToString());
             continue;

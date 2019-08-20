@@ -126,7 +126,7 @@ bool CAssetIssueTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyIds) {
     return AddInvolvedKeyIds({txUid, asset.owner_uid}, cw, keyIds);
 }
 
-string CAssetIssueTx::ToString(CAccountDBCache &view) {
+string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
         "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
@@ -148,7 +148,7 @@ Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CAssetUpdateTx
 
-string CAssetUpdateTx::ToString(CAccountDBCache &view) {
+string CAssetUpdateTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
         "owner_uid=%s, asset_name=%s, mint_amount=%llu",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,

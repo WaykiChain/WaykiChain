@@ -563,13 +563,14 @@ bool CWallet::RemoveKey(const CKey &key) {
     return true;
 }
 
-bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &view) const {
+bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &accountView) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
-        if (item.second.HaveMinerKey() && view.GetRegId(item.first, regId)) {
+        if (item.second.HaveMinerKey() && accountView.GetRegId(item.first, regId)) {
             return true;
         }
     }
+
     return false;
 }
 

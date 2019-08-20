@@ -80,7 +80,7 @@ bool CAccountRegisterTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyI
     return true;
 }
 
-string CAccountRegisterTx::ToString(CAccountDBCache &view) {
+string CAccountRegisterTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,
                      txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);

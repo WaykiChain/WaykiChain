@@ -16,11 +16,11 @@
 #include "config/version.h"
 #include "vm/luavm/vmrunenv.h"
 
-static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &keyid) {
+static bool GetKeyId(const CAccountDBCache &accountView, const string &userIdStr, CKeyID &keyid) {
     switch (userIdStr.size()) {
         case 6: {   // CRegID
             CRegID regId(userIdStr);
-            keyid = regId.GetKeyId(view);
+            keyid = regId.GetKeyId(accountView);
             break;
         }
         case 34: {  // Base58Addr

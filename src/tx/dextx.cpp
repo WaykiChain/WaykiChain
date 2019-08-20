@@ -423,7 +423,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapp
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXCancelOrderTx
 
-string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
+string CDEXCancelOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, nValidHeight=%d, txUid=%s, llFees=%ld,"
         "orderId=%s\n",
@@ -513,7 +513,7 @@ bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
-string CDEXSettleTx::ToString(CAccountDBCache &view) {
+string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo;
     for (const auto &item : dealItems) {
         dealInfo += strprintf("{buy_order_id:%s, sell_order_id:%s, coin_amount:%lld, asset_amount:%lld, price:%lld}",

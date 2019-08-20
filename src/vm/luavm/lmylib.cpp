@@ -134,22 +134,23 @@ static CVmRunEnv* GetVmRunEnv(lua_State *L)
     return pVmRunEnv;
 }
 
-static bool GetKeyId(const CAccountDBCache &view, vector<unsigned char> &ret,
-        CKeyID &KeyId) {
+static bool GetKeyId(const CAccountDBCache &accountView, vector<unsigned char> &ret, CKeyID &keyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
-        KeyId = reg.GetKeyId(view);
+        keyId = reg.GetKeyId(accountView);
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
-        KeyId = CKeyID(addr);
-    }else{
+        keyId = CKeyID(addr);
+    } else {
         return false;
     }
-    if (KeyId.IsEmpty())
+
+    if (keyId.IsEmpty())
         return false;
 
     return true;
 }
+
 static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
     //从栈里取变长的数组
     int totallen = lua_gettop(L);

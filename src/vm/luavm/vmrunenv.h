@@ -62,7 +62,7 @@ private:
     /**
      * @brief The initialization function
      * @param Tx: run the tx's contact
-     * @param view: Cache holds account
+     * @param accountView: Cache holds account
      * @param nheight: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is unlegal
      */
@@ -76,10 +76,10 @@ private:
     /**
      *
      * @param listoperate: through the vm return code ,The accounts plus money and less money
-     * @param view:
+     * @param accountView:
      * @return true operate account success
      */
-    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
+    bool OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& accountView,
                         const int32_t nCurHeight);
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
@@ -101,7 +101,7 @@ private:
     UnsignedCharArray GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
     bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                           CContractDBCache& view);
+                           CContractDBCache& accountView);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
 
@@ -126,7 +126,7 @@ public:
     /**
      * @brief  start to run the script
      * @param Tx: run the tx
-     * @param view: the second argument
+     * @param accountView: the second argument
      * @param nheight: block height
      * @param nBurnFactor: Executing a step script to spending
      * @return: tuple<bool,uint64_t,string>  bool represent the script run success

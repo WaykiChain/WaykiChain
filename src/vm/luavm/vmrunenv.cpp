@@ -353,7 +353,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
 //  return tem;
 //}
 
-bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& view,
+bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& accountView,
                                const int32_t nCurHeight) {
     newAccount.clear();
     for (auto& it : listoperate) {
@@ -376,13 +376,13 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
 
         if (accountId.size() == 6) {
             userregId.SetRegID(accountId);
-            if (!view.GetAccount(CUserID(userregId), *tem.get())) {
+            if (!accountView.GetAccount(CUserID(userregId), *tem.get())) {
                 return false;  // 账户不存在
             }
         } else {
             string popaddr(accountId.begin(), accountId.end());
             userkeyid = CKeyID(popaddr);
-            if (!view.GetAccount(CUserID(userkeyid), *tem.get())) {
+            if (!accountView.GetAccount(CUserID(userkeyid), *tem.get())) {
                 tem->keyid = userkeyid;
                 // return false;
                 // 未产生过交易记录的账户
@@ -493,7 +493,7 @@ bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
 }
 
 bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                                  CContractDBCache& view) {
+                                  CContractDBCache& accountView) {
     newAppUserAccount.clear();
     if ((mapAppFundOperate.size() > 0)) {
         for (auto const tem : opMap) {
@@ -530,7 +530,7 @@ bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFu
             }
             newAppUserAccount.push_back(sptrAcc);
             LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            view.SetContractAccount(GetScriptRegID(), *sptrAcc.get());
+            accountView.SetContractAccount(GetScriptRegID(), *sptrAcc.get());
         }
     }
     return true;

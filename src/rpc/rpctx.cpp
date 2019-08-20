@@ -178,7 +178,6 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     {
         EnsureWalletIsUnlocked();
 
-        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
         CUserID userId = keyId;
         if (!pCdMan->pAccountCache->GetAccount(userId, account))
@@ -624,7 +623,6 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
     assert(pWalletMain != nullptr);
     {
         EnsureWalletIsUnlocked();
-        CAccountDBCache view(*pCdMan->pAccountCache);
         CAccount account;
 
         CUserID userId = keyId;
