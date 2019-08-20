@@ -32,19 +32,21 @@ public:
         // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
         // a large 4-byte int at any alignment.
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(MAIN_NET), sizeof(pchMessageStart));
-        vAlertPubKey             = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
-        nDefaultPort             = IniCfg().GetDefaultPort(MAIN_NET);
-        nRPCPort                 = IniCfg().GetRPCPort(MAIN_NET);
-        strDataDir               = "main";
-        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(MAIN_NET);
-        nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(MAIN_NET);
-        nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
+        vAlertPubKey                       = ParseHex(IniCfg().GetAlertPkey(MAIN_NET));
+        nDefaultPort                       = IniCfg().GetDefaultPort(MAIN_NET);
+        nRPCPort                           = IniCfg().GetRPCPort(MAIN_NET);
+        strDataDir                         = "main";
+        nBlockIntervalPreStableCoinRelease = BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE;
+        nBlockIntervalStableCoinRelease    = BLOCK_INTERVAL_STABLE_COIN_RELEASE;
+        nSubsidyHalvingInterval            = IniCfg().GetHalvingInterval(MAIN_NET);
+        nFeatureForkHeight                 = IniCfg().GetFeatureForkHeight(MAIN_NET);
+        nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetPrevBlockHash(uint256());
         genesis.SetMerkleRootHash(genesis.BuildMerkleTree());
 
-        genesis.SetVersion(g_BlockVersion);
+        genesis.SetVersion(INIT_BLOCK_VERSION);
         genesis.SetTime(IniCfg().GetStartTimeInit(MAIN_NET));
         genesis.SetNonce(108);
         genesis.SetFuelRate(INIT_FUEL_RATES);
@@ -165,21 +167,19 @@ public:
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
 
-    virtual bool RequireRPCPassword() const {
-        return false;
-    }
+    virtual bool RequireRPCPassword() const { return false; }
 
-    virtual NET_TYPE NetworkID() const {
-        return REGTEST_NET;
-    }
+    virtual NET_TYPE NetworkID() const { return REGTEST_NET; }
 
     virtual bool InitialConfig() {
         CTestNetParams::InitialConfig();
 
-        nSubsidyHalvingInterval   = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
-        nBlockInterval            = GetArg("-blockinterval", 3);
-        nFeatureForkHeight        = std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
-        fServer                   = true;
+        nBlockIntervalPreStableCoinRelease = GetArg("-blockintervalprestablecoinrelease", 10);
+        nBlockIntervalStableCoinRelease    = GetArg("-blockintervalstablecoinrelease", 3);
+        nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
+        nFeatureForkHeight =\
+            std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
+        fServer = true;
 
         return true;
     }
@@ -346,7 +346,7 @@ bool CBaseParams::CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& 
         }
 
         auto pRewardTx      = std::make_shared<CBlockRewardTx>(ParseHex(vInitPubKey[i]), reward, 0);
-        pRewardTx->nVersion = nTxVersion1;
+        pRewardTx->nVersion = INIT_TX_VERSION;
         vptx.push_back(pRewardTx);
     }
 
@@ -368,7 +368,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
     CRegID regId(0, 1);
     auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(regId.GetRegIdRaw(), votes, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
-    pDelegateTx->nVersion  = nTxVersion1;
+    pDelegateTx->nVersion  = INIT_TX_VERSION;
 
     vptx.push_back(pDelegateTx);
 
@@ -378,7 +378,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     // global account
     auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), nStableCoinGenesisHeight, SYMB::WGRT, 0);
-    pTx->nVersion = nTxVersion1;
+    pTx->nVersion = INIT_TX_VERSION;
     vptx.push_back(pTx);
 
     // Initial FundCoin Owner's account
@@ -427,7 +427,6 @@ CBaseParams::CBaseParams() {
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nViewCacheSize          = 2000000;
-    nBlockInterval          = 3;
     nSubsidyHalvingInterval = 0;
     payTxFee                = 10000;
     nDefaultPort            = 0;

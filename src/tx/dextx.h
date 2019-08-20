@@ -80,11 +80,10 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol coin_symbol;          //!< coin type (wusd) to buy asset
-    TokenSymbol asset_symbol;        //!< asset type
-    uint64_t asset_amount;       //!< amount of target asset to buy
-    uint64_t bid_price;          //!< bidding price in coin_symbol willing to buy
-
+    TokenSymbol coin_symbol;   //!< coin type (wusd) to buy asset
+    TokenSymbol asset_symbol;  //!< asset type
+    uint64_t asset_amount;     //!< amount of target asset to buy
+    uint64_t bid_price;        //!< bidding price in coin_symbol willing to buy
 };
 
 class CDEXSellLimitOrderTx : public CDEXOrderBaseTx {
@@ -138,11 +137,10 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol coin_symbol;       //!< coin type (wusd) to sell asset
-    TokenSymbol asset_symbol;     //!< holding asset type (wicc or wgrt) to sell in coin_symbol
-    uint64_t asset_amount;    //!< amount of holding asset to sell
-    uint64_t ask_price;       //!< asking price in coin_symbol willing to sell
-
+    TokenSymbol coin_symbol;   //!< coin type (wusd) to sell asset
+    TokenSymbol asset_symbol;  //!< holding asset type (wicc or wgrt) to sell in coin_symbol
+    uint64_t asset_amount;     //!< amount of holding asset to sell
+    uint64_t ask_price;        //!< asking price in coin_symbol willing to sell
 };
 
 class CDEXBuyMarketOrderTx : public CDEXOrderBaseTx {
@@ -193,9 +191,9 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
-    TokenSymbol asset_symbol;    //!< asset type
-    uint64_t coin_amount;    //!< amount of target coin to spend for buying asset
+    TokenSymbol coin_symbol;   //!< coin type (wusd) to buy asset
+    TokenSymbol asset_symbol;  //!< asset type
+    uint64_t coin_amount;      //!< amount of target coin to spend for buying asset
 };
 
 class CDEXSellMarketOrderTx : public CDEXOrderBaseTx {
@@ -246,9 +244,9 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 private:
-    TokenSymbol coin_symbol;      //!< coin type (wusd) to buy asset
-    TokenSymbol asset_symbol;    //!< asset type
-    uint64_t asset_amount;   //!< amount of target asset to buy
+    TokenSymbol coin_symbol;   //!< coin type (wusd) to buy asset
+    TokenSymbol asset_symbol;  //!< asset type
+    uint64_t asset_amount;     //!< amount of target asset to buy
 };
 
 class CDEXCancelOrderTx : public CBaseTx {

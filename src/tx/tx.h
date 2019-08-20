@@ -39,7 +39,7 @@ public:
     static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;
     static uint64_t nDustAmountThreshold;
-    static const int32_t CURRENT_VERSION = nTxVersion1;
+    static const int32_t CURRENT_VERSION = INIT_TX_VERSION;
 
     int32_t nVersion;
     TxType nTxType;

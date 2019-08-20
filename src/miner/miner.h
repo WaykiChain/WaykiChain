@@ -75,10 +75,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn);
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &accountCache,
                          CBlock *pBlock);
 
-void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList);
-
-bool GetCurrentDelegate(const int64_t currentTime, const vector<CAccount> &vDelegatesAcctList, CAccount &delegateAcct);
-
 bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
 
 /** Check mined block */

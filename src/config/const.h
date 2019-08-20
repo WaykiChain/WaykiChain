@@ -76,6 +76,8 @@ static const uint64_t MAX_ASSET_TOTAL_SUPPLY = 9000000000 * COIN; // 90 billion
 /** the total blocks of burn fee need */
 static const uint32_t DEFAULT_BURN_BLOCK_SIZE = 50;
 static const uint64_t MAX_BLOCK_RUN_STEP      = 12000000;
+static const int64_t INIT_FUEL_RATES          = 100;  // 100 unit / 100 step
+static const int64_t MIN_FUEL_RATES           = 1;    // 1 unit / 100 step
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const uint32_t MAX_BLOCK_SIZE = 4000000;
@@ -94,6 +96,8 @@ static const int32_t MAX_BLOCKS_IN_TRANSIT_PER_PEER = 128;
 /** Timeout in seconds before considering a block download peer unresponsive. */
 static const uint32_t BLOCK_DOWNLOAD_TIMEOUT  = 60;
 
+/** Minimum disk space required */
+static const uint64_t MIN_DISK_SPACE = 52428800;
 /** The maximum size of a blk?????.dat file (since 0.8) */
 static const uint32_t MAX_BLOCKFILE_SIZE = 0x8000000;  // 128 MiB
 /** The pre-allocation chunk size for blk?????.dat files (since 0.8) */
@@ -113,20 +117,15 @@ static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
 // min. -dbcache in (MiB)
 static const int64_t nMinDbCache = 4;
 
-#ifdef USE_UPNP
-static const int32_t fHaveUPnP = true;
-#else
-static const int32_t fHaveUPnP = false;
-#endif
-
-static const uint64_t kTotalBaseCoinCount           = 210000000;    // 210 million
-static const uint64_t kYearBlockCount               = 10512000;     // one year = 365 * 24 * 60 * 60 / 3
-static const uint64_t kMinDiskSpace                 = 52428800;     // Minimum disk space required
-static const int32_t kContractScriptMaxSize         = 65536;        // 64 KB max for contract script size
-static const int32_t kContractArgumentMaxSize       = 4096;         // 4 KB max for contract argument size
-static const int32_t kCommonTxMemoMaxSize           = 100;          // 100 bytes max for memo size
-static const int32_t kContractMemoMaxSize           = 100;          // 100 bytes max for memo size
-static const int32_t kMostRecentBlockNumberLimit    = 1000;         // most recent block number limit
+static const uint64_t INITIAL_BASE_COIN_AMOUNT               = 210000000;  // 210 million
+static const uint32_t BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE = 10;         // 10 seconds
+static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 seconds
+static const uint64_t YEAR_BLOCK_COUNT                       = 10512000;   // one year = 365 * 24 * 60 * 60 / 3
+static const int32_t kContractScriptMaxSize                  = 65536;      // 64 KB max for contract script size
+static const int32_t kContractArgumentMaxSize                = 4096;       // 4 KB max for contract argument size
+static const int32_t kCommonTxMemoMaxSize                    = 100;        // 100 bytes max for memo size
+static const int32_t kContractMemoMaxSize                    = 100;        // 100 bytes max for memo size
+static const int32_t kMostRecentBlockNumberLimit             = 1000;       // most recent block number limit
 
 static const int32_t kMultisigNumberLimit           = 15;           // m-n multisig, refer to n
 static const int32_t KMultisigScriptMaxSize         = 1000;         // multisig script max size

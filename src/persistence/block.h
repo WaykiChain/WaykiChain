@@ -55,7 +55,7 @@ enum BlockStatus {
 class CBlockHeader {
 public:
     // header
-    static const int32_t CURRENT_VERSION = g_BlockVersion;
+    static const int32_t CURRENT_VERSION = INIT_BLOCK_VERSION;
 protected:
     int32_t nVersion;
     uint256 prevBlockHash;

@@ -13,8 +13,7 @@
 
 using namespace std;
 
-static const int32_t nTxVersion1 = 1;
-static const int32_t nTxVersion2 = 2;
+static const int32_t INIT_TX_VERSION = 1;
 
 enum TxType: uint8_t {
     NULL_TX                     = 0,     //!< NULL_TX

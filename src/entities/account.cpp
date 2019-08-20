@@ -115,7 +115,7 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVot
 
     auto ComputeInterest = [](uint64_t amount, uint64_t subsidy, int32_t beginHeight, int32_t endHeight) -> uint64_t {
         int64_t holdHeight        = endHeight - beginHeight;
-        static int64_t yearHeight = kYearBlockCount;
+        static int64_t yearHeight = YEAR_BLOCK_COUNT;
         uint64_t interest         = (uint64_t)(amount * ((long double)holdHeight * subsidy / yearHeight / 100));
         LogPrint("DEBUG", "amount: %lld, subsidy: %lld, beginHeight: %d, endHeight: %d, interest: %lld\n", amount, subsidy,
                  beginHeight, endHeight, interest);
@@ -144,7 +144,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const 
 
     uint64_t subsidy          = IniCfg().GetBlockSubsidyCfg(currHeight);
     static int64_t holdHeight = 1;
-    static int64_t yearHeight = kYearBlockCount;
+    static int64_t yearHeight = YEAR_BLOCK_COUNT;
     uint64_t profits =
         (long double)(received_votes * IniCfg().GetTotalDelegateNum() * holdHeight * subsidy) / yearHeight / 100;
     LogPrint("profits",

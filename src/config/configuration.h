@@ -29,32 +29,32 @@ const G_CONFIG_TABLE& IniCfg();
 class G_CONFIG_TABLE {
 public:
     string GetCoinName() const { return COIN_NAME; }
-    const string GetAlertPkey(NET_TYPE type) const;
+    const string GetAlertPkey(const NET_TYPE type) const;
 
-    const vector<string> GetInitPubKey(NET_TYPE type) const;
-    const uint256 GetGenesisBlockHash(NET_TYPE type) const;
-    string GetDelegateSignature(NET_TYPE type) const;
-    const vector<string> GetDelegatePubKey(NET_TYPE type) const;
+    const vector<string> GetInitPubKey(const NET_TYPE type) const;
+    const uint256 GetGenesisBlockHash(const NET_TYPE type) const;
+    string GetDelegateSignature(const NET_TYPE type) const;
+    const vector<string> GetDelegatePubKey(const NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;
 
-    const string GetDexMatchServicePubKey(NET_TYPE type) const;
-    const string GetInitFcoinOwnerPubKey(NET_TYPE type) const;
+    const string GetDexMatchServicePubKey(const NET_TYPE type) const;
+    const string GetInitFcoinOwnerPubKey(const NET_TYPE type) const;
 
     vector<uint32_t> GetSeedNodeIP() const;
-    uint8_t* GetMagicNumber(NET_TYPE type) const;
-    vector<uint8_t> GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const;
-    uint32_t GetDefaultPort(NET_TYPE type) const;
-    uint32_t GetRPCPort(NET_TYPE type) const;
-    uint32_t GetStartTimeInit(NET_TYPE type) const;
-    uint32_t GetHalvingInterval(NET_TYPE type) const;
+    uint8_t* GetMagicNumber(const NET_TYPE type) const;
+    vector<uint8_t> GetAddressPrefix(const NET_TYPE type, const Base58Type BaseType) const;
+    uint32_t GetDefaultPort(const NET_TYPE type) const;
+    uint32_t GetRPCPort(const NET_TYPE type) const;
+    uint32_t GetStartTimeInit(const NET_TYPE type) const;
+    uint32_t GetHalvingInterval(const NET_TYPE type) const;
     uint64_t GetBlockSubsidyCfg(int32_t height) const;
     int32_t GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
     uint32_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
-	uint32_t GetFeatureForkHeight(NET_TYPE) const;
-    uint32_t GetStableCoinGenesisHeight(NET_TYPE) const;
-    const vector<string> GetStableCoinGenesisTxid(NET_TYPE type) const;
+	uint32_t GetFeatureForkHeight(const NET_TYPE type) const;
+    uint32_t GetStableCoinGenesisHeight(const NET_TYPE type) const;
+    const vector<string> GetStableCoinGenesisTxid(const NET_TYPE type) const;
 
 private:
     static string COIN_NAME; /* basecoin name */
@@ -164,21 +164,33 @@ private:
     static uint32_t nStableScoinGenesisHeight_regNet;
 };
 
-inline FeatureForkVersionEnum GetFeatureForkVersion(int32_t blockHeight) {
+inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t blockHeight) {
 	if (blockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
 		return MAJOR_VER_R2;
 	else
 		return MAJOR_VER_R1;
 }
 
-static const int32_t g_BlockVersion = 1;
+inline uint32_t GetBlockInterval(const int32_t blockHeight) {
+    FeatureForkVersionEnum featureForkVersion = GetFeatureForkVersion(blockHeight);
+    switch (featureForkVersion){
+        case MAJOR_VER_R1:
+            return SysCfg().GetBlockIntervalPreStableCoinRelease();
+        case MAJOR_VER_R2:
+            return SysCfg().GetBlockIntervalStableCoinRelease();
+        default:
+            assert(false && "unknown feature fork version");
+    }
+
+    return 0;
+}
+
+static const int32_t INIT_BLOCK_VERSION = 1;
 
 /* No amount larger than this (in sawi) is valid */
 static const int64_t BASECOIN_MAX_MONEY   = IniCfg().GetCoinInitValue() * COIN;  // 210 million
 static const int64_t FUNDCOIN_MAX_MONEY   = BASECOIN_MAX_MONEY / 10;             // 21 million
 static const int64_t STABLECOIN_MAX_MONEY = BASECOIN_MAX_MONEY * 10;             // 2100 million
-static const int64_t INIT_FUEL_RATES      = 100;                                 // 100 unit / 100 step
-static const int64_t MIN_FUEL_RATES       = 1;                                   // 1 unit / 100 step
 
 inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
 inline bool CheckBaseCoinRange(int64_t nValue) { return (nValue >= 0 && nValue <= BASECOIN_MAX_MONEY); }

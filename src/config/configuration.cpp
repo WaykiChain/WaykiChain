@@ -29,7 +29,7 @@ const G_CONFIG_TABLE& IniCfg() {
     return *psCfg;
 }
 
-const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
+const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return uint256S(genesisBlockHash_mainNet);
         case TEST_NET: return uint256S(genesisBlockHash_testNet);
@@ -40,7 +40,7 @@ const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(NET_TYPE type) const {
     return uint256S("");
 }
 
-const string G_CONFIG_TABLE::GetAlertPkey(NET_TYPE type) const {
+const string G_CONFIG_TABLE::GetAlertPkey(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return AlertPK_MainNet;
         case TEST_NET: return AlertPK_TestNet;
@@ -50,7 +50,7 @@ const string G_CONFIG_TABLE::GetAlertPkey(NET_TYPE type) const {
     return "";
 }
 
-const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
+const vector<string> G_CONFIG_TABLE::GetInitPubKey(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return initPubKey_mainNet;
         case TEST_NET: return initPubKey_testNet;
@@ -61,7 +61,7 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(NET_TYPE type) const {
     return vector<string>();
 }
 
-const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
+const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return delegatePubKey_mainNet;
         case TEST_NET: return delegatePubKey_testNet;
@@ -74,7 +74,7 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(NET_TYPE type) const {
 
 const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
 
-string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
+string G_CONFIG_TABLE::GetDelegateSignature(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return delegateSignature_mainNet;
         case TEST_NET: return delegateSignature_testNet;
@@ -85,7 +85,7 @@ string G_CONFIG_TABLE::GetDelegateSignature(NET_TYPE type) const {
     return "";
 }
 
-const string G_CONFIG_TABLE::GetInitFcoinOwnerPubKey(NET_TYPE type) const {
+const string G_CONFIG_TABLE::GetInitFcoinOwnerPubKey(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return initFcoinOwnerPubKey_mainNet;
         case TEST_NET: return initFcoinOwnerPubKey_testNet;
@@ -96,7 +96,7 @@ const string G_CONFIG_TABLE::GetInitFcoinOwnerPubKey(NET_TYPE type) const {
     return "";
 }
 
-const string G_CONFIG_TABLE::GetDexMatchServicePubKey(NET_TYPE type) const {
+const string G_CONFIG_TABLE::GetDexMatchServicePubKey(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return dexMatchPubKey_mainNet;
         case TEST_NET: return dexMatchPubKey_testNet;
@@ -107,7 +107,7 @@ const string G_CONFIG_TABLE::GetDexMatchServicePubKey(NET_TYPE type) const {
     return "";
 }
 
-const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(NET_TYPE type) const {
+const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return stableCoinGenesisTxid_mainNet;
         case TEST_NET: return stableCoinGenesisTxid_testNet;
@@ -118,7 +118,7 @@ const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(NET_TYPE type) con
     return vector<string>();
 }
 
-uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nFeatureForkHeight_mainNet;
         case TEST_NET: return nFeatureForkHeight_testNet;
@@ -129,7 +129,7 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(NET_TYPE type) const {
     return 0;
 }
 
-uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(const NET_TYPE type) const {
    switch (type) {
         case MAIN_NET: return nStableScoinGenesisHeight_mainNet;
         case TEST_NET: return nStableScoinGenesisHeight_testNet;
@@ -142,7 +142,7 @@ uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(NET_TYPE type) const {
 
 vector<uint32_t> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
-uint8_t* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
+uint8_t* G_CONFIG_TABLE::GetMagicNumber(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return Message_mainNet;
         case TEST_NET: return Message_testNet;
@@ -152,17 +152,16 @@ uint8_t* G_CONFIG_TABLE::GetMagicNumber(NET_TYPE type) const {
     return NULL;
 }
 
-vector<uint8_t> G_CONFIG_TABLE::GetAddressPrefix(NET_TYPE type, Base58Type BaseType) const {
+vector<uint8_t> G_CONFIG_TABLE::GetAddressPrefix(const NET_TYPE type, const Base58Type BaseType) const {
     switch (type) {
         case MAIN_NET: return AddrPrefix_mainNet[BaseType];
         case TEST_NET: return AddrPrefix_testNet[BaseType];
-        // case REGTEST_NET: return Message_regTest;
         default: assert(0);
     }
     return vector<uint8_t>();
 }
 
-uint32_t G_CONFIG_TABLE::GetDefaultPort(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetDefaultPort(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nDefaultPort_mainNet;
         case TEST_NET: return nDefaultPort_testNet;
@@ -173,18 +172,17 @@ uint32_t G_CONFIG_TABLE::GetDefaultPort(NET_TYPE type) const {
     return 0;
 }
 
-uint32_t G_CONFIG_TABLE::GetRPCPort(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetRPCPort(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nRPCPort_mainNet;
         case TEST_NET: return nRPCPort_testNet;
-        // case REGTEST_NET: return Message_regTest;
         default: assert(0);
     }
 
     return 0;
 }
 
-uint32_t G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetStartTimeInit(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return StartTime_mainNet;
         case TEST_NET: return StartTime_testNet;
@@ -195,7 +193,7 @@ uint32_t G_CONFIG_TABLE::GetStartTimeInit(NET_TYPE type) const {
     return 0;
 }
 
-uint32_t G_CONFIG_TABLE::GetHalvingInterval(NET_TYPE type) const {
+uint32_t G_CONFIG_TABLE::GetHalvingInterval(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nSubsidyHalvingInterval_mainNet;
         case TEST_NET: return nSubsidyHalvingInterval_testNet;
@@ -371,12 +369,12 @@ uint32_t G_CONFIG_TABLE::StartTime_testNet = 1505401100;
 uint32_t G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
 // Subsidy Halving Interval
-uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = kYearBlockCount;
-uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = kYearBlockCount;
+uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = YEAR_BLOCK_COUNT;
+uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = YEAR_BLOCK_COUNT;
 uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
 
 // Initial Coin
-uint64_t G_CONFIG_TABLE::InitialCoin = kTotalBaseCoinCount;  // 210 million
+uint64_t G_CONFIG_TABLE::InitialCoin = INITIAL_BASE_COIN_AMOUNT;  // 210 million
 
 // Default Miner Fee
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;

@@ -71,13 +71,10 @@ protected:
     mutable bool fLogFailures;
     mutable int64_t nTimeBestReceived;
     mutable uint64_t payTxFee;
-    uint32_t nBlockInterval;                // to limit block creation time
-    uint32_t nFeatureForkHeight;
-    uint32_t nStableCoinGenesisHeight;
     mutable uint32_t nViewCacheSize;
     mutable int32_t nTxCacheHeight;
-    uint32_t nLogMaxSize;    // to limit the maximum log file size in bytes
-    bool bContractLog;  // whether to save contract script operation account log
+    mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
+    mutable bool bContractLog;     // whether to save contract script operation account log
 
 public:
     virtual ~CBaseParams() {}
@@ -115,24 +112,25 @@ public:
                 te += strprintf("value:%s\n",tep3.c_str());
             }
         }
-        te += strprintf("fDebugAll:%s\n",           fDebugAll);
-        te += strprintf("fDebug:%s\n",              fDebug);
-        te += strprintf("fPrintLogToConsole:%d\n",  fPrintLogToConsole);
-        te += strprintf("fPrintLogToFile:%d\n",     fPrintLogToFile);
-        te += strprintf("fLogTimestamps:%d\n",      fLogTimestamps);
-        te += strprintf("fLogPrintFileLine:%d\n",   fLogPrintFileLine);
-        te += strprintf("fServer:%d\n",             fServer);
-        te += strprintf("fImporting:%d\n",          fImporting);
-        te += strprintf("fReindex:%d\n",            fReindex);
-        te += strprintf("fBenchmark:%d\n",          fBenchmark);
-        te += strprintf("fTxIndex:%d\n",            fTxIndex);
-        te += strprintf("fLogFailures:%d\n",        fLogFailures);
-        te += strprintf("nTimeBestReceived:%llu\n", nTimeBestReceived);
-        te += strprintf("paytxfee:%llu\n",          payTxFee);
-        te += strprintf("nBlockInterval:%u\n",      nBlockInterval);
-        te += strprintf("nViewCacheSize:%u\n",      nViewCacheSize);
-        te += strprintf("nTxCacheHeight:%u\n",      nTxCacheHeight);
-        te += strprintf("nLogMaxSize:%u\n",         nLogMaxSize);
+        te += strprintf("fDebugAll:%s\n",                           fDebugAll);
+        te += strprintf("fDebug:%s\n",                              fDebug);
+        te += strprintf("fPrintLogToConsole:%d\n",                  fPrintLogToConsole);
+        te += strprintf("fPrintLogToFile:%d\n",                     fPrintLogToFile);
+        te += strprintf("fLogTimestamps:%d\n",                      fLogTimestamps);
+        te += strprintf("fLogPrintFileLine:%d\n",                   fLogPrintFileLine);
+        te += strprintf("fServer:%d\n",                             fServer);
+        te += strprintf("fImporting:%d\n",                          fImporting);
+        te += strprintf("fReindex:%d\n",                            fReindex);
+        te += strprintf("fBenchmark:%d\n",                          fBenchmark);
+        te += strprintf("fTxIndex:%d\n",                            fTxIndex);
+        te += strprintf("fLogFailures:%d\n",                        fLogFailures);
+        te += strprintf("nTimeBestReceived:%llu\n",                 nTimeBestReceived);
+        te += strprintf("paytxfee:%llu\n",                          payTxFee);
+        te += strprintf("nBlockIntervalPreStableCoinRelease:%u\n",  nBlockIntervalPreStableCoinRelease);
+        te += strprintf("nBlockIntervalStableCoinRelease:%u\n",     nBlockIntervalStableCoinRelease);
+        te += strprintf("nViewCacheSize:%u\n",                      nViewCacheSize);
+        te += strprintf("nTxCacheHeight:%u\n",                      nTxCacheHeight);
+        te += strprintf("nLogMaxSize:%u\n",                         nLogMaxSize);
 
         return te;
     }
@@ -186,7 +184,6 @@ public:
     bool IsBenchmark() const { return fBenchmark; }
     bool IsTxIndex() const { return fTxIndex; }
     bool IsLogFailures() const { return fLogFailures; };
-    uint32_t GetBlockInterval() const { return nBlockInterval; }
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
     uint32_t GetViewCacheSize() const { return nViewCacheSize; }
     int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
@@ -203,20 +200,19 @@ public:
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }
+    uint32_t GetBlockIntervalPreStableCoinRelease() const { return nBlockIntervalPreStableCoinRelease; }
+    uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
     int32_t GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
     CRegID GetDexMatchSvcRegId() const    { return CRegID(nStableCoinGenesisHeight, kDexMatchSvcRegisterTxIndex); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
-
     virtual const CBlock& GenesisBlock() const = 0;
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
     bool CreateGenesisBlockRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
     bool CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
-
     bool CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type);
-
     virtual bool RequireRPCPassword() const { return true; }
     const string& DataDir() const { return strDataDir; }
     virtual NET_TYPE NetworkID() const = 0;
@@ -254,10 +250,14 @@ protected:
     MessageStartChars pchMessageStart;
     // Raw pub key bytes for the broadcast alert signing key.
     vector<uint8_t> vAlertPubKey;
-    int nDefaultPort;
-    int nRPCPort;
+    int32_t nDefaultPort;
+    int32_t nRPCPort;
     string alartPKey;
-    int nSubsidyHalvingInterval;
+    uint32_t nStableCoinGenesisHeight;
+    uint32_t nFeatureForkHeight;
+    uint32_t nBlockIntervalPreStableCoinRelease;
+    uint32_t nBlockIntervalStableCoinRelease;
+    int32_t nSubsidyHalvingInterval;
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
     vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];

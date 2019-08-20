@@ -2185,7 +2185,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
         // Check timestamp against prev
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
-            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < SysCfg().GetBlockInterval()) {
+            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < GetBlockInterval(block.GetHeight())) {
             return state.Invalid(ERRORMSG("AcceptBlock() : the new block came in too early"),
                                 REJECT_INVALID, "time-too-early");
         }
@@ -2601,8 +2601,8 @@ bool AbortNode(const string &strMessage) {
 bool CheckDiskSpace(uint64_t nAdditionalBytes) {
     uint64_t nFreeBytesAvailable = filesystem::space(GetDataDir()).available;
 
-    // Check for kMinDiskSpace bytes (currently 50MB)
-    if (nFreeBytesAvailable < kMinDiskSpace + nAdditionalBytes)
+    // Check for mininum disk space bytes (currently 50MB)
+    if (nFreeBytesAvailable < MIN_DISK_SPACE + nAdditionalBytes)
         return AbortNode(_("Error: Disk space is low!"));
 
     return true;

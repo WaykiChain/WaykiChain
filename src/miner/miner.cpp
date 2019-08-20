@@ -118,8 +118,9 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     }
 }
 
-bool GetCurrentDelegate(const int64_t currentTime, const vector<CRegID> &delegateList, CRegID &delegate) {
-    uint32_t slot  = currentTime / SysCfg().GetBlockInterval();
+static bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
+                        CRegID &delegate) {
+    uint32_t slot  = currentTime / GetBlockInterval(currHeight);
     uint32_t miner = slot % IniCfg().GetTotalDelegateNum();
     delegate       = delegateList[miner];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, regId=%s\n", currentTime, slot, miner,
@@ -141,7 +142,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
             return ERRORMSG("get preblock delegate account info error");
         }
 
-        if (currentTime - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
+        if (currentTime - previousBlock.GetBlockTime() < GetBlockInterval(pBlock->GetHeight())) {
             if (prevDelegateAcct.regid == delegate.regid)
                 return ERRORMSG("one delegate can't produce more than one block at the same slot");
         }
@@ -176,7 +177,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 }
 
-void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
+static void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -206,7 +207,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     ShuffleDelegates(pBlock->GetHeight(), delegateList);
 
     CRegID regId;
-    if (!GetCurrentDelegate(pBlock->GetTime(), delegateList, regId))
+    if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegateList, regId))
         return ERRORMSG("VerifyPosTx() : failed to get current delegate");
     CAccount curDelegate;
     if (!cwIn.accountCache.GetAccount(regId, curDelegate))
@@ -230,7 +231,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
             return ERRORMSG("VerifyPosTx() : failed to get previous delegate's account, regId=%s",
                 previousBlock.vptx[0]->txUid.ToString());
 
-        if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < SysCfg().GetBlockInterval()) {
+        if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < GetBlockInterval(pBlock->GetHeight())) {
             if (prevDelegateAcct.regid == curDelegate.regid)
                 return ERRORMSG("VerifyPosTx() : one delegate can't produce more than one block at the same slot");
         }
@@ -257,8 +258,8 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         return ERRORMSG("VerifyPosTx() : failed to get account info, regId=%s", pBlock->vptx[0]->txUid.ToString());
     }
 
-    if (pBlock->vptx[0]->nVersion != nTxVersion1)
-        return ERRORMSG("VerifyPosTx() : transaction version %d vs current %d", pBlock->vptx[0]->nVersion, nTxVersion1);
+    if (pBlock->vptx[0]->nVersion != INIT_TX_VERSION)
+        return ERRORMSG("VerifyPosTx() : transaction version %d vs current %d", pBlock->vptx[0]->nVersion, INIT_TX_VERSION);
 
     if (bNeedRunTx) {
         uint64_t totalFuel    = 0;
@@ -519,7 +520,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         for (auto item : txPriorities) {
             auto endTime    = std::chrono::steady_clock::now();
             double costTime = std::chrono::duration<double>(endTime - startTime).count();
-            if (costTime >= SysCfg().GetBlockInterval() - 1) {
+            if (costTime >= GetBlockInterval(height) - 1) {
                 break;
             }
 
@@ -663,11 +664,11 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
         // Take a sleep and check.
         [&]() {
-            int64_t whenCanIStart = pIndexPrev->GetBlockTime() + SysCfg().GetBlockInterval();
+            int64_t whenCanIStart = pIndexPrev->GetBlockTime() + GetBlockInterval(chainActive.Height() + 1);
             while (GetTime() < whenCanIStart) {
                 ::MilliSleep(100);
             }
-        } ();
+        }();
 
         vector<CRegID> delegateList;
         if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
@@ -687,7 +688,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
         int64_t currentTime = GetTime();
         CRegID regId;
-        GetCurrentDelegate(currentTime, delegateList, regId);
+        GetCurrentDelegate(currentTime, pBlock->GetHeight(), delegateList, regId);
         CAccount minerAcct;
         if (!cw.accountCache.GetAccount(regId, minerAcct)) {
             LogPrint("MINER", "MineBlock() : failed to get miner's account: %s\n", regId.ToString());
