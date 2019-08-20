@@ -86,20 +86,14 @@ string CAccountRegisterTx::ToString(CAccountDBCache &view) {
                      txUid.get<CPubKey>().GetKeyId().ToAddress(), nValidHeight);
 }
 
-Object CAccountRegisterTx::ToJson(const CAccountDBCache &AccountView) const {
+Object CAccountRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
     assert(txUid.type() == typeid(CPubKey));
     string address = txUid.get<CPubKey>().GetKeyId().ToAddress();
     string userPubKey = txUid.ToString();
     string userMinerPubKey = minerUid.ToString();
 
-    Object result;
-    result.push_back(Pair("txid",           GetHash().GetHex()));
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
-    result.push_back(Pair("ver",            nVersion));
-    result.push_back(Pair("from_addr",      address));
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("pubkey",         userPubKey));
     result.push_back(Pair("miner_pubkey",   userMinerPubKey));
-    result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("valid_height",   nValidHeight));
     return result;
 }

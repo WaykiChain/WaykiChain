@@ -85,14 +85,12 @@ string CPriceFeedTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result = CBaseTx::ToJson(accountCache);
+
     Array pricePointArray;
     for (const auto &pp : price_points) {
         pricePointArray.push_back(pp.ToJson());
     }
-
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
-    result.push_back(Pair("fee_symbol", fee_symbol));
     result.push_back(Pair("price_points", pricePointArray));
 
     return result;

@@ -49,7 +49,7 @@ bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &t
     }
 
     if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-        return state.DoS(100, ERRORMSG("%s not support the trading pair! coin_symbol=%s, asset_symbol=%s", 
+        return state.DoS(100, ERRORMSG("%s not support the trading pair! coin_symbol=%s, asset_symbol=%s",
             title, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
     }
 
@@ -74,10 +74,7 @@ string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("coin_symbol",      coin_symbol));
     result.push_back(Pair("asset_symbol",     asset_symbol));
     result.push_back(Pair("asset_amount",   asset_amount));
@@ -168,10 +165,7 @@ string CDEXSellLimitOrderTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("coin_symbol",      coin_symbol));
     result.push_back(Pair("asset_symbol",     asset_symbol));
     result.push_back(Pair("asset_amount",   asset_amount));
@@ -262,9 +256,7 @@ string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("coin_amount",    coin_amount));
@@ -352,8 +344,7 @@ string CDEXSellMarketOrderTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("asset_amount",   asset_amount));
@@ -441,8 +432,7 @@ string CDEXCancelOrderTx::ToString(CAccountDBCache &view) {
 }
 
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("order_id", orderId.GetHex()));
 
     return result;
@@ -549,8 +539,7 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
         arrayItems.push_back(subItem);
     }
 
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("deal_items",  arrayItems));
 
     return result;

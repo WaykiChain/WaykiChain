@@ -244,10 +244,7 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
-    result.push_back(Pair("fee_symbol",         fee_symbol));
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
     result.push_back(Pair("bcoin_symbol",       bcoin_symbol));
     result.push_back(Pair("scoin_symbol",       scoin_symbol));
@@ -476,10 +473,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
-    result.push_back(Pair("fee_symbol",         fee_symbol));
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_repay",    scoins_to_repay));
     result.push_back(Pair("bcoins_to_redeem",   bcoins_to_redeem));
@@ -801,9 +795,7 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
     result.push_back(Pair("scoins_to_liquidate", scoins_to_liquidate));
 

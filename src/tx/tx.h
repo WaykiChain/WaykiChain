@@ -90,7 +90,7 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
 
     virtual string ToString(CAccountDBCache &accountCache)           = 0;
-    virtual Object ToJson(const CAccountDBCache &accountCache) const = 0;
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                  = 0;
@@ -213,16 +213,5 @@ public:
         return state.DoS(100, ERRORMSG("%s, tx signature error", __FUNCTION__), REJECT_INVALID, "bad-tx-signature"); \
     }
 
-#define IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)                                          \
-    CKeyID srcKeyId;                                                                            \
-    accountCache.GetKeyId(txUid, srcKeyId);                                                     \
-    result.push_back(Pair("txid",           GetHash().GetHex()));                               \
-    result.push_back(Pair("tx_type",        GetTxType(nTxType)));                               \
-    result.push_back(Pair("ver",            nVersion));                                         \
-    result.push_back(Pair("tx_uid",         txUid.ToString()));                                 \
-    result.push_back(Pair("from_addr",      srcKeyId.ToAddress()));                             \
-    result.push_back(Pair("fees",           llFees));                                           \
-    result.push_back(Pair("valid_height",   nValidHeight));                                     \
-    result.push_back(Pair("signature",      HexStr(signature)));
 
 #endif //COIN_BASETX_H

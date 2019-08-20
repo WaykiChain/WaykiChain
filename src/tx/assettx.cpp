@@ -134,8 +134,7 @@ string CAssetIssueTx::ToString(CAccountDBCache &view) {
 }
 
 Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+    Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("owner_uid",    asset.owner_uid.ToString()));
     result.push_back(Pair("asset_symbol",   asset.symbol));
@@ -157,8 +156,7 @@ string CAssetUpdateTx::ToString(CAccountDBCache &view) {
 }
 
 Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+    Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("owner_uid",   owner_uid.ToString()));
     result.push_back(Pair("asset_name",     asset_name));

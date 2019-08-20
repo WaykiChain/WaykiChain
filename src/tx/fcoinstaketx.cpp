@@ -71,8 +71,7 @@ string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache);
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("stake_type",     GetBalanceOpTypeName(stakeType)));
     result.push_back(Pair("coin_symbol",    SYMB::WGRT));
     result.push_back(Pair("coin_amount",    fcoinsToStake));

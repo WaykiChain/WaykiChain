@@ -30,13 +30,13 @@ string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result = CBaseTx::ToJson(accountCache);
+
     Array candidateVoteArray;
     for (const auto &vote : candidateVotes) {
         candidateVoteArray.push_back(vote.ToJson());
     }
 
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("candidate_votes",    candidateVoteArray));
     return result;
 }

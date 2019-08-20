@@ -149,8 +149,7 @@ string CLuaContractDeployTx::ToString(CAccountDBCache &view) {
 }
 
 Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
+    Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("contract_code", HexStr(contract.code)));
     result.push_back(Pair("contract_memo", HexStr(contract.memo)));
 
@@ -350,11 +349,10 @@ string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
+    Object result = CBaseTx::ToJson(accountCache);
 
     CKeyID desKeyId;
     accountCache.GetKeyId(app_uid, desKeyId);
-    IMPLEMENT_UNIVERSAL_ITEM_TO_JSON(accountCache)
     result.push_back(Pair("regid",          txUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("app_uid",        app_uid.ToString()));

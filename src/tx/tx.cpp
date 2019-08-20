@@ -98,6 +98,22 @@ uint32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
     return nFuelRate;
 }
 
+Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+    CKeyID srcKeyId;
+    accountCache.GetKeyId(txUid, srcKeyId);
+    result.push_back(Pair("txid",           GetHash().GetHex()));
+    result.push_back(Pair("tx_type",        GetTxType(nTxType)));
+    result.push_back(Pair("ver",            nVersion));
+    result.push_back(Pair("tx_uid",         txUid.ToString()));
+    result.push_back(Pair("from_addr",      srcKeyId.ToAddress()));
+    result.push_back(Pair("fee_symbol",     fee_symbol));
+    result.push_back(Pair("fees",           llFees));
+    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("signature",      HexStr(signature)));
+    return result;
+}
+
 bool CBaseTx::CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const {
     uint64_t minFee;
     if (!GetTxMinFee(nTxType, height, feeSymbol, minFee)) {
