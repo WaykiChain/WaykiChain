@@ -211,7 +211,7 @@ static bool GetDataString(lua_State *L, vector<std::shared_ptr < std::vector<uns
         return false;
     }
 }
-static bool getNumberInTable(lua_State *L,char * pKey, double &ret){
+static bool getNumberInTable(lua_State *L, const char* pKey, double &ret){
     // 在table里，取指定pKey对应的一个number值
 
     //默认栈顶是table，将pKey入栈
@@ -256,7 +256,8 @@ static bool getStringInTable(lua_State *L,char * pKey, string &strValue){
     return false;
 }
 
-static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector<unsigned char> &vOut){
+template<typename ArrayType>
+static bool getArrayInTable(lua_State *L, const char *pKey, unsigned short usLen, ArrayType &arrayOut){
     // 在table里，取指定pKey对应的数组
 
     if((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)){
@@ -264,7 +265,7 @@ static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector
         return false;
     }
     unsigned char value = 0;
-    vOut.clear();
+    arrayOut.clear();
     //默认栈顶是table，将key入栈
     lua_pushstring(L,pKey);
     lua_gettable(L,1);
@@ -284,7 +285,7 @@ static bool getArrayInTable(lua_State *L,char * pKey,unsigned short usLen,vector
         }
         value = 0;
         value = lua_tonumber(L, -1);
-        vOut.insert(vOut.end(),value);
+        arrayOut.insert(arrayOut.end(),value);
         lua_pop(L, 1);
     }
     lua_pop(L,1); //删掉产生的查找结果
@@ -338,7 +339,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
     //取key
     int key = 0;
     double doubleValue = 0;
-    if (!(getNumberInTable(L,(char *)"key",doubleValue))){
+    if (!(getNumberInTable(L, "key", doubleValue))){
         LogPrint("vm", "key get fail\n");
         return false;
     } else {
@@ -349,7 +350,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
     ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
 
     //取value的长度
-    if (!(getNumberInTable(L, (char *)"length", doubleValue))){
+    if (!(getNumberInTable(L, "length", doubleValue))){
         LogPrint("vm", "length get fail\n");
         return false;
     } else {
@@ -1408,66 +1409,59 @@ static int ExModifyDataDBFunc(lua_State *L)
 }
 
 
-static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     if (!lua_istable(L,-1)) {
-        LogPrint("vm","GetDataTableWriteOutput is not table\n");
+        LogPrint("vm","WriteOutput(), param 1 must be table\n");
         return false;
     }
 
     double doubleValue = 0;
     unsigned short len = 0;
     vector<unsigned char> vBuf ;
-    CVmOperate temp;
-    memset(&temp,0,sizeof(temp));
     if (!(getNumberInTable(L,(char *)"addrType",doubleValue))) {
-        LogPrint("vm", "addrType get fail\n");
+        LogPrint("vm", "WriteOutput(), get addrType failed\n");
         return false;
     } else {
-        temp.accountType = (unsigned char)doubleValue;
+        operate.accountType = (uint8_t)doubleValue;
     }
 
-    if (temp.accountType == 1) {
+    if (operate.accountType == 1) {
        len = 6;
-    } else if (temp.accountType == 2){
+    } else if (operate.accountType == 2){
        len = 34;
     } else {
-        LogPrint("vm", "error accountType:%d\n", temp.accountType);
+        LogPrint("vm", "WriteOutput(), invalid accountType: %d\n", operate.accountType);
         return false;
     }
 
-    if (!getArrayInTable(L,(char *)"accountIdTbl",len,vBuf)) {
-        LogPrint("vm","accountidTbl not table\n");
-        return false;
-    } else {
-       memcpy(temp.accountId,&vBuf[0],len);
-    }
-
-    if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
-        LogPrint("vm", "opType get fail\n");
-        return false;
-
-    } else {
-        temp.opType = (unsigned char) doubleValue;
-    }
-
-    if (!(getNumberInTable(L,(char *)"outHeight",doubleValue))) {
-        LogPrint("vm", "outheight get fail\n");
+    if (!getArrayInTable(L, "accountIdTbl", len, vBuf)) {
+        LogPrint("vm","WriteOutput(), get accountidTbl failed\n");
         return false;
     } else {
-        temp.timeoutHeight = (unsigned int) doubleValue;
+       memcpy(operate.accountId,&vBuf[0],len);
     }
 
-    if (!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.money),vBuf)) {
-        LogPrint("vm","moneyTbl not table\n");
+    if (!(getNumberInTable(L, "operatorType", doubleValue))) {
+        LogPrint("vm", "WriteOutput(),  get opType fail\n");
+        return false;
+
+    } else {
+        operate.opType = (unsigned char) doubleValue;
+    }
+
+    if (!(getNumberInTable(L, "outHeight", doubleValue))) {
+        LogPrint("vm", "WriteOutput(),  get outheight fail\n");
         return false;
     } else {
-        memcpy(temp.money,&vBuf[0],sizeof(temp.money));
+        operate.timeoutHeight = (uint32_t)doubleValue;
     }
 
-    CDataStream tep(SER_DISK, CLIENT_VERSION);
-    tep << temp;
-    vector<unsigned char> tep1(tep.begin(),tep.end());
-    ret.insert(ret.end(), std::make_shared<vector<unsigned char>>(tep1.begin(), tep1.end()));
+    if (!getArrayInTable(L, "moneyTbl", sizeof(operate.money), vBuf)) {
+        LogPrint("vm","WriteOutput(), moneyTbl not table\n");
+        return false;
+    } else {
+        memcpy(operate.money, &vBuf[0], sizeof(operate.money));
+    }
     return true;
 }
 /**
@@ -1486,39 +1480,21 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
  */
 static int ExWriteOutputFunc(lua_State *L)
 {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
-
-    if (!GetDataTableWriteOutput(L,retdata) ||retdata.size() != 1 )
-        return RetFalse("para err0");
+    CVmOperate operateIn;
+    if (!GetDataTableWriteOutput(L, operateIn))
+        return RetFalse("WriteOutput(), parse params failed");
 
     CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+        return RetFalse("WriteOutput(), pVmRunEnv is NULL");
 
-    vector<CVmOperate> source;
-    CVmOperate temp;
-    int Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
-    int datadsize = retdata.at(0)->size();
-    int count = datadsize/Size;
-    if (datadsize%Size != 0)
-        return RetFalse("para err1");
+    LUA_BurnAccountOperate(L, 1, BURN_VER_R2);
 
-    LUA_BurnAccountOperate(L, count, BURN_VER_R2);
-
-    CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
-
-    while (count--) {
-        ss >> temp;
-        source.push_back(temp);
+    if (!pVmRunEnv->InsertOutputData({operateIn})) {
+         return RetFalse("WriteOutput(), InsertOutputData failed");
     }
 
-    if (!pVmRunEnv->InsertOutputData(source)) {
-         return RetFalse("InsertOutput err");
-    } else {
-        /*
-        * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
-        return RetRstBooleanToLua(L,true);
-    }
+    return RetRstBooleanToLua(L,true);
 }
 
 static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
