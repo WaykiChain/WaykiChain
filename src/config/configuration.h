@@ -190,7 +190,6 @@ inline uint8_t GetSubsidyRate(const int32_t currBlockHeight) {
     uint32_t halvingTimes = currBlockHeight / GetSubsidyHalvingInterval(currBlockHeight);
 
     // Force block reward to a fixed value when right shift is more than 3.
-    assert(INITIAL_SUBSIDY_RATE > halvingTimes);
     return halvingTimes > 4 ? FIXED_SUBSIDY_RATE : INITIAL_SUBSIDY_RATE - halvingTimes;
 }
 
