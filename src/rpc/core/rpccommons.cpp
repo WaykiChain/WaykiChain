@@ -277,6 +277,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                 return obj;
             }
         }
+
         {
             pBaseTx = mempool.Lookup(txid);
             if (pBaseTx.get()) {

@@ -73,7 +73,7 @@ bool CTestBetTx::RegScript(void) {
 	int nCurHight;
 	GetBlockHeight(nCurHight);
 	//ע��ԶĽű�
-	Value valueRes = RegisterContractTx(ADDR_A, strFileName, nCurHight, 200000000);
+	Value valueRes = DeployContractTx(ADDR_A, strFileName, nCurHight, 200000000);
 	//BOOST_CHECK(GetHashFromCreatedTx(valueRes, strRegScriptHash));
 	if(GetHashFromCreatedTx(valueRes, strRegScriptHash)){
 		mCurStep++;

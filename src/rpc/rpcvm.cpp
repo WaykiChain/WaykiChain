@@ -49,7 +49,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         throw runtime_error(
             "vmexecutescript \"addr\" \"script_path\"\n"
             "\nexecutes the script in vm simulator, and then returns the executing status.\n"
-            "\nthe execution include registercontracttx and callcontracttx.\n"
+            "\nthe execution include deploycontracttx and callcontracttx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) contract owner address from this wallet\n"
             "2.\"script_path\": (string required), the file path of the app script\n"
@@ -158,7 +158,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     CRegID srcRegId;
     spCW->accountCache.GetRegId(srcKeyId, srcRegId);
 
-    Object registerContractTxObj;
+    Object DeployContractTxObj;
     EnsureWalletIsUnlocked();
     int newHeight = chainActive.Tip()->height + 1;
     assert(pWalletMain != nullptr);
@@ -180,8 +180,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
-        registerContractTxObj.push_back(Pair("contract_size", contract_size));
-        registerContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
+        DeployContractTxObj.push_back(Pair("contract_size", contract_size));
+        DeployContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
     }
 
     CRegID appId(newHeight, 1); //App RegId
@@ -224,7 +224,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)nFuelRate));
-    retObj.push_back(Pair("register_contract_tx",   registerContractTxObj));
+    retObj.push_back(Pair("register_contract_tx",   DeployContractTxObj));
     retObj.push_back(Pair("call_contract_tx",       callContractTxObj));
 
     return retObj;

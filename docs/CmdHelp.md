@@ -47,7 +47,7 @@
 | registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
 | genregisteraccountraw | ```<height><fee><publickey>[minerpublickey]``` | create a register account raw transaction | N |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
-| registercontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
+| deploycontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
 | genregistercontractraw | ```<height><fee><address><flag><contract or contract RegId><contract description>``` | get Contract Registration Tx Raw: <br>1.    Height(numeric required) :valod height<br> 2.    Fee: (numeric required) pay to miner<br>3.    address: (string required)for send<br>4.    flag: (numeric, required) 0-1<br>5.    app or appregid: (string required), if flag=0 is script's file path, else if flag=1 scriptid<br>6.    script description:(string optional) new script description.<br>| N |
 | sendtoaddress | ```[wiccaddress]<[recvaddress><amount>``` | Send an amount to a given address. The amount is a real and is rounded to the nearest 0.00000001. Returns the transaction ID <txid> if successful | Y |
 | gensendtoaddressraw | ```<sendaddress><recvaddress><amount><fee><height>``` | generate a signed raw tx with sendaddress, recvaddress, amount, fee, height | N |

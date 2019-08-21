@@ -233,7 +233,7 @@ void CallContractTx(vector<string> &param) {
 void CreateRegScriptTx(vector<string> &param) {
 	if(5 > param.size())
 		return;
-	param.insert(param.begin(), "registercontracttx");
+	param.insert(param.begin(), "deploycontracttx");
 	param.insert(param.begin(), "rpctest");
 
 	char *argv[param.size()];
@@ -262,7 +262,7 @@ time_t string2time(const char * str,const char * formatStr)
 BOOST_FIXTURE_TEST_SUITE(auto_mining_test, CSendItem)
 BOOST_FIXTURE_TEST_CASE(regscript,CSendItem) {
 	//注册脚本交易
-	SysTestBase::RegisterContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
+	SysTestBase::DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 }
 BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
 {
@@ -271,7 +271,7 @@ BOOST_FIXTURE_TEST_CASE(test1, CSendItem)
 	CBaseParams::InitializeParams(argc, argv);
 //	time_t t1 = string2time("2014-12-01 17:30:00","%d-%d-%d %d:%d:%d");
 
-	Value resulut = RegisterContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
+	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 	string scripthash = "";
 	BOOST_CHECK(GetHashFromCreatedTx(resulut,scripthash));
 	string scriptid = "";
@@ -299,7 +299,7 @@ BOOST_AUTO_TEST_CASE(test2)
 	int argc = sizeof(argv) / sizeof(char*);
 	CBaseParams::InitializeParams(argc, argv);
 	int64_t runTime = GetTime()+llTime;
-	Value resulut = RegisterContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
+	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 	string scripthash = "";
 	BOOST_CHECK(GetHashFromCreatedTx(resulut,scripthash));
 	string scriptid = "";
@@ -326,7 +326,7 @@ BOOST_AUTO_TEST_CASE(test3)
 	CBaseParams::InitializeParams(argc, argv);
 	int64_t runTime = GetTime()+llTime;
 
-	Value resulut = RegisterContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
+	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 	string scripthash = "";
 	BOOST_CHECK(GetHashFromCreatedTx(resulut,scripthash));
 	string scriptid = "";
@@ -353,7 +353,7 @@ BOOST_AUTO_TEST_CASE(test4)
 	CBaseParams::InitializeParams(argc, argv);
 	int64_t runTime = GetTime()+llTime;
 
-	Value resulut = RegisterContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
+	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem","unit_test.bin",0);
 	string scripthash = "";
 	BOOST_CHECK(GetHashFromCreatedTx(resulut,scripthash));
 	string scriptid = "";
@@ -378,7 +378,7 @@ BOOST_AUTO_TEST_CASE(test5)
 	CBaseParams::InitializeParams(argc, argv);
 
 	int64_t runTime = GetTime()+llTime;
-	Value resulut = RegisterContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem", "unit_test.bin",0);
+	Value resulut = DeployContractTx("dsjkLDFfhenmx2JkFMdtJ22TYDvSGgmJem", "unit_test.bin",0);
 	string scripthash = "";
 	BOOST_CHECK(GetHashFromCreatedTx(resulut,scripthash));
 	string scriptid = "";

@@ -66,7 +66,7 @@ bool CBlackHalo::RegistScript(){
 	int nCurHight;
 	basetest.GetBlockHeight(nCurHight);
 	//ע��ԶĽű�
-	Value regscript = basetest.RegisterContractTx(BUYER_A, strFileName, nCurHight, nFee+COIN);
+	Value regscript = basetest.DeployContractTx(BUYER_A, strFileName, nCurHight, nFee+COIN);
 	if(basetest.GetHashFromCreatedTx(regscript, sritpthash)){
 		step++;
 		return true;

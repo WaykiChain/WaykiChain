@@ -1,6 +1,6 @@
 ## 1. Publish a smart contract
 ```
-root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur registercontracttx WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH  lotteryV3.lua 110000000
+root@APP-NODE-MASTER:~/Deploy# ./coind -datadir=cur deploycontracttx WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH  lotteryV3.lua 110000000
 {
     "txid" : "c2cb6f9ef2d72e77e1cdeb12dff74ece62c576f88e26e8bbd82a671656a77bb9"
 }

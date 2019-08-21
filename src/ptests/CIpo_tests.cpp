@@ -176,7 +176,7 @@ bool CIpoTest::RegistScript(){
 	string regAddr="dk2NNjraSvquD9b4SQbysVRQeFikA55HLi";
 
 	//reg anony app
-	Value regscript = basetest.RegisterContractTx(regAddr, strFileName, nCurHight, nFee+1*COIN);//20
+	Value regscript = basetest.DeployContractTx(regAddr, strFileName, nCurHight, nFee+1*COIN);//20
 	if(basetest.GetHashFromCreatedTx(regscript, strTxHash)){
 		return true;
 	}

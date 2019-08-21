@@ -22,7 +22,7 @@ extern Value registeraccounttx(const Array& params, bool fHelp);
 extern Value callcontracttx(const Array& params, bool fHelp);
 extern Value signcontracttx(const Array& params, bool fHelp);
 extern Value createfreezetx(const Array& params, bool fHelp);
-extern Value registercontracttx(const Array& params, bool fHelp);
+extern Value deploycontracttx(const Array& params, bool fHelp);
 extern Value votedelegatetx(const Array& params, bool fHelp);
 
 extern Value gensendtoaddressraw(const Array& params, bool fHelp);

@@ -143,13 +143,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     // if (strMethod == "dispersebalance"        && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]); // deprecated
-    if (strMethod == "setmintxfee"            && n > 0) ConvertTo<double>(params[0]);
-    // if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "getreceivedbyaccount"   && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "listreceivedbyaddress"  && n > 0) ConvertTo<int64_t>(params[0]);
-    // if (strMethod == "listreceivedbyaddress"  && n > 1) ConvertTo<bool>(params[1]);
-    // if (strMethod == "listreceivedbyaccount"  && n > 0) ConvertTo<int64_t>(params[0]);
-    // if (strMethod == "listreceivedbyaccount"  && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "move"                   && n > 2) ConvertTo<double>(params[2]);
@@ -157,7 +150,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "sendfrom"               && n > 2) ConvertTo<double>(params[2]);
     if (strMethod == "sendfrom"               && n > 3) ConvertTo<int64_t>(params[3]);
 
-    // if (strMethod == "listaccounts"           && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
     if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
@@ -170,20 +162,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchainstate"          && n > 0) ConvertTo<int>(params[0]);
-    // if (strMethod == "getrawtransaction"      && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "createrawtransaction"   && n > 0) ConvertTo<Array>(params[0]);
-    // if (strMethod == "createrawtransaction"   && n > 1) ConvertTo<Object>(params[1]);
-    // if (strMethod == "signrawtransaction"     && n > 1) ConvertTo<Array>(params[1], true);
-    // if (strMethod == "signrawtransaction"     && n > 2) ConvertTo<Array>(params[2], true);
-    // if (strMethod == "sendrawtransaction"     && n > 1) ConvertTo<bool>(params[1], true);
-    // if (strMethod == "gettxout"               && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "gettxout"               && n > 2) ConvertTo<bool>(params[2]);
-    // if (strMethod == "lockunspent"            && n > 0) ConvertTo<bool>(params[0]);
-    // if (strMethod == "lockunspent"            && n > 1) ConvertTo<Array>(params[1]);
     if (strMethod == "importprivkey"          && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "keypoolrefill"          && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getalltxinfo"           && n > 0) ConvertTo<int>(params[0]);
 
@@ -195,8 +176,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if(strMethod == "votedelegatetx"          && n > 2) ConvertTo<int64_t>(params[2]);
     if(strMethod == "votedelegatetx"          && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "registercontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "registercontracttx"     && n > 3) ConvertTo<int>(params[3]);
+    if (strMethod == "deploycontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "deploycontracttx"     && n > 3) ConvertTo<int>(params[3]);
 
     if (strMethod == "callcontracttx"         && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
@@ -204,9 +185,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "listaddr"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "listunconfirmedtx"      && n > 0) ConvertTo<bool>(params[0]);
-    // if (strMethod == "listcontractregid"      && n > 0) ConvertTo<bool>(params[0]);
-    // if (strMethod == "testnormaltx"           && n > 2) ConvertTo<int>(params[2]);
-    // if (strMethod == "testminer"              && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int>(params[0]);
 
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
@@ -243,8 +221,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listdelegates"          && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtransactions"       && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactions"       && n > 2) ConvertTo<int>(params[2]);
-    // if (strMethod == "listtransactions"       && n > 1) ConvertTo<int64_t>(params[1]);
-    // if (strMethod == "listtransactions"       && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "listtransactionsv2"     && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactionsv2"     && n > 2) ConvertTo<int>(params[2]);
 

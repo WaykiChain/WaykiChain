@@ -66,7 +66,7 @@ bool CTestSesureTrade::Step1RegisterScript() {
 	int nCount = sizeof(pKey) / sizeof(char*);
 	basetest.ImportWalletKey(pKey,nCount);
 
-	Value valueRes = RegisterContractTx(BUYER_ADDR, "SecuredTrade.bin", 0, 100000);
+	Value valueRes = DeployContractTx(BUYER_ADDR, "SecuredTrade.bin", 0, 100000);
 	if (GetHashFromCreatedTx(valueRes, strStep1RegHash)) {
 		mCurStep++;
 		return true;

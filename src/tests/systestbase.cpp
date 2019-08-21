@@ -222,7 +222,7 @@ Value SysTestBase::CreateRegAppTx(const string &strAddress, const string &strScr
     string strHeight = strprintf("%d", height);
 
     const char *argv[] = {"rpctest",
-                          "registercontracttx",
+                          "deploycontracttx",
                           (char *)strAddress.c_str(),
                           (char *)filepath.c_str(),
                           (char *)strFee.c_str(),
@@ -479,7 +479,7 @@ Value SysTestBase::CallContractTx(const std::string &scriptid, const std::string
     return value;
 }
 
-Value SysTestBase::RegisterContractTx(const string &strAddress, const string &strScript,
+Value SysTestBase::DeployContractTx(const string &strAddress, const string &strScript,
                                       int height, int nFee) {
     return CreateRegAppTx(strAddress, strScript, true, nFee, height);
 }

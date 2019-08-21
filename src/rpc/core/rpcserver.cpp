@@ -282,7 +282,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gettransaction",         &gettransaction,         true,      false,      true },
 
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
-    { "registercontracttx",     &registercontracttx,     true,      false,      true },
+    { "deploycontracttx",     &deploycontracttx,     true,      false,      true },
     { "callcontracttx",         &callcontracttx,         true,      false,      true },
     { "votedelegatetx",         &votedelegatetx,         true,      false,      true },
 

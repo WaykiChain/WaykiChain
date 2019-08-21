@@ -309,9 +309,9 @@ Value callcontracttx(const Array& params, bool fHelp) {
 }
 
 // register a contract app tx
-Value registercontracttx(const Array& params, bool fHelp) {
+Value deploycontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("registercontracttx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
+        throw runtime_error("deploycontracttx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
             "1.\"addr\":        (string, required) contract owner address from this wallet\n"
@@ -322,10 +322,10 @@ Value registercontracttx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":          (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("registercontracttx",
+            + HelpExampleCli("deploycontracttx",
                 "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 11000000 10000 \"appdesc\"") +
                 "\nAs json rpc call\n"
-            + HelpExampleRpc("registercontracttx",
+            + HelpExampleRpc("deploycontracttx",
                 "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 11000000, 10000, \"appdesc\""));
     }
 
@@ -345,7 +345,7 @@ Value registercontracttx(const Array& params, bool fHelp) {
 
     FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
     if (!file)
-        throw runtime_error("registercontracttx open script file (" + luaScriptFilePath + ") error");
+        throw runtime_error("deploycontracttx open script file (" + luaScriptFilePath + ") error");
 
     long lSize;
     fseek(file, 0, SEEK_END);

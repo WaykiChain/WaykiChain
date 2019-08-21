@@ -188,7 +188,7 @@ public:
 	Value CallContractTx(const std::string &scriptid, const std::string &addrs, const std::string &contract,
 			int height,int nFee = 0,uint64_t nMoney = 0);
 
-	Value RegisterContractTx(const string& strAddress, const string& strScript, int height, int nFee = 100000000);
+	Value DeployContractTx(const string& strAddress, const string& strScript, int height, int nFee = 100000000);
 
 	Value SignSecureTx(const string &securetx);
 

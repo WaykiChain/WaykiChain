@@ -1262,7 +1262,7 @@ Value getwalletinfo(const Array& params, bool fHelp)
             "  \"wallet_locked\":  true|false,   (boolean) whether the wallet is locked or not\n"
             "  \"unlocked_until\": xxxxx,        (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
             "  \"coinfirmed_tx_num\": xxxxxxx,   (numeric) the number of confirmed tx in the wallet\n"
-            "  \"uncomfirmed_tx_num\": xxxxxx,   (numeric) the number of unconfirmed tx in the wallet\n"
+            "  \"unconfirmed_tx_num\": xxxxxx,   (numeric) the number of unconfirmed tx in the wallet\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getwalletinfo", "")
