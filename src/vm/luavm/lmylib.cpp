@@ -1471,9 +1471,18 @@ static bool GetDataTableWriteOutput(lua_State *L, vector<std::shared_ptr < std::
     return true;
 }
 /**
- *bool WriteOutput( const VM_OPERATE* data, const unsigned short conter)
- * 中间层传了一个参数 ,写 CVmOperate操作结果
- * 1.第一个是输出指令
+ * contract api - lua function
+ * bool WriteOutput( vmOperTable )
+ * @param vmOperTable:          operation param table
+ * {
+ *      addrType: (number, required),     address type of accountIdTbl, enum(REGID=1,ADDR=2)
+ *      accountIdTbl: (array, required)   account id, array format
+ *      operatorType: (number, required)  operator type, enum(ADD_FREE=1, SUB_FREE=2)
+ *      outHeight: (number, required)     timeout height, use by contract script
+ *      moneyTbl: (array, required)       money amount, serialized format of int64 (little endian)
+ *      moneySymbol: (string, optional)   money symbol, must be valid symbol, such as WICC|WUSD
+ * }
+ * @return write succeed or not
  */
 static int ExWriteOutputFunc(lua_State *L)
 {
