@@ -4,6 +4,7 @@
 
 #include "commons/base58.h"
 #include "rpc/core/rpcserver.h"
+#include "rpc/core/rpccommons.h"
 #include "init.h"
 #include "net.h"
 #include "miner/miner.h"
@@ -47,14 +48,15 @@ static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID 
 Value vmexecutescript(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 4) {
         throw runtime_error(
-            "vmexecutescript \"addr\" \"script_path\"\n"
+            "vmexecutescript \"addr\" \"script_path\" [\"arguments\"] [amount] [symbol:fee:unit]\n"
             "\nexecutes the script in vm simulator, and then returns the executing status.\n"
             "\nthe execution include deploycontracttx and callcontracttx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) contract owner address from this wallet\n"
             "2.\"script_path\": (string required), the file path of the app script\n"
             "3.\"arguments\": (string, optional) contract method invoke content (Hex encode required)\n"
-            "4.\"fee\": (numeric, optional) fee pay for miner, default is 110010000\n"
+            "4.\"amount\": (numeric, optional) amount of WICC to send to app account\n"
+            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:110010000:sawi\n"
             "\nResult vm execute detail\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -114,24 +116,32 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         free(buffer);
     }
 
-    uint64_t nDefaultFee = SysCfg().GetTxFee();
-    uint32_t nFuelRate = GetElementForBurn(chainActive.Tip());
-    uint64_t regFee = std::max((uint32_t)ceil(contract.GetContractSize() / 100) * nFuelRate, LCONTRACT_DEPLOY_TX_FEE_MIN);
-    uint64_t minFee = regFee + nDefaultFee;
+    uint64_t amount = 0;
+    if (params.size() > 3)
+        amount = AmountToRawValue(params[3]);
 
-    uint64_t totalFee = minFee + 10000000; // set default totalFee
-    if (params.size() > 3) {
-        totalFee = params[3].get_uint64();
+    uint64_t regMinFee;
+    uint64_t invokeMinFee;
+    if (!GetTxMinFee(LCONTRACT_DEPLOY_TX, chainActive.Height(), SYMB::WICC, regMinFee) ||
+        !GetTxMinFee(LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, invokeMinFee))
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
+
+    uint64_t minFee = regMinFee + invokeMinFee;
+    uint64_t totalFee = regMinFee + invokeMinFee; // set default totalFee
+    if (params.size() > 4) {
+        ComboMoney feeIn = RPC_PARAM::GetFee(params, 4, LCONTRACT_DEPLOY_TX);
+        assert(feeIn.symbol == SYMB::WICC);
+        totalFee = feeIn.GetSawiAmount();
     }
-
 
     if (totalFee < minFee) {
         throw JSONRPCError(RPC_INSUFFICIENT_FEE,
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    uint32_t nFuelRate = GetElementForBurn(chainActive.Tip());
 
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     CKeyID srcKeyId;
     if (!FindKeyId(&spCW->accountCache, params[0].get_str(), srcKeyId)) {
         throw runtime_error("parse addr failed\n");
@@ -167,7 +177,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         CLuaContractDeployTx tx;
         tx.txUid            = srcRegId;
         tx.contract         = contract;
-        tx.llFees           = regFee;
+        tx.llFees           = regMinFee;
         tx.nRunStep         = contract_size;
         tx.nValidHeight     = newHeight;
 
@@ -185,7 +195,6 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     CRegID appId(newHeight, 1); //App RegId
-    uint64_t amount = 0;
 
     vector<unsigned char> arguments;
     if (params.size() > 2) {
@@ -202,7 +211,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.txUid        = srcRegId;
         contractInvokeTx.app_uid      = appId;
         contractInvokeTx.bcoins       = amount;
-        contractInvokeTx.llFees       = totalFee - regFee;
+        contractInvokeTx.llFees       = totalFee - regMinFee;
         contractInvokeTx.arguments    = string(arguments.begin(), arguments.end());
         contractInvokeTx.nValidHeight = newHeight;
 
