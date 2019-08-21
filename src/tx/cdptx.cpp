@@ -103,7 +103,7 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
 
         if (txUid.get<CRegID>() != cdp.owner_regid) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
-                cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
+                cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
         }
     }
 
@@ -344,7 +344,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     if (txUid.get<CRegID>() != cdp.owner_regid) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
-            cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
+            cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -578,7 +578,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
 
     if (txUid.get<CRegID>() != cdp.owner_regid) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
-            cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
+            cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
     }
 
     CAccount account;
