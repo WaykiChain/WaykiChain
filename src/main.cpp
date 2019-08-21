@@ -667,20 +667,6 @@ bool static PruneOrphanBlocks(int32_t height) {
     return true;
 }
 
-int64_t GetBlockValue(int32_t height, int64_t nFees) {
-    int64_t nSubsidy = 50 * COIN;
-    int32_t halves       = height / SysCfg().GetSubsidyHalvingInterval();
-
-    // Force block reward to zero when right shift is undefined.
-    if (halves >= 64) {
-        return nFees;
-    }
-    // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-    nSubsidy >>= halves;
-
-    return nSubsidy + nFees;
-}
-
 arith_uint256 GetBlockProof(const CBlockIndex &block) {
     arith_uint256 bnTarget;
     bool fNegative;
@@ -697,7 +683,8 @@ arith_uint256 GetBlockProof(const CBlockIndex &block) {
 
 bool fLargeWorkForkFound         = false;
 bool fLargeWorkInvalidChainFound = false;
-CBlockIndex *pindexBestForkTip = nullptr, *pindexBestForkBase = nullptr;
+CBlockIndex *pIndexBestForkTip   = nullptr;
+CBlockIndex *pIndexBestForkBase  = nullptr;
 
 void CheckForkWarningConditions() {
     AssertLockHeld(cs_main);
@@ -707,26 +694,27 @@ void CheckForkWarningConditions() {
 
     // If our best fork is no longer within 72 blocks (+/- 12 hours if no one mines it)
     // of our head, drop it
-    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->height >= 72) pindexBestForkTip = nullptr;
+    if (pIndexBestForkTip && chainActive.Height() - pIndexBestForkTip->height >= 72)
+        pIndexBestForkTip = nullptr;
 
-    if (pindexBestForkTip ||
+    if (pIndexBestForkTip ||
         (pindexBestInvalid &&
          pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6))) {
-        if (!fLargeWorkForkFound && pindexBestForkBase) {
+        if (!fLargeWorkForkFound && pIndexBestForkBase) {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
             if (!strCmd.empty()) {
                 string warning = string("'Warning: Large-work fork detected, forking after block ") +
-                                 pindexBestForkBase->pBlockHash->ToString() + string("'");
+                                 pIndexBestForkBase->pBlockHash->ToString() + string("'");
                 boost::replace_all(strCmd, "%s", warning);
                 boost::thread t(runCommand, strCmd);  // thread runs free
             }
         }
-        if (pindexBestForkTip && pindexBestForkBase) {
+        if (pIndexBestForkTip && pIndexBestForkBase) {
             LogPrint("INFO",
                      "CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d "
                      "(%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
-                     pindexBestForkBase->height, pindexBestForkBase->pBlockHash->ToString(),
-                     pindexBestForkTip->height, pindexBestForkTip->pBlockHash->ToString());
+                     pIndexBestForkBase->height, pIndexBestForkBase->pBlockHash->ToString(),
+                     pIndexBestForkTip->height, pIndexBestForkTip->pBlockHash->ToString());
             fLargeWorkForkFound = true;
         } else {
             LogPrint("INFO",
@@ -761,11 +749,11 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     // We define it this way because it allows us to only store the highest fork tip (+ base) which meets
     // the 7-block condition and from this always have the most-likely-to-cause-warning fork
     if (pfork &&
-        (!pindexBestForkTip || (pindexBestForkTip && pindexNewForkTip->height > pindexBestForkTip->height)) &&
+        (!pIndexBestForkTip || (pIndexBestForkTip && pindexNewForkTip->height > pIndexBestForkTip->height)) &&
         pindexNewForkTip->nChainWork - pfork->nChainWork > (GetBlockProof(*pfork) * 7) &&
         chainActive.Height() - pindexNewForkTip->height < 72) {
-        pindexBestForkTip  = pindexNewForkTip;
-        pindexBestForkBase = pfork;
+        pIndexBestForkTip  = pindexNewForkTip;
+        pIndexBestForkBase = pfork;
     }
 
     CheckForkWarningConditions();
@@ -893,6 +881,7 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex) {
         }
         pIndex = pIndex->pprev;
     }
+
     return true;
 }
 
@@ -3576,10 +3565,6 @@ bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs) {
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
     AssertLockHeld(cs_main);
     return setBlockIndexValid.erase(pIndex) > 0;
-}
-
-uint64_t GetBlockSubsidy(int32_t height) {
-    return IniCfg().GetBlockSubsidyCfg(height);
 }
 
 bool IsInitialBlockDownload() {

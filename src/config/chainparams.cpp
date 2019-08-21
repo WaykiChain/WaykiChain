@@ -38,7 +38,6 @@ public:
         strDataDir                         = "main";
         nBlockIntervalPreStableCoinRelease = BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE;
         nBlockIntervalStableCoinRelease    = BLOCK_INTERVAL_STABLE_COIN_RELEASE;
-        nSubsidyHalvingInterval            = IniCfg().GetHalvingInterval(MAIN_NET);
         nFeatureForkHeight                 = IniCfg().GetFeatureForkHeight(MAIN_NET);
         nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
@@ -106,7 +105,6 @@ public:
         nDefaultPort             = IniCfg().GetDefaultPort(TEST_NET);
         nRPCPort                 = IniCfg().GetRPCPort(TEST_NET);
         strDataDir               = "testnet";
-        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(TEST_NET);
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
@@ -151,7 +149,6 @@ public:
         memcpy(pchMessageStart, IniCfg().GetMagicNumber(REGTEST_NET), sizeof(pchMessageStart));
         nDefaultPort             = IniCfg().GetDefaultPort(REGTEST_NET);
         strDataDir               = "regtest";
-        nSubsidyHalvingInterval  = IniCfg().GetHalvingInterval(REGTEST_NET);
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
@@ -174,9 +171,8 @@ public:
     virtual bool InitialConfig() {
         CTestNetParams::InitialConfig();
 
-        nBlockIntervalPreStableCoinRelease = GetArg("-blockintervalprestablecoinrelease", 10);
-        nBlockIntervalStableCoinRelease    = GetArg("-blockintervalstablecoinrelease", 3);
-        nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
+        nBlockIntervalPreStableCoinRelease = GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
+        nBlockIntervalStableCoinRelease = GetArg("-blockintervalstablecoinrelease", BLOCK_INTERVAL_STABLE_COIN_RELEASE);
         nFeatureForkHeight =
             std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer = true;
@@ -427,7 +423,6 @@ CBaseParams::CBaseParams() {
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nViewCacheSize          = 2000000;
-    nSubsidyHalvingInterval = 0;
     payTxFee                = 10000;
     nDefaultPort            = 0;
     fPrintLogToConsole      = 0;

@@ -12,8 +12,6 @@
 #include "commons/util.h"
 #include "version.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
 #include <map>
 #include <memory>
 #include <vector>
@@ -46,9 +44,6 @@ public:
     uint32_t GetDefaultPort(const NET_TYPE type) const;
     uint32_t GetRPCPort(const NET_TYPE type) const;
     uint32_t GetStartTimeInit(const NET_TYPE type) const;
-    uint32_t GetHalvingInterval(const NET_TYPE type) const;
-    uint64_t GetBlockSubsidyCfg(int32_t height) const;
-    int32_t GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const;
     uint32_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
@@ -131,11 +126,6 @@ private:
     static uint32_t StartTime_testNet;
     static uint32_t StartTime_regTest;
 
-    /* Subsidy Halving Interval*/
-    static uint32_t nSubsidyHalvingInterval_mainNet;
-    static uint32_t nSubsidyHalvingInterval_testNet;
-    static uint32_t nSubsidyHalvingInterval_regNet;
-
     /* Initial Coin */
     static uint64_t InitialCoin;
 
@@ -148,11 +138,6 @@ private:
     /* Max Number of Delegate Candidate to Vote for by a single account */
     static uint32_t MaxVoteCandidateNum;
 
-    /* Initial subsidy rate upon vote casting */
-    static uint64_t nInitialSubsidy;
-    /* Eventual/lasting subsidy rate for vote casting */
-    static uint64_t nFixedSubsidy;
-
     /* Block height to enable feature fork version */
 	static uint32_t nFeatureForkHeight_mainNet;
     static uint32_t nFeatureForkHeight_testNet;
@@ -164,16 +149,16 @@ private:
     static uint32_t nStableScoinGenesisHeight_regNet;
 };
 
-inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t blockHeight) {
-	if (blockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
-		return MAJOR_VER_R2;
-	else
-		return MAJOR_VER_R1;
+inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
+    if (currBlockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
+        return MAJOR_VER_R2;
+    else
+        return MAJOR_VER_R1;
 }
 
-inline uint32_t GetBlockInterval(const int32_t blockHeight) {
-    FeatureForkVersionEnum featureForkVersion = GetFeatureForkVersion(blockHeight);
-    switch (featureForkVersion){
+inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
+    FeatureForkVersionEnum featureForkVersion = GetFeatureForkVersion(currBlockHeight);
+    switch (featureForkVersion) {
         case MAJOR_VER_R1:
             return SysCfg().GetBlockIntervalPreStableCoinRelease();
         case MAJOR_VER_R2:
@@ -183,6 +168,46 @@ inline uint32_t GetBlockInterval(const int32_t blockHeight) {
     }
 
     return 0;
+}
+
+inline uint32_t GetYearBlockCount(const int32_t currBlockHeight) {
+    return 365 /* days/year */ * 24 /* hours/day */ * 60 * 60 / GetBlockInterval(currBlockHeight);
+}
+
+inline uint32_t GetDayBlockCount(const int32_t currBlockHeight) {
+    return 24 /* hours/day */ * 60 * 60 / GetBlockInterval(currBlockHeight);
+}
+
+inline uint32_t GetSubsidyHalvingInterval(const int32_t currBlockHeight) {
+    if (SysCfg().NetworkID() == REGTEST_NET) {
+        return SysCfg().GetArg("-subsidyhalvinginterval", 500);
+    }
+
+    return GetYearBlockCount(currBlockHeight);
+}
+
+inline uint8_t GetSubsidyRate(const int32_t currBlockHeight) {
+    uint32_t halvingTimes = currBlockHeight / GetSubsidyHalvingInterval(currBlockHeight);
+
+    // Force block reward to a fixed value when right shift is more than 3.
+    assert(INITIAL_SUBSIDY_RATE > halvingTimes);
+    return halvingTimes > 4 ? FIXED_SUBSIDY_RATE : INITIAL_SUBSIDY_RATE - halvingTimes;
+}
+
+inline uint32_t GetJumpHeightBySubsidy(const int32_t currBlockHeight, const uint8_t targetSubsidyRate) {
+    assert(targetSubsidyRate >= FIXED_SUBSIDY_RATE && targetSubsidyRate <= INITIAL_SUBSIDY_RATE);
+    uint8_t subsidyRate                   = INITIAL_SUBSIDY_RATE;
+    uint32_t halvingTimes                 = 0;
+    const uint32_t subsidyHalvingInterval = GetSubsidyHalvingInterval(currBlockHeight);
+    map<uint8_t, uint32_t> subsidyRate2BlockHeight;
+
+    while (subsidyRate >= FIXED_SUBSIDY_RATE) {
+        subsidyRate2BlockHeight[subsidyRate] = halvingTimes * subsidyHalvingInterval;
+        halvingTimes += 1;
+        subsidyRate -= 1;
+    }
+
+    return subsidyRate2BlockHeight.at(targetSubsidyRate);
 }
 
 static const int32_t INIT_BLOCK_VERSION = 1;

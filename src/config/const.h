@@ -120,7 +120,10 @@ static const int64_t nMinDbCache = 4;
 static const uint64_t INITIAL_BASE_COIN_AMOUNT               = 210000000;  // 210 million
 static const uint32_t BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE = 10;         // 10 seconds
 static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 seconds
-static const uint64_t YEAR_BLOCK_COUNT                       = 10512000;   // one year = 365 * 24 * 60 * 60 / 3
+
+static const uint64_t INITIAL_SUBSIDY_RATE = 5;  // Initial subsidy rate upon vote casting
+static const uint64_t FIXED_SUBSIDY_RATE   = 1;  // Eventual/lasting subsidy rate for vote casting
+
 static const int32_t kContractScriptMaxSize                  = 65536;      // 64 KB max for contract script size
 static const int32_t kContractArgumentMaxSize                = 4096;       // 4 KB max for contract argument size
 static const int32_t kCommonTxMemoMaxSize                    = 100;        // 100 bytes max for memo size

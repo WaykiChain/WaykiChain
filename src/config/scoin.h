@@ -15,7 +15,6 @@
 using namespace std;
 
 static const uint16_t kPercentBoost                         = 10000;
-static const uint16_t kDayBlockTotalCount                   = 8640;     // = 24*3600/10
 static const uint32_t kTotalFundCoinGenesisReleaseAmount    = 10500000; // 21/2 million WGRT
 
 static const uint16_t kFcoinGenesisIssueTxIndex             = 1;

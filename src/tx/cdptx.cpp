@@ -26,7 +26,7 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
     }
 
     int32_t blockInterval = currBlockHeight - cdpLastBlockHeight;
-    int32_t loanedDays    = ceil((double)blockInterval / kDayBlockTotalCount);
+    int32_t loanedDays    = ceil((double)blockInterval / ::GetDayBlockCount(currBlockHeight));
 
     uint64_t A;
     if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))

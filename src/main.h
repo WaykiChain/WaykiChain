@@ -562,8 +562,6 @@ extern std::tuple<bool, boost::thread *> RunCoin(int32_t argc, char *argv[]);
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
-uint64_t GetBlockSubsidy(int32_t height);
-
 /** Used to relay blocks as header + vector<merkle branch>
  * to filtered nodes.
  */
@@ -628,7 +626,6 @@ bool DisconnectBlockFromTip(CValidationState &state);
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
 
-int64_t GetBlockValue(int32_t height, int64_t nFees);
 /** Open a block file (blk?????.dat) */
 FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 

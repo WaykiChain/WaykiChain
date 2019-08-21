@@ -193,45 +193,6 @@ uint32_t G_CONFIG_TABLE::GetStartTimeInit(const NET_TYPE type) const {
     return 0;
 }
 
-uint32_t G_CONFIG_TABLE::GetHalvingInterval(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return nSubsidyHalvingInterval_mainNet;
-        case TEST_NET: return nSubsidyHalvingInterval_testNet;
-        case REGTEST_NET: return nSubsidyHalvingInterval_regNet;
-        default: assert(0);
-    }
-
-    return 0;
-}
-
-uint64_t G_CONFIG_TABLE::GetBlockSubsidyCfg(int32_t height) const {
-    uint64_t subsidy = nInitialSubsidy;
-    int32_t halving  = height / SysCfg().GetSubsidyHalvingInterval();
-    // Force block reward to a fixed value when right shift is more than 3.
-    if (halving > 4) {
-        return nFixedSubsidy;
-    } else {
-        // Subsidy is cut by 1% every 3,153,600 blocks which will occur approximately every 1 year and the profit will
-        // be 1 percent
-        subsidy -= halving;
-    }
-    return subsidy;
-}
-
-int32_t G_CONFIG_TABLE::GetBlockSubsidyJumpHeight(uint64_t nSubsidyValue) const {
-    assert(nSubsidyValue >= nFixedSubsidy && nSubsidyValue <= nInitialSubsidy);
-    uint64_t subsidy = nInitialSubsidy;
-    int32_t halving  = 0;
-    map<uint64_t /*subsidy*/, int32_t /*height*/> mSubsidyHeight;
-    while (subsidy >= nFixedSubsidy) {
-        mSubsidyHeight[subsidy] = halving * SysCfg().GetSubsidyHalvingInterval();
-        halving += 1;
-        subsidy -= 1;
-    }
-
-    return mSubsidyHeight[nSubsidyValue];
-}
-
 uint32_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; }
 
 uint32_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidateNum; }
@@ -368,11 +329,6 @@ uint32_t G_CONFIG_TABLE::StartTime_mainNet = 1525404897;
 uint32_t G_CONFIG_TABLE::StartTime_testNet = 1505401100;
 uint32_t G_CONFIG_TABLE::StartTime_regTest = 1504305600;
 
-// Subsidy Halving Interval
-uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_mainNet = YEAR_BLOCK_COUNT;
-uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_testNet = YEAR_BLOCK_COUNT;
-uint32_t G_CONFIG_TABLE::nSubsidyHalvingInterval_regNet  = 500;
-
 // Initial Coin
 uint64_t G_CONFIG_TABLE::InitialCoin = INITIAL_BASE_COIN_AMOUNT;  // 210 million
 
@@ -383,11 +339,6 @@ uint64_t G_CONFIG_TABLE::DefaultFee = 15;
 uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 // Max Number of Delegate Candidate to Vote for by a single account
 uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
-
-// Initial subsidy rate upon vote casting
-uint64_t G_CONFIG_TABLE::nInitialSubsidy = 5;
-// Eventual/lasting subsidy rate for vote casting
-uint64_t G_CONFIG_TABLE::nFixedSubsidy = 1;
 
 // Block height to enable feature fork version
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet = 6000000;

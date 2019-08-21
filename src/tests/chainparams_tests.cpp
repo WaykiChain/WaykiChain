@@ -222,21 +222,20 @@ BOOST_AUTO_TEST_CASE(chain_test) {
 }
 
 BOOST_AUTO_TEST_CASE(chain_regtest) {
-//	BOOST_CHECK(
-//			SysParamsReg().GetGenesisBlockHash()
-//					== uint256("b3c285730fee7d92791cd71fa0f7bb9dbb8d5f0da39029f0d284935f39afacae"));
-	BOOST_CHECK(SysParamsReg().MessageStart()[0] == 0xfe);
-	BOOST_CHECK(SysParamsReg().MessageStart()[1] == 0x57);
-	BOOST_CHECK(SysParamsReg().MessageStart()[2] == 0x6f);
-	BOOST_CHECK(SysParamsReg().MessageStart()[3] == 0x1C);
-	BOOST_CHECK(SysParamsReg().AlertKey() == ParseHex("03c8b92c6552b484c807d0490d611c0f826795be4f2a16e91235b01ad7945dcee1"));
-	BOOST_CHECK(SysParamsReg().GetDefaultPort() == 18891);
-//	BOOST_CHECK(SysParamsReg().ProofOfWorkLimit() == (~arith_uint256(0) >> 6));
-	BOOST_CHECK(SysParamsReg().GetSubsidyHalvingInterval() == 500);
-	BOOST_CHECK(SysParamsReg().RequireRPCPassword() == false);
-	BOOST_CHECK(SysParamsReg().DataDir() == "regtest");
-	BOOST_CHECK(SysParamsReg().NetworkID() == REGTEST_NET);
-	BOOST_CHECK(SysParamsReg().RPCPort() == 18890);
+    // BOOST_CHECK(SysParamsReg().GetGenesisBlockHash() ==
+    //             uint256("b3c285730fee7d92791cd71fa0f7bb9dbb8d5f0da39029f0d284935f39afacae"));
+    BOOST_CHECK(SysParamsReg().MessageStart()[0] == 0xfe);
+    BOOST_CHECK(SysParamsReg().MessageStart()[1] == 0x57);
+    BOOST_CHECK(SysParamsReg().MessageStart()[2] == 0x6f);
+    BOOST_CHECK(SysParamsReg().MessageStart()[3] == 0x1C);
+    BOOST_CHECK(SysParamsReg().AlertKey() ==
+                ParseHex("03c8b92c6552b484c807d0490d611c0f826795be4f2a16e91235b01ad7945dcee1"));
+    BOOST_CHECK(SysParamsReg().GetDefaultPort() == 18891);
+    // BOOST_CHECK(SysParamsReg().ProofOfWorkLimit() == (~arith_uint256(0) >> 6));
+    BOOST_CHECK(SysParamsReg().RequireRPCPassword() == false);
+    BOOST_CHECK(SysParamsReg().DataDir() == "regtest");
+    BOOST_CHECK(SysParamsReg().NetworkID() == REGTEST_NET);
+    BOOST_CHECK(SysParamsReg().RPCPort() == 18890);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

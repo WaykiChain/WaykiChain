@@ -202,7 +202,6 @@ public:
     int32_t GetDefaultPort() const { return nDefaultPort; }
     uint32_t GetBlockIntervalPreStableCoinRelease() const { return nBlockIntervalPreStableCoinRelease; }
     uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
-    int32_t GetSubsidyHalvingInterval() const { return nSubsidyHalvingInterval; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
@@ -257,7 +256,6 @@ protected:
     uint32_t nFeatureForkHeight;
     uint32_t nBlockIntervalPreStableCoinRelease;
     uint32_t nBlockIntervalStableCoinRelease;
-    int32_t nSubsidyHalvingInterval;
     string strDataDir;
     vector<CDNSSeedData> vSeeds;
     vector<uint8_t> base58Prefixes[MAX_BASE58_TYPES];

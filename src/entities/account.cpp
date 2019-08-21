@@ -91,11 +91,11 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVot
         return 0;  // 0 for the very 1st vote
     }
 
-    uint64_t beginHeight  = last_vote_height;
-    uint64_t endHeight    = currHeight;
-    uint64_t beginSubsidy = IniCfg().GetBlockSubsidyCfg(last_vote_height);
-    uint64_t endSubsidy   = IniCfg().GetBlockSubsidyCfg(currHeight);
-    uint64_t amount       = 0;
+    uint64_t beginHeight = last_vote_height;
+    uint64_t endHeight   = currHeight;
+    uint8_t beginSubsidy = ::GetSubsidyRate(last_vote_height);
+    uint8_t endSubsidy   = ::GetSubsidyRate(currHeight);
+    uint64_t amount      = 0;
     switch (featureForkVersion) {
         case MAJOR_VER_R1:
             amount = candidateVotes.begin()->GetVotedBcoins();  // one bcoin eleven votes
@@ -110,46 +110,46 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVot
                      featureForkVersion);
             break;
     }
-    LogPrint("DEBUG", "beginSubsidy: %lld, endSubsidy: %lld, beginHeight: %d, endHeight: %d\n", beginSubsidy, endSubsidy,
-             beginHeight, endHeight);
+    LogPrint("DEBUG", "beginSubsidy: %u, endSubsidy: %u, beginHeight: %llu, endHeight: %llu\n", beginSubsidy,
+             endSubsidy, beginHeight, endHeight);
 
-    auto ComputeInterest = [](uint64_t amount, uint64_t subsidy, int32_t beginHeight, int32_t endHeight) -> uint64_t {
-        int64_t holdHeight        = endHeight - beginHeight;
-        static int64_t yearHeight = YEAR_BLOCK_COUNT;
-        uint64_t interest         = (uint64_t)(amount * ((long double)holdHeight * subsidy / yearHeight / 100));
-        LogPrint("DEBUG", "amount: %lld, subsidy: %lld, beginHeight: %d, endHeight: %d, interest: %lld\n", amount, subsidy,
-                 beginHeight, endHeight, interest);
+    auto ComputeInterest = [](const uint64_t amount, const uint8_t subsidy, const uint64_t beginHeight,
+                              const uint64_t endHeight, const uint32_t yearHeight) -> uint64_t {
+        uint64_t holdHeight = endHeight - beginHeight;
+        uint64_t interest   = (uint64_t)(amount * ((long double)holdHeight * subsidy / yearHeight / 100));
+        LogPrint("DEBUG", "amount: %llu, subsidy: %u, beginHeight: %llu, endHeight: %llu, yearHeight: %u, interest: %llu\n",
+                 amount, subsidy, beginHeight, endHeight, yearHeight, interest);
         return interest;
     };
 
-    uint64_t interest = 0;
-    uint64_t subsidy  = beginSubsidy;
+    uint32_t yearHeight = ::GetYearBlockCount(currHeight);
+    uint64_t interest   = 0;
+    uint8_t subsidy     = beginSubsidy;
     while (subsidy != endSubsidy) {
-        int32_t jumpHeight = IniCfg().GetBlockSubsidyJumpHeight(subsidy - 1);
-        interest += ComputeInterest(amount, subsidy, beginHeight, jumpHeight);
+        uint32_t jumpHeight = ::GetJumpHeightBySubsidy(currHeight, subsidy - 1);
+        interest += ComputeInterest(amount, subsidy, beginHeight, jumpHeight, yearHeight);
         beginHeight = jumpHeight;
         subsidy -= 1;
     }
 
-    interest += ComputeInterest(amount, subsidy, beginHeight, endHeight);
-    LogPrint("DEBUG", "updateHeight: %d, currHeight: %d, freeze value: %lld\n", last_vote_height, currHeight,
+    interest += ComputeInterest(amount, subsidy, beginHeight, endHeight, yearHeight);
+    LogPrint("DEBUG", "updateHeight: %llu, currHeight: %llu, freeze value: %llu\n", last_vote_height, currHeight,
              candidateVotes.begin()->GetVotedBcoins());
 
     return interest;
 }
 
 uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const {
-    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1)
-        return 0;
+    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) return 0;
 
-    uint64_t subsidy          = IniCfg().GetBlockSubsidyCfg(currHeight);
-    static int64_t holdHeight = 1;
-    static int64_t yearHeight = YEAR_BLOCK_COUNT;
+    uint8_t subsidy     = ::GetSubsidyRate(currHeight);
+    uint64_t holdHeight = 1;
+    uint32_t yearHeight = ::GetYearBlockCount(currHeight);
     uint64_t profits =
         (long double)(received_votes * IniCfg().GetTotalDelegateNum() * holdHeight * subsidy) / yearHeight / 100;
     LogPrint("profits",
-             "account: %s, currHeight: %u, received_votes: %llu, subsidy: %llu, holdHeight: %lld, yearHeight: "
-             "%lld, llProfits: %llu\n",
+             "account: %s, currHeight: %llu, received_votes: %llu, subsidy: %u, holdHeight: %llu, yearHeight: "
+             "%u, llProfits: %llu\n",
              regid.ToString(), currHeight, received_votes, subsidy, holdHeight, yearHeight, profits);
 
     return profits;
