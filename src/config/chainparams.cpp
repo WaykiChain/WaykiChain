@@ -177,7 +177,7 @@ public:
         nBlockIntervalPreStableCoinRelease = GetArg("-blockintervalprestablecoinrelease", 10);
         nBlockIntervalStableCoinRelease    = GetArg("-blockintervalstablecoinrelease", 3);
         nSubsidyHalvingInterval = GetArg("-subsidyhalvinginterval", IniCfg().GetHalvingInterval(REGTEST_NET));
-        nFeatureForkHeight =\
+        nFeatureForkHeight =
             std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer = true;
 

@@ -89,10 +89,21 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
              "globalCollateralCeiling: %llu\n",
              globalCollateralRatioMin, slideWindowBlockCount, globalCollateralCeiling);
 
-    if (cdp_txid.IsNull()) {  // 1st-time CDP creation
+    if (cdp_txid.IsEmpty()) {  // 1st-time CDP creation
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCDPList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, has open cdp"), REJECT_INVALID, "has-open-cdp");
+        }
+    } else {
+        CUserCDP cdp;
+        if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
+                             REJECT_INVALID, "cdp-not-exist");
+        }
+
+        if (txUid.get<CRegID>() != cdp.owner_regid) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
+                cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
         }
     }
 
@@ -138,7 +149,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     uint64_t partialCollateralRatio =
         scoins_to_mint == 0 ? UINT64_MAX : uint64_t(double(bcoins_to_stake) * bcoinMedianPrice / scoins_to_mint);
 
-    if (cdp_txid.IsNull()) { // 1st-time CDP creation
+    if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (partialCollateralRatio < startingCdpCollateralRatio)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (%llu) is smaller than the minimal (%llu)",
                             partialCollateralRatio, startingCdpCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
@@ -323,6 +334,17 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     if (cdp_txid.IsEmpty()) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, cdp_txid is empty"),
                         REJECT_INVALID, "empty-cdpid");
+    }
+
+    CUserCDP cdp;
+    if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
+                            REJECT_INVALID, "cdp-not-exist");
+    }
+
+    if (txUid.get<CRegID>() != cdp.owner_regid) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
+            cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
@@ -552,6 +574,11 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!", txUid.ToString()),
                         REJECT_INVALID, "cdp-not-exist");
+    }
+
+    if (txUid.get<CRegID>() != cdp.owner_regid) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
+            cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
     }
 
     CAccount account;
