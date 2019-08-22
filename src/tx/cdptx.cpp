@@ -361,15 +361,15 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
 
     //1. pay miner fees (WICC)
     if (!account.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed,",
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, deduct fees from regId=%s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "deduct-account-fee-failed");
     }
 
     //2. pay interest fees in wusd
     CUserCDP cdp;
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, txUid(%s) not CDP owner",
-                    txUid.ToString()), REJECT_INVALID, "not-cdp-owner");
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, get cdp=%s failed", cdp_txid.ToString()),
+                         REJECT_INVALID, "get-cdp-failed");
     }
 
     CUserCDP oldCDP = cdp; // copy before modify.
