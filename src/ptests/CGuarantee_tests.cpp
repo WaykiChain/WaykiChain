@@ -430,8 +430,8 @@ bool CGuaranteeTest::SendStartTrade()
 	senddata.sendType = SEND_TYPE_SELL;   //待修改 挂单类型
 
 //	string arbitationID = "47046-1";
-	unsigned int height = 1826;   //待填   仲裁者ID arbiterAddr_C
-	unsigned short index = 1081;
+	uint32_t height = 1826;   //待填   仲裁者ID arbiterAddr_C
+	uint16_t index = 1081;
 
 	memcpy(&senddata.arbitationID[0],&height,4);
     memcpy(&senddata.arbitationID[4],&index,2);
@@ -634,8 +634,8 @@ bool CGuaranteeTest::Arbitration()
 	memcpy(senddata.txid,HASH_sendhash, sizeof(senddata.txid)); //待填交易HASH
 	senddata.height = SEND_height;
 //	string arbitationID = "47046-1";
-	unsigned int height = 1826;   //待填   仲裁者ID arbiterAddr_C
-	unsigned short index = 1081;
+	uint32_t height = 1826;   //待填   仲裁者ID arbiterAddr_C
+	uint16_t index = 1081;
 
 	memcpy(&senddata.arbitationID[0],&height,4);
 	memcpy(&senddata.arbitationID[4],&index,2);
@@ -679,8 +679,8 @@ bool CGuaranteeTest::RunFinalResult()
 	senddata.overtimeheightT = ARBITER_overtimeheightT;
 
 //	string buyId = "1826-1437";
-	unsigned int height = 1826;   //待填   赢家 ID 买家 赢
-	unsigned short index = 1285;  //1437
+	uint32_t height = 1826;   //待填   赢家 ID 买家 赢
+	uint16_t index = 1285;  //1437
 
     memcpy(&senddata.winner[0],&height,4);
     memcpy(&senddata.winner[4],&index,2);

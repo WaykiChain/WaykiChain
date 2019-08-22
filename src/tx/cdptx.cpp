@@ -264,11 +264,6 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CCDPStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-
 bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
     const uint64_t scoinsInterestToRepay,  CCacheWrapper &cw, CValidationState &state) {
 
@@ -501,11 +496,6 @@ Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("bcoins_to_redeem",   bcoins_to_redeem));
 
     return result;
-}
-
-bool CCDPRedeemTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
 }
 
 bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
@@ -822,11 +812,6 @@ Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("scoins_to_liquidate", scoins_to_liquidate));
 
     return result;
-}
-
-bool CCDPLiquidateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
 }
 
 bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees,

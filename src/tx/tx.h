@@ -87,9 +87,9 @@ public:
     }
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
-
     virtual string ToString(CAccountDBCache &accountCache)           = 0;
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
+
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                  = 0;
@@ -100,7 +100,8 @@ public:
     bool IsMedianPriceTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
 
-    bool CheckCoinRange(TokenSymbol symbol, int64_t amount);
+    bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
+
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;

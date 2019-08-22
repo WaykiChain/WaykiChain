@@ -152,7 +152,7 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
     return true;
 }
 
-bool CBaseTx::CheckCoinRange(TokenSymbol symbol, int64_t amount) {
+bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const {
     if (symbol == SYMB::WICC) {
         return CheckBaseCoinRange(amount);
     } else if (symbol == SYMB::WGRT) {

@@ -72,14 +72,6 @@ bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper 
     return true;
 }
 
-bool CAccountRegisterTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyIds) {
-    if (!txUid.get<CPubKey>().IsFullyValid())
-        return false;
-
-    keyIds.insert(txUid.get<CPubKey>().GetKeyId());
-    return true;
-}
-
 string CAccountRegisterTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, pubkey=%s, llFees=%ld, keyid=%s, nValidHeight=%d\n",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.get<CPubKey>().ToString(), llFees,

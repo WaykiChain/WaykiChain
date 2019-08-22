@@ -226,11 +226,4 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CBlockPriceMedianTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    //TODO
-    return true;
-}
-
-map<CoinPricePair, uint64_t> CBlockPriceMedianTx::GetMedianPrice() const {
-    return median_price_points;
-}
+map<CoinPricePair, uint64_t> CBlockPriceMedianTx::GetMedianPrice() const { return median_price_points; }

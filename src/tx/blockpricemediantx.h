@@ -41,7 +41,8 @@ public:
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
-    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
+    bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
     bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);

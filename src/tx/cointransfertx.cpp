@@ -120,22 +120,6 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(toUid, desKeyId))
-        return false;
-
-    keyIds.insert(desKeyId);
-
-    return true;
-}
-
 /**################################ Universal Coin Transfer ########################################**/
 
 bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
@@ -246,19 +230,4 @@ Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("memo",        HexStr(memo)));
 
     return result;
-}
-
-bool CCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(toUid, desKeyId))
-        return false;
-
-    keyIds.insert(desKeyId);
-
-    return true;
 }

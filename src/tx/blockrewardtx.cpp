@@ -61,24 +61,6 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (txUid.type() == typeid(CRegID)) {
-        if (!cw.accountCache.GetKeyId(txUid, keyId))
-            return false;
-
-        keyIds.insert(keyId);
-    } else if (txUid.type() == typeid(CPubKey)) {
-        CPubKey pubKey = txUid.get<CPubKey>();
-        if (!pubKey.IsFullyValid())
-            return false;
-
-        keyIds.insert(pubKey.GetKeyId());
-    }
-
-    return true;
-}
-
 bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     return true;
 }
@@ -149,14 +131,4 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("valid_height",   nValidHeight));
 
     return result;
-}
-
-bool CUCoinBlockRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-
-    return true;
 }

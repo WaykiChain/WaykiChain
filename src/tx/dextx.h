@@ -17,15 +17,15 @@ public:
 
 public:
     bool CheckOrderAmountRange(CValidationState &state, const string &title,
-                             const TokenSymbol &symbol, int64_t amount);
+                             const TokenSymbol &symbol, const int64_t amount);
 
     bool CheckOrderPriceRange(CValidationState &state, const string &title,
                               const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
-                              int64_t price);
+                              const int64_t price);
     bool CheckOrderSymbols(CValidationState &state, const string &title,
                            const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol);
 public:
-    static uint64_t CalcCoinAmount(uint64_t assetAmount, uint64_t price);
+    static uint64_t CalcCoinAmount(uint64_t assetAmount, const uint64_t price);
 };
 
 class CDEXBuyLimitOrderTx : public CDEXOrderBaseTx {
@@ -351,7 +351,6 @@ public:
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);

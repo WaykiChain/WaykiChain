@@ -78,12 +78,3 @@ Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 
     return result;
 }
-
-bool CFcoinStakeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId)) {
-        return false;
-    }
-    keyIds.insert(keyId);
-    return true;
-}

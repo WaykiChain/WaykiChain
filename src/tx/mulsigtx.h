@@ -50,7 +50,7 @@ public:
     CMulsigTx() : CBaseTx(BCOIN_TRANSFER_MTX) {}
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
+                uint64_t feesIn, const uint64_t valueIn, const int32_t validHeightIn,
                 const uint8_t requiredIn, const UnsignedCharArray &memoIn)
         : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
@@ -64,7 +64,7 @@ public:
     }
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feesIn, const uint64_t valueIn, const int validHeightIn,
+                uint64_t feesIn, const uint64_t valueIn, const int32_t validHeightIn,
                 const uint8_t requiredIn)
         : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
@@ -111,8 +111,8 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif //COIN_MULSIGTX_H

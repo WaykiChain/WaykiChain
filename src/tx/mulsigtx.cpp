@@ -98,18 +98,15 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
 bool CMulsigTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
     CKeyID keyId;
     for (const auto &item : signaturePairs) {
-        if (!cw.accountCache.GetKeyId(CUserID(item.regid), keyId)) return false;
+        if (!cw.accountCache.GetKeyId(CUserID(item.regid), keyId))
+            return false;
         keyIds.insert(keyId);
     }
-
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(desUserId, desKeyId)) return false;
-    keyIds.insert(desKeyId);
 
     return true;
 }
 
-bool CMulsigTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAcct;
     CAccount desAcct;
     bool generateRegID = false;
@@ -164,7 +161,7 @@ bool CMulsigTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationS
     return true;
 }
 
-bool CMulsigTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
 

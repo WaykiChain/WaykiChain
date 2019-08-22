@@ -95,8 +95,3 @@ Object CPriceFeedTx::ToJson(const CAccountDBCache &accountCache) const {
 
     return result;
 }
-
-bool CPriceFeedTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    // TODO:
-    return true;
-}

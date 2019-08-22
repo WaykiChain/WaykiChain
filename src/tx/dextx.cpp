@@ -14,7 +14,7 @@ using uint128_t = unsigned __int128;
 // class CDEXBuyLimitOrderTx
 
 bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const string &title,
-                                          const TokenSymbol &symbol, int64_t amount) {
+                                          const TokenSymbol &symbol, const int64_t amount) {
     // TODO: should check the min amount of order by symbol
     if (!CheckCoinRange(symbol, amount))
         return state.DoS(100, ERRORMSG("%s amount out of range, symbol=%s, amount=%llu",
@@ -25,7 +25,7 @@ bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const strin
 
 bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string &title,
                           const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
-                          int64_t price) {
+                          const int64_t price) {
     // TODO: should check the price range??
     if (price < 0)
         return state.DoS(100, ERRORMSG("%s price out of range,"
@@ -56,7 +56,7 @@ bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &t
     return true;
 }
 
-uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, uint64_t price) {
+uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t price) {
     uint128_t coinAmount = assetAmount * (uint128_t)price / kPercentBoost;
     assert(coinAmount < ULLONG_MAX);
     return (uint64_t)coinAmount;
@@ -543,26 +543,6 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("deal_items",  arrayItems));
 
     return result;
-}
-
-bool CDEXSettleTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    if (!CBaseTx::GetInvolvedKeyIds(cw, keyIds))
-        return false;
-
-    for (auto dealItem : dealItems) {
-        CDEXOrderDetail buyOrder;
-        if (!cw.dexCache.GetActiveOrder(dealItem.buyOrderId, buyOrder)) {
-            return ERRORMSG("CDEXSettleTx::GetInvolvedKeyIds, get buy order failed! txid=%s", dealItem.buyOrderId.ToString());
-        }
-        CDEXOrderDetail sellOrder;
-        if (!cw.dexCache.GetActiveOrder(dealItem.sellOrderId, sellOrder)) {
-            return ERRORMSG("CDEXSettleTx::GetInvolvedKeyIds, get sell order failed! txid=%s", dealItem.sellOrderId.ToString());
-        }
-        if (!AddInvolvedKeyIds({buyOrder.user_regid, sellOrder.user_regid}, cw, keyIds))
-            return false;
-    }
-
-    return true;
 }
 
 bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {

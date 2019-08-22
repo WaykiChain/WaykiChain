@@ -59,9 +59,3 @@ Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
 
     return result;
 }
-
-bool CCoinRewardTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    keyIds.insert(txUid.get<CPubKey>().GetKeyId());
-
-    return true;
-}

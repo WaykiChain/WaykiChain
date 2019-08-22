@@ -41,20 +41,6 @@ Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-// FIXME: not useful
-bool CDelegateVoteTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    // CKeyID keyId;
-    // if (!cw.accountCache.GetKeyId(userId, keyId))
-    //     return false;
-
-    // vAddr.insert(keyId);
-    // for (auto iter = operVoteFunds.begin(); iter != operVoteFunds.end(); ++iter) {
-    //     vAddr.insert(iter->fund.GetCandidateUid());
-    // }
-    return true;
-}
-
-
 bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
     IMPLEMENT_CHECK_TX_REGID(txUid.type());

@@ -126,15 +126,6 @@ bool CLuaContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     return true;
 }
 
-bool CLuaContractDeployTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-    return true;
-}
-
 uint64_t CLuaContractDeployTx::GetFuel(uint32_t nFuelRate) {
     return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
 }
@@ -290,53 +281,6 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
         return ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
 
-    return true;
-}
-
-bool CLuaContractInvokeTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(app_uid, desKeyId))
-        return false;
-
-    keyIds.insert(desKeyId);
-
-    //FIXME below:
-
-    // CVmRunEnv vmRunEnv;
-    // std::shared_ptr<CBaseTx> pTx = GetNewInstance();
-    // uint64_t fuelRate = GetFuelRate(cw.contractCache);
-
-    // if (!pCdMan->pTxCache->HaveTx(GetHash())) {
-    //     tuple<bool, uint64_t, string> ret =
-    //         vmRunEnv.ExecuteContract(pTx, chainActive.Height() + 1, cw, fuelRate, nRunStep);
-
-    //     if (!std::get<0>(ret))
-    //         return ERRORMSG("CLuaContractInvokeTx::GetInvolvedKeyIds, %s", std::get<2>(ret));
-
-    //     vector<shared_ptr<CAccount> > vpAccount = vmRunEnv.GetNewAccount();
-
-    //     for (auto & item : vpAccount)
-    //         keyIds.insert(item->keyid);
-
-    //     vector<std::shared_ptr<CAppUserAccount> > &vAppUserAccount = vmRunEnv.GetRawAppUserAccount();
-    //     for (auto & itemUserAccount : vAppUserAccount) {
-    //         CKeyID itemKeyID;
-    //         bool bValid = GetKeyId(cw.accountCache, itemUserAccount.get()->GetAccUserId(), itemKeyID);
-    //         if (bValid)
-    //             keyIds.insert(itemKeyID);
-    //     }
-    // } else {
-    //     set<CKeyID> vTxRelAccount;
-    //     if (!cw.contractCache.GetTxRelAccount(GetHash(), vTxRelAccount))
-    //         return false;
-
-    //     keyIds.insert(vTxRelAccount.begin(), vTxRelAccount.end());
-    // }
     return true;
 }
 

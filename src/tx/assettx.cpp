@@ -122,10 +122,6 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     return true;
 }
 
-bool CAssetIssueTx::GetInvolvedKeyIds(CCacheWrapper & cw, set<CKeyID> &keyIds) {
-    return AddInvolvedKeyIds({txUid, asset.owner_uid}, cw, keyIds);
-}
-
 string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
         "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
@@ -163,10 +159,6 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("mint_amount",    mint_amount));
 
     return result;
-}
-
-bool CAssetUpdateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    return AddInvolvedKeyIds({txUid, owner_uid}, cw, keyIds);
 }
 
 bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
