@@ -576,11 +576,6 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
                         REJECT_INVALID, "cdp-not-exist");
     }
 
-    if (txUid.get<CRegID>() != cdp.owner_regid) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
-            cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
-    }
-
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", txUid.ToString()),
