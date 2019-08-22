@@ -61,8 +61,8 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, insufficient funds in account, txUid=%s",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, insufficient funds in account to sub fees, fees=%llu, txUid=%s",
+                        llFees, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
     if (cw.assetCache.HaveAsset(asset.symbol))
@@ -75,7 +75,7 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
                          REJECT_INVALID, "read-sysparam-error");
     }
     if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetIssueFee)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, insufficient funds in account for sub issued fee=%d, txUid=%s",
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, insufficient funds in account to sub issued_fee=%llu, txUid=%s",
                         assetIssueFee, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
     vector<CRegID> delegateList;
@@ -102,17 +102,21 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write delegate account info error, delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
+    }
+
+    if (!account.OperateBalance(asset.symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
+                        asset.total_supply, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
     if (!cw.accountCache.SetAccount(txUid, account))
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write txUid %s account info error",
-            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx account to db failed! txUid=%s",
+            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
 
     if (!cw.assetCache.SaveAsset(asset))
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed",
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
-
 
     vector<CUserID> relatedUids = {txUid};
     if (!account.IsMyUid(asset.owner_uid)) relatedUids.push_back(asset.owner_uid);
