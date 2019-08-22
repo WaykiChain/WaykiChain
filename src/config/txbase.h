@@ -6,6 +6,8 @@
 #ifndef CONFIG_TXBASE_H
 #define CONFIG_TXBASE_H
 
+#include "const.h"
+
 #include <unordered_map>
 #include <string>
 #include <cstdint>

@@ -375,7 +375,7 @@ private:
 template<int PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
 class CCompositeKVCache {
 public:
-    static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;    
+    static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
     typedef __KeyType   KeyType;
     typedef __ValueType ValueType;
@@ -581,7 +581,7 @@ public:
             pDbAccess->BatchWrite<KeyType, ValueType>(PREFIX_TYPE, mapData);
         }
 
-        mapData.clear();
+        Clear();
     }
 
     bool UndoData(const CDbOpLog &dbOpLog) {
@@ -908,7 +908,8 @@ public:
     }
 
     void Clear() {
-        ptrData = nullptr;
+        if (ptrData)
+            ptrData = nullptr;
     }
 
     void Flush() {
@@ -921,9 +922,9 @@ public:
                 assert(pBase == nullptr);
                 pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
             }
-
-            ptrData = nullptr;
         }
+
+        Clear();
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {

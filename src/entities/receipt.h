@@ -7,11 +7,11 @@
 #ifndef ENTITIES_RECEIPT_H
 #define ENTITIES_RECEIPT_H
 
-#include "crypto/hash.h"
-#include "account.h"
 #include "config/txbase.h"
+#include "crypto/hash.h"
+#include "entities/asset.h"
+#include "entities/id.h"
 #include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
 
 class CReceipt {
 public:
@@ -19,21 +19,34 @@ public:
     CUserID     from_uid;
     CUserID     to_uid;
     TokenSymbol coin_symbol;
-    uint64_t    send_amount;
+    uint64_t    coin_amount;
 
 public:
-    CReceipt() {};
+    CReceipt() {}
 
-    CReceipt(TxType txType, CUserID &fromUid, CUserID &toUid, TokenSymbol coinSymbol, uint64_t sendAmount)
-        : tx_type(txType), from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), send_amount(sendAmount){};
+    CReceipt(const TxType txType, const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol,
+             const uint64_t coinAmount)
+        : tx_type(txType), from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t &)tx_type);
         READWRITE(from_uid);
         READWRITE(to_uid);
-        READWRITE((uint8_t &)coin_symbol);
-        READWRITE(VARINT(send_amount));
+        READWRITE(coin_symbol);
+        READWRITE(VARINT(coin_amount));
     )
+
+    json_spirit::Object ToJson() const {
+        json_spirit::Object obj;
+
+        obj.push_back(Pair("tx_type",       std::get<0>(kTxFeeTable.at(tx_type))));
+        obj.push_back(Pair("from_uid",      from_uid.ToString()));
+        obj.push_back(Pair("to_uid",        to_uid.ToString()));
+        obj.push_back(Pair("coin_symbol",   coin_symbol));
+        obj.push_back(Pair("coin_amount",   coin_amount));
+
+        return obj;
+    }
 };
 
 #endif //ENTITIES_RECEIPT_H

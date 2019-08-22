@@ -2201,23 +2201,17 @@ Value gettxreceipt(const Array& params, bool fHelp) {
             "\nAs json rpc call\n" +
             HelpExampleRpc("gettxreceipt", "\"e2d6f2c1ba5fc862aacf5324d7e7da048f562486d37d45dbd91ebcd3a347c609\""));
     }
+
     uint256 txid = uint256S(params[0].get_str());
     vector<CReceipt> receipts;
     pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
 
-    Array retArray;
+    Array array;
     for (const auto &receipt : receipts) {
-        Object obj;
-
-        obj.push_back(Pair("tx_type",           std::get<0>(kTxFeeTable.at(receipt.tx_type))));
-        obj.push_back(Pair("from_uid",          receipt.from_uid.ToString()));
-        obj.push_back(Pair("to_uid",            receipt.to_uid.ToString()));
-        obj.push_back(Pair("coin_symbol",       receipt.coin_symbol));
-        obj.push_back(Pair("transfer_amount",   receipt.send_amount));
-        retArray.push_back(obj);
+        array.push_back(receipt.ToJson());
     }
 
-    return retArray;
+    return array;
 }
 
 Value getcontractaccountinfo(const Array& params, bool fHelp) {

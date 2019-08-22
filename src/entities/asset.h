@@ -7,7 +7,6 @@
 #ifndef ENTITIES_ASSET_H
 #define ENTITIES_ASSET_H
 
-#include <boost/variant.hpp>
 #include <functional>
 #include <memory>
 #include <string>
@@ -20,7 +19,6 @@
 #include "id.h"
 #include "vote.h"
 #include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -41,14 +39,14 @@ struct ComboMoney {
 
     ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
 
-    uint64_t GetSawiAmount() const {        
+    uint64_t GetSawiAmount() const {
         auto it = CoinUnitTypeTable.find(unit);
         if (it != CoinUnitTypeTable.end()) {
             return amount * it->second;
         } else {
             assert(false && "coin unit not found");
             return amount;
-        }        
+        }
     }
 };
 

@@ -22,7 +22,7 @@ typedef uint256 TxID;
 class CTxReceiptDBCache {
 public:
     CTxReceiptDBCache() {}
-    CTxReceiptDBCache(CDBAccess *pDbAccess) : txReceiptCache(pDbAccess){};
+    CTxReceiptDBCache(CDBAccess *pDbAccess) : txReceiptCache(pDbAccess) {}
 
 public:
     bool SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts);
@@ -31,17 +31,12 @@ public:
 
     void Flush();
 
-    void SetBaseViewPtr(CTxReceiptDBCache *pBaseIn) {
-        txReceiptCache.SetBase(&pBaseIn->txReceiptCache);
-    };
+    void SetBaseViewPtr(CTxReceiptDBCache *pBaseIn) { txReceiptCache.SetBase(&pBaseIn->txReceiptCache); }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        txReceiptCache.SetDbOpLogMap(pDbOpLogMapIn);
-    }
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { txReceiptCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
-    bool UndoDatas() {
-        return txReceiptCache.UndoDatas();
-    }
+    bool UndoDatas() { return txReceiptCache.UndoDatas(); }
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

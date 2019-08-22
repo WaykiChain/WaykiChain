@@ -8,9 +8,11 @@
 bool CTxReceiptDBCache::SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts) {
     return txReceiptCache.SetData(txid, receipts);
 }
+
 bool CTxReceiptDBCache::GetTxReceipts(const TxID &txid, vector<CReceipt> &receipts) {
     return txReceiptCache.GetData(txid, receipts);
 }
+
 void CTxReceiptDBCache::Flush() {
     txReceiptCache.Flush();
 }
