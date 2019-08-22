@@ -173,7 +173,7 @@ uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidat
 bool CAccount::RegIDIsMature() const {
     return (!regid.IsEmpty()) &&
            ((regid.GetHeight() == 0) ||
-            (chainActive.Height() - (int32_t)regid.GetHeight() > kRegIdMaturePeriodByBlock));
+            (chainActive.Height() - (int32_t)regid.GetHeight() > REG_ID_MATURITY));
 }
 
 CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {

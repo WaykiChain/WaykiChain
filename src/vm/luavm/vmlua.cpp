@@ -128,8 +128,8 @@ static int luaopen_array(lua_State *L){
 
 CVmlua::CVmlua(const std::string &codeIn, const std::string &argumentsIn):
     code(codeIn), arguments(argumentsIn) {
-    assert(code.size() <= kContractScriptMaxSize);
-    assert(arguments.size() <= kContractArgumentMaxSize);
+    assert(code.size() <= MAX_CONTRACT_CODE_SIZE);
+    assert(arguments.size() <= MAX_CONTRACT_ARGUMENT_SIZE);
 }
 
 CVmlua::~CVmlua() {}

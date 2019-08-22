@@ -170,7 +170,7 @@ bool CAccountDBCache::RegIDIsMature(const CRegID &regId) const {
         return false;
 
     int height = chainActive.Height();
-    if ((regId.GetHeight() == 0) || (height - regId.GetHeight() > kRegIdMaturePeriodByBlock))
+    if ((regId.GetHeight() == 0) || (height - regId.GetHeight() > REG_ID_MATURITY))
         return true;
     else
         return false;

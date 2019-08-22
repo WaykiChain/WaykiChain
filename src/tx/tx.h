@@ -158,12 +158,12 @@ public:
 };
 
 #define IMPLEMENT_CHECK_TX_MEMO                                                                    \
-    if (memo.size() > kCommonTxMemoMaxSize)                                                        \
+    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                        \
         return state.DoS(100, ERRORMSG("%s, memo's size too large", __FUNCTION__), REJECT_INVALID, \
                          "memo-size-toolarge");
 
 #define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                    \
-    if (arguments.size() > kContractArgumentMaxSize)                                                    \
+    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                    \
         return state.DoS(100, ERRORMSG("%s, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
                          "arguments-size-toolarge");
 

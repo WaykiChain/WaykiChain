@@ -173,7 +173,7 @@ bool CMulsigTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) 
                          REJECT_INVALID, "required-keys-invalid");
     }
 
-    if (signaturePairs.size() > kMultisigNumberLimit) {
+    if (signaturePairs.size() > MAX_MULSIG_NUMBER) {
         return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, signature's number out of range"),
                          REJECT_INVALID, "signature-number-out-of-range");
     }

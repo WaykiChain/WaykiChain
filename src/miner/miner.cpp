@@ -34,7 +34,7 @@ uint64_t nLastBlockTx   = 0;
 uint64_t nLastBlockSize = 0;
 
 MinedBlockInfo miningBlockInfo;
-boost::circular_buffer<MinedBlockInfo> minedBlocks(kMaxMinedBlocks);
+boost::circular_buffer<MinedBlockInfo> minedBlocks(MAX_MINED_BLOCK_COUNT);
 CCriticalSection csMinedBlocks;
 
 

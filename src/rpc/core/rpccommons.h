@@ -19,8 +19,6 @@
 using namespace std;
 using namespace json_spirit;
 
-const int MAX_RPC_SIG_STR_LEN = 65 * 1024; // 65K
-
 string RegIDToAddress(CUserID &userId);
 bool GetKeyId(const string &addr, CKeyID &keyId);
 Object GetTxDetailJSON(const uint256& txid);

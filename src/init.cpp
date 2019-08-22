@@ -212,7 +212,7 @@ string HelpMessage() {
     strUsage += "  -daemon                " + _("Run in the background as a daemon and accept commands") + "\n";
 #endif
     strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
-    strUsage += "  -dbcache=<n>           " + strprintf(_("Set database cache size in megabytes (%d to %d, default: %d)"), nMinDbCache, nMaxDbCache, nDefaultDbCache) + "\n";
+    strUsage += "  -dbcache=<n>           " + strprintf(_("Set database cache size in megabytes (%d to %d, default: %d)"), MIN_DB_CACHE, MAX_DB_CACHE, DEFAULT_DB_CACHE) + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000??.dat file") + " " + _("on startup") + "\n";
     strUsage += "  -pid=<file>            " + _("Specify pid file (default: coin.pid)") + "\n";
     strUsage += "  -reindex               " + _("Rebuild block chain index from current blk000??.dat files") + " " + _("on startup") + "\n";
@@ -710,11 +710,11 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     // cache size calculations
-    size_t nTotalCache = (SysCfg().GetArg("-dbcache", nDefaultDbCache) << 20);
-    if (nTotalCache < (nMinDbCache << 20))
-        nTotalCache = (nMinDbCache << 20);  // total cache cannot be less than nMinDbCache
-    else if (nTotalCache > (nMaxDbCache << 20))
-        nTotalCache = (nMaxDbCache << 20);  // total cache cannot be greater than nMaxDbCache
+    size_t nTotalCache = (SysCfg().GetArg("-dbcache", DEFAULT_DB_CACHE) << 20);
+    if (nTotalCache < (MIN_DB_CACHE << 20))
+        nTotalCache = (MIN_DB_CACHE << 20);  // total cache cannot be less than MIN_DB_CACHE
+    else if (nTotalCache > (MAX_DB_CACHE << 20))
+        nTotalCache = (MAX_DB_CACHE << 20);  // total cache cannot be greater than MAX_DB_CACHE
     size_t nBlockTreeDBCache = nTotalCache / 8;
     if (nBlockTreeDBCache > (1 << 21) && !SysCfg().GetBoolArg("-txindex", false))
         nBlockTreeDBCache = (1 << 21);  // block tree db cache shouldn't be larger than 2 MiB

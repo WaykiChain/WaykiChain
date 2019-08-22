@@ -256,7 +256,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     }
 
     string arguments = ParseHexStr(params[2].get_str());
-    if (arguments.size() >= kContractArgumentMaxSize) {
+    if (arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
@@ -335,7 +335,7 @@ Value deploycontracttx(const Array& params, bool fHelp) {
     if (luaScriptFilePath.empty())
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-    if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
+    if (luaScriptFilePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
     std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
@@ -352,7 +352,7 @@ Value deploycontracttx(const Array& params, bool fHelp) {
     lSize = ftell(file);
     rewind(file);
 
-    if (lSize <= 0 || lSize > kContractScriptMaxSize) { // contract script file size must be <= 64 KB)
+    if (lSize <= 0 || lSize > MAX_CONTRACT_CODE_SIZE) { // contract script file size must be <= 64 KB)
         fclose(file);
         throw JSONRPCError(
             RPC_INVALID_PARAMETER,
@@ -382,7 +382,7 @@ Value deploycontracttx(const Array& params, bool fHelp) {
 
     if (params.size() > 4) {
         luaContract.memo = params[4].get_str();
-        if (luaContract.memo.size() > kContractMemoMaxSize) {
+        if (luaContract.memo.size() > MAX_CONTRACT_MEMO_SIZE) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract description is too large");
         }
     }
@@ -1775,7 +1775,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     }
 
     string arguments = ParseHexStr(params[2].get_str());
-    if (arguments.size() >= kContractArgumentMaxSize) {
+    if (arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
@@ -1856,7 +1856,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
     if (luaScriptFilePath.empty())
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
 
-    if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
+    if (luaScriptFilePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
     FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
@@ -2074,7 +2074,7 @@ Value decodemulsigscript(const Array& params, bool fHelp) {
     RPCTypeCheck(params, list_of(str_type));
 
     vector<uint8_t> multiScript = ParseHex(params[0].get_str());
-    if (multiScript.empty() || multiScript.size() > KMultisigScriptMaxSize) {
+    if (multiScript.empty() || multiScript.size() > MAX_MULSIG_SCRIPT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
     }
 

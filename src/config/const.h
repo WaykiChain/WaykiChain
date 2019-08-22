@@ -104,18 +104,29 @@ static const uint32_t MAX_BLOCKFILE_SIZE = 0x8000000;  // 128 MiB
 static const uint32_t BLOCKFILE_CHUNK_SIZE = 0x1000000;  // 16 MiB
 /** The pre-allocation chunk size for rev?????.dat files (since 0.8) */
 static const uint32_t UNDOFILE_CHUNK_SIZE = 0x100000;  // 1 MiB
+/** -dbcache default (MiB) */
+static const int64_t DEFAULT_DB_CACHE = 100;
+/** max. -dbcache in (MiB) */
+static const int64_t MAX_DB_CACHE = sizeof(void *) > 4 ? 4096 : 1024;
+/** min. -dbcache in (MiB) */
+static const int64_t MIN_DB_CACHE = 4;
+
 /** Coinbase transaction outputs can only be spent after this number of new blocks (network rule) */
 static const int32_t BLOCK_REWARD_MATURITY = 100;
+/** RegId's mature period measured by blocks */
+static const int32_t REG_ID_MATURITY = 100;
 
-/** max size of tx or block signature */
-static const uint32_t MAX_SIGNATURE_SIZE = 100;
-
-// -dbcache default (MiB)
-static const int64_t nDefaultDbCache = 100;
-// max. -dbcache in (MiB)
-static const int64_t nMaxDbCache = sizeof(void *) > 4 ? 4096 : 1024;
-// min. -dbcache in (MiB)
-static const int64_t nMinDbCache = 4;
+static const uint16_t MAX_MINED_BLOCK_COUNT      = 100;        // maximun cache size for mined blocks
+static const int32_t MAX_RECENT_BLOCK_COUNT      = 1000;       // most recent block number limit
+static const uint32_t MAX_RPC_SIG_STR_LEN        = 65 * 1024;  // 65K max length of raw string to be signed via rpc call
+static const uint32_t MAX_SIGNATURE_SIZE         = 100;        // 100 bytes max size of tx or block signature
+static const uint32_t MAX_CONTRACT_CODE_SIZE     = 65536;      // 64 KB max for contract script size
+static const uint32_t MAX_CONTRACT_ARGUMENT_SIZE = 4096;       // 4 KB max for contract argument size
+static const uint32_t MAX_COMMON_TX_MEMO_SIZE    = 100;        // 100 bytes max for memo size
+static const uint32_t MAX_CONTRACT_MEMO_SIZE     = 100;        // 100 bytes max for memo size
+static const int32_t MAX_MULSIG_NUMBER           = 15;         // m-n multisig, refer to n
+static const int32_t MAX_MULSIG_SCRIPT_SIZE      = 1000;       // multisig script max size
+static const string LUA_CONTRACT_LOCATION_PREFIX = "/tmp/lua/";  // prefix of lua contract file location
 
 static const uint64_t INITIAL_BASE_COIN_AMOUNT               = 210000000;  // 210 million
 static const uint32_t BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE = 10;         // 10 seconds
@@ -123,20 +134,6 @@ static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 
 
 static const uint64_t INITIAL_SUBSIDY_RATE = 5;  // Initial subsidy rate upon vote casting
 static const uint64_t FIXED_SUBSIDY_RATE   = 1;  // Eventual/lasting subsidy rate for vote casting
-
-static const int32_t kContractScriptMaxSize                  = 65536;      // 64 KB max for contract script size
-static const int32_t kContractArgumentMaxSize                = 4096;       // 4 KB max for contract argument size
-static const int32_t kCommonTxMemoMaxSize                    = 100;        // 100 bytes max for memo size
-static const int32_t kContractMemoMaxSize                    = 100;        // 100 bytes max for memo size
-static const int32_t kMostRecentBlockNumberLimit             = 1000;       // most recent block number limit
-
-static const int32_t kMultisigNumberLimit           = 15;           // m-n multisig, refer to n
-static const int32_t KMultisigScriptMaxSize         = 1000;         // multisig script max size
-static const int32_t kRegIdMaturePeriodByBlock      = 100;          // RegId's mature period measured by blocks
-
-static const uint16_t kMaxMinedBlocks               = 100;          // maximun cache size for mined blocks
-
-static const string kContractScriptPathPrefix       = "/tmp/lua/";
 
 static const string EMPTY_STRING = "";
 

@@ -12,13 +12,13 @@ static const std::string kLuaScriptHeadLine = "mylib = require";
 // class CLuaContract
 
 bool CLuaContract::IsValid() {
-    if (code.size() > kContractScriptMaxSize)
+    if (code.size() > MAX_CONTRACT_CODE_SIZE)
         return false;
 
     if (code.compare(0, kLuaScriptHeadLine.size(), kLuaScriptHeadLine))
         return false;  // lua script shebang existing verified
 
-    if (memo.size() > kContractMemoMaxSize)
+    if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
         return false;
 
     return true;

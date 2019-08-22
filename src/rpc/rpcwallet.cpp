@@ -140,9 +140,9 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kMultisigNumberLimit) {
+    if ((int64_t)keys.size() > MAX_MULSIG_NUMBER) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberLimit));
+            strprintf("too many keys supplied, no more than %d keys", MAX_MULSIG_NUMBER));
     }
 
     CKeyID keyId;
@@ -214,9 +214,9 @@ Value createmulsig(const Array& params, bool fHelp) {
                       keys.size(), nRequired));
     }
 
-    if ((int64_t)keys.size() > kMultisigNumberLimit) {
+    if ((int64_t)keys.size() > MAX_MULSIG_NUMBER) {
         throw runtime_error(
-            strprintf("too many keys supplied, no more than %d keys", kMultisigNumberLimit));
+            strprintf("too many keys supplied, no more than %d keys", MAX_MULSIG_NUMBER));
     }
 
     CKeyID keyId;
@@ -453,7 +453,7 @@ Value sendtoaddresswithmemo(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
 
     memo = params[3].get_str() ;
-    if( memo.size() > kCommonTxMemoMaxSize)
+    if( memo.size() > MAX_COMMON_TX_MEMO_SIZE)
         throw JSONRPCError(RPC_MEMO_SIZE_TOO_LONG, "the size of memo is too long");
 
     std::tuple<bool, string> ret = SendMoney(sendKeyId, recvKeyId, nAmount, nDefaultFee, memo);
@@ -784,7 +784,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
 
     vector<unsigned char> multiScript = ParseHex(params[0].get_str());
-    if (multiScript.empty() || multiScript.size() > KMultisigScriptMaxSize) {
+    if (multiScript.empty() || multiScript.size() > MAX_MULSIG_SCRIPT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
     }
 

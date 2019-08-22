@@ -50,7 +50,7 @@ bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountView
         return false;
     }
 
-    if (contractTx->arguments.size() >= kContractArgumentMaxSize) {
+    if (contractTx->arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
         LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size too large");
         return false;
     }
