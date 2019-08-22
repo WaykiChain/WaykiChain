@@ -10,15 +10,14 @@
 #include "entities/receipt.h"
 #include "persistence/assetdb.h"
 
-
 bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-
-    if (asset.symbol.empty() || asset.symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",
-            asset.symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symobl");
+    auto symbolErr = CAsset::CheckSymbol(asset.symbol);
+    if (symbolErr) {
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", symbolErr),
+            REJECT_INVALID, "invalid-asset-symobl");
     }
 
     if (asset.name.empty() || asset.name.size() > MAX_ASSET_NAME_LEN) {

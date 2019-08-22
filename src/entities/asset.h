@@ -139,6 +139,33 @@ public:
         mintable = false;
         total_supply = 0;
     }
+
+public:
+    static bool CheckSymbolChar(const char ch) {
+        return  (ch >= '0' && ch <= '9') ||
+                (ch >= 'A' && ch <= 'Z') ||
+                (ch >= 'a' && ch <= 'z') ||
+                ch == '@' ||
+                ch == '#' ||
+                ch == '.' ||
+                ch == '_' ||
+                ch == '-' ||
+                ch == '/';
+    }
+
+    // @return nullptr if succeed, else err string
+    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
+        size_t symbolSize = symbol.size();
+        if (symbolSize < MIN_ASSET_SYMBOL_LEN || symbolSize > MAX_TOKEN_SYMBOL_LEN)
+            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
+                symbolSize, MIN_ASSET_SYMBOL_LEN, MAX_TOKEN_SYMBOL_LEN));
+
+        for (auto ch : symbol) {
+            if (!CheckSymbolChar(ch))
+                return make_shared<string>("there is invalid char in symbol");
+        }
+        return nullptr;
+    }
 };
 
 #endif //ENTITIES_ASSET_H
