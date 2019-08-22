@@ -437,13 +437,7 @@ Object CVmOperate::ToJson() {
         string addr(accountId, accountId + sizeof(accountId));
         obj.push_back(Pair("addr", addr));
     }
-
-    if (opType == ADD_BCOIN) {
-        obj.push_back(Pair("opertype", "add"));
-    } else if (opType == MINUS_BCOIN) {
-        obj.push_back(Pair("opertype", "minus"));
-    }
-
+    obj.push_back(Pair("opertype", GetBalanceOpTypeName((BalanceOpType)opType)));
     if (timeoutHeight > 0)
         obj.push_back(Pair("outHeight", (int32_t)timeoutHeight));
 

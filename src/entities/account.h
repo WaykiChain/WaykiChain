@@ -203,26 +203,26 @@ enum ACCOUNT_TYPE {
  */
 class CVmOperate{
 public:
-    uint8_t accountType;     //!< regid or base58addr
-    uint8_t accountId[34];   //!< accountId: address
-    uint8_t opType;          //!< OperType
-    uint32_t timeoutHeight;  //!< the transacion timeout height
-    uint8_t money[8];        //!< The transfer amount
+    ACCOUNT_TYPE accountType;   //!< regid or base58addr
+    uint8_t accountId[34];      //!< accountId: address
+    BalanceOpType opType;       //!< OperType
+    uint32_t timeoutHeight;     //!< the transacion timeout height
+    uint8_t money[8];           //!< The transfer amount
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(accountType);
+        READWRITE((uint8_t&)accountType);
         for (int8_t i = 0; i < 34; ++i)
             READWRITE(accountId[i]);
-        READWRITE(opType);
+        READWRITE((uint8_t&)opType);
         READWRITE(timeoutHeight);
         for (int8_t i = 0; i < 8; ++i)
             READWRITE(money[i]);
     )
 
     CVmOperate() {
-        accountType = REGID;
+        accountType = ACCOUNT_TYPE::REGID;
         memset(accountId, 0, 34);
-        opType        = NULL_OP;
+        opType        = BalanceOpType::NULL_OP;
         timeoutHeight = 0;
         memset(money, 0, 8);
     }

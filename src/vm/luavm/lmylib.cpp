@@ -1422,12 +1422,12 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
         LogPrint("vm", "WriteOutput(), get addrType failed\n");
         return false;
     } else {
-        operate.accountType = (uint8_t)doubleValue;
+        operate.accountType = (ACCOUNT_TYPE)doubleValue;
     }
 
-    if (operate.accountType == 1) {
+    if (operate.accountType == ACCOUNT_TYPE::REGID) {
        len = 6;
-    } else if (operate.accountType == 2){
+    } else if (operate.accountType == ACCOUNT_TYPE::BASE58ADDR){
        len = 34;
     } else {
         LogPrint("vm", "WriteOutput(), invalid accountType: %d\n", operate.accountType);
@@ -1446,7 +1446,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
         return false;
 
     } else {
-        operate.opType = (unsigned char) doubleValue;
+        operate.opType = (BalanceOpType) doubleValue;
     }
 
     if (!(getNumberInTable(L, "outHeight", doubleValue))) {

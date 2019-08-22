@@ -204,7 +204,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
     for (auto& it : listoperate) {
         if (it.accountType != REGID && it.accountType != ACCOUNT_TYPE::BASE58ADDR) return false;
 
-        if (it.opType == ADD_BCOIN) {
+        if (it.opType == BalanceOpType::ADD_FREE) {
             memcpy(&operValue, it.money, sizeof(it.money));
             /*
             uint64_t temp = addmoey;
@@ -218,7 +218,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
                 return false;
             }
             addmoey = temp;
-        } else if (it.opType == MINUS_BCOIN) {
+        } else if (it.opType == BalanceOpType::SUB_FREE) {
             // vector<unsigned char > accountId(it.accountId,it.accountId+sizeof(it.accountId));
             UnsignedCharArray accountId = GetAccountID(it);
             if (accountId.size() != 6) return false;
@@ -252,7 +252,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
             if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
 
             //  app only be allowed minus self money
-            if (!pContractCache->HaveContract(regId) && it.opType == MINUS_BCOIN) return false;
+            if (!pContractCache->HaveContract(regId) && it.opType == BalanceOpType::SUB_FREE) return false;
         }
     }
 
@@ -304,7 +304,7 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
     for (auto item : vmOperateOutput) {
         UnsignedCharArray vAccountId = GetAccountID(item);
         if (vAccountId == tx->app_uid.get<CRegID>().GetRegIdRaw() &&
-            item.opType == MINUS_BCOIN) {
+            item.opType == BalanceOpType::SUB_FREE) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
             int64_t temp = value;
@@ -402,7 +402,7 @@ bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDB
         // todolist
         //      if(IsSignatureAccount(vmAccount.get()->regid) || vmAccount.get()->regid ==
         //      tx->appRegId.get<CRegID>())
-        { ret = vmAccount.get()->OperateBalance(SYMB::WICC, (BalanceOpType)it.opType, value); }
+        { ret = vmAccount.get()->OperateBalance(SYMB::WICC, it.opType, value); }
         //      else{
         //          ret = vmAccount.get()->OperateBalance((BalanceOpType)it.opType, fund,
         //          *pContractCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);

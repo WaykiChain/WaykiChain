@@ -394,10 +394,10 @@ Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
                 memcpy(&amount, item.money, sizeof(item.money));
                 double dAmount = amount / COIN;
 
-                if (item.opType == ADD_BCOIN) {
+                if (item.opType == BalanceOpType::ADD_FREE) {
                     objOutput.push_back(Pair("category", "receive"));
                     objOutput.push_back(Pair("amount", dAmount));
-                } else if (item.opType == MINUS_BCOIN) {
+                } else if (item.opType == BalanceOpType::SUB_FREE) {
                     objOutput.push_back(Pair("category", "send"));
                     objOutput.push_back(Pair("amount", -dAmount));
                 }
