@@ -2086,12 +2086,13 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
         return state.Invalid(ERRORMSG("CheckBlock() : block version error"), REJECT_INVALID, "block-version-error");
     }
 
-    // Check timestamp 12 seconds limits
-    if (block.GetBlockTime() > GetAdjustedTime() + 12)
+    // Check timestamp `block interval' + 2 seconds limits
+    if (block.GetBlockTime() > GetAdjustedTime() + ::GetBlockInterval(block.GetHeight()) + 2) {
         return state.Invalid(ERRORMSG("CheckBlock() : block timestamp too far in the future"), REJECT_INVALID,
                              "time-too-new");
+    }
 
-    // First transaction must be coinbase, the rest must not be
+    // First transaction must be reward transaction, the rest must not be
     if (block.vptx.empty() || !block.vptx[0]->IsBlockRewardTx())
         return state.DoS(100, ERRORMSG("CheckBlock() : first tx is not coinbase"), REJECT_INVALID, "bad-cb-missing");
 
