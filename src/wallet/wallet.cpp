@@ -334,7 +334,6 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
         // bits of the unencrypted private key in slack space in the database file.
         CDB::Rewrite(strWalletFile);
     }
-    NotifyStatusChanged(this);
 
     return true;
 }

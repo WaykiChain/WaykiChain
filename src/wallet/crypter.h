@@ -1,10 +1,10 @@
-// Copyright (c) 2014-2015 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef __CRYPTER_H__
-#define __CRYPTER_H__
+#ifndef WALLET_CRYPTER_H
+#define WALLET_CRYPTER_H
 
 #include "commons/allocators.h"
 #include "commons/serialize.h"
@@ -12,8 +12,8 @@
 
 class uint256;
 
-const unsigned int WALLET_CRYPTO_KEY_SIZE = 32;
-const unsigned int WALLET_CRYPTO_SALT_SIZE = 8;
+const uint32_t WALLET_CRYPTO_KEY_SIZE  = 32;
+const uint32_t WALLET_CRYPTO_SALT_SIZE = 8;
 
 /*
 Private key encryption is done based on a CMasterKey,
@@ -31,42 +31,34 @@ master key's key as the encryption key (see keystore.[ch]).
 */
 
 /** Master key for wallet encryption */
-class CMasterKey
-{
+class CMasterKey {
 public:
     vector<unsigned char> vchCryptedKey;
     vector<unsigned char> vchSalt;
     // 0 = EVP_sha512()
     // 1 = scrypt()
-    unsigned int nDerivationMethod;
-    unsigned int nDeriveIterations;
+    uint32_t nDerivationMethod;
+    uint32_t nDeriveIterations;
     // Use this for more parameters to key derivation,
     // such as the various parameters to scrypt
     vector<unsigned char> vchOtherDerivationParameters;
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(vchCryptedKey);
-        READWRITE(vchSalt);
-        READWRITE(nDerivationMethod);
-        READWRITE(nDeriveIterations);
-        READWRITE(vchOtherDerivationParameters);
-    )
-    CMasterKey()
-    {
+    IMPLEMENT_SERIALIZE(READWRITE(vchCryptedKey); READWRITE(vchSalt); READWRITE(nDerivationMethod);
+                        READWRITE(nDeriveIterations); READWRITE(vchOtherDerivationParameters);)
+    CMasterKey() {
         // 25000 rounds is just under 0.1 seconds on a 1.86 GHz Pentium M
         // ie slightly lower than the lowest hardware we need bother supporting
-        nDeriveIterations = 25000;
-        nDerivationMethod = 0;
+        nDeriveIterations            = 25000;
+        nDerivationMethod            = 0;
         vchOtherDerivationParameters = vector<unsigned char>(0);
     }
-    bool SetNull()
-    {
-    	vchCryptedKey.clear();
-    	vchSalt.clear();
-    	vchOtherDerivationParameters.clear();
+    bool SetNull() {
+        vchCryptedKey.clear();
+        vchSalt.clear();
+        vchOtherDerivationParameters.clear();
         nDeriveIterations = 25000;
         nDerivationMethod = 0;
+
         return true;
     }
 };
@@ -74,39 +66,37 @@ public:
 typedef vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
 
 /** Encryption/decryption context with key information */
-class CCrypter
-{
+class CCrypter {
 private:
     unsigned char chKey[WALLET_CRYPTO_KEY_SIZE];
     unsigned char chIV[WALLET_CRYPTO_KEY_SIZE];
     bool fKeySet;
 
 public:
-    bool SetKeyFromPassphrase(const SecureString &strKeyData, const vector<unsigned char>& chSalt, const unsigned int nRounds, const unsigned int nDerivationMethod);
-    bool Encrypt(const CKeyingMaterial& vchPlaintext, vector<unsigned char> &vchCiphertext);
+    bool SetKeyFromPassphrase(const SecureString& strKeyData, const vector<unsigned char>& chSalt,
+                              const uint32_t nRounds, const uint32_t nDerivationMethod);
+    bool Encrypt(const CKeyingMaterial& vchPlaintext, vector<unsigned char>& vchCiphertext);
     bool Decrypt(const vector<unsigned char>& vchCiphertext, CKeyingMaterial& vchPlaintext);
     bool SetKey(const CKeyingMaterial& chNewKey, const vector<unsigned char>& chNewIV);
 
-    void CleanKey()
-    {
+    void CleanKey() {
         OPENSSL_cleanse(chKey, sizeof(chKey));
         OPENSSL_cleanse(chIV, sizeof(chIV));
         fKeySet = false;
     }
 
-    CCrypter()
-    {
+    CCrypter() {
         fKeySet = false;
 
-        // Try to keep the key data out of swap (and be a bit over-careful to keep the IV that we don't even use out of swap)
-        // Note that this does nothing about suspend-to-disk (which will put all our key data on disk)
-        // Note as well that at no point in this program is any attempt made to prevent stealing of keys by reading the memory of the running process.
+        // Try to keep the key data out of swap (and be a bit over-careful to keep the IV that we don't even use out of
+        // swap) Note that this does nothing about suspend-to-disk (which will put all our key data on disk) Note as
+        // well that at no point in this program is any attempt made to prevent stealing of keys by reading the memory
+        // of the running process.
         LockedPageManager::Instance().LockRange(&chKey[0], sizeof chKey);
         LockedPageManager::Instance().LockRange(&chIV[0], sizeof chIV);
     }
 
-    ~CCrypter()
-    {
+    ~CCrypter() {
         CleanKey();
 
         LockedPageManager::Instance().UnlockRange(&chKey[0], sizeof chKey);
@@ -114,14 +104,15 @@ public:
     }
 };
 
-bool EncryptSecret(const CKeyingMaterial& vMasterKey, const CKeyingMaterial &vchPlaintext, const uint256& nIV, vector<unsigned char> &vchCiphertext);
-bool DecryptSecret(const CKeyingMaterial& vMasterKey, const vector<unsigned char>& vchCiphertext, const uint256& nIV, CKeyingMaterial& vchPlaintext);
+bool EncryptSecret(const CKeyingMaterial& vMasterKey, const CKeyingMaterial& vchPlaintext, const uint256& nIV,
+                   vector<unsigned char>& vchCiphertext);
+bool DecryptSecret(const CKeyingMaterial& vMasterKey, const vector<unsigned char>& vchCiphertext, const uint256& nIV,
+                   CKeyingMaterial& vchPlaintext);
 
 /** Keystore which keeps the private keys encrypted.
  * It derives from the basic key store, which is used if no encryption is active.
  */
-class CCryptoKeyStore : public CBasicKeyStore
-{
+class CCryptoKeyStore : public CBasicKeyStore {
 private:
     CryptedKeyMap mapCryptedKeys;
 
@@ -140,17 +131,11 @@ protected:
     bool Unlock(const CKeyingMaterial& vMasterKeyIn);
 
 public:
-    CCryptoKeyStore() : fUseCrypto(false)
-    {
-    }
+    CCryptoKeyStore() : fUseCrypto(false) {}
 
-    bool IsEncrypted() const
-    {
-        return fUseCrypto;
-    }
+    bool IsEncrypted() const { return fUseCrypto; }
 
-    bool IsLocked() const
-    {
+    bool IsLocked() const {
         if (!IsEncrypted())
             return false;
         bool result;
@@ -163,13 +148,10 @@ public:
 
     bool Lock();
 
-    bool IsEmpty() {
-    	return mapCryptedKeys.empty() && mapKeys.empty();
-    }
-    virtual bool AddCryptedKey(const CPubKey &vchPubKey, const vector<unsigned char> &vchCryptedSecret);
-    bool AddKeyCombi(const CKeyID & keyId, const CKeyCombi &keyCombi);
-    bool HaveKey(const CKeyID &address) const
-    {
+    bool IsEmpty() { return mapCryptedKeys.empty() && mapKeys.empty(); }
+    virtual bool AddCryptedKey(const CPubKey& vchPubKey, const vector<unsigned char>& vchCryptedSecret);
+    bool AddKeyCombi(const CKeyID& keyId, const CKeyCombi& keyCombi);
+    bool HaveKey(const CKeyID& address) const {
         {
             LOCK(cs_KeyStore);
             if (!IsEncrypted())
@@ -178,12 +160,11 @@ public:
         }
         return false;
     }
-    bool GetKey(const CKeyID &address, CKey& keyOut, bool IsMine=false) const;
+    bool GetKey(const CKeyID& address, CKey& keyOut, bool IsMine = false) const;
 
-    bool GetPubKey(const CKeyID &address, CPubKey& vchPubKeyOut, bool IsMiner=false) const;
+    bool GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut, bool IsMiner = false) const;
 
-    void GetKeys(set<CKeyID> &setAddress, bool bFlag=false) const
-    {
+    void GetKeys(set<CKeyID>& setAddress, bool bFlag = false) const {
         if (!IsEncrypted()) {
             CBasicKeyStore::GetKeys(setAddress, bFlag);
             return;
@@ -192,25 +173,20 @@ public:
         setAddress.clear();
         CryptedKeyMap::const_iterator mi = mapCryptedKeys.begin();
         while (mi != mapCryptedKeys.end()) {
-        	if(!bFlag)
-        		setAddress.insert((*mi).first);
-        	else {
-        		CKeyCombi keyCombi;
-        		if(GetKeyCombi((*mi).first, keyCombi)) {
-        			if (keyCombi.HaveMinerKey() || keyCombi.HaveMainKey())  //only return satisfied mining address
-        			    setAddress.insert((*mi).first);
-        		}
-        	}
+            if (!bFlag)
+                setAddress.insert((*mi).first);
+            else {
+                CKeyCombi keyCombi;
+                if (GetKeyCombi((*mi).first, keyCombi)) {
+                    if (keyCombi.HaveMinerKey() || keyCombi.HaveMainKey())  // only return satisfied mining address
+                        setAddress.insert((*mi).first);
+                }
+            }
             mi++;
         }
     }
 
-    bool GetKeyCombi(const CKeyID & address, CKeyCombi & keyCombiOut) const;
-
-    /* Wallet status (encrypted, locked) changed.
-     * Note: Called without locks held.
-     */
-    boost::signals2::signal<void (CCryptoKeyStore* wallet)> NotifyStatusChanged;
+    bool GetKeyCombi(const CKeyID& address, CKeyCombi& keyCombiOut) const;
 };
 
-#endif
+#endif  // WALLET_CRYPTER_H

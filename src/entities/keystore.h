@@ -6,7 +6,6 @@
 #ifndef ENTITIES_KEYSTORE_H
 #define ENTITIES_KEYSTORE_H
 
-#include <boost/signals2/signal.hpp>
 #include <set>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -151,4 +150,4 @@ public:
 typedef vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
 typedef map<CKeyID, pair<CPubKey, vector<unsigned char> > > CryptedKeyMap;
 
-#endif //ENTITIES_KEYSTORE_H
+#endif  // ENTITIES_KEYSTORE_H
