@@ -3,10 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "main.h"
 #include "contract.h"
-
-static const std::string kLuaScriptHeadLine = "mylib = require";
+#include "config/const.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CLuaContract
@@ -15,7 +13,7 @@ bool CLuaContract::IsValid() {
     if (code.size() > MAX_CONTRACT_CODE_SIZE)
         return false;
 
-    if (code.compare(0, kLuaScriptHeadLine.size(), kLuaScriptHeadLine))
+    if (code.compare(0, LUA_CONTRACT_HEADLINE.size(), LUA_CONTRACT_HEADLINE))
         return false;  // lua script shebang existing verified
 
     if (memo.size() > MAX_CONTRACT_MEMO_SIZE)

@@ -7,13 +7,16 @@
 #ifndef ENTITIES_CONTRACT_H
 #define ENTITIES_CONTRACT_H
 
-#include "id.h"
+#include "commons/serialize.h"
+#include "config/version.h"
 
 #include <string>
 
+using namespace std;
+
 /**
  *  lua contract - for blockchain tx serialization/deserialization purpose
- *      - This is a backward compability implmentation,
+ *      - This is a backward compability implentation,
  *      - Only universal contract tx will be allowed after the software fork height
  */
 class CLuaContract {
