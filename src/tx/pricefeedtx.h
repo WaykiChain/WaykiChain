@@ -45,7 +45,6 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, 0}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CPriceFeedTx>(*this); }
     virtual double GetPriority() const { return kPriceFeedTransactionPriority; }    // Top priority
     virtual string ToString(CAccountDBCache &accountCache);            // logging usage

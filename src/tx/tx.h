@@ -85,7 +85,6 @@ public:
     virtual double GetPriority() const {
         return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
-    virtual map<TokenSymbol, uint64_t> GetValues() const = 0;
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
 

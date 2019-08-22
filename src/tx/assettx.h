@@ -46,9 +46,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{asset.symbol, asset.total_supply}}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
-    // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetIssueTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
@@ -108,9 +106,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {}; }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
-    // virtual uint64_t GetFees() const { return llFees; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetUpdateTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);

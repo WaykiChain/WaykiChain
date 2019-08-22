@@ -221,8 +221,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listdelegates"          && n > 0) ConvertTo<int>(params[0]);
     if (strMethod == "listtransactions"       && n > 1) ConvertTo<int>(params[1]);
     if (strMethod == "listtransactions"       && n > 2) ConvertTo<int>(params[2]);
-    if (strMethod == "listtransactionsv2"     && n > 1) ConvertTo<int>(params[1]);
-    if (strMethod == "listtransactionsv2"     && n > 2) ConvertTo<int>(params[2]);
 
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int>(params[0]); }
 

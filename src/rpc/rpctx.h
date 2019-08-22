@@ -60,7 +60,6 @@ extern Object TxToJSON(CBaseTx *pTx);
 extern Value gettotalcoins(const Array& params, bool fHelp);
 extern Value gettotalassets(const Array& params, bool fHelp);
 
-extern Value gettransaction(const Array& params, bool fHelp);
 extern Value getsignature(const Array& params, bool fHelp);
 
 extern Value listaddr(const Array& params, bool fHelp);
@@ -71,7 +70,5 @@ extern Value listcontracts(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value listdelegates(const Array& params, bool fHelp);
 extern Value listcontracttx(const Array& params, bool fHelp);
-extern Value listtransactions(const Array& params, bool fHelp);
-extern Value listtransactionsv2(const Array& params, bool fHelp);
 
 #endif /* RPCTX_H_ */

@@ -105,7 +105,6 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CMulsigTx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);

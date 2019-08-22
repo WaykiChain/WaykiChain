@@ -32,8 +32,6 @@ public:
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
-    map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, 0}}; }
-
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             assert(txUid.type() == typeid(CPubKey) &&

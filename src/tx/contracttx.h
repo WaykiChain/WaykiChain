@@ -45,7 +45,6 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractDeployTx>(*this); }
     virtual uint64_t GetFuel(uint32_t nFuelRate);
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, 0}}; }
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
@@ -101,7 +100,6 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WICC, bcoins}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);
@@ -152,7 +150,6 @@ public:
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployTx>(*this); }
     virtual uint64_t GetFuel(uint32_t nFuelRate);
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{coin_symbol, coin_amount}}; }
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
@@ -214,7 +211,6 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{coin_symbol, coin_amount}}; }
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);

@@ -235,9 +235,12 @@ Object GetTxDetailJSON(const uint256& txid) {
         for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
             if (txid == genesisblock.GetTxid(i)) {
                 obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
-                obj.push_back(Pair("block_hash",        SysCfg().GetGenesisBlockHash().GetHex()));
+
+                obj.push_back(Pair("confirmations",     chainActive.Height()));
+                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
                 obj.push_back(Pair("confirmed_height",  (int32_t)0));
                 obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
+
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -255,19 +258,22 @@ Object GetTxDetailJSON(const uint256& txid) {
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
                     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
+
+                    obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
+                    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
                     obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
                     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
-                    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
 
                     if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
-                        vector<CVmOperate> vOutput;
-                        pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
+                        vector<CVmOperate> output;
+                        pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), output);
                         Array outputArray;
-                        for (auto& item : vOutput) {
+                        for (auto &item : output) {
                             outputArray.push_back(item.ToJson());
                         }
                         obj.push_back(Pair("list_output", outputArray));
                     }
+
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
                     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
@@ -290,197 +296,6 @@ Object GetTxDetailJSON(const uint256& txid) {
         }
     }
     return obj;
-}
-
-Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx) {
-    Array arrayDetail;
-    Object obj;
-    std::set<CKeyID> vKeyIdSet;
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-
-    double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
-    switch (pBaseTx->nTxType) {
-        case BLOCK_REWARD_TX: {
-            if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
-                return arrayDetail;
-
-            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
-            obj.push_back(Pair("category", "receive"));
-            obj.push_back(Pair("amount", dAmount));
-            obj.push_back(Pair("tx_type", "BLOCK_REWARD_TX"));
-            arrayDetail.push_back(obj);
-
-            break;
-        }
-        case ACCOUNT_REGISTER_TX: {
-            if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
-                return arrayDetail;
-
-            obj.push_back(Pair("address", vKeyIdSet.begin()->ToAddress()));
-            obj.push_back(Pair("category", "send"));
-            obj.push_back(Pair("amount", dAmount));
-            obj.push_back(Pair("tx_type", "ACCOUNT_REGISTER_TX"));
-            arrayDetail.push_back(obj);
-
-            break;
-        }
-        case BCOIN_TRANSFER_TX: {
-            CBaseCoinTransferTx* ptx = (CBaseCoinTransferTx*)pBaseTx.get();
-            CKeyID sendKeyID;
-            if (ptx->txUid.type() == typeid(CPubKey)) {
-                sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
-            } else if (ptx->txUid.type() == typeid(CRegID)) {
-                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
-            }
-
-            CKeyID recvKeyId;
-            if (ptx->toUid.type() == typeid(CKeyID)) {
-                recvKeyId = ptx->toUid.get<CKeyID>();
-            } else if (ptx->toUid.type() == typeid(CRegID)) {
-                CRegID desRegID = ptx->toUid.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
-            }
-
-            obj.push_back(Pair("tx_type",           "BCOIN_TRANSFER_TX"));
-            obj.push_back(Pair("from_address",      sendKeyID.ToAddress()));
-            obj.push_back(Pair("to_address",        recvKeyId.ToAddress()));
-            obj.push_back(Pair("transfer_amount",   dAmount));
-            obj.push_back(Pair("memo",              HexStr(ptx->memo)));
-            arrayDetail.push_back(obj);
-
-            break;
-        }
-        case LCONTRACT_INVOKE_TX: {
-            CLuaContractInvokeTx* ptx = (CLuaContractInvokeTx*)pBaseTx.get();
-            CKeyID sendKeyID;
-            if (ptx->txUid.type() == typeid(CPubKey)) {
-                sendKeyID = ptx->txUid.get<CPubKey>().GetKeyId();
-            } else if (ptx->txUid.type() == typeid(CRegID)) {
-                sendKeyID = ptx->txUid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
-            }
-
-            CKeyID recvKeyId;
-            if (ptx->app_uid.type() == typeid(CRegID)) {
-                CRegID appUid = ptx->app_uid.get<CRegID>();
-                recvKeyId     = appUid.GetKeyId(*pCdMan->pAccountCache);
-            }
-
-            obj.push_back(Pair("tx_type",       "LCONTRACT_INVOKE_TX"));
-            obj.push_back(Pair("from_address",  sendKeyID.ToAddress()));
-            obj.push_back(Pair("to_address",    recvKeyId.ToAddress()));
-            obj.push_back(Pair("arguments",     HexStr(ptx->arguments)));
-            obj.push_back(Pair("transfer_amount", dAmount));
-            arrayDetail.push_back(obj);
-
-            vector<CVmOperate> vOutput;
-            pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), vOutput);
-            Array outputArray;
-            for (auto& item : vOutput) {
-                Object objOutput;
-                string address;
-                if (item.accountType == ACCOUNT_TYPE::REGID) {
-                    vector<unsigned char> vRegId(item.accountId, item.accountId + 6);
-                    CRegID regId(vRegId);
-                    CUserID userId(regId);
-                    address = RegIDToAddress(userId);
-
-                } else if (item.accountType == ACCOUNT_TYPE::BASE58ADDR) {
-                    address.assign(item.accountId[0], sizeof(item.accountId));
-                }
-
-                objOutput.push_back(Pair("address", address));
-
-                uint64_t amount;
-                memcpy(&amount, item.money, sizeof(item.money));
-                double dAmount = amount / COIN;
-
-                if (item.opType == BalanceOpType::ADD_FREE) {
-                    objOutput.push_back(Pair("category", "receive"));
-                    objOutput.push_back(Pair("amount", dAmount));
-                } else if (item.opType == BalanceOpType::SUB_FREE) {
-                    objOutput.push_back(Pair("category", "send"));
-                    objOutput.push_back(Pair("amount", -dAmount));
-                }
-
-                if (item.timeoutHeight > 0)
-                    objOutput.push_back(Pair("freeze_height", (int32_t)item.timeoutHeight));
-
-                arrayDetail.push_back(objOutput);
-            }
-
-            break;
-        }
-        case LCONTRACT_DEPLOY_TX:
-        case DELEGATE_VOTE_TX: {
-
-            if (!pBaseTx->GetInvolvedKeyIds(*spCW, vKeyIdSet))
-                return arrayDetail;
-
-            double dAmount = static_cast<double>(pBaseTx->GetValues()[SYMB::WICC]) / COIN;
-
-            obj.push_back(Pair("from_address", vKeyIdSet.begin()->ToAddress()));
-            obj.push_back(Pair("category", "send"));
-            obj.push_back(Pair("transfer_amount", dAmount));
-
-            if (pBaseTx->nTxType == LCONTRACT_DEPLOY_TX)
-                obj.push_back(Pair("tx_type", "LCONTRACT_DEPLOY_TX"));
-            else if (pBaseTx->nTxType == DELEGATE_VOTE_TX)
-                obj.push_back(Pair("tx_type", "DELEGATE_VOTE_TX"));
-
-            arrayDetail.push_back(obj);
-
-            break;
-        }
-        case BCOIN_TRANSFER_MTX: {
-            CMulsigTx* ptx = (CMulsigTx*)pBaseTx.get();
-
-            CAccount account;
-            set<CPubKey> pubKeys;
-            for (const auto& item : ptx->signaturePairs) {
-                if (!pCdMan->pAccountCache->GetAccount(item.regid, account))
-                    return arrayDetail;
-
-                pubKeys.insert(account.owner_pubkey);
-            }
-
-            CMulsigScript script;
-            script.SetMultisig(ptx->required, pubKeys);
-            CKeyID sendKeyId = script.GetID();
-
-            CKeyID recvKeyId;
-            if (ptx->desUserId.type() == typeid(CKeyID)) {
-                recvKeyId = ptx->desUserId.get<CKeyID>();
-            } else if (ptx->desUserId.type() == typeid(CRegID)) {
-                CRegID desRegID = ptx->desUserId.get<CRegID>();
-                recvKeyId       = desRegID.GetKeyId(*pCdMan->pAccountCache);
-            }
-
-            obj.push_back(Pair("tx_type",           "BCOIN_TRANSFER_MTX"));
-            obj.push_back(Pair("from_address",      sendKeyId.ToAddress()));
-            obj.push_back(Pair("to_address",        recvKeyId.ToAddress()));
-            obj.push_back(Pair("transfer_amount",   dAmount));
-            obj.push_back(Pair("memo",              HexStr(ptx->memo)));
-
-            arrayDetail.push_back(obj);
-            break;
-        }
-        //TODO: other Tx types
-        case CDP_STAKE_TX:
-        case CDP_REDEEM_TX:
-        case CDP_LIQUIDATE_TX:
-        case PRICE_FEED_TX:
-        case FCOIN_STAKE_TX:
-        case DEX_TRADE_SETTLE_TX:
-        case DEX_CANCEL_ORDER_TX:
-        case DEX_LIMIT_BUY_ORDER_TX:
-        case DEX_LIMIT_SELL_ORDER_TX:
-        case DEX_MARKET_BUY_ORDER_TX:
-        case DEX_MARKET_SELL_ORDER_TX:
-        default:
-            break;
-    }
-
-    return arrayDetail;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

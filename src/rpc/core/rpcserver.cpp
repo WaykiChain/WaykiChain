@@ -229,7 +229,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getnettotals",           &getnettotals,           true,      true,       false },
     { "getpeerinfo",            &getpeerinfo,            true,      false,      false },
     { "ping",                   &ping,                   true,      false,      false },
-    { "getchainstate",          &getchainstate,          false,     false,      false }, //true
+    { "getchainstate",          &getchainstate,          false,     false,      false },
 
     /* Block chain and UTXO */
     { "getblockchaininfo",      &getblockchaininfo,      true,      false,      false },
@@ -275,11 +275,8 @@ static const CRPCCommand vRPCCommands[] =
 
     { "importwallet",           &importwallet,           false,     false,      true },
     { "listaddr",               &listaddr,               true,      false,      true },
-    { "listtransactions",       &listtransactions,       true,      false,      true },
-    { "listtransactionsv2",     &listtransactionsv2,     true,      false,      true },
     { "listtx",                 &listtx,                 true,      false,      true },
     { "listcontracttx",         &listcontracttx,         true,      false,      true },
-    { "gettransaction",         &gettransaction,         true,      false,      true },
 
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
     { "deploycontracttx",     &deploycontracttx,     true,      false,      true },

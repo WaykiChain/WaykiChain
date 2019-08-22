@@ -51,9 +51,7 @@ public:
         return sigHash;
     }
 
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return {{SYMB::WGRT, fcoinsToStake}}; }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CFcoinStakeTx>(*this); }
-
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
