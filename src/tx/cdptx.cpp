@@ -368,8 +368,8 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     //2. pay interest fees in wusd
     CUserCDP cdp;
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, get cdp=%s failed", cdp_txid.ToString()),
-                         REJECT_INVALID, "get-cdp-failed");
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, get cdp=%s failed",
+                    cdp_txid.ToString()), REJECT_INVALID, "get-cdp-failed");
     }
 
     CUserCDP oldCDP = cdp; // copy before modify.

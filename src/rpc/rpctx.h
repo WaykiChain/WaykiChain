@@ -52,8 +52,6 @@ extern Value getcontractaccountinfo(const Array& params, bool fHelp);
 extern Value saveblocktofile(const Array& params, bool fHelp);
 extern Value getalltxinfo(const Array& params, bool fHelp);
 
-extern Value gettxreceipt(const Array& params, bool fHelp);
-
 extern Value gethash(const Array& params, bool fHelp);
 extern Value validateaddr(const Array& params, bool fHelp);
 extern Object TxToJSON(CBaseTx *pTx);

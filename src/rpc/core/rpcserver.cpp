@@ -307,7 +307,6 @@ static const CRPCCommand vRPCCommands[] =
 
     { "signtxraw",              &signtxraw,              true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
-    { "gettxreceipt",           &gettxreceipt,           true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
     { "decodetxraw",            &decodetxraw,            false,     false,      false},

@@ -1807,32 +1807,6 @@ Value getalltxinfo(const Array& params, bool fHelp) {
     return retObj;
 }
 
-Value gettxreceipt(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        throw runtime_error(
-            "gettxreceipt\n"
-            "\nget tx receipts by txid\n"
-            "\nArguments:\n"
-            "1.\"txid\":    (string) txid\n"
-            "\nResult:\n"
-            "\nExamples:\n" +
-            HelpExampleCli("gettxreceipt", "\"e2d6f2c1ba5fc862aacf5324d7e7da048f562486d37d45dbd91ebcd3a347c609\"") +
-            "\nAs json rpc call\n" +
-            HelpExampleRpc("gettxreceipt", "\"e2d6f2c1ba5fc862aacf5324d7e7da048f562486d37d45dbd91ebcd3a347c609\""));
-    }
-
-    uint256 txid = uint256S(params[0].get_str());
-    vector<CReceipt> receipts;
-    pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
-
-    Array array;
-    for (const auto &receipt : receipts) {
-        array.push_back(receipt.ToJson());
-    }
-
-    return array;
-}
-
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(

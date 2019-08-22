@@ -225,7 +225,6 @@ bool GetKeyId(const string &addr, CKeyID &keyId) {
 
 Object GetTxDetailJSON(const uint256& txid) {
     Object obj;
-    std::shared_ptr<CBaseTx> pBaseTx;
     {
         LOCK(cs_main);
         CBlock genesisblock;
@@ -244,15 +243,19 @@ Object GetTxDetailJSON(const uint256& txid) {
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
                 return obj;
             }
         }
+
+        std::shared_ptr<CBaseTx> pBaseTx;
 
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
             if (pCdMan->pContractCache->ReadTxIndex(txid, postx)) {
                 CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
+
                 try {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
@@ -264,15 +267,24 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
                     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
 
-                    if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
-                        vector<CVmOperate> output;
-                        pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), output);
-                        Array outputArray;
-                        for (auto &item : output) {
-                            outputArray.push_back(item.ToJson());
-                        }
-                        obj.push_back(Pair("list_output", outputArray));
+                    vector<CReceipt> receipts;
+                    pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
+                    Array receiptArray;
+                    for (const auto &receipt : receipts) {
+                        receiptArray.push_back(receipt.ToJson());
                     }
+                    obj.push_back(Pair("receipt", receiptArray));
+
+                    // TODO: replace with receipt
+                    // if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
+                    //     vector<CVmOperate> output;
+                    //     pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), output);
+                    //     Array outputArray;
+                    //     for (auto &item : output) {
+                    //         outputArray.push_back(item.ToJson());
+                    //     }
+                    //     obj.push_back(Pair("list_output", outputArray));
+                    // }
 
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
@@ -280,6 +292,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                 } catch (std::exception &e) {
                     throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }
+
                 return obj;
             }
         }
@@ -295,6 +308,7 @@ Object GetTxDetailJSON(const uint256& txid) {
             }
         }
     }
+
     return obj;
 }
 
