@@ -56,7 +56,7 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("tx_uid",         txUid.ToString()));
     result.push_back(Pair("to_addr",        keyId.ToAddress()));
     result.push_back(Pair("reward_value",   reward));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("valid_height",   valid_height));
 
     return result;
 }
@@ -108,8 +108,8 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
         reward += strprintf("%s: %lu, ", item.first, item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, reward=%s, nValidHeight=%d\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward, nValidHeight);
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, reward=%s, valid_height=%d\n", GetTxType(nTxType),
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward, valid_height);
 }
 
 Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -128,7 +128,7 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("tx_uid",         txUid.ToString()));
     result.push_back(Pair("to_addr",        keyId.ToAddress()));
     result.push_back(Pair("reward_value",   reward));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("valid_height",   valid_height));
 
     return result;
 }

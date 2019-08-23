@@ -65,9 +65,9 @@ bool CFcoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 
 string CFcoinStakeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, stakeType=%s, fcoinsToStake=%lu, llFees=%ld, nValidHeight=%d\n",
+        "txType=%s, hash=%s, ver=%d, txUid=%s, stakeType=%s, fcoinsToStake=%lu, llFees=%ld, valid_height=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), GetBalanceOpTypeName(stakeType),
-        fcoinsToStake, llFees, nValidHeight);
+        fcoinsToStake, llFees, valid_height);
 }
 
 Object CFcoinStakeTx::ToJson(const CAccountDBCache &accountCache) const {

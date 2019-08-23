@@ -123,9 +123,9 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 }
 
 string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d\n"
         "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, valid_height,
         asset.owner_uid.ToString(), asset.symbol, asset.name, asset.total_supply, asset.mintable);
 }
 
@@ -145,9 +145,9 @@ Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CAssetUpdateTx
 
 string CAssetUpdateTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, nValidHeight=%d\n"
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d\n"
         "owner_uid=%s, asset_name=%s, mint_amount=%llu",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, nValidHeight,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, valid_height,
         owner_uid.ToString(), asset_name, mint_amount);
 }
 

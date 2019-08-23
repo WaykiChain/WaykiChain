@@ -44,7 +44,7 @@ public:
     int32_t nVersion;
     TxType nTxType;
     mutable CUserID txUid;
-    int32_t nValidHeight;
+    int32_t valid_height;
     TokenSymbol fee_symbol; // fee symbol, default is WICC, some tx (MAJOR_VER_R1) not serialize this field
     uint64_t llFees;
     UnsignedCharArray signature;
@@ -55,23 +55,23 @@ public:
 
 public:
     CBaseTx(int32_t nVersionIn, TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
-        nVersion(nVersionIn), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn),
+        nVersion(nVersionIn), nTxType(nTxTypeIn), txUid(txUidIn), valid_height(nValidHeightIn),
         fee_symbol(SYMB::WICC), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
 
     CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, TokenSymbol feeSymbolIn, uint64_t llFeesIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn),
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), valid_height(nValidHeightIn),
         fee_symbol(feeSymbolIn), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
 
     CBaseTx(TxType nTxTypeIn, CUserID txUidIn, int32_t nValidHeightIn, uint64_t llFeesIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), nValidHeight(nValidHeightIn),
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), txUid(txUidIn), valid_height(nValidHeightIn),
         fee_symbol(SYMB::WICC), llFees(llFeesIn), nRunStep(0), nFuelRate(0) {}
 
     CBaseTx(int32_t nVersionIn, TxType nTxTypeIn) :
-        nVersion(nVersionIn), nTxType(nTxTypeIn), nValidHeight(0), fee_symbol(SYMB::WICC), llFees(0), nRunStep(0),
+        nVersion(nVersionIn), nTxType(nTxTypeIn), valid_height(0), fee_symbol(SYMB::WICC), llFees(0), nRunStep(0),
         nFuelRate(0) {}
 
     CBaseTx(TxType nTxTypeIn) :
-        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), nValidHeight(0), fee_symbol(SYMB::WICC), llFees(0), nRunStep(0),
+        nVersion(CURRENT_VERSION), nTxType(nTxTypeIn), valid_height(0), fee_symbol(SYMB::WICC), llFees(0), nRunStep(0),
         nFuelRate(0) {}
 
     virtual ~CBaseTx() {}

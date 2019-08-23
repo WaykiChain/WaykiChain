@@ -134,9 +134,9 @@ string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, llFees=%llu, nValidHeight=%d\n",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, llFees=%llu, valid_height=%d\n",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), llFees,
-                     nValidHeight);
+                     valid_height);
 }
 
 Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -287,9 +287,9 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, coin_amount=%llu, llFees=%llu, arguments=%s, "
-        "nValidHeight=%d\n",
+        "valid_height=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), coin_amount, llFees,
-        HexStr(arguments), nValidHeight);
+        HexStr(arguments), valid_height);
 }
 
 Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {

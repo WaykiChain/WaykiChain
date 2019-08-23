@@ -43,9 +43,9 @@ string CMulsigTx::ToString(CAccountDBCache &accountCache) {
     }
     string str = strprintf(
         "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoins=%ld, llFees=%ld, "
-        "memo=%s,  nValidHeight=%d\n",
+        "memo=%s,  valid_height=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, desId,
-        bcoins, llFees, HexStr(memo), nValidHeight);
+        bcoins, llFees, HexStr(memo), valid_height);
 
     return str;
 }
@@ -90,7 +90,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     result.push_back(Pair("money",          bcoins));
     result.push_back(Pair("fees",           llFees));
     result.push_back(Pair("memo",           HexStr(memo)));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("valid_height",   valid_height));
 
     return result;
 }

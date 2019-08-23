@@ -29,7 +29,7 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(txUid);
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
 
         READWRITE(coin_symbol);
         READWRITE(VARINT(coin_amount));
@@ -40,7 +40,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(nValidHeight)
+            ss  << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(valid_height)
                 << coin_symbol << VARINT(coin_amount);
 
             sigHash = ss.GetHash();

@@ -646,7 +646,7 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
         } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
             COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
             LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current height=%d\n",
-                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Tip()->height);
+                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Height());
             PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
         }
 

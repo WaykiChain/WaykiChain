@@ -151,17 +151,17 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
         auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regid;
-        pRewardTx->nValidHeight = pBlock->GetHeight();
+        pRewardTx->valid_height = pBlock->GetHeight();
 
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx          = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regid;
-        pRewardTx->nValidHeight = pBlock->GetHeight();
+        pRewardTx->valid_height = pBlock->GetHeight();
         pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
 
         auto pPriceMedianTx          = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         pPriceMedianTx->txUid        = delegate.regid;
-        pPriceMedianTx->nValidHeight = pBlock->GetHeight();
+        pPriceMedianTx->valid_height = pBlock->GetHeight();
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
@@ -699,7 +699,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         int64_t lastTime;
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
-            if (uint32_t(chainActive.Tip()->height + 1) != pBlock->GetHeight())
+            if (uint32_t(chainActive.Height() + 1) != pBlock->GetHeight())
                 return false;
 
             CKey acctKey;
@@ -782,7 +782,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             if (SysCfg().NetworkID() != REGTEST_NET) {
                 // Busy-wait for the network to come online so we don't waste time mining
                 // on an obsolete chain. In regtest mode we expect to fly solo.
-                while (vNodes.empty() || (chainActive.Tip() && chainActive.Tip()->height > 1 &&
+                while (vNodes.empty() || (chainActive.Tip() && chainActive.Height() > 1 &&
                                           GetAdjustedTime() - chainActive.Tip()->nTime > 60 * 60 &&
                                           !SysCfg().GetBoolArg("-genblockforce", false))) {
                     MilliSleep(1000);

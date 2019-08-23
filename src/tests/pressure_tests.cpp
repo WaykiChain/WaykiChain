@@ -281,8 +281,8 @@ public:
 		totalValue += scriptaccValue;
 
 		uint64_t uTotalRewardValue(0);
-		if (chainActive.Tip()->height - 1 > BLOCK_REWARD_MATURITY)  //height 1 is generate by another account
-			uTotalRewardValue = 10 * COIN * (chainActive.Tip()->height - 101);
+		if (chainActive.Height() - 1 > BLOCK_REWARD_MATURITY)  //height 1 is generate by another account
+			uTotalRewardValue = 10 * COIN * (chainActive.Height() - 101);
 		dFee.push_back(llFees);
 		dFuel.push_back(llFuelValue);
 		llTotalFee += llFees;

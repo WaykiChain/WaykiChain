@@ -503,8 +503,8 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         // add interruption point
         boost::this_thread::interruption_point();
 
-        int64_t nStart       = GetTimeMillis();
-        int32_t nValidHeight = chainActive.Tip()->height;
+        int64_t nStart      = GetTimeMillis();
+        int32_t validHeight = chainActive.Height();
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CBaseCoinTransferTx tx;
@@ -512,7 +512,7 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
             tx.toUid        = desRegId;
             tx.coin_amount  = llValue++;
             tx.llFees       = llFees;
-            tx.nValidHeight = nValidHeight;
+            tx.valid_height = validHeight;
 
             // sign transaction
             key.Sign(tx.ComputeSignatureHash(), tx.signature);
@@ -644,8 +644,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         // add interruption point
         boost::this_thread::interruption_point();
 
-        int64_t nStart       = GetTimeMillis();
-        int32_t nValidHeight = chainActive.Tip()->height;
+        int64_t nStart      = GetTimeMillis();
+        int32_t validHeight = chainActive.Height();
 
         for (int64_t i = 0; i < batchSize; ++i) {
             CLuaContractInvokeTx tx;
@@ -654,7 +654,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
             tx.coin_amount  = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;
-            tx.nValidHeight = nValidHeight;
+            tx.valid_height = validHeight;
 
             // sign transaction
             key.Sign(tx.ComputeSignatureHash(), tx.signature);

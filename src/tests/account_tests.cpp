@@ -114,7 +114,7 @@ BOOST_FIXTURE_TEST_SUITE(tx_tests,CTxTest)
 BOOST_FIXTURE_TEST_CASE(tx_add_free,CTxTest) {
 	//invalid data
 //	CFund fund(1, CHAIN_HEIGHT + 1);
-	int height = chainActive.Tip()->height;
+	int height = chainActive.Height();
 	BOOST_CHECK(accOperate.OperateBalance(ADD_BCOIN, 1, height));
 //	fund.value = BASECOIN_MAX_MONEY;
 

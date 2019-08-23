@@ -23,7 +23,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
         READWRITE(txUid);
 
         READWRITE(contract);
@@ -34,7 +34,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << contract
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << contract
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }
@@ -65,7 +65,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
         READWRITE(txUid);
         READWRITE(app_uid);
         READWRITE(VARINT(llFees));
@@ -77,7 +77,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << app_uid
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << app_uid
                << VARINT(llFees) << VARINT(coin_amount) << arguments;
             sigHash = ss.GetHash();
         }
@@ -107,7 +107,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
         READWRITE(txUid);
 
         READWRITE(fee_symbol);
@@ -122,7 +122,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << VARINT(llFees) << fee_symbol
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees) << fee_symbol
                << coin_symbol << VARINT(coin_amount) << contract;
             sigHash = ss.GetHash();
         }
@@ -170,7 +170,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
         READWRITE(txUid);
 
         READWRITE(app_uid);
@@ -186,7 +186,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << app_uid << arguments
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << app_uid << arguments
                << VARINT(llFees) << fee_symbol << coin_symbol << VARINT(coin_amount);
             sigHash = ss.GetHash();
         }

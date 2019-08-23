@@ -24,7 +24,7 @@ public:
             txUid = CRegID(accountIn);
         }
         reward  = rewardIn;
-        nValidHeight = nValidHeightIn;
+        valid_height = nValidHeightIn;
     }
     ~CBlockRewardTx() {}
 
@@ -35,12 +35,12 @@ public:
 
         // Do NOT change the order.
         READWRITE(VARINT(reward));
-        READWRITE(VARINT(nValidHeight));)
+        READWRITE(VARINT(valid_height));)
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(reward) << VARINT(nValidHeight);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(reward) << VARINT(valid_height);
             sigHash = ss.GetHash();
         }
 
@@ -75,14 +75,14 @@ public:
             rewards.emplace(item.first, item.second);
         }
 
-        nValidHeight = validHeightIn;
+        valid_height = validHeightIn;
     }
     ~CUCoinBlockRewardTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
         READWRITE(txUid);
 
         READWRITE(rewards);
@@ -92,7 +92,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << rewards << VARINT(profits);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << rewards << VARINT(profits);
             sigHash = ss.GetHash();
         }
 

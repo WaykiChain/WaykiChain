@@ -115,7 +115,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         }
         rtx.txUid        = pubkey;
         rtx.llFees       = fee;
-        rtx.nValidHeight = chainActive.Height();
+        rtx.valid_height = chainActive.Height();
 
         if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
             throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
@@ -202,7 +202,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     tx.coin_amount  = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
-    tx.nValidHeight = height;
+    tx.valid_height = height;
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -341,7 +341,7 @@ Value deploycontracttx(const Array& params, bool fHelp) {
         if (0 == height) {
             height = chainActive.Height();
         }
-        tx.nValidHeight = height;
+        tx.valid_height = height;
 
         if (!pWalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -433,9 +433,9 @@ Value votedelegatetx(const Array& params, bool fHelp) {
 
         delegateVoteTx.llFees = fee;
         if (0 != height) {
-            delegateVoteTx.nValidHeight = height;
+            delegateVoteTx.valid_height = height;
         } else {
-            delegateVoteTx.nValidHeight = chainActive.Height();
+            delegateVoteTx.valid_height = chainActive.Height();
         }
         delegateVoteTx.txUid = account.regid;
 
@@ -554,7 +554,7 @@ Value genvotedelegateraw(const Array& params, bool fHelp) {
         }
 
         delegateVoteTx.llFees       = fees;
-        delegateVoteTx.nValidHeight = height;
+        delegateVoteTx.valid_height = height;
         delegateVoteTx.txUid        = account.regid;
 
         for (auto objVote : arrVotes) {
@@ -1278,7 +1278,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     tx.coin_amount  = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
-    tx.nValidHeight = height;
+    tx.valid_height = height;
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -1392,7 +1392,7 @@ Value genregistercontractraw(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
         }
     }
-    tx.get()->nValidHeight = height;
+    tx.get()->valid_height = height;
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx->GetNewInstance();

@@ -1963,7 +1963,7 @@ static int ExTransferContractAsset(lua_State *L)
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }
 
-    temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
+    temp.get()->AutoMergeFreezeToFree(chainActive.Height());
 
     uint64_t nMoney = temp.get()->GetBcoins();
 

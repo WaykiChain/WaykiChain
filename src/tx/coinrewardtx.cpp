@@ -55,7 +55,7 @@ Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("to_addr",        txUid.get<CPubKey>().GetKeyId().ToAddress()));
     result.push_back(Pair("coin_symbol",    coin_symbol));
     result.push_back(Pair("coin_amount",    coin_amount));
-    result.push_back(Pair("valid_height",   nValidHeight));
+    result.push_back(Pair("valid_height",   valid_height));
 
     return result;
 }

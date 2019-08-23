@@ -327,7 +327,7 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     tx.coin_amount  = nValue;
     tx.llFees       = (0 == nFee) ? SysCfg().GetTxFee() : nFee;
     tx.memo         = memo;
-    tx.nValidHeight = height;
+    tx.valid_height = height;
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         return std::make_tuple(false, "Sign failed");
@@ -705,7 +705,7 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send amount <= 0 error!");
     }
 
-    int height = chainActive.Tip()->height;
+    int height = chainActive.Height();
     if (params.size() > 4) {
         height = params[4].get_int();
         if (height <= 0) {
@@ -729,15 +729,15 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     if (!pCdMan->pAccountCache->GetAccount(sendUserId, fromAccount))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender User Account not found.");
 
-    if (fromAccount.GetToken(SYMB::WICC).free_amount < (uint64_t) amount)
+    if (fromAccount.GetToken(SYMB::WICC).free_amount < (uint64_t)amount)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sender User Account insufficient amount to transfer");
 
     CBaseCoinTransferTx tx;
     tx.txUid        = sendUserId;
     tx.toUid        = recvUserId;
-    tx.coin_amount  = (uint64_t)amount;
+    tx.coin_amount  = amount;
     tx.llFees       = fee;
-    tx.nValidHeight = height;
+    tx.valid_height = height;
 
     if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
@@ -791,7 +791,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CKeyID recvKeyId;
     CUserID recvUserId;
     CRegID recvRegId;
-    int height = chainActive.Tip()->height;
+    int height = chainActive.Height();
 
     if (!GetKeyId(params[1].get_str(), recvKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
@@ -837,7 +837,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     tx.bcoins   = amount;
     tx.llFees         = fee;
     tx.required       = required;
-    tx.nValidHeight   = height;
+    tx.valid_height   = height;
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
@@ -892,7 +892,7 @@ Value getassets(const Array& params, bool fHelp) {
             continue;
         }
 
-        temp.get()->AutoMergeFreezeToFree(chainActive.Tip()->height);
+        temp.get()->AutoMergeFreezeToFree(chainActive.Height());
         uint64_t freeValues = temp.get()->GetBcoins();
         uint64_t freezeValues = temp.get()->GetAllFreezedValues();
         totalassets += freeValues;

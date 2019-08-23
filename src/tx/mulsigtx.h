@@ -81,7 +81,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
-        READWRITE(VARINT(nValidHeight));
+        READWRITE(VARINT(valid_height));
         READWRITE(signaturePairs);
         READWRITE(desUserId);
         READWRITE(fee_symbol);
@@ -94,7 +94,7 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height);
             // Do NOT add item.signature.
             for (const auto &item : signaturePairs) {
                 ss << item.regid;

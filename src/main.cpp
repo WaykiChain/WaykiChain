@@ -1918,7 +1918,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         pPreBlockIndex = pPreBlockIndex->pprev;
 
         // FIXME: enable it to avoid forked chain attack.
-        // if (chainActive.Tip()->height - pPreBlockIndex->height > SysCfg().GetMaxForkHeight())
+        // if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight())
         //     return state.DoS(100, ERRORMSG(
         //         "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
         //         block.GetHash().GetHex(), block.GetHeight()));
@@ -2395,7 +2395,7 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
             // Ask this guy to fill in what we're missing
             LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, leading to getblocks (current height=%d & orphan blocks=%d)\n",
                     pBlock->GetHeight(), pBlock->GetHash().GetHex(), success ? "keep" : "abandon",
-                    chainActive.Tip()->height, mapOrphanBlocksByPrev.size());
+                    chainActive.Height(), mapOrphanBlocksByPrev.size());
 
             PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
