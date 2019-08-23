@@ -917,26 +917,30 @@ Value listcontracts(const Array& params, bool fHelp) {
 
     map<string, CUniversalContract> contracts;
     if (!pCdMan->pContractCache->GetContracts(contracts)) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract scripts.");
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts.");
     }
 
     Object obj;
-    Array scriptArray;
+    Array contractArray;
     for (const auto &item : contracts) {
-        Object scriptObject;
+        Object contractObject;
         const CUniversalContract &contract = item.second;
         CRegID regid(item.first);
-        scriptObject.push_back(Pair("contract_regid",   regid.ToString()));
-        scriptObject.push_back(Pair("memo",             HexStr(contract.memo)));
+        contractObject.push_back(Pair("contract_regid", regid.ToString()));
+        contractObject.push_back(Pair("memo",           HexStr(contract.memo)));
+
         if (showDetail) {
-            scriptObject.push_back(Pair("contract",     HexStr(contract.code)));
+            contractObject.push_back(Pair("vm_type",    contract.vm_type));
+            contractObject.push_back(Pair("upgradable", contract.upgradable));
+            contractObject.push_back(Pair("code",       HexStr(contract.code)));
+            contractObject.push_back(Pair("abi",        contract.abi));
         }
 
-        scriptArray.push_back(scriptObject);
+        contractArray.push_back(contractObject);
     }
 
     obj.push_back(Pair("count",     contracts.size()));
-    obj.push_back(Pair("contracts", scriptArray));
+    obj.push_back(Pair("contracts", contractArray));
 
     return obj;
 }
