@@ -827,7 +827,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS,
                            strprintf("asset total_supply=%lld can not <= 0 or > %llu", totalSupply, MAX_ASSET_TOTAL_SUPPLY));
     bool mintable    = params[5].get_bool();
-    ComboMoney cmFee = RPC_PARAM::GetFee(params, 6, DEX_MARKET_SELL_ORDER_TX);
+    ComboMoney cmFee = RPC_PARAM::GetFee(params, 6, TxType::ASSET_ISSUE_TX);
 
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
@@ -845,36 +845,86 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 }
 
 Value submitassetupdatetx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 6) {
+    if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitassetupdatetx \"addr\" \"asset_symbol\" \"asset_owner_addr\" \"asset_name\" mint_amount [symbol:fee:unit]\n"
-            "\nsubmit an asset issue tx.\n"
-            "\nthe tx creator must have enough WICC for issued fee(550 WICC).\n"
+            "submitassetupdatetx \"addr\" \"asset_symbol\" \"update_type\" \"update_value\" [symbol:fee:unit]\n"
+            "\nsubmit an asset update tx.\n"
+            "\nthe tx creator must have enough WICC for asset update fee(200 WICC).\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) tx owner address\n"
             "2.\"asset_symbol\": (string required) asset symbol, E.g WICC | WUSD\n"
-            "3.\"asset_owner_addr\": (string required) asset owner address, can be same as tx owner address\n"
-            "4.\"asset_name\": (string required) asset long name, E.g WaykiChain coin\n"
-            "5.\"mint_amount\": (numeric required) mint amount\n"
-            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "3.\"update_type\": (string required) asset update type, can be (owner_uid, name, mint_amount)\n"
+            "4.\"update_value\": (string required) update the value specified by update_type, value format see the submitassetissuetx\n"
+            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The new transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitassetupdatetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 100000000")
+            + HelpExampleCli("submitassetupdatetx", "\"10-2\" \"CNY\" \"mint_amount\" \"100000000\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitassetupdatetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 100000000")
+            + HelpExampleRpc("submitassetupdatetx", "\"10-2\" \"CNY\" \"mint_amount\" \"100000000\"")
         );
     }
 
     const CUserID& uid             = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
-    const CUserID& assetOwnerUid   = RPC_PARAM::GetUserId(params[2]);
-    const TokenName& assetName     = RPC_PARAM::GetAssetName(params[3]);
-    int64_t mintAmount             = params[4].get_int64();
-    if (mintAmount < 0 || (uint64_t)mintAmount > MAX_ASSET_TOTAL_SUPPLY)
-        throw JSONRPCError(RPC_INVALID_PARAMS,
-                           strprintf("asset min_amount=%lld can not < 0 or > %llu", mintAmount, MAX_ASSET_TOTAL_SUPPLY));
-    ComboMoney cmFee = RPC_PARAM::GetFee(params, 5, DEX_MARKET_SELL_ORDER_TX);
+    const string &updateTypeStr = params[2].get_str();
+    const Value &jsonUpdateValue = params[3].get_str();
+
+    auto pUpdateType = CAssetUpdateData::ParseUpdateType(updateTypeStr);
+    if (!pUpdateType)
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid update_type=%s", updateTypeStr));
+
+    CAssetUpdateData updateData;
+    switch(*pUpdateType) {
+        case CAssetUpdateData::OWNER_UID: {
+            const string &valueStr = jsonUpdateValue.get_str();
+            auto pNewOwnerUid = CUserID::ParseUserId(valueStr);
+            if (!pNewOwnerUid || pNewOwnerUid->IsEmpty()) {
+                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid updated owner user id=%s",
+                    valueStr.size()));
+            }
+            updateData.Set(*pNewOwnerUid);
+            break;
+        }
+        case CAssetUpdateData::NAME: {
+            const string &valueStr = jsonUpdateValue.get_str();
+            if (valueStr.size() == 0 || valueStr.size() > MAX_ASSET_NAME_LEN) {
+                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid asset name! empty, or length=%d greater than %d",
+                    valueStr.size(), MAX_ASSET_NAME_LEN));
+            }
+            updateData.Set(valueStr);
+            break;
+        }
+        case CAssetUpdateData::MINT_AMOUNT: {
+            uint64_t mintAmount;
+            if (jsonUpdateValue.type() == json_spirit::Value_type::int_type ) {
+                int64_t v = jsonUpdateValue.get_int64();
+                if (v < 0)
+                    throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid mint amount=%lld as uint64_t type",
+                        v, MAX_ASSET_NAME_LEN));
+                mintAmount = v;
+            } else if (jsonUpdateValue.type() == json_spirit::Value_type::str_type) {
+                const string &valueStr = jsonUpdateValue.get_str();
+                if (!ParseUint64(valueStr, mintAmount))
+                    throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid mint_amount=%s as uint64_t type",
+                        valueStr, MAX_ASSET_NAME_LEN));
+            } else
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type: %s",
+                    JSON::GetValueTypeName(jsonUpdateValue.type())));
+
+            if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY)
+                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid asset mint_amount=%llu, cannot be 0, or greater than %llu",
+                    mintAmount, MAX_ASSET_TOTAL_SUPPLY));
+
+            updateData.Set(mintAmount);
+            break;
+        }
+        default: {
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupported updated_key=%s", updateTypeStr));
+        }
+    }
+
+    ComboMoney cmFee = RPC_PARAM::GetFee(params, 4, TxType::ASSET_UPDATE_TX);
 
     // Get account for checking balance
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
@@ -886,8 +936,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetUpdateFee);
 
     int32_t validHeight = chainActive.Height();
-    CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, assetOwnerUid, assetName,
-                      mintAmount);
+    CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, updateData);
 
     return SubmitTx(uid, tx);
 }

@@ -248,6 +248,39 @@ inline int64_t atoi64(const string& str) {
 
 inline int32_t atoi(const string& str) { return atoi(str.c_str()); }
 
+static const string ULLONG_MAX_STRING = "18446744073709551615";
+
+inline bool IsUnsignedInteger(const std::string& s, const std::string& maxIntStr) {
+    size_t sz = s.size(), maxSz = maxIntStr.size();
+    if (   sz == 0 || sz > maxSz)
+        return false;
+    bool compareMax = sz == maxSz;
+    for (size_t i = 0; i < sz; i++) {
+        const char &ch = s[i];
+        if (!std::isdigit(ch))
+            return false;
+        if (compareMax) {
+            const char &maxCh = maxIntStr[i];
+            if (ch > maxCh)
+                return false;
+            else if (ch < maxCh)
+                compareMax = false; // stop compare with maxIntStr
+        }
+    }
+    return true;
+}
+
+inline bool IsUint64(const std::string& s) {
+    return IsUnsignedInteger(s, ULLONG_MAX_STRING);
+}
+
+inline bool ParseUint64(const std::string& s, uint64_t &v) {
+    if (!IsUint64(s))
+        return false;
+    v = strtoull(s.c_str(), nullptr, 10);
+    return true;
+}
+
 inline int32_t roundint(double d) { return (int)(d > 0 ? d + 0.5 : d - 0.5); }
 
 inline int64_t roundint64(double d) { return (int64_t)(d > 0 ? d + 0.5 : d - 0.5); }

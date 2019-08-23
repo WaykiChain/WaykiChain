@@ -118,10 +118,6 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
-    vector<CUserID> relatedUids = {txUid};
-    if (!account.IsMyUid(asset.owner_uid)) relatedUids.push_back(asset.owner_uid);
-
-
     return true;
 }
 
@@ -145,23 +141,94 @@ Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// class CAssetUpdateData
+
+const EnumTypeMap<CAssetUpdateData::UpdateType, string> CAssetUpdateData::ASSET_UPDATE_TYPE_NAMES = {
+    {OWNER_UID, "owner_uid"},
+    {NAME, "name"},
+    {MINT_AMOUNT, "mint_amount"}
+};
+
+shared_ptr<CAssetUpdateData::UpdateType> CAssetUpdateData::ParseUpdateType(const string& str) {
+    if (str.empty()) return nullptr;
+    for (auto item : ASSET_UPDATE_TYPE_NAMES) {
+        if (item.second == str)
+            return make_shared<UpdateType>(item.first);
+    }
+    return nullptr;
+}
+
+const string& CAssetUpdateData::GetUpdateTypeName(UpdateType type) {
+    auto it = ASSET_UPDATE_TYPE_NAMES.find(type);
+    if (it != ASSET_UPDATE_TYPE_NAMES.end()) return it->second;
+    return EMPTY_STRING;
+}
+void CAssetUpdateData::Set(const CUserID &ownerUid) {
+    type = OWNER_UID;
+    value = ownerUid;
+}
+
+void CAssetUpdateData::Set(const string &name) {
+    type = NAME;
+    value = name;
+
+}
+void CAssetUpdateData::Set(const uint64_t &mintAmount) {
+    type = MINT_AMOUNT;
+    value = mintAmount;
+
+}
+
+string CAssetUpdateData::ValueToString() const {
+    string s;
+    switch (type) {
+        case OWNER_UID:     s += get<CUserID>().ToString(); break;
+        case NAME:          s += get<string>(); break;
+        case MINT_AMOUNT:   s += std::to_string(get<uint64_t>()); break;
+        default: break;
+    }
+    return s;
+}
+
+string CAssetUpdateData::ToString() const {
+    string s = "update_type=" + GetUpdateTypeName(type);
+    s += ", update_value=" + ValueToString();
+    return s;
+}
+
+Object CAssetUpdateData::ToJson() const {
+    Object result;
+    result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
+    result.push_back(Pair("update_value",  ValueToString()));
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // class CAssetUpdateTx
 
 string CAssetUpdateTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d\n"
-        "owner_uid=%s, asset_name=%s, mint_amount=%llu",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, valid_height,
-        owner_uid.ToString(), asset_name, mint_amount);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, nValidHeight=%d,\n"
+        "asset_symbol=%s, %s",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, nValidHeight,
+        asset_symbol, update_data.ToString());
 }
 
 Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("owner_uid",   owner_uid.ToString()));
-    result.push_back(Pair("asset_name",     asset_name));
-    result.push_back(Pair("mint_amount",    mint_amount));
+    result.push_back(Pair("asset_symbol",   asset_symbol));
+    Object dataObj = update_data.ToJson();
+    result.insert(result.end(), dataObj.begin(), dataObj.end());
 
     return result;
+}
+
+bool CAssetUpdateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    if (update_data.GetType() == CAssetUpdateData::OWNER_UID) {
+        if (!AddInvolvedKeyIds({txUid, update_data.get<CUserID>()}, cw, keyIds))
+            return false;
+    }
+    return AddInvolvedKeyIds({txUid}, cw, keyIds);
 }
 
 bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
@@ -175,19 +242,33 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
             asset_symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symobl");
     }
 
-    if (asset_name.empty() || asset_name.size() > MAX_ASSET_NAME_LEN) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, asset_name is empty or len=%d greater than %d",
-            asset_name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
-    }
-
-    if (mint_amount > MAX_ASSET_TOTAL_SUPPLY) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, asset total_supply=%llu greater than %llu",
-            mint_amount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-asset-name");
-    }
-
-    if (owner_uid.type() == typeid(CRegID) && !cw.accountCache.RegIDIsMature(owner_uid.get<CRegID>())) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, owner regid=%s not mature yet",
-            owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
+    switch (update_data.GetType()) {
+        case CAssetUpdateData::OWNER_UID: {
+            const CUserID &newOwnerUid = update_data.get<CUserID>();
+            if (newOwnerUid.IsEmpty())
+                return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, invalid updated owner user id=%s",
+                    newOwnerUid.ToString()), REJECT_INVALID, "invalid-owner-uid");
+            break;
+        }
+        case CAssetUpdateData::NAME: {
+            const string &name = update_data.get<string>();
+            if (name.empty() || name.size() > MAX_ASSET_NAME_LEN)
+                return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, asset name is empty or len=%d greater than %d",
+                    name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+            break;
+        }
+        case CAssetUpdateData::MINT_AMOUNT: {
+            uint64_t mintAmount = update_data.get<uint64_t>();
+            if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY) {
+                return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, asset mint_amount=%llu is 0 or greater than %llu",
+                    mintAmount, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
+            }
+            break;
+        }
+        default: {
+            return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, unsupported updated_type=%d",
+                update_data.GetType()), REJECT_INVALID, "invalid-update-type");
+        }
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
@@ -229,17 +310,46 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset is not mintable"),
                     REJECT_INVALID, "asset-not-mintable");
 
-    uint64_t newTotalSupply = asset.total_supply + mint_amount;
-    assert(newTotalSupply >= asset.total_supply);
-    if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, new_total_supply=%llu greater than %llu,"
-                     " old_total_supply=%llu, mint_amount=%llu", newTotalSupply, MAX_ASSET_TOTAL_SUPPLY,
-                     asset.total_supply, mint_amount), REJECT_INVALID, "invalid-mint-amount");
-    }
 
-    asset.owner_uid = owner_uid;
-    asset.name = asset_name;
-    asset.total_supply += mint_amount;
+    switch (update_data.GetType()) {
+        case CAssetUpdateData::OWNER_UID: {
+            const CUserID &newOwnerUid = update_data.get<CUserID>();
+            if (!account.IsMyUid(newOwnerUid)) {
+                CAccount newAccount;
+                if (!cw.accountCache.GetAccount(newOwnerUid, newAccount))
+                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner uid=%s does not exist.",
+                        newAccount.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                if (!newAccount.RegIDIsMature())
+                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registerd or not matured! new uid=%s",
+                        newAccount.ToString()), REJECT_INVALID, "account-not-mature");
+
+                asset.owner_uid = newAccount.regid;
+            } else
+                LogPrint("INFO", "CAssetUpdateTx::ExecuteTx, the new owner uid=%s equal the old one=%s",
+                    newOwnerUid.ToString(), txUid.ToString());
+            break;
+        }
+        case CAssetUpdateData::NAME: {
+            asset.name = update_data.get<string>();
+            break;
+        }
+        case CAssetUpdateData::MINT_AMOUNT: {
+            uint64_t mintAmount = update_data.get<uint64_t>();
+            uint64_t newTotalSupply = asset.total_supply + mintAmount;
+            if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY || newTotalSupply < asset.total_supply) {
+                return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new mintAmount=%llu + total_supply=%s greater than %llu,",
+                            mintAmount, asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-mint-amount");
+            }
+
+            if (!account.OperateBalance(asset_symbol, BalanceOpType::ADD_FREE, mintAmount)) {
+                return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, add mintAmount to asset owner account failed, txUid=%s, mintAmount=%llu",
+                                txUid.ToString(), mintAmount), UPDATE_ACCOUNT_FAIL, "account-add-free-failed");
+            }
+            asset.total_supply = newTotalSupply;
+            break;
+        }
+        default: assert(false);
+    }
 
     if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, insufficient funds in account, txUid=%s",

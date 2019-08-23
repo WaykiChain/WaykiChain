@@ -29,7 +29,7 @@ Object SubmitTx(const CUserID &userId, CBaseTx &tx);
 
 namespace JSON {
     const Value& GetObjectFieldValue(const Value &jsonObj, const string &fieldName);
-    const char* GetValueTypeName(Value_type valueType);
+    const char* GetValueTypeName(const Value_type &valueType);
 }
 
 namespace RPC_PARAM {
