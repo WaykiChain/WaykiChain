@@ -112,9 +112,9 @@ public:
 class CAsset {
 public:
     TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
-    CUserID owner_uid;   // creator or owner user id of the asset
+    CUserID owner_uid;      // creator or owner user id of the asset
     TokenName name;         // asset long name, E.g WaykiChain coin
-    uint64_t total_supply;  // boosted by 1e8 for the decimal part, max is 90 billion.
+    uint64_t total_supply;  // boosted by 10^8 for the decimal part, max is 90 billion.
     bool mintable;          // whether this token can be minted in the future.
 public:
     CAsset(): total_supply(0), mintable(false) {}

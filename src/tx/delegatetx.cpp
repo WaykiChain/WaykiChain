@@ -42,7 +42,7 @@ Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
+    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (height == (int32_t)SysCfg().GetFeatureForkHeight()) {

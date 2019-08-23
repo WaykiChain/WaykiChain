@@ -158,25 +158,25 @@ public:
 };
 
 #define IMPLEMENT_CHECK_TX_MEMO                                                                    \
-    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                        \
+    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                     \
         return state.DoS(100, ERRORMSG("%s, memo's size too large", __FUNCTION__), REJECT_INVALID, \
                          "memo-size-toolarge");
 
 #define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                    \
-    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                    \
+    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                  \
         return state.DoS(100, ERRORMSG("%s, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_FEE(feeSymbol)                                                              \
+#define IMPLEMENT_CHECK_TX_FEE                                                                         \
     if (!CheckBaseCoinRange(llFees))                                                                   \
         return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,       \
                          "bad-tx-fee-toolarge");                                                       \
-     if (!kFeeSymbolSet.count(feeSymbol))                                                              \
+     if (!kFeeSymbolSet.count(fee_symbol))                                                             \
         return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
-            __FUNCTION__, feeSymbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");      \
-    if (!CheckTxFeeSufficient(feeSymbol, llFees, height)) {                                            \
+            __FUNCTION__, fee_symbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");     \
+    if (!CheckTxFeeSufficient(fee_symbol, llFees, height)) {                                           \
         return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu",   \
-            __FUNCTION__, height, feeSymbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");          \
+            __FUNCTION__, height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \

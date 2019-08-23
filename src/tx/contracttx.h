@@ -149,22 +149,6 @@ public:
 
 public:
     CUniversalContractInvokeTx() : CBaseTx(UCONTRACT_INVOKE_TX) {}
-
-    CUniversalContractInvokeTx(const CUserID &txUidIn, int32_t validHeightIn, uint64_t feesIn,
-                               CUserID appUidIn, string &argumentsIn, TokenSymbol feeSymbol,
-                               TokenSymbol coinSymbol, uint64_t coinAmount)
-        : CBaseTx(UCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
-          app_uid(appUidIn),
-          arguments(argumentsIn),
-          coin_symbol(coinSymbol),
-          coin_amount(coinAmount) {
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty());  // FIXME: shouldnot be using assert here, throw an error instead.
-
-        if (appUidIn.type() == typeid(CRegID))
-            assert(!appUidIn.get<CRegID>().IsEmpty());
-    }
-
     ~CUniversalContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(

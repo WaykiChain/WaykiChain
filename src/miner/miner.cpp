@@ -80,24 +80,24 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
 // Sort transactions by priority and fee to decide priority orders to process transactions.
 void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     vecPriority.reserve(mempool.memPoolTxs.size());
-    static double dPriority  = 0;
-    static double dFeePerKb  = 0;
-    static uint32_t nTxSize  = 0;
+    static double dPriority     = 0;
+    static double dFeePerKb     = 0;
+    static uint32_t nTxSize     = 0;
     static TokenSymbol coinType = SYMB::WUSD;
-    static uint64_t nFees    = 0;
+    static uint64_t nFees       = 0;
 
     uint64_t slideWindowBlockCount;
     pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
     int32_t height            = chainActive.Height();
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
     uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height, slideWindowBlockCount);
-    auto GetCoinMedianPrice   = [&](const TokenSymbol coinType) -> uint64_t {
+    auto GetCoinMedianPrice   = [&](const TokenSymbol &coinType) -> uint64_t {
         if (coinType == SYMB::WICC)
             return bcoinMedianPrice;
         else if (coinType == SYMB::WGRT)
             return fcoinMedianPrice;
         else if (coinType == SYMB::WUSD)
-            return 1;
+            return 10000; // boosted by 10^4
         else
             return 0;
     };

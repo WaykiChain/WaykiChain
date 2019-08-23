@@ -81,7 +81,7 @@ private:
     TokenSymbol bcoin_symbol;  // optional: only required for 1st-time CDP staking
     TokenSymbol scoin_symbol;  // ditto
     uint64_t bcoins_to_stake;  // base coins amount to stake or collateralize
-    uint64_t scoins_to_mint;   // initial collateral ratio must be >= 190 (%), boosted by 10000
+    uint64_t scoins_to_mint;   // initial collateral ratio must be >= 190 (%), boosted by 10^4
 };
 
 /**

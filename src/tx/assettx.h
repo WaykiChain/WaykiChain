@@ -62,10 +62,10 @@ public:
  */
 class CAssetUpdateTx: public CBaseTx {
 public:
-    TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
-    CUserID owner_uid;           // new owner userid of the asset
-    TokenName asset_name;           // new asset long name, E.g WaykiChain coin
-    uint64_t mint_amount;           // mint amount, boosted by 1e8
+    TokenSymbol asset_symbol;  // symbol of asset that needs to be updated
+    CUserID owner_uid;         // new owner userid of the asset
+    TokenName asset_name;      // new asset long name, E.g WaykiChain coin
+    uint64_t mint_amount;      // mint amount, boosted by 10^8
 public:
     CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {};
 

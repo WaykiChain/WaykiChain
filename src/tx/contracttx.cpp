@@ -43,7 +43,7 @@ static bool GetKeyId(const CAccountDBCache &accountView, const string &userIdStr
 // class CLuaContractDeployTx
 
 bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
+    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (!contract.IsValid()) {
@@ -151,7 +151,7 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CLuaContractInvokeTx
 
 bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE(SYMB::WICC);
+    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_APPID(app_uid.type());

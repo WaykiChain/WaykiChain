@@ -12,7 +12,7 @@
 
 
 bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
+    IMPLEMENT_CHECK_TX_FEE;
 
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -163,7 +163,7 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
 
-    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
+    IMPLEMENT_CHECK_TX_FEE;
 
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
