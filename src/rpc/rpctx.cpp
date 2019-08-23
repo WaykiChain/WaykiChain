@@ -978,30 +978,6 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getaddrbalance(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        string msg = "getaddrbalance nrequired [\"key\",...] ( \"account\" )\n"
-                "\nAdd a nrequired-to-sign multisignature address to the wallet.\n"
-                "Each key is a  address or hex-encoded public key.\n" + HelpExampleCli("getaddrbalance", "")
-                + "\nAs json rpc call\n" + HelpExampleRpc("getaddrbalance", "");
-        throw runtime_error(msg);
-    }
-
-    assert(pWalletMain != nullptr);
-
-    CKeyID keyId;
-    if (!GetKeyId(params[0].get_str(), keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid  address");
-
-    double balance = 0.0;
-    CAccount account;
-    if (pCdMan->pAccountCache->GetAccount(keyId, account)) {
-        balance = (double)account.GetToken(SYMB::WICC).free_amount / (double)COIN;
-    }
-
-    return balance;
-}
-
 Value generateblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error("generateblock \"addr\"\n"
