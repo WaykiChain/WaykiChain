@@ -65,16 +65,15 @@ Value getcoinunitinfo(const Array& params, bool fHelp){
     return obj;
 }
 
-Value getbalance(const Array& params, bool fHelp)
-{
+Value getbalance(const Array& params, bool fHelp) {
     int size = params.size();
     if (fHelp || params.size() > 2) {
             string msg = "getbalance ( \"address\" minconf )\n"
                     "\nIf account is not specified, returns the server's total available balance.\n"
                     "If account is specified (DEPRECATED), returns the balance in the account.\n"
                     "\nArguments:\n"
-                     "1. \"address\"      (string, optional) DEPRECATED. The selected account or \"*\" for entire wallet.\n"
-                     "2.  minconf         (numeric, optional, default=1) Only include transactions confirmed\n"
+                     "1. \"address\"        (string, optional) DEPRECATED. The selected account or \"*\" for entire wallet.\n"
+                     "2. \"minconf\"        (numeric, optional, default=1) Only include transactions confirmed.\n"
                      "\nExamples:\n"
                     + HelpExampleCli("getbalance", "de3nGsPR6i9qpQTNnpC9ASMpFKbKzzFLYF 0")
                     + "\nAs json rpc call\n"

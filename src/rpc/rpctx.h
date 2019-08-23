@@ -1,12 +1,10 @@
-/*
- * rpctx.h
- *
- *  Created on: Sep 3, 2014
- *      Author: leo
- */
+// Copyright (c) 2010 Satoshi Nakamoto
+// Copyright (c) 2017-2018 WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef RPCTX_H_
-#define RPCTX_H_
+#ifndef RPC_RPCTX_H
+#define RPC_RPCTX_H
 
 #include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
@@ -67,4 +65,4 @@ extern Value listcontracts(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value listdelegates(const Array& params, bool fHelp);
 
-#endif /* RPCTX_H_ */
+#endif  // RPC_RPCTX_H
