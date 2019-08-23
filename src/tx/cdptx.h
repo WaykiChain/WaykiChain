@@ -6,6 +6,7 @@
 #ifndef TX_CDP_H
 #define TX_CDP_H
 
+#include "entities/receipt.h"
 #include "tx.h"
 
 class CUserCDP;
@@ -195,7 +196,7 @@ public:
 
 private:
     bool ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
-        CCacheWrapper &cw, CValidationState &state);
+        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
 
 private:
     uint256     cdp_txid;            // target CDP to liquidate
