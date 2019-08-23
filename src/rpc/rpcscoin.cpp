@@ -203,8 +203,8 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
 
     const CUserID& cdpUid   = RPC_PARAM::GetUserId(params[0].get_str());
     uint256 cdpTxId         = uint256S(params[1].get_str());
-    uint64_t repayAmount    = params[2].get_uint64();
-    uint64_t redeemAmount   = params[3].get_uint64();
+    uint64_t repayAmount    = AmountToRawValue(params[2]);
+    uint64_t redeemAmount   = AmountToRawValue(params[3]);
     const ComboMoney& cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
 
