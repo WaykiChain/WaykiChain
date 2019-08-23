@@ -125,7 +125,7 @@ Value getbalance(const Array& params, bool fHelp) {
                                 pCdMan->pAccountCache->GetKeyId(pTx->txUid, srcKeyId);
                                 pCdMan->pAccountCache->GetKeyId(pTx->toUid, desKeyId);
                                 if (!pWalletMain->HaveKey(srcKeyId) && pWalletMain->HaveKey(desKeyId)) {
-                                    nValue = pTx->bcoins;
+                                    nValue = pTx->coin_amount;
                                 }
                             }
                             // TODO: BCOIN_TRANSFER_MTX
@@ -158,7 +158,7 @@ Value getbalance(const Array& params, bool fHelp) {
                                     CKeyID srcKeyId, desKeyId;
                                     pCdMan->pAccountCache->GetKeyId(pTx->toUid, desKeyId);
                                     if (keyid == desKeyId) {
-                                        nValue = pTx->bcoins;
+                                        nValue = pTx->coin_amount;
                                     }
                                 }
                                 // TODO: BCOIN_TRANSFER_MTX

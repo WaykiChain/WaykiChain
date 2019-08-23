@@ -510,7 +510,7 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
             CBaseCoinTransferTx tx;
             tx.txUid        = srcRegId;
             tx.toUid        = desRegId;
-            tx.bcoins       = llValue++;
+            tx.coin_amount  = llValue++;
             tx.llFees       = llFees;
             tx.nValidHeight = nValidHeight;
 

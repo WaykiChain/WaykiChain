@@ -12,26 +12,11 @@
 class CBaseCoinTransferTx : public CBaseTx {
 public:
     mutable CUserID toUid;  // Recipient Regid or Keyid
-    uint64_t bcoins;        // transfer amount
+    uint64_t coin_amount;   // coin amount (coin symbol: WICC)
     string memo;
 
 public:
-    CBaseCoinTransferTx(): CBaseTx(BCOIN_TRANSFER_TX) { }
-
-    CBaseCoinTransferTx(const CUserID &txUidIn, const CUserID toUidIn, const int32_t validHeightIn,
-                        const uint64_t bcoinsIn, const uint64_t feesIn, const string &memoIn)
-        : CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, feesIn),
-          toUid(toUidIn),
-          bcoins(bcoinsIn),
-          memo(memoIn) {
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-        else if (txUidIn.type() == typeid(CPubKey))
-            assert(txUidIn.get<CPubKey>().IsFullyValid());
-
-        if (toUidIn.type() == typeid(CRegID)) assert(!toUidIn.get<CRegID>().IsEmpty());
-    }
-
+    CBaseCoinTransferTx() : CBaseTx(BCOIN_TRANSFER_TX) {}
     ~CBaseCoinTransferTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -42,7 +27,7 @@ public:
 
         READWRITE(toUid);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(coin_amount));
         READWRITE(memo);
         READWRITE(signature);
     )
@@ -51,7 +36,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << toUid
-               << VARINT(llFees) << VARINT(bcoins) << memo;
+               << VARINT(llFees) << VARINT(coin_amount) << memo;
             sigHash = ss.GetHash();
         }
 

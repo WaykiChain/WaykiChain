@@ -28,7 +28,7 @@ bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    if (srcAccount.GetToken(SYMB::WICC).free_amount < llFees + bcoins) {
+    if (srcAccount.GetToken(SYMB::WICC).free_amount < llFees + coin_amount) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account balance insufficient"),
                          REJECT_INVALID, "account-balance-insufficient");
     }
@@ -60,7 +60,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         }
     }
 
-    uint64_t minusValue = llFees + bcoins;
+    uint64_t minusValue = llFees + coin_amount;
     if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minusValue)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -85,7 +85,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         }
     }
 
-    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoins)) {
+    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
@@ -100,9 +100,9 @@ bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
 string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, bcoins=%ld, llFees=%ld, memo=%s, "
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%ld, llFees=%ld, memo=%s, "
         "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), bcoins, llFees,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_amount, llFees,
         HexStr(memo), nValidHeight);
 }
 
@@ -114,7 +114,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("to_uid",         toUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("coin_symbol",    SYMB::WICC));
-    result.push_back(Pair("coin_amount",    bcoins));
+    result.push_back(Pair("coin_amount",    coin_amount));
     result.push_back(Pair("memo",           HexStr(memo)));
 
     return result;
@@ -155,8 +155,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient bcoins in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-bcoins");
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient coin_amount in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin_amount");
     }
 
     if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE, coin_amount)) {
