@@ -169,9 +169,9 @@ shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
 
 UnsignedCharArray CVmRunEnv::GetAccountID(CVmOperate value) {
     UnsignedCharArray accountId;
-    if (value.accountType == ACCOUNT_TYPE::REGID) {
+    if (value.accountType == AccountType::REGID) {
         accountId.assign(value.accountId, value.accountId + 6);
-    } else if (value.accountType == ACCOUNT_TYPE::BASE58ADDR) {
+    } else if (value.accountType == AccountType::BASE58ADDR) {
         string addr(value.accountId, value.accountId + sizeof(value.accountId));
         CKeyID keyid = CKeyID(addr);
         CRegID regid;
@@ -202,7 +202,7 @@ bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
     if (listoperate.size() > MAX_OUTPUT_COUNT) return false;
 
     for (auto& it : listoperate) {
-        if (it.accountType != REGID && it.accountType != ACCOUNT_TYPE::BASE58ADDR) return false;
+        if (it.accountType != REGID && it.accountType != AccountType::BASE58ADDR) return false;
 
         if (it.opType == BalanceOpType::ADD_FREE) {
             memcpy(&operValue, it.money, sizeof(it.money));

@@ -349,7 +349,7 @@ Value getblockchaininfo(const Array& params, bool fHelp)
             + HelpExampleRpc("getblockchaininfo", ""));
     }
 
-    proxyType proxy;
+    ProxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
     Object obj;

@@ -192,7 +192,7 @@ private:
     bool IsFcoinWithinRange(uint64_t nAddMoney);
 };
 
-enum ACCOUNT_TYPE {
+enum AccountType {
     REGID      = 0x01,  //!< Registration account id
     BASE58ADDR = 0x02,  //!< Public key
 };
@@ -203,7 +203,7 @@ enum ACCOUNT_TYPE {
  */
 class CVmOperate{
 public:
-    ACCOUNT_TYPE accountType;   //!< regid or base58addr
+    AccountType accountType;   //!< regid or base58addr
     uint8_t accountId[34];      //!< accountId: address
     BalanceOpType opType;       //!< OperType
     uint32_t timeoutHeight;     //!< the transacion timeout height
@@ -220,7 +220,7 @@ public:
     )
 
     CVmOperate() {
-        accountType = ACCOUNT_TYPE::REGID;
+        accountType = AccountType::REGID;
         memset(accountId, 0, 34);
         opType        = BalanceOpType::NULL_OP;
         timeoutHeight = 0;

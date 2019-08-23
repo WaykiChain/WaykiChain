@@ -221,7 +221,7 @@ Value getinfo(const Array& params, bool fHelp)
             + HelpExampleRpc("getinfo", "")
         );
 
-    proxyType proxy;
+    ProxyType proxy;
     GetProxy(NET_IPV4, proxy);
     static const string fullVersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     static const string netType[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};

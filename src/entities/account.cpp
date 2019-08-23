@@ -429,11 +429,11 @@ bool CAccount::IsMyUid(const CUserID &uid) {
 
 Object CVmOperate::ToJson() {
     Object obj;
-    if (accountType == ACCOUNT_TYPE::REGID) {
+    if (accountType == AccountType::REGID) {
         vector<uint8_t> vRegId(accountId, accountId + 6);
         CRegID regId(vRegId);
         obj.push_back(Pair("regid", regId.ToString()));
-    } else if (accountType == ACCOUNT_TYPE::BASE58ADDR) {
+    } else if (accountType == AccountType::BASE58ADDR) {
         string addr(accountId, accountId + sizeof(accountId));
         obj.push_back(Pair("addr", addr));
     }

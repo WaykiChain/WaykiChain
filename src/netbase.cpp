@@ -25,8 +25,8 @@
 using namespace std;
 
 // Settings
-static proxyType proxyInfo[NET_MAX];
-static proxyType nameproxyInfo;
+static ProxyType proxyInfo[NET_MAX];
+static ProxyType nameproxyInfo;
 static CCriticalSection cs_proxyInfos;
 // int nConnectTimeout = 5000;
 bool fNameLookup = false;
@@ -420,7 +420,7 @@ bool SetProxy(enum Network net, CService addrProxy, int nSocksVersion) {
     return true;
 }
 
-bool GetProxy(enum Network net, proxyType& proxyInfoOut) {
+bool GetProxy(enum Network net, ProxyType& proxyInfoOut) {
     assert(net >= 0 && net < NET_MAX);
     LOCK(cs_proxyInfos);
     if (!proxyInfo[net].second) return false;
@@ -438,7 +438,7 @@ bool SetNameProxy(CService addrProxy, int nSocksVersion) {
     return true;
 }
 
-bool GetNameProxy(proxyType& nameproxyInfoOut) {
+bool GetNameProxy(ProxyType& nameproxyInfoOut) {
     LOCK(cs_proxyInfos);
     if (!nameproxyInfo.second)
         return false;
@@ -463,7 +463,7 @@ bool IsProxy(const CNetAddr& addr) {
 int GetConnectTime() { return SysCfg().GetConnectTimeOut(); }
 
 bool ConnectSocket(const CService& addrDest, SOCKET& hSocketRet, int nTimeout) {
-    proxyType proxy;
+    ProxyType proxy;
 
     // no proxy needed
     if (!GetProxy(addrDest.GetNetwork(), proxy))
@@ -501,7 +501,7 @@ bool ConnectSocketByName(CService& addr, SOCKET& hSocketRet, const char* pszDest
 
     SOCKET hSocket = INVALID_SOCKET;
 
-    proxyType nameproxy;
+    ProxyType nameproxy;
     GetNameProxy(nameproxy);
 
     CService addrResolved(CNetAddr(strDest, fNameLookup && !nameproxy.second), port);

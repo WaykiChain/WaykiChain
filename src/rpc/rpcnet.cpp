@@ -365,7 +365,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
             + HelpExampleRpc("getnetworkinfo", "")
         );
 
-    proxyType proxy;
+    ProxyType proxy;
     GetProxy(NET_IPV4, proxy);
 
     Object obj;
