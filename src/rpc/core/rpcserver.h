@@ -149,7 +149,7 @@ extern json_spirit::Value getnetworkinfo(const json_spirit::Array& params, bool 
 
 extern json_spirit::Value signmessage(const json_spirit::Array& params, bool fHelp);
 // extern json_spirit::Value (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getassets(const json_spirit:: Array& params, bool fHelp);
+extern json_spirit::Value getcontractassets(const json_spirit:: Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddress(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithmemo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value sendtoaddresswithfee(const json_spirit::Array& params, bool fHelp);

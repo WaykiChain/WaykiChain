@@ -847,16 +847,16 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getassets(const Array& params, bool fHelp) {
+Value getcontractassets(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 1) {
-        throw runtime_error("getassets \"contract_regid\"\n"
+        throw runtime_error("getcontractassets \"contract_regid\"\n"
             "\nThe collection of all assets\n"
             "\nArguments:\n"
             "1.\"contract_regid\": (string, required) Contract RegId\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getassets", "11-1")
-            + HelpExampleRpc("getassets", "11-1"));
+            + HelpExampleCli("getcontractassets", "11-1")
+            + HelpExampleRpc("getcontractassets", "11-1"));
     }
 
     CRegID regid(params[0].get_str());

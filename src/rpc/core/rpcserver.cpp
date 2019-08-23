@@ -299,7 +299,7 @@ static const CRPCCommand vRPCCommands[] =
     { "send",                   &send,                   false,     false,      true },
     { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false},
     { "getbalance",             &getbalance,             false,     false,      true },
-    { "getassets",              &getassets,              false,     false,      true },
+    { "getcontractassets",              &getcontractassets,              false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
     { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
