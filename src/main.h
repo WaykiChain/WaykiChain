@@ -140,9 +140,6 @@ int64_t GetMinRelayFee(const CBaseTx *pBaseTx, uint32_t nBytes, bool fAllowFree)
 */
 bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 
-//get tx operate account log
-bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs);
-
 /** An in-memory indexed chain of blocks. */
 class CChain {
 private:

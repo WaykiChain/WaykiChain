@@ -208,7 +208,6 @@ Value stop(const Array& params, bool fHelp) {
 //
 // Call Table
 //
-extern Value gettxoperationlog(const Array& params, bool fHelp);
 extern Value dropminerkeys(const Array& params, bool fHelp);
 
 static const CRPCCommand vRPCCommands[] =
@@ -338,7 +337,6 @@ static const CRPCCommand vRPCCommands[] =
     { "submitassetupdatetx",        &submitassetupdatetx,        true,     false,      false },
 
     /* for test code */
-    { "gettxoperationlog",      &gettxoperationlog,      false,     false,      false},
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "getcontractregid",       &getcontractregid,       true,      false,      false},

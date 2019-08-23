@@ -813,46 +813,6 @@ Value listunconfirmedtx(const Array& params, bool fHelp) {
     return retObj;
 }
 
-Value gettxoperationlog(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        throw runtime_error("gettxoperationlog \"txid\"\n"
-                    "\nget transaction operation log\n"
-                    "\nArguments:\n"
-                    "1.\"txid\": (string required) \n"
-                    "\nResult:\n"
-                    "\"vOperFund\": (string)\n"
-                    "\"authorLog\": (string)\n"
-                    "\nExamples:\n"
-                    + HelpExampleCli("gettxoperationlog",
-                            "\"0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000\"")
-                    + "\nAs json rpc call\n"
-                    + HelpExampleRpc("gettxoperationlog",
-                            "\"0001a87352387b5b4d6d01299c0dc178ff044f42e016970b0dc7ea9c72c08e2e494a01020304100000\""));
-    }
-    RPCTypeCheck(params, list_of(str_type));
-    uint256 txid(uint256S(params[0].get_str()));
-    vector<CAccount> vLog;
-    Object retobj;
-    retobj.push_back(Pair("txid", txid.GetHex()));
-    // TODO: improve the tx oper log
-    if (!GetTxOperLog(txid, vLog))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "error hash");
-    {
-        Array arrayvLog;
-        for (auto const &account : vLog) {
-            Object obj;
-            obj.push_back(Pair("addr", account.keyid.ToAddress()));
-            Array array;
-            array.push_back(account.ToJsonObj());
-            arrayvLog.push_back(obj);
-        }
-        retobj.push_back(Pair("AccountOperLog", arrayvLog));
-
-    }
-    return retobj;
-
-}
-
 static Value TestDisconnectBlock(int32_t number) {
     CBlock block;
     Object obj;

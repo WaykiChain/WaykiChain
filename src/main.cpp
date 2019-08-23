@@ -3523,46 +3523,6 @@ bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
 
-bool GetTxOperLog(const uint256 &txid, vector<CAccount> &accountLogs) {
-    if (SysCfg().IsTxIndex()) {
-        CDiskTxPos diskTxPos;
-        if (pCdMan->pContractCache->ReadTxIndex(txid, diskTxPos)) {
-            CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
-            CBlockHeader header;
-            try {
-                file >> header;
-            } catch (std::exception &e) {
-                return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-            }
-            uint256 blockHash = header.GetHash();
-            if (mapBlockIndex.count(blockHash) > 0) {
-                CBlockIndex *pIndex = mapBlockIndex[blockHash];
-                CBlockUndo blockUndo;
-                CDiskBlockPos pos = pIndex->GetUndoPos();
-                if (pos.IsNull())
-                    return ERRORMSG("DisconnectBlock() : no undo data available");
-                if (!blockUndo.ReadFromDisk(pos, pIndex->pprev->GetBlockHash()))
-                    return ERRORMSG("DisconnectBlock() : failure reading undo data");
-
-                for (auto &txUndo : blockUndo.vtxundo) {
-                    if (txUndo.txid == txid) {
-                        auto accountLogsPtr = txUndo.dbOpLogMap.GetDbOpLogsPtr(dbk::KEYID_ACCOUNT);
-                        if (accountLogsPtr != nullptr) {
-                            for (auto accountLog : *accountLogsPtr) {
-                                CAccount account;
-                                accountLog.Get(account);
-                                accountLogs.push_back(account);
-                            }
-                        }
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-}
-
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex) {
     AssertLockHeld(cs_main);
     return setBlockIndexValid.erase(pIndex) > 0;

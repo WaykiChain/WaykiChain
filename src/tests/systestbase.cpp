@@ -728,12 +728,6 @@ bool SysTestBase::GetRegID(string &strAddr, CRegID &regId) {
     return true;
 }
 
-bool SysTestBase::GetTxOperateLog(const uint256 &txid, vector<CAccount> &vLog) {
-    if (!GetTxOperLog(txid, vLog)) return false;
-
-    return true;
-}
-
 bool SysTestBase::IsMemoryPoolEmpty() {
     // return mempool.mapTx.empty();
     const char *argv[] = {"rpctest", "getrawmempool"};
