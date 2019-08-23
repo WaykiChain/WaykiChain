@@ -120,6 +120,34 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
+bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
+    CKeyID keyId;
+    if (!cw.accountCache.GetKeyId(txUid, keyId))
+        return false;
+
+    keyIds.insert(keyId);
+
+    CKeyID desKeyId;
+    if (!cw.accountCache.GetKeyId(toUid, desKeyId))
+        return false;
+
+    keyIds.insert(desKeyId);
+
+    return true;
+}
+
+static shared_ptr<string> CheckCoinSymbol(CCacheWrapper &cw, const TokenSymbol &symbol) {
+    size_t coinSymbolSize = symbol.size();
+        if (   coinSymbolSize == 0
+        || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
+            return make_shared<string>("empty or too long");
+        }
+        if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN &&!kCoinTypeSet.count(symbol))
+            || (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !cw.assetCache.HaveAsset(symbol)))
+            return make_shared<string>("unsupported symbol");
+    return nullptr;
+}
+
 /**################################ Universal Coin Transfer ########################################**/
 
 bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
@@ -129,9 +157,10 @@ bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
-    if (!kCoinTypeSet.count(coin_symbol) || !kCoinTypeSet.count(fee_symbol)) {
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, invalid coin or fee type"),
-                        REJECT_INVALID, "invalid-coin-type");
+    auto pSymbolErr = CheckCoinSymbol(cw, coin_symbol);
+    if (pSymbolErr) {
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, invalid coin symbol=%s, %s", coin_symbol, *pSymbolErr),
+                        REJECT_INVALID, "invalid-coin-symbol");
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
