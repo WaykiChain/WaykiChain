@@ -738,39 +738,44 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 
     userId = keyId;
     Object obj;
-    {
-        CAccount account;
-        if (pCdMan->pAccountCache->GetAccount(userId, account)) {
-            if (!account.owner_pubkey.IsValid()) {
-                CPubKey pubKey;
-                CPubKey minerPubKey;
-                if (pWalletMain->GetPubKey(keyId, pubKey)) {
-                    pWalletMain->GetPubKey(keyId, minerPubKey, true);
-                    account.owner_pubkey = pubKey;
-                    account.keyid        = pubKey.GetKeyId();
-                    if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
-                        account.miner_pubkey = minerPubKey;
-                    }
-                }
-            }
-            obj = account.ToJsonObj();
-            obj.push_back(Pair("position", "inblock"));
+    bool found = false;
 
-        } else {  // unregistered keyId
+    CAccount account;
+    if (pCdMan->pAccountCache->GetAccount(userId, account)) {
+        if (!account.owner_pubkey.IsValid()) {
             CPubKey pubKey;
             CPubKey minerPubKey;
             if (pWalletMain->GetPubKey(keyId, pubKey)) {
                 pWalletMain->GetPubKey(keyId, minerPubKey, true);
                 account.owner_pubkey = pubKey;
                 account.keyid        = pubKey.GetKeyId();
-                if (minerPubKey != pubKey) {
+                if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
                     account.miner_pubkey = minerPubKey;
                 }
-                obj = account.ToJsonObj();
-                obj.push_back(Pair("position", "inwallet"));
             }
         }
+        obj = account.ToJsonObj();
+        obj.push_back(Pair("position", "inblock"));
 
+        found = true;
+    } else {  // unregistered keyId
+        CPubKey pubKey;
+        CPubKey minerPubKey;
+        if (pWalletMain->GetPubKey(keyId, pubKey)) {
+            pWalletMain->GetPubKey(keyId, minerPubKey, true);
+            account.owner_pubkey = pubKey;
+            account.keyid        = pubKey.GetKeyId();
+            if (minerPubKey != pubKey) {
+                account.miner_pubkey = minerPubKey;
+            }
+            obj = account.ToJsonObj();
+            obj.push_back(Pair("position", "inwallet"));
+
+            found = true;
+        }
+    }
+
+    if (found) {
         int32_t height                 = chainActive.Height();
         uint64_t slideWindowBlockCount = 0;
         pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
@@ -782,6 +787,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
                 cdps.push_back(cdp.ToJson(bcoinMedianPrice));
             }
         }
+
         obj.push_back(Pair("cdp_list", cdps));
     }
 
