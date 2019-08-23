@@ -904,20 +904,20 @@ Value listcontracts(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
             "listcontracts \"show detail\"\n"
-            "\nget the list of all registered contracts\n"
+            "\nget the list of all contracts\n"
             "\nArguments:\n"
-            "1. show detail  (boolean, required) show contract script content if true.\n"
-            "\nReturn an object contains all contract script data\n"
+            "1. show detail  (boolean, required) show contract in detail if true.\n"
+            "\nReturn an object contains all contracts\n"
             "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("listcontracts", "true") + "\nAs json rpc call\n" + HelpExampleRpc("listcontracts", "true"));
     }
-    bool showDetail = false;
-    showDetail      = params[0].get_bool();
+
+    bool showDetail = params[0].get_bool();
 
     map<string, CUniversalContract> contracts;
     if (!pCdMan->pContractCache->GetContracts(contracts)) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts.");
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts from db.");
     }
 
     Object obj;
@@ -948,34 +948,33 @@ Value listcontracts(const Array& params, bool fHelp) {
 Value getcontractinfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "getcontractinfo ( \"contract regid\" )\n"
+            "getcontractinfo \"contract regid\"\n"
             "\nget contract information.\n"
             "\nArguments:\n"
-            "1. \"contract regid\"    (string, required) the script ID. \n"
-            "\nget contract information\n"
+            "1. \"contract regid\"    (string, required) the contract regid.\n"
+            "\nReturn an object contains contract information\n"
             "\nExamples:\n" +
-            HelpExampleCli("getcontractinfo", "123-1") + "\nAs json rpc call\n" +
-            HelpExampleRpc("getcontractinfo", "123-1"));
+            HelpExampleCli("getcontractinfo", "1-1") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getcontractinfo", "1-1"));
 
-    string strRegId = params[0].get_str();
-    CRegID regId(strRegId);
-    if (regId.IsEmpty() == true) {
-        throw runtime_error("in getcontractinfo: contract regid size invalid!\n");
-    }
-
-    if (!pCdMan->pContractCache->HaveContract(regId)) {
-        throw runtime_error("in getcontractinfo: contract regid not exist!\n");
+    CRegID regid(params[0].get_str());
+    if (regid.IsEmpty() || !pCdMan->pContractCache->HaveContract(regid)) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, "Invalid contract regid.");
     }
 
     CUniversalContract contract;
-    if (!pCdMan->pContractCache->GetContract(regId, contract)) {
-        throw JSONRPCError(RPC_DATABASE_ERROR, "get script error: cannot get registered script.");
+    if (!pCdMan->pContractCache->GetContract(regid, contract)) {
+        throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contract from db.");
     }
 
     Object obj;
-    obj.push_back(Pair("contract_regid", regId.ToString()));
-    obj.push_back(Pair("contract_memo", HexStr(contract.memo)));
-    obj.push_back(Pair("contract_content", HexStr(contract.code)));
+    obj.push_back(Pair("contract_regid",    regid.ToString()));
+    obj.push_back(Pair("vm_type",           contract.vm_type));
+    obj.push_back(Pair("upgradable",        contract.upgradable));
+    obj.push_back(Pair("code",              HexStr(contract.code)));
+    obj.push_back(Pair("memo",              HexStr(contract.memo)));
+    obj.push_back(Pair("abi",               contract.abi));
+
     return obj;
 }
 
