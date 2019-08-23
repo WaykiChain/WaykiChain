@@ -706,7 +706,15 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     if (scoins_to_liquidate >= totalScoinsToLiquidate) {
         account.OperateBalance(cdp.scoin_symbol, SUB_FREE, totalScoinsToLiquidate);
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
-        cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
+
+        if (account.regid != cdpOwnerAccount.regid) {
+            cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
+            if (!cw.accountCache.SetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount))
+                return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
+                                cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        } else {  // liquidate by oneself
+            account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner);
+        }
 
         if (!ProcessPenaltyFees(CTxCord(height, index), cdp, (uint64_t) totalScoinsToReturnSysFund, cw, state))
             return false;
@@ -736,7 +744,14 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToReturnLiquidator);
 
         uint64_t bcoinsToCDPOwner = totalBcoinsToCdpOwner * liquidateRate;
-        cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, bcoinsToCDPOwner);
+        if (account.regid != cdpOwnerAccount.regid) {
+            cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, bcoinsToCDPOwner);
+            if (!cw.accountCache.SetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount))
+                return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
+                                cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+        } else {  // liquidate by oneself
+            account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, bcoinsToCDPOwner);
+        }
 
         uint64_t scoinsToLiquidate = cdp.total_owed_scoins * liquidateRate;
         uint64_t bcoinsToLiquidate = totalBcoinsToReturnLiquidator + bcoinsToCDPOwner;
@@ -781,10 +796,6 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     if (!cw.accountCache.SetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write txUid %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    if (!cw.accountCache.SetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount))
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
-            cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write tx receipt failed! txid=%s",
