@@ -199,7 +199,7 @@ Value callcontracttx(const Array& params, bool fHelp) {
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
     tx.app_uid      = recvRegId;
-    tx.bcoins       = amount;
+    tx.coin_amount  = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
     tx.nValidHeight = height;
@@ -651,100 +651,6 @@ Value listaddr(const Array& params, bool fHelp) {
     return retArray;
 }
 
-Value listcontracttx(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() > 3 || params.size() < 1)
-            throw runtime_error("listcontracttx ( \"account\" count from )\n"
-                "\nReturns up to 'count' most recent transactions skipping the first 'from' transactions for account 'account'.\n"
-                "\nArguments:\n"
-                "1. \"account\"    (string). The contract RegId. \n"
-                "2. count          (numeric, optional, default=10) The number of transactions to return\n"
-                "3. from           (numeric, optional, default=0) The number of transactions to skip\n"    "\nExamples:\n"
-                "\nList the most recent 10 transactions in the systems\n"
-                   + HelpExampleCli("listcontracttx", "") +
-                   "\nList transactions 100 to 120\n"
-                   + HelpExampleCli("listcontracttx", "\"*\" 20 100") +
-                   "\nAs a json rpc call\n"
-                   + HelpExampleRpc("listcontracttx", "\"*\", 20, 100")
-              );
-    assert(pWalletMain != nullptr);
-
-    string strRegId = params[0].get_str();
-    CRegID regId(strRegId);
-    if (regId.IsEmpty() == true) {
-        throw runtime_error("in listcontracttx: contractRegId size error!\n");
-    }
-
-    if (!pCdMan->pContractCache->HaveContract(regId)) {
-        throw runtime_error("in listcontracttx: contractRegId does not exist!\n");
-    }
-
-    Array arrayData;
-    int32_t nCount = -1;
-    int32_t nFrom = 0;
-    if (params.size() > 1) {
-        nCount = params[1].get_int();
-    }
-    if (params.size() > 2) {
-        nFrom = params[2].get_int();
-    }
-
-    auto getregidstring = [&](CUserID const &userId) {
-        if(userId.type() == typeid(CRegID))
-            return userId.get<CRegID>().ToString();
-        return string(" ");
-    };
-
-    LOCK2(cs_main, pWalletMain->cs_wallet);
-
-    map<int32_t, uint256, std::greater<int32_t> > blockInfoMap;
-    for (auto const &wtx : pWalletMain->mapInBlockTx) {
-        CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != nullptr)
-            blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
-    }
-
-    int32_t txnCount(0);
-    int32_t index(0);
-    for (auto const &wtx : blockInfoMap) {
-        CAccountTx accountTx = pWalletMain->mapInBlockTx[wtx.second];
-        for (auto const & item : accountTx.mapAccountTx) {
-            if (item.second.get() && item.second->nTxType == LCONTRACT_INVOKE_TX) {
-                if (nFrom > 0 && index++ < nFrom) {
-                    continue;
-                }
-                if (nCount > 0 && txnCount > nCount) {
-                    return arrayData;
-                }
-
-                CLuaContractInvokeTx* ptx = (CLuaContractInvokeTx*) item.second.get();
-                if (strRegId != getregidstring(ptx->app_uid)) {
-                    continue;
-                }
-
-                CKeyID keyId;
-                Object obj;
-
-                obj.push_back(Pair("txid",          ptx->GetHash().GetHex()));
-                obj.push_back(Pair("regid",         getregidstring(ptx->txUid)));
-                pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
-                obj.push_back(Pair("addr",          keyId.ToAddress()));
-                obj.push_back(Pair("dest_regid",    getregidstring(ptx->app_uid)));
-                pCdMan->pAccountCache->GetKeyId(ptx->txUid, keyId);
-                obj.push_back(Pair("dest_addr",     keyId.ToAddress()));
-                obj.push_back(Pair("money",         ptx->bcoins));
-                obj.push_back(Pair("fees",          ptx->llFees));
-                obj.push_back(Pair("valid_height",  ptx->nValidHeight));
-                obj.push_back(Pair("arguments",     HexStr(ptx->arguments)));
-                arrayData.push_back(obj);
-
-                txnCount++;
-            }
-        }
-    }
-    return arrayData;
-}
-
 Value listtx(const Array& params, bool fHelp) {
 if (fHelp || params.size() > 2) {
         throw runtime_error("listtx\n"
@@ -1120,10 +1026,10 @@ Value generateblock(const Array& params, bool fHelp) {
 Value listtxcache(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("listtxcache\n"
-                "\nget all transactions in cahce\n"
+                "\nget all transactions in cache\n"
                 "\nArguments:\n"
                 "\nResult:\n"
-                "\"txcache\"  (string) \n"
+                "\"txcache\"  (string)\n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
     const map<uint256, UnorderedHashSet> &mapBlockTxHashSet = pCdMan->pTxCache->GetTxHashCache();
@@ -1430,7 +1336,7 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = sendUserId;
     tx.app_uid      = recvRegId;
-    tx.bcoins       = amount;
+    tx.coin_amount  = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
     tx.nValidHeight = height;

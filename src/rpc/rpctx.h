@@ -67,6 +67,5 @@ extern Value listunconfirmedtx(const Array& params, bool fHelp);
 extern Value listcontracts(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value listdelegates(const Array& params, bool fHelp);
-extern Value listcontracttx(const Array& params, bool fHelp);
 
 #endif /* RPCTX_H_ */

@@ -651,7 +651,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
             CLuaContractInvokeTx tx;
             tx.txUid        = txUid;
             tx.app_uid      = appUid;
-            tx.bcoins       = llValue++;
+            tx.coin_amount  = llValue++;
             tx.llFees       = llFees;
             tx.arguments    = arguments;
             tx.nValidHeight = nValidHeight;

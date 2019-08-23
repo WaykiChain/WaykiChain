@@ -55,26 +55,11 @@ public:
 class CLuaContractInvokeTx : public CBaseTx {
 public:
     mutable CUserID app_uid;  // app regid or address
-    uint64_t bcoins;          // transfer amount
+    uint64_t coin_amount;     // coin amount (Unit: WICC)
     string arguments;         // arguments to invoke a contract method
 
 public:
     CLuaContractInvokeTx() : CBaseTx(LCONTRACT_INVOKE_TX) {}
-
-    CLuaContractInvokeTx(const CUserID &txUidIn, CUserID appUidIn, uint64_t feesIn,
-                uint64_t bcoinsIn, int32_t validHeightIn, string &argumentsIn):
-                CBaseTx(LCONTRACT_INVOKE_TX, txUidIn, validHeightIn, feesIn) {
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty()); //FIXME: shouldnot be using assert here, throw an error instead.
-
-        if (appUidIn.type() == typeid(CRegID))
-            assert(!appUidIn.get<CRegID>().IsEmpty());
-
-        app_uid   = appUidIn;
-        bcoins    = bcoinsIn;
-        arguments = argumentsIn;
-    }
-
     ~CLuaContractInvokeTx() {}
 
     IMPLEMENT_SERIALIZE(
@@ -84,7 +69,7 @@ public:
         READWRITE(txUid);
         READWRITE(app_uid);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoins));
+        READWRITE(VARINT(coin_amount));
         READWRITE(arguments);
         READWRITE(signature);
     )
@@ -93,7 +78,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(nValidHeight) << txUid << app_uid
-               << VARINT(llFees) << VARINT(bcoins) << arguments;
+               << VARINT(llFees) << VARINT(coin_amount) << arguments;
             sigHash = ss.GetHash();
         }
         return sigHash;

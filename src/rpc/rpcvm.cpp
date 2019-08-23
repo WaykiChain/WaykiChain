@@ -210,7 +210,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.nTxType      = LCONTRACT_INVOKE_TX;
         contractInvokeTx.txUid        = srcRegId;
         contractInvokeTx.app_uid      = appId;
-        contractInvokeTx.bcoins       = amount;
+        contractInvokeTx.coin_amount  = amount;
         contractInvokeTx.llFees       = totalFee - regMinFee;
         contractInvokeTx.arguments    = string(arguments.begin(), arguments.end());
         contractInvokeTx.nValidHeight = newHeight;

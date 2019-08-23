@@ -201,7 +201,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
         }
     }
 
-    uint64_t minusValue = llFees + bcoins;
+    uint64_t minusValue = llFees + coin_amount;
     if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minusValue))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
             UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
@@ -221,7 +221,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
             app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoins)) {
+    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
@@ -286,9 +286,9 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
 string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, bcoins=%llu, llFees=%llu, arguments=%s, "
+        "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, coin_amount=%llu, llFees=%llu, arguments=%s, "
         "nValidHeight=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), bcoins, llFees,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), coin_amount, llFees,
         HexStr(arguments), nValidHeight);
 }
 
@@ -300,7 +300,7 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("to_uid",         app_uid.ToString()));
     result.push_back(Pair("coin_symbol",    SYMB::WICC));
-    result.push_back(Pair("coin_amount",    bcoins));
+    result.push_back(Pair("coin_amount",    coin_amount));
     result.push_back(Pair("arguments",      HexStr(arguments)));
 
     return result;

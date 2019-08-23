@@ -323,35 +323,26 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
         }
     }
     /*
-        int64_t sysAcctSum = tx->bcoins - sysContractAcct;
-        if(sysAcctSum > (int64_t)tx->bcoins) {
+        int64_t sysAcctSum = tx->coin_amount - sysContractAcct;
+        if(sysAcctSum > (int64_t)tx->coin_amount) {
             return false;
         }
     */
     int64_t sysAcctSum = 0;
-    if (!SafeSubtract((int64_t)tx->bcoins, (int64_t)sysContractAcct, sysAcctSum)) return false;
+    if (!SafeSubtract((int64_t)tx->coin_amount, (int64_t)sysContractAcct, sysAcctSum))
+        return false;
 
     if (sumValue != sysAcctSum) {
         LogPrint("vm",
-                 "CheckAppAcctOperate:addValue=%lld, minusValue=%lld, txValue=%lld, "
-                 "sysContractAcct=%lld sumValue=%lld, sysAcctSum=%lld\n",
-                 addValue, minusValue, tx->bcoins, sysContractAcct, sumValue, sysAcctSum);
+                 "CheckAppAcctOperate: addValue=%lld, minusValue=%lld, txValue=%lld, "
+                 "sysContractAcct=%lld, sumValue=%lld, sysAcctSum=%lld\n",
+                 addValue, minusValue, tx->coin_amount, sysContractAcct, sumValue, sysAcctSum);
 
         return false;
     }
 
     return true;
 }
-
-// shared_ptr<vector<CVmOperate>> CVmRunEnv::GetOperate() const {
-//  auto tem = std::make_shared<vector<CVmOperate>>();
-//  shared_ptr<vector<unsigned char>> retData = pMcu.get()->GetRetData();
-//  CDataStream Contractstream(*retData.get(), SER_DISK, CLIENT_VERSION);
-//  vector<CVmOperate> retvmcode;
-//  ;
-//  Contractstream >> retvmcode;
-//  return tem;
-//}
 
 bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& accountView,
                                const int32_t nCurHeight) {
@@ -431,7 +422,7 @@ const CRegID& CVmRunEnv::GetTxAccount() {
 
 uint64_t CVmRunEnv::GetValue() const {
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
-    return tx->bcoins;
+    return tx->coin_amount;
 }
 
 const string& CVmRunEnv::GetTxContract() {
