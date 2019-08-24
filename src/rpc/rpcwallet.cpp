@@ -44,32 +44,25 @@ void EnsureWalletIsUnlocked() {
             "Error: Please enter the wallet passphrase with walletpassphrase first.");
 }
 
-// bool GetKeyId(string const& addr, CKeyID& keyId) {
-//     if (!CRegID::GetKeyId(addr, keyId)) {
-//         keyId = CKeyID(addr);
-//         return (!keyId.IsEmpty());
-//     }
-//     return true;
-// }
-
 Value getnewaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "getnewaddr  (\"IsMiner\")\n"
             "\nget a new address\n"
             "\nArguments:\n"
-            "1. \"IsMiner\" (bool, optional)  If true, it creates two sets of key-pairs: one for "
+            "1. \"IsMiner\" (bool, optional) If true, it creates two sets of key-pairs: one for "
             "mining and another for receiving miner fees.\n"
+            "\nResult:\n"
             "\nExamples:\n" +
             HelpExampleCli("getnewaddr", "") + "\nAs json rpc\n" +
             HelpExampleRpc("getnewaddr", ""));
 
     EnsureWalletIsUnlocked();
 
-    bool IsForMiner = false;
+    bool isForMiner = false;
     if (params.size() == 1) {
         RPCTypeCheck(params, list_of(bool_type));
-        IsForMiner = params[0].get_bool();
+        isForMiner = params[0].get_bool();
     }
 
     CKey userkey;
@@ -78,7 +71,7 @@ Value getnewaddr(const Array& params, bool fHelp) {
     CKey minerKey;
     string minerPubKey = "null";
 
-    if (IsForMiner) {
+    if (isForMiner) {
         minerKey.MakeNewKey();
         if (!pWalletMain->AddKey(userkey, minerKey)) {
             throw runtime_error("add miner key failed ");
@@ -90,9 +83,11 @@ Value getnewaddr(const Array& params, bool fHelp) {
 
     CPubKey userPubKey = userkey.GetPubKey();
     CKeyID userKeyID   = userPubKey.GetKeyId();
+
     Object obj;
-    obj.push_back(Pair("addr", userKeyID.ToAddress()));
-    obj.push_back(Pair("minerpubkey", minerPubKey));  // "null" for non-miner address
+    obj.push_back(Pair("addr",          userKeyID.ToAddress()));
+    obj.push_back(Pair("minerpubkey",   minerPubKey));  // "null" for non-miner address
+
     return obj;
 }
 

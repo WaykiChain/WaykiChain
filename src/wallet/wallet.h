@@ -151,8 +151,6 @@ public:
     int64_t nTimeCreated;
     int64_t nTimeExpires;
     string strComment;
-    //// todo: add something to note what created it (user, getnewaddr, change)
-    ////   maybe should have a map<string, string> property map
 
     CWalletKey(int64_t nExpires = 0) {
         nTimeCreated = (nExpires ? GetTime() : 0);
