@@ -1240,7 +1240,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                      block.vptx[index + 1]->GetHash().GetHex(), txids[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
-            assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
+            if (SysCfg().NetworkID() == MAIN_NET) {
+                assert(block.vptx[index + 1]->GetHash() == uint256S(txids[index]));
+            }
         }
     }
 

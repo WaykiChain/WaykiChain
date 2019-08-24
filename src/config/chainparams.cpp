@@ -133,7 +133,12 @@ public:
 
     virtual bool InitialConfig() {
         CMainParams::InitialConfig();
+
+        nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
+        nFeatureForkHeight =
+            std::max((int64_t)nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
         fServer = true;
+
         return true;
     }
 
@@ -171,10 +176,12 @@ public:
     virtual bool InitialConfig() {
         CTestNetParams::InitialConfig();
 
-        nBlockIntervalPreStableCoinRelease = GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
+        nBlockIntervalPreStableCoinRelease =
+            GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
         nBlockIntervalStableCoinRelease = GetArg("-blockintervalstablecoinrelease", BLOCK_INTERVAL_STABLE_COIN_RELEASE);
+        nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(REGTEST_NET));
         nFeatureForkHeight =
-            std::max((int64_t)10, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
+            std::max((int64_t)nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer = true;
 
         return true;
