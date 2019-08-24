@@ -264,7 +264,7 @@ bool CAccount::IsFcoinWithinRange(uint64_t nAddMoney) {
 
 bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotesIn,
                                     vector<CCandidateReceivedVote> &candidateVotesInOut, const uint32_t currHeight,
-                                    const CAccountDBCache *pAccountCache) {
+                                    const CAccountDBCache &accountCache) {
     if (currHeight < last_vote_height) {
         LogPrint("ERROR", "currHeight (%d) < last_vote_height (%d)", currHeight, last_vote_height);
         return false;
@@ -276,15 +276,15 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         const CUserID &voteId = vote.GetCandidateUid();
         vector<CCandidateReceivedVote>::iterator itVote =
             find_if(candidateVotesInOut.begin(), candidateVotesInOut.end(),
-                    [&voteId, pAccountCache](const CCandidateReceivedVote &vote) {
+                    [&voteId, &accountCache](const CCandidateReceivedVote &vote) {
                         if (voteId.type() != vote.GetCandidateUid().type()) {
                             CAccount account;
                             if (voteId.type() == typeid(CRegID)) {
-                                pAccountCache->GetAccount(voteId, account);
+                                accountCache.GetAccount(voteId, account);
                                 return vote.GetCandidateUid() == account.owner_pubkey;
 
                             } else {  // vote.GetCandidateUid().type() == typeid(CPubKey)
-                                pAccountCache->GetAccount(vote.GetCandidateUid(), account);
+                                accountCache.GetAccount(vote.GetCandidateUid(), account);
                                 return account.owner_pubkey == voteId;
                             }
                         } else {
@@ -305,12 +305,12 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
                 if (!IsBcoinWithinRange(itVote->GetVotedBcoins()))
                      return ERRORMSG("ProcessDelegateVotes() : fund value exceeds maximum");
 
-            } else { //new vote
-               if (candidateVotesInOut.size() == IniCfg().GetMaxVoteCandidateNum()) {
-                   return ERRORMSG("ProcessDelegateVotes() : MaxVoteCandidateNum reached. Must revoke old votes 1st.");
-               }
+            } else {  // new vote
+                if (candidateVotesInOut.size() == IniCfg().GetMaxVoteCandidateNum()) {
+                    return ERRORMSG("ProcessDelegateVotes() : MaxVoteCandidateNum reached. Must revoke old votes 1st.");
+                }
 
-               candidateVotesInOut.push_back(vote);
+                candidateVotesInOut.push_back(vote);
             }
         } else if (MINUS_BCOIN == voteType) {
             // if (currHeight - last_vote_height < 100) {
