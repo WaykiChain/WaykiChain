@@ -120,22 +120,6 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CBaseCoinTransferTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    CKeyID keyId;
-    if (!cw.accountCache.GetKeyId(txUid, keyId))
-        return false;
-
-    keyIds.insert(keyId);
-
-    CKeyID desKeyId;
-    if (!cw.accountCache.GetKeyId(toUid, desKeyId))
-        return false;
-
-    keyIds.insert(desKeyId);
-
-    return true;
-}
-
 static shared_ptr<string> CheckCoinSymbol(CCacheWrapper &cw, const TokenSymbol &symbol) {
     size_t coinSymbolSize = symbol.size();
         if (   coinSymbolSize == 0

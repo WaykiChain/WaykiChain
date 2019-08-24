@@ -88,7 +88,7 @@ BOOST_FIXTURE_TEST_CASE(register_test,CSysAccountTest)
 	vFailedTxHash.push_back(strTxHash);
 
 //	//不签名
-//	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee, strTxHash,nInValidHeight,false));
+//	BOOST_CHECK(!RegisterAccount(strRegAddr1, nFee, strTxHash,nIvalid_height,false));
 //	vFailedTxHash.push_back(strTxHash);
 
 	//手续费超过最大值

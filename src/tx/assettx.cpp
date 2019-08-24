@@ -207,9 +207,9 @@ Object CAssetUpdateData::ToJson() const {
 // class CAssetUpdateTx
 
 string CAssetUpdateTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, nValidHeight=%d,\n"
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, valid_height=%d,\n"
         "asset_symbol=%s, %s",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, nValidHeight,
+        GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, valid_height,
         asset_symbol, update_data.ToString());
 }
 
@@ -221,14 +221,6 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     result.insert(result.end(), dataObj.begin(), dataObj.end());
 
     return result;
-}
-
-bool CAssetUpdateTx::GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) {
-    if (update_data.GetType() == CAssetUpdateData::OWNER_UID) {
-        if (!AddInvolvedKeyIds({txUid, update_data.get<CUserID>()}, cw, keyIds))
-            return false;
-    }
-    return AddInvolvedKeyIds({txUid}, cw, keyIds);
 }
 
 bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
