@@ -264,7 +264,7 @@ bool CAccount::IsFcoinWithinRange(uint64_t nAddMoney) {
 
 bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotesIn,
                                     vector<CCandidateReceivedVote> &candidateVotesInOut, const uint32_t currHeight,
-                                    const CAccountDBCache &accountCache) {
+                                    const CAccountDBCache &accountCache, vector<CReceipt> &receipts) {
     if (currHeight < last_vote_height) {
         LogPrint("ERROR", "currHeight (%d) < last_vote_height (%d)", currHeight, last_vote_height);
         return false;
@@ -298,12 +298,12 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
                 uint64_t currVotes = itVote->GetVotedBcoins();
 
                 if (!IsBcoinWithinRange(vote.GetVotedBcoins()))
-                     return ERRORMSG("ProcessDelegateVotes() : oper fund value exceeds maximum ");
+                    return ERRORMSG("ProcessDelegateVotes() : oper fund value exceeds maximum ");
 
                 itVote->SetVotedBcoins(currVotes + vote.GetVotedBcoins());
 
                 if (!IsBcoinWithinRange(itVote->GetVotedBcoins()))
-                     return ERRORMSG("ProcessDelegateVotes() : fund value exceeds maximum");
+                    return ERRORMSG("ProcessDelegateVotes() : fund value exceeds maximum");
 
             } else {  // new vote
                 if (candidateVotesInOut.size() == IniCfg().GetMaxVoteCandidateNum()) {
@@ -346,17 +346,21 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
     });
 
     uint64_t newTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
-    uint64_t totalBcoins = GetToken(SYMB::WICC).free_amount + lastTotalVotes;
+    uint64_t totalBcoins   = GetToken(SYMB::WICC).free_amount + lastTotalVotes;
     if (totalBcoins < newTotalVotes) {
         return  ERRORMSG("ProcessDelegateVotes() : delegate votes exceeds account bcoins");
     }
-    uint64_t free_bcoins = totalBcoins - newTotalVotes;
 
+    uint64_t free_bcoins  = totalBcoins - newTotalVotes;
     uint64_t currBcoinAmt = GetToken(SYMB::WICC).free_amount;
     if (currBcoinAmt < free_bcoins) {
         OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, free_bcoins - currBcoinAmt);
+        CReceipt receipt(nullId, regid, SYMB::WICC, free_bcoins - currBcoinAmt, "add free bcoins due to revoking votes");
+        receipts.push_back(receipt);
     } else {
         OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, currBcoinAmt - free_bcoins);
+        CReceipt receipt(regid, nullId, SYMB::WICC, currBcoinAmt - free_bcoins, "sub free bcoins due to increasing votes");
+        receipts.push_back(receipt);
     }
 
     auto featureForkVersion          = GetFeatureForkVersion(currHeight);
@@ -365,14 +369,18 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
         return false;
 
     switch (featureForkVersion) {
-        case MAJOR_VER_R1: // for backward compatibility
+        case MAJOR_VER_R1: {  // for backward compatibility
             OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, interestAmountToInflate);
+            CReceipt receipt(nullId, regid, SYMB::WICC, interestAmountToInflate, "inflate interest due to voting");
+            receipts.push_back(receipt);
             break;
-
-        case MAJOR_VER_R2: // only fcoins will be inflated for voters
+        }
+        case MAJOR_VER_R2: {  // only fcoins will be inflated for voters
             OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, interestAmountToInflate);
+            CReceipt receipt(nullId, regid, SYMB::WGRT, interestAmountToInflate, "inflate interest due to voting");
+            receipts.push_back(receipt);
             break;
-
+        }
         default:
             return false;
     }

@@ -7,7 +7,6 @@
 #ifndef ENTITIES_ACCOUNT_H
 #define ENTITIES_ACCOUNT_H
 
-#include <boost/variant.hpp>
 #include <functional>
 #include <map>
 #include <memory>
@@ -17,6 +16,7 @@
 
 #include "asset.h"
 #include "crypto/hash.h"
+#include "entities/receipt.h"
 #include "id.h"
 #include "vote.h"
 #include "json/json_spirit_utils.h"
@@ -166,7 +166,7 @@ public:
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
                               vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
-                              const CAccountDBCache &accountCache);
+                              const CAccountDBCache &accountCache, vector<CReceipt> &receipts);
 
     uint64_t GetVotedBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
 

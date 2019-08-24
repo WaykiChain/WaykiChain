@@ -13,9 +13,10 @@
 #include "entities/id.h"
 #include "json/json_spirit_utils.h"
 
+static CUserID nullId;
+
 class CReceipt {
 public:
-    TxType      tx_type;
     CUserID     from_uid;
     CUserID     to_uid;
     TokenSymbol coin_symbol;
@@ -25,17 +26,11 @@ public:
 public:
     CReceipt() {}
 
-    CReceipt(const TxType txType, const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol,
-             const uint64_t coinAmount, const string &memoIn)
-        : tx_type(txType),
-          from_uid(fromUid),
-          to_uid(toUid),
-          coin_symbol(coinSymbol),
-          coin_amount(coinAmount),
-          memo(memoIn) {}
+    CReceipt(const CUserID &fromUid, const CUserID &toUid, const TokenSymbol &coinSymbol, const uint64_t coinAmount,
+             const string &memoIn)
+        : from_uid(fromUid), to_uid(toUid), coin_symbol(coinSymbol), coin_amount(coinAmount), memo(memoIn) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t &)tx_type);
         READWRITE(from_uid);
         READWRITE(to_uid);
         READWRITE(coin_symbol);
@@ -46,7 +41,6 @@ public:
     json_spirit::Object ToJson() const {
         json_spirit::Object obj;
 
-        obj.push_back(Pair("tx_type",       std::get<0>(kTxFeeTable.at(tx_type))));
         obj.push_back(Pair("from_uid",      from_uid.ToString()));
         obj.push_back(Pair("to_uid",        to_uid.ToString()));
         obj.push_back(Pair("coin_symbol",   coin_symbol));

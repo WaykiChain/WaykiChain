@@ -130,7 +130,8 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     CRegID &regId = txUid.get<CRegID>();
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
-    if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, height, cw.accountCache)) {
+    vector<CReceipt> receipts;
+    if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, height, cw.accountCache, receipts)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, regId=%s",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
     }
@@ -173,6 +174,8 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
                             account.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
         }
     }
+
+    cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
     return true;
 }

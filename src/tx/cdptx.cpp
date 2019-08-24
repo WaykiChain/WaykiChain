@@ -13,8 +13,6 @@
 
 using namespace std;
 
-static CUserID nullId;
-
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )
  *
@@ -239,7 +237,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     }
 
     vector<CReceipt> receipts;
-    CReceipt receipt(nTxType, nullId, txUid, scoin_symbol, scoins_to_mint, "minted scoins to cdp owner");
+    CReceipt receipt(nullId, txUid, scoin_symbol, scoins_to_mint, "minted scoins to cdp owner");
     receipts.push_back(receipt);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
@@ -468,9 +466,9 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     vector<CReceipt> receipts;
-    CReceipt receipt1(nTxType, txUid, nullId, cdp.scoin_symbol, realRepayScoins, "real repaid scoins by cdp owner");
+    CReceipt receipt1(txUid, nullId, cdp.scoin_symbol, realRepayScoins, "real repaid scoins by cdp owner");
     receipts.push_back(receipt1);
-    CReceipt receipt2(nTxType, nullId, txUid, cdp.bcoin_symbol, bcoins_to_redeem, "redeemed bcoins to cdp owner");
+    CReceipt receipt2(nullId, txUid, cdp.bcoin_symbol, bcoins_to_redeem, "redeemed bcoins to cdp owner");
     receipts.push_back(receipt2);
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
@@ -725,16 +723,16 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, erase CDP failed! cdpid=%s",
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
 
-        CReceipt receipt1(nTxType, txUid, nullId, cdp.scoin_symbol, totalScoinsToLiquidate,
+        CReceipt receipt1(txUid, nullId, cdp.scoin_symbol, totalScoinsToLiquidate,
                           "actual scoins paid by liquidator");
         receipts.push_back(receipt1);
 
-        CReceipt receipt2(nTxType, nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
+        CReceipt receipt2(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                           "total bcoins to return liquidator");
         receipts.push_back(receipt2);
 
         CUserID ownerUserId(cdp.owner_regid);
-        CReceipt receipt3(nTxType, nullId, ownerUserId, cdp.bcoin_symbol, (uint64_t)totalBcoinsToCdpOwner,
+        CReceipt receipt3(nullId, ownerUserId, cdp.bcoin_symbol, (uint64_t)totalBcoinsToCdpOwner,
                           "total bcoins to return cdp owner");
         receipts.push_back(receipt3);
 
@@ -784,16 +782,16 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
 
-        CReceipt receipt1(nTxType, txUid, nullId, cdp.scoin_symbol, scoins_to_liquidate,
+        CReceipt receipt1(txUid, nullId, cdp.scoin_symbol, scoins_to_liquidate,
                           "actual scoins paid by liquidator");
         receipts.push_back(receipt1);
 
-        CReceipt receipt2(nTxType, nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
+        CReceipt receipt2(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                           "total bcoins to return liquidator");
         receipts.push_back(receipt2);
 
         CUserID ownerUserId(cdp.owner_regid);
-        CReceipt receipt3(nTxType, nullId, ownerUserId, cdp.bcoin_symbol, bcoinsToCDPOwner,
+        CReceipt receipt3(nullId, ownerUserId, cdp.bcoin_symbol, bcoinsToCDPOwner,
                           "total bcoins to return cdp owner");
         receipts.push_back(receipt3);
     }
@@ -872,11 +870,11 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
         }
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        CReceipt receipt1(nTxType, nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
+        CReceipt receipt1(nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
                           "half scoin penalty into risk riserve");
         receipts.push_back(receipt1);
 
-        CReceipt receipt2(nTxType, nullId, fcoinGenesisAccount.regid, cdp.scoin_symbol, leftScoinPenalty,
+        CReceipt receipt2(nullId, fcoinGenesisAccount.regid, cdp.scoin_symbol, leftScoinPenalty,
                           "left half scoin penalty to create sys order: WGRT/WUSD");
         receipts.push_back(receipt2);
     } else {
@@ -884,7 +882,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees);
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        CReceipt receipt(nTxType, nullId, fcoinGenesisUid, cdp.scoin_symbol, scoinPenaltyFees,
+        CReceipt receipt(nullId, fcoinGenesisUid, cdp.scoin_symbol, scoinPenaltyFees,
                          "save penalty fees into risk riserve");
         receipts.push_back(receipt);
     }

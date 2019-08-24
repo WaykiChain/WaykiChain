@@ -1155,7 +1155,8 @@ bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, CCacheWr
         cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
         CAccount account;
         cw.accountCache.GetAccount(regId, account);
-        if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, currHeight, cw.accountCache)) {
+        vector<CReceipt> receipts;
+        if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, currHeight, cw.accountCache, receipts)) {
             return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate delegate vote failed, regId=%s",
                             regId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
         }
