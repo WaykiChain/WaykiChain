@@ -335,6 +335,7 @@ static const CRPCCommand vRPCCommands[] =
     /* for asset */
     { "submitassetissuetx",         &submitassetissuetx,         true,     false,      false },
     { "submitassetupdatetx",        &submitassetupdatetx,        true,     false,      false },
+    { "getassets",                  &getassets,                  true,     false,      false },
 
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

@@ -166,6 +166,16 @@ public:
         }
         return nullptr;
     }
+
+    Object ToJson() const {
+        Object result;
+        result.push_back(Pair("asset_symbol",   symbol));
+        result.push_back(Pair("owner_uid",      owner_uid.ToString()));
+        result.push_back(Pair("asset_name",     name));
+        result.push_back(Pair("total_supply",   total_supply));
+        result.push_back(Pair("mintable",       mintable));
+        return result;
+    }
 };
 
 #endif //ENTITIES_ASSET_H

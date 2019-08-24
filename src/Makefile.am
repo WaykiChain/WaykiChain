@@ -98,6 +98,7 @@ coin_CORE_H = \
   persistence/txdb.h \
   persistence/dbaccess.h \
   persistence/dbconf.h \
+  persistence/dbiterator.h \
   persistence/dexdb.h \
   persistence/logdb.h \
   protocol.h \

@@ -946,3 +946,34 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     return SubmitTx(uid, tx);
 }
+
+extern Value getassets(const Array& params, bool fHelp) {
+     if (fHelp || params.size() > 4) {
+        throw runtime_error(
+            "getassets\n"
+            "\nget all assets, include active orders by block height range.\n"
+            "\nArguments:\n"
+            "\nResult: a list of assets\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getassets", "")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getassets", "")
+        );
+    }
+
+    auto pGetter = pCdMan->pAssetCache->CreateUserAssetsGetter();
+    if (!pGetter || !pGetter->Execute()) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, "get all user issued assets error!");
+    }
+
+    Array assetArray;
+    for (auto &item : pGetter->data_list) {
+        const auto &asset = item.second;
+        assetArray.push_back(asset.ToJson());
+    }
+
+    Object obj;
+    obj.push_back(Pair("count", (int64_t)pGetter->data_list.size()));
+    obj.push_back(Pair("assets", assetArray));
+    return obj;
+}

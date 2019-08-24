@@ -1390,6 +1390,16 @@ public:
     }
 };
 
+class CNullObject {
+public:
+    friend bool operator==(const CNullObject &a, const CNullObject &b) { return true; }
+    friend bool operator<(const CNullObject &a, const CNullObject &b) { return true; }
 
+    unsigned int GetSerializeSize(int nType, int nVersion) const{ return 0; }
+    template<typename Stream>
+    void Serialize(Stream& s, int nType, int nVersion) const {}
+    template<typename Stream>
+    void Unserialize(Stream& s, int nType, int nVersion) {}
+};
 
 #endif

@@ -206,6 +206,7 @@ extern json_spirit::Value getusercdp(const json_spirit::Array& params, bool fHel
 
 extern json_spirit::Value submitassetissuetx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitassetupdatetx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getassets(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

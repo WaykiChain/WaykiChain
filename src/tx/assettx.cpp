@@ -130,13 +130,7 @@ string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
 
 Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-
-    result.push_back(Pair("owner_uid",    asset.owner_uid.ToString()));
-    result.push_back(Pair("asset_symbol",   asset.symbol));
-    result.push_back(Pair("asset_name",     asset.name));
-    result.push_back(Pair("total_supply",   asset.total_supply));
-    result.push_back(Pair("mintable",       asset.mintable));
-
+    container::Append(result, asset.ToJson());
     return result;
 }
 

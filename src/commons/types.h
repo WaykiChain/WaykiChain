@@ -32,4 +32,11 @@ struct EnumTypeHash {
 template <typename EnumType, typename ValueType>
 using EnumTypeMap = std::unordered_map<EnumType, ValueType, EnumTypeHash<EnumType>>;
 
+namespace container {
+    template<typename Container>
+    void Append(Container dest, Container appended) {
+        dest.insert(dest.end(), std::begin(appended), std::end(appended));
+    }
+};
+
 #endif //COMMONS_TYPES_H

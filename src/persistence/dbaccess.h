@@ -134,6 +134,12 @@ namespace db_util {
         SetEmpty(*value);
         return value;
     }
+
+    template<typename T>
+    T MakeEmpty() {
+        T value; SetEmpty(value);
+        return value;
+    }
 };
 
 class CDBAccess {

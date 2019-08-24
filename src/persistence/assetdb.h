@@ -13,12 +13,21 @@
 #include "commons/arith_uint256.h"
 #include "dbconf.h"
 #include "dbaccess.h"
+#include "dbiterator.h"
 
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
 
+
+/*  CCompositeKVCache     prefixType            key              value           variable           */
+/*  -------------------- --------------------   --------------  -------------   --------------------- */
+    // <asset_tokenSymbol -> asset>
+typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DBAssetCache;
+
+
+typedef CDBListGetter<DBAssetCache> CUserAssetsGetter;
 
 class CAssetDBCache {
 public:
@@ -56,11 +65,15 @@ public:
         return assetCache.UndoDatas() &&
                assetTradingPairCache.UndoDatas();
     }
+
+    shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() {
+        return make_shared<CUserAssetsGetter>(assetCache);
+    }
 private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
-    CCompositeKVCache< dbk::ASSET,              TokenSymbol,        CAsset>         assetCache;
+    DBAssetCache   assetCache;
     // <asset_trading_pair -> 1>
     CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
 };

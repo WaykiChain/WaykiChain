@@ -42,4 +42,6 @@ extern Value listcdpstoliquidate(const Array& params, bool fHelp);
 extern Value submitassetissuetx(const Array& params, bool fHelp);
 extern Value submitassetupdatetx(const Array& params, bool fHelp);
 
+extern Value getassets(const Array& params, bool fHelp);
+
 #endif /* RPC_SCOIN_H_ */
