@@ -25,10 +25,7 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
 }
 
 bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value) {
-    if (!kCoinTypeSet.count(tokenSymbol)) {
-        assert(false && "Unsupported token symbol");
-        return false;
-    }
+
     CAccountToken &accountToken = tokens[tokenSymbol];
     switch (opType) {
         case ADD_FREE: {
