@@ -6,6 +6,7 @@
 
 #include "blockrewardtx.h"
 
+#include "entities/receipt.h"
 #include "main.h"
 
 bool CBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
@@ -32,7 +33,7 @@ bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
 
     if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
-            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     return true;
 }
@@ -68,8 +69,9 @@ bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
 bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
-        return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, read source addr %s account info error",
-            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        return state.DoS(
+            100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, read source addr %s account info error", txUid.ToString()),
+            UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (0 == index) {
@@ -80,7 +82,8 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         for (const auto &item : rewards) {
             uint64_t rewardAmount  = item.second;
             TokenSymbol coinSymbol = item.first;
-            if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD || coinSymbol == SYMB::WGRT)
+            // FIXME: support WICC/WUSD only.
+            if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD)
                 account.OperateBalance(coinSymbol, ADD_FREE, rewardAmount);
             else
                 return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
@@ -108,8 +111,9 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
         reward += strprintf("%s: %lu, ", item.first, item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, reward=%s, valid_height=%d\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward, valid_height);
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewards=%s, profits=%llu, valid_height=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward,
+                     profits, valid_height);
 }
 
 Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -128,6 +132,7 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("tx_uid",         txUid.ToString()));
     result.push_back(Pair("to_addr",        keyId.ToAddress()));
     result.push_back(Pair("reward_value",   reward));
+    result.push_back(Pair("profits",        profits));
     result.push_back(Pair("valid_height",   valid_height));
 
     return result;
