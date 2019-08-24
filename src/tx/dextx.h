@@ -65,7 +65,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << coin_symbol << asset_symbol << asset_amount << bid_price;
+               << coin_symbol << asset_symbol << VARINT(asset_amount) << VARINT(bid_price);
             sigHash = ss.GetHash();
         }
 
@@ -121,7 +121,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << coin_symbol << asset_symbol << asset_amount << ask_price;
+               << coin_symbol << asset_symbol << VARINT(asset_amount) << VARINT(ask_price);
             sigHash = ss.GetHash();
         }
 
@@ -174,7 +174,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << coin_symbol << asset_symbol << coin_amount;
+               << coin_symbol << asset_symbol << VARINT(coin_amount);
             sigHash = ss.GetHash();
         }
 
@@ -226,7 +226,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << coin_symbol << asset_symbol << asset_amount;
+               << coin_symbol << asset_symbol << VARINT(asset_amount);
             sigHash = ss.GetHash();
         }
 
