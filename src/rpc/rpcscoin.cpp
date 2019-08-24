@@ -283,6 +283,8 @@ Value getscoininfo(const Array& params, bool fHelp){
     uint64_t globalOwedScoins   = 0;
     pCdMan->pCdpCache->cdpMemCache.GetGlobalItem(globalStakedBcoins, globalOwedScoins);
 
+    bool global_collateral_ceiling_reached = globalStakedBcoins > globalCollateralCeiling * COIN;
+
     set<CUserCDP> forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
@@ -296,22 +298,26 @@ Value getscoininfo(const Array& params, bool fHelp){
     Array prices;
     for (auto& item : medianPricePoints) {
         Object price;
-        price.push_back(Pair("coin_symbol", item.first.first));
-        price.push_back(Pair("price_symbol", item.first.second));
-        price.push_back(Pair("price", (double)item.second / kPercentBoost));
+        price.push_back(Pair("coin_symbol",                     item.first.first));
+        price.push_back(Pair("price_symbol",                    item.first.second));
+        price.push_back(Pair("price",                           strprintf("%.8f", (double)item.second / kPercentBoost)));
         prices.push_back(price);
     }
 
     obj.push_back(Pair("height",                                height));
     obj.push_back(Pair("median_price",                          prices));
     obj.push_back(Pair("slide_window_block_count",              slideWindowBlockCount));
-    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling));
-    obj.push_back(Pair("global_collateral_ratio_floor",         globalCollateralRatioFloor));
+
     obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
     obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
-    obj.push_back(Pair("global_collateral_ratio",               globalCollateralRatio));
+    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
+    obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
+
+    obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.4f%%", (double)globalCollateralRatioFloor / kPercentBoost * 100)));
+    obj.push_back(Pair("global_collateral_ratio",               strprintf("%.4f%%", (double)globalCollateralRatio / kPercentBoost * 100)));
     obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
-    obj.push_back(Pair("force_liquidate_ratio",                 forceLiquidateRatio));
+
+    obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.4f%%", (double)forceLiquidateRatio / kPercentBoost * 100)));
     obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
 
     return obj;
