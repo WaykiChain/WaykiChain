@@ -402,6 +402,12 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         bcoins_to_redeem, cdp.total_staked_bcoins), UPDATE_CDP_FAIL, "bcoin_to_redeem-too-large");
     }
 
+    // check account balance vs scoins_to_repay
+    if (account.GetToken(cdp.scoin_symbol).free_amount < scoins_to_repay) {
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, account balance insufficient"), REJECT_INVALID,
+                         "account-balance-insufficient");
+    }
+
     uint64_t realRepayScoins = scoins_to_repay;
     if (scoins_to_repay >= cdp.total_owed_scoins) {
         realRepayScoins = cdp.total_owed_scoins;
