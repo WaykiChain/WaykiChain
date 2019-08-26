@@ -10,6 +10,79 @@
 #include "entities/receipt.h"
 #include "persistence/assetdb.h"
 
+
+static const string ASSET_ACTION_ISSUE = "ISSUE";
+static const string ASSET_ACTION_UPDATE = "UPDATE";
+
+static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
+    CAccount &txAccount, vector<CReceipt> &receipts) {
+
+    uint64_t assetFee = 0;
+    if (action == ASSET_ACTION_ISSUE) {
+        if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
+            return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_ACTION_ISSUE error"),
+                            REJECT_INVALID, "read-sysparam-error");
+    } else{
+        assert(action == ASSET_ACTION_UPDATE);
+        if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
+            return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_UPDATE_FEE error"),
+                            REJECT_INVALID, "read-sysparam-error");
+    }
+
+
+    if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee))
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
+                        assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+
+    uint64_t riskFee = assetFee * ASSET_RISK_FEE_RATIO / kPercentBoost;
+    uint64_t minerTotalFee = assetFee - riskFee;
+
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk pool account failed"),
+                        READ_ACCOUNT_FAIL, "get-account-failed");
+
+    if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee)) {
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk pool account error",
+            action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
+    }
+    receipts.push_back(CReceipt(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee,
+        action + " asset fee to risk pool"));
+
+    vector<CRegID> delegateList;
+    if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get top delegate list failed"),
+            REJECT_INVALID, "get-delegates-failed");
+    }
+    assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
+
+    for (size_t i = 0; i < delegateList.size(); i++) {
+        const CRegID &delegateRegid = delegateList[i];
+        CAccount delegateAccount;
+        if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
+            return state.DoS(100, ERRORMSG("ProcessAssetFee, get delegate account info failed! delegate regid=%s",
+                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+        uint64_t minerUpdatedFee = minerTotalFee / delegateList.size();
+        if (i == 0) minerUpdatedFee += minerTotalFee % delegateList.size(); // give the dust amount to topmost miner
+
+        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
+            return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
+                action, delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
+        }
+
+        if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
+            return state.DoS(100, ERRORMSG("ProcessAssetFee, write delegate account info error, delegate regid=%s",
+                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        receipts.push_back(CReceipt(txAccount.regid, delegateRegid, SYMB::WICC, minerUpdatedFee,
+            action + " asset fee to miner"));
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class CAssetIssueTx
+
 bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
 
@@ -70,40 +143,8 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset has been issued! symbol=%s",
             asset.symbol), REJECT_INVALID, "asset-existed-error");
 
-    uint64_t assetIssueFee; //550 WICC
-    if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetIssueFee)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, read param ASSET_ISSUE_FEE error"),
-                         REJECT_INVALID, "read-sysparam-error");
-    }
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetIssueFee)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, insufficient funds in account to sub issued_fee=%llu, txUid=%s",
-                        assetIssueFee, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
-    vector<CRegID> delegateList;
-    if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, get top delegate list failed",
-            txUid.ToString()), REJECT_INVALID, "get-delegates-failed");
-    }
-    assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
-    for (size_t i =0; i < delegateList.size(); i++) {
-        const CRegID &delegateRegid = delegateList[i];
-        CAccount delegateAccount;
-        if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
-            return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, get delegate account info failed! delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        uint64_t minerIssuedFee = assetIssueFee / delegateList.size();
-        if (i == 0) minerIssuedFee += assetIssueFee % delegateList.size(); // give the dust amount to first delegate account
-
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerIssuedFee)) {
-            return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, add issued fee to delegate account failed, delegate regid=%s",
-                            delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
-            return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write delegate account info error, delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
-        receipts.push_back(CReceipt(account.regid, delegateRegid, SYMB::WICC, minerIssuedFee, "asset issued fee to miner"));
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, account, receipts)) {
+        return false;
     }
 
     if (!account.OperateBalance(asset.symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
@@ -280,6 +321,7 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
     return true;
 }
 
+
 bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     vector<CReceipt> receipts;
     CAccount account;
@@ -350,41 +392,8 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    uint64_t assetUpdateFee; //550 WICC
-    if (!cw.sysParamCache.GetParam(ASSET_UPDATE_FEE, assetUpdateFee)) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, read param ASSET_UPDATE_FEE error"),
-                         REJECT_INVALID, "read-sysparam-error");
-    }
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetUpdateFee)) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, insufficient funds in account for sub issued fee=%d, txUid=%s",
-                        assetUpdateFee, txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
-    }
-    vector<CRegID> delegateList;
-    if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get top delegate list failed",
-            txUid.ToString()), REJECT_INVALID, "get-delegates-failed");
-    }
-    assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
-
-    for (size_t i =0; i < delegateList.size(); i++) {
-        const CRegID &delegateRegid = delegateList[i];
-        CAccount delegateAccount;
-        if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
-            return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get delegate account info failed! delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-        uint64_t minerUpdatedFee = assetUpdateFee / delegateList.size();
-        if (i == 0) minerUpdatedFee += assetUpdateFee % delegateList.size(); // give the dust amount to first delegate account
-
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
-            return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, add asset fee to miner failed, miner regid=%s",
-                            delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
-        }
-
-        if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
-            return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, write delegate account info error, delegate regid=%s",
-                delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-        receipts.push_back(CReceipt(account.regid, delegateRegid, SYMB::WICC, minerUpdatedFee, "asset updated fee to miner"));
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, account, receipts)) {
+        return false;
     }
 
     if (!cw.assetCache.SaveAsset(asset))

@@ -27,6 +27,8 @@ static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;     // depen
 static const double kTransactionPriorityCeiling             = 1000.0;
 static const double kPriceFeedTransactionPriority           = 10000.0;
 
+static const uint64_t ASSET_RISK_FEE_RATIO = 4000; // 40% * 10000, the ratio of asset fee for giving to the risk pool
+
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
