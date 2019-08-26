@@ -55,6 +55,7 @@ bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
 }
 
 bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+    vector<CReceipt> receipts;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, read source txUid %s account info error",
@@ -84,7 +85,6 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
             txUid.ToString()), REJECT_INVALID, "get-delegates-failed");
     }
     assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
-
     for (size_t i =0; i < delegateList.size(); i++) {
         const CRegID &delegateRegid = delegateList[i];
         CAccount delegateAccount;
@@ -103,6 +103,7 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, write delegate account info error, delegate regid=%s",
                 delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
+        receipts.push_back(CReceipt(account.regid, delegateRegid, SYMB::WICC, minerIssuedFee, "asset issued fee to miner"));
     }
 
     if (!account.OperateBalance(asset.symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
@@ -118,6 +119,9 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
+    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
 
@@ -277,6 +281,7 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
 }
 
 bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+    vector<CReceipt> receipts;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, read source txUid %s account info error",
@@ -368,10 +373,10 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
             return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get delegate account info failed! delegate regid=%s",
                 delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        uint64_t minerFee = assetUpdateFee / delegateList.size();
-        if (i == 0) minerFee += assetUpdateFee % delegateList.size(); // give the dust amount to first delegate account
+        uint64_t minerUpdatedFee = assetUpdateFee / delegateList.size();
+        if (i == 0) minerUpdatedFee += assetUpdateFee % delegateList.size(); // give the dust amount to first delegate account
 
-        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerFee)) {
+        if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
             return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, add asset fee to miner failed, miner regid=%s",
                             delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-account-failed");
         }
@@ -379,6 +384,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
         if (!cw.accountCache.SetAccount(delegateRegid, delegateAccount))
             return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, write delegate account info error, delegate regid=%s",
                 delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+        receipts.push_back(CReceipt(account.regid, delegateRegid, SYMB::WICC, minerUpdatedFee, "asset updated fee to miner"));
     }
 
     if (!cw.assetCache.SaveAsset(asset))
@@ -389,5 +395,8 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, write txUid %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
+    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
