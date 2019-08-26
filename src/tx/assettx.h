@@ -137,9 +137,24 @@ public:
     void Unserialize(Stream &s, int serializedType, int nVersion) {
         s >> ((uint8_t&)type);
         switch (type) {
-            case OWNER_UID:     s >> get<CUserID>(); break;
-            case NAME:          s >> get<string>(); break;
-            case MINT_AMOUNT:   s >> get<uint64_t>(); break;
+            case OWNER_UID: {
+                CRegID regid;
+                s >> regid;
+                value = regid;
+                break;
+            }
+            case NAME: {
+                string name;
+                s >> name;
+                value = name;
+                break;
+            }
+            case MINT_AMOUNT: {
+                uint64_t mintAmount;
+                s >> mintAmount;
+                value = mintAmount;
+                break;
+            }
             default: {
                 LogPrint("ERROR", "CAssetUpdateData::Unserialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
