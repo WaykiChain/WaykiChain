@@ -59,6 +59,9 @@ public:
     CKeyID GetKeyId(const CAccountDBCache &accountCache) const;
     uint32_t GetHeight() const { return height; }
     uint16_t GetIndex() const { return index; }
+
+    bool IsMature(uint32_t curHeight) const;
+
     bool operator==(const CRegID &other) const {
         return (this->height == other.height && this->index == other.index);
     }

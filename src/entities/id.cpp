@@ -128,6 +128,11 @@ CKeyID CRegID::GetKeyId(const CAccountDBCache &accountCache) const {
     return retKeyId;
 }
 
+bool CRegID::IsMature(uint32_t curHeight) const {
+    return ( (height == 0) && (index != 0) )
+        || ( (height != 0) && curHeight > height + REG_ID_MATURITY && height < ULONG_MAX - REG_ID_MATURITY );
+}
+
 void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
     if (vIn.size() > 0) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);

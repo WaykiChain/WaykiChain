@@ -30,7 +30,7 @@ bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
             asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
     }
 
-    if (asset.owner_uid.type() == typeid(CRegID) && !cw.accountCache.RegIDIsMature(asset.owner_uid.get<CRegID>())) {
+    if (asset.owner_uid.type() == typeid(CRegID) && !asset.owner_uid.get<CRegID>().IsMature(height)) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s not mature yet",
             asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
     }
@@ -305,9 +305,12 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
                 if (!cw.accountCache.GetAccount(newOwnerUid, newAccount))
                     return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner uid=%s does not exist.",
                         newAccount.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-                if (!newAccount.RegIDIsMature())
-                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registerd or not matured! new uid=%s",
-                        newAccount.ToString()), REJECT_INVALID, "account-not-mature");
+                if (!newAccount.IsRegistered())
+                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registerd! new uid=%s",
+                        newAccount.ToString()), REJECT_INVALID, "account-not-registered");
+                if (newOwnerUid.type() == typeid(CRegID) && !newOwnerUid.get<CRegID>().IsMature(height))
+                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner regid is not matured! new uid=%s",
+                        newAccount.ToString()), REJECT_INVALID, "account-not-matured");
 
                 asset.owner_uid = newAccount.regid;
             } else

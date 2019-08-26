@@ -175,6 +175,7 @@ public:
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
+    bool IsRegistered() const { return owner_pubkey.IsValid(); }
     bool RegIDIsMature() const;
 
     bool IsEmptyValue() const { return (tokens.size() == 0); }
