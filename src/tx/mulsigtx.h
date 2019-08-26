@@ -113,6 +113,10 @@ public:
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+
+    // If the sender has no regid before, geneate a regid for the sender.
+    bool GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
+                       const int32_t index);
 };
 
 #endif //COIN_MULSIGTX_H

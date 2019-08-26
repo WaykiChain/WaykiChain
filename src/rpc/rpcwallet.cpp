@@ -562,15 +562,18 @@ Value send(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1.\"from\"                 (string, required) The address where coins are sent from.\n"
             "2.\"to\"                   (string, required) The address where coins are received.\n"
-            "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transfered coins\n"
+            "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
             "4.\"symbol:fee:unit\":     (symbol:amount:unit, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("send", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\"\n") +
+            HelpExampleCli(
+                "send",
+                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\"") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("send", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", \"WICC:1000000:sawi\"\n")
-        );
+            HelpExampleRpc("send",
+                           "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
+                           "\"WICC:1000000:sawi\""));
 
     CKeyID sendKeyId, recvKeyId;
     if (!GetKeyId(params[0].get_str(), sendKeyId))

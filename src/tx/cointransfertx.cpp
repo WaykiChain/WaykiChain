@@ -40,68 +40,51 @@ bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
 }
 
 bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-    CAccount srcAcct;
-    CAccount desAcct;
-    bool generateRegID = false;
-
-    if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    } else {
-        if (txUid.type() == typeid(CPubKey)) {
-            srcAcct.owner_pubkey = txUid.get<CPubKey>();
+    }
 
-            CRegID regId;
-            // If the source account does NOT have CRegID, need to generate a new CRegID.
-            if (!cw.accountCache.GetRegId(txUid, regId)) {
-                srcAcct.regid = CRegID(height, index);
-                generateRegID = true;
-            }
-        }
+    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+        return false;
     }
 
     uint64_t minusValue = llFees + coin_amount;
-    if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minusValue)) {
+    if (!srcAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, minusValue)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
-    if (generateRegID) {
-        if (!cw.accountCache.SaveAccount(srcAcct))
-            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"),
-                             WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    } else {
-        if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
-            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"),
-                             WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"), WRITE_ACCOUNT_FAIL,
+                         "bad-write-accountdb");
 
-    if (!cw.accountCache.GetAccount(toUid, desAcct)) {
-        if (toUid.type() == typeid(CKeyID)) {  // Target account does NOT have CRegID
-            desAcct.keyid    = toUid.get<CKeyID>();
+    CAccount desAccount;
+    if (!cw.accountCache.GetAccount(toUid, desAccount)) {
+        if (toUid.type() == typeid(CKeyID)) {  // first involved in transaction
+            desAccount.keyid = toUid.get<CKeyID>();
         } else {
             return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     }
 
-    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
+    if (!desAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(toUid, desAcct))
+    if (!cw.accountCache.SetAccount(toUid, desAccount))
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
-                         desAcct.keyid.ToString()),
-                         UPDATE_ACCOUNT_FAIL, "bad-save-account");
+                         desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     return true;
 }
 
 string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%ld, llFees=%ld, memo=%s, "
-        "valid_height=%d\n",
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%ld, llFees=%ld, memo=%s, valid_height=%d\n",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_amount, llFees,
         HexStr(memo), valid_height);
 }
@@ -156,7 +139,8 @@ bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
 }
@@ -166,6 +150,10 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
+
+    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+        return false;
+    }
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, insufficient coin_amount in txUid %s account",
@@ -182,9 +170,9 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     CAccount desAccount;
-    if (!cw.accountCache.GetAccount(toUid, desAccount)) { // Target account has NO CAccount(first involved in transacion)
-        if (toUid.type() == typeid(CKeyID)) {  // Target account does NOT have CRegID
-            desAccount.keyid    = toUid.get<CKeyID>();
+    if (!cw.accountCache.GetAccount(toUid, desAccount)) { // first involved in transacion
+        if (toUid.type() == typeid(CKeyID)) {
+            desAccount.keyid = toUid.get<CKeyID>();
         } else {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -192,7 +180,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     uint64_t actualCoinsToSend = coin_amount;
-    if (coin_symbol == SYMB::WUSD) { //if transferring WUSD, must pay 0.01% to the risk reserve
+    if (coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay 0.01% to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),

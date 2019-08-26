@@ -96,15 +96,20 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
+
+    // If the sender has no regid before, geneate a regid for the sender.
+    bool GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
+                       const int32_t index);
+
     bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsMedianPriceTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
 
-    bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
-
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
+    bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
+
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };
 

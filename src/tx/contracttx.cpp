@@ -181,53 +181,39 @@ bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 }
 
 bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-    CAccount srcAcct;
-    CAccount desAcct;
-    bool generateRegID = false;
+    CAccount srcAccount;
+    CAccount desAccount;
 
-    if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
+    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    } else {
-        if (txUid.type() == typeid(CPubKey)) {
-            srcAcct.owner_pubkey = txUid.get<CPubKey>();
-
-            CRegID regId;
-            // If the source account does NOT have CRegID, need to generate a new CRegID.
-            if (!cw.accountCache.GetRegId(txUid, regId)) {
-                srcAcct.regid = CRegID(height, index);
-                generateRegID = true;
-            }
-        }
     }
 
-    if (!srcAcct.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees + coin_amount))
+    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+        return false;
+    }
+
+    if (!srcAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees + coin_amount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (generateRegID) {
-        if (!cw.accountCache.SaveAccount(srcAcct))
-            return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account info error"),
-                             WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    } else {
-        if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
-            return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account info error"),
-                             WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account info error"),
+                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!cw.accountCache.GetAccount(app_uid, desAcct)) {
+    if (!cw.accountCache.GetAccount(app_uid, desAccount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAcct.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
+    if (!desAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(app_uid, desAcct))
+    if (!cw.accountCache.SetAccount(app_uid, desAccount))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
-                        desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
@@ -455,57 +441,43 @@ bool CUniversalContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
 }
 
 bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
-    CAccount srcAcct;
-    CAccount desAcct;
-    bool generateRegID = false;
+    CAccount srcAccount;
+    CAccount desAccount;
 
-    if (!cw.accountCache.GetAccount(txUid, srcAcct)) {
+    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    } else {
-        if (txUid.type() == typeid(CPubKey)) {
-            srcAcct.owner_pubkey = txUid.get<CPubKey>();
-
-            CRegID regId;
-            // If the source account does NOT have CRegID, need to generate a new CRegID.
-            if (!cw.accountCache.GetRegId(txUid, regId)) {
-                srcAcct.regid = CRegID(height, index);
-                generateRegID = true;
-            }
-        }
     }
 
-    if (!srcAcct.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
+    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+        return false;
+    }
+
+    if (!srcAccount.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (!srcAcct.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount))
+    if (!srcAccount.OperateBalance(coin_symbol, BalanceOpType::SUB_FREE, coin_amount))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, accounts hash insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-    if (generateRegID) {
-        if (!cw.accountCache.SaveAccount(srcAcct))
-            return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account info error"),
-                             WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    } else {
-        if (!cw.accountCache.SetAccount(CUserID(srcAcct.keyid), srcAcct))
-            return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account info error"),
-                             WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account info error"),
+                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!cw.accountCache.GetAccount(app_uid, desAcct)) {
+    if (!cw.accountCache.GetAccount(app_uid, desAccount)) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, get account info failed by regid:%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!desAcct.OperateBalance(coin_symbol, BalanceOpType::ADD_FREE, coin_amount)) {
+    if (!desAccount.OperateBalance(coin_symbol, BalanceOpType::ADD_FREE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, operate accounts error"),
                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(app_uid, desAcct))
+    if (!cw.accountCache.SetAccount(app_uid, desAccount))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save account error, kyeId=%s",
-                        desAcct.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))

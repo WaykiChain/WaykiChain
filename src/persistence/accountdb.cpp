@@ -60,6 +60,7 @@ bool CAccountDBCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
     accountCache.SetData(keyId, account);
     return true;
 }
+
 bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
     CKeyID keyId;
     if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
@@ -115,13 +116,7 @@ bool CAccountDBCache::SaveAccount(const CAccount &account) {
     regId2KeyIdCache.SetData(account.regid.ToRawString(), account.keyid);
     accountCache.SetData(account.keyid, account);
     nickId2KeyIdCache.SetData(account.nickid, account.keyid);
-/*
-    mapRegId2KeyId[ account.regid ] = account.keyid;
-    mapKeyId2Account[ account.keyid ] = account;
-    if (!account.nickid.IsEmpty()) {
-        mapNickId2KeyId[ account.nickid ] = account.keyid;
-    }
-*/
+
     return true;
 }
 
@@ -154,14 +149,24 @@ bool CAccountDBCache::GetRegId(const CKeyID &keyId, CRegID &regId) const {
 bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     if (userId.type() == typeid(CRegID)) {
         regId = userId.get<CRegID>();
+
         return true;
     } else if (userId.type() == typeid(CKeyID)) {
         CAccount account;
         if (GetAccount(userId.get<CKeyID>(), account)) {
             regId = account.regid;
+
+            return !regId.IsEmpty();
+        }
+    } else if (userId.type() == typeid(CPubKey)) {
+        CAccount account;
+        if (GetAccount(userId.get<CPubKey>().GetKeyId(), account)) {
+            regId = account.regid;
+
             return !regId.IsEmpty();
         }
     }
+
     return false;
 }
 
