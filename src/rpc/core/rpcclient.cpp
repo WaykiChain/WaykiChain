@@ -132,15 +132,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "sendtoaddress"          && n == 2) ConvertTo<double>(params[1]);
-    if (strMethod == "sendtoaddress"          && n == 3) ConvertTo<double>(params[2]);
-
-    if (strMethod == "sendtoaddresswithmemo"  && n == 4) ConvertTo<double>(params[2]);
-
-
-    if (strMethod == "sendtoaddresswithfee"   && n == 3) { ConvertTo<double>(params[1]); ConvertTo<double>(params[2]); }
-    if (strMethod == "sendtoaddresswithfee"   && n == 4) { ConvertTo<double>(params[2]); ConvertTo<double>(params[3]); }
-
     // if (strMethod == "dispersebalance"        && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]); // deprecated
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
