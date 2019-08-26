@@ -11,8 +11,8 @@
 #include "persistence/assetdb.h"
 
 
-static const string ASSET_ACTION_ISSUE = "ISSUE";
-static const string ASSET_ACTION_UPDATE = "UPDATE";
+static const string ASSET_ACTION_ISSUE = "issue";
+static const string ASSET_ACTION_UPDATE = "update";
 
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
     CAccount &txAccount, vector<CReceipt> &receipts) {
@@ -29,7 +29,6 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
                             REJECT_INVALID, "read-sysparam-error");
     }
 
-
     if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
                         assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
@@ -39,15 +38,15 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk pool account failed"),
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, get risk riserve account failed"),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee)) {
-        return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk pool account error",
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, operate balance failed! add %s asset fee=%llu to risk riserve account error",
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
     receipts.push_back(CReceipt(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee,
-        action + " asset fee to risk pool"));
+        action + " asset fee to risk riserve"));
 
     vector<CRegID> delegateList;
     if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
