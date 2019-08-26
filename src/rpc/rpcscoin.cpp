@@ -96,11 +96,11 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 Value submitstakefcointx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitstakefcointx \"addr\" \"fcoin amount\" [\"symbol:fee:unit\"]\n"
+            "submitstakefcointx \"addr\" \"fcoin_amount\" [\"symbol:fee:unit\"]\n"
             "\nstake fcoins\n"
             "\nArguments:\n"
             "1.\"addr\":             (string, required)\n"
-            "2.\"fcoin amount\":     (numeric, required) amount of fcoins to stake\n"
+            "2.\"fcoin_amount\":     (numeric, required) amount of fcoins to stake\n"
             "3. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"                (string) The transaction id.\n"
