@@ -361,7 +361,7 @@ Value deploycontracttx(const Array& params, bool fHelp) {
 Value votedelegatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "votedelegatetx \"sendaddr\" \"votes\" \"fee\" (\"height\") \n"
+            "votedelegatetx \"sendaddr\" \"votes\" \"fee\" [\"height\"] \n"
             "\ncreate a delegate vote transaction\n"
             "\nArguments:\n"
             "1.\"sendaddr\": (string required) The address from which votes are sent to other "
