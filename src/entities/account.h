@@ -176,7 +176,6 @@ public:
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
     bool IsRegistered() const { return owner_pubkey.IsValid(); }
-    bool RegIDIsMature() const;
 
     bool IsEmptyValue() const { return (tokens.size() == 0); }
     bool IsEmpty() const { return keyid.IsEmpty(); }

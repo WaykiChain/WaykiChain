@@ -167,12 +167,6 @@ uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidat
     return votes;
 }
 
-bool CAccount::RegIDIsMature() const {
-    return (!regid.IsEmpty()) &&
-           ((regid.GetHeight() == 0) ||
-            (chainActive.Height() - (int32_t)regid.GetHeight() > REG_ID_MATURITY));
-}
-
 CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
     auto iter = tokens.find(tokenSymbol);
     if (iter != tokens.end())
@@ -211,7 +205,7 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("keyid",             keyid.ToString()));
     obj.push_back(Pair("nickid",            nickid.ToString()));
     obj.push_back(Pair("regid",             regid.ToString()));
-    obj.push_back(Pair("regid_mature",      RegIDIsMature()));
+    obj.push_back(Pair("regid_mature",      regid.IsMature(chainActive.Height())));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));
     obj.push_back(Pair("miner_pubkey",      miner_pubkey.ToString()));
     obj.push_back(Pair("tokens",            tokenMapObj));

@@ -181,10 +181,9 @@ Value callcontracttx(const Array& params, bool fHelp) {
 
     CUserID sendUserId;
     CRegID sendRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                  pCdMan->pAccountCache->RegIDIsMature(sendRegId))
-                     ? CUserID(sendRegId)
-                     : CUserID(sendPubKey);
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
+            ? CUserID(sendRegId)
+            : CUserID(sendPubKey);
 
     CRegID recvRegId;
     if (!pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId)) {
@@ -1263,10 +1262,9 @@ Value gencallcontractraw(const Array& params, bool fHelp) {
 
     CUserID sendUserId;
     CRegID sendRegId;
-    sendUserId = (  pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                    pCdMan->pAccountCache->RegIDIsMature(sendRegId))
-                        ? CUserID(sendRegId)
-                        : CUserID(sendPubKey);
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
+            ? CUserID(sendRegId)
+            : CUserID(sendPubKey);
 
     CRegID recvRegId;
     if (!pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId)) {

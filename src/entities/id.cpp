@@ -129,8 +129,7 @@ CKeyID CRegID::GetKeyId(const CAccountDBCache &accountCache) const {
 }
 
 bool CRegID::IsMature(uint32_t curHeight) const {
-    return ( (height == 0) && (index != 0) )
-        || ( (height != 0) && curHeight > height + REG_ID_MATURITY && height < ULONG_MAX - REG_ID_MATURITY );
+    return ((height == 0) && (index != 0)) || ((height != 0) && curHeight > height + REG_ID_MATURITY);
 }
 
 void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {

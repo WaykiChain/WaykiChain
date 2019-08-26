@@ -165,17 +165,6 @@ bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
     return false;
 }
 
-bool CAccountDBCache::RegIDIsMature(const CRegID &regId) const {
-    if (regId.IsEmpty())
-        return false;
-
-    int height = chainActive.Height();
-    if ((regId.GetHeight() == 0) || (height - regId.GetHeight() > REG_ID_MATURITY))
-        return true;
-    else
-        return false;
-}
-
 bool CAccountDBCache::SetAccount(const CUserID &userId, const CAccount &account) {
     if (userId.type() == typeid(CRegID)) {
         return SetAccount(userId.get<CRegID>(), account);

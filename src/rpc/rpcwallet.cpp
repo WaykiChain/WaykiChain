@@ -307,13 +307,13 @@ static std::tuple<bool, string> SendMoney(const CKeyID& sendKeyId, const CKeyID&
     if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
         return std::make_tuple(false, "Key not found in the local wallet.");
 
-    int height = chainActive.Height();
+    int32_t height = chainActive.Height();
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && recvRegId.IsMature(chainActive.Height()))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
     CBaseCoinTransferTx tx;
@@ -590,10 +590,10 @@ Value send(const Array& params, bool fHelp) {
 
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && pCdMan->pAccountCache->RegIDIsMature(sendRegId))
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && recvRegId.IsMature(chainActive.Height()))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
 
@@ -715,10 +715,10 @@ Value gensendtoaddressraw(const Array& params, bool fHelp) {
     CUserID sendUserId, recvUserId;
     CRegID sendRegId, recvRegId;
     sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) &&
-                pCdMan->pAccountCache->RegIDIsMature(sendRegId)) ? CUserID(sendRegId) : CUserID(sendPubKey);
+                sendRegId.IsMature(chainActive.Height())) ? CUserID(sendRegId) : CUserID(sendPubKey);
 
     recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) &&
-                pCdMan->pAccountCache->RegIDIsMature(recvRegId)) ? CUserID(recvRegId) : CUserID(recvKeyId);
+                recvRegId.IsMature(chainActive.Height())) ? CUserID(recvRegId) : CUserID(recvKeyId);
 
     CAccount fromAccount;
     if (!pCdMan->pAccountCache->GetAccount(sendUserId, fromAccount))
@@ -792,7 +792,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
     }
 
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && pCdMan->pAccountCache->RegIDIsMature(recvRegId))
+    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && recvRegId.IsMature(chainActive.Height()))
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
 
@@ -819,7 +819,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     vector<CSignaturePair> signaturePairs;
     CRegID regId;
     for (const auto& pubKey : pubKeys) {
-        if (pCdMan->pAccountCache->GetRegId(CUserID(pubKey), regId) && pCdMan->pAccountCache->RegIDIsMature(regId)) {
+        if (pCdMan->pAccountCache->GetRegId(CUserID(pubKey), regId) && regId.IsMature(chainActive.Height())) {
             signaturePairs.push_back(CSignaturePair(regId, UnsignedCharArray()));
         } else {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Immature regid or invalid key");
@@ -829,7 +829,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CMulsigTx tx;
     tx.signaturePairs = signaturePairs;
     tx.desUserId      = recvUserId;
-    tx.bcoins   = amount;
+    tx.bcoins         = amount;
     tx.llFees         = fee;
     tx.required       = required;
     tx.valid_height   = height;

@@ -79,7 +79,6 @@ public:
     bool GetUserId(const string &addr, CUserID &userId) const;
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
-    bool RegIDIsMature(const CRegID &regId) const;
 
     uint32_t GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
