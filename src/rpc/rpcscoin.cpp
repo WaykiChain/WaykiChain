@@ -93,10 +93,10 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     return SubmitTx(feedUid, tx);
 }
 
-Value submitstakefcointx(const Array& params, bool fHelp) {
+Value submitfcoinstaketx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitstakefcointx \"addr\" \"fcoin_amount\" [\"symbol:fee:unit\"]\n"
+            "submitfcoinstaketx \"addr\" \"fcoin_amount\" [\"symbol:fee:unit\"]\n"
             "\nstake fcoins\n"
             "\nArguments:\n"
             "1.\"addr\":             (string, required)\n"
@@ -105,9 +105,9 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
+            + HelpExampleCli("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitstakefcointx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
+            + HelpExampleRpc("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
         );
     }
 
@@ -126,10 +126,10 @@ Value submitstakefcointx(const Array& params, bool fHelp) {
 }
 
 /*************************************************<< CDP >>**************************************************/
-Value submitstakecdptx(const Array& params, bool fHelp) {
+Value submitcdpstaketx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 6) {
         throw runtime_error(
-            "submitstakecdptx \"addr\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
+            "submitcdpstaketx \"addr\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
             "1. \"addr\": CDP Staker's account address\n"
@@ -142,11 +142,11 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("submitstakecdptx",
+            HelpExampleCli("submitcdpstaketx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 3000000 "
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("submitstakecdptx",
+            HelpExampleRpc("submitcdpstaketx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", 2000000000, 3000000, "
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", \"WICC:1000000:sawi\"\n"));
     }
@@ -181,10 +181,10 @@ Value submitstakecdptx(const Array& params, bool fHelp) {
     return SubmitTx(cdpUid, tx);
 }
 
-Value submitredeemcdptx(const Array& params, bool fHelp) {
+Value submitcdpredeemtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitredeemcdptx \"addr\" \"cdp_id\" repay_amount redeem_amount [\"symbol:fee:unit\"]\n"
+            "submitcdpredeemtx \"addr\" \"cdp_id\" repay_amount redeem_amount [\"symbol:fee:unit\"]\n"
             "\nsubmit a CDP Redemption Tx\n"
             "\nArguments:\n"
             "1. \"addr\" :              (string) CDP redemptor's address\n"
@@ -195,9 +195,9 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 \"1000000\"\n")
+            + HelpExampleCli("submitcdpredeemtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 \"1000000\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitredeemcdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, 30000, \"1000000\"\n")
+            + HelpExampleRpc("submitcdpredeemtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, 30000, \"1000000\"\n")
         );
     }
 
@@ -212,10 +212,10 @@ Value submitredeemcdptx(const Array& params, bool fHelp) {
     return SubmitTx(cdpUid, tx);
 }
 
-Value submitliquidatecdptx(const Array& params, bool fHelp) {
+Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "submitliquidatecdptx \"addr\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
+            "submitcdpliquidatetx \"addr\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
             "1. \"addr\" : (string required) CDP liquidator's address\n"
@@ -225,9 +225,9 @@ Value submitliquidatecdptx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 \"WICC:1000000\"\n")
+            + HelpExampleCli("submitcdpliquidatetx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 \"WICC:1000000\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitliquidatecdptx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, \"WICC:1000000\"\n")
+            + HelpExampleRpc("submitcdpliquidatetx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, \"WICC:1000000\"\n")
         );
     }
 
