@@ -132,23 +132,25 @@ Value submitcdpstaketx(const Array& params, bool fHelp) {
             "submitcdpstaketx \"addr\" stake_combo_money mint_combo_money [\"cdp_id\"] [symbol:fee:unit]\n"
             "\nsubmit a CDP Staking Tx.\n"
             "\nArguments:\n"
-            "1. \"addr\": CDP Staker's account address\n"
+            "1. \"addr\":               (string, required) CDP Staker's account address\n"
             "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake into the CDP,"
-                                                                      " default symbol=WICC, default unit=sawi\n"
+            " default symbol=WICC, default unit=sawi\n"
             "3. \"mint_combo_money\":   (symbol:amount:unit, required), Combo Money to mint from the CDP,"
-                                                                      " default symbol=WUSD, default unit=sawi\n"
+            " default symbol=WUSD, default unit=sawi\n"
             "4. \"cdp_id\":             (string, optional) CDP ID (tx hash of the first CDP Stake Tx)\n"
             "5. \"symbol:fee:unit\":    (symbol:amount:unit, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("submitcdpstaketx",
-                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 20000000000 3000000 "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n") +
+            HelpExampleCli(
+                "submitcdpstaketx",
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC:20000000000:sawi\" \"WUSD:3000000:sawi\" "
+                "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("submitcdpstaketx",
-                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", 2000000000, 3000000, "
-                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", \"WICC:1000000:sawi\"\n"));
+            HelpExampleRpc(
+                "submitcdpstaketx",
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"WICC:2000000000:sawi\", \"WUSD:3000000:sawi\", "
+                "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", \"WICC:1000000:sawi\"\n"));
     }
 
     const CUserID &cdpUid = RPC_PARAM::GetUserId(params[0]);
@@ -171,10 +173,10 @@ Value submitcdpstaketx(const Array& params, bool fHelp) {
 
     if (cdpId.IsEmpty()) { // new stake cdp
         if (cmBcoinsToStake.amount == 0)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: stake_amount is zero!");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "stake_amount is zero!");
 
         if (cmScoinsToMint.amount == 0)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Error: mint_amount is zero!");
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "mint_amount is zero!");
     }
 
     CCDPStakeTx tx(cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
@@ -187,18 +189,24 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
             "submitcdpredeemtx \"addr\" \"cdp_id\" repay_amount redeem_amount [\"symbol:fee:unit\"]\n"
             "\nsubmit a CDP Redemption Tx\n"
             "\nArguments:\n"
-            "1. \"addr\" :              (string) CDP redemptor's address\n"
-            "2. \"cdp_id\":             (string) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "3. \"repay_amount\":       (numeric required) scoins (E.g. WUSD) to stake into the CDP, boosted by 10^8\n"
-            "4. \"redeem_amount\":      (numeric required) bcoins (E.g. WICC) to stake into the CDP, boosted by 10^8\n"
-            "5. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
+            "1. \"addr\" :              (string, required) CDP redemptor's address\n"
+            "2. \"cdp_id\":             (string, required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "3. \"repay_amount\":       (numeric, required) scoins (E.g. WUSD) to stake into the CDP, boosted by 10^8\n"
+            "4. \"redeem_amount\":      (numeric, required) bcoins (E.g. WICC) to stake into the CDP, boosted by 10^8\n"
+            "5. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is "
+            "WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitcdpredeemtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\"  20000000000 30000 \"1000000\"\n")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcdpredeemtx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, 30000, \"1000000\"\n")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("submitcdpredeemtx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" "
+                           "\"WICC:20000000000:sawi\" \"WUSD:3000000:sawi\" \"WICC:1000000:sawi\"\n") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submitcdpredeemtx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", "
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", "
+                           "\"WICC:20000000000:sawi\", \"WUSD:3000000:sawi\", \"WICC:1000000:sawi\"\n"));
     }
 
     const CUserID& cdpUid   = RPC_PARAM::GetUserId(params[0].get_str());
@@ -218,17 +226,24 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
             "submitcdpliquidatetx \"addr\" \"cdp_id\" liquidate_amount [symbol:fee:unit]\n"
             "\nsubmit a CDP Liquidation Tx\n"
             "\nArguments:\n"
-            "1. \"addr\" : (string required) CDP liquidator's address\n"
-            "2. \"cdp_id\": (string required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
-            "3. \"liquidate_amount\": (numeric required) WUSD coins to repay to CDP, boosted by 10^8 (penalty fees deducted separately from sender account)\n"
-            "4. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
+            "1. \"addr\" :              (string, required) CDP liquidator's address\n"
+            "2. \"cdp_id\":             (string, required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
+            "3. \"liquidate_amount\":   (numeric, required) WUSD coins to repay to CDP, boosted by 10^8 (penalty fees "
+            "deducted separately from sender account)\n"
+            "4. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is "
+            "WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitcdpliquidatetx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 \"WICC:1000000\"\n")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcdpliquidatetx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, \"WICC:1000000\"\n")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli(
+                "submitcdpliquidatetx",
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\"  "
+                "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" 20000000000 \"WICC:1000000:sawi\"\n") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submitcdpliquidatetx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", "
+                           "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", 2000000000, "
+                           "\"WICC:1000000:sawi\"\n"));
     }
 
     const CUserID& userId    = RPC_PARAM::GetUserId(params[0]);
