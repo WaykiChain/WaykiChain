@@ -208,7 +208,6 @@ Value stop(const Array& params, bool fHelp) {
 //
 // Call Table
 //
-extern Value dropminerkeys(const Array& params, bool fHelp);
 
 static const CRPCCommand vRPCCommands[] =
 { //  name                      actor (function)         okSafeMode threadSafe reqWallet

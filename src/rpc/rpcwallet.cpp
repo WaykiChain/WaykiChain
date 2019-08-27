@@ -572,97 +572,7 @@ Value getcontractassets(const Array& params, bool fHelp) {
     return retObj;
 }
 
-// Value dispersebalance(const Array& params, bool fHelp)
-// {
-//     int size = params.size();
-//     if (fHelp || (size != 2)) {
-//         throw runtime_error(
-//                 "dispersebalance \"send address\" \"amount\"\n"
-//                 "\nSend an amount to a address list. \n"
-//                 + HelpRequiringPassphrase() + "\nArguments:\n"
-//                 "1. send address   (string, required) The Koala address to receive\n"
-//                 "2. amount (required)\n"
-//                 "3.\"description\"   (string, required) \n"
-//                 "\nResult:\n"
-//                 "\"txid\"  (string) The transaction id.\n"
-//                 "\nExamples:\n"
-//                 + HelpExampleCli("dispersebalance", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\" 0.1")
-//                 + HelpExampleRpc("dispersebalance", "\"1M72Sfpbz1BPpXFHz9m3CdqATR44Jvaydd\", 0.1"));
-//     }
-
-//     EnsureWalletIsUnlocked();
-
-//     CKeyID sendKeyId;
-
-//     if (!GetKeyId(params[0].get_str(), sendKeyId)) {
-//         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address Invalid  ");
-//     }
-//     if(!pWalletMain->HaveKey(sendKeyId)) {
-//         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address Invalid  ");
-//     }
-
-//     CRegID sendRegId;
-//     if (!pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId)) {
-//         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "send address not activated  ");
-//     }
-
-//     int64_t nAmount = 0;
-//     nAmount = params[1].get_real() * COIN;
-//     if(nAmount <= 0) {
-//         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "nAmount <= 0  ");
-//     }
-
-//     set<CKeyID> keyIds;
-//     pWalletMain->GetKeys(keyIds); //get addrs
-//     if (keyIds.empty()) {
-//         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No Key In wallet \n");
-//     }
-
-//     Array arrayTxIds;
-//     Object retObj;
-//     set<CKeyID>::iterator it;
-//     CKeyID recvKeyId;
-
-//     for (it = keyIds.begin(); it!=keyIds.end(); it++) {
-//         recvKeyId = *it;
-//         if (recvKeyId.IsNull()) {
-//             continue;
-//         }
-
-//         if(sendKeyId.ToString() == recvKeyId.ToString())
-//             continue;
-
-//         CRegID revreg;
-//         CUserID rev;
-
-//         if (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), revreg)) {
-//             rev = revreg;
-//         } else {
-//             rev = recvKeyId;
-//         }
-
-//         if (pCdMan->pAccountCache->GetAccountFreeAmount(sendreg, SYMB::WICC) < nAmount + SysCfg().GetTxFee()) {
-//             break;
-//         }
-
-//         CTransaction tx(sendreg, rev, SysCfg().GetTxFee(), nAmount , chainActive.Height());
-
-//         if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
-//             continue;
-//         }
-
-//         std::tuple<bool,string> ret = pWalletMain->CommitTx((CBaseTx *) &tx);
-//         if(!std::get<0>(ret))
-//              continue;
-//         arrayTxIds.push_back(std::get<1>(ret));
-//     }
-
-//     retObj.push_back(Pair("Tx", arrayTxIds));
-//     return retObj;
-// }
-
-Value backupwallet(const Array& params, bool fHelp)
-{
+Value backupwallet(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error("backupwallet \"dest_dir\"\n"
             "\nSafely copies wallet.dat to a target directory.\n"
@@ -685,15 +595,13 @@ Value backupwallet(const Array& params, bool fHelp)
     return Value::null;
 }
 
-static void LockWallet()
-{
+static void LockWallet() {
     LOCK(cs_nWalletUnlockTime);
     nWalletUnlockTime = 0;
     pWalletMain->Lock();
 }
 
-Value walletpassphrase(const Array& params, bool fHelp)
-{
+Value walletpassphrase(const Array& params, bool fHelp) {
     if (pWalletMain->IsEncrypted() && (fHelp || params.size() != 2))
         throw runtime_error("walletpassphrase \"passphrase\" timeout\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"

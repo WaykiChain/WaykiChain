@@ -32,7 +32,7 @@
 | gettxdetail | ```<txid>``` | Returns an object about the transaction  detail information by ```<txid>``` | N |
 | getwalletinfo | | Returns an object containing detaild wallet info | N |
 | help | ```[command]``` | List commands, or get help for a command | N |
-| importprivkey | ```<wiccprivkey> [label] [rescan=true]``` | Adds a private key (as returned by dumpprivkey) to your wallet. This may take a while, as a rescan is done, looking for existing transactions. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
+| importprivkey | ```<privkey>``` | Adds a private key (as returned by dumpprivkey) to your wallet. Note: There's no need to import public key, as in ECDSA (unlike RSA), which can be computed from private key. | Y |
 | importwallet | ```<filename>``` | Import keys from a wallet dump file (see dumpwallet). | Y |
 | invalidateblock | ```<hash>``` | Mark a block as invalid. | N |
 | listaddr | | return Array containing address, balance, haveminerkey, regid information | N |

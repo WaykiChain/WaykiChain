@@ -111,8 +111,7 @@ void ConvertTo(Value& value, bool fAllowNull = false) {
 }
 
 // Convert strings to command-specific RPC representation
-Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
-{
+Array RPCConvertValues(const string &strMethod, const vector<string> &strParams) {
     Array params;
     for (const auto &param : strParams)
         params.push_back(param);
@@ -127,7 +126,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
 
-    // if (strMethod == "dispersebalance"        && n > 1) ConvertTo<double>(params[1]);
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]); // deprecated
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
 
@@ -141,7 +139,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchainstate"          && n > 0) ConvertTo<int32_t>(params[0]);
-    if (strMethod == "importprivkey"          && n > 2) ConvertTo<bool>(params[2]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
