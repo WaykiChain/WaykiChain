@@ -427,15 +427,15 @@ CWallet *CWallet::GetInstance() {
 
 Object CAccountTx::ToJsonObj(CKeyID const &key) const {
     Object obj;
+
+    Array txsArr;
+    for (auto const &item : mapAccountTx) {
+        txsArr.push_back(item.second.get()->ToString(*pCdMan->pAccountCache));
+    }
+
     obj.push_back(Pair("block_hash",    blockHash.ToString()));
     obj.push_back(Pair("block_height",  blockHeight));
-
-    Array txArray;
-    CAccountDBCache accountCache(*pCdMan->pAccountCache);
-    for (auto const &item : mapAccountTx) {
-        txArray.push_back(item.second.get()->ToString(accountCache));
-    }
-    obj.push_back(Pair("tx", txArray));
+    obj.push_back(Pair("tx",            txsArr));
 
     return obj;
 }
