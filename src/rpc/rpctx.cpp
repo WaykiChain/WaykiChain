@@ -612,20 +612,21 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             "  \"keyid\": \"xxxxx\",         (string) the keyid referred to the address\n"
             "  \"nickid\": \"xxxxx\",        (string) the nickid referred to the address\n"
             "  \"regid\": \"xxxxx\",         (string) the regid referred to the address\n"
-            "  \"regid_mature\": xxxxxx,     (bool) the regid is mature or not\n"
+            "  \"regid_mature\": xxxxxx,   (bool) the regid is mature or not\n"
             "  \"owner_pubkey\": \"xxxxx\",  (string) the public key referred to the address\n"
             "  \"miner_pubkey\": \"xxxxx\",  (string) the miner publick key referred to the address\n"
-            "  \"tokens\": {},               (object) tokens object all the address owned\n"
-            "  \"received_votes\": xxxxx,    (numeric) received votes in total\n"
-            "  \"received_votes\": [],       (array) votes to others\n"
+            "  \"tokens\": {},             (object) tokens object all the address owned\n"
+            "  \"received_votes\": xxxxx,  (numeric) received votes in total\n"
+            "  \"received_votes\": [],     (array) votes to others\n"
             "  \"position\": \"xxxxx\",      (string) in wallet if the address never involved in transaction, otherwise, in block\n"
-            "  \"cdp_list\": [],             (array) cdp list\n"
+            "  \"cdp_list\": [],           (array) cdp list\n"
             "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\""));
     }
+
     RPCTypeCheck(params, list_of(str_type));
     CKeyID keyId;
     CUserID userId;
