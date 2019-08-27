@@ -174,7 +174,7 @@ extern json_spirit::Value startcontracttpstest(const json_spirit::Array& params,
 extern json_spirit::Value getblockfailures(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitpricefeedtx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value submitstakefcointx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitfcoinstaketx(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitdexbuylimitordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexselllimitordertx(const json_spirit::Array& params, bool fHelp);
@@ -186,9 +186,9 @@ extern json_spirit::Value getdexorder(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value getdexsysorders(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexorders(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value submitstakecdptx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value submitredeemcdptx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value submitliquidatecdptx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitcdpstaketx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitcdpredeemtx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitcdpliquidatetx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getscoininfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcdp(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getusercdp(const json_spirit::Array& params, bool fHelp);
