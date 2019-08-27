@@ -286,10 +286,10 @@ Value signmessage(const Array& params, bool fHelp)
     return EncodeBase64(&vchSig[0], vchSig.size());
 }
 
-Value send(const Array& params, bool fHelp) {
+Value submitsendtx(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 4 && params.size() != 5))
         throw runtime_error(
-            "send \"from\" \"to\" \"symbol:coin:unit\" \"symbol:fee:unit\" (\"memo\")\n"
+            "submitsendtx \"from\" \"to\" \"symbol:coin:unit\" \"symbol:fee:unit\" (\"memo\")\n"
             "\nSend coins to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
@@ -301,11 +301,11 @@ Value send(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
-            HelpExampleCli("send",
+            HelpExampleCli("submitsendtx",
                            "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" "
                            "\"WICC:1000000:sawi\" \"Hello, WaykiChain!\"") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("send",
+            HelpExampleRpc("submitsendtx",
                            "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                            "\"WICC:1000000:sawi\", \"Hello, WaykiChain!\""));
 

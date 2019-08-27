@@ -136,14 +136,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "settxfee"               && n > 0) ConvertTo<double>(params[0]); // deprecated
     if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getblockhash"           && n > 0) ConvertTo<int64_t>(params[0]);
-    if (strMethod == "move"                   && n > 2) ConvertTo<double>(params[2]);
-    if (strMethod == "move"                   && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "sendfrom"               && n > 2) ConvertTo<double>(params[2]);
-    if (strMethod == "sendfrom"               && n > 3) ConvertTo<int64_t>(params[3]);
 
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
-    if (strMethod == "getblocktemplate"       && n > 0) ConvertTo<Object>(params[0]);
-    if (strMethod == "listsinceblock"         && n > 1) ConvertTo<int64_t>(params[1]);
 
     if (strMethod == "addmulsigaddr"          && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "addmulsigaddr"          && n > 1) ConvertTo<Array>(params[1]);
@@ -167,8 +161,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if(strMethod == "votedelegatetx"          && n > 2) ConvertTo<int64_t>(params[2]);
     if(strMethod == "votedelegatetx"          && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "deploycontracttx"     && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "deploycontracttx"     && n > 3) ConvertTo<int>(params[3]);
+    if (strMethod == "deploycontracttx"       && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "deploycontracttx"       && n > 3) ConvertTo<int>(params[3]);
 
     if (strMethod == "callcontracttx"         && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
@@ -200,9 +194,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "genvotedelegateraw"     && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "genvotedelegateraw"     && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "genmulsigtx"            && n > 2) ConvertTo<double>(params[2]);
-    if (strMethod == "genmulsigtx"            && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int>(params[4]);
+    if (strMethod == "genmulsigtx"         && n > 2) ConvertTo<double>(params[2]);
+    if (strMethod == "genmulsigtx"         && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "genmulsigtx"         && n > 4) ConvertTo<int>(params[4]);
 
     /********************************************************************************************************************/
     if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[2]);

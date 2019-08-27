@@ -256,7 +256,7 @@ static const CRPCCommand vRPCCommands[] =
     { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
     { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
     { "genvotedelegateraw",     &genvotedelegateraw,     false,     false,     false },
-    { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
+    { "genmulsigtx",         &genmulsigtx,         false,     false,     false },
 
     /* uses wallet if enabled */
     { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },
@@ -277,7 +277,7 @@ static const CRPCCommand vRPCCommands[] =
     { "listtx",                 &listtx,                 true,      false,      true },
 
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
-    { "deploycontracttx",       &deploycontracttx,     true,      false,      true },
+    { "deploycontracttx",       &deploycontracttx,       true,      false,      true },
     { "callcontracttx",         &callcontracttx,         true,      false,      true },
     { "votedelegatetx",         &votedelegatetx,         true,      false,      true },
 
@@ -293,10 +293,10 @@ static const CRPCCommand vRPCCommands[] =
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
     { "verifymessage",          &verifymessage,          false,     false,      false },
-    { "send",                   &send,                   false,     false,      true },
+    { "submitsendtx",           &submitsendtx,           false,     false,      true },
     { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false},
     { "getbalance",             &getbalance,             false,     false,      true },
-    { "getcontractassets",              &getcontractassets,              false,     false,      true },
+    { "getcontractassets",      &getcontractassets,      false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
     { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
@@ -495,12 +495,11 @@ void JSONRequest::parse(const Value& valRequest) {
 
     // Parse method
     Value valMethod = find_value(request, "method");
-    if (valMethod.type() == null_type) throw JSONRPCError(RPC_INVALID_REQUEST, "Missing method");
+    if (valMethod.type() == null_type)
+        throw JSONRPCError(RPC_INVALID_REQUEST, "Missing method");
+
     if (valMethod.type() != str_type)
         throw JSONRPCError(RPC_INVALID_REQUEST, "Method must be a string");
-    strMethod = valMethod.get_str();
-    if (strMethod != "getwork" && strMethod != "getblocktemplate")
-        LogPrint("rpc", "ThreadRPCServer method=%s\n", strMethod);
 
     // Parse params
     Value valParams = find_value(request, "params");

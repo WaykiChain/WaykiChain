@@ -124,8 +124,6 @@ extern json_spirit::Value dropminerkeys(const json_spirit::Array& params, bool f
 extern json_spirit::Value setgenerate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gethashespersec(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getmininginfo(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getwork(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getblocktemplate(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitblock(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getminedblocks(const json_spirit::Array& params, bool fHelp);
 
@@ -148,9 +146,8 @@ extern json_spirit::Value getblockchaininfo(const json_spirit::Array& params, bo
 extern json_spirit::Value getnetworkinfo(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value signmessage(const json_spirit::Array& params, bool fHelp);
-// extern json_spirit::Value (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcontractassets(const json_spirit:: Array& params, bool fHelp);
-extern json_spirit::Value send(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitsendtx(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value gensendtoaddressraw    (const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value genregisteraccountraw  (const json_spirit::Array& params, bool fHelp);
