@@ -271,12 +271,6 @@ static const CRPCCommand vRPCCommands[] =
     { "listaddr",               &listaddr,               true,      false,      true },
     { "listtx",                 &listtx,                 true,      false,      true },
 
-    { "submitsendtx",           &submitsendtx,           false,     false,      true },
-    { "submitaccountregistertx",&submitaccountregistertx,false,     false,      true },
-    { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
-    { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
-    { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
-
     { "settxfee",               &settxfee,               false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
@@ -302,12 +296,19 @@ static const CRPCCommand vRPCCommands[] =
     { "decodetxraw",            &decodetxraw,            false,     false,      false},
     { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
 
+    /* basic tx */
+    { "submitsendtx",           &submitsendtx,           false,     false,      true },
+    { "submitaccountregistertx",&submitaccountregistertx,false,     false,      true },
+    { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
+    { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
+    { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
+
     /* for CDP */
     { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },
-    { "submitstakefcointx",     &submitstakefcointx,     true,      false,      true },
-    { "submitstakecdptx",       &submitstakecdptx,       true,      false,      true },
-    { "submitredeemcdptx",      &submitredeemcdptx,      true,      false,      true },
-    { "submitliquidatecdptx",   &submitliquidatecdptx,   true,      false,      true },
+    { "submitfcoinstaketx",     &submitfcoinstaketx,     true,      false,      true },
+    { "submitcdpstaketx",       &submitcdpstaketx,       true,      false,      true },
+    { "submitcdpredeemtx",      &submitcdpredeemtx,      true,      false,      true },
+    { "submitcdpliquidatetx",   &submitcdpliquidatetx,   true,      false,      true },
 
     { "getscoininfo",           &getscoininfo,          false,     false,      false },
     { "getcdp",                 &getcdp,                false,     false,      false },

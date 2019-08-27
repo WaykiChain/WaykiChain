@@ -15,7 +15,7 @@ using namespace std;
 using namespace json_spirit;
 
 extern Value submitpricefeedtx(const Array& params, bool fHelp);
-extern Value submitstakefcointx(const Array& params, bool fHelp);
+extern Value submitfcoinstaketx(const Array& params, bool fHelp);
 
 extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
 extern Value submitdexselllimitordertx(const Array& params, bool fHelp);
@@ -27,9 +27,9 @@ extern Value getdexorder(const Array& params, bool fHelp);
 extern Value getdexorders(const Array& params, bool fHelp);
 extern Value getdexsysorders(const Array& params, bool fHelp);
 
-extern Value submitstakecdptx(const Array& params, bool fHelp);
-extern Value submitredeemcdptx(const Array& params, bool fHelp);
-extern Value submitliquidatecdptx(const Array& params, bool fHelp);
+extern Value submitcdpstaketx(const Array& params, bool fHelp);
+extern Value submitcdpredeemtx(const Array& params, bool fHelp);
+extern Value submitcdpliquidatetx(const Array& params, bool fHelp);
 
 extern Value getscoininfo(const Array& params, bool fHelp);
 extern Value getcdp(const Array& params, bool fHelp);
