@@ -193,28 +193,31 @@ Value getinfo(const Array& params, bool fHelp)
             "Returns an object containing various state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"version\": xxxxx,           (numeric) the server version\n"
-            "  \"fullversion\": \"xxxxx\",   (string) the server fullversion\n"
-            "  \"protocolversion\": xxxxx,   (numeric) the protocol version\n"
-            "  \"walletversion\": xxxxx,     (numeric) the wallet version\n"
-            "  \"balance\": xxxxx,           (numeric) the total coin balance of the wallet\n"
-            "  \"timeoffset\": xxxxx,        (numeric) the time offset\n"
-            "  \"proxy\": \"host:port\",     (string) the proxy used by the server\n"
-            "  \"nettype\": \"xxxxx\",       (string) the net type\n"
-            "  \"genblock\": xxxxx,          (numeric) generate blocks\n"
-            "  \"unlocktime\": xxxxx,        (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is locked\n"
-            "  \"paytxfee\": x.xxxx,         (numeric) the transaction fee set in btc/kb\n"
-            "  \"relayfee\": x.xxxx,         (numeric) minimum relay fee for non-free transactions in btc/kb\n"
-            "  \"fuelrate\": xxxxx,          (numeric) the fuelrate of the tip block in chainActive\n"
-            "  \"fuel\": xxxxx,              (numeric) the fuel of the tip block in chainActive\n"
-            "  \"confdirectory\": \"xxxxx\", (string) the conf directory\n"
-            "  \"datadirectory\": \"xxxxx\", (string) the data directory\n"
-            "  \"tipblocktime\": xxxxx,      (numeric) the nTime of the tip block in chainActive\n"
-            "  \"tipblockhash\": \"xxxxx\",  (string) the tip block hash\n"
-            "  \"syncheight\": xxxxx ,       (numeric) the number of blocks contained the most work in the network\n"
-            "  \"blocks\": xxxxx ,           (numeric) the current number of blocks processed in the server\n"
-            "  \"connections\": xxxxx,       (numeric) the number of connections\n"
-            "  \"errors\": \"xxxxx\"         (string) any error messages\n"
+            "  \"version\": xxxxx,              (numeric) the node program version\n"
+            "  \"full_version\": \"xxxxx\",     (string) the node program fullversion\n"
+            "  \"protocol_version\": xxxxx,     (numeric) the protocol version\n"
+            "  \"net_type\": \"xxxxx\",         (string) the blockchain network type (MAIN_NET|TEST_NET|REGTEST_NET)\n"
+            "  \"proxy\": \"host:port\",        (string) the proxy server used by the node program\n"
+            "  \"connections\": xxxxx,          (numeric) the number of connections\n"
+            "  \"conf_dir\": \"xxxxx\",         (string) the conf directory\n"
+            "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
+            "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the chain\n"
+            "  \"mine_block\": xxxxx,           (numeric) whether to mine/generate blocks or not (1|0), 1: true, 0: false\n"
+            "  \"time_offset\": xxxxx,          (numeric) the time offset\n"
+
+            "  \"wallet_version\": xxxxx,       (numeric) the wallet version\n"
+            "  \"wallet_balance\": xxxxx,       (numeric) the total coin balance of the wallet\n"
+            "  \"wallet_unlock_time\": xxxxx,   (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is being locked\n"
+
+            "  \"perkb_miner_fee\": x.xxxx,     (numeric) the transaction fee set in wicc/kb\n"
+            "  \"perkb_relay_fee\": x.xxxx,     (numeric) minimum relay fee for non-free transactions in wicc/kb\n"
+            "  \"tipblock_fuel_rate\": xxxxx,   (numeric) the fuelrate of the tip block in chainActive\n"
+            "  \"tipblock_fuel\": xxxxx,        (numeric) the fuel of the tip block in chainActive\n"
+            "  \"tipblock_time\": xxxxx,        (numeric) the nTime of the tip block in chainActive\n"
+            "  \"tipblock_hash\": \"xxxxx\",    (string) the tip block hash\n"
+            "  \"tipblock_height\": xxxxx ,     (numeric) the number of blocks contained the most work in the network\n"
+            "  \"syncblock_height\": xxxxx ,    (numeric) the block height of the loggest chain found in the network\n"
+            "  \"errors\": \"xxxxx\"            (string) any error messages\n"
             "}\n"
             "\nExamples:\n"
             + HelpExampleCli("getinfo", "")
@@ -227,36 +230,35 @@ Value getinfo(const Array& params, bool fHelp)
     static const string netType[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
 
     Object obj;
-    obj.push_back(Pair("version",           CLIENT_VERSION));
-    obj.push_back(Pair("fullversion",       fullVersion));
-    obj.push_back(Pair("protocolversion",   PROTOCOL_VERSION));
+    obj.push_back(Pair("version",               CLIENT_VERSION));
+    obj.push_back(Pair("full_version",          fullVersion));
+    obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
+    obj.push_back(Pair("net_type",              netType[SysCfg().NetworkID()]));
+    obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
+    obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
+    obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
+    obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
+    obj.push_back(Pair("mine_block",            SysCfg().GetArg("-mineblock", 0)));
+    obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {
-        obj.push_back(Pair("walletversion", pWalletMain->GetVersion()));
-        obj.push_back(Pair("balance",       ValueFromAmount(pWalletMain->GetFreeBcoins())));
+        obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));
+        obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBcoins())));
+        if (pWalletMain->IsEncrypted())
+            obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("timeoffset",        GetTimeOffset()));
-    obj.push_back(Pair("proxy",             (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("nettype",           netType[SysCfg().NetworkID()]));
-    obj.push_back(Pair("genblock",          SysCfg().GetArg("-genblock", 0)));
+    obj.push_back(Pair("perkb_miner_fee",       ValueFromAmount(SysCfg().GetTxFee())));
+    obj.push_back(Pair("perkb_relay_fee",       ValueFromAmount(CBaseTx::nMinRelayTxFee)));
 
-    if (pWalletMain && pWalletMain->IsEncrypted())
-        obj.push_back(Pair("unlockeduntil", nWalletUnlockTime));
-
-    obj.push_back(Pair("paytxfee",          ValueFromAmount(SysCfg().GetTxFee())));
-    obj.push_back(Pair("relayfee",          ValueFromAmount(CBaseTx::nMinRelayTxFee)));
-    obj.push_back(Pair("fuelrate",          (int32_t)chainActive.Tip()->nFuelRate));
-    obj.push_back(Pair("fuel",              chainActive.Tip()->nFuel));
-    obj.push_back(Pair("confdir",           GetConfigFile().string().c_str()));
-    obj.push_back(Pair("datadir",           GetDataDir().string().c_str()));
-    obj.push_back(Pair("tipblocktime",      (int32_t)chainActive.Tip()->nTime));
-    obj.push_back(Pair("tipblockhash",      chainActive.Tip()->GetBlockHash().ToString()));
-    obj.push_back(Pair("syncblockheight",   nSyncTipHeight));
-    obj.push_back(Pair("tipblockheight",    chainActive.Height()));
-    obj.push_back(Pair("blockinterval",     (int32_t)::GetBlockInterval(chainActive.Height())));
-    obj.push_back(Pair("connections",       (int32_t)vNodes.size()));
-    obj.push_back(Pair("errors",            GetWarnings("statusbar")));
+    obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
+    obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));
+    obj.push_back(Pair("tipblock_time",         (int32_t)chainActive.Tip()->nTime));
+    obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
+    obj.push_back(Pair("tipblock_height",       chainActive.Height()));
+    obj.push_back(Pair("syncblock_height",      nSyncTipHeight));
+    obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 
     return obj;
 }
