@@ -6,7 +6,7 @@
 |---|---|---|---|
 | addnode | ```<node><add/remove/onetry>```| Attempts add or remove ```<node>``` from the addnode list or try a connection to ```<node>``` once.| N |
 | backupwallet | ```<destination>``` | Safely copies wallet.dat to a target directory. | N |
-| callcontracttx | ```<sendaddress><appid><arguments><amount><fee>[height, default = the tip block height]``` | create contract invoke transaction | Y |
+| submitcontractcalltx | ```<sendaddress><appid><arguments><amount><fee>[height, default = the tip block height]``` | create contract invoke transaction | Y |
 | dropminerkeys | | drop miner key from wallet to become a cool miner| Y |
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
@@ -43,9 +43,9 @@
 | listtx | | get all confirmed transactions and all unconfirmed transactions from wallet | N |
 | listtxcache | | get all transactions in cache | N |
 | listunconfirmedtx | | get the list of unconfirmed tx | N |
-| registeraccounttx | ```<address> [fee]``` | register an account from the local wallet node | Y |
+| submitaccountregistertx | ```<address> [fee]``` | register an account from the local wallet node | Y |
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
-| deploycontracttx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
+| submitcontractdeploytx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
 | setgenerate | ```<generate>``` [genblocklimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genblocklimit] processors, -1 is unlimited. | N |
 | settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |
 | signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y |

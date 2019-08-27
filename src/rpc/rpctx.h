@@ -15,13 +15,13 @@ using namespace json_spirit;
 
 class CBaseTx;
 
-extern Value registeraccounttx(const Array& params, bool fHelp);
+extern Value submitaccountregistertx(const Array& params, bool fHelp);
 
-extern Value callcontracttx(const Array& params, bool fHelp);
+extern Value submitcontractcalltx(const Array& params, bool fHelp);
 extern Value signcontracttx(const Array& params, bool fHelp);
 extern Value createfreezetx(const Array& params, bool fHelp);
-extern Value deploycontracttx(const Array& params, bool fHelp);
-extern Value votedelegatetx(const Array& params, bool fHelp);
+extern Value submitcontractdeploytx(const Array& params, bool fHelp);
+extern Value submitdelegatevotetx(const Array& params, bool fHelp);
 
 extern Value gettxdetail(const Array& params, bool fHelp);
 extern Value sign(const Array& params, bool fHelp);

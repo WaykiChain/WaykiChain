@@ -52,9 +52,9 @@ Value gettxdetail(const Array& params, bool fHelp) {
 }
 
 //create a register account tx
-Value registeraccounttx(const Array& params, bool fHelp) {
+Value submitaccountregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0)
-        throw runtime_error("registeraccounttx \"addr\" (\"fee\")\n"
+        throw runtime_error("submitaccountregistertx \"addr\" (\"fee\")\n"
             "\nregister local account public key to get its RegId\n"
             "\nArguments:\n"
             "1.addr: (string, required)\n"
@@ -62,9 +62,9 @@ Value registeraccounttx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\": (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
+            + HelpExampleCli("submitaccountregistertx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("registeraccounttx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
+            + HelpExampleRpc("submitaccountregistertx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
 
     string addr = params[0].get_str();
     uint64_t fee = 0;
@@ -118,7 +118,7 @@ Value registeraccounttx(const Array& params, bool fHelp) {
         rtx.valid_height = chainActive.Height();
 
         if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "in registeraccounttx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "in submitaccountregistertx Error: Sign failed.");
     }
 
     std::tuple<bool, string> ret;
@@ -131,10 +131,10 @@ Value registeraccounttx(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value callcontracttx(const Array& params, bool fHelp) {
+Value submitcontractcalltx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "callcontracttx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" (\"height\")\n"
+            "submitcontractcalltx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" (\"height\")\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
@@ -146,10 +146,10 @@ Value callcontracttx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":          (string)\n"
             "\nExamples:\n" +
-            HelpExampleCli("callcontracttx",
+            HelpExampleCli("submitcontractcalltx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("callcontracttx",
+            HelpExampleRpc("submitcontractcalltx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
     }
 
@@ -218,9 +218,9 @@ Value callcontracttx(const Array& params, bool fHelp) {
 }
 
 // register a contract app tx
-Value deploycontracttx(const Array& params, bool fHelp) {
+Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("deploycontracttx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
+        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
             "1.\"addr\":        (string, required) contract owner address from this wallet\n"
@@ -231,10 +231,10 @@ Value deploycontracttx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":          (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("deploycontracttx",
+            + HelpExampleCli("submitcontractdeploytx",
                 "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 11000000 10000 \"appdesc\"") +
                 "\nAs json rpc call\n"
-            + HelpExampleRpc("deploycontracttx",
+            + HelpExampleRpc("submitcontractdeploytx",
                 "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 11000000, 10000, \"appdesc\""));
     }
 
@@ -254,7 +254,7 @@ Value deploycontracttx(const Array& params, bool fHelp) {
 
     FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
     if (!file)
-        throw runtime_error("deploycontracttx open script file (" + luaScriptFilePath + ") error");
+        throw runtime_error("submitcontractdeploytx open script file (" + luaScriptFilePath + ") error");
 
     long lSize;
     fseek(file, 0, SEEK_END);
@@ -358,10 +358,10 @@ Value deploycontracttx(const Array& params, bool fHelp) {
 }
 
 //vote a delegate transaction
-Value votedelegatetx(const Array& params, bool fHelp) {
+Value submitdelegatevotetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-            "votedelegatetx \"sendaddr\" \"votes\" \"fee\" [\"height\"] \n"
+            "submitdelegatevotetx \"sendaddr\" \"votes\" \"fee\" [\"height\"] \n"
             "\ncreate a delegate vote transaction\n"
             "\nArguments:\n"
             "1.\"sendaddr\": (string required) The address from which votes are sent to other "
@@ -382,12 +382,12 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\": (string)\n"
             "\nExamples:\n" +
-            HelpExampleCli("votedelegatetx",
+            HelpExampleCli("submitdelegatevotetx",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" "
                            "\"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", "
                            "\\\"votes\\\":100000000}]\" 10000") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("votedelegatetx",
+            HelpExampleRpc("submitdelegatevotetx",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", "
                            "[{\"delegate\":\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                            "\"votes\":100000000}], 10000"));

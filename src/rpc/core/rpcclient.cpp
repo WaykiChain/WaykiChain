@@ -155,18 +155,18 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getnewaddr"             && n > 0) ConvertTo<bool>(params[0]);
 
-    if (strMethod == "registeraccounttx"      && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "submitaccountregistertx"      && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if(strMethod == "votedelegatetx"          && n > 1) ConvertTo<Array>(params[1]);
-    if(strMethod == "votedelegatetx"          && n > 2) ConvertTo<int64_t>(params[2]);
-    if(strMethod == "votedelegatetx"          && n > 3) ConvertTo<int>(params[3]);
+    if(strMethod == "submitdelegatevotetx"          && n > 1) ConvertTo<Array>(params[1]);
+    if(strMethod == "submitdelegatevotetx"          && n > 2) ConvertTo<int64_t>(params[2]);
+    if(strMethod == "submitdelegatevotetx"          && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "deploycontracttx"       && n > 2) ConvertTo<int64_t>(params[2]);
-    if (strMethod == "deploycontracttx"       && n > 3) ConvertTo<int>(params[3]);
+    if (strMethod == "submitcontractdeploytx"       && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitcontractdeploytx"       && n > 3) ConvertTo<int>(params[3]);
 
-    if (strMethod == "callcontracttx"         && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "callcontracttx"         && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "callcontracttx"         && n > 5) ConvertTo<int>(params[5]);
+    if (strMethod == "submitcontractcalltx"         && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitcontractcalltx"         && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitcontractcalltx"         && n > 5) ConvertTo<int>(params[5]);
 
     if (strMethod == "listaddr"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "listunconfirmedtx"      && n > 0) ConvertTo<bool>(params[0]);

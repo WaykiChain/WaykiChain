@@ -50,7 +50,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         throw runtime_error(
             "vmexecutescript \"addr\" \"script_path\" [\"arguments\"] [amount] [symbol:fee:unit]\n"
             "\nexecutes the script in vm simulator, and then returns the executing status.\n"
-            "\nthe execution include deploycontracttx and callcontracttx.\n"
+            "\nthe execution include submitcontractdeploytx and submitcontractcalltx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) contract owner address from this wallet\n"
             "2.\"script_path\": (string required), the file path of the app script\n"

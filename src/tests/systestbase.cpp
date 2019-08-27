@@ -197,7 +197,7 @@ Value SysTestBase::CreateDelegateTx(const string &strAddress, const string &oper
         strFee = strprintf("%d", fees);
     }
 
-    const char *argv[] = {"rpctest", "votedelegatetx", (char *)strAddress.c_str(),
+    const char *argv[] = {"rpctest", "submitdelegatevotetx", (char *)strAddress.c_str(),
                           (char *)operVoteFund.c_str(), (char *)strFee.c_str()};
     int argc           = sizeof(argv) / sizeof(char *);
 
@@ -222,7 +222,7 @@ Value SysTestBase::CreateRegAppTx(const string &strAddress, const string &strScr
     string strHeight = strprintf("%d", height);
 
     const char *argv[] = {"rpctest",
-                          "deploycontracttx",
+                          "submitcontractdeploytx",
                           (char *)strAddress.c_str(),
                           (char *)filepath.c_str(),
                           (char *)strFee.c_str(),
@@ -435,7 +435,7 @@ Value SysTestBase::RegisterAccountTx(const std::string &addr, const int nfee) {
     ;
     string fee = strprintf("%ld", nCurFee);
 
-    const char *argv[] = {"rpctest", "registeraccounttx", caddr, (char *)fee.c_str()};
+    const char *argv[] = {"rpctest", "submitaccountregistertx", caddr, (char *)fee.c_str()};
     int argc           = sizeof(argv) / sizeof(char *);
 
     Value value;
@@ -463,7 +463,7 @@ Value SysTestBase::CallContractTx(const std::string &scriptid, const std::string
     string pmoney = strprintf("%ld", nMoney);
 
     const char *argv[] = {"rpctest",
-                          "callcontracttx",
+                          "submitcontractcalltx",
                           (char *)(addrs.c_str()),
                           (char *)(scriptid.c_str()),
                           (char *)pmoney.c_str(),
