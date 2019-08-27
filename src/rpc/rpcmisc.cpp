@@ -8,11 +8,12 @@
 #include "main.h"
 #include "net.h"
 #include "netbase.h"
+#include "rpc/core/rpccommons.h"
 #include "rpc/core/rpcserver.h"
 #include "commons/util.h"
 
-#include "../wallet/wallet.h"
-#include "../wallet/walletdb.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
 
 #include <stdint.h>
@@ -25,16 +26,6 @@ using namespace std;
 using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
-
-static bool GetKeyId(string const &addr, CKeyID &keyid) {
-    if (!CRegID::GetKeyId(addr, keyid)) {
-        keyid = CKeyID(addr);
-        if (keyid.IsEmpty())
-            return false;
-    }
-
-    return true;
-};
 
 Value getcoinunitinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() > 1) {

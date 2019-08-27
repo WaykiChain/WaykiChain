@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
 #include "commons/base58.h"
+#include "rpc/core/rpccommons.h"
 #include "rpc/core/rpcserver.h"
 #include "init.h"
 #include "main.h"
@@ -31,16 +32,17 @@ void EnsureWalletIsUnlocked();
 static string EncodeDumpTime(int64_t nTime) { return DateTimeStrFormat("%Y-%m-%dT%H:%M:%SZ", nTime); }
 
 Value dumpwallet(const Array& params, bool fHelp) {
-	if (fHelp || params.size() != 1)
-		throw runtime_error("dumpwallet \"filename\"\n"
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "dumpwallet \"filename\"\n"
             "\nDumps all wallet keys in a human-readable format.\n"
             "\nArguments:\n"
             "1. \"filename\"    (string, required) The filename\n"
-            "\nExamples:\n"
-            + HelpExampleCli("dumpwallet", "target_dumpwallet_filepath")
-            + HelpExampleRpc("dumpwallet", "target_dumpwallet_filepath"));
+            "\nExamples:\n" +
+            HelpExampleCli("dumpwallet", "target_dumpwallet_filepath") + "\nAs a json rpc call\n" +
+            HelpExampleRpc("dumpwallet", "target_dumpwallet_filepath"));
 
-	EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked();
 
     string dumpFilePath = params[0].get_str().c_str();
     if (dumpFilePath.find(GetDataDir().string()) != std::string::npos)
@@ -74,29 +76,27 @@ Value dumpwallet(const Array& params, bool fHelp) {
 	file.close();
 
 	Object reply2;
-	reply2.push_back(Pair("info",   "success"));
+	reply2.push_back(Pair("info",   "succeed to dump wallet"));
 	reply2.push_back(Pair("count",  (int32_t)setKeyIds.size()));
 	return reply2;
 }
 
 Value importwallet(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
-        throw runtime_error("importwallet \"filename\"\n"
+        throw runtime_error(
+            "importwallet \"filename\"\n"
             "\nImports keys from a wallet dump file (see dumpwallet).\n"
             "\nArguments:\n"
             "1. \"filename\"    (string, required) The wallet file to be imported\n"
             "\nExamples:\n"
-            "\nDump the wallet first\n"
-            + HelpExampleCli("dumpwallet", "\"target_dumpwallet_filepath\"") +
-            "\nImport the wallet\n"
-            + HelpExampleCli("importwallet", "\"target_dumpwallet_filepath\"") +
-            "\nImport using the json rpc call\n"
-            + HelpExampleRpc("importwallet", "\"target_dumpwallet_filepath\"")
-        );
-
-    LOCK2(cs_main, pWalletMain->cs_wallet);
+            "\nDump the wallet first\n" +
+            HelpExampleCli("dumpwallet", "\"target_dumpwallet_filepath\"") + "\nImport the wallet\n" +
+            HelpExampleCli("importwallet", "\"target_dumpwallet_filepath\"") + "\nAs a json rpc call\n" +
+            HelpExampleRpc("importwallet", "\"target_dumpwallet_filepath\""));
 
     EnsureWalletIsUnlocked();
+
+    LOCK2(cs_main, pWalletMain->cs_wallet);
 
     ifstream file;
     file.open(params[0].get_str().c_str(), ios::in | ios::ate);
@@ -129,29 +129,30 @@ Value importwallet(const Array& params, bool fHelp) {
     file.close();
 
     Object reply2;
-    reply2.push_back(Pair("count", importedKeySize));
+    reply2.push_back(Pair("info",   "succeed to import wallet"));
+    reply2.push_back(Pair("count",  importedKeySize));
     return reply2;
 }
 
 Value dumpprivkey(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
-        throw runtime_error("dumpprivkey \"address\"\n"
-            "\nReturns the private key corresponding to the given WICC address.\n"
+        throw runtime_error(
+            "dumpprivkey \"address\"\n"
+            "\nReturns the private key corresponding to the given address.\n"
             "Then the importprivkey can be used with this output in another wallet for migration purposes.\n"
             "\nArguments:\n"
             "1. \"address\"   (string, required) address\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("dumpprivkey", "\"address\"")
-            + HelpExampleRpc("dumpprivkey", "\"address\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("dumpprivkey", "\"address\"") + "\nAs a json rpc call\n" +
+            HelpExampleRpc("dumpprivkey", "\"address\""));
 
     EnsureWalletIsUnlocked();
 
     string strAddress = params[0].get_str();
     CCoinAddress address;
     if (!address.SetString(strAddress))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Coin address.");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
 
     CKeyID keyId;
     if (!address.GetKeyId(keyId))
@@ -183,8 +184,8 @@ Value importprivkey(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1. \"privkey\"     (string, required) The private key (see dumpprivkey)\n"
             "\nExamples:\n"
-            "\nDump privkey first\n"
-            + HelpExampleCli("dumpprivkey", "\"address\"") +
+            "\nDump privkey first\n" +
+            HelpExampleCli("dumpprivkey", "\"address\"") + "\nImport privkey\n" +
             HelpExampleCli("importprivkey", "\"privkey\"") + "\nAs a json rpc call\n" +
             HelpExampleRpc("importprivkey", "\"privkey\""));
 
@@ -217,14 +218,15 @@ Value importprivkey(const Array& params, bool fHelp) {
 Value dropminerkeys(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error(
-            "dropminerkeys \n"
+            "dropminerkeys\n"
             "\ndrop all miner keys in a wallet for cool mining.\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("dropminerkeys", "") + HelpExampleRpc("dropminerkeys", ""));
+            HelpExampleCli("dropminerkeys", "") + "\nAs a json rpc call\n" + HelpExampleRpc("dropminerkeys", ""));
     }
 
     EnsureWalletIsUnlocked();
+
     if (!pWalletMain->IsReadyForCoolMiner(*pCdMan->pAccountCache)) {
         throw runtime_error("there is no cool miner key or miner key which has registered");
     }
@@ -233,6 +235,36 @@ Value dropminerkeys(const Array& params, bool fHelp) {
 
     Object ret;
     ret.push_back(Pair("info", "wallet is ready for cool mining."));
+
+    return ret;
+}
+
+Value dropprivkey(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+            "dropprivkey \"address\"\n"
+            "\ndrop keys for the given address.\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("dropprivkey", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\"") + "\nAs a json rpc call\n" +
+            HelpExampleRpc("dropprivkey", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\""));
+    }
+
+    EnsureWalletIsUnlocked();
+
+    CKeyID keyid;
+    if (!GetKeyId(params[0].get_str(), keyid))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+
+    CKey key;
+    if (!pWalletMain->GetKey(keyid, key))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Failed to acquire CKey from address.");
+
+    if (!pWalletMain->RemoveKey(key))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Failed to drop privkey from wallet.");
+
+    Object ret;
+    ret.push_back(Pair("info", "privkey is dropped from wallet."));
 
     return ret;
 }

@@ -262,6 +262,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
     { "dropminerkeys",          &dropminerkeys,          false,     false,      true },
+    { "dropprivkey",            &dropprivkey,            false,     false,      true },
 
     { "importwallet",           &importwallet,           false,     false,      true },
     { "listaddr",               &listaddr,               true,      false,      true },
