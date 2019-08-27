@@ -201,12 +201,12 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
             HelpExampleCli("submitcdpredeemtx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\" "
-                           "\"WICC:20000000000:sawi\" \"WUSD:3000000:sawi\" \"WICC:1000000:sawi\"\n") +
+                           "20000000000 3000000 \"WICC:1000000:sawi\"\n") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitcdpredeemtx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", "
                            "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", "
-                           "\"WICC:20000000000:sawi\", \"WUSD:3000000:sawi\", \"WICC:1000000:sawi\"\n"));
+                           "20000000000, 3000000, \"WICC:1000000:sawi\"\n"));
     }
 
     const CUserID& cdpUid   = RPC_PARAM::GetUserId(params[0].get_str());
