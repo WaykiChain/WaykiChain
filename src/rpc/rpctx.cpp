@@ -607,6 +607,20 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             "1.\"addr\": (string, required) account base58 address"
             "Returns account details.\n"
             "\nResult:\n"
+            "{\n"
+            "  \"address\": \"xxxxx\",       (string) the address\n"
+            "  \"keyid\": \"xxxxx\",         (string) the keyid referred to the address\n"
+            "  \"nickid\": \"xxxxx\",        (string) the nickid referred to the address\n"
+            "  \"regid\": \"xxxxx\",         (string) the regid referred to the address\n"
+            "  \"regid_mature\": xxxxxx,     (bool) the regid is mature or not\n"
+            "  \"owner_pubkey\": \"xxxxx\",  (string) the public key referred to the address\n"
+            "  \"miner_pubkey\": \"xxxxx\",  (string) the miner publick key referred to the address\n"
+            "  \"tokens\": {},               (object) tokens object all the address owned\n"
+            "  \"received_votes\": xxxxx,    (numeric) received votes in total\n"
+            "  \"received_votes\": [],       (array) votes to others\n"
+            "  \"position\": \"xxxxx\",      (string) in wallet if the address never involved in transaction, otherwise, in block\n"
+            "  \"cdp_list\": [],             (array) cdp list\n"
+            "}\n"
             "\nExamples:\n" +
             HelpExampleCli("getaccountinfo", "\"WT52jPi8DhHUC85MPYK8y8Ajs8J7CshgaB\"") +
             "\nAs json rpc call\n" +

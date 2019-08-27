@@ -24,32 +24,6 @@ using namespace std;
 
 class CBaseCoinTransferTx;
 
-double GetDifficulty(const CBlockIndex* pBlockIndex) {
-    // Floating point number that is a multiple of the minimum difficulty,
-    // minimum difficulty = 1.0.
-    if (pBlockIndex == NULL) {
-        if (chainActive.Tip() == NULL)
-            return 1.0;
-        else
-            pBlockIndex = chainActive.Tip();
-    }
-
-    int nShift = (pBlockIndex->nBits >> 24) & 0xff;
-
-    double dDiff = (double)0x0000ffff / (double)(pBlockIndex->nBits & 0x00ffffff);
-
-    while (nShift < 29) {
-        dDiff *= 256.0;
-        nShift++;
-    }
-    while (nShift > 29) {
-        dDiff /= 256.0;
-        nShift--;
-    }
-
-    return dDiff;
-}
-
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
     result.push_back(Pair("block_hash",     block.GetHash().GetHex()));
@@ -110,38 +84,6 @@ Value getblockcount(const Array& params, bool fHelp)
         );
 
     return chainActive.Height();
-}
-
-Value getbestblockhash(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
-            "getbestblockhash\n"
-            "\nReturns the hash of the best (tip) block in the longest block chain.\n"
-            "\nResult\n"
-            "\"hex\"      (string) the block hash hex encoded\n"
-            "\nExamples\n"
-            + HelpExampleCli("getbestblockhash", "")
-            + HelpExampleRpc("getbestblockhash", "")
-        );
-
-    return chainActive.Tip()->GetBlockHash().GetHex();
-}
-
-Value getdifficulty(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 0)
-        throw runtime_error(
-            "getdifficulty\n"
-            "\nReturns the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
-            "\nResult:\n"
-            "n.nnn       (numeric) the proof-of-work difficulty as a multiple of the minimum difficulty.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getdifficulty", "")
-            + HelpExampleRpc("getdifficulty", "")
-        );
-
-    return 0;//GetDifficulty();
 }
 
 Value getrawmempool(const Array& params, bool fHelp)
@@ -205,31 +147,6 @@ Value getrawmempool(const Array& params, bool fHelp)
 
         return arr;
     }
-}
-
-Value getblockhash(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() != 1) {
-        throw runtime_error("getblockhash index\n"
-            "\nReturns hash of block in best-block-chain at index provided.\n"
-            "\nArguments:\n"
-            "1. height         (numeric, required) The block height\n"
-            "\nResult:\n"
-            "\"hash\"         (string) The block hash\n"
-            "\nExamples:\n"
-            + HelpExampleRpc("getblockhash", "1000"));
-    }
-
-    RPCTypeCheck(params, boost::assign::list_of(int_type));
-
-    int height = params[0].get_int();
-    if (height < 0 || height > chainActive.Height())
-        throw runtime_error("Block number out of range");
-
-    CBlockIndex* pBlockIndex = chainActive[height];
-    Object result;
-    result.push_back(Pair("txid", pBlockIndex->GetBlockHash().GetHex()));
-    return result;
 }
 
 Value getblock(const Array& params, bool fHelp)

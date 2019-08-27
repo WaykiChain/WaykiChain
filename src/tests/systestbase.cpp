@@ -512,22 +512,6 @@ bool SysTestBase::IsAllTxInBlock() {
     return false;
 }
 
-bool SysTestBase::GetBlockHash(const int height, std::string &blockhash) {
-    char height[16] = {0};
-    sprintf(height, "%d", height);
-
-    const char *argv[] = {"rpctest", "getblockhash", height};
-    int argc           = sizeof(argv) / sizeof(char *);
-
-    Value value;
-    if (CommandLineRPC_GetValue(argc, argv, value)) {
-        blockhash = find_value(value.get_obj(), "txid").get_str();
-        LogPrint("test_miners", "GetBlockHash:%s\r\n", blockhash.c_str());
-        return true;
-    }
-    return false;
-}
-
 bool SysTestBase::GetBlockMinerAddr(const std::string &blockhash, std::string &addr) {
     char cblockhash[80] = {0};
     strncpy(cblockhash, blockhash.c_str(), sizeof(cblockhash) - 1);

@@ -98,7 +98,6 @@ extern vector<unsigned char> ParseHexO(const json_spirit::Object& o, string strK
 extern int64_t nWalletUnlockTime;
 extern int64_t AmountToRawValue(const json_spirit::Value& value);
 extern json_spirit::Value ValueFromAmount(int64_t amount);
-extern double GetDifficulty(const CBlockIndex* blockindex = NULL);
 extern string HexBits(unsigned int nBits);
 extern string HelpRequiringPassphrase();
 extern string HelpExampleCli(string methodname, string args);
@@ -158,13 +157,10 @@ extern json_spirit::Value decodetxraw(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value decodemulsigscript(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp); // in rpcblockchain.cpp
-extern json_spirit::Value getbestblockhash(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdifficulty(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value settxfee(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrawmempool(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getblockhash(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
-// extern json_spirit::Value gettxoutsetinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifychain(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcontractregid(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value invalidateblock(const json_spirit::Array& params, bool fHelp);
