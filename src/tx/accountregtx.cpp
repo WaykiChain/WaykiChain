@@ -59,7 +59,7 @@ bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper 
 
     if (typeid(CPubKey) == minerUid.type()) {
         account.miner_pubkey = minerUid.get<CPubKey>();
-        if (account.miner_pubkey.IsValid() && !account.miner_pubkey.IsFullyValid()) {
+        if (!account.miner_pubkey.IsFullyValid()) {
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
                 account.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }

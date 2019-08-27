@@ -107,11 +107,10 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in local wallet");
 
         CPubKey minerPubKey;
-        if (pWalletMain->GetPubKey(keyId, minerPubKey, true)) {
+        if (pWalletMain->GetPubKey(keyId, minerPubKey, true) && minerPubKey.IsValid()) {
             rtx.minerUid = minerPubKey;
         } else {
-            CNullID nullId;
-            rtx.minerUid = nullId;
+            rtx.minerUid = CNullID();
         }
         rtx.txUid        = pubkey;
         rtx.llFees       = fee;

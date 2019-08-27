@@ -380,7 +380,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     // global account
-    auto pTx      = std::make_shared<CCoinRewardTx>(CPubKey(), nStableCoinGenesisHeight, SYMB::WGRT, 0);
+    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WGRT, 0);
     pTx->nVersion = INIT_TX_VERSION;
     vptx.push_back(pTx);
 

@@ -190,6 +190,8 @@ public:
         return size() == 33;  // force use Compressed key
     }
 
+    bool IsEmpty() const { return size() == 0; }
+
     // fully validate whether this is a valid public key (more expensive than IsValid())
     bool IsFullyValid() const;
 
