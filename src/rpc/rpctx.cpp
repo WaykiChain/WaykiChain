@@ -385,12 +385,12 @@ Value votedelegatetx(const Array& params, bool fHelp) {
             HelpExampleCli("votedelegatetx",
                            "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\" "
                            "\"[{\\\"delegate\\\":\\\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\\\", "
-                           "\\\"votes\\\":100000000}]\" 10000 ") +
+                           "\\\"votes\\\":100000000}]\" 10000") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("votedelegatetx",
-                           " \"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", "
+                           "\"wQquTWgzNzLtjUV4Du57p9YAEGdKvgXs9t\", "
                            "[{\"delegate\":\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
-                           "\"votes\":100000000}], 10000 "));
+                           "\"votes\":100000000}], 10000"));
     }
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
