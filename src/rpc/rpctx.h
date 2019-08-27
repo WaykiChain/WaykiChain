@@ -23,23 +23,11 @@ extern Value createfreezetx(const Array& params, bool fHelp);
 extern Value deploycontracttx(const Array& params, bool fHelp);
 extern Value votedelegatetx(const Array& params, bool fHelp);
 
-extern Value gensendtoaddressraw(const Array& params, bool fHelp);
-extern Value genregisteraccountraw(const Array& params, bool fHelp);
-extern Value genregistercontractraw(const Array& params, bool fHelp);
-extern Value gencallcontractraw(const Array& params, bool fHelp);
-extern Value genvotedelegateraw(const Array& params, bool fHelp);
-
-extern Value getaddrinfo(const Array& params, bool fHelp);
-
 extern Value gettxdetail(const Array& params, bool fHelp);
-// extern Value listregid(const Array& params, bool fHelp);
 extern Value sign(const Array& params, bool fHelp);
 extern Value getaccountinfo(const Array& params, bool fHelp);
 extern Value disconnectblock(const Array& params, bool fHelp);
-
 extern Value generateblock(const Array& params, bool fHelp);
-//extern Value getpublickey(const Array& params, bool fHelp);
-
 extern Value reloadtxcache(const Array& params, bool fHelp);
 
 extern Value getcontractinfo(const Array& params, bool fHelp);

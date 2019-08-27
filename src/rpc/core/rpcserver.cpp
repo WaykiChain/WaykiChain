@@ -251,12 +251,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
 
     /* Raw transactions */
-    { "gensendtoaddressraw",    &gensendtoaddressraw,    false,     false,     false },
-    { "genregisteraccountraw",  &genregisteraccountraw,  false,     false,     false },
-    { "genregistercontractraw", &genregistercontractraw, false,     false,     false },
-    { "gencallcontractraw",     &gencallcontractraw,     false,     false,     false },
-    { "genvotedelegateraw",     &genvotedelegateraw,     false,     false,     false },
-    { "genmulsigtx",         &genmulsigtx,         false,     false,     false },
+    { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
 
     /* uses wallet if enabled */
     { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },
@@ -276,6 +271,7 @@ static const CRPCCommand vRPCCommands[] =
     { "listaddr",               &listaddr,               true,      false,      true },
     { "listtx",                 &listtx,                 true,      false,      true },
 
+    { "submitsendtx",           &submitsendtx,           false,     false,      true },
     { "registeraccounttx",      &registeraccounttx,      true,      false,      true },
     { "deploycontracttx",       &deploycontracttx,       true,      false,      true },
     { "callcontracttx",         &callcontracttx,         true,      false,      true },
@@ -293,7 +289,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
     { "verifymessage",          &verifymessage,          false,     false,      false },
-    { "submitsendtx",           &submitsendtx,           false,     false,      true },
     { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false},
     { "getbalance",             &getbalance,             false,     false,      true },
     { "getcontractassets",      &getcontractassets,      false,     false,      true },

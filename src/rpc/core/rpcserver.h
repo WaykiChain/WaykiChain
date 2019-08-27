@@ -149,12 +149,7 @@ extern json_spirit::Value signmessage(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value getcontractassets(const json_spirit:: Array& params, bool fHelp);
 extern json_spirit::Value submitsendtx(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value gensendtoaddressraw    (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genregisteraccountraw  (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genregistercontractraw (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value gencallcontractraw     (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genvotedelegateraw     (const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value genmulsigtx            (const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value genmulsigtx(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value sendtxraw(const json_spirit::Array& params, bool fHelp);
 
