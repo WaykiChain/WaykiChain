@@ -674,10 +674,12 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     }
 
     if (found) {
-        int32_t height                 = chainActive.Height();
-        uint64_t slideWindowBlockCount = 0;
-        pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-        uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+        int32_t height       = chainActive.Height();
+        uint64_t slideWindow = 0;
+        pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+        // TODO: multi stable coin
+        uint64_t bcoinMedianPrice =
+            pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::WUSD));
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {

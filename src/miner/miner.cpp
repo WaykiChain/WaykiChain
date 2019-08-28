@@ -80,24 +80,25 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
 // Sort transactions by priority and fee to decide priority orders to process transactions.
 void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     vecPriority.reserve(mempool.memPoolTxs.size());
-    static double dPriority     = 0;
-    static double dFeePerKb     = 0;
-    static uint32_t nTxSize     = 0;
-    static TokenSymbol coinType = SYMB::WUSD;
+    static double dPriority      = 0;
+    static double dFeePerKb      = 0;
+    static uint32_t nTxSize      = 0;
+    static TokenSymbol feeSymbol = SYMB::WUSD;
     static uint64_t nFees       = 0;
 
-    uint64_t slideWindowBlockCount;
-    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-    int32_t height            = chainActive.Height();
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
-    uint64_t fcoinMedianPrice = pCdMan->pPpCache->GetFcoinMedianPrice(height, slideWindowBlockCount);
-    auto GetCoinMedianPrice   = [&](const TokenSymbol &coinType) -> uint64_t {
-        if (coinType == SYMB::WICC)
+    uint64_t slideWindow;
+    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+    int32_t height = chainActive.Height();
+    // fee symbol should be WICC or WUSD only.
+    uint64_t scoinMedianPrice = 10000;  // boosted by 10^4
+    uint64_t bcoinMedianPrice =
+        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+
+    auto GetFeeMedianPrice = [&](const TokenSymbol &symbol) -> uint64_t {
+        if (symbol == SYMB::WICC)
             return bcoinMedianPrice;
-        else if (coinType == SYMB::WGRT)
-            return fcoinMedianPrice;
-        else if (coinType == SYMB::WUSD)
-            return 10000; // boosted by 10^4
+        else if (symbol == SYMB::WUSD)
+            return scoinMedianPrice;
         else
             return 0;
     };
@@ -106,12 +107,12 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
         CBaseTx *pBaseTx = mi->second.GetTransaction().get();
         if (!pBaseTx->IsBlockRewardTx() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
             nTxSize   = mi->second.GetTxSize();
-            coinType  = std::get<0>(mi->second.GetFees());
+            feeSymbol = std::get<0>(mi->second.GetFees());
             nFees     = std::get<1>(mi->second.GetFees());
-            dFeePerKb = double(GetCoinMedianPrice(coinType)) / kPercentBoost *
-                        (nFees - pBaseTx->GetFuel(nFuelRate)) / (nTxSize / 1000.0);
+            dFeePerKb = double(GetFeeMedianPrice(feeSymbol)) / kPercentBoost * (nFees - pBaseTx->GetFuel(nFuelRate)) /
+                        (nTxSize / 1000.0);
             LogPrint("MINER", "GetPriority, medianPrice: %llu, nFees: %llu, fuel: %llu, nTxSize: %u\n",
-                GetCoinMedianPrice(coinType), nFees, pBaseTx->GetFuel(nFuelRate), nTxSize);
+                     GetFeeMedianPrice(feeSymbol), nFees, pBaseTx->GetFuel(nFuelRate), nTxSize);
             dPriority = mi->second.GetPriority();
             vecPriority.push_back(TxPriority(dPriority, dFeePerKb, mi->second.GetTransaction()));
         }
@@ -606,9 +607,9 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
         CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         map<CoinPricePair, uint64_t> mapMedianPricePoints;
-        uint64_t slideWindowBlockCount;
-        cwIn.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-        cwIn.ppCache.GetBlockMedianPricePoints(height, slideWindowBlockCount, mapMedianPricePoints);
+        uint64_t slideWindow;
+        cwIn.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+        cwIn.ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints);
         pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
 
         // Fill in header

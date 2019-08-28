@@ -59,11 +59,11 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 
     // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        uint64_t slideWindowBlockCount = 0;
-        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-        uint64_t bcoinMedianPrice = cw.ppCache.GetBcoinMedianPrice(height, slideWindowBlockCount);
-        int32_t txSize            = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb          = double(bcoinMedianPrice) / kPercentBoost * (llFees - llFuel) / (txSize / 1000.0);
+        uint64_t slideWindow = 0;
+        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+        uint64_t feeMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(fee_symbol, SYMB::WUSD));
+        int32_t txSize          = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
+        double dFeePerKb        = double(feeMedianPrice) / kPercentBoost * (llFees - llFuel) / (txSize / 1000.0);
         if (dFeePerKb != 0 && dFeePerKb < CBaseTx::nMinRelayTxFee) {
             return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fee/kb: %.4f < %lld",
                             dFeePerKb, CBaseTx::nMinRelayTxFee), REJECT_INVALID, "fee-too-litter-in-fee/kb");
@@ -311,14 +311,16 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
 
     // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        uint64_t slideWindowBlockCount = 0;
-        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-        uint64_t coinMedianPrice =
-            fee_symbol == SYMB::WUSD
-                ? 10000  // boosted by 10^4
-                : cw.ppCache.GetMedianPrice(height, slideWindowBlockCount, CoinPricePair(fee_symbol, SYMB::USD));
+        uint64_t slideWindow = 0;
+        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+
+        uint64_t feeMedianPrice = 10000;  // boosted by 10^4
+        if (fee_symbol != SYMB::WUSD) {
+            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(fee_symbol, SYMB::USD));
+        }
+
         int32_t txSize   = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb = double(coinMedianPrice) / kPercentBoost * (llFees - llFuel) / (txSize / 1000.0);
+        double dFeePerKb = double(feeMedianPrice) / kPercentBoost * (llFees - llFuel) / (txSize / 1000.0);
         if (dFeePerKb != 0 && dFeePerKb < CBaseTx::nMinRelayTxFee) {
             return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter in fee/kb: %.4f < %lld",
                             dFeePerKb, CBaseTx::nMinRelayTxFee), REJECT_INVALID, "fee-too-litter-in-fee/kb");

@@ -269,8 +269,8 @@ Value getscoininfo(const Array& params, bool fHelp){
 
     int32_t height = chainActive.Height();
 
-    uint64_t slideWindowBlockCount = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount)) {
+    uint64_t slideWindow = 0;
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price slide window blockcount error");
     }
 
@@ -285,11 +285,13 @@ Value getscoininfo(const Array& params, bool fHelp){
     }
 
     map<CoinPricePair, uint64_t> medianPricePoints;
-    if (!pCdMan->pPpCache->GetBlockMedianPricePoints(height, slideWindowBlockCount, medianPricePoints)) {
+    if (!pCdMan->pPpCache->GetBlockMedianPricePoints(height, slideWindow, medianPricePoints)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price error");
     }
 
-    uint64_t bcoinMedianPrice      = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    // TODO: multi stable coin
+    uint64_t bcoinMedianPrice =
+        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::WUSD));
     uint64_t globalCollateralRatio = pCdMan->pCdpCache->cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice);
     bool globalCollateralRatioFloorReached =
         pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
@@ -321,7 +323,7 @@ Value getscoininfo(const Array& params, bool fHelp){
 
     obj.push_back(Pair("height",                                height));
     obj.push_back(Pair("median_price",                          prices));
-    obj.push_back(Pair("slide_window_block_count",              slideWindowBlockCount));
+    obj.push_back(Pair("slide_window_block_count",              slideWindow));
 
     obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
     obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
@@ -369,9 +371,11 @@ Value getusercdp(const Array& params, bool fHelp){
     assert(!txAccount.regid.IsEmpty());
 
     int32_t height = chainActive.Height();
-    uint64_t slideWindowBlockCount;
-    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t slideWindow;
+    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+    // TODO: multi stable coin
+    uint64_t bcoinMedianPrice =
+        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::WUSD));
 
     Array cdps;
     vector<CUserCDP> userCdps;
@@ -402,9 +406,11 @@ Value getcdp(const Array& params, bool fHelp){
     }
 
     int32_t height = chainActive.Height();
-    uint64_t slideWindowBlockCount;
-    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetBcoinMedianPrice(height, slideWindowBlockCount);
+    uint64_t slideWindow;
+    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+    // TODO: multi stable coin
+    uint64_t bcoinMedianPrice =
+        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::WUSD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;
