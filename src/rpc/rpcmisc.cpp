@@ -230,7 +230,7 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
     obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
-    obj.push_back(Pair("mine_block",            SysCfg().GetArg("-mineblock", 0)));
+    obj.push_back(Pair("genblock",              SysCfg().GetArg("-genblock", 0)));
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {
@@ -240,8 +240,8 @@ Value getinfo(const Array& params, bool fHelp)
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("perkb_miner_fee",       ValueFromAmount(SysCfg().GetTxFee())));
-    obj.push_back(Pair("perkb_relay_fee",       ValueFromAmount(CBaseTx::nMinRelayTxFee)));
+    obj.push_back(Pair("miner_fee_perkb",       ValueFromAmount(SysCfg().GetTxFee())));
+    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(CBaseTx::nMinRelayTxFee)));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));
