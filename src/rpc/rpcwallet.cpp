@@ -94,12 +94,12 @@ Value getnewaddr(const Array& params, bool fHelp) {
 Value addmulsigaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "addmulsigaddr nrequired [\"address\",...]\n"
+            "addmulsigaddr num_signatures [\"address\",...]\n"
             "\nget a new multisig address\n"
             "\nArguments:\n"
-            "1. nrequired        (numeric, required) The number of required signatures out of the "
+            "1. num_signatures  (numeric, required) The number of required signatures out of the "
             "n keys or addresses.\n"
-            "2. \"keysobject\"   (string, required) A json array of WICC addresses or "
+            "2. \"keys\"   (string, required) A json array of WICC addresses or "
             "hex-encoded public keys\n"
             "[\n"
             "  \"address\"  (string) WICC address or hex-encoded public key\n"
@@ -168,12 +168,12 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
 Value createmulsig(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2)
         throw runtime_error(
-            "createmulsig nrequired [\"address\",...]\n"
+            "createmulsig num_signatures [\"address\",...]\n"
             "\nCreates a multi-signature address with n signature of m keys required.\n"
             "\nArguments:\n"
-            "1. nrequired        (numeric, required) The number of required signatures out of the "
+            "1. num_signatures  (numeric, required) The number of required signatures out of the "
             "n keys or addresses.\n"
-            "2. \"keysobject\"   (string, required) A json array of WICC addresses or "
+            "2. \"keys\"   (string, required) A json array of WICC addresses or "
             "hex-encoded public keys\n"
             "[\n"
             "\"address\"  (string) WICC address or hex-encoded public key\n"
