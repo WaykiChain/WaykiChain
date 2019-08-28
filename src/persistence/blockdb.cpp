@@ -106,7 +106,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
                 // Construct block index object
                 CBlockIndex *pIndexNew    = InsertBlockIndex(diskindex.GetBlockHash());
                 pIndexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-                pIndexNew->height        = diskindex.height;
+                pIndexNew->height         = diskindex.height;
                 pIndexNew->nFile          = diskindex.nFile;
                 pIndexNew->nDataPos       = diskindex.nDataPos;
                 pIndexNew->nUndoPos       = diskindex.nUndoPos;
@@ -121,8 +121,6 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
                 pIndexNew->nFuel          = diskindex.nFuel;
                 pIndexNew->nFuelRate      = diskindex.nFuelRate;
                 pIndexNew->vSignature     = diskindex.vSignature;
-                // TODO: Fees
-                // pIndexNew->dFeePerKb      = diskindex.dFeePerKb;
 
                 if (!pIndexNew->CheckIndex())
                     return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());

@@ -402,8 +402,6 @@ public:
         READWRITE(nFuel);
         READWRITE(nFuelRate);
         READWRITE(vSignature);)
-        // TODO: Fees
-        // READWRITE(dFeePerKb);)
 
     uint256 GetBlockHash() const {
         CBlockHeader block;

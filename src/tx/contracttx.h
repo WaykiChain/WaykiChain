@@ -96,8 +96,6 @@ public:
 /**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
 class CUniversalContractDeployTx : public CBaseTx {
 public:
-    TokenSymbol         coin_symbol;
-    uint64_t            coin_amount;
     CUniversalContract  contract;  // contract script content
 
 public:
@@ -112,8 +110,6 @@ public:
 
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
-        READWRITE(coin_symbol);
-        READWRITE(VARINT(coin_amount));
         READWRITE(contract);
 
         READWRITE(signature);
@@ -123,7 +119,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees) << fee_symbol
-               << coin_symbol << VARINT(coin_amount) << contract;
+               << contract;
             sigHash = ss.GetHash();
         }
 

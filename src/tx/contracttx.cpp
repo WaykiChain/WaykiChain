@@ -314,9 +314,9 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
         uint64_t slideWindowBlockCount = 0;
         cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindowBlockCount);
         uint64_t coinMedianPrice =
-            coin_symbol == SYMB::WUSD
+            fee_symbol == SYMB::WUSD
                 ? 10000  // boosted by 10^4
-                : cw.ppCache.GetMedianPrice(height, slideWindowBlockCount, CoinPricePair(coin_symbol, SYMB::USD));
+                : cw.ppCache.GetMedianPrice(height, slideWindowBlockCount, CoinPricePair(fee_symbol, SYMB::USD));
         int32_t txSize   = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
         double dFeePerKb = double(coinMedianPrice) / kPercentBoost * (llFees - llFuel) / (txSize / 1000.0);
         if (dFeePerKb != 0 && dFeePerKb < CBaseTx::nMinRelayTxFee) {
@@ -388,11 +388,9 @@ string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, coin_symbol=%s, coin_amount=%llu, fee_symbol=%s, llFees=%llu, "
-        "valid_height=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), coin_symbol,
-        coin_amount, fee_symbol, llFees, valid_height);
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, fee_symbol=%s, llFees=%llu, valid_height=%d\n",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(),
+                     fee_symbol, llFees, valid_height);
 }
 
 Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
