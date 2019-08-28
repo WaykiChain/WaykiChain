@@ -200,7 +200,7 @@ public:
         if (is<CRegID>()) {
             return get<CRegID>().ToString();
         } else if (is<CKeyID>()) {
-            return get<CKeyID>().ToAddress();
+            return get<CKeyID>().ToString();
         } else if (is<CPubKey>()) {
             return get<CPubKey>().ToString();
         } else if (is<CNickID>()) {
