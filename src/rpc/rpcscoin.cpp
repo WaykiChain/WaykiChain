@@ -101,7 +101,7 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1.\"addr\":             (string, required)\n"
             "2.\"fcoin_amount\":     (numeric, required) amount of fcoins to stake\n"
-            "3. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "3.\"symbol:fee:unit\":  (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
@@ -112,7 +112,7 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
     }
 
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0]);
-    int64_t stakeAmount     = AmountToRawValue(params[1]);
+    int64_t stakeAmount     = params[1].get_int64();
     ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, FCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
