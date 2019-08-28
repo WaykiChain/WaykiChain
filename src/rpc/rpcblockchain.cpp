@@ -408,7 +408,8 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
     // remove key from wallet first.
     {
         LOCK2(cs_main, pWalletMain->cs_wallet);
-        if (!pWalletMain->RemoveKey(key)) throw boost::thread_interrupted();
+        if (!pWalletMain->RemoveKey(key))
+            throw boost::thread_interrupted();
     }
 
     CRegID srcRegId("0-1");
@@ -438,9 +439,8 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint("DEBUG",
-                 "CommonTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n",
-                 batchSize, elapseTime);
+        LogPrint("DEBUG", "CommonTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize,
+                 elapseTime);
         if (elapseTime < period) {
             MilliSleep(period - elapseTime);
         } else {
@@ -463,8 +463,7 @@ void static CommonTxSender() {
         if (generationQueue.get()->Pop(&tx)) {
             LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
-                LogPrint("ERROR", "CommonTxSender, accept to mempool failed: %s\n",
-                         state.GetRejectReason());
+                LogPrint("ERROR", "CommonTxSender, accept to mempool failed: %s\n", state.GetRejectReason());
                 throw boost::thread_interrupted();
             }
         }
@@ -472,15 +471,16 @@ void static CommonTxSender() {
 }
 
 void StartCommonGeneration(const int64_t period, const int64_t batchSize) {
-    static boost::thread_group* generateThreads = NULL;
+    static boost::thread_group* generateThreads = nullptr;
 
-    if (generateThreads != NULL) {
+    if (generateThreads != nullptr) {
         generateThreads->interrupt_all();
         delete generateThreads;
-        generateThreads = NULL;
+        generateThreads = nullptr;
     }
 
-    if (period == 0 || batchSize == 0) return;
+    if (period == 0 || batchSize == 0)
+        return;
 
     // reset message queue according to <period, batchSize>
     // For example, generate 50(batchSize) transactions in 20(period), then
@@ -533,8 +533,7 @@ Value startcommontpstest(const Array& params, bool fHelp) {
 
 static unique_ptr<MsgQueue<CLuaContractInvokeTx>> generationContractQueue;
 
-void static ContractTxGenerator(const string& regid, const int64_t period,
-                                const int64_t batchSize) {
+void static ContractTxGenerator(const string& regid, const int64_t period, const int64_t batchSize) {
     RenameThread("Tx-generator-v2");
     SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
@@ -545,7 +544,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
     // remove key from wallet first.
     {
         LOCK2(cs_main, pWalletMain->cs_wallet);
-        if (!pWalletMain->RemoveKey(key)) throw boost::thread_interrupted();
+        if (!pWalletMain->RemoveKey(key))
+            throw boost::thread_interrupted();
     }
 
     CRegID txUid("0-1");
@@ -554,8 +554,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
     uint64_t llFees         = 10 * SysCfg().GetTxFee();
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
     // 77686d44344d3851387162457836523567554c626362355a6b656462635244475931
-    string arguments =
-        ParseHexStr("77686d44344d3851387162457836523567554c626362355a6b656462635244475931");
+    string arguments = ParseHexStr("77686d44344d3851387162457836523567554c626362355a6b656462635244475931");
 
     while (true) {
         // add interruption point
@@ -580,9 +579,8 @@ void static ContractTxGenerator(const string& regid, const int64_t period,
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint("DEBUG",
-                 "ContractTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n",
-                 batchSize, elapseTime);
+        LogPrint("DEBUG", "ContractTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize,
+                 elapseTime);
         if (elapseTime < period) {
             MilliSleep(period - elapseTime);
         } else {
@@ -605,8 +603,7 @@ void static ContractTxGenerator() {
         if (generationContractQueue.get()->Pop(&tx)) {
             LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
-                LogPrint("ERROR", "ContractTxGenerator, accept to mempool failed: %s\n",
-                         state.GetRejectReason());
+                LogPrint("ERROR", "ContractTxGenerator, accept to mempool failed: %s\n", state.GetRejectReason());
                 throw boost::thread_interrupted();
             }
         }
@@ -614,28 +611,27 @@ void static ContractTxGenerator() {
 }
 
 void StartContractGeneration(const string& regid, const int64_t period, const int64_t batchSize) {
-    static boost::thread_group* generateContractThreads = NULL;
+    static boost::thread_group* generateContractThreads = nullptr;
 
-    if (generateContractThreads != NULL) {
+    if (generateContractThreads != nullptr) {
         generateContractThreads->interrupt_all();
         delete generateContractThreads;
-        generateContractThreads = NULL;
+        generateContractThreads = nullptr;
     }
 
-    if (regid.empty() || period == 0 || batchSize == 0) return;
+    if (regid.empty() || period == 0 || batchSize == 0)
+        return;
 
     // reset message queue according to <period, batchSize>
     // For example, generate 50(batchSize) transactions in 20(period), then
     // we need to prepare 1000 * 10 / 20 * 50 = 25,000 transactions in 10 second.
     // Actually, set the message queue's size to 50,000(double or up to 60,000).
-    MsgQueue<CLuaContractInvokeTx>::SizeType size = 1000 * 10 * batchSize * 2 / period;
-    MsgQueue<CLuaContractInvokeTx>::SizeType actualSize =
-        size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
+    MsgQueue<CLuaContractInvokeTx>::SizeType size       = 1000 * 10 * batchSize * 2 / period;
+    MsgQueue<CLuaContractInvokeTx>::SizeType actualSize = size > MSG_QUEUE_MAX_LEN ? MSG_QUEUE_MAX_LEN : size;
     generationContractQueue.reset(new MsgQueue<CLuaContractInvokeTx>(actualSize));
 
     generateContractThreads = new boost::thread_group();
-    generateContractThreads->create_thread(
-        boost::bind(&ContractTxGenerator, regid, period, batchSize));
+    generateContractThreads->create_thread(boost::bind(&ContractTxGenerator, regid, period, batchSize));
     generateContractThreads->create_thread(boost::bind(&ContractTxGenerator));
 }
 

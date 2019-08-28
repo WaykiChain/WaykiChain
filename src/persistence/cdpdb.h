@@ -100,6 +100,7 @@ public:
 private:
     bool SaveCDPToDB(const CUserCDP &cdp);
     bool EraseCDPFromDB(const CUserCDP &cdp);
+
 private:
 /*  CCompositeKVCache     prefixType     key              value             variable  */
 /*  ----------------   --------------   ------------   --------------    -------------*/
@@ -109,8 +110,7 @@ private:
     CCompositeKVCache< dbk::REGID_CDP,   string,        set<uint256>>    regId2CDPCache;
 
 public:
-    // Memory only cache
-    CCDPMemCache cdpMemCache;
+    CCDPMemCache cdpMemCache;  // Memory only cache
 };
 
 #endif  // PERSIST_CDPDB_H
