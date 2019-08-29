@@ -60,7 +60,6 @@ struct SysParamTypeHash {
     }
 };
 
-
 static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamTypeHash> SysParamTable = {
     { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,         std::make_tuple("A",    11)         },
     { PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN,            std::make_tuple("B",    210000)     },  // 1%: min 210K fcoins deposited to be a price feeder
