@@ -86,7 +86,7 @@ static inline int32_t RetRstToLua(lua_State *L, const string &resultData,
         if (lua_checkstack(L, len)) {
             // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
             for (int i = 0; i < len; i++) {
-                lua_pushinteger(L, (lua_Integer)resultData[i]);
+                lua_pushinteger(L, (lua_Integer)uint8_t(resultData[i]));
             }
             return len;
         } else {
