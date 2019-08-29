@@ -137,7 +137,8 @@ uint64_t CAccount::ComputeVoteStakingInterest(const vector<CCandidateReceivedVot
 }
 
 uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const {
-    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) return 0;
+    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1)
+        return 0;
 
     uint8_t subsidy     = ::GetSubsidyRate(currHeight);
     uint64_t holdHeight = 1;

@@ -243,7 +243,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     vector<CReceipt> receipts;
     CReceipt receipt(nullId, txUid, scoin_symbol, scoins_to_mint, "minted scoins to cdp owner");
     receipts.push_back(receipt);
-    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
@@ -481,7 +481,10 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     receipts.push_back(receipt1);
     CReceipt receipt2(nullId, txUid, cdp.bcoin_symbol, bcoins_to_redeem, "redeemed bcoins to cdp owner");
     receipts.push_back(receipt2);
-    cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
+
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, set tx receipts failed!! txid=%s", GetHash().ToString()),
+                         REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }

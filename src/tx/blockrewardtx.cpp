@@ -27,13 +27,19 @@ bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
         // the target account.
         account.OperateBalance(SYMB::WICC, ADD_FREE, reward);
 
+        CReceipt receipt(nullId, txUid, SYMB::WICC, reward, "reward to miner as block is mature");
+        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt})) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+        }
     } else {
         return ERRORMSG("CBlockRewardTx::ExecuteTx, invalid index");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
+    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, write secure account info error"),
                          UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+    }
 
     return true;
 }
@@ -79,25 +85,38 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     } else if (-1 == index) {
         // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
         // the target account.
+        vector<CReceipt> receipts;
         for (const auto &item : rewards) {
             uint64_t rewardAmount  = item.second;
             TokenSymbol coinSymbol = item.first;
             // FIXME: support WICC/WUSD only.
-            if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD)
+            if (coinSymbol == SYMB::WICC || coinSymbol == SYMB::WUSD) {
                 account.OperateBalance(coinSymbol, ADD_FREE, rewardAmount);
-            else
+
+                CReceipt receipt(nullId, txUid, coinSymbol, rewardAmount, "reward to miner as block is mature");
+                receipts.push_back(receipt);
+            } else {
                 return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid coin type");
+            }
         }
 
         // Assign profits to the delegate's account.
         account.OperateBalance(SYMB::WICC, ADD_FREE, profits);
+        CReceipt receipt(nullId, txUid, SYMB::WICC, profits, "inflate bcoins to miner as block is mature");
+        receipts.push_back(receipt);
+
+        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt})) {
+            return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+        }
     } else {
         return ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, invalid index");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account))
+    if (!cw.accountCache.SetAccount(CUserID(account.keyid), account)) {
         return state.DoS(100, ERRORMSG("CUCoinBlockRewardTx::ExecuteTx, write secure account info error"),
-            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+    }
 
     return true;
 }
