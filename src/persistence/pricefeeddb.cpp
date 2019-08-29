@@ -67,7 +67,7 @@ bool CPricePointMemCache::ExistBlockUserPrice(const int32_t blockHeight, const C
 bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {
     // index[0]: block reward transaction
     // index[1]: block median price transaction
-    // index[2 - n]: price feed transactions if existed.
+    // index[2 - n]: price feed transactions if existing
 
     if (block.vptx.size() < 3) {
         return true;
@@ -226,8 +226,9 @@ uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const ui
     uint64_t medianPrice = ComputeBlockMedianPrice(blockHeight, slideWindow, coinPricePair);
 
     if (medianPrice == 0) {
-        medianPrice =
-            latestBlockMedianPricePoints.count(coinPricePair) ? latestBlockMedianPricePoints[coinPricePair] : 0;
+        medianPrice = latestBlockMedianPricePoints.count(coinPricePair) ?
+                    latestBlockMedianPricePoints[coinPricePair] : 0;
+
         LogPrint("PRICEFEED", "CPricePointMemCache::GetMedianPrice, use previous block median price: %s/%s -> %llu\n",
                  std::get<0>(coinPricePair), std::get<1>(coinPricePair), medianPrice);
     }
