@@ -236,9 +236,9 @@ Object GetTxDetailJSON(const uint256& txid) {
                 obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
 
                 obj.push_back(Pair("confirmations",     chainActive.Height()));
-                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
                 obj.push_back(Pair("confirmed_height",  (int32_t)0));
                 obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
+                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
 
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << genesisblock.vptx[i];
@@ -263,9 +263,9 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
 
                     obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
-                    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
                     obj.push_back(Pair("confirmed_height",  (int32_t)header.GetHeight()));
                     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
+                    obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
 
                     vector<CReceipt> receipts;
                     pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
