@@ -303,11 +303,11 @@ Value submitsendtx(const Array& params, bool fHelp) {
             "\nExamples:\n" +
             HelpExampleCli("submitsendtx",
                            "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" "
-                           "\"WICC:1000000:sawi\" \"Hello, WaykiChain!\"") +
+                           "\"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, WaykiChain!\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitsendtx",
                            "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
-                           "\"WICC:1000000:sawi\", \"Hello, WaykiChain!\""));
+                           "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, WaykiChain!\""));
 
     CKeyID sendKeyId, recvKeyId;
     if (!GetKeyId(params[0].get_str(), sendKeyId))
