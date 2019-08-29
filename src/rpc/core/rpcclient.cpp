@@ -142,7 +142,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
-    if (strMethod == "getalltxinfo"           && n > 0) ConvertTo<int32_t>(params[0]);
 
     if (strMethod == "getnewaddr"             && n > 0) ConvertTo<bool>(params[0]);
 

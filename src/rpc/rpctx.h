@@ -16,10 +16,7 @@ using namespace json_spirit;
 class CBaseTx;
 
 extern Value submitaccountregistertx(const Array& params, bool fHelp);
-
 extern Value submitcontractcalltx(const Array& params, bool fHelp);
-extern Value signcontracttx(const Array& params, bool fHelp);
-extern Value createfreezetx(const Array& params, bool fHelp);
 extern Value submitcontractdeploytx(const Array& params, bool fHelp);
 extern Value submitdelegatevotetx(const Array& params, bool fHelp);
 
@@ -35,8 +32,6 @@ extern Value getcontractdata(const Array& params, bool fHelp);
 extern Value getcontractaccountinfo(const Array& params, bool fHelp);
 
 extern Value saveblocktofile(const Array& params, bool fHelp);
-extern Value getalltxinfo(const Array& params, bool fHelp);
-
 extern Value gethash(const Array& params, bool fHelp);
 extern Value validateaddr(const Array& params, bool fHelp);
 extern Object TxToJSON(CBaseTx *pTx);

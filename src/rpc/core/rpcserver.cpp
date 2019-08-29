@@ -331,7 +331,6 @@ static const CRPCCommand vRPCCommands[] =
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
     { "getcontractregid",       &getcontractregid,       true,      false,      false},
-    { "getalltxinfo",           &getalltxinfo,           true,      false,      true },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },
     { "startcommontpstest",     &startcommontpstest,     true,      true,       false},

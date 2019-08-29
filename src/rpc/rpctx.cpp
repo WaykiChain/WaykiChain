@@ -1234,60 +1234,6 @@ Value decodetxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value getalltxinfo(const Array& params, bool fHelp) {
-    if (fHelp || (params.size() != 0 && params.size() != 1)) {
-        throw runtime_error("getalltxinfo \n"
-            "\nget all transaction info\n"
-            "\nArguments:\n"
-            "1.\"nlimitCount\": (numeric, optional, default=0) 0 return all tx, else return number of nlimitCount txs \n"
-            "\nResult:\n"
-            "\nExamples:\n" + HelpExampleCli("getalltxinfo", "") + "\nAs json rpc call\n"
-            + HelpExampleRpc("getalltxinfo", ""));
-    }
-
-    Object retObj;
-    int32_t nLimitCount(0);
-    if(params.size() == 1)
-        nLimitCount = params[0].get_int();
-    assert(pWalletMain != nullptr);
-    if (nLimitCount <= 0) {
-        Array confirmedTx;
-        for (auto const &wtx : pWalletMain->mapInBlockTx) {
-            for (auto const & item : wtx.second.mapAccountTx) {
-                Object objtx = GetTxDetailJSON(item.first);
-                confirmedTx.push_back(objtx);
-            }
-        }
-        retObj.push_back(Pair("confirmed", confirmedTx));
-
-        Array unconfirmedTx;
-        for (auto const &wtx : pWalletMain->unconfirmedTx) {
-            Object objtx = GetTxDetailJSON(wtx.first);
-            unconfirmedTx.push_back(objtx);
-        }
-        retObj.push_back(Pair("unconfirmed", unconfirmedTx));
-    } else {
-        Array confirmedTx;
-        multimap<int32_t, Object, std::greater<int32_t> > mapTx;
-        for (auto const &wtx : pWalletMain->mapInBlockTx) {
-            for (auto const & item : wtx.second.mapAccountTx) {
-                Object objtx = GetTxDetailJSON(item.first);
-                int32_t nConfHeight = find_value(objtx, "confirmedheight").get_int();
-                mapTx.insert(pair<int32_t, Object>(nConfHeight, objtx));
-            }
-        }
-        int32_t nSize(0);
-        for(auto & txItem : mapTx) {
-            if(++nSize > nLimitCount)
-                break;
-            confirmedTx.push_back(txItem.second);
-        }
-        retObj.push_back(Pair("confirmed", confirmedTx));
-    }
-
-    return retObj;
-}
-
 Value getcontractaccountinfo(const Array& params, bool fHelp) {
     if (fHelp || (params.size() != 2 && params.size() != 3)) {
         throw runtime_error(

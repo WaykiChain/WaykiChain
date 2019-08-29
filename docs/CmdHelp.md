@@ -57,4 +57,3 @@
 | walletpassphrasechange | ```<oldpassphrase> <newpassphrase>``` | Changes the wallet passphrase from <oldpassphrase> to <newpassphrase> | N |
 | ping | | Requests that a ping be sent to all other nodes, to measure ping time. | N |
 | validateaddr | ```<address>``` | check whether the address is valid or not | N |
-| getalltxinfo | ```[nlimitCount]``` | if no input params, return all transactions in wallet include those confirmed and unconfirmed, else return the number of nlimitCount transaction relate. | N |
