@@ -376,7 +376,7 @@ bool CAccount::ProcessDelegateVotes(const vector<CCandidateVote> &candidateVotes
             return false;
     }
 
-    LogPrint("INFLATE", "Account(%s) received vote staking interest amount (bcoin/fcoins): %lld\n",
+    LogPrint("profits", "Account(%s) received vote staking interest amount (bcoin/fcoins): %lld\n",
             regid.ToString(), interestAmountToInflate);
 
     // Attention: update last vote height after computing vote staking interest.

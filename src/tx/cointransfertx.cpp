@@ -93,7 +93,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
     CKeyID desKeyId;
-    accountCache.GetKeyId(toUid, desKeyId);
+    accountCache.GetKeyId(toUid,            desKeyId);
     result.push_back(Pair("to_uid",         toUid.ToString()));
     result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("coin_symbol",    SYMB::WICC));

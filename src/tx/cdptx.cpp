@@ -70,8 +70,9 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
+    // TODO: multi stable coin
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(bcoin_symbol, scoin_symbol)),
+            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(bcoin_symbol, SYMB::USD)),
             globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-collateral-floor-reached");
@@ -142,8 +143,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
+    // TODO: multi stable coin
     uint64_t bcoinMedianPrice =
-        cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(bcoin_symbol, scoin_symbol));
+        cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(bcoin_symbol, SYMB::USD));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price!!"),
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
