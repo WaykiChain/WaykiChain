@@ -342,7 +342,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, cdp.scoin_symbol)),
+            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
             globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
@@ -431,7 +431,7 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                                 READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
             }
             uint64_t bcoinMedianPrice =
-                cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, cdp.scoin_symbol));
+                cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
             if (bcoinMedianPrice == 0) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
                                  REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -580,7 +580,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, cdp.scoin_symbol)),
+            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
             globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
@@ -648,7 +648,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     uint64_t bcoinMedianPrice =
-        cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, cdp.scoin_symbol));
+        cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
