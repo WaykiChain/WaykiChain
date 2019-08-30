@@ -133,7 +133,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 Value submitcontractcalltx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submitcontractcalltx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" (\"height\")\n"
+            "submitcontractcalltx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" [\"height\"]\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
@@ -146,10 +146,10 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
             "\"txid\":          (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("submitcontractcalltx",
-                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"100-1\" \"01020304\" 10000 10000 100") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitcontractcalltx",
-                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"100-1\", \"01020304\", 10000, 10000, 100"));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(int_type)(int_type));
@@ -219,22 +219,22 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 // register a contract app tx
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" (\"height\") (\"appdesc\")\n"
+        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"app_desc\"]\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
             "1.\"addr\":        (string, required) contract owner address from this wallet\n"
             "2.\"filepath\":    (string, required) the file path of the app script\n"
             "3.\"fee\":         (numeric, required) pay to miner (the larger the size of script, the bigger fees are required)\n"
             "4.\"height\":      (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
-            "5.\"appdesc\":     (string, optional) new app description\n"
+            "5.\"app_desc\":    (string, optional) new app description\n"
             "\nResult:\n"
             "\"txid\":          (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("submitcontractdeploytx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 11000000 10000 \"appdesc\"") +
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 11000000 10000 \"app desc\"") +
                 "\nAs json rpc call\n"
             + HelpExampleRpc("submitcontractdeploytx",
-                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 11000000, 10000, \"appdesc\""));
+                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 11000000, 10000, \"app desc\""));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
