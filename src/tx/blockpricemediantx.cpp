@@ -208,7 +208,7 @@ string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
                                  item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, valid_height=%d\n",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, txUid.ToString(), llFees, pricePoints,
                      valid_height);
 }

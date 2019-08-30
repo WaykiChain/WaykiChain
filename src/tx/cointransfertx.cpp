@@ -84,7 +84,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
 string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%ld, llFees=%ld, memo=%s, valid_height=%d\n",
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%ld, llFees=%ld, memo=%s, valid_height=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_amount, llFees,
         HexStr(memo), valid_height);
 }
@@ -214,9 +214,9 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_symbol=%s, coin_amount=%ld, fee_symbol=%s, llFees=%ld, "
-        "valid_height=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_symbol, coin_amount,
-        fee_symbol, llFees, valid_height);
+        "valid_height=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_symbol,
+        coin_amount, fee_symbol, llFees, valid_height);
 }
 
 Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {

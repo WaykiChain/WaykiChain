@@ -166,7 +166,7 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 }
 
 string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d\n"
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d, "
         "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), llFees, valid_height,
         asset.owner_uid.ToString(), asset.symbol, asset.name, asset.total_supply, asset.mintable);
@@ -245,8 +245,9 @@ Object CAssetUpdateData::ToJson() const {
 // class CAssetUpdateTx
 
 string CAssetUpdateTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, valid_height=%d,\n"
-        "asset_symbol=%s, %s",
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, valid_height=%d, asset_symbol=%s, "
+        "update_data=%s",
         GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, valid_height,
         asset_symbol, update_data.ToString());
 }

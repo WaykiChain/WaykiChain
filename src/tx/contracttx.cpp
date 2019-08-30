@@ -133,7 +133,7 @@ string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, llFees=%llu, valid_height=%d\n",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, llFees=%llu, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), llFees,
                      valid_height);
 }
@@ -272,7 +272,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 string CLuaContractInvokeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, coin_amount=%llu, llFees=%llu, arguments=%s, "
-        "valid_height=%d\n",
+        "valid_height=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), coin_amount, llFees,
         HexStr(arguments), valid_height);
 }
@@ -390,7 +390,7 @@ string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, fee_symbol=%s, llFees=%llu, valid_height=%d\n",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, fee_symbol=%s, llFees=%llu, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(),
                      fee_symbol, llFees, valid_height);
 }
@@ -536,7 +536,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
 string CUniversalContractInvokeTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, app_uid=%s, coin_symbol=%s, coin_amount=%llu, fee_symbol=%s, "
-        "llFees=%llu, arguments=%s, valid_height=%d\n",
+        "llFees=%llu, arguments=%s, valid_height=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), app_uid.ToString(), coin_symbol,
         coin_amount, fee_symbol, llFees, HexStr(arguments), valid_height);
 }

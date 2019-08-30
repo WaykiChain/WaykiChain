@@ -67,8 +67,8 @@ uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t pr
 
 string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%ld,"
-        "coin_symbol=%u, asset_symbol=%u, amount=%lld, price=%lld\n",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+        "coin_symbol=%u, asset_symbol=%u, amount=%llu, price=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, asset_amount, bid_price);
 }
@@ -158,8 +158,8 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
 string CDEXSellLimitOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%ld,"
-        "coin_symbol=%u, asset_symbol=%u, amount=%lld, price=%lld\n",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+        "coin_symbol=%u, asset_symbol=%u, amount=%llu, price=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, asset_amount, ask_price);
 }
@@ -249,8 +249,8 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
 string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%ld,"
-        "coin_symbol=%u, asset_symbol=%u, amount=%lld\n",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+        "coin_symbol=%u, asset_symbol=%u, amount=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, coin_amount);
 }
@@ -337,8 +337,8 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
 string CDEXSellMarketOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%ld,"
-        "coin_symbol=%u, asset_symbol=%u, amount=%lld\n",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+        "coin_symbol=%u, asset_symbol=%u, amount=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, asset_amount);
 }
@@ -425,8 +425,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapp
 
 string CDEXCancelOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%ld,"
-        "orderId=%s\n",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, orderId=%s",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         orderId.GetHex());
 }
@@ -521,8 +520,7 @@ string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
     }
 
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%ld,"
-        "deal_items=%s\n",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, deal_items=%s",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         dealInfo);
 }

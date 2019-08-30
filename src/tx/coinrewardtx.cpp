@@ -48,9 +48,10 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
 string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
     assert(txUid.is<CPubKey>() || txUid.is<CNullID>());
     string toAddr = txUid.is<CPubKey>() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : "";
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, coin_symbol=%s, coin_amount=%ld\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toAddr,
-        coin_symbol, coin_amount);
+
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, coin_symbol=%s, coin_amount=%ld",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toAddr, coin_symbol,
+                     coin_amount);
 }
 
 Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {

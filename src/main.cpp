@@ -1211,14 +1211,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Check it again in case a previous version let a bad block in
     if (!isGensisBlock && !CheckBlock(block, state, cw, !fJustCheck, !fJustCheck))
-        return false;
+        return state.DoS(100, ERRORMSG("ConnectBlock() : check block error"), REJECT_INVALID, "check-block-error");
 
     if (!fJustCheck) {
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.accountCache.GetBestBlock()) {
-            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n",
-                    hashPrevBlock.GetHex(), cw.accountCache.GetBestBlock().GetHex());
+            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
+                     cw.accountCache.GetBestBlock().GetHex());
 
             assert(hashPrevBlock == cw.accountCache.GetBestBlock());
         }
@@ -1247,8 +1247,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     if (!VerifyPosTx(&block, cw, false))
-        return state.DoS(100, ERRORMSG("ConnectBlock() : the block hash=%s check pos tx error",
-                        block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
+        return state.DoS(100, ERRORMSG("ConnectBlock() : the block hash=%s check pos tx error", block.GetHash().GetHex()),
+                         REJECT_INVALID, "bad-pos-tx");
 
     CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();

@@ -41,11 +41,11 @@ string CMulsigTx::ToString(CAccountDBCache &accountCache) {
     for (const auto &item : signaturePairs) {
         signatures += strprintf("%s, ", item.ToString());
     }
+
     string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoins=%ld, llFees=%ld, "
-        "memo=%s,  valid_height=%d\n",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, desId,
-        bcoins, llFees, HexStr(memo), valid_height);
+        "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoins=%ld, llFees=%llu, memo=%s,  valid_height=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, desId, bcoins, llFees, HexStr(memo),
+        valid_height);
 
     return str;
 }

@@ -48,7 +48,7 @@ string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, reward=%ld\n", GetTxType(nTxType),
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, reward=%ld", GetTxType(nTxType),
                      GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), reward);
 }
 
@@ -130,7 +130,7 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
         reward += strprintf("%s: %lu, ", item.first, item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewards=%s, profits=%llu, valid_height=%d\n",
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewards=%s, profits=%llu, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward,
                      profits, valid_height);
 }

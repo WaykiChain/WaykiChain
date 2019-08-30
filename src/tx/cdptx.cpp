@@ -493,13 +493,10 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress());
-
-    str += strprintf("cdp_txid=%s, scoins_to_repay=%d, bcoins_to_redeem=%d",
-                    cdp_txid.ToString(), scoins_to_repay, bcoins_to_redeem);
-
-    return str;
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, cdp_txid=%s, scoins_to_repay=%d, bcoins_to_redeem=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), cdp_txid.ToString(),
+        scoins_to_repay, bcoins_to_redeem);
 }
 
 Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -826,13 +823,9 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string str = strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s\n"
-        "cdp_txid=%s, scoins_to_liquidate=%d",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), cdp_txid.ToString(),
-        scoins_to_liquidate);
-
-    return str;
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, cdp_txid=%s, scoins_to_liquidate=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(),
+                     cdp_txid.ToString(), scoins_to_liquidate);
 }
 
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
