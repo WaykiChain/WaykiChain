@@ -1246,7 +1246,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     }
 
-    if (!VerifyPosTx(&block, cw, false))
+    if (!VerifyRewardTx(&block, cw, false))
         return state.DoS(100, ERRORMSG("ConnectBlock() : the block hash=%s check pos tx error", block.GetHash().GetHex()),
                          REJECT_INVALID, "bad-pos-tx");
 
@@ -1351,7 +1351,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 pos.nTxOffset         = medianPriceTxOffset;
             }
 
-            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", totalFuel,
+            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                         fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
@@ -2018,7 +2018,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     // Verify reward transaction
-    if (!VerifyPosTx(&block, *spForkCW, true)) {
+    if (!VerifyRewardTx(&block, *spForkCW, true)) {
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : failed to verify pos transaction, block hash=%s",
                         block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
     }

@@ -198,7 +198,7 @@ static void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateL
     }
 }
 
-bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
+bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     uint32_t maxNonce = SysCfg().GetBlockMaxNonce();
 
     vector<CRegID> delegateList;
@@ -209,15 +209,15 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
 
     CRegID regId;
     if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegateList, regId))
-        return ERRORMSG("VerifyPosTx() : failed to get current delegate");
+        return ERRORMSG("VerifyRewardTx() : failed to get current delegate");
     CAccount curDelegate;
     if (!cwIn.accountCache.GetAccount(regId, curDelegate))
-        return ERRORMSG("VerifyPosTx() : failed to get current delegate's account, regId=%s", regId.ToString());
+        return ERRORMSG("VerifyRewardTx() : failed to get current delegate's account, regId=%s", regId.ToString());
     if (pBlock->GetNonce() > maxNonce)
-        return ERRORMSG("VerifyPosTx() : invalid nonce: %u", pBlock->GetNonce());
+        return ERRORMSG("VerifyRewardTx() : invalid nonce: %u", pBlock->GetNonce());
 
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
-        return ERRORMSG("VerifyPosTx() : wrong merkle root hash");
+        return ERRORMSG("VerifyRewardTx() : wrong merkle root hash");
 
     auto spCW = std::make_shared<CCacheWrapper>(cwIn);
 
@@ -225,23 +225,23 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
         CBlock previousBlock;
         if (!ReadBlockFromDisk(pBlockIndex, previousBlock))
-            return ERRORMSG("VerifyPosTx() : read block info failed from disk");
+            return ERRORMSG("VerifyRewardTx() : read block info failed from disk");
 
         CAccount prevDelegateAcct;
         if (!spCW->accountCache.GetAccount(previousBlock.vptx[0]->txUid, prevDelegateAcct))
-            return ERRORMSG("VerifyPosTx() : failed to get previous delegate's account, regId=%s",
+            return ERRORMSG("VerifyRewardTx() : failed to get previous delegate's account, regId=%s",
                 previousBlock.vptx[0]->txUid.ToString());
 
         if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < GetBlockInterval(pBlock->GetHeight())) {
             if (prevDelegateAcct.regid == curDelegate.regid)
-                return ERRORMSG("VerifyPosTx() : one delegate can't produce more than one block at the same slot");
+                return ERRORMSG("VerifyRewardTx() : one delegate can't produce more than one block at the same slot");
         }
     }
 
     CAccount account;
     if (spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account)) {
         if (curDelegate.regid != account.regid) {
-            return ERRORMSG("VerifyPosTx() : delegate should be(%s) vs what we got(%s)", curDelegate.regid.ToString(),
+            return ERRORMSG("VerifyRewardTx() : delegate should be(%s) vs what we got(%s)", curDelegate.regid.ToString(),
                             account.regid.ToString());
         }
 
@@ -249,18 +249,18 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         const auto &blockSignature = pBlock->GetSignature();
 
         if (blockSignature.size() == 0 || blockSignature.size() > MAX_SIGNATURE_SIZE) {
-            return ERRORMSG("VerifyPosTx() : invalid block signature size, hash=%s", blockHash.ToString());
+            return ERRORMSG("VerifyRewardTx() : invalid block signature size, hash=%s", blockHash.ToString());
         }
 
         if (!VerifySignature(blockHash, blockSignature, account.owner_pubkey))
             if (!VerifySignature(blockHash, blockSignature, account.miner_pubkey))
-                return ERRORMSG("VerifyPosTx() : verify signature error");
+                return ERRORMSG("VerifyRewardTx() : verify signature error");
     } else {
-        return ERRORMSG("VerifyPosTx() : failed to get account info, regId=%s", pBlock->vptx[0]->txUid.ToString());
+        return ERRORMSG("VerifyRewardTx() : failed to get account info, regId=%s", pBlock->vptx[0]->txUid.ToString());
     }
 
     if (pBlock->vptx[0]->nVersion != INIT_TX_VERSION)
-        return ERRORMSG("VerifyPosTx() : transaction version %d vs current %d", pBlock->vptx[0]->nVersion, INIT_TX_VERSION);
+        return ERRORMSG("VerifyRewardTx() : transaction version %d vs current %d", pBlock->vptx[0]->nVersion, INIT_TX_VERSION);
 
     if (bNeedRunTx) {
         uint64_t totalFuel    = 0;
@@ -268,7 +268,7 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
         for (uint32_t i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
             if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
-                return ERRORMSG("VerifyPosTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
+                return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state)) {
@@ -276,22 +276,22 @@ bool VerifyPosTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
                     pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
                 }
-                return ERRORMSG("VerifyPosTx() : failed to execute transaction, txid=%s", pBaseTx->GetHash().GetHex());
+                return ERRORMSG("VerifyRewardTx() : failed to execute transaction, txid=%s", pBaseTx->GetHash().GetHex());
             }
 
             totalRunStep += pBaseTx->nRunStep;
             if (totalRunStep > MAX_BLOCK_RUN_STEP)
-                return ERRORMSG("VerifyPosTx() : block total run steps(%lu) exceed max run step(%lu)", totalRunStep,
+                return ERRORMSG("VerifyRewardTx() : block total run steps(%lu) exceed max run step(%lu)", totalRunStep,
                                 MAX_BLOCK_RUN_STEP);
 
             totalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyPosTx() : total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s \n", totalFuel,
+            LogPrint("fuel", "VerifyRewardTx() : total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep, pBlock->GetFuelRate(),
                      pBaseTx->GetHash().GetHex());
         }
 
         if (totalFuel != pBlock->GetFuel())
-            return ERRORMSG("VerifyPosTx() : total fuel(%lu) mismatch what(%u) in block header", totalFuel,
+            return ERRORMSG("VerifyRewardTx() : total fuel(%lu) mismatch what(%u) in block header", totalFuel,
                             pBlock->GetFuel());
     }
 
