@@ -139,14 +139,13 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
-
     if (strMethod == "getnewaddr"             && n > 0) ConvertTo<bool>(params[0]);
 
     if (strMethod == "submitaccountregistertx"      && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if(strMethod == "submitdelegatevotetx"          && n > 1) ConvertTo<Array>(params[1]);
-    if(strMethod == "submitdelegatevotetx"          && n > 2) ConvertTo<int64_t>(params[2]);
-    if(strMethod == "submitdelegatevotetx"          && n > 3) ConvertTo<int32_t>(params[3]);
+    if (strMethod == "submitdelegatevotetx"         && n > 1) ConvertTo<Array>(params[1]);
+    if (strMethod == "submitdelegatevotetx"         && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitdelegatevotetx"         && n > 3) ConvertTo<int32_t>(params[3]);
 
     if (strMethod == "submitcontractdeploytx"       && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitcontractdeploytx"       && n > 3) ConvertTo<int32_t>(params[3]);
@@ -173,8 +172,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listtx"                 && n > 0) ConvertTo<int32_t>(params[0]);
     if (strMethod == "listtx"                 && n > 1) ConvertTo<int32_t>(params[1]);
     if (strMethod == "listdelegates"          && n > 0) ConvertTo<int32_t>(params[0]);
-    if (strMethod == "listtransactions"       && n > 1) ConvertTo<int32_t>(params[1]);
-    if (strMethod == "listtransactions"       && n > 2) ConvertTo<int32_t>(params[2]);
 
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
 

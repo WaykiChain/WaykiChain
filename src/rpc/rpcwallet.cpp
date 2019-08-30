@@ -628,7 +628,7 @@ Value walletpassphrase(const Array& params, bool fHelp) {
 
     if (!pWalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
-            "Error: running with an unencrypted wallet, but walletpassphrase was called.");
+            "Running with an unencrypted wallet, but walletpassphrase was called.");
 
     // Note that the walletpassphrase is stored in params[0] which is not mlock()ed
     SecureString strWalletPass;
@@ -636,7 +636,6 @@ Value walletpassphrase(const Array& params, bool fHelp) {
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
     strWalletPass = params[0].get_str().c_str();
-    //assert(0);
     if (strWalletPass.length() > 0) {
         if (!pWalletMain->Unlock(strWalletPass))
             throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "Error: The wallet passphrase entered was incorrect.");
@@ -655,25 +654,26 @@ Value walletpassphrase(const Array& params, bool fHelp) {
     return retObj;
 }
 
-Value walletpassphrasechange(const Array& params, bool fHelp)
-{
+Value walletpassphrasechange(const Array& params, bool fHelp) {
     if (pWalletMain->IsEncrypted() && (fHelp || params.size() != 2))
-        throw runtime_error("walletpassphrasechange \"oldpassphrase\" \"newpassphrase\"\n"
+        throw runtime_error(
+            "walletpassphrasechange \"oldpassphrase\" \"newpassphrase\"\n"
             "\nChanges the wallet passphrase from 'oldpassphrase' to 'newpassphrase'.\n"
             "\nArguments:\n"
             "1. \"oldpassphrase\"      (string, required) The current passphrase\n"
             "2. \"newpassphrase\"      (string, required) The new passphrase\n"
-            "\nExamples:\n"
-            + HelpExampleCli("walletpassphrasechange", "\"old one\" \"new one\"")
-            + HelpExampleRpc("walletpassphrasechange", "\"old one\", \"new one\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("walletpassphrasechange", "\"oldpassphrase\" \"newpassphrase\"") + "\nAs json rpc call\n" +
+            HelpExampleRpc("walletpassphrasechange", "\"oldpassphrase\", \"newpassphrase\""));
+
+    LOCK2(cs_main, pWalletMain->cs_wallet);
 
     if (fHelp)
         return true;
 
     if (!pWalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
-            "Error: running with an unencrypted wallet, but walletpassphrasechange was called.");
+            "Running with an unencrypted wallet, but walletpassphrasechange was called.");
 
     // TODO: get rid of these .c_str() calls by implementing SecureString::operator=(string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
@@ -691,14 +691,14 @@ Value walletpassphrasechange(const Array& params, bool fHelp)
             "Changes the wallet passphrase from <oldpassphrase> to <newpassphrase>.");
 
     if (!pWalletMain->ChangeWalletPassphrase(strOldWalletPass, strNewWalletPass))
-        throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "Error: The wallet passphrase entered was incorrect.");
+        throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "The wallet passphrase entered was incorrect.");
+
     Object retObj;
     retObj.push_back(Pair("chgpwd", true));
     return retObj;
 }
 
-Value encryptwallet(const Array& params, bool fHelp)
-{
+Value encryptwallet(const Array& params, bool fHelp) {
     if (fHelp || (!pWalletMain->IsEncrypted() && params.size() != 1)) {
         throw runtime_error(
             "encryptwallet \"passphrase\"\n"
@@ -716,17 +716,18 @@ Value encryptwallet(const Array& params, bool fHelp)
             "\nNow set the passphrase to use the wallet, such as for signing or sending Coin\n"
             + HelpExampleCli("walletpassphrase", "\"my passphrase\"") +
             "\nNow we can so something like sign\n"
-            + HelpExampleCli("signmessage", "\"WICC address\" \"test message\"") +
+            + HelpExampleCli("signmessage", "\"address\" \"my message\"") +
             "\nNow lock the wallet again by removing the passphrase\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs a json rpc call\n"
             + HelpExampleRpc("encryptwallet", "\"my passphrase\"")
         );
     }
+
     LOCK2(cs_main, pWalletMain->cs_wallet);
 
     if (pWalletMain->IsEncrypted())
-        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Error: Wallet was already encrypted and shall not be encrypted again.");
+        throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE, "Wallet was already encrypted and shall not be encrypted again.");
 
     // TODO: get rid of this .c_str() by implementing SecureString::operator=(string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
@@ -741,26 +742,25 @@ Value encryptwallet(const Array& params, bool fHelp)
     }
 
     if (!pWalletMain->EncryptWallet(strWalletPass))
-        throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Error: Failed to encrypt the wallet.");
+        throw JSONRPCError(RPC_WALLET_ENCRYPTION_FAILED, "Failed to encrypt the wallet.");
 
     //BDB seems to have a bad habit of writing old data into
     //slack space in .dat files; that is bad if the old data is
     //unencrypted private keys. So:
     StartShutdown();
 
-//    string defaultFileName = SysCfg().GetArg("-wallet", "wallet.dat");
-//    string strFileCopy = defaultFileName + ".rewrite";
-//
-//    boost::filesystem::remove(GetDataDir() / defaultFileName);
-//    boost::filesystem::rename(GetDataDir() / strFileCopy, GetDataDir() / defaultFileName);
+    // string defaultFileName = SysCfg().GetArg("-wallet", "wallet.dat");
+    // string strFileCopy     = defaultFileName + ".rewrite";
+
+    // boost::filesystem::remove(GetDataDir() / defaultFileName);
+    // boost::filesystem::rename(GetDataDir() / strFileCopy, GetDataDir() / defaultFileName);
 
     Object retObj;
     retObj.push_back( Pair("wallet_encrypted", true) );
     return retObj;
 }
 
-Value walletlock(const Array& params, bool fHelp)
-{
+Value walletlock(const Array& params, bool fHelp) {
     if (fHelp || (pWalletMain->IsEncrypted() && params.size() != 0)) {
         throw runtime_error("walletlock\n"
             "\nRemoves the wallet encryption key from memory, hence locking the wallet.\n"
@@ -768,7 +768,7 @@ Value walletlock(const Array& params, bool fHelp)
             "before being able to call any methods which require the wallet to be unlocked first.\n"
             "\nExamples:\n"
             "\nSet the passphrase for 2 minutes to perform a transaction\n"
-            + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
+            + HelpExampleCli("walletpassphrase", "\"my passphrase\" 120") +
             "\nPerform a send (requires passphrase set)\n"
             + HelpExampleCli("send", "\"0-1\" \"0-2\" 10000 10000") +
             "\nClear the passphrase since we are done before 2 minutes is up\n"
@@ -779,7 +779,7 @@ Value walletlock(const Array& params, bool fHelp)
 
     if (!pWalletMain->IsEncrypted()) {
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
-            "Error: running with an unencrypted wallet, but walletlock was called.");
+            "Running with an unencrypted wallet, but walletlock was called.");
     }
 
     {
@@ -793,8 +793,7 @@ Value walletlock(const Array& params, bool fHelp)
     return retObj;
 }
 
-Value getwalletinfo(const Array& params, bool fHelp)
-{
+Value getwalletinfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("getwalletinfo\n"
             "Returns an object containing various wallet state info.\n"
@@ -815,13 +814,15 @@ Value getwalletinfo(const Array& params, bool fHelp)
     }
 
     Object obj;
+
     obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));
     obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBcoins())));
     obj.push_back(Pair("wallet_encrypted",  pWalletMain->IsEncrypted()));
     obj.push_back(Pair("wallet_locked",     pWalletMain->IsLocked()));
     obj.push_back(Pair("unlocked_until",    nWalletUnlockTime));
-    obj.push_back(Pair("coinfirmed_tx_num", (int)pWalletMain->mapInBlockTx.size()));
-    obj.push_back(Pair("unconfirmed_tx_num",(int)pWalletMain->unconfirmedTx.size()));
+    obj.push_back(Pair("coinfirmed_tx_num", (int32_t)pWalletMain->mapInBlockTx.size()));
+    obj.push_back(Pair("unconfirmed_tx_num",(int32_t)pWalletMain->unconfirmedTx.size()));
+
     return obj;
 }
 
