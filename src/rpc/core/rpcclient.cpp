@@ -126,8 +126,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "setgenerate"            && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "setgenerate"            && n > 1) ConvertTo<int64_t>(params[1]);
 
-    if (strMethod == "getbalance"             && n > 1) ConvertTo<int64_t>(params[1]);
-
     if (strMethod == "walletpassphrase"       && n > 1) ConvertTo<int64_t>(params[1]);
 
     if (strMethod == "addmulsigaddr"          && n > 0) ConvertTo<int64_t>(params[0]);

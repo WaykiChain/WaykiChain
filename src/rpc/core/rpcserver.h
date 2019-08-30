@@ -131,7 +131,6 @@ extern json_spirit::Value getnewaddr(const json_spirit::Array& params, bool fHel
 extern json_spirit::Value getaccount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value verifymessage(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcoinunitinfo(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getbalance(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addmulsigaddr(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value createmulsig(const json_spirit::Array& params, bool fHelp);
 
