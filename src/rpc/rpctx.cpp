@@ -844,30 +844,6 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value generateblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        throw runtime_error("generateblock \"addr\"\n"
-            "\ncreate a block with the appointed address\n"
-            "\nArguments:\n"
-            "1.\"addr\": (string, required)\n"
-            "\nResult:\n"
-            "\nblockhash\n"
-            "\nExamples:\n" +
-            HelpExampleCli("generateblock", "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("generateblock", "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\""));
-    }
-    //get keyId
-    CKeyID keyId;
-
-    if (!GetKeyId(params[0].get_str(), keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in generateblock :address err");
-
-    Object obj;
-    // obj.push_back(Pair("blockhash", hash.GetHex()));
-    return obj;
-}
-
 Value listtxcache(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("listtxcache\n"

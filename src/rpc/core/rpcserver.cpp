@@ -273,7 +273,6 @@ static const CRPCCommand vRPCCommands[] =
     { "setgenerate",            &setgenerate,            true,      true,       false},
     { "listcontracts",          &listcontracts,          true,      false,      true },
     { "getcontractinfo",        &getcontractinfo,        true,      false,      true },
-    { "generateblock",          &generateblock,          true,      true,       true },
     { "listtxcache",            &listtxcache,            true,      false,      true },
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },

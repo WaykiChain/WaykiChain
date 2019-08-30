@@ -11,7 +11,6 @@
 | dumpwallet | ```<filename>``` | Dumps all wallet keys in a human-readable format.And write to ```<filename>``` | Y |
 | dumpprivkey | ```<wiccaddress>``` | Reveals the private key corresponding to ```<wiccaddress>``` | Y |
 | encryptwallet | ```<passphrase>``` | Encrypts the wallet with ```<passphrase>``` | N |
-| generateblock | ```<address>``` | create a block with the appointed address | N |
 | getaccountinfo | ```<address>``` | Returns the account information  with the given address | N |
 | getaddednodeinfo | ```<dns>``` [node] | Returns information about the given added node, or all added nodes. <br>(note that onetry addnodes are not listed here) If dns is false, only a list of added nodes will be provided, otherwise connected information will also be available. | N |
 | getcontractaccountinfo | ```<regid><address>``` | get contract account info | N |

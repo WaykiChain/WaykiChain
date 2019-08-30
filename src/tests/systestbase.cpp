@@ -553,17 +553,6 @@ bool SysTestBase::GenerateOneBlock() {
     return false;
 }
 
-bool SysTestBase::SetAddrGenerteBlock(const char *addr) {
-    const char *argv[] = {"rpctest", "generateblock", addr};
-    int argc           = sizeof(argv) / sizeof(char *);
-
-    Value value;
-    if (CommandLineRPC_GetValue(argc, argv, value)) {
-        return true;
-    }
-    return false;
-}
-
 bool SysTestBase::DisConnectBlock(int nNum) {
     int nFirstHeight = 0;
     GetBlockHeight(nFirstHeight);
