@@ -161,10 +161,10 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int32_t>(params[0]);}
 
-    /****** generate a digitally signed raw transaction for network submission via sendtxraw  **********/
-    if (strMethod == "genmulsigtx"         && n > 2) ConvertTo<double>(params[2]);
-    if (strMethod == "genmulsigtx"         && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "genmulsigtx"         && n > 4) ConvertTo<int32_t>(params[4]);
+    /****** generate a digitally signed raw transaction for network submission via submittxraw  **********/
+    if (strMethod == "genmulsigtx"            && n > 2) ConvertTo<double>(params[2]);
+    if (strMethod == "genmulsigtx"            && n > 3) ConvertTo<double>(params[3]);
+    if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int32_t>(params[4]);
 
     /********************************************************************************************************************/
     if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[2]);

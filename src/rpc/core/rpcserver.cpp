@@ -291,7 +291,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false},
     { "getcontractassets",      &getcontractassets,      false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
-    { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
     { "signtxraw",              &signtxraw,              true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
@@ -299,6 +298,9 @@ static const CRPCCommand vRPCCommands[] =
     { "listdelegates",          &listdelegates,          true,      false,      true },
     { "decodetxraw",            &decodetxraw,            false,     false,      false},
     { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
+
+    /* submit raw tx */
+    { "submittxraw",            &submittxraw,              true,      false,    false},
 
     /* basic tx */
     { "submitsendtx",           &submitsendtx,           false,     false,      true },
@@ -325,6 +327,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexsellmarketordertx", &submitdexsellmarketordertx, true,     false,      false },
     { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
     { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
+
     { "getdexorder",                &getdexorder,                true,     false,      false },
     { "getdexsysorders",            &getdexsysorders,            true,     false,      false },
     { "getdexorders",               &getdexorders,               true,     false,      false },

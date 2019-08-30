@@ -985,20 +985,20 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     return "save succeed";
 }
 
-Value sendtxraw(const Array& params, bool fHelp) {
+Value submittxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "sendtxraw \"rawtx\" \n"
-            "\nsend raw transaction\n"
+            "submittxraw \"rawtx\" \n"
+            "\nsubmit raw transaction\n"
             "\nArguments:\n"
             "1.\"rawtx\":   (string, required) The raw transaction\n"
             "\nExamples:\n" +
-            HelpExampleCli("sendtxraw",
+            HelpExampleCli("submittxraw",
                            "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
                            "d10004630440220458e2239348a9442d05503137ec84b84d69c7141b3618a88c50c16f76d9655ad02206dd20806"
                            "87cffad42f7293522568fc36850d4e3b81fa9ad860d1490cf0225cf8\"") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("sendtxraw",
+            HelpExampleRpc("submittxraw",
                            "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
                            "d10004630440220458e2239348a9442d05503137ec84b84d69c7141b3618a88c50c16f76d9655ad02206dd20806"
                            "87cffad42f7293522568fc36850d4e3b81fa9ad860d1490cf0225cf8\""));
@@ -1016,7 +1016,7 @@ Value sendtxraw(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pWalletMain->CommitTx((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "sendtxraw error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "submittxraw error: " + std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("txid", std::get<1>(ret)));
