@@ -716,7 +716,7 @@ Value encryptwallet(const Array& params, bool fHelp)
             "\nNow set the passphrase to use the wallet, such as for signing or sending Coin\n"
             + HelpExampleCli("walletpassphrase", "\"my passphrase\"") +
             "\nNow we can so something like sign\n"
-            + HelpExampleCli("signmessage", "\"WICC address\" \"test message\"") +
+            + HelpExampleCli("signmessage", "\"address\" \"my message\"") +
             "\nNow lock the wallet again by removing the passphrase\n"
             + HelpExampleCli("walletlock", "") +
             "\nAs a json rpc call\n"
@@ -768,7 +768,7 @@ Value walletlock(const Array& params, bool fHelp)
             "before being able to call any methods which require the wallet to be unlocked first.\n"
             "\nExamples:\n"
             "\nSet the passphrase for 2 minutes to perform a transaction\n"
-            + HelpExampleCli("walletpassphrase", "\"my pass phrase\" 120") +
+            + HelpExampleCli("walletpassphrase", "\"my passphrase\" 120") +
             "\nPerform a send (requires passphrase set)\n"
             + HelpExampleCli("send", "\"0-1\" \"0-2\" 10000 10000") +
             "\nClear the passphrase since we are done before 2 minutes is up\n"
