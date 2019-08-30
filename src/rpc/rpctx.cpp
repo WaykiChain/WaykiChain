@@ -1012,18 +1012,25 @@ Value saveblocktofile(const Array& params, bool fHelp) {
 Value sendtxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "sendtxraw \"transaction\" \n"
+            "sendtxraw \"rawtx\" \n"
             "\nsend raw transaction\n"
             "\nArguments:\n"
-            "1.\"transaction\": (string, required)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+            "1.\"rawtx\":   (string, required) The raw transaction\n"
+            "\nExamples:\n" +
+            HelpExampleCli("sendtxraw",
+                           "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
+                           "d10004630440220458e2239348a9442d05503137ec84b84d69c7141b3618a88c50c16f76d9655ad02206dd20806"
+                           "87cffad42f7293522568fc36850d4e3b81fa9ad860d1490cf0225cf8\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("sendtxraw",
+                           "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
+                           "d10004630440220458e2239348a9442d05503137ec84b84d69c7141b3618a88c50c16f76d9655ad02206dd20806"
+                           "87cffad42f7293522568fc36850d4e3b81fa9ad860d1490cf0225cf8\""));
     }
+
     vector<uint8_t> vch(ParseHex(params[0].get_str()));
     if (vch.size() > MAX_RPC_SIG_STR_LEN) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx str is too long");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx is too long.");
     }
 
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
