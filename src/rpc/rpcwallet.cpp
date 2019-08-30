@@ -601,23 +601,22 @@ static void LockWallet() {
 }
 
 Value walletpassphrase(const Array& params, bool fHelp) {
-    if (pWalletMain->IsEncrypted() && (fHelp || params.size() != 2))
-        throw runtime_error("walletpassphrase \"passphrase\" timeout\n"
+    if (fHelp || params.size() != 2)
+        throw runtime_error(
+            "walletpassphrase \"passphrase\" \"timeout\"\n"
             "\nStores the wallet decryption key in memory for 'timeout' seconds.\n"
-            "This is needed prior to performing transactions related to private keys such as sending WICC coins\n"
+            "This is needed prior to performing transactions related to private keys such as sending coins\n"
             "\nArguments:\n"
-            "1. \"passphrase\"     (string, required) The wallet passphrase\n"
-            "2. timeout            (numeric, required) The time to keep the decryption key in seconds.\n"
+            "1.\"passphrase\"       (string, required) The wallet passphrase\n"
+            "2.\"timeout\"          (numeric, required) The time to keep the decryption key in seconds.\n"
             "\nNote:\n"
             "Issuing the walletpassphrase command while the wallet is already unlocked will set a new unlock\n"
             "time that overrides the old one.\n"
             "\nExamples:\n"
-            "\nunlock the wallet for 60 seconds\n"
-            + HelpExampleCli("walletpassphrase", "\"my passphrase\" 60") +
-            "\nLock the wallet again (before 60 seconds)\n"
-            + HelpExampleCli("walletlock", "") +
-            "\nAs json rpc call\n"
-            + HelpExampleRpc("walletpassphrase", "\"my passphrase\", 60")
+            "\nunlock the wallet for 60 seconds\n" +
+            HelpExampleCli("walletpassphrase", "\"my passphrase\" 60") +
+            "\nLock the wallet again (before 60 seconds)\n" + HelpExampleCli("walletlock", "") +
+            "\nAs json rpc call\n" + HelpExampleRpc("walletpassphrase", "\"my passphrase\", 60")
         );
 
     LOCK2(cs_main, pWalletMain->cs_wallet);
@@ -654,16 +653,17 @@ Value walletpassphrase(const Array& params, bool fHelp) {
 }
 
 Value walletpassphrasechange(const Array& params, bool fHelp) {
-    if (pWalletMain->IsEncrypted() && (fHelp || params.size() != 2))
+    if (fHelp || params.size() != 2)
         throw runtime_error(
             "walletpassphrasechange \"oldpassphrase\" \"newpassphrase\"\n"
             "\nChanges the wallet passphrase from 'oldpassphrase' to 'newpassphrase'.\n"
             "\nArguments:\n"
-            "1. \"oldpassphrase\"      (string, required) The current passphrase\n"
-            "2. \"newpassphrase\"      (string, required) The new passphrase\n"
+            "1.\"oldpassphrase\"       (string, required) The current passphrase\n"
+            "2.\"newpassphrase\"       (string, required) The new passphrase\n"
             "\nExamples:\n" +
             HelpExampleCli("walletpassphrasechange", "\"oldpassphrase\" \"newpassphrase\"") + "\nAs json rpc call\n" +
-            HelpExampleRpc("walletpassphrasechange", "\"oldpassphrase\", \"newpassphrase\""));
+            HelpExampleRpc("walletpassphrasechange", "\"oldpassphrase\", \"newpassphrase\"")
+        );
 
     LOCK2(cs_main, pWalletMain->cs_wallet);
 
@@ -672,7 +672,7 @@ Value walletpassphrasechange(const Array& params, bool fHelp) {
 
     if (!pWalletMain->IsEncrypted())
         throw JSONRPCError(RPC_WALLET_WRONG_ENC_STATE,
-            "Running with an unencrypted wallet, but walletpassphrasechange was called.");
+                           "Running with an unencrypted wallet, but walletpassphrasechange was called.");
 
     // TODO: get rid of these .c_str() calls by implementing SecureString::operator=(string)
     // Alternately, find a way to make params[0] mlock()'d to begin with.
