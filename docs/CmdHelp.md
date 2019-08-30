@@ -18,7 +18,6 @@
 | getbalance | ```[account] [minconf=1]``` | If [account] is not specified, returns the server's total available balance. <br>If [account] is specified, returns the balance in the account. <br>If [minconf] is 1; Only include transactions confirmed. Default max value is 30, can configure -maxconf parameter changer the max value.| N |
 | getblock | ```<hash or index>[verbose]``` |Returns information about the block with the given hash or index.If verbose is true,return a json object, false return the hex encoded data | N |
 | getblockcount | | Returns the number of blocks in the longest block chain. | N |
-| getblockchaininfo | | Returns an object containing various state info regarding block chain processing. | N |
 | getnettotals | | Returns information about network traffic, including bytes in, bytes out | N |
 | getconnectioncount | | Returns the number of connections to other nodes | N |
 | getchainstate | ```<num>``` | Returns chain state by retrieving the recent num of blocks | N |

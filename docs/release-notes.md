@@ -68,7 +68,7 @@ This brings back compatibility with
 The OpenSSL dependency in the gitian builds has been upgraded to 1.0.1h because of CVE-2014-0224.
 
 RPC:
-- Add `getwalletinfo`, `getblockchaininfo` and `getnetworkinfo` calls (will replace hodge-podge `getinfo` at some point)
+- Add `getwalletinfo` and `getnetworkinfo` calls (will replace hodge-podge `getinfo` at some point)
 - Add a `relayfee` field to `getnetworkinfo`
 - Fix RPC related shutdown hangs and leaks
 - Always show syncnode in `getpeerinfo`
