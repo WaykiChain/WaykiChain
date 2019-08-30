@@ -54,7 +54,7 @@ public:
         uint32_t sz = ReadCompactSize(s);
         s >> code >> memo;
         if (sz != GetContractSize(nType, nVersion)) {
-            assert(false && "contractSize != SerializeSize(code) + SerializeSize(memo)");
+            throw ios_base::failure("contractSize != SerializeSize(code) + SerializeSize(memo)");
         }
     }
 
