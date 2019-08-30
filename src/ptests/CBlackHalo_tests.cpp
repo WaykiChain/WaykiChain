@@ -89,7 +89,7 @@ bool CBlackHalo::SendBuyerPackage(){
 		senddata.dnType = 0x01;
 		string strregid = "";
 		string selleraddr = SELLER_B;
-		BOOST_CHECK(basetest.GetRegID(selleraddr,strregid));
+		BOOST_CHECK(basetest.GegRegId(selleraddr,strregid));
 		CRegID Sellerregid(strregid);
 		memcpy(senddata.seller,&Sellerregid.GetRegIdRaw().at(0),sizeof(senddata.seller));
 

@@ -558,7 +558,7 @@ BOOST_FIXTURE_TEST_CASE(appacc,CSysScriptTest){
 	CRegID strreg;
 	string address = "e21rEzVwkPFQYfgxcg7xLp7DKeYrW4Fpoz";
 
-	BOOST_CHECK(SysTestBase::GetRegID(address,strreg));
+	BOOST_CHECK(SysTestBase::GegRegId(address,strreg));
 	std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
 	contractScriptTemp.GetContractAccount(script,strreg.GetRegIdRaw(),*tem.get());
 	BOOST_CHECK(tem.get()->GetBcoins() == nMoney);

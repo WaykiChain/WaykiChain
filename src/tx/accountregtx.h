@@ -16,7 +16,7 @@ public:
 public:
     CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int32_t validHeightIn) :
         CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
-        minerUid    = minerUidIn;
+        minerUid = minerUidIn;
     }
     CAccountRegisterTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
 

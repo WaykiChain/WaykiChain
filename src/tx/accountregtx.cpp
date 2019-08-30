@@ -42,14 +42,14 @@ bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper 
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
-            keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     account.regid = regId;
     account.keyid = keyId;
 
     if (account.owner_pubkey.IsFullyValid() && account.owner_pubkey.GetKeyId() == keyId)
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
-            keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
+                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
 
     account.owner_pubkey = txUid.get<CPubKey>();
     if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
@@ -61,13 +61,13 @@ bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper 
         account.miner_pubkey = minerUid.get<CPubKey>();
         if (!account.miner_pubkey.IsFullyValid()) {
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
-                account.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
+                            account.miner_pubkey.ToString()), UPDATE_ACCOUNT_FAIL, "MinerPKey Is Invalid");
         }
     }
 
     if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, write source addr %s account info error",
-            regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+                        regId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
 }
@@ -80,12 +80,10 @@ string CAccountRegisterTx::ToString(CAccountDBCache &accountCache) {
 
 Object CAccountRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
     assert(txUid.type() == typeid(CPubKey));
-    string address = txUid.get<CPubKey>().GetKeyId().ToAddress();
-    string userPubKey = txUid.ToString();
-    string userMinerPubKey = minerUid.ToString();
 
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("pubkey",         userPubKey));
-    result.push_back(Pair("miner_pubkey",   userMinerPubKey));
+    result.push_back(Pair("pubkey",         txUid.ToString()));
+    result.push_back(Pair("miner_pubkey",   minerUid.ToString()));
+
     return result;
 }

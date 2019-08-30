@@ -658,7 +658,7 @@ bool SysTestBase::IsTxUnConfirmdInWallet(const uint256 &txid) {
     return false;
 }
 
-bool SysTestBase::GetRegID(string &strAddr, string &regId) {
+bool SysTestBase::GegRegId(string &strAddr, string &regId) {
     Value value = GetAccountInfo(strAddr);
 
     regId = "RegID";
@@ -679,7 +679,7 @@ bool SysTestBase::IsTxInTipBlock(const uint256 &txid) {
     return true;
 }
 
-bool SysTestBase::GetRegID(string &strAddr, CRegID &regId) {
+bool SysTestBase::GegRegId(string &strAddr, CRegID &regId) {
     CAccount account;
     CKeyID keyid;
     if (!GetKeyId(strAddr, keyid)) {
