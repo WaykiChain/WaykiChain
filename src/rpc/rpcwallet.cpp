@@ -793,30 +793,6 @@ Value walletlock(const Array& params, bool fHelp)
     return retObj;
 }
 
-Value settxfee(const Array& params, bool fHelp)
-{
-    if (fHelp || params.size() < 1 || params.size() > 1) {
-        throw runtime_error("settxfee \"amount\"\n"
-            "\nSet the default transaction fee per kB.\n"
-            "\nArguments:\n"
-            "1. amount         (numeric, required) The transaction fee in WICC/kB rounded to the nearest 0.00000001\n"
-            "\nResult\n"
-            "true|false        (boolean) Returns true if successful\n"
-            "\nExamples:\n"
-            + HelpExampleCli("settxfee", "0.00001")
-            + HelpExampleRpc("settxfee", "0.00001")
-        );
-    }
-
-    // Amount
-    int64_t nAmount = 0;
-    if (params[0].get_real() != 0.0) {
-       nAmount = AmountToRawValue(params[0]);        // rejects 0.0 amounts
-       SysCfg().SetDefaultTxFee(nAmount);
-    }
-    return true;
-}
-
 Value getwalletinfo(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() != 0) {

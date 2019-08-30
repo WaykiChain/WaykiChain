@@ -268,13 +268,6 @@ elif cmd == "setgenerate":
     except:
         print "\n---An error occurred---\n"
 
-elif cmd == "settxfee":
-    try:
-        amt = raw_input("Amount:")
-        print access.settxfee(amt)
-    except:
-        print "\n---An error occurred---\n"
-
 elif cmd == "stop":
     try:
         print access.stop()

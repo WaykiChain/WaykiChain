@@ -267,7 +267,6 @@ static const CRPCCommand vRPCCommands[] =
     { "listaddr",               &listaddr,               true,      false,      true },
     { "listtx",                 &listtx,                 true,      false,      true },
 
-    { "settxfee",               &settxfee,               false,     false,      true },
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },

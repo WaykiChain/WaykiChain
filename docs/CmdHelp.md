@@ -43,7 +43,6 @@
 | reconsiderblock | ```<hash>``` | Removes invalidity status of a block and its descendants, reconsider them for activation. | N |
 | submitcontractdeploytx | ```<address><filepath><fee>[height][contract_description]``` | register a contract app | Y |
 | setgenerate | ```<generate>``` [genblocklimit] | <generate> is true or false to turn generation on or off. Generation is limited to [genblocklimit] processors, -1 is unlimited. | N |
-| settxfee | ```<amount>``` | ```<amount>``` is a real and is rounded to the nearest 0.00000001 | N |
 | signmessage | ```<wiccaddress> <message>``` | Sign a message with the private key of an address. | Y |
 | signtxraw | ```<transaction> <address>``` | signature transaction | N |
 | stop | | Stop  WaykiCoind server | N |
