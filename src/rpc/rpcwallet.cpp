@@ -239,14 +239,13 @@ Value createmulsig(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value signmessage(const Array& params, bool fHelp)
-{
+Value signmessage(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("signmessage \"WICC address\" \"message\"\n"
+        throw runtime_error("signmessage \"address\" \"message\"\n"
             "\nSign a message by the private key of the given address"
             + HelpRequiringPassphrase() + "\n"
             "\nArguments:\n"
-            "1. \"WICC address\"  (string, required) The coin address associated with the private key to sign.\n"
+            "1. \"address\"         (string, required) The coin address associated with the private key to sign.\n"
             "2. \"message\"         (string, required) The message to create a signature of.\n"
             "\nResult:\n"
             "\"signature\"          (string) The signature of the message encoded in base 64\n"
@@ -254,11 +253,11 @@ Value signmessage(const Array& params, bool fHelp)
             "\nUnlock the wallet for 30 seconds\n"
             + HelpExampleCli("walletpassphrase", "\"mypassphrase\" 30") +
             "\nCreate the signature\n"
-            + HelpExampleCli("signmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"my message\"") +
+            + HelpExampleCli("signmessage", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"my message\"") +
             "\nVerify the signature\n"
-            + HelpExampleCli("verifymessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\" \"signature\" \"my message\"") +
+            + HelpExampleCli("verifymessage", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"signature\" \"my message\"") +
             "\nAs json rpc\n"
-            + HelpExampleRpc("signmessage", "\"1D1ZrZNe3JUo7ZycKEYQQiQAWd9y54F4XZ\", \"my message\"")
+            + HelpExampleRpc("signmessage", "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"my message\"")
         );
     }
 
@@ -638,7 +637,7 @@ Value walletpassphrase(const Array& params, bool fHelp) {
     strWalletPass = params[0].get_str().c_str();
     if (strWalletPass.length() > 0) {
         if (!pWalletMain->Unlock(strWalletPass))
-            throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "Error: The wallet passphrase entered was incorrect.");
+            throw JSONRPCError(RPC_WALLET_PASSPHRASE_INCORRECT, "The wallet passphrase entered was incorrect.");
     } else
         throw runtime_error(
             "walletpassphrase <passphrase> <timeout>\n"
