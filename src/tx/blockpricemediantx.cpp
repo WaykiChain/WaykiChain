@@ -109,8 +109,10 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             if (++cdpIndex > kForceSettleCDPMaxCountPerBlock)
                 break;
 
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s), currRiskReserveScoins: %llu\n",
-                    cdp.ToString(), currRiskReserveScoins);
+            LogPrint("CDP",
+                     "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
+                     "index: %u\n",
+                     cdp.ToString(), currRiskReserveScoins, cdpIndex);
 
             // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
             // then skip the 120 cdp and settle the 30 and 50 cdp.
