@@ -52,6 +52,7 @@
 #include "tx/tx.h"
 #include "tx/txmempool.h"
 #include "tx/assettx.h"
+#include "tx/wasmcontracttx.h"
 
 class CBlockIndex;
 class CBloomFilter;
@@ -736,6 +737,9 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
         case DEX_MARKET_SELL_ORDER_TX:
             Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
 
+        case WASM_CONTRACT_TX:
+            Serialize(os, *((CWasmContractTx *)(pa.get())), nType, nVersion); break;
+
         default:
             throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.",
                 pa->nTxType, GetTxType(pa->nTxType)));
@@ -875,6 +879,12 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
         case DEX_MARKET_SELL_ORDER_TX: {
             pa = std::make_shared<CDEXSellMarketOrderTx>();
             Unserialize(is, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case WASM_CONTRACT_TX: {
+            pa = std::make_shared<CWasmContractTx>();
+            Unserialize(is, *((CWasmContractTx *)(pa.get())), nType, nVersion);
             break;
         }
         default:

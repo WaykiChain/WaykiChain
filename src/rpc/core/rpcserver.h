@@ -191,6 +191,10 @@ extern json_spirit::Value submitassetissuetx(const json_spirit::Array& params, b
 extern json_spirit::Value submitassetupdatetx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getassets(const json_spirit::Array& params, bool fHelp);
 
+
+extern json_spirit::Value setcodewasmcontracttx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value callwasmcontracttx(const json_spirit::Array& params, bool fHelp);
+
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 
 std::string JSONRPCExecBatch(const json_spirit::Array& vReq);

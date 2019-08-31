@@ -60,6 +60,8 @@ enum TxType: uint8_t {
     DEX_CANCEL_ORDER_TX         = 88,   //!< dex cancel order Tx
     DEX_TRADE_SETTLE_TX         = 89,   //!< dex settle Tx
 
+    WASM_CONTRACT_TX         = 100,   //!< wasm contract tx
+
 };
 
 struct TxTypeHash {

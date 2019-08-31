@@ -1,0 +1,92 @@
+
+
+WASMLIB = libwasm.a libcompilerbuildin.a
+
+noinst_LIBRARIES += $(WASMLIB)
+
+#WASM_DEFINES = -DEOS_VM_USE_EXTERNAL_OUTCOME
+
+WASM_DIR = $(srcdir)/vm/wasm
+
+WASM_TYPES_DIR = $(WASM_DIR)/types
+EOSVM_INCLUDE_DIR = $(WASM_DIR)/eos-vm/include
+EOSVM_OUTCOME_DIR = $(srcdir)/external/outcome
+
+EOSIO_VM_H = \
+  vm/wasm/eos-vm/include/eosio/vm/allocator.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/backend.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/base_visitor.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/config.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/constants.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/dispatcher.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/error_codes.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/error_codes_def.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/error_codes_pp.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/exceptions.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/execution_context.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/guarded_ptr.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/host_function.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/interpret_visitor.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/leb128.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/opcodes.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/opcodes_def.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/parser.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/sections.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/softfloat.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/stack_elem.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/types.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/utils.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/validation.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/vector.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/wasm_stack.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/watchdog.hpp \
+  vm/wasm/types/asset.hpp \
+  vm/wasm/types/inlinetransaction.hpp \
+  vm/wasm/types/name.hpp \
+  vm/wasm/types/symbol.hpp \
+  vm/wasm/types/types.hpp \
+  vm/wasm/types/uint128.hpp \
+  vm/wasm/types/varint.hpp
+
+
+WASM_INTERFACE = vm/wasm/wasminterface.cpp
+
+UINT128_SRC = vm/wasm/types/uint128.cpp
+
+
+COMPILER_BUILTINS = $(WASM_DIR)/compiler_builtins
+
+COMPILER_BUILTINS_H = \
+  vm/wasm/compiler_builtins/compiler_builtins.hpp \
+  vm/wasm/compiler_builtins/fp128.h \
+  vm/wasm/compiler_builtins/fp32.h \
+  vm/wasm/compiler_builtins/int_t.h \
+  vm/wasm/compiler_builtins/fp64.h
+
+COMPILER_BUILTINS_SRC = \
+  vm/wasm/compiler_builtins/fixdfti.c \
+  vm/wasm/compiler_builtins/fixsfti.c \
+  vm/wasm/compiler_builtins/fixtfti.c \
+  vm/wasm/compiler_builtins/fixunsdfti.c \
+  vm/wasm/compiler_builtins/fixunssfti.c \
+  vm/wasm/compiler_builtins/fixunstfti.c \
+  vm/wasm/compiler_builtins/floattidf.c \
+  vm/wasm/compiler_builtins/floatuntidf.c
+
+libcompilerbuildin_a_CFLAGS = -fPIC $(AM_CFLAGS) $(SOFTFLOAT_CFLAGS) -I$(COMPILER_BUILTINS)
+
+libcompilerbuildin_a_SOURCES = \
+  $(COMPILER_BUILTINS_SRC) \
+  $(COMPILER_BUILTINS_H)
+
+libwasm_a_CXXFLAGS = -std=c++17 $(AM_CPPFLAGS) $(SOFTFLOAT_CFLAGS) \
+                    -I$(EOSVM_INCLUDE_DIR) \
+                    -I$(EOSVM_OUTCOME_DIR) \
+                    -I$(COMPILER_BUILTINS) \
+								    -I$(WASM_TYPES_DIR)
+
+libwasm_a_SOURCES = \
+  $(WASM_INTERFACE) \
+  $(UINT128_SRC) \
+  $(COMPILER_BUILTINS_H) \
+  $(EOSIO_VM_H)
