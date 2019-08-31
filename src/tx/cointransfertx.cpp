@@ -28,11 +28,6 @@ bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    if (srcAccount.GetToken(SYMB::WICC).free_amount < llFees + coin_amount) {
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account balance insufficient"),
-                         REJECT_INVALID, "account-balance-insufficient");
-    }
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -138,6 +133,10 @@ bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
+
+    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
+        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, account unregistered"),
+                         REJECT_INVALID, "bad-account-unregistered");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);

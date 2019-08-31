@@ -191,7 +191,8 @@ CKeyID CPubKey::GetKeyId() const { return CKeyID(Hash160(vch, vch + size())); }
 uint256 CPubKey::GetHash() const { return Hash(vch, vch + size()); }
 
 bool CPubKey::Verify(const uint256 &hash, const vector<uint8_t> &vchSig) const {
-    if (!IsValid()) return false;
+    if (!IsValid())
+        return false;
 
     secp256k1_pubkey pubkey;
     secp256k1_ecdsa_signature sig;
