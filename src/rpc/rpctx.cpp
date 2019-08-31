@@ -117,7 +117,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
         rtx.valid_height = chainActive.Height();
 
         if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "in submitaccountregistertx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed.");
     }
 
     std::tuple<bool, string> ret;

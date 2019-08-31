@@ -44,14 +44,14 @@ bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper 
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    account.regid = regId;
-    account.keyid = keyId;
+    if (account.HaveOwnerPubKey()) {
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, keyId %s duplicate register", keyId.ToString()),
+                         UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
+    }
 
-    if (account.owner_pubkey.IsFullyValid() && account.owner_pubkey.GetKeyId() == keyId)
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s duplicate register",
-                        keyId.ToString()), UPDATE_ACCOUNT_FAIL, "duplicate-register-account");
-
+    account.regid        = regId;
     account.owner_pubkey = txUid.get<CPubKey>();
+
     if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, insufficient funds in account, keyid=%s",
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
