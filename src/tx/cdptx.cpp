@@ -531,16 +531,20 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (scoins_to_liquidate == 0) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, invalid liquidate amount(0)"));
+    }
+
     CUserCDP cdp;
     if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp (%s) not exist!", txUid.ToString()),
-                        REJECT_INVALID, "cdp-not-exist");
+                         REJECT_INVALID, "cdp-not-exist");
     }
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", txUid.ToString()),
-                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
+                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     uint64_t free_scoins = account.GetToken(cdp.scoin_symbol).free_amount;
     if (free_scoins < scoins_to_liquidate) {  // more applicable when scoinPenalty is omitted
@@ -551,13 +555,13 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     uint64_t globalCollateralRatioFloor = 0;
     if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read global collateral ratio floor error"),
-                        READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
+                         READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
     uint64_t slideWindow;
     if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
-                        READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
@@ -568,8 +572,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     }
 
     if (cdp_txid.IsEmpty()) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"), REJECT_INVALID,
-                        "empty-cdpid");
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, cdp_txid is empty"), REJECT_INVALID, "empty-cdpid");
     }
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
