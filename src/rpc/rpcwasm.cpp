@@ -5,6 +5,7 @@
 
 #include "commons/base58.h"
 #include "rpc/core/rpcserver.h"
+#include "rpc/core/rpccommons.h"
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
@@ -41,15 +42,6 @@ using namespace boost::assign;
 using std::chrono::microseconds;
 // using namespace wasm;
 
-static bool GetKeyId(string const &addr, CKeyID &KeyId) {
-    if (!CRegID::GetKeyId(addr, KeyId)) {
-        KeyId = CKeyID(addr);
-        if (KeyId.IsEmpty())
-            return false;
-    }
-    return true;
-}
-
 string StringToHexString(string str, string separator = " ")
 {
 
@@ -80,136 +72,24 @@ string VectorToHexString(std::vector<uint8_t> str, string separator = " ")
 Value setcodewasmcontracttx(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() < 4 || params.size() > 7) {
-        throw runtime_error("registercontracttx \"addr\" \"filepath\"\"fee\" (\"height\") (\"appdesc\")\n"
+        throw runtime_error("setcodewasmcontracttx \"addr\" \"contract_id\" \"code_file\" \"abi_file\" [\"memo\"] [symbol:fee:unit]\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) contract owner address from this wallet\n"
-            "2.\"filepath\": (string required), the file path of the app script\n"
-            "3.\"fee\": (numeric required) pay to miner (the larger the size of script, the bigger fees are required)\n"
-            "4.\"height\": (numeric optional) valid height, when not specified, the tip block hegiht in chainActive will be used\n"
-            "5.\"appdesc\": (string optional) new app description\n"
+            "2.\"contract_id\": (string required), the script id, regid\n"
+            "3.\"code_file\": (string required), the file path of the contract code\n"
+            "4.\"abi_file\": (string required), the file path of the contract abi\n"
+            "5.\"memo\": (string optional) the memo of contract\n"
+            "6. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txhash\": (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("registercontracttx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"myapp.lua\" 1000000 (10000) (\"appdesc\")") +
-                "\nAs json rpc call\n"
-            + HelpExampleRpc("registercontracttx",
-                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH \"myapp.lua\" 1000000 (10000) (\"appdesc\")"));
-        // 1.sender
-        // 2.contract(id)
-        // 3.filepath for code
-        // 4.filepath for abi
-        // 5.fee
-        // 6.memo
-        // 7.height
+            + HelpExampleCli("setcodewasmcontracttx",
+                "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\"") +
+            "\nAs json rpc call\n"
+            + HelpExampleRpc("setcodewasmcontracttx",
+                "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
     }
-
-   RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(int_type)(str_type)(int_type));
-
-   // std::cout << "wasmsetcodecontracttx line103"
-   //           << " sender:" << params[0].get_str()
-   //           << " contract:"<< params[1].get_str()
-   //           << " code:"<< params[2].get_str()
-   //           << " abi:"<< params[3].get_str()
-   //           << " fee:"<< params[4].get_uint64()
-   //           << " memo:"<< params[5].get_str()
-   //           << " \n";
-
-    string code, abi;
-    string codeFile = GetAbsolutePath(params[2].get_str()).string();
-    string abiFile = GetAbsolutePath(params[3].get_str()).string();
-
-    if(codeFile.empty() && abiFile.empty()){
-        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file both do not exist!");
-    }
-
-    if (!codeFile.empty())
-    //    throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm file does not exist!");
-    //std::cout << "deploywasmcontracttx line69: codeFile: " << codeFile << " " << "\n";
-    // if (luaScriptFilePath.compare(0, kContractScriptPathPrefix.size(), kContractScriptPathPrefix.c_str()) != 0)
-    //     throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
-    {
-        char byte;
-        ifstream f(codeFile, ios::binary);
-        while(f.get(byte))  code.push_back(byte);
-        size_t size = code.size();
-        //std::cout << "deploywasmcontracttx line131: code:" << StringToHexString(code) <<" size:"<< size <<"\n";
-        if (size <= 0 || size > MAX_CONTRACT_CODE_SIZE) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                (size == -1) ? "File size is unknown"
-                              : ((size == 0) ? "File is empty" : "contract code must less than 64 Kbytes"));
-        }
-
-        if (size <= 0 || size > MAX_CONTRACT_CODE_SIZE) { // contract code size must be <= 64 KB)
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                (size == -1) ? "File size is unknown"
-                              : ((size == 0) ? "File is empty" : "File size exceeds 64 KB limit"));
-        }
-    }
-
-    if (!abiFile.empty())
-    //    throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "abi file does not exist!");
-    {
-        char byte;
-        ifstream f(abiFile, ios::binary);
-        while(f.get(byte))  abi.push_back(byte);
-        int size = abi.size();
-        //std::cout << "deploywasmcontracttx line131: code:" << StringToHexString(code) <<" size:"<< size <<"\n";
-        if (size <= 0 || size > MAX_CONTRACT_CODE_SIZE) {
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                (size == -1) ? "File size is unknown"
-                              : ((size == 0) ? "File is empty" : "Contract abi must less than 8 Kbytes"));
-        }
-
-        if (size <= 0 || size > MAX_CONTRACT_CODE_SIZE) { // contract code size must be <= 64 KB)
-            throw JSONRPCError(
-                RPC_INVALID_PARAMETER,
-                (size == -1) ? "File size is unknown"
-                              : ((size == 0) ? "File is empty" : "File size exceeds 8 KB limit"));
-        }
-    }
-
-    json_spirit::Value abiJson;
-    json_spirit::read_string(abi, abiJson);
-
-    std::cout << "wasmsetcodecontracttx line173"
-             << " abi:" << json_spirit::write(abiJson)
-             << " \n";
-
-
-    //CWasmCode wasmCode;
-    //wasmCode.GetCode().insert(wasmCode.GetCode().end(),code.begin(), code.end());
-    string memo;
-    if (params.size() > 5) {
-        string memo = params[5].get_str();
-        if (memo.size() > MAX_CONTRACT_CODE_SIZE) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "The size of the memo of a contract must less than 100 bytes");
-        }
-        //wasmCode.GetCode().insert(wasmCode.GetCode().end(),description.begin(), description.end());
-    }
-
-    // string contractCode;
-    // CDataStream ds(SER_DISK, CLIENT_VERSION);
-    // ds << wasmCode;
-    // contractCode.assign(ds.begin(), ds.end());
-
-    uint64_t fee = params[4].get_uint64();
-
-    int height = chainActive.Tip()->height;
-    if (params.size() > 6)
-    {
-        if (params[6].get_int() != 0)
-            height = params[6].get_int();
-    }
-
-    if (fee > 0 && fee < CBaseTx::nMinTxFee) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is less than minimum transaction fee");
-    }
-
 
     CKeyID sender;
     if (!GetKeyId(params[0].get_str(), sender)) {
@@ -220,6 +100,64 @@ Value setcodewasmcontracttx(const Array& params, bool fHelp)
     if (contractRegID.IsEmpty()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
     }
+
+    string codeFile = GetAbsolutePath(params[2].get_str()).string();
+    string abiFile = GetAbsolutePath(params[3].get_str()).string();
+
+    string code, abi;
+    if(codeFile.empty() || abiFile.empty()){
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code or abi file do not exist!");
+    }
+
+    if (!codeFile.empty())
+    {
+        char byte;
+        ifstream f(codeFile, ios::binary);
+        while(f.get(byte))  code.push_back(byte);
+        size_t size = code.size();
+        if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                strprintf("contract code is empty or larger than %d bytes", MAX_CONTRACT_CODE_SIZE));
+        }
+
+        if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                strprintf("contract abi is empty or lager than %d bytes", MAX_CONTRACT_CODE_SIZE));
+        }
+    }
+
+    if (!abiFile.empty())
+    //    throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "abi file does not exist!");
+    {
+        char byte;
+        ifstream f(abiFile, ios::binary);
+        while(f.get(byte))  abi.push_back(byte);
+        size_t size = abi.size();
+        if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                strprintf("contract abi is empty or lager than %d bytes", MAX_CONTRACT_CODE_SIZE));
+        }
+    }
+
+    json_spirit::Value abiJson;
+    json_spirit::read_string(abi, abiJson);
+
+    std::cout << "wasmsetcodecontracttx line173"
+             << " abi:" << json_spirit::write(abiJson)
+             << " \n";
+
+    string memo;
+    if (params.size() > 4) {
+        string memo = params[4].get_str();
+        if (memo.size() > MAX_CONTRACT_MEMO_SIZE) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                strprintf("The size of the memo of a contract must less than %d bytes", MAX_CONTRACT_MEMO_SIZE));
+        }
+    }
+
+    const ComboMoney &fee = RPC_PARAM::GetFee(params, 5, TxType::UCONTRACT_DEPLOY_TX);
+
+    int height = chainActive.Tip()->height;
 
     assert(pWalletMain != NULL);
     CWasmContractTx tx;
@@ -235,10 +173,7 @@ Value setcodewasmcontracttx(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
-        if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
-        }
+        RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
         if (!pWalletMain->HaveKey(sender)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
@@ -254,9 +189,10 @@ Value setcodewasmcontracttx(const Array& params, bool fHelp)
          << " contract:"<< contract
          << " \n";
 
-        tx.nTxType      = WASM_CONTRACT_TX;
+        tx.nTxType        = WASM_CONTRACT_TX;
         tx.txUid          = senderRegID;
-        tx.llFees         = fee;
+        tx.fee_symbol     = fee.symbol;
+        tx.llFees         = fee.GetSawiAmount();
 
 
         tx.contract       = wasm::name("wasmio").value;
@@ -298,7 +234,6 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
             "4.\"data\":   (json string, required) action data\n"
             "5.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
             "6.\"fee\":         (numeric, required) pay to miner\n"
-            "7.\"height\":      (numberic, optional) valid height\n"
             "\nResult:\n"
             "\"txid\":        (string)\n"
             "\nExamples:\n" +
@@ -315,17 +250,6 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
         // 6.fee
         // 7.height
     }
-
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(obj_type)(int_type)(int_type));
-
-    std::cout << "rpccall wasmcontracttx line321"
-         << " sender:" << params[0].get_str()
-         << " contract:"<< params[1].get_str()
-         << " action:"<< params[2].get_str()
-         << " data:"<< json_spirit::write(params[3].get_obj())
-         << " amount:"<< params[4].get_uint64()
-         << " fee:"<< params[5].get_uint64()
-         << " \n";
 
     EnsureWalletIsUnlocked();
 
@@ -346,14 +270,10 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
     uint64_t contract = wasm::RegID2Name(contractRegID);
     uint64_t action = wasm::name(params[2].get_str()).value;
 
-
-    //json_spirit::arguments  = params[3].get_obj();
-    string arguments = json_spirit::write(params[3].get_obj());
-
-    // string arguments = params[3].get_str();
-    // if (arguments.size() >= kContractArgumentMaxSize) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
-    // }
+    string arguments = params[3].get_str();
+    if (arguments.empty() || arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments empty or the size out of range");
+    }
 
 
     CUniversalContract contractCode;
@@ -378,12 +298,9 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
     // std::vector<char> data = wasm::pack(std::tuple(issuer, maximum_supply));
 
 
-    int64_t amount = AmountToRawValue(params[4]);
-    uint64_t fee    = AmountToRawValue(params[5]);
-    int height     = (params.size() > 6) ? params[6].get_int() : chainActive.Height();
-    if (fee == 0) {
-        GetTxMinFee(TxType::UCONTRACT_DEPLOY_TX, height, SYMB::WICC, fee);
-    }
+    ComboMoney amount = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
+    ComboMoney fee    = RPC_PARAM::GetFee(params, 5, TxType::UCONTRACT_INVOKE_TX);
+    uint32_t height     = chainActive.Height();
 
     CPubKey sendPubKey;
     if (!pWalletMain->GetPubKey(sender, sendPubKey)) {
@@ -392,7 +309,7 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
 
     CUserID sendUserId;
     CRegID sendRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sender), sendRegId) && sendRegId.IsMature(chainActive.Height() + 1))
+    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sender), sendRegId) && sendRegId.IsMature(height + 1))
                      ? CUserID(sendRegId)
                      : CUserID(sendPubKey);
 
@@ -409,15 +326,15 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
     tx.nTxType      = WASM_CONTRACT_TX;
     tx.txUid        = sendUserId;
     tx.valid_height = height;
-    tx.llFees       = fee;
-    tx.fee_symbol   = SYMB::WICC;
+    tx.fee_symbol   = fee.symbol;
+    tx.llFees       = fee.GetSawiAmount();
 
     tx.contract     = contract;
     tx.action       = action;
     tx.data         = data;
 
-    tx.amount       = amount;
-    //tx.symbol       = symbol;
+    tx.symbol       = amount.symbol;
+    tx.amount       = amount.GetSawiAmount();
 
     if (!pWalletMain->Sign(sender, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
