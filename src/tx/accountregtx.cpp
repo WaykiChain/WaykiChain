@@ -20,16 +20,16 @@ bool CAccountRegisterTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationS
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))
-        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"),
-            REJECT_INVALID, "uid-type-error");
+        return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"), REJECT_INVALID,
+                         "uid-type-error");
 
     if ((minerUid.type() != typeid(CPubKey)) && (minerUid.type() != typeid(CNullID)))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
-            REJECT_INVALID, "minerUid-type-error");
+                         REJECT_INVALID, "minerUid-type-error");
 
     if (!txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
-            REJECT_INVALID, "bad-tx-publickey");
+                         REJECT_INVALID, "bad-tx-publickey");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
 
