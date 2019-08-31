@@ -40,7 +40,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
             "gettxdetail \"txid\"\n"
             "\nget the transaction detail by given transaction hash.\n"
             "\nArguments:\n"
-            "1.txid   (string,required) The hash of transaction.\n"
+            "1.\"txid\":    (string, required) The hash of transaction.\n"
             "\nResult an object of the transaction detail\n"
             "\nResult:\n"
             "\n\"txid\"\n"
@@ -54,17 +54,17 @@ Value gettxdetail(const Array& params, bool fHelp) {
 //create a register account tx
 Value submitaccountregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0)
-        throw runtime_error("submitaccountregistertx \"addr\" (\"fee\")\n"
-            "\nregister local account public key to get its RegId\n"
+        throw runtime_error("submitaccountregistertx \"addr\" [\"fee\"]\n"
+            "\nregister account to acquire its regid\n"
             "\nArguments:\n"
-            "1.addr: (string, required)\n"
-            "2.fee: (numeric, optional) pay tx fees to miner\n"
+            "1.\"addr\":    (string, required)\n"
+            "2.\"fee\":     (numeric, optional)\n"
             "\nResult:\n"
-            "\"txid\": (string)\n"
+            "\"txid\":      (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitaccountregistertx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
+            + HelpExampleCli("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 100000")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitaccountregistertx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
+            + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 100000"));
 
     string addr = params[0].get_str();
     uint64_t fee = 0;
@@ -73,7 +73,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
         fee = params[1].get_uint64();
         if (fee < nDefaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Input fee smaller than mintxfee: %ld sawi", nDefaultFee));
+                               strprintf("Input fee smaller than mintxfee: %llu sawi", nDefaultFee));
         }
     } else {
         fee = nDefaultFee;

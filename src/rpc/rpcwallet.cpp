@@ -292,8 +292,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
             "\nSend coins to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"from\"                 (string, required) The address where coins are sent from.\n"
-            "2.\"to\"                   (string, required) The address where coins are received.\n"
+            "1.\"from\":                (string, required) The address where coins are sent from.\n"
+            "2.\"to\":                  (string, required) The address where coins are received.\n"
             "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
             "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
             "5.\"memo\":                (string, optional)\n"
