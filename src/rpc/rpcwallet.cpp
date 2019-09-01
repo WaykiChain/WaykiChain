@@ -701,9 +701,9 @@ Value encryptwallet(const Array& params, bool fHelp) {
     if (fHelp || (!pWalletMain->IsEncrypted() && params.size() != 1)) {
         throw runtime_error(
             "encryptwallet \"passphrase\"\n"
-            "\nEncrypts the wallet with 'passphrase'. This is for first time encryption.\n"
-            "After this, any calls that interact with private keys such as sending or signing \n"
-            "will require the passphrase to be set prior the making these calls.\n"
+            "\nEncrypt the wallet with 'passphrase'. This is for the first-time encryption of the wallet.\n"
+            "After this operation, any call that involves using local private keys for transcation signing\n"
+            "will require the passphrase to be set prior to making the call.\n"
             "Use the walletpassphrase call for this, and then walletlock call.\n"
             "If the wallet is already encrypted, use the walletpassphrasechange call.\n"
             "Note that this will shutdown the server.\n"
