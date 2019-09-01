@@ -148,14 +148,14 @@ Value verifymessage(const Array& params, bool fHelp) {
             "\nResult:\n"
             "true|false             (boolean) If the signature is verified or not.\n"
             "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n"
-            + HelpExampleCli("walletpassphrase", "\"my passphrase\" 30") +
-            "\nCreate the signature\n"
-            + HelpExampleCli("signmessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"my message\"") +
-            "\nVerify the signature\n"
-            + HelpExampleCli("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"signature\" \"my message\"") +
+            "\n1) Unlock the wallet for 30 seconds\n"
+            + HelpExampleCli("walletpassphrase", "\"my_passphrase\" 30") +
+            "\n2) Create the signature\n"
+            + HelpExampleCli("signmessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"my_message\"") +
+            "\n3) Verify the signature\n"
+            + HelpExampleCli("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"signature\" \"my_message\"") +
             "\nAs json rpc\n"
-            + HelpExampleRpc("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"signature\", \"my message\"")
+            + HelpExampleRpc("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"signature\", \"my_message\"")
         );
 
     string strAddress  = params[0].get_str();
