@@ -8,59 +8,72 @@
 
 #include "dbaccess.h"
 
-namespace prefix_util {
-
+class CCommonPrefixMatcher{
+public:
     // empty prefix, will match all keys
     template<typename KeyType>
-    void MakeKeyByPrefix(const CNullObject &prefix, KeyType &keyObj) {
+    static void MakeKeyByPrefix(const CNullObject &prefix, KeyType &keyObj) {
         db_util::SetEmpty(keyObj);
     }
 
     // 1/2: make 2 pair key object by 1 prefix
     template<typename T1, typename T2>
-    void MakeKeyByPrefix(const T1 &prefix, std::pair<T1, T2> &keyObj) {
+    static void MakeKeyByPrefix(const T1 &prefix, std::pair<T1, T2> &keyObj) {
         keyObj = make_pair<T1, T2>(prefix, db_util::MakeEmpty<T2>());
     }
 
     // 1/3: make 3 tuple key object by 1 prefix
     template<typename T1, typename T2, typename T3>
-    void MakeKeyByPrefix(const T1 &prefix, std::tuple<T1, T2, T3> &keyObj) {
+    static void MakeKeyByPrefix(const T1 &prefix, std::tuple<T1, T2, T3> &keyObj) {
         keyObj = make_tuple<T1, T2, T3>(prefix, db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
     }
 
     // 2/3: make 3 tuple key object by 2 pair prefix
     template<typename T1, typename T2, typename T3>
-    void MakeKeyByPrefix(const std::pair<T1, T2> &prefix, std::tuple<T1, T2, T3> &keyObj) {
+    static void MakeKeyByPrefix(const std::pair<T1, T2> &prefix, std::tuple<T1, T2, T3> &keyObj) {
         keyObj = make_tuple<T1, T2, T3>(prefix.first, prefix.second, db_util::MakeEmpty<T3>());
     }
 
     // empty prefix, will match all keys
     template<typename KeyType>
-    bool MatchPrefix(KeyType &key, const CNullObject &prefix) {
+    static bool MatchPrefix(KeyType &key, const CNullObject &prefix) {
         return true;
     }
 
+
     // 1/2: check 2 pair key match 1 prefix
     template<typename T1, typename T2>
-    bool MatchPrefix(std::pair<T1, T2> &key, const T1 &prefix) {
-        return key.first == prefix;
+    static bool MatchPrefix(const std::pair<T1, T2> &key, const T1 &prefix) {
+        return MatchPrefix(key.first, prefix);
     }
 
     // 1/3: check 3 tuple key match 1 prefix
     template<typename T1, typename T2, typename T3>
-    bool MatchPrefix(std::tuple<T1, T2, T3> &key, const T1 &prefix) {
-        return std::get<0>(key) == prefix;
+    static bool MatchPrefix(const std::tuple<T1, T2, T3> &key, const T1 &prefix) {
+        return MatchPrefix(std::get<0>(key), prefix);
     }
 
     // 2/3: check 3 tuple key match 2 pair prefix
     template<typename T1, typename T2, typename T3>
-    bool MatchPrefix(std::tuple<T1, T2, T3> &key, const std::pair<T1, T2> &prefix) {
-        return std::get<0>(key) == prefix.first && std::get<1>(key) == prefix.second;
+    static bool MatchPrefix(const std::tuple<T1, T2, T3> &key, const std::pair<T1, T2> &prefix) {
+        return std::get<0>(key) == prefix.first && MatchPrefix(std::get<1>(key), prefix.second);
     }
-}
+
+
+    // match string, support part string match
+    template<typename C>
+    static bool MatchPrefix(const basic_string<C> &key, const basic_string<C> &prefix) {
+        return key.compare(0, prefix.size(), prefix) == 0;
+    }
+
+    template<typename T1>
+    static bool MatchPrefix(const T1 &key, const T1 &prefix) {
+        return key == prefix;
+    }
+};
 
 //CDBPrefixIterator
-template<typename CacheType, typename PrefixElement>
+template<typename CacheType, typename PrefixElement, typename PrefixMatcher>
 class CDBPrefixIterator {
 public:
     typename CacheType::KeyType key;
@@ -100,7 +113,7 @@ private:
         if (!ParseDbKey(slKey, CacheType::PREFIX_TYPE, key)) {
             throw runtime_error(strprintf("CDBPrefixIterator::Parse db key error! key=%s", HexStr(slKey.ToString())));
         }
-        assert(prefix_util::MatchPrefix(key, prefix_element));
+        assert(PrefixMatcher::MatchPrefix(key, prefix_element));
 
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
@@ -113,7 +126,7 @@ private:
     }
 };
 
-template<typename CacheType, typename PrefixElement>
+template<typename CacheType, typename PrefixElement, typename PrefixMatcher>
 class CMapPrefixIterator {
 public:
     typename CacheType::KeyType key;
@@ -129,7 +142,7 @@ public:
 
     bool First() {
         typename CacheType::KeyType keyObj;
-        prefix_util::MakeKeyByPrefix(prefix_element, keyObj);
+        PrefixMatcher::MakeKeyByPrefix(prefix_element, keyObj);
         map_it = data_map.upper_bound(keyObj);
         return Parse();
     }
@@ -145,14 +158,14 @@ private:
         is_valid = false;
         if (map_it == data_map.end())  return false;
         key = map_it->first;
-        if (!prefix_util::MatchPrefix(key, prefix_element))
+        if (!PrefixMatcher::MatchPrefix(key, prefix_element))
             return false;
         value = map_it->second;
         return true;
     }
 };
 
-template<typename CacheType, typename PrefixElement = CNullObject>
+template<typename CacheType, typename PrefixElement = CNullObject, typename PrefixMatcher = CCommonPrefixMatcher>
 class CDBListGetter {
 public:
     typedef typename CacheType::KeyType KeyType;
@@ -175,8 +188,8 @@ public:
     }
 
     bool Execute() {
-        CMapPrefixIterator<CacheType, PrefixElement> mapIt(db_cache, prefix_element);
-        CDBPrefixIterator<CacheType, PrefixElement> dbIt(db_access, prefix_element);
+        CMapPrefixIterator<CacheType, PrefixElement, PrefixMatcher> mapIt(db_cache, prefix_element);
+        CDBPrefixIterator<CacheType, PrefixElement, PrefixMatcher> dbIt(db_access, prefix_element);
         mapIt.First();
         dbIt.First();
         //auto mapIt = mapRangePair.first;
