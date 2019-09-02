@@ -170,8 +170,9 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         }
     }
 
+    vector<CReceipt> receipts;
     uint64_t actualCoinsToSend = coin_amount;
-    if (coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay 0.01% to the risk reserve
+    if (coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
@@ -189,6 +190,10 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+
+        CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
+        CReceipt receipt(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, "send friction fees into risk riserve");
+        receipts.push_back(receipt);
     }
 
     if (!desAccount.OperateBalance(coin_symbol, ADD_FREE, actualCoinsToSend)) {
@@ -196,9 +201,16 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
 
+    CReceipt receipt(txUid, toUid, coin_symbol, actualCoinsToSend, "actual transfer coins");
+    receipts.push_back(receipt);
+
     if (!cw.accountCache.SaveAccount(desAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }

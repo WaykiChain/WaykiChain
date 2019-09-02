@@ -847,16 +847,16 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
                           "half scoin penalty into risk riserve");
         receipts.push_back(receipt1);
 
-        CReceipt receipt2(nullId, fcoinGenesisAccount.regid, cdp.scoin_symbol, leftScoinPenalty,
+        CReceipt receipt2(nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty,
                           "left half scoin penalty to create sys order: WGRT/WUSD");
         receipts.push_back(receipt2);
     } else {
-        // save penalty fees into risk riserve
+        // send penalty fees into risk riserve
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees);
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         CReceipt receipt(nullId, fcoinGenesisUid, cdp.scoin_symbol, scoinPenaltyFees,
-                         "save penalty fees into risk riserve");
+                         "send penalty fees into risk riserve");
         receipts.push_back(receipt);
     }
 
