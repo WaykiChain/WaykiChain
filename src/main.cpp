@@ -361,25 +361,6 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     return true;
 }
 
-int64_t GetMinRelayFee(const CBaseTx *pBaseTx, uint32_t nBytes, bool fAllowFree) {
-    uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
-    int64_t nMinFee   = (1 + (int64_t)nBytes / 1000) * nBaseFee;
-
-    if (fAllowFree) {
-        // There is a free transaction area in blocks created by most miners,
-        // * If we are relaying we allow transactions up to DEFAULT_BLOCK_PRIORITY_SIZE - 1000
-        //   to be considered to fall into this category. We don't want to encourage sending
-        //   multiple transactions instead of one big transaction to avoid fees.
-        if (nBytes < (DEFAULT_BLOCK_PRIORITY_SIZE - 1000))
-            nMinFee = 0;
-    }
-
-    if (!CheckBaseCoinRange(nMinFee))
-        nMinFee = GetBaseCoinMaxMoney();
-
-    return nMinFee;
-}
-
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx, bool fLimitFree,
                         bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
@@ -422,11 +403,6 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
                  hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
     }
-
-    uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);
-    if (fLimitFree && nFees < minFees)
-        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s not pay enough fees, %d < %d",
-            hash.GetHex(), nFees, minFees), REJECT_INSUFFICIENTFEE, "insufficient fee");
 
     // Continuously rate-limit free transactions
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to

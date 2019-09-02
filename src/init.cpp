@@ -301,9 +301,7 @@ string HelpMessage() {
     strUsage += "  -testnet               " + _("Use the test network") + "\n";
 
     strUsage += "\n" + _("Block creation options:") + "\n";
-    strUsage += "  -blockminsize=<n>      " + _("Set minimum block size in bytes (default: 0)") + "\n";
     strUsage += "  -blockmaxsize=<n>      " + strprintf(_("Set maximum block size in bytes (default: %d)"), DEFAULT_BLOCK_MAX_SIZE) + "\n";
-    strUsage += "  -blockprioritysize=<n> " + strprintf(_("Set maximum size of high-priority/low-fee transactions in bytes (default: %d)"), DEFAULT_BLOCK_PRIORITY_SIZE) + "\n";
 
     strUsage += "\n" + _("RPC server options:") + "\n";
     strUsage += "  -rpcserver             " + _("Accept command line and JSON-RPC commands") + "\n";

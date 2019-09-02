@@ -82,11 +82,8 @@ static const int64_t MIN_FUEL_RATES           = 1;    // 1 unit / 100 step
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const uint32_t MAX_BLOCK_SIZE = 4000000;
-/** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/
+/** Default for -blockmaxsize which control the range of sizes the mining code will create **/
 static const uint32_t DEFAULT_BLOCK_MAX_SIZE = 3750000;
-static const uint32_t DEFAULT_BLOCK_MIN_SIZE = 1024 * 10;
-/** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/
-static const uint32_t DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 /** The maximum size for transactions we're willing to relay/mine */
 static const uint32_t MAX_STANDARD_TX_SIZE = 100000;
 
