@@ -53,6 +53,7 @@ private:
 
 	CAccountDBCache *pAccountCache;
 	CContractDBCache *pContractCache;
+    CTxReceiptDBCache *pTxReceiptCache;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool isCheckAccount;  //校验账户平衡开关
@@ -68,7 +69,7 @@ private:
      * @return : check the the tx and account is Legal true is legal false is illegal
      */
     bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
-                    int32_t height);
+                    CTxReceiptDBCache& txReceiptCache, int32_t height);
     /**
      * @brief check action
      * @param operates: run the script return the code,check the code

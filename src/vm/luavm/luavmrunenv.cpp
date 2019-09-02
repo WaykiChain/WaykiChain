@@ -27,12 +27,13 @@ vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetNewAppUserAccount() { retu
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
 bool CLuaVMRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
-                           int32_t height) {
+                              CTxReceiptDBCache& txReceiptCache, int32_t height) {
     vmOperateOutput.clear();
-    pBaseTx        = tx;
-    runtimeHeight  = height;
-    pAccountCache  = &accountCache;
-    pContractCache = &contractCache;
+    pBaseTx         = tx;
+    runtimeHeight   = height;
+    pAccountCache   = &accountCache;
+    pContractCache  = &contractCache;
+    pTxReceiptCache = &txReceiptCache;
 
     if (tx.get()->nTxType != LCONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "unsupported tx type\n");
@@ -86,7 +87,7 @@ tuple<bool, uint64_t, string> CLuaVMRunEnv::ExecuteContract(shared_ptr<CBaseTx>&
         return std::make_tuple(false, 0, string("CLuaVMRunEnv::ExecuteContract, fees too low"));
     }
 
-    if (!Initialize(pBaseTx, cw.accountCache, cw.contractCache, height)) {
+    if (!Initialize(pBaseTx, cw.accountCache, cw.contractCache, cw.txReceiptCache, height)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
