@@ -14,7 +14,7 @@
 #include "json/json_spirit_writer_template.h"
 #include "main.h"
 #include "miner/miner.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 
 #include <algorithm>
 #include <boost/foreach.hpp>

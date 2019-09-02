@@ -3,8 +3,8 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef VMLUA_H
-#define VMLUA_H
+#ifndef LUA_VM_H
+#define LUA_VM_H
 
 #include "main.h"
 
@@ -15,14 +15,14 @@
 
 using namespace std;
 
-class CVmRunEnv;
+class CLuaVMRunEnv;
 
-class CVmlua {
+class CLuaVM {
 public:
-    CVmlua(const std::string &code, const std::string &arguments);
-    ~CVmlua();
+    CLuaVM(const std::string &code, const std::string &arguments);
+    ~CLuaVM();
 
-    std::tuple<uint64_t, string> Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv);
+    std::tuple<uint64_t, string> Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv);
     static std::tuple<bool, string> CheckScriptSyntax(const char *filePath);
 
 private:
@@ -31,4 +31,4 @@ private:
     std::string arguments;
 };
 
-#endif  // VMLUA_H
+#endif  // LUA_VM_H

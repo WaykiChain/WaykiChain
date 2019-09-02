@@ -14,7 +14,7 @@
 #include "persistence/txdb.h"
 #include "commons/util.h"
 #include "config/version.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 
 static bool GetKeyId(const CAccountDBCache &accountView, const string &userIdStr, CKeyID &keyid) {
     switch (userIdStr.size()) {
@@ -216,7 +216,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
-    CVmRunEnv vmRunEnv;
+    CLuaVMRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
@@ -476,7 +476,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, read script failed, regId=%s",
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
-    CVmRunEnv vmRunEnv;
+    CLuaVMRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
 

@@ -11,7 +11,7 @@
 #include  "boost/filesystem/operations.hpp"
 #include  "boost/filesystem/path.hpp"
 #include  "../vm/appaccount.h"
-#include "../vm/vmrunenv.h"
+#include "../vm/luavmrunenv.h"
 #include "tx/tx.h"
 #include "commons/util.h"
 
@@ -45,7 +45,7 @@ bool CheckAppAcct(int64_t opValue[]) {
     UnsignedCharArray arguments;
     CLuaContractInvokeTx tx(srcUserId, desRegId, 10000, opValue[0], 1, arguments); //100 * COIN
 
-    CVmRunEnv vmRunEnv;
+    CLuaVMRunEnv vmRunEnv;
     vector<CVmOperate> vAcctOper;
 
     UnsignedCharArray vDesUser1RegId = desUser1RegId.GetRegIdRaw();

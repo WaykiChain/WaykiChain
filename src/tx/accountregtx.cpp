@@ -13,7 +13,7 @@
 #include "config/version.h"
 #include "main.h"
 #include "persistence/contractdb.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 #include "miner/miner.h"
 
 bool CAccountRegisterTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {

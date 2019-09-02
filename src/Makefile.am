@@ -221,16 +221,16 @@ VMLUA_C = \
   vm/luavm/lua/lzio.c
 
 VM_H = \
-  vm/luavm/vmrunenv.h \
+  vm/luavm/luavmrunenv.h \
   vm/luavm/appaccount.h \
-  vm/luavm/vmlua.h
+  vm/luavm/luavm.h
 
 
 VM_CPP = \
-  vm/luavm/vmrunenv.cpp \
+  vm/luavm/luavmrunenv.cpp \
   vm/luavm/appaccount.cpp \
   vm/luavm/lmylib.cpp \
-  vm/luavm/vmlua.cpp
+  vm/luavm/luavm.cpp
 
 liblua53_a_SOURCES = \
   $(VMLUA_C)

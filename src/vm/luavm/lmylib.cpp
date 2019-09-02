@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "lua/lua.hpp"
-#include "vmrunenv.h"
+#include "luavmrunenv.h"
 #include "commons/SafeInt3.hpp"
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
@@ -117,15 +117,15 @@ static inline int32_t RetFalse(const string reason)
      LogPrint("vm","%s\n", reason.c_str());
      return 0;
 }
-static CVmRunEnv* GetVmRunEnv(lua_State *L)
+static CLuaVMRunEnv* GetVmRunEnv(lua_State *L)
 {
-    CVmRunEnv* pVmRunEnv = NULL;
+    CLuaVMRunEnv* pVmRunEnv = NULL;
     int32_t res = lua_getglobal(L, "VmScriptRun");
     //LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
 
     if (LUA_TLIGHTUSERDATA == res) {
         if (lua_islightuserdata(L,-1)) {
-            pVmRunEnv = (CVmRunEnv*)lua_topointer(L,-1);
+            pVmRunEnv = (CLuaVMRunEnv*)lua_topointer(L,-1);
             //LogPrint("vm", "GetVmRunEnv lua_topointer:%p\n", pVmRunEnv);
         }
     }
@@ -822,7 +822,7 @@ static int ExGetTxContractFunc(lua_State *L) {
         return RetFalse("ExGetTxContractFunc, para error");
     }
 
-    CVmRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("ExGetTxContractFunc, pVmRunEnv is NULL");
     }
@@ -891,7 +891,7 @@ static int ExGetTxRegIDFunc(lua_State *L) {
         return RetFalse("ExGetTxRegIDFunc, para error");
     }
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("ExGetTxRegIDFunc, pVmRunEnv is NULL");
     }
@@ -1011,7 +1011,7 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
         return RetFalse("ExGetAccountPublickeyFunc para err1");
     }
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
     {
         return RetFalse("pVmRunEnv is NULL");
@@ -1052,7 +1052,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
         return RetFalse("ExQueryAccountBalanceFunc para err1");
     }
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
     {
         return RetFalse("pVmRunEnv is NULL");
@@ -1103,7 +1103,7 @@ static int ExGetTxConfirmHeightFunc(lua_State *L) {
     uint256 hash1;
     tep1 >>hash1;
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
     {
         return RetFalse("pVmRunEnv is NULL");
@@ -1138,7 +1138,7 @@ static int ExGetBlockHashFunc(lua_State *L) {
         return RetFalse("ExGetBlockHashFunc para err1");
     }
 
-    CVmRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("pVmRunEnv is NULL");
     }
@@ -1165,7 +1165,7 @@ static int ExGetBlockHashFunc(lua_State *L) {
 }
 
 static int ExGetCurRunEnvHeightFunc(lua_State *L) {
-    CVmRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("pVmRunEnv is NULL");
     }
@@ -1259,7 +1259,7 @@ static int ExWriteDataDBFunc(lua_State *L)
     string key((*retdata.at(0)).begin(), (*retdata.at(0)).end());
     string value((*retdata.at(1)).begin(), (*retdata.at(1)).end());
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
 
         return RetFalse("pVmRunEnv is NULL");
@@ -1295,7 +1295,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     }
     string key = string((*retdata.at(0)).begin(), (*retdata.at(0)).end());
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("pVmRunEnv is NULL");
     }
@@ -1333,7 +1333,7 @@ static int ExReadDataDBFunc(lua_State *L) {
 
     string key((*retdata.at(0)).begin(), (*retdata.at(0)).end());
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("pVmRunEnv is NULL");
     }
@@ -1355,7 +1355,7 @@ static int ExReadDataDBFunc(lua_State *L) {
 
 static int ExGetCurTxHash(lua_State *L) {
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1384,7 +1384,7 @@ static int ExModifyDataDBFunc(lua_State *L)
     string key((*retdata.at(0)).begin(), (*retdata.at(0)).end());
     string newValue((*retdata.at(1)).begin(), (*retdata.at(1)).end());
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) {
         return RetFalse("pVmRunEnv is NULL");
     }
@@ -1483,7 +1483,7 @@ static int ExWriteOutputFunc(lua_State *L)
     if (!GetDataTableWriteOutput(L, operateIn))
         return RetFalse("WriteOutput(), parse params failed");
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv)
         return RetFalse("WriteOutput(), pVmRunEnv is NULL");
 
@@ -1542,7 +1542,7 @@ static int ExGetContractDataFunc(lua_State *L) {
     if (!GetDataTableGetContractData(L, retdata) || retdata.size() != 2 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetContractDataFunc tep1 err1");
 
-    CVmRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv) return RetFalse("pVmRunEnv is NULL");
 
     CContractDBCache *scriptDB = pVmRunEnv->GetScriptDB();
@@ -1571,7 +1571,7 @@ static int ExGetContractDataFunc(lua_State *L) {
  */
 static int ExGetContractRegIdFunc(lua_State *L)
 {
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1587,7 +1587,7 @@ static int ExGetContractRegIdFunc(lua_State *L)
 }
 static int ExGetCurTxAccountFunc(lua_State *L)
 {
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1605,7 +1605,7 @@ static int ExGetCurTxAccountFunc(lua_State *L)
 
 static int ExGetCurTxPayAmountFunc(lua_State *L)
 {
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1661,7 +1661,7 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
        memcpy(&accid.ID[0],&vBuf[0],accid.idlen);
     }
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1762,7 +1762,7 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
     if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != Size)
         return RetFalse("ExGetUserAppAccFundWithTagFunc para err0");
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1858,7 +1858,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     if(!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || (retdata.at(0).get()->size()%Size) != 0 )
         return RetFalse("ExWriteOutAppOperateFunc para err1");
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -1889,7 +1889,7 @@ static int ExGetBase58AddrFunc(lua_State *L)
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetBase58AddrFunc para err0");
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 /*
@@ -1925,7 +1925,7 @@ static int ExTransferContractAsset(lua_State *L)
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para  err !");
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 
@@ -2032,7 +2032,7 @@ static int ExTransferSomeAsset(lua_State *L) {
         (retdata.at(1).get()->size()%Size) != 0 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para err !");
 
-    CVmRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (NULL == pVmRunEnv)
         return RetFalse("pVmRunEnv is NULL");
 

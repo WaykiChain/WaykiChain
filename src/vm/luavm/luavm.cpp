@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include "vmlua.h"
+#include "luavm.h"
 #include "lua/lua.hpp"
 
 #include <assert.h>
@@ -16,7 +16,7 @@
 #include "entities/key.h"
 #include "main.h"
 #include "tx/tx.h"
-#include "vmrunenv.h"
+#include "luavmrunenv.h"
 
 #if 0
 typedef struct NumArray{
@@ -127,13 +127,13 @@ static int luaopen_array(lua_State *L){
 
 #endif
 
-CVmlua::CVmlua(const std::string &codeIn, const std::string &argumentsIn):
+CLuaVM::CLuaVM(const std::string &codeIn, const std::string &argumentsIn):
     code(codeIn), arguments(argumentsIn) {
     assert(code.size() <= MAX_CONTRACT_CODE_SIZE);
     assert(arguments.size() <= MAX_CONTRACT_ARGUMENT_SIZE);
 }
 
-CVmlua::~CVmlua() {}
+CLuaVM::~CLuaVM() {}
 
 #ifdef WIN_DLL
 extern "C" __declspec(dllexport) int luaopen_mylib(lua_State *L);
@@ -168,19 +168,19 @@ void vm_openlibs(lua_State *L) {
     }
 }
 
-tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
+tuple<bool, string> CLuaVM::CheckScriptSyntax(const char *filePath) {
 
     std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
     if (!lua_state_ptr) {
-        LogPrint("vm", "CVmlua::CheckScriptSyntax luaL_newstate() failed\n");
-        return std::make_tuple(false, string("CVmlua::CheckScriptSyntax luaL_newstate() failed\n"));
+        LogPrint("vm", "CLuaVM::CheckScriptSyntax luaL_newstate() failed\n");
+        return std::make_tuple(false, string("CLuaVM::CheckScriptSyntax luaL_newstate() failed\n"));
     }
     lua_State *lua_state = lua_state_ptr.get();
     vm_openlibs(lua_state);
 
     if (!InitLuaLibsEx(lua_state)) {
-        LogPrint("vm", "CVmlua::CheckScriptSyntax InitLuaLibsEx error\n");
-        return std::make_tuple(-1, string("CVmlua::CheckScriptSyntax InitLuaLibsEx error\n"));
+        LogPrint("vm", "CLuaVM::CheckScriptSyntax InitLuaLibsEx error\n");
+        return std::make_tuple(-1, string("CLuaVM::CheckScriptSyntax InitLuaLibsEx error\n"));
     }
 
     luaL_requiref(lua_state, "mylib", luaopen_mylib, 1);
@@ -194,7 +194,7 @@ tuple<bool, string> CVmlua::CheckScriptSyntax(const char *filePath) {
     return std::make_tuple(true, string("OK"));
 }
 
-static void ReportBurnState(lua_State *L, CVmRunEnv *pVmRunEnv) {
+static void ReportBurnState(lua_State *L, CLuaVMRunEnv *pVmRunEnv) {
 
     lua_burner_state *burnerState = lua_GetBurnerState(L);
     LogPrint("vm", "contract run info: txid=%s,"
@@ -239,7 +239,7 @@ static std::string GetLuaError(lua_State *L, int status, std::string prefix) {
     return ret;
 }
 
-tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
+tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv) {
     if (NULL == pVmRunEnv) {
         return std::make_tuple(-1, string("pVmRunEnv == NULL"));
     }
@@ -247,15 +247,15 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     // 1.创建Lua运行环境
     std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
     if (!lua_state_ptr) {
-        LogPrint("vm", "CVmlua::Run luaL_newstate() failed\n");
-        return std::make_tuple(-1, string("CVmlua::Run luaL_newstate() failed\n"));
+        LogPrint("vm", "CLuaVM::Run luaL_newstate() failed\n");
+        return std::make_tuple(-1, string("CLuaVM::Run luaL_newstate() failed\n"));
     }
     lua_State *lua_state = lua_state_ptr.get();
 
     //TODO: should get burner version from the block height
     if (!lua_StartBurner(lua_state, fuelLimit, pVmRunEnv->GetBurnVersion())) {
-        LogPrint("vm", "CVmlua::Run lua_StartBurner() failed\n");
-        return std::make_tuple(-1, string("CVmlua::Run lua_StartBurner() failed\n"));
+        LogPrint("vm", "CLuaVM::Run lua_StartBurner() failed\n");
+        return std::make_tuple(-1, string("CLuaVM::Run lua_StartBurner() failed\n"));
     }
 
     //打开需要的库
@@ -319,7 +319,7 @@ tuple<uint64_t, string> CVmlua::Run(uint64_t fuelLimit, CVmRunEnv *pVmRunEnv) {
     uint64_t burnedFuel = lua_GetBurnedFuel(lua_state);
     ReportBurnState(lua_state, pVmRunEnv);
     if (burnedFuel > fuelLimit) {
-        return std::make_tuple(-1, string("CVmlua::Run burned-out\n"));
+        return std::make_tuple(-1, string("CLuaVM::Run burned-out\n"));
     }
 
     return std::make_tuple(burnedFuel, string("script runs ok"));

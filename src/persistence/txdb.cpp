@@ -10,7 +10,7 @@
 #include "main.h"
 #include "persistence/block.h"
 #include "commons/util.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 
 #include <algorithm>
 
