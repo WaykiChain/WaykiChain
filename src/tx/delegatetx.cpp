@@ -15,55 +15,29 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
-    string str;
-    CKeyID keyId;
-    accountCache.GetKeyId(txUid, keyId);
-    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, ", GetTxType(nTxType), GetHash().ToString(), nVersion,
-                     keyId.ToAddress());
-    str += "vote: ";
-    for (const auto &vote : candidateVotes) {
-        str += strprintf("%s", vote.ToString());
-    }
-
-    return str;
-}
-
-Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
-
-    Array candidateVoteArray;
-    for (const auto &vote : candidateVotes) {
-        candidateVoteArray.push_back(vote.ToJson());
-    }
-
-    result.push_back(Pair("candidate_votes",    candidateVoteArray));
-    return result;
-}
-
 bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (0 == candidateVotes.size()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"),
-            REJECT_INVALID, "oper-fund-empty-error");
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"), REJECT_INVALID,
+                         "oper-fund-empty-error");
     }
 
-    if (candidateVotes.size() > IniCfg().GetTotalDelegateNum()) {
+    if (candidateVotes.size() > IniCfg().GetMaxVoteCandidateNum()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegates number a transaction can't exceeds maximum"),
-            REJECT_INVALID, "deletegates-number-error");
+                         REJECT_INVALID, "deletegates-number-error");
     }
 
     CAccount sendAcct;
     if (!cw.accountCache.GetAccount(txUid, sendAcct)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
-                        txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s", txUid.ToString()),
+                         REJECT_INVALID, "bad-read-accountdb");
     }
 
     if (!sendAcct.HaveOwnerPubKey()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account unregistered"),
-                        REJECT_INVALID, "bad-account-unregistered");
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account unregistered"), REJECT_INVALID,
+                         "bad-account-unregistered");
     }
 
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
@@ -169,4 +143,30 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
     return true;
+}
+
+string CDelegateVoteTx::ToString(CAccountDBCache &accountCache) {
+    string str;
+    CKeyID keyId;
+    accountCache.GetKeyId(txUid, keyId);
+    str += strprintf("txType=%s, hash=%s, ver=%d, address=%s, ", GetTxType(nTxType), GetHash().ToString(), nVersion,
+                     keyId.ToAddress());
+    str += "vote: ";
+    for (const auto &vote : candidateVotes) {
+        str += strprintf("%s", vote.ToString());
+    }
+
+    return str;
+}
+
+Object CDelegateVoteTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result = CBaseTx::ToJson(accountCache);
+
+    Array candidateVoteArray;
+    for (const auto &vote : candidateVotes) {
+        candidateVoteArray.push_back(vote.ToJson());
+    }
+
+    result.push_back(Pair("candidate_votes",    candidateVoteArray));
+    return result;
 }
