@@ -1949,7 +1949,7 @@ static int ExTransferContractAsset(lua_State *L)
     CKeyID RecvKeyID;
     bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvKey, RecvKeyID);
     if (!bValid) {
-        LUA_BurnAccountGet(L, FUEL_ACCTOUNT_UNCHANGED, BURN_VER_R2);
+        LUA_BurnAccountGet(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
@@ -1958,7 +1958,7 @@ static int ExTransferContractAsset(lua_State *L)
     CContractDBCache* pContractScript = pVmRunEnv->GetScriptDB();
 
     if (!pContractScript->GetContractAccount(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
-        LUA_BurnAccountGet(L, FUEL_ACCTOUNT_UNCHANGED, BURN_VER_R2);
+        LUA_BurnAccountGet(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }
 
