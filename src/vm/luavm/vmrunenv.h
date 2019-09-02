@@ -101,9 +101,9 @@ private:
     UnsignedCharArray GetAccountID(CVmOperate value);
     //	bool IsSignatureAccount(CRegID account);
     bool OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                           CContractDBCache& accountView);
+                           CContractDBCache& contractView);
 
-    std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& AppAccount);
+    std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& appAccount);
 
 public:
     /**

@@ -1419,6 +1419,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
         } else
             throw runtime_error("failed to find contract account!\n");
     }
+
     return obj;
 }
 
