@@ -116,7 +116,7 @@ namespace {
     }
 
     struct CBlockIndexWorkComparator {
-    bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
+    bool operator()(CBlockIndex *pa, CBlockIndex *pb) const {
 
         // First sort by most total work, ...
         if(pa->nChainWork != pb->nChainWork){
@@ -143,7 +143,7 @@ CBlockIndex *pindexBestInvalid;
 set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //根据高度排序的有序集合
 
 struct COrphanBlockComparator {
-    bool operator()(COrphanBlock *pa, COrphanBlock *pb) {
+    bool operator()(COrphanBlock *pa, COrphanBlock *pb) const{
         if (pa->height > pb->height)
             return false;
         if (pa->height < pb->height)

@@ -34,6 +34,7 @@
 #include "exceptions.hpp"
 #include "types/name.hpp"
 #include "types/asset.hpp"
+#include "wasmconfig.hpp"
 
 using namespace std;
 using namespace boost;
@@ -348,4 +349,103 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
     Object obj;
     obj.push_back(Pair("txid", std::get<1>(ret)));
     return obj;
+}
+
+Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 5 || params.size() > 6) {
+        throw runtime_error(
+                "gettablerowwasmcontracttx \"sender addr\" \"contract\" \"action\" \"data\" \"amount\" \"fee\" (\"height\")\n"
+                "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
+                "2.\"contract\":   (string, required) contract name\n"
+                "3.\"action\":   (string, required) action name\n"
+                "4.\"data\":   (json string, required) action data\n"
+                "5.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
+                "6.\"fee\":         (numeric, required) pay to miner\n"
+                "7.\"height\":      (numberic, optional) valid height\n"
+                "\nResult:\n"
+                "\"txid\":        (string)\n"
+                "\nExamples:\n" +
+                HelpExampleCli("callcontracttx",
+                               "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
+                "\nAs json rpc call\n" +
+                HelpExampleRpc("callcontracttx",
+                               "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
+        // 1.sender
+        // 2.contract(id)
+        // 3.table
+        // 4.scope
+        // 5.start
+        // 6.count
+    }
+
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(int_type)(int_type));
+
+    std::cout << "rpccall gettablerowwasmcontracttx line383"
+              << " sender:" << params[0].get_str()
+              << " contract:"<< params[1].get_str()
+              << " table:"<< params[2].get_str()
+              << " scope:"<< params[3].get_str()
+              << " number:"<< params[4].get_uint64()
+              << " \n";
+
+    EnsureWalletIsUnlocked();
+
+    CKeyID sender;
+    if (!GetKeyId(params[0].get_str(), sender))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+    // if (!GetKeyId(params[1].get_str(), recvKeyId)) {
+    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
+    // }
+
+    CRegID contractRegID(params[1].get_str());
+    if (contractRegID.IsEmpty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    }
+
+    uint64_t contract = wasm::RegID2Name(contractRegID);
+    uint64_t table = wasm::name(params[2].get_str()).value;
+    uint64_t scope = 0;
+    if (params[3].get_str().size() > 0)
+        scope = wasm::name(params[3].get_str()).value;
+
+    // uint64_t number = params[4].get_int();
+
+    CUniversalContract contractCode;
+    if(pCdMan->pContractCache->GetContract(contractRegID, contractCode))
+        throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
+
+    string abi = contractCode.abi;
+    if (abi.size() == 0)
+        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
+
+    std::vector<char> k = wasm::pack(std::tuple(contract, table, scope));
+    string key;
+    key.insert(key.end(), k.begin(), k.end());
+
+    std::map<string,string> table_rows;
+    //pCdMan->pContractCache->GetContractDataRow(contractRegID, key, number, table_rows );
+
+    try {
+
+        json_spirit::Object object;
+        json_spirit::Array vars;
+        for (auto r : table_rows ){
+            std::vector<char> row;
+            row.insert(row.end(), r.second.begin(), r.second.end());
+            json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
+            vars.push_back(v);
+        }
+
+        if(scope != 0)
+            object.push_back(Pair(wasm::name(scope).to_string(), vars));
+        else
+            object.push_back(Pair(wasm::name(table).to_string(), vars));
+        return object;
+
+    } catch (CException&e ){
+        throw JSONRPCError(ABI_PARSE_FAIL, e.errMsg );
+    }
+
+
 }
