@@ -369,7 +369,7 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
     }
 
     CRegID regId(0, 1);
-    auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(regId.GetRegIdRaw(), votes, 10000, 0);
+    auto pDelegateTx       = std::make_shared<CDelegateVoteTx>(regId, votes, 10000, 0);
     pDelegateTx->signature = ParseHex(IniCfg().GetDelegateSignature(type));
     pDelegateTx->nVersion  = INIT_TX_VERSION;
 

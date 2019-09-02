@@ -13,29 +13,9 @@ public:
     vector<CCandidateVote> candidateVotes;  //!< candidate-delegate votes, max size is 22
 
 public:
-    CDelegateVoteTx(
-            const UnsignedCharArray &accountIn,
-            const vector<CCandidateVote> &candidateVotesIn,
-            const uint64_t feesIn,
-            const int validHeightIn)
-        : CBaseTx(DELEGATE_VOTE_TX, CNullID(), validHeightIn, feesIn) {
-        if (accountIn.size() > 6) {
-            txUid = CPubKey(accountIn);
-        } else {
-            txUid = CRegID(accountIn);
-        }
-        candidateVotes = candidateVotesIn;
-    }
-    CDelegateVoteTx(
-            const CUserID &txUidIn,
-            const uint64_t feesIn,
-            const vector<CCandidateVote> &candidateVotesIn,
-            const int validHeightIn)
+    CDelegateVoteTx(const CUserID &txUidIn, const vector<CCandidateVote> &candidateVotesIn, const uint64_t feesIn,
+                    const int validHeightIn)
         : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feesIn) {
-
-        if (txUidIn.type() == typeid(CRegID))
-            assert(!txUidIn.get<CRegID>().IsEmpty());
-
         candidateVotes = candidateVotesIn;
     }
     CDelegateVoteTx(): CBaseTx(DELEGATE_VOTE_TX) {}
