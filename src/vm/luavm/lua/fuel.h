@@ -26,7 +26,7 @@ typedef int lua_burner_version;
 
 #define FUEL_STEP1              1
 #define FUEL_OP_ADD             3
-#define FUEL_OP_SUB             3    
+#define FUEL_OP_SUB             3
 #define FUEL_OP_MUL             5
 #define FUEL_OP_DIV             5
 #define FUEL_OP_IDIV            5
@@ -96,9 +96,9 @@ typedef int lua_burner_version;
 #define FUEL_DATA8_DesTriple            2
 
 #define FUEL_ACCOUNT_OPERATE            4500
-#define FUEL_ACCTOUNT_NEW               25000
+#define FUEL_ACCOUNT_NEW                25000
 #define FUEL_ACCOUNT_GET_VALUE          400
 #define FUEL_ACCOUNT_GET_FUND_TAG       600
-#define FUEL_ACCTOUNT_UNCHANGED         200
- 
+#define FUEL_ACCOUNT_UNCHANGED          200
+
 #endif // FUEL_H
