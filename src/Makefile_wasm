@@ -79,7 +79,7 @@ libcompilerbuildin_a_SOURCES = \
   $(COMPILER_BUILTINS_SRC) \
   $(COMPILER_BUILTINS_H)
 
-libwasm_a_CXXFLAGS = -std=c++17 $(AM_CPPFLAGS) $(SOFTFLOAT_CFLAGS) \
+libwasm_a_CXXFLAGS = $(AM_CPPFLAGS) $(SOFTFLOAT_CFLAGS) \
                     -I$(EOSVM_INCLUDE_DIR) \
                     -I$(EOSVM_OUTCOME_DIR) \
                     -I$(COMPILER_BUILTINS) \
