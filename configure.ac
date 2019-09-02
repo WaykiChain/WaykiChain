@@ -31,7 +31,7 @@ else
 fi
 
 dnl Require C++11 compiler (no GNU extensions)
-AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory], [nodefault])
+AX_CXX_COMPILE_STDCXX([17], [noext], [mandatory], [nodefault])
 
 dnl ==============================================================
 dnl Setup for automake
