@@ -307,7 +307,7 @@ string HelpMessage() {
     strUsage += "  -blockprioritysize=<n> " + strprintf(_("Set maximum size of high-priority/low-fee transactions in bytes (default: %d)"), DEFAULT_BLOCK_PRIORITY_SIZE) + "\n";
 
     strUsage += "\n" + _("RPC server options:") + "\n";
-    strUsage += "  -rpcserver                " + _("Accept command line and JSON-RPC commands") + "\n";
+    strUsage += "  -rpcserver             " + _("Accept command line and JSON-RPC commands") + "\n";
     strUsage += "  -rpcuser=<user>        " + _("Username for JSON-RPC connections") + "\n";
     strUsage += "  -rpcpassword=<pw>      " + _("Password for JSON-RPC connections") + "\n";
     strUsage += "  -rpcport=<port>        " + _("Listen for JSON-RPC connections on <port> (default: 8332 or testnet: 18332)") + "\n";
@@ -492,13 +492,6 @@ bool AppInit(boost::thread_group &threadGroup) {
         // Rewrite just private keys: rescan to find transactions
         if (SysCfg().SoftSetBoolArg("-rescan", true))
             LogPrint("INFO", "AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
-    }
-
-    // -zapwallettx implies a rescan
-    if (SysCfg().GetBoolArg("-zapwallettxes", false)) {
-        if (SysCfg().SoftSetBoolArg("-rescan", true)) {
-            LogPrint("INFO", "AppInit : parameter interaction: -zapwallettxes=1 -> setting -rescan=1\n");
-        }
     }
 
     // Make sure enough file descriptors are available
