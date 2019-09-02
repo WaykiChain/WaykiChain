@@ -45,24 +45,14 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (height == (int32_t)SysCfg().GetFeatureForkHeight()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, not allowed to vote"), REJECT_INVALID,
-                         "not-allowed-to-vote");
-    }
-
     if (0 == candidateVotes.size()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegate oper fund empty"),
             REJECT_INVALID, "oper-fund-empty-error");
     }
+
     if (candidateVotes.size() > IniCfg().GetTotalDelegateNum()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, the deletegates number a transaction can't exceeds maximum"),
             REJECT_INVALID, "deletegates-number-error");
-    }
-
-    CKeyID sendTxKeyID;
-    if (!cw.accountCache.GetKeyId(txUid, sendTxKeyID)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get keyId error by CUserID =%s",
-                        txUid.ToString()), REJECT_INVALID, "");
     }
 
     CAccount sendAcct;
@@ -70,6 +60,7 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, userid=%s",
                         txUid.ToString()), REJECT_INVALID, "bad-read-accountdb");
     }
+
     if (!sendAcct.HaveOwnerPubKey()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account unregistered"),
                         REJECT_INVALID, "bad-account-unregistered");
