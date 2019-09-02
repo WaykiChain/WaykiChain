@@ -104,7 +104,7 @@ bool AppInit(int argc, char *argv[], boost::thread_group &threadGroup) {
             exit(ret);
         }
 
-        SysCfg().SoftSetBoolArg("-server", true);
+        SysCfg().SoftSetBoolArg("-rpcserver", true);
 
         fRet = AppInit(threadGroup);
     } catch (std::exception &e) {

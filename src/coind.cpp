@@ -111,7 +111,7 @@ bool AppInit(int argc, char* argv[], boost::thread_group& threadGroup) {
             if (sid < 0) fprintf(stderr, "Error: setsid() returned %d errno %d\n", sid, errno);
         }
 #endif
-        SysCfg().SoftSetBoolArg("-server", true);
+        SysCfg().SoftSetBoolArg("-rpcserver", true);
 
         fRet = AppInit(threadGroup);
     } catch (std::exception& e) {

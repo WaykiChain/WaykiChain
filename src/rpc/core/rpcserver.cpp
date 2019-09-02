@@ -409,10 +409,13 @@ static bool InitRPCAuthentication() {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
         string strWhatAmI = "To use coind";
-        if (SysCfg().IsArgCount("-server"))
-            strWhatAmI = strprintf(_("To use the %s option"), "\"-server\"");
-        else if (SysCfg().IsArgCount("-daemon"))
+
+        if (SysCfg().IsArgCount("-rpcserver")) {
+            strWhatAmI = strprintf(_("To use the %s option"), "\"-rpcserver\"");
+
+        } else if (SysCfg().IsArgCount("-daemon")) {
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
+        }
 
         LogPrint("ERROR", "%s, you must set a rpcpassword in the configuration file:\n"
                   "%s\n"
