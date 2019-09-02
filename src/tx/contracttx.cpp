@@ -165,10 +165,6 @@ bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read account failed, regId=%s",
                         txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
 
-    if (!srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, account unregistered"), REJECT_INVALID,
-                         "bad-account-unregistered");
-
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, read script failed, regId=%s",
@@ -424,10 +420,6 @@ bool CUniversalContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read account failed, regId=%s",
                         txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
-
-    if (!srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, account unregistered"),
-                        REJECT_INVALID, "bad-account-unregistered");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))

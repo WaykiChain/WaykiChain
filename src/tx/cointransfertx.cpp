@@ -24,10 +24,6 @@ bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -134,10 +130,6 @@ bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -198,6 +190,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
     }
+
     if (!desAccount.OperateBalance(coin_symbol, ADD_FREE, actualCoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");

@@ -97,10 +97,6 @@ bool CDEXBuyLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -188,10 +184,6 @@ bool CDEXSellLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -277,10 +269,6 @@ bool CDEXBuyMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -364,10 +352,6 @@ bool CDEXSellMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidati
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -445,10 +429,6 @@ bool CDEXCancelOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationSt
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
