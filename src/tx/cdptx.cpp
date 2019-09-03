@@ -522,7 +522,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (scoins_to_liquidate == 0) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, invalid liquidate amount(0)"));
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, invalid liquidate amount(0)"), REJECT_INVALID,
+                         "invalid-liquidate-amount");
     }
 
     if (cdp_txid.IsEmpty()) {
