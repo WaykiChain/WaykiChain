@@ -287,7 +287,7 @@ public:
                 dbIt.Next();
             }
             if (pItem != nullptr) {
-                if (max_count != 0 && data_list.size() > max_count) {
+                if (max_count != 0 && data_list.size() >= max_count) {
                     have_next = true;
                     break;
                 }
