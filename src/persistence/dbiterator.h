@@ -283,7 +283,7 @@ public:
                     dbIt.Next();
                 }
             } else { // is db data
-                pItem = make_shared<DataListItem>(mapIt.key, mapIt.value);
+                pItem = make_shared<DataListItem>(dbIt.key, dbIt.value);
                 dbIt.Next();
             }
             if (pItem != nullptr) {
