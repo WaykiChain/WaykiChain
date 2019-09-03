@@ -419,18 +419,17 @@ Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
         // 2.contract(id)
         // 3.table
         // 4.scope
-        // 5.start
-        // 6.count
+        // 5.number
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(int_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
-    std::cout << "rpccall gettablerowwasmcontracttx line383"
+    std::cout << "rpccall gettablerowwasmcontracttx "
               << " sender:" << params[0].get_str()
               << " contract:"<< params[1].get_str()
               << " table:"<< params[2].get_str()
               << " scope:"<< params[3].get_str()
-              << " number:"<< params[4].get_uint64()
+              << " number:"<< params[4].get_str()
               << " \n";
 
     EnsureWalletIsUnlocked();
@@ -450,47 +449,60 @@ Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
 
     uint64_t contract = wasm::RegID2Name(contractRegID);
     uint64_t table = wasm::name(params[2].get_str()).value;
-    uint64_t scope = 0;
-    if (params[3].get_str().size() > 0)
-        scope = wasm::name(params[3].get_str()).value;
+    // uint64_t scope = 0;
+    // if (params[3].get_str().size() > 0)
+    //     scope = wasm::name(params[3].get_str()).value;
 
-    // uint64_t number = params[4].get_int();
+    uint64_t number = 10;//params[4].get_int();
 
     CUniversalContract contractCode;
-    if(pCdMan->pContractCache->GetContract(contractRegID, contractCode))
+    if(!pCdMan->pContractCache->GetContract(contractRegID, contractCode))
         throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
 
     string abi = contractCode.abi;
     if (abi.size() == 0)
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
 
-    std::vector<char> k = wasm::pack(std::tuple(contract, table, scope));
-    string key;
-    key.insert(key.end(), k.begin(), k.end());
+    //std::vector<char> k = wasm::pack(std::tuple(contract, table, scope));
+    std::vector<char> k = wasm::pack(std::tuple(contract, table));
+    string keyPrefix;
+    keyPrefix.insert(keyPrefix.end(), k.begin(), k.end());
 
-    std::map<string,string> table_rows;
-    //pCdMan->pContractCache->GetContractDataRow(contractRegID, key, number, table_rows );
+    // std::cout << "rpccall gettablerowwasmcontracttx "
+    //       << " keyPrefix:" << StringToHexString(keyPrefix)
+    //       << std::endl;
 
+    string lastKey = ""; // TODO: get last key
+    auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, number, lastKey);
+    if (!pGetter || !pGetter->Execute()) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
+    }    
+
+    json_spirit::Object object;
     try {
 
-        json_spirit::Object object;
+        //std::vector<json_spirit::Value> 
         json_spirit::Array vars;
-        for (auto r : table_rows ){
+        for (auto item : pGetter->data_list ){
+            const string& value = pGetter->GetValue(item);
+                          
             std::vector<char> row;
-            row.insert(row.end(), r.second.begin(), r.second.end());
+            row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
+
             vars.push_back(v);
         }
-
-        if(scope != 0)
-            object.push_back(Pair(wasm::name(scope).to_string(), vars));
-        else
-            object.push_back(Pair(wasm::name(table).to_string(), vars));
-        return object;
+        // if(scope != 0)
+        //     object.push_back(Pair(wasm::name(scope).to_string(), vars));
+        // else
+         
+        object.push_back(Pair(wasm::name(table).to_string(), vars));
 
     } catch (CException&e ){
         throw JSONRPCError(ABI_PARSE_FAIL, e.errMsg );
     }
+
+    return object;
 
 
 }

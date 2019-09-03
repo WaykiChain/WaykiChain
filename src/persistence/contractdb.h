@@ -12,6 +12,7 @@
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "dbaccess.h"
+#include "dbiterator.h"
 #include "persistence/disk.h"
 #include "vm/luavm/appaccount.h"
 
@@ -26,6 +27,26 @@ class CRegID;
 class CAccount;
 class CContractDB;
 struct CDiskTxPos;
+
+/*  CCompositeKVCache     prefixType                       key              value           variable           */
+/*  -------------------- --------------------         -----------------  -------------   --------------------- */
+    // pair<contractRegId, contractKey> -> contractData
+typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >     DBContractDataCache;
+
+// prefix: pair<contractRegId, contractKey>, can match part of cotractKey (string)
+class CDBContractDatasGetter: public CDBListGetter<DBContractDataCache, pair<string, string>> {
+public:
+    typedef CDBListGetter<DBContractDataCache, pair<string, string>> ListGetter;
+    using ListGetter::ListGetter;
+public:
+    const string& GetKey(const ListGetter::DataListItem &item) {
+        return item.first.second;
+    }
+
+    const string& GetValue(const ListGetter::DataListItem &item) {
+        return item.second;
+    }
+};
 
 class CContractDBCache {
 public:
@@ -109,6 +130,12 @@ public:
                contractDataCache.UndoDatas() &&
                contractAccountCache.UndoDatas();
     }
+
+    shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,
+        const string &contractKeyPrefix, uint32_t count, const string &lastKey) {
+        assert(contractDataCache.GetBasePtr() == nullptr && "only support top level cache");
+        return make_shared<CDBContractDatasGetter>(contractDataCache, make_pair(contractRegid.ToRawString(), contractKeyPrefix));
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
@@ -121,8 +148,8 @@ private:
     CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> set<CKeyID>
     CCompositeKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
-    // pair<contractRegId, contractKey> -> scriptData
-    CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
+    // pair<contractRegId, contractKey> -> contractData
+    DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
     CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };
