@@ -10,7 +10,7 @@
 #include <functional>
 
 ///////////////////////////////////////////////////////////////////////////////
-// class DEX_DB 
+// class DEX_DB
 
 void DEX_DB::OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj) {
         obj.push_back(Pair("order_id", orderId.ToString()));
@@ -29,7 +29,7 @@ void DEX_DB::BlockOrdersToJson(const BlockOrders &orders, Object &obj) {
 }
 
 shared_ptr<string> DEX_DB::ParseLastPos(const string &lastPosInfo, DEXBlockOrdersCache::KeyType &lastKey) {
-    
+
     CDataStream ds(lastPosInfo, SER_DISK, CLIENT_VERSION);
     uint256 lastBlockHash;
     ds >> lastBlockHash >> lastKey;
@@ -47,14 +47,14 @@ shared_ptr<string> DEX_DB::MakeLastPos(const DEXBlockOrdersCache::KeyType &lastK
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex != nullptr)
         return make_shared<string>("The block of lastKey is not contained in acitve chains");
-    
+
     CDataStream ds(lastPosInfo, SER_DISK, CLIENT_VERSION);
     ds << pBlockIndex->GetBlockHash() << lastKey;
     return nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CDEXOrdersGetter 
+// class CDEXOrdersGetter
 
 class CDexOrderIt {
 public:
@@ -79,7 +79,7 @@ class CDBDexOrderIt: public CDexOrderIt {
 private:
     shared_ptr<leveldb::Iterator> p_db_it;
     string last_pos_key;
-    string prefix;    
+    string prefix;
 public:
     using CDexOrderIt::CDexOrderIt;
 
@@ -90,7 +90,7 @@ public:
         p_db_it->Seek(last_pos_key);
         if (p_db_it->Valid() && p_db_it->key() == last_pos_key) {
             p_db_it->Next();
-        } 
+        }
         return Parse();
     }
 
@@ -180,62 +180,48 @@ bool CDEXOrdersGetter::Execute(uint32_t beginHeight, uint32_t endHeight, uint32_
     }
     //auto mapIt = mapRangePair.first;
     while(mapIt.IsValid() || dbIt.IsValid()) {
-        bool useMap = true, isSameKey = false;
+        bool isMapData = true, isSameKey = false;
         if (mapIt.IsValid() && dbIt.IsValid()) {
             if (dbIt.key < mapIt.key) {
-                useMap = false;
+                isMapData = false;
             } else if (dbIt.key > mapIt.key) { // dbIt.key >= mapIt.key
-                useMap = true;
+                isMapData = true;
             } else {// dbIt.key == mapIt.key
-                useMap = true;
+                isMapData = true;
                 isSameKey = true;
             }
         } else if (mapIt.IsValid()) {
-            useMap = true;
+            isMapData = true;
         } else { // dbIt.IsValid())
-            useMap = false;
+            isMapData = false;
         }
-            
-        if (useMap) {
+
+        shared_ptr<DEX_DB::BlockOrdersItem> pItem = nullptr;
+        if (isMapData) {
             if (!mapIt.value.IsEmpty()) {
                 orders.push_back(make_pair(mapIt.key, mapIt.value));
+                pItem = make_shared<DEX_DB::BlockOrdersItem>(mapIt.key, mapIt.value);
             } // else ignore
             mapIt.Next();
-            if (isSameKey && !mapIt.IsValid() && dbIt.IsValid()) {
-                // if the same key and map has no more valid data, must use db next data
+            if (isSameKey) {
+                assert(dbIt.IsValid());
                 dbIt.Next();
             }
         } else { // use db
             orders.push_back(make_pair(dbIt.key, dbIt.value));
+            pItem = make_shared<DEX_DB::BlockOrdersItem>(dbIt.key, dbIt.value);
             dbIt.Next();
         }
-
-        if (maxCount > 0 && orders.size() >= maxCount) {
-            // finish, but has more
-            DEXBlockOrdersCache::KeyType *pNextKey = nullptr;
-            if (useMap) {
-                if(mapIt.IsValid())
-                    pNextKey = &mapIt.key;
-                else if(dbIt.IsValid()){
-                    dbIt.Next();
-                    if(dbIt.IsValid())
-                        pNextKey = &dbIt.key;                    
-                }
-            } else {
-                if(dbIt.IsValid())
-                    pNextKey = &dbIt.key;
-                else if(mapIt.IsValid()){
-                    mapIt.Next();
-                    if(mapIt.IsValid())
-                        pNextKey = &mapIt.key;
-                }
-            }
-            if (pNextKey != nullptr) {
-                last_key = *pNextKey;
+        if (pItem != nullptr) {
+            if (maxCount != 0 && orders.size() > maxCount) {
                 has_more = true;
+                break;
             }
-            break;
+            orders.push_back(*pItem);
         }
+    }
+    if (!orders.empty()) {
+        last_key = orders.back().first;
     }
     return true;
 }
@@ -256,7 +242,7 @@ private:
     shared_ptr<leveldb::Iterator> p_db_it;
     uint32_t height;
     bool is_valid;
-    string prefix;    
+    string prefix;
 public:
     CDBDexSysOrderIt(CDBAccess &dbAccess, uint32_t heightIn)
         : key(), value(), height(heightIn), is_valid(false) {
@@ -271,7 +257,7 @@ public:
     }
 
     bool Next() {
-        p_db_it->Next();        
+        p_db_it->Next();
         return Parse();
     }
 
@@ -303,7 +289,7 @@ class CMapDexSysOrderIt {
 public:
     DEXBlockOrdersCache::KeyType key;
     DEXBlockOrdersCache::ValueType value;
-private:        
+private:
     DEXBlockOrdersCache::Map &data_map;
     DEXBlockOrdersCache::Iterator map_it;
     uint32_t height;
@@ -342,29 +328,28 @@ bool CDEXSysOrdersGetter::Execute(uint32_t height) {
     dbIt.First();
     //auto mapIt = mapRangePair.first;
     while(mapIt.IsValid() || dbIt.IsValid()) {
-        bool useMap = true, isSameKey = false;
+        bool isMapData = true, isSameKey = false;
         if (mapIt.IsValid() && dbIt.IsValid()) {
             if (dbIt.key < mapIt.key) {
-                useMap = false;
+                isMapData = false;
             } else if (dbIt.key > mapIt.key) { // dbIt.key >= mapIt.key
-                useMap = true;
+                isMapData = true;
             } else {// dbIt.key == mapIt.key
-                useMap = true;
+                isMapData = true;
                 isSameKey = true;
             }
         } else if (mapIt.IsValid()) {
-            useMap = true;
+            isMapData = true;
         } else { // dbIt.IsValid())
-            useMap = false;
+            isMapData = false;
         }
-            
-        if (useMap) {
+
+        if (isMapData) {
             if (!mapIt.value.IsEmpty()) {
                 orders.push_back(make_pair(mapIt.key, mapIt.value));
             } // else ignore
             mapIt.Next();
-            if (isSameKey && !mapIt.IsValid() && dbIt.IsValid()) {
-                // if the same key and map has no more valid data, must use db next data
+            if (isSameKey) {
                 dbIt.Next();
             }
         } else { // use db
