@@ -395,14 +395,13 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fee    = params[2].get_uint64();  // real type
-    int32_t height     = 0;
-    if (params.size() > 3) {
-        height = params[3].get_int();
+    int32_t height  = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    if (height < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
     }
-    Array arrVotes = params[1].get_array();
 
-    CKeyID keyId;
-    if (!GetKeyId(sendAddr, keyId)) {
+    CKeyID sendKeyId;
+    if (!GetKeyId(sendAddr, sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
     CDelegateVoteTx delegateVoteTx;
@@ -411,32 +410,30 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
         EnsureWalletIsUnlocked();
         CAccount account;
 
-        CUserID userId = keyId;
-        if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
+        if (!pCdMan->pAccountCache->GetAccount(sendKeyId, account)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
         }
 
-        if (!account.HaveOwnerPubKey()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
-        }
+        CPubKey sendPubKey;
+        if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sender account not found in wallet");
+
+        CUserID sendUserId;
+        CRegID sendRegId;
+        sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
 
         uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
 
-        if (!pWalletMain->HaveKey(keyId)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
-        }
+        delegateVoteTx.txUid        = sendUserId;
+        delegateVoteTx.llFees       = fee;
+        delegateVoteTx.valid_height = height;
 
-        delegateVoteTx.llFees = fee;
-        if (0 != height) {
-            delegateVoteTx.valid_height = height;
-        } else {
-            delegateVoteTx.valid_height = chainActive.Height();
-        }
-        delegateVoteTx.txUid = account.regid;
-
+        Array arrVotes = params[1].get_array();
         for (auto objVote : arrVotes) {
             const Value& delegateAddr  = find_value(objVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(objVote.get_obj(), "votes");
@@ -463,7 +460,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
             delegateVoteTx.candidateVotes.push_back(candidateVote);
         }
 
-        if (!pWalletMain->Sign(keyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
+        if (!pWalletMain->Sign(sendKeyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
