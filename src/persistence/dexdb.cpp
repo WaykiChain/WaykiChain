@@ -36,20 +36,25 @@ shared_ptr<string> DEX_DB::ParseLastPos(const string &lastPosInfo, DEXBlockOrder
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>("The last_pos_info is not contained in acitve chains");
+        return make_shared<string>(strprintf("The last_pos_info is not contained in acitve chains,"
+            " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
     if (pBlockIndex->GetBlockHash() != lastBlockHash)
-        return make_shared<string>("The block of last_pos_info does not match with the acitve block");
+        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the acitve block,"
+            " height=%d, last_block_hash=%s, cur_height_block_hash=%s",
+            lastHeight, lastBlockHash.ToString(), pBlockIndex->GetBlockHash().ToString()));
     return nullptr;
 }
 
 shared_ptr<string> DEX_DB::MakeLastPos(const DEXBlockOrdersCache::KeyType &lastKey, string &lastPosInfo) {
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
-    if (pBlockIndex != nullptr)
-        return make_shared<string>("The block of lastKey is not contained in acitve chains");
+    if (pBlockIndex == nullptr)
+        return make_shared<string>(strprintf("The block of lastKey is not contained in acitve chains,"
+            " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
 
-    CDataStream ds(lastPosInfo, SER_DISK, CLIENT_VERSION);
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pBlockIndex->GetBlockHash() << lastKey;
+    lastPosInfo = ds.str();
     return nullptr;
 }
 
@@ -199,7 +204,6 @@ bool CDEXOrdersGetter::Execute(uint32_t beginHeight, uint32_t endHeight, uint32_
         shared_ptr<DEX_DB::BlockOrdersItem> pItem = nullptr;
         if (isMapData) {
             if (!mapIt.value.IsEmpty()) {
-                orders.push_back(make_pair(mapIt.key, mapIt.value));
                 pItem = make_shared<DEX_DB::BlockOrdersItem>(mapIt.key, mapIt.value);
             } // else ignore
             mapIt.Next();
@@ -208,12 +212,11 @@ bool CDEXOrdersGetter::Execute(uint32_t beginHeight, uint32_t endHeight, uint32_
                 dbIt.Next();
             }
         } else { // use db
-            orders.push_back(make_pair(dbIt.key, dbIt.value));
             pItem = make_shared<DEX_DB::BlockOrdersItem>(dbIt.key, dbIt.value);
             dbIt.Next();
         }
         if (pItem != nullptr) {
-            if (maxCount != 0 && orders.size() > maxCount) {
+            if (maxCount != 0 && orders.size() >= maxCount) {
                 has_more = true;
                 break;
             }
@@ -221,7 +224,9 @@ bool CDEXOrdersGetter::Execute(uint32_t beginHeight, uint32_t endHeight, uint32_
         }
     }
     if (!orders.empty()) {
+        begin_height = DEX_DB::GetHeight(orders.front().first);
         last_key = orders.back().first;
+        end_height = DEX_DB::GetHeight(orders.back().first);
     }
     return true;
 }

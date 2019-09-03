@@ -780,10 +780,11 @@ extern Value getdexorders(const Array& params, bool fHelp) {
 
 
     int64_t maxCount = 500;
-    if (params.size() > 2)
-        endHeight = params[2].get_int64();
-    if (maxCount < 0)
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("max_count=%d must >= 0", maxCount));
+    if (params.size() > 2) {
+        maxCount = params[2].get_int64();
+        if (maxCount < 0)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("max_count=%d must >= 0", maxCount));
+    }
 
     DEXBlockOrdersCache::KeyType lastKey;
     if (params.size() > 3) {
@@ -815,7 +816,7 @@ extern Value getdexorders(const Array& params, bool fHelp) {
     obj.push_back(Pair("begin_height", (int64_t)pGetter->begin_height));
     obj.push_back(Pair("end_height", (int64_t)pGetter->end_height));
     obj.push_back(Pair("has_more", pGetter->has_more));
-    obj.push_back(Pair("last_pos_info", newLastPosInfo));
+    obj.push_back(Pair("last_pos_info", HexStr(newLastPosInfo)));
     pGetter->ToJson(obj);
     return obj;
 }
