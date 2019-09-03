@@ -1400,6 +1400,8 @@ public:
     void Serialize(Stream& s, int nType, int nVersion) const {}
     template<typename Stream>
     void Unserialize(Stream& s, int nType, int nVersion) {}
+    bool IsEmpty() const { return true; }
+    void SetEmpty() {}
 };
 
 #endif

@@ -18,22 +18,6 @@
 #include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
 
-static bool GetKeyId(const CAccountDBCache &view, const string &userIdStr, CKeyID &KeyId) {
-    if (userIdStr.size() == 6) {
-        CRegID regId(userIdStr);
-        KeyId = regId.GetKeyId(view);
-    } else if (userIdStr.size() == 34) {
-        string addr(userIdStr.begin(), userIdStr.end());
-        KeyId = CKeyID(addr);
-    } else {
-        return false;
-    }
-
-    if (KeyId.IsEmpty()) return false;
-
-    return true;
-}
-
 bool CWasmContractTx::CheckTx(int nHeight, CCacheWrapper &cw, CValidationState &state) {
     // IMPLEMENT_CHECK_TX_FEE;
     // IMPLEMENT_CHECK_TX_REGID(txUid.type());

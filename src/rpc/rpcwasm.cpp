@@ -420,19 +420,24 @@ Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
 
     std::vector<char> k = wasm::pack(std::tuple(contract, table, scope));
-    string key;
-    key.insert(key.end(), k.begin(), k.end());
+    string keyPrefix;
+    keyPrefix.insert(keyPrefix.end(), k.begin(), k.end());
 
+    string lastKey = ""; // TODO: get last key
+    uint32_t count = 10; // TODO: get the count
     std::map<string,string> table_rows;
-    //pCdMan->pContractCache->GetContractDataRow(contractRegID, key, number, table_rows );
-
+    auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, count, lastKey);
+    if (!pGetter || !pGetter->Execute()) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
+    }
     try {
 
         json_spirit::Object object;
         json_spirit::Array vars;
-        for (auto r : table_rows ){
+        for (auto item : pGetter->data_list ){
+            const string& value = pGetter->GetValue(item);
             std::vector<char> row;
-            row.insert(row.end(), r.second.begin(), r.second.end());
+            row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
             vars.push_back(v);
         }
