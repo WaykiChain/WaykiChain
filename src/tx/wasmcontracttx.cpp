@@ -122,11 +122,11 @@ bool CWasmContractTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cache, C
     trx.action = action;
     trx.data = data;
 
-    // std::cout << "CWasmContractTx ExecuteTx"
-    //           << " contract:"<< wasm::name(trx.contract).to_string()
-    //           << " action:"<< wasm::name(trx.action).to_string()
-    //           // << " data:"<< params[3].get_str()
-    //           << " \n";
+    std::cout << "CWasmContractTx ExecuteTx"
+              << " contract:"<< wasm::name(trx.contract).to_string()
+              << " action:"<< wasm::name(trx.action).to_string()
+              << " \n";
+
 
     wasm::transaction_trace trx_trace;
     trx_trace.trx_id = GetHash();
@@ -150,6 +150,8 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace&
                                                  CCacheWrapper& cache,
                                                  CValidationState& state,
                                                  uint32_t recurse_depth) {
+
+    //std::cout << "DispatchInlineTransaction ----------------------------"<< " \n";
 
     CWasmContext wasmContext(*this, trx, cache, state, recurse_depth);
     wasmContext.receiver = receiver;

@@ -136,8 +136,9 @@ namespace wasm {
             // std::cout << std::string("receiver:") << wasm::name(pWasmContext->Receiver()).to_string()
             //   << std::string(" contract:") << wasm::name(pWasmContext->Contract()).to_string()
             //   << std::string(" action:") << wasm::name(pWasmContext->Action()).to_string()<< std::endl;
-            system_clock::time_point start = system_clock::now();
 
+            wd.run();
+            system_clock::time_point start = system_clock::now();
             // Execute apply.
             bkend(&ehm, "env", "apply", pWasmContext->Receiver(), pWasmContext->Contract(), pWasmContext->Action());
 

@@ -10,7 +10,7 @@ WASM_DIR = $(srcdir)/vm/wasm
 
 WASM_TYPES_DIR = $(WASM_DIR)/types
 EOSVM_INCLUDE_DIR = $(WASM_DIR)/eos-vm/include
-EOSVM_OUTCOME_DIR = $(srcdir)/external/outcome
+EOSVM_OUTCOME_DIR = $(srcdir)/external/outcome/single-header
 
 EOSIO_VM_H = \
   vm/wasm/eos-vm/include/eosio/vm/allocator.hpp \
@@ -79,7 +79,13 @@ libcompilerbuildin_a_SOURCES = \
   $(COMPILER_BUILTINS_SRC) \
   $(COMPILER_BUILTINS_H)
 
-libwasm_a_CXXFLAGS = -std=c++17 $(AM_CPPFLAGS) $(SOFTFLOAT_CFLAGS) \
+# libwasm_a_CXXFLAGS = -std=c++17 -fno-builtin-memcmp $(AM_CPPFLAGS) $(SOFTFLOAT_CFLAGS) \
+#                     -I$(EOSVM_INCLUDE_DIR) \
+#                     -I$(EOSVM_OUTCOME_DIR) \
+#                     -I$(COMPILER_BUILTINS) \
+#                     -I$(WASM_TYPES_DIR)
+
+libwasm_a_CXXFLAGS = -std=c++17 -fno-builtin-memcmp $(SOFTFLOAT_CFLAGS) \
                     -I$(EOSVM_INCLUDE_DIR) \
                     -I$(EOSVM_OUTCOME_DIR) \
                     -I$(COMPILER_BUILTINS) \

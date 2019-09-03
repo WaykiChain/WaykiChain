@@ -4,7 +4,7 @@
 
 /// wrapper header to use either the built in outcome library or an external Boost v1.70 outcome library
 // #ifdef EOS_VM_USE_EXTERNAL_OUTCOME
-#include <single-header/outcome.hpp>
+#   include <outcome.hpp>
 namespace outcome = OUTCOME_V2_NAMESPACE;
 // #else
 // #   include <boost/outcome.hpp>

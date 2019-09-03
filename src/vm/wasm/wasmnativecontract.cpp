@@ -58,12 +58,12 @@ namespace wasm {
         // CUniversalContract contractTest;
         // context.cache.contractCache.GetContract(contractRegId, contractTest);
 
-        std::cout << "WasmNativeSetcode ----------------------------"
-                  << "  contract:" << nick_name
-                  << " contractRegId:" << contractRegId.ToString()
-                  //<< " abi:"<< contractTest.abi
-                  // << " data:"<< params[3].get_str()
-                  << " \n";
+        // std::cout << "WasmNativeSetcode ----------------------------"
+        //           << "  contract:" << nick_name
+        //           << " contractRegId:" << contractRegId.ToString()
+        //           << " abi:"<< contractTest.abi
+        //           // << " data:"<< params[3].get_str()
+        //           << " \n";
 
         //context.control_trx.nRunStep = contract.GetContractSize();
         //if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;

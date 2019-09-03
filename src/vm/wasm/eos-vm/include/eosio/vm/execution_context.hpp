@@ -54,8 +54,22 @@ namespace eosio { namespace vm {
          }
       }
 
-      void print_stack_label() {
+      void print_stack_as() {
          // std::cout << "LABEL { ";
+         // for (int i = 0; i < _as.size(); i++) {
+         //     auto af = std::get<activation_frame>(_as.get(i));
+
+         //    std::cout << "(" << i << ")";
+         //    std::cout << "pc:" << af.pc << "offset:" << af.offset 
+         //              <<"index:" << af.index << "op_index:" << af.op_index 
+         //              <<"ret_type:" << af.ret_type << "last_cs_size:" << af.last_cs_size ;
+         //    std::cout << " }\n";
+         //  }
+      }
+
+
+      void print_stack_label() {
+         //std::cout << "LABEL { ";
          // for (int i = 0; i < _cs.size(); i++) {
          //    std::cout << "(" << i << ")";
          //    if (std::holds_alternative<block_t>(_cs.get(i))){
@@ -127,6 +141,8 @@ namespace eosio { namespace vm {
          // _cs.push(end_t{ 0, static_cast<uint32_t>(_current_offset + _mod.code[_code_index].code.size() - 1), 0,
          //                 static_cast<uint16_t>(_last_op_index) });
 
+         print_stack_as();
+
       }
 
       inline void apply_pop_call() {
@@ -138,7 +154,13 @@ namespace eosio { namespace vm {
         //print_stack_label();
 
          if (_as.size()) {
-            const auto& af      = std::get<activation_frame>(_as.pop());
+            //print_stack_as();
+            //const auto& af      = std::get<activation_frame>(_as.pop());
+            auto af      = std::get<activation_frame>(_as.pop());
+            // std::cout << "pc:" << af.pc << "offset:" << af.offset 
+            // <<"index:" << af.index << "op_index:" << af.op_index 
+            // <<"ret_type:" << af.ret_type << "last_cs_size:" << af.last_cs_size ;
+
             _current_offset     = af.offset;
             _pc                 = af.pc;
             _code_index         = af.index;
@@ -165,8 +187,9 @@ namespace eosio { namespace vm {
             while ( _cs.size() > af.last_cs_size)
               _cs.pop();
 
+            //print_stack_as();
         // std::cout << "last_cs_size:" << af.last_cs_size << "\n";
-        // print_stack_label();
+            //print_stack_label();
 
          }
 

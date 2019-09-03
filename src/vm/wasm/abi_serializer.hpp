@@ -98,7 +98,7 @@ namespace wasm {
         }
 
         static json_spirit::Value
-        unpack(const string &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time) {
+        unpack( const string &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time ) {
 
             //try {
             json_spirit::Value abi_v;
@@ -153,11 +153,11 @@ namespace wasm {
                 : max_serialization_time(max_serialization_time),
                   deadline(system_clock::now()), // init to now, updated below
                   recursion_depth(0) {
-            // if( max_serialization_time > microseconds::maximum() - deadline.time_since_epoch() ) {
-            //    deadline = system_clock::maximum();
-            // } else {
-            deadline += max_serialization_time;
-            //}
+            if (max_serialization_time > microseconds::max() - deadline.time_since_epoch()) {
+                deadline = std::chrono::time_point<std::chrono::system_clock>::max();
+            } else {
+                deadline += max_serialization_time;
+            }
         }
 
         abi_traverse_context( std::chrono::microseconds max_serialization_time, system_clock::time_point deadline )

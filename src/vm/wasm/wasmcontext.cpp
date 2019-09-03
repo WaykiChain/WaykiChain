@@ -61,6 +61,15 @@ namespace wasm {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
+
+        //CRegID contractRegID = Name2RegID(account);
+
+        // std::cout << "GetCode ------------------------------------------"
+        //           << " contractRegId:" << contractRegID.ToString()
+        //           << " abi:"<< contract.abi
+        //           // << " data:"<< params[3].get_str()
+        //           << " \n";
+
         vector <uint8_t> code;
         code.insert(code.begin(), contract.code.begin(), contract.code.end());
 
@@ -76,6 +85,9 @@ namespace wasm {
     }
 
     void CWasmContext::Execute( inline_transaction_trace &trace ) {
+
+
+        //std::cout << "Execute ----------------------------"<< " \n";
 
         Initialize();
 
@@ -94,6 +106,7 @@ namespace wasm {
                     "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {
+            //std::cout << "Execute ----------------------------"<< inline_transactions.size() << " \n";
             trace.inline_traces.emplace_back();
             control_trx.DispatchInlineTransaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
                                                   state, recurse_depth + 1);
@@ -101,7 +114,22 @@ namespace wasm {
 
     }
 
+    string VectorToHexString(std::vector<uint8_t> str, string separator = " ")
+    {
+
+        const std::string hex = "0123456789abcdef";
+        std::stringstream ss;
+     
+        for (std::string::size_type i = 0; i < str.size(); ++i)
+            ss << hex[(unsigned uint8_t)str[i] >> 4] << hex[(unsigned uint8_t)str[i] & 0xf] << separator;
+
+        return ss.str();
+
+    }
+
     void CWasmContext::ExecuteOne( inline_transaction_trace &trace ) {
+
+        //std::cout << "ExecuteOne ----------------------------"<< " \n";
 
         trace.trx = trx;
         trace.receiver = receiver;
@@ -109,10 +137,13 @@ namespace wasm {
         auto native = FindNativeHandle(receiver, trx.action);
         if (native) {
             (*native)(*this);
+            //std::cout << "ExecuteTwo ---------------------------- "<< " \n";
         } else {
             vector <uint8_t> code = GetCode(receiver);
+            //std::cout << "code:"<< VectorToHexString(code) <<" \n";
             if (code.size() > 0) {
                 try {
+                    //std::cout << "ExecuteOne ----------------------------"<< " \n";
                     wasmInterface.Execute(code, this);
                 } catch (CException &e) {
                     //std::cout << "CWasmContext ExecuteOne:" <<  e.errMsg << std::endl;
