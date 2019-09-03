@@ -16,7 +16,7 @@ using uint128_t = unsigned __int128;
 bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const string &title,
                                           const TokenSymbol &symbol, const int64_t amount) {
     // TODO: should check the min amount of order by symbol
-    if (!CheckCoinRange(symbol, amount))
+    if (amount <= 0 || !CheckCoinRange(symbol, amount))
         return state.DoS(100, ERRORMSG("%s amount out of range, symbol=%s, amount=%llu",
                         title, symbol, amount), REJECT_INVALID, "invalid-coin-range");
 
@@ -27,7 +27,7 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
                           const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
                           const int64_t price) {
     // TODO: should check the price range??
-    if (price < 0)
+    if (price <= 0)
         return state.DoS(100, ERRORMSG("%s price out of range,"
                         " coin_symbol=%s, asset_symbol=%s, price=%llu",
                         title, coin_symbol, asset_symbol, price),
@@ -425,6 +425,9 @@ bool CDEXCancelOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationSt
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
+    if (orderId.IsEmpty())
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
+                         "invalid-order-id");
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
@@ -530,6 +533,24 @@ bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex match-svc regId"),
                          REJECT_INVALID, "unauthorized-settle-account");
+    }
+
+    if (dealItems.empty())
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal items is empty"),
+                         REJECT_INVALID, "invalid-deal-items");
+
+    for (size_t i = 0; i < dealItems.size(); i++) {
+        const DEXDealItem & dealItem = dealItems.at(i);
+        if (dealItem.buyOrderId.IsEmpty() || dealItem.sellOrderId.IsEmpty())
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id or sell_order_id is empty",
+                i), REJECT_INVALID, "invalid-deal-item");
+        if (dealItem.buyOrderId == dealItem.sellOrderId)
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id cannot equal to sell_order_id",
+                i), REJECT_INVALID, "invalid-deal-item");
+        if (dealItem.dealCoinAmount == 0 || dealItem.dealAssetAmount == 0 || dealItem.dealPrice)
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d],"
+                " deal_coin_amount or deal_asset_amount or deal_price is zero",
+                i), REJECT_INVALID, "invalid-deal-item");
     }
 
     CAccount srcAccount;
