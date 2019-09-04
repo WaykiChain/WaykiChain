@@ -102,7 +102,7 @@ namespace wasm {
             std::vector<char> key = wasm::pack(t);
             k = string((const char *) key.data(), key.size()) + k;
 
-            std::cout << ToHex(k) << std::endl;
+            //std::cout << ToHex(k) << std::endl;
         }
 
         string StringPrint( string str1, string str2 ) {
@@ -190,9 +190,9 @@ namespace wasm {
             // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
-            std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
-                      << " value:"<< ToHex(v)      << " value_len:" << val_len 
-                      << std::endl;
+            // std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
+            //           << " value:"<< ToHex(v)      << " value_len:" << val_len 
+            //           << std::endl;
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;
@@ -319,7 +319,7 @@ namespace wasm {
         }
 
         void printn( uint64_t val ) {//should be name
-            std::cout << "printn" << std::endl;
+            //std::cout << "printn" << std::endl;
             //std::cout << name_to_string(value);
             if (!print_ignore) {
                 pWasmContext->console_append(name_to_string(val));

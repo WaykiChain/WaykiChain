@@ -420,9 +420,9 @@ namespace eosio { namespace vm {
 
       template <typename Visitor>
       void execute(Visitor&& visitor) {
-         //int op_count = 0;
+         int op_count = 0;
          do {
-            //op_count ++;
+            op_count ++;
             uint32_t offset = _pc - _current_offset;
             if (_pc == _exit_pc && _as.size() <= 1) {
                _executing = false;
@@ -430,7 +430,7 @@ namespace eosio { namespace vm {
             std::visit(visitor, _mod.code.at_no_check(_code_index).code.at_no_check(offset));
          } while (_executing);
 
-         //std::cout << "opcodes:" << op_count <<std::endl;
+         std::cout << "opcodes:" << op_count <<std::endl;
       }
 
       bounded_allocator _base_allocator = {

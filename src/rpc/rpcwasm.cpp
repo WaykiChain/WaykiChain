@@ -459,7 +459,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
 
     uint64_t table = wasm::name(params[1].get_str()).value;
-    uint64_t numbers = std::atoi(params[3].get_str().data());
+    uint64_t numbers = std::atoi(params[2].get_str().data());
 
     string keyPrefix;
     std::vector<char> k = wasm::pack(std::tuple(contract, table));
@@ -467,15 +467,15 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     // std::cout << "rpccall gettablerowwasmcontracttx "
     //       << " keyPrefix:" << ToHex(keyPrefix,"")
     //       << std::endl;
-
+  //std::cout << "rpccall gettablerowwasmcontracttx 1" << std::endl;
     string lastKey = ""; // TODO: get last key
-    if (params[3].get_str().size() > 0) {
+    if (params.size() > 3) {
         lastKey = FromHex(params[3].get_str());
-//        std::cout << "rpccall gettablerowwasmcontracttx "
-//                  << " lastKey:" << ToHex(lastKey, "")
-//                  << std::endl;
+       std::cout << "rpccall gettablerowwasmcontracttx "
+                 << " lastKey:" << ToHex(lastKey, "")
+                 << std::endl;
     }
-
+  //std::cout << "rpccall gettablerowwasmcontracttx 0" << std::endl;
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
@@ -485,6 +485,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     try {
         json_spirit::Array vars;
         string last_key;
+
         for (auto item : pGetter->data_list) {
             last_key = pGetter->GetKey(item);
             const string &value = pGetter->GetValue(item);

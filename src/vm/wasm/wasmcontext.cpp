@@ -32,14 +32,11 @@ namespace wasm {
             auto action_s = name(trace.trx.action).to_string();
             auto receiver_s = name(receiver).to_string();
 
-            auto receiver_s1 = name(receiver).to_string();
-            //std::cout << "notified:" << receiver_s1 << std::endl;
-
-            prefix << "\n [(" << contract_s << "," << action_s << ")->" << receiver_s << "]";
+            prefix << "[(" << contract_s << "," << action_s << ")->" << receiver_s << "]";
             //prefix << "\n [(" << trace.trx.contract << "," << trace.trx.action << ")->" << receiver << "]";
 
             std::cout << prefix.str() << ": CONSOLE OUTPUT BEGIN =====================\n"
-                      << trace.console
+                      << trace.console << "\n"
                       << prefix.str() << ": CONSOLE OUTPUT END   =====================\n";
         }
     }
