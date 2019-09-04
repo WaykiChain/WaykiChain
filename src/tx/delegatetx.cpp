@@ -95,9 +95,9 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     vector<CReceipt> receipts;
-    if (!srcAccount.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, height, cw.accountCache, receipts)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate delegate vote failed, txUid=%s",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
+    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, height, cw.accountCache, receipts)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s",
+                        txUid.ToString()), OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");
     }
     if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, write candidate votes failed, txUid=%s", txUid.ToString()),

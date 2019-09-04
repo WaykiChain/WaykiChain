@@ -164,7 +164,7 @@ public:
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
-    bool ProcessDelegateVotes(const vector<CCandidateVote>& candidateVotesIn,
+    bool ProcessCandidateVotes(const vector<CCandidateVote>& candidateVotesIn,
                               vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
                               const CAccountDBCache &accountCache, vector<CReceipt> &receipts);
 
