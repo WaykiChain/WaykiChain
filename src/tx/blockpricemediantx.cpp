@@ -97,6 +97,13 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // 3. force settle each cdp
         if (forceLiquidateCDPList.size() == 0) {
             break;
+        } else {
+            // TODO: remove me.
+            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, have %llu cdps to force settle, in detail:\n",
+                     forceLiquidateCDPList.size());
+            for (const auto &cdp : forceLiquidateCDPList) {
+                LogPrint("CDP", "%s\n", cdp.ToString());
+            }
         }
 
         int32_t cdpIndex = 0;
