@@ -96,6 +96,15 @@ namespace wasm {
 
         }
 
+        template<typename T>
+        static void AddPrefix(T t, string& k){
+
+            std::vector<char> key = wasm::pack(t);
+            k = string((const char *) key.data(), key.size()) + k;
+
+            std::cout << ToHex(k) << std::endl;
+        }
+
         string StringPrint( string str1, string str2 ) {
 
             std::ostringstream ostr;
@@ -174,6 +183,13 @@ namespace wasm {
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
+            //merge receiver
+            // std::stringstream ss;
+            // ss << pWasmContext->Receiver();
+            // ss << k;
+            // k = ss.str();
+            AddPrefix(pWasmContext->Receiver(), k);
+
             std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
                       << " value:"<< ToHex(v)      << " value_len:" << val_len 
                       << std::endl;
@@ -195,6 +211,12 @@ namespace wasm {
             const uint64_t payer = pWasmContext->Receiver();
 
             string k = string((const char *) key, key_len);
+
+            // std::stringstream ss;
+            // ss << pWasmContext->Receiver();
+            // ss << k;
+            // k = ss.str();
+            AddPrefix(pWasmContext->Receiver(), k);
             //std::cout << "db_remove key: "<< ToHex(k)<<" key_len: "<<key_len << std::endl;
 
             //string oldValue;
@@ -214,6 +236,12 @@ namespace wasm {
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
             //std::cout << "db_get" << std::endl;
             string k = string((const char *) key, key_len);
+
+            // std::stringstream ss;
+            // ss << pWasmContext->Receiver();
+            // ss << k;
+            // k = ss.str();
+            AddPrefix(pWasmContext->Receiver(), k);
 
             //std::cout << "db_get" << " key: "<<ToHex(k,"")<<" key_len: "<<key_len << std::endl;
             string v;
@@ -239,6 +267,12 @@ namespace wasm {
             //std::cout << "db_update" << std::endl;
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
+
+            // std::stringstream ss;
+            // ss << pWasmContext->Receiver();
+            // ss << k;
+            // k = ss.str();
+            AddPrefix(pWasmContext->Receiver(), k);
 
             //const uint64_t payer = wasmContext.receiver;
             const uint64_t payer = pWasmContext->Receiver();
