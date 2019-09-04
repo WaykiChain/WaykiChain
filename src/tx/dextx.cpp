@@ -733,7 +733,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         sellOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
 
         // 7. check the order limit amount and get residual amount
-        uint64_t buyResidualAmount = 0;
+        uint64_t buyResidualAmount  = 0;
         uint64_t sellResidualAmount = 0;
 
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {

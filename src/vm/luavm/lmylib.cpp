@@ -1265,7 +1265,7 @@ static int ExWriteDataDBFunc(lua_State *L)
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    const CRegID contractRegId = pVmRunEnv->GetScriptRegID();
+    const CRegID contractRegId = pVmRunEnv->GetContractRegID();
     bool flag = true;
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     string oldValue;
@@ -1300,7 +1300,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    CRegID contractRegId       = pVmRunEnv->GetScriptRegID();
+    CRegID contractRegId       = pVmRunEnv->GetContractRegID();
     CContractDBCache *scriptDB = pVmRunEnv->GetScriptDB();
 
     bool flag = true;
@@ -1338,7 +1338,7 @@ static int ExReadDataDBFunc(lua_State *L) {
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    CRegID scriptRegId = pVmRunEnv->GetScriptRegID();
+    CRegID scriptRegId = pVmRunEnv->GetContractRegID();
 
     string value;
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
@@ -1389,7 +1389,7 @@ static int ExModifyDataDBFunc(lua_State *L)
         return RetFalse("pVmRunEnv is NULL");
     }
 
-    CRegID contractRegId = pVmRunEnv->GetScriptRegID();
+    CRegID contractRegId = pVmRunEnv->GetContractRegID();
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
     string oldValue;
     bool flag = false;
@@ -1578,7 +1578,7 @@ static int ExGetContractRegIdFunc(lua_State *L)
     LUA_BurnFuncCall(L, FUEL_CALL_GetContractRegId, BURN_VER_R2);
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    UnsignedCharArray contractRegId = pVmRunEnv->GetScriptRegID().GetRegIdRaw();
+    UnsignedCharArray contractRegId = pVmRunEnv->GetContractRegID().GetRegIdRaw();
    //3.往函数私有栈里存运算后的结果
     int len = RetRstToLua(L,contractRegId);
    /*
@@ -1931,7 +1931,7 @@ static int ExTransferContractAsset(lua_State *L)
 
     vector<unsigned char> sendKey;
     vector<unsigned char> recvKey;
-    CRegID script = pVmRunEnv->GetScriptRegID();
+    CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID =pVmRunEnv->GetTxAccount();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
@@ -2042,7 +2042,7 @@ static int ExTransferSomeAsset(lua_State *L) {
 
     vector<unsigned char> sendKey;
     vector<unsigned char> recvKey;
-    CRegID script = pVmRunEnv->GetScriptRegID();
+    CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID = pVmRunEnv->GetTxAccount();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());

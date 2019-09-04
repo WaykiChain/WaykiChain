@@ -10,7 +10,9 @@
 #include "appaccount.h"
 #include "commons/serialize.h"
 #include "entities/account.h"
+#include "entities/receipt.h"
 #include "persistence/leveldbwrapper.h"
+
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_writer_template.h"
@@ -53,7 +55,7 @@ private:
 
 	CAccountDBCache *pAccountCache;
 	CContractDBCache *pContractCache;
-    CTxReceiptDBCache *pTxReceiptCache;
+    vector<CReceipt> receipts;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
     bool isCheckAccount;  //校验账户平衡开关
@@ -69,7 +71,7 @@ private:
      * @return : check the the tx and account is Legal true is legal false is illegal
      */
     bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
-                    CTxReceiptDBCache& txReceiptCache, int32_t height);
+                    int32_t height);
     /**
      * @brief check action
      * @param operates: run the script return the code,check the code
@@ -137,15 +139,15 @@ public:
      * uint64_t if the script run success Run the script calls the money ,string represent run the
      * failed's  Reason
      */
-    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& tx, int32_t height, CCacheWrapper &cw,
-                                                  uint64_t nBurnFactor, uint64_t& uRunStep);
+    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& tx, int32_t height, CCacheWrapper& cw,
+                                                       uint64_t nBurnFactor, uint64_t& uRunStep);
 
     /**
      * @brief just for test
      * @return:
      */
     //	shared_ptr<vector<CVmOperate> > GetOperate() const;
-    const CRegID& GetScriptRegID();
+    const CRegID& GetContractRegID();
     const CRegID& GetTxAccount();
     uint64_t GetValue() const;
     const string& GetTxContract();

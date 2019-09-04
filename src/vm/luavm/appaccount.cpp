@@ -73,6 +73,8 @@ CAppUserAccount::CAppUserAccount(const string& userId) {
     vFrozenFunds.clear();
 }
 
+CAppUserAccount::~CAppUserAccount() {}
+
 bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<uint8_t>& tag, int32_t height) {
     auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(),
                       [&](const CAppCFund& fundIn) { return height == fundIn.GetHeight() && fundIn.GetTag() == tag; });
@@ -175,8 +177,6 @@ bool CAppUserAccount::AddAppCFund(const vector<uint8_t>& tag, uint64_t val, int3
     return AddAppCFund(fund);
 }
 
-CAppUserAccount::~CAppUserAccount() {}
-
 bool CAppUserAccount::Operate(const vector<CAppFundOperate>& operate) {
     assert(operate.size() > 0);
     // LogPrint("acc","before:%s",toString());
@@ -209,7 +209,6 @@ bool CAppUserAccount::Operate(const CAppFundOperate& operate) {
     } else if (operate.opType == ADD_TAG_OP) {
         CAppCFund tep(operate);
         return AddAppCFund(tep);
-
     } else if (operate.opType == SUB_TAG_OP) {
         CAppCFund tep(operate);
         return MinusAppCFund(tep);

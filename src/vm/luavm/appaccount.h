@@ -63,7 +63,7 @@ class CAppFundOperate {
 public:
     CAppFundOperate();
 
-    uint8_t opType;          //! OperType
+    uint8_t opType;          //!< OperType
     uint32_t timeoutHeight;  //!< the transacion Timeout height
     int64_t mMoney;          //!< The transfer amount
     uint8_t appuserIDlen;
@@ -134,15 +134,13 @@ class CAppUserAccount {
 public:
     CAppUserAccount();
     CAppUserAccount(const string &userId);
-    bool Operate(const vector<CAppFundOperate> &operate);
-    bool GetAppCFund(CAppCFund &outFound, const vector<uint8_t> &tag, int32_t height);
-
-    bool AutoMergeFreezeToFree(int32_t hight);
-
     virtual ~CAppUserAccount();
 
-    json_spirit::Object ToJson() const;
+    bool Operate(const vector<CAppFundOperate> &operate);
+    bool GetAppCFund(CAppCFund &outFound, const vector<uint8_t> &tag, int32_t height);
+    bool AutoMergeFreezeToFree(int32_t height);
 
+    json_spirit::Object ToJson() const;
     string ToString() const;
 
     uint64_t GetBcoins() const { return bcoins; }
