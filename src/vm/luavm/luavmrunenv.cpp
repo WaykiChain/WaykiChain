@@ -167,7 +167,7 @@ shared_ptr<CAccount> CLuaVMRunEnv::GetAccount(shared_ptr<CAccount>& account) {
     return nullptr;
 }
 
-UnsignedCharArray CLuaVMRunEnv::GetAccountID(CVmOperate value) {
+UnsignedCharArray CLuaVMRunEnv::GetAccountID(const CVmOperate& value) {
     UnsignedCharArray accountId;
     if (value.accountType == AccountType::REGID) {
         accountId.assign(value.accountId, value.accountId + 6);
@@ -395,9 +395,9 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
             receipts.emplace_back(userId, nullId, SYMB::WICC, value, "operate bcoins in original account");
         }
 
-        LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
-
         newAccount.push_back(vmAccount);
+
+        LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
     }
 
     return true;
@@ -461,8 +461,7 @@ bool CLuaVMRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
  * @param pAppUserAccount
  * @return
  */
-bool CLuaVMRunEnv::GetAppUserAccount(const vector<uint8_t>& vAppUserId,
-                                  shared_ptr<CAppUserAccount>& pAppUserAccount) {
+bool CLuaVMRunEnv::GetAppUserAccount(const vector<uint8_t>& vAppUserId, shared_ptr<CAppUserAccount>& pAppUserAccount) {
     assert(pContractCache);
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     string appUserId(vAppUserId.begin(), vAppUserId.end());
@@ -502,10 +501,10 @@ bool CLuaVMRunEnv::OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundO
             shared_ptr<CAppUserAccount> vmAppAccount = GetAppAccount(pAppUserAccount);
             if (vmAppAccount.get() == nullptr) {
                 rawAppUserAccount.push_back(pAppUserAccount);
-                vmAppAccount = pAppUserAccount;
             }
 
             LogPrint("vm", "before user: %s\n", pAppUserAccount.get()->ToString());
+
             if (!pAppUserAccount.get()->Operate(tem.second)) {
                 int32_t i = 0;
                 for (auto const appFundOperate : tem.second) {
@@ -515,7 +514,9 @@ bool CLuaVMRunEnv::OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundO
                          HexStr(tem.first));
                 return false;
             }
+
             newAppUserAccount.push_back(pAppUserAccount);
+
             LogPrint("vm", "after user: %s\n", pAppUserAccount.get()->ToString());
 
             pContractCache->SetContractAccount(GetContractRegID(), *pAppUserAccount.get());

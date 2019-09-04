@@ -103,7 +103,7 @@ private:
      * @param value: argument
      * @return:Return account id
      */
-    UnsignedCharArray GetAccountID(CVmOperate value);
+    UnsignedCharArray GetAccountID(const CVmOperate& value);
     //	bool IsSignatureAccount(CRegID account);
     bool OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundOperate>> opMap);
 

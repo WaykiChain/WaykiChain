@@ -12,42 +12,9 @@
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
 
-#if 0
-static void setfield(lua_State *L,char * key,double value){
-     //默认栈顶是table
-    lua_pushstring(L,key);
-    lua_pushnumber(L,value);
-    lua_settable(L,-3); //将这一对键值设成元素
-}
-static void stackDump(lua_State *L){
-    int i;
-    int top = lua_gettop(L);
-//  int top = 20;//debug
-    for(i = 0;i < top;i++){
-        int t = lua_type(L,-1 - i);
-        switch(t){
-        case LUA_TSTRING:
-            LogPrint("vm","%d str =%s\n", i, lua_tostring(L,-1 - i));
-            break;
-        case LUA_TBOOLEAN:
-            LogPrint("vm","boolean =%d\n",lua_toboolean(L,-1 - i));
-            break;
-        case LUA_TNUMBER:
-            LogPrint("vm","number =%d\n",lua_tonumber(L,-1 - i));
-            break;
-        default:
-            LogPrint("vm","default =%s\n",lua_typename(L,-1 - i));
-            break;
-        }
-       LogPrint("vm"," ");
-    }
-    LogPrint("vm","\n");
-}
-#endif
-
 /*
  *  //3.往函数私有栈里存运算后的结果*/
-static inline int32_t RetRstToLua(lua_State *L, const vector<unsigned char> &resultData,
+static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultData,
                               bool needToTruncate = true) {
     int32_t len = resultData.size();
     // truncate data by default
@@ -99,8 +66,7 @@ static inline int32_t RetRstToLua(lua_State *L, const string &resultData,
 
 /*
  *  //3.往函数私有栈里存布尔类型返回值*/
-static inline int32_t RetRstBooleanToLua(lua_State *L,bool flag)
-{
+static inline int32_t RetRstBooleanToLua(lua_State *L, bool flag) {
     //检测栈空间是否够
    if (lua_checkstack(L,sizeof(int))) {
 //      LogPrint("vm", "RetRstBooleanToLua value:%d\n",flag);
@@ -119,7 +85,7 @@ static inline int32_t RetFalse(const string reason)
 }
 static CLuaVMRunEnv* GetVmRunEnv(lua_State *L)
 {
-    CLuaVMRunEnv* pVmRunEnv = NULL;
+    CLuaVMRunEnv* pVmRunEnv = nullptr;
     int32_t res = lua_getglobal(L, "VmScriptRun");
     //LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
 
@@ -133,7 +99,7 @@ static CLuaVMRunEnv* GetVmRunEnv(lua_State *L)
     return pVmRunEnv;
 }
 
-static bool GetKeyId(const CAccountDBCache &accountView, vector<unsigned char> &ret, CKeyID &keyId) {
+static bool GetKeyId(const CAccountDBCache &accountView, vector<uint8_t> &ret, CKeyID &keyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
         keyId = reg.GetKeyId(accountView);
@@ -150,7 +116,7 @@ static bool GetKeyId(const CAccountDBCache &accountView, vector<unsigned char> &
     return true;
 }
 
-static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
     //从栈里取变长的数组
     int totallen = lua_gettop(L);
     if((totallen <= 0) || (totallen > LUA_C_BUFFER_SIZE))
@@ -159,7 +125,7 @@ static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned
         return false;
     }
 
-    vector<unsigned char> vBuf;
+    vector<uint8_t> vBuf;
     vBuf.clear();
     for(int i = 0;i < totallen;i++)
     {
@@ -170,7 +136,7 @@ static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<unsigned
         }
         vBuf.insert(vBuf.end(),lua_tonumber(L,i+1));
     }
-    ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     //LogPrint("vm", "GetData:%s, len:%d\n", HexStr(vBuf).c_str(), vBuf.size());
     return true;
 }
@@ -187,22 +153,22 @@ static bool GetDataInt(lua_State *L,int &intValue) {
         return true;
     }
 }
-static bool GetDataString(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetDataString(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
     //从栈里取一串字符串
     if(!lua_isstring(L,-1 - 0))
     {
         LogPrint("vm","%s\n","data is not string");
         return false;
     }
-    vector<unsigned char> vBuf;
+    vector<uint8_t> vBuf;
     vBuf.clear();
-    const char *pStr = NULL;
+    const char *pStr = nullptr;
     pStr = lua_tostring(L,-1 - 0);
     if(pStr && (strlen(pStr) <= LUA_C_BUFFER_SIZE)){
         for(size_t i = 0;i < strlen(pStr);i++){
             vBuf.insert(vBuf.end(),pStr[i]);
         }
-        ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+        ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
         //LogPrint("vm", "GetDataString:%s\n", pStr);
         return true;
     }else{
@@ -232,7 +198,7 @@ static bool getNumberInTable(lua_State *L, const char* pKey, double &ret){
 static bool getStringInTable(lua_State *L,char * pKey, string &strValue){
     // 在table里，取指定pKey对应的string值
 
-    const char *pStr = NULL;
+    const char *pStr = nullptr;
     //默认栈顶是table，将pKey入栈
     lua_pushstring(L,pKey);
     lua_gettable(L,-2);  //查找键值为key的元素，置于栈顶
@@ -290,7 +256,7 @@ static bool getArrayInTable(lua_State *L, const char *pKey, unsigned short usLen
     lua_pop(L,1); //删掉产生的查找结果
     return true;
 }
-static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vector<unsigned char> &vOut){
+static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vector<uint8_t> &vOut){
     //从栈里取 table的值是一串字符串
     //该函数专用于写日志函数GetDataTableLogPrint，
     if((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)){
@@ -303,7 +269,7 @@ static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vect
     lua_pushstring(L,pKey);
     lua_gettable(L,1);
 
-    const char *pStr = NULL;
+    const char *pStr = nullptr;
     vOut.clear();
     lua_getfield(L,-2,pKey);
     //stackDump(L);
@@ -326,7 +292,7 @@ static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vect
         return false;
     }
 }
-static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
     //取日志的key value
     if(!lua_istable(L,-1))
     {
@@ -334,7 +300,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
         return false;
     }
     unsigned short len = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
     //取key
     int key = 0;
     double doubleValue = 0;
@@ -346,7 +312,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
     }
     vBuf.clear();
     vBuf.insert(vBuf.end(),key);
-    ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
 
     //取value的长度
     if (!(getNumberInTable(L, "length", doubleValue))){
@@ -363,14 +329,14 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
                 LogPrint("vm","valueTable is not table\n");
                 return false;
             } else {
-                ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+                ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
             }
         } else { //string
             if(!getStringLogPrint(L,(char *)"value",len,vBuf)) {
                 LogPrint("vm","valueString is not string\n");
                 return false;
             } else {
-                ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+                ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
             }
         }
         return true;
@@ -379,21 +345,22 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vec
         return false;
     }
 }
-static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
+
+static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
 {
-    if(!lua_istable(L,-1)) {
-        LogPrint("vm","is not table\n");
+    if (!lua_istable(L, -1)) {
+        LogPrint("vm", "is not table\n");
         return false;
     }
     double doubleValue = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
 
     int dataLen = 0;
     if (!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
             LogPrint("vm","dataLen get fail\n");
             return false;
         } else {
-            dataLen = (unsigned int)doubleValue;
+            dataLen = (uint32_t)doubleValue;
     }
 
     if (dataLen <= 0) {
@@ -401,20 +368,19 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
         return false;
     }
 
-    if (!getArrayInTable(L,(char *)"data",dataLen,vBuf)) {
-        LogPrint("vm","data not table\n");
+    if (!getArrayInTable(L, (char *)"data", dataLen, vBuf)) {
+        LogPrint("vm", "data not table\n");
         return false;
-    }else{
-
-        ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+    } else {
+        ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     int keyLen = 0;
-    if(!(getNumberInTable(L,(char *)"keyLen",doubleValue))){
-            LogPrint("vm","keyLen get fail\n");
-            return false;
-        }else{
-            keyLen = (unsigned int)doubleValue;
+    if (!(getNumberInTable(L, (char *)"keyLen", doubleValue))) {
+        LogPrint("vm", "keyLen get fail\n");
+        return false;
+    } else {
+        keyLen = (uint32_t)doubleValue;
     }
 
     if(keyLen <= 0) {
@@ -422,30 +388,28 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"key",keyLen,vBuf))
-    {
-        LogPrint("vm","key not table\n");
+    if (!getArrayInTable(L, (char *)"key", keyLen, vBuf)) {
+        LogPrint("vm", "key not table\n");
         return false;
-    }else{
-
-        ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+    } else {
+        ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     int nFlag = 0;
-    if(!(getNumberInTable(L,(char *)"flag",doubleValue))){
-            LogPrint("vm","flag get fail\n");
-            return false;
-        }else{
-            nFlag = (unsigned int)doubleValue;
-            CDataStream tep(SER_DISK, CLIENT_VERSION);
-            tep << (nFlag == 0 ? 0 : 1);
-            ret.push_back(std::make_shared<vector<unsigned char>>(tep.begin(), tep.end()));
+    if (!(getNumberInTable(L, (char *)"flag", doubleValue))) {
+        LogPrint("vm", "flag get fail\n");
+        return false;
+    } else {
+        nFlag = (uint32_t)doubleValue;
+        CDataStream tep(SER_DISK, CLIENT_VERSION);
+        tep << (nFlag == 0 ? 0 : 1);
+        ret.push_back(std::make_shared<vector<uint8_t>>(tep.begin(), tep.end()));
     }
 
     return true;
 }
 
-static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
+static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
 {
     if(!lua_istable(L,-1))
     {
@@ -453,14 +417,14 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
         return false;
     }
     double doubleValue = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
 
     int dataLen = 0;
     if(!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
             LogPrint("vm","get dataLen failed\n");
             return false;
         }else{
-            dataLen = (unsigned int)doubleValue;
+            dataLen = (uint32_t)doubleValue;
     }
 
     if(dataLen <= 0) {
@@ -474,7 +438,7 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
         return false;
     }else{
 
-        ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+        ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     int pubKeyLen = 0;
@@ -482,7 +446,7 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
             LogPrint("vm","get pubKeyLen failed\n");
             return false;
         }else{
-            pubKeyLen = (unsigned int)doubleValue;
+            pubKeyLen = (uint32_t)doubleValue;
     }
 
     if(pubKeyLen <= 0) {
@@ -496,7 +460,7 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
         return false;
     }else{
 
-        ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+        ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     int signatureLen = 0;
@@ -504,7 +468,7 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
         LogPrint("vm","get signatureLen failed\n");
         return false;
     }
-    signatureLen = (unsigned int)doubleValue;
+    signatureLen = (uint32_t)doubleValue;
 
     if(signatureLen <= 0) {
         LogPrint("vm","hashLen <= 0\n");
@@ -517,7 +481,7 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < s
         return false;
     }else{
 
-        ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+        ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     return true;
@@ -633,16 +597,16 @@ static int ExInt64DivFunc(lua_State *L) {
  *   1. The first param is the target string to be hashed twice in a BitCoin way
  */
 static int ExSha256Func(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataString(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() <= 0) {
         return RetFalse("ExSha256Func param err");
     }
-    vector<unsigned char> &dataIn = *retdata.at(0).get();
+    vector<uint8_t> &dataIn = *retdata.at(0).get();
     LUA_BurnFuncData(L, FUEL_CALL_Sha256, dataIn.size(), 32, FUEL_DATA32_Sha256, BURN_VER_R2);
     uint256 hash = Hash(dataIn.begin(), dataIn.end());
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << hash;
-    vector<unsigned char> tep1(tep.begin(), tep.end());
+    vector<uint8_t> tep1(tep.begin(), tep.end());
     return RetRstToLua(L, tep1);
 }
 
@@ -653,16 +617,16 @@ static int ExSha256Func(lua_State *L) {
  */
 static int ExSha256OnceFunc(lua_State *L) {
 
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0) {
         return RetFalse("ExSha256OnceFunc param err");
     }
-    vector<unsigned char> &dataIn = *retdata.at(0).get();
+    vector<uint8_t> &dataIn = *retdata.at(0).get();
 
     LUA_BurnFuncData(L, FUEL_CALL_Sha256Once, dataIn.size(), 32, FUEL_DATA32_Sha256Once, BURN_VER_R2);
     uint256 hash;
     SHA256(&dataIn.at(0), dataIn.size(), hash.begin());
-    vector<unsigned char> tep1(hash.begin(), hash.end());
+    vector<uint8_t> tep1(hash.begin(), hash.end());
     return RetRstToLua(L, tep1);
 }
 
@@ -682,13 +646,13 @@ static int ExSha256OnceFunc(lua_State *L) {
  * }
  */
 static int ExDesFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<unsigned char> > > retdata;
+    vector<std::shared_ptr<vector<uint8_t> > > retdata;
 
     if (!GetDataTableDes(L, retdata) || retdata.size() != 3) {
         return RetFalse(string(__FUNCTION__) + "para  err !");
     }
-    vector<unsigned char> &dataIn = *retdata.at(0).get();
-    vector<unsigned char> &keyIn = *retdata.at(1).get();
+    vector<uint8_t> &dataIn = *retdata.at(0).get();
+    vector<uint8_t> &keyIn = *retdata.at(1).get();
     unsigned char flag = retdata.at(2).get()->at(0);
     static_assert(sizeof(DES_cblock) == 8, "DES block must be 8");
     if (keyIn.size() == 8) {
@@ -701,8 +665,8 @@ static int ExDesFunc(lua_State *L) {
 
     DES_key_schedule deskey1, deskey2, deskey3;
 
-    vector<unsigned char> desdata;
-    vector<unsigned char> desout;
+    vector<uint8_t> desdata;
+    vector<uint8_t> desout;
     unsigned char datalen_rest = dataIn.size() % sizeof(DES_cblock);
     desdata.assign(dataIn.begin(), dataIn.end());
     if (datalen_rest) {
@@ -719,7 +683,7 @@ static int ExDesFunc(lua_State *L) {
             //          printf("the des encrypt\n");
             memcpy(key, &keyIn.at(0), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey1);
-            for (unsigned int ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
+            for (uint32_t ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
                 memcpy(&in, &desdata[ii * sizeof(DES_cblock)], sizeof(in));
                 //              printf("in :%s\n", HexStr(in, in + 8, true).c_str());
                 DES_ecb_encrypt(&in, &out, &deskey1, DES_ENCRYPT);
@@ -733,7 +697,7 @@ static int ExDesFunc(lua_State *L) {
             DES_set_key_unchecked(&key, &deskey3);
             memcpy(key, &keyIn.at(0) + sizeof(DES_cblock), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey2);
-            for (unsigned int ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
+            for (uint32_t ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
                 memcpy(&in, &desdata[ii * sizeof(DES_cblock)], sizeof(in));
                 DES_ecb3_encrypt(&in, &out, &deskey1, &deskey2, &deskey3, DES_ENCRYPT);
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
@@ -747,7 +711,7 @@ static int ExDesFunc(lua_State *L) {
             //          printf("the des decrypt\n");
             memcpy(key, &keyIn.at(0), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey1);
-            for (unsigned int ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
+            for (uint32_t ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
                 memcpy(&in, &desdata[ii * sizeof(DES_cblock)], sizeof(in));
                 //              printf("in :%s\n", HexStr(in, in + 8, true).c_str());
                 DES_ecb_encrypt(&in, &out, &deskey1, DES_DECRYPT);
@@ -761,7 +725,7 @@ static int ExDesFunc(lua_State *L) {
             DES_set_key_unchecked(&key, &deskey3);
             memcpy(key, &keyIn.at(0) + sizeof(DES_cblock), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey2);
-            for (unsigned int ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
+            for (uint32_t ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
                 memcpy(&in, &desdata[ii * sizeof(DES_cblock)], sizeof(in));
                 DES_ecb3_encrypt(&in, &out, &deskey1, &deskey2, &deskey3, DES_DECRYPT);
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
@@ -793,14 +757,14 @@ static int ExDesFunc(lua_State *L) {
  * }
  */
 static int ExVerifySignatureFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<unsigned char> > > retdata;
+    vector<std::shared_ptr<vector<uint8_t> > > retdata;
 
     if (!GetDataTableVerifySignature(L, retdata) || retdata.size() != 3 || retdata.at(1).get()->size() != 33) {
         return RetFalse(string(__FUNCTION__) + "para  err !");
     }
-    vector<unsigned char> &data = *retdata.at(0);
-    vector<unsigned char> &pubKey = *retdata.at(1);
-    vector<unsigned char> &signature = *retdata.at(2);
+    vector<uint8_t> &data = *retdata.at(0);
+    vector<uint8_t> &pubKey = *retdata.at(1);
+    vector<uint8_t> &signature = *retdata.at(2);
 
     LUA_BurnFuncData(L, FUEL_CALL_VerifySignature, data.size(), 32, FUEL_DATA32_VerifySignature, BURN_VER_R2);
 
@@ -817,17 +781,17 @@ static int ExVerifySignatureFunc(lua_State *L) {
 }
 
 static int ExGetTxContractFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<unsigned char>>> retdata;
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
         return RetFalse("ExGetTxContractFunc, para error");
     }
 
     CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("ExGetTxContractFunc, pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("ExGetTxContractFunc, pVmRunEnv is nullptr");
     }
 
-    vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
+    vector<uint8_t> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
     CDataStream ds(vHash, SER_DISK, CLIENT_VERSION);
     uint256 hash;
     ds >> hash;
@@ -861,7 +825,7 @@ static int ExGetTxContractFunc(lua_State *L) {
  * 2.第二个是打印的字符串
  */
 static int ExLogPrintFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if(!GetDataTableLogPrint(L,retdata) || retdata.size() != 2) {
         return RetFalse("ExLogPrintFunc para err1");
     }
@@ -886,17 +850,17 @@ static int ExLogPrintFunc(lua_State *L) {
  * 1.第一个是 hash
  */
 static int ExGetTxRegIDFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<unsigned char> > > retdata;
+    vector<std::shared_ptr<vector<uint8_t> > > retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
         return RetFalse("ExGetTxRegIDFunc, para error");
     }
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("ExGetTxRegIDFunc, pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("ExGetTxRegIDFunc, pVmRunEnv is nullptr");
     }
 
-    vector<unsigned char> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
+    vector<uint8_t> vHash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
 
     CDataStream ds(vHash, SER_DISK, CLIENT_VERSION);
     uint256 hash;
@@ -913,14 +877,14 @@ static int ExGetTxRegIDFunc(lua_State *L) {
             if (tx->txUid.type() != typeid(CRegID))
                 return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");
 
-            vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
+            vector<uint8_t> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
             CLuaContractInvokeTx *tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
             if (tx->txUid.type() != typeid(CRegID))
                 return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");
 
-            vector<unsigned char> item = tx->txUid.get<CRegID>().GetRegIdRaw();
+            vector<uint8_t> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else {
             return RetFalse("ExGetTxRegIDFunc, tx type error");
@@ -932,19 +896,19 @@ static int ExGetTxRegIDFunc(lua_State *L) {
 
 static int ExByteToIntegerFunc(lua_State *L) {
     //把字节流组合成integer
-    vector< std::shared_ptr<vector<unsigned char>> > retdata;
+    vector< std::shared_ptr<vector<uint8_t>> > retdata;
     if( !GetArray(L, retdata) ||retdata.size() != 1 ||
         ((retdata.at(0).get()->size() != 4) && (retdata.at(0).get()->size() != 8)) ) {
         return RetFalse("ExByteToIntegerFunc para err1");
     }
 
     //将数据反向
-    vector<unsigned char> vValue(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
+    vector<uint8_t> vValue(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
     CDataStream tep1(vValue, SER_DISK, CLIENT_VERSION);
 
     LUA_BurnFuncCall(L, FUEL_CALL_ByteToInteger, BURN_VER_R2);
     if(retdata.at(0).get()->size() == 4) {
-        unsigned int height;
+        uint32_t height;
         tep1 >>height;
 
 //      LogPrint("vm","%d\n", height);
@@ -976,7 +940,7 @@ static int ExIntegerToByte4Func(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_IntegerToByte4, BURN_VER_R2);
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << height;
-    vector<unsigned char> TMP(tep.begin(),tep.end());
+    vector<uint8_t> TMP(tep.begin(),tep.end());
     return RetRstToLua(L,TMP);
 }
 static int ExIntegerToByte8Func(lua_State *L) {
@@ -994,7 +958,7 @@ static int ExIntegerToByte8Func(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_IntegerToByte8, BURN_VER_R2);
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << llValue;
-    vector<unsigned char> TMP(tep.begin(),tep.end());
+    vector<uint8_t> TMP(tep.begin(),tep.end());
     return RetRstToLua(L,TMP);
 }
 /**
@@ -1004,7 +968,7 @@ static int ExIntegerToByte8Func(lua_State *L) {
  */
 static int ExGetAccountPublickeyFunc(lua_State *L) {
 
-    vector<std::shared_ptr<vector<unsigned char> > > retdata;
+    vector<std::shared_ptr<vector<uint8_t> > > retdata;
     if(!GetArray(L,retdata) ||retdata.size() != 1
         || !(retdata.at(0).get()->size() == 6 || retdata.at(0).get()->size() == 34))
     {
@@ -1012,9 +976,9 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
     }
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
+    if(nullptr == pVmRunEnv)
     {
-        return RetFalse("pVmRunEnv is NULL");
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetAccountPublickey, BURN_VER_R2);
@@ -1035,7 +999,7 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
         return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
     }
     tep >>te;
-    vector<unsigned char> tep1(te.begin(),te.end());
+    vector<uint8_t> tep1(te.begin(),te.end());
     return RetRstToLua(L,tep1);
 }
 
@@ -1045,7 +1009,7 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
  * 1.第一个是 账户id,六个字节
  */
 static int ExQueryAccountBalanceFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if(!GetArray(L,retdata) ||retdata.size() != 1
         || !(retdata.at(0).get()->size() == 6 || retdata.at(0).get()->size() == 34))
     {
@@ -1053,9 +1017,9 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
     }
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
+    if(nullptr == pVmRunEnv)
     {
-        return RetFalse("pVmRunEnv is NULL");
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
@@ -1075,7 +1039,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
         uint64_t nbalance = account.GetToken(SYMB::WICC).free_amount;
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
-        vector<unsigned char> TMP(tep.begin(),tep.end());
+        vector<uint8_t> TMP(tep.begin(),tep.end());
         len = RetRstToLua(L,TMP);
     }
     return len;
@@ -1087,7 +1051,7 @@ static int ExQueryAccountBalanceFunc(lua_State *L) {
  * 1.第一个入参: hash,32个字节
  */
 static int ExGetTxConfirmHeightFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if(!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32)
     {
@@ -1098,15 +1062,15 @@ static int ExGetTxConfirmHeightFunc(lua_State *L) {
     // LogPrint("vm","ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
 
     // reverse hash value
-    vector<unsigned char> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
+    vector<uint8_t> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
     CDataStream tep1(vec_hash, SER_DISK, CLIENT_VERSION);
     uint256 hash1;
     tep1 >>hash1;
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
+    if(nullptr == pVmRunEnv)
     {
-        return RetFalse("pVmRunEnv is NULL");
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxConfirmHeight, BURN_VER_R2);
@@ -1139,8 +1103,8 @@ static int ExGetBlockHashFunc(lua_State *L) {
     }
 
     CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBlockHash, BURN_VER_R2);
@@ -1158,16 +1122,16 @@ static int ExGetBlockHashFunc(lua_State *L) {
     //  LogPrint("vm","ExGetBlockHashFunc:%s",HexStr(blockHash).c_str());
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << blockHash;
-    vector<unsigned char> TMP(tep.begin(), tep.end());
+    vector<uint8_t> TMP(tep.begin(), tep.end());
     // reverse hash value
-    vector<unsigned char> TMP2(TMP.rbegin(), TMP.rend());
+    vector<uint8_t> TMP2(TMP.rbegin(), TMP.rend());
     return RetRstToLua(L, TMP2);
 }
 
 static int ExGetCurRunEnvHeightFunc(lua_State *L) {
     CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurRunEnvHeight, BURN_VER_R2);
@@ -1196,14 +1160,14 @@ static int ExGetCurRunEnvHeightFunc(lua_State *L) {
     return 0;
 }
 
-static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
     //取写数据库的key value
     if (!lua_istable(L, -1)) {
         LogPrint("vm", "GetDataTableWriteOutput is not table\n");
         return false;
     }
     unsigned short len = 0;
-    vector<unsigned char> vBuf;
+    vector<uint8_t> vBuf;
     //取key
     string key = "";
     if (!(getStringInTable(L, (char *)"key", key))) {
@@ -1216,7 +1180,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
     for (size_t i = 0; i < key.size(); i++) {
         vBuf.insert(vBuf.end(), key.at(i));
     }
-    ret.insert(ret.end(), std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+    ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
 
     //取value的长度
     double doubleValue = 0;
@@ -1233,7 +1197,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
             return false;
         } else {
             // LogPrint("vm", "value:%s\n", HexStr(vBuf).c_str());
-            ret.insert(ret.end(), std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+            ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
         }
         return true;
     } else {
@@ -1250,7 +1214,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
  */
 static int ExWriteDataDBFunc(lua_State *L)
 {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataTableWriteDataDB(L, retdata) || retdata.size() != 2) {
         return RetFalse("ExWriteDataDBFunc key err1");
     }
@@ -1260,9 +1224,9 @@ static int ExWriteDataDBFunc(lua_State *L)
     string value((*retdata.at(1)).begin(), (*retdata.at(1)).end());
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
+    if (nullptr == pVmRunEnv) {
 
-        return RetFalse("pVmRunEnv is NULL");
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     const CRegID contractRegId = pVmRunEnv->GetContractRegID();
@@ -1287,7 +1251,7 @@ static int ExWriteDataDBFunc(lua_State *L)
  * 1.第一个是 key值
  */
 static int ExDeleteDataDBFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if (!GetDataString(L, retdata) || retdata.size() != 1) {
         LogPrint("vm", "ExDeleteDataDBFunc key err1");
@@ -1296,8 +1260,8 @@ static int ExDeleteDataDBFunc(lua_State *L) {
     string key = string((*retdata.at(0)).begin(), (*retdata.at(0)).end());
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     CRegID contractRegId       = pVmRunEnv->GetContractRegID();
@@ -1325,7 +1289,7 @@ static int ExDeleteDataDBFunc(lua_State *L) {
  * 1.第一个是 key值
  */
 static int ExReadDataDBFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if (!GetDataString(L,retdata) ||retdata.size() != 1) {
         return RetFalse("ExReadDataDBFunc key err1");
@@ -1334,8 +1298,8 @@ static int ExReadDataDBFunc(lua_State *L) {
     string key((*retdata.at(0)).begin(), (*retdata.at(0)).end());
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     CRegID scriptRegId = pVmRunEnv->GetContractRegID();
@@ -1348,7 +1312,7 @@ static int ExReadDataDBFunc(lua_State *L) {
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
     } else {
         lua_BurnStoreGet(L, key.size(), value.size(), BURN_VER_R2);
-        len = RetRstToLua(L, vector<unsigned char>(value.begin(), value.end()));
+        len = RetRstToLua(L, vector<uint8_t>(value.begin(), value.end()));
     }
     return len;
 }
@@ -1356,15 +1320,15 @@ static int ExReadDataDBFunc(lua_State *L) {
 static int ExGetCurTxHash(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxHash, BURN_VER_R2);
     uint256 hash = pVmRunEnv->GetCurTxHash();
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << hash;
-    vector<unsigned char> tep1(tep.begin(),tep.end());
-    vector<unsigned char> tep2(tep1.rbegin(),tep1.rend());
+    vector<uint8_t> tep1(tep.begin(),tep.end());
+    vector<uint8_t> tep2(tep1.rbegin(),tep1.rend());
     return RetRstToLua(L,tep2);
 }
 
@@ -1376,7 +1340,7 @@ static int ExGetCurTxHash(lua_State *L) {
  */
 static int ExModifyDataDBFunc(lua_State *L)
 {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
         return RetFalse("ExModifyDataDBFunc key err");
     }
@@ -1385,8 +1349,8 @@ static int ExModifyDataDBFunc(lua_State *L)
     string newValue((*retdata.at(1)).begin(), (*retdata.at(1)).end());
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) {
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) {
+        return RetFalse("pVmRunEnv is nullptr");
     }
 
     CRegID contractRegId = pVmRunEnv->GetContractRegID();
@@ -1416,7 +1380,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
 
     double doubleValue = 0;
     unsigned short len = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
     if (!(getNumberInTable(L,(char *)"addrType",doubleValue))) {
         LogPrint("vm", "WriteOutput(), get addrType failed\n");
         return false;
@@ -1484,8 +1448,8 @@ static int ExWriteOutputFunc(lua_State *L)
         return RetFalse("WriteOutput(), parse params failed");
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv)
-        return RetFalse("WriteOutput(), pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("WriteOutput(), pVmRunEnv is nullptr");
 
     LUA_BurnAccountOperate(L, 1, BURN_VER_R2);
 
@@ -1496,20 +1460,20 @@ static int ExWriteOutputFunc(lua_State *L)
     return RetRstBooleanToLua(L,true);
 }
 
-static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
+static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
 {
     if (!lua_istable(L,-1)) {
         LogPrint("vm", "GetDataTableGetContractData is not table\n");
         return false;
     }
 
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
     //取脚本id
     if (!getArrayInTable(L,(char *)"id",6,vBuf)) {
         LogPrint("vm","idTbl not table\n");
         return false;
     } else {
-       ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+       ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     //取key
@@ -1526,7 +1490,7 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < s
         vBuf.insert(vBuf.end(),key.at(i));
     }
 
-    ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     return true;
 }
 
@@ -1537,13 +1501,13 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < s
  * 2.数据库的key值
  */
 static int ExGetContractDataFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<unsigned char>>> retdata;
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
     if (!GetDataTableGetContractData(L, retdata) || retdata.size() != 2 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetContractDataFunc tep1 err1");
 
     CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv) return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv) return RetFalse("pVmRunEnv is nullptr");
 
     CContractDBCache *scriptDB = pVmRunEnv->GetScriptDB();
     CRegID contractRegId(*retdata.at(0));
@@ -1556,7 +1520,7 @@ static int ExGetContractDataFunc(lua_State *L) {
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
     } else {
         lua_BurnStoreGet(L, key.size(), value.size(), BURN_VER_R2);
-        len = RetRstToLua(L, vector<unsigned char>(value.begin(), value.end()));
+        len = RetRstToLua(L, vector<uint8_t>(value.begin(), value.end()));
     }
     /*
      * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
@@ -1572,8 +1536,8 @@ static int ExGetContractDataFunc(lua_State *L) {
 static int ExGetContractRegIdFunc(lua_State *L)
 {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetContractRegId, BURN_VER_R2);
    //1.从lua取参数
@@ -1588,8 +1552,8 @@ static int ExGetContractRegIdFunc(lua_State *L)
 static int ExGetCurTxAccountFunc(lua_State *L)
 {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxAccount, BURN_VER_R2);
    //1.从lua取参数
@@ -1606,15 +1570,15 @@ static int ExGetCurTxAccountFunc(lua_State *L)
 static int ExGetCurTxPayAmountFunc(lua_State *L)
 {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if(nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxPayAmount, BURN_VER_R2);
     uint64_t lvalue =pVmRunEnv->GetValue();
 
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << lvalue;
-    vector<unsigned char> tep1(tep.begin(),tep.end());
+    vector<uint8_t> tep1(tep.begin(),tep.end());
     int len = RetRstToLua(L,tep1);
     /*
     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
@@ -1626,22 +1590,22 @@ struct S_APP_ID
     unsigned char idlen;                        //! the len of the tag
     unsigned char ID[CAppCFund::MAX_TAG_SIZE];  //! the ID for the
 
-    const vector<unsigned char> GetIdV() const {
+    const vector<uint8_t> GetIdV() const {
         // assert(sizeof(ID) >= idlen);
-        vector<unsigned char> Id(&ID[0], &ID[idlen]);
+        vector<uint8_t> Id(&ID[0], &ID[idlen]);
         return (Id);
     }
 }__attribute((aligned (1)));
 
 static int ExGetUserAppAccValueFunc(lua_State *L)
 {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!lua_istable(L, -1)) {
         LogPrint("vm", "is not table\n");
         return 0;
     }
     double doubleValue = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
     S_APP_ID accid;
     memset(&accid,0,sizeof(accid));
     if (!(getNumberInTable(L, (char *)"idLen", doubleValue))){
@@ -1662,8 +1626,8 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
     }
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if(nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
     shared_ptr<CAppUserAccount> sptrAcc;
     uint64_t valueData = 0 ;
@@ -1674,19 +1638,19 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
-        vector<unsigned char> TMP(tep.begin(), tep.end());
+        vector<uint8_t> TMP(tep.begin(), tep.end());
         len = RetRstToLua(L, TMP);
     }
     return len;
 }
 
-static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std::vector<unsigned char> > > &ret) {
+static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
     if (!lua_istable(L,-1)) {
         LogPrint("vm","is not table\n");
         return false;
     }
     double doubleValue = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
     CAppFundOperate temp;
     memset(&temp,0,sizeof(temp));
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
@@ -1700,15 +1664,14 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         LogPrint("vm", "outHeight get fail\n");
         return false;
     } else {
-        temp.timeoutHeight = (unsigned int) doubleValue;
+        temp.timeoutHeight = (uint32_t) doubleValue;
     }
 
-    if(!getArrayInTable(L,(char *)"moneyTbl",sizeof(temp.mMoney),vBuf))
-    {
+    if (!getArrayInTable(L, (char *)"moneyTbl", sizeof(temp.mMoney), vBuf)) {
         LogPrint("vm", "moneyTbl not table\n");
         return false;
-    }else{
-       memcpy(&temp.mMoney,&vBuf[0],sizeof(temp.mMoney));
+    } else {
+        memcpy(&temp.mMoney, &vBuf[0], sizeof(temp.mMoney));
     }
 
     if (!(getNumberInTable(L, (char *) "userIdLen", doubleValue))) {
@@ -1737,38 +1700,36 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         temp.fundTagLen = (unsigned char)doubleValue;
     }
 
-    if((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
-        if (!getArrayInTable(L,(char *)"fundTagTbl", temp.fundTagLen, vBuf)) {
-            LogPrint("vm","FundTagTbl not table\n");
+    if ((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
+        if (!getArrayInTable(L, (char *)"fundTagTbl", temp.fundTagLen, vBuf)) {
+            LogPrint("vm", "FundTagTbl not table\n");
             return false;
         } else {
-            memcpy(temp.vFundTag,&vBuf[0],temp.fundTagLen);
+            memcpy(temp.vFundTag, &vBuf[0], temp.fundTagLen);
         }
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << temp;
-    vector<unsigned char> tep1(tep.begin(),tep.end());
-    ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(tep1.begin(), tep1.end()));
+    vector<uint8_t> tep1(tep.begin(),tep.end());
+    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(tep1.begin(), tep1.end()));
     return true;
 }
 
-static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
-{
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
-    unsigned int Size(0);
+static int ExGetUserAppAccFundWithTagFunc(lua_State *L) {
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
     CAppFundOperate temp;
-    Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
+    uint32_t size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
 
-    if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != Size)
+    if (!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != size)
         return RetFalse("ExGetUserAppAccFundWithTagFunc para err0");
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
-    CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
+    CDataStream ss(*retdata.at(0), SER_DISK, CLIENT_VERSION);
     CAppFundOperate userfund;
-    ss>>userfund;
+    ss >> userfund;
 
     shared_ptr<CAppUserAccount> sptrAcc;
     CAppCFund fund;
@@ -1780,13 +1741,13 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L)
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << fund.GetValue() ;
-        vector<unsigned char> TMP(tep.begin(),tep.end());
+        vector<uint8_t> TMP(tep.begin(),tep.end());
         len = RetRstToLua(L,TMP);
     }
     return len;
 }
 
-static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared_ptr < std::vector<unsigned char> > > &ret)
+static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
 {
     if (!lua_istable(L, index)) {
         LogPrint("vm", "L is not table\n");
@@ -1794,7 +1755,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
     }
 
     double doubleValue = 0;
-    vector<unsigned char> vBuf ;
+    vector<uint8_t> vBuf ;
     CAssetOperate temp;
     memset(&temp,0,sizeof(temp));
 
@@ -1802,14 +1763,14 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
         LogPrint("vm","toAddrTbl not table\n");
         return false;
     } else {
-        ret.push_back(std::make_shared<vector<unsigned char>>(vBuf.begin(), vBuf.end()));
+        ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     if (!(getNumberInTable(L, (char *) "outHeight", doubleValue))) {
         LogPrint("vm", "get timeoutHeight failed\n");
         return false;
     } else {
-        temp.timeoutHeight = (unsigned int) doubleValue;
+        temp.timeoutHeight = (uint32_t) doubleValue;
         LogPrint("vm", "height = %d", temp.timeoutHeight);
     }
 
@@ -1837,8 +1798,8 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
     }
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << temp;
-    vector<unsigned char> tep1(tep.begin(),tep.end());
-    ret.insert(ret.end(),std::make_shared<vector<unsigned char>>(tep1.begin(), tep1.end()));
+    vector<uint8_t> tep1(tep.begin(),tep.end());
+    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(tep1.begin(), tep1.end()));
     return true;
 }
 
@@ -1850,20 +1811,20 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
  */
 static int ExWriteOutAppOperateFunc(lua_State *L)
 {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
     CAppFundOperate temp;
-    unsigned int Size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
+    uint32_t size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
 
-    if(!GetDataTableOutAppOperate(L,retdata) ||retdata.size() != 1 || (retdata.at(0).get()->size()%Size) != 0 )
+    if (!GetDataTableOutAppOperate(L, retdata) || retdata.size() != 1 || (retdata.at(0).get()->size() % size) != 0)
         return RetFalse("ExWriteOutAppOperateFunc para err1");
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
-    int count = retdata.at(0).get()->size()/Size;
-    CDataStream ss(*retdata.at(0),SER_DISK, CLIENT_VERSION);
+    int count = retdata.at(0).get()->size() / size;
+    CDataStream ss(*retdata.at(0), SER_DISK, CLIENT_VERSION);
     LUA_BurnAccountOperate(L, count, BURN_VER_R2);
 
     int64_t step =-1;
@@ -1874,26 +1835,25 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
         pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);
-        step +=Size;
+        step += size;
     }
 
     /*
     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
-    return RetRstBooleanToLua(L,true);
+    return RetRstBooleanToLua(L, true);
 }
 
-static int ExGetBase58AddrFunc(lua_State *L)
-{
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+static int ExGetBase58AddrFunc(lua_State *L) {
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
-    if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 6)
+    if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetBase58AddrFunc para err0");
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 /*
-    vector<unsigned char> recvKey;
+    vector<uint8_t> recvKey;
     recvKey.assign(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
 
     std::string recvaddr( recvKey.begin(), recvKey.end() );
@@ -1901,36 +1861,36 @@ static int ExGetBase58AddrFunc(lua_State *L)
     for(int i = 0; i < recvKey.size(); i++)
         LogPrint("vm", "==============%02X\n", recvKey[i]);
 
-    vector<unsigned char> tmp;
+    vector<uint8_t> tmp;
     for(int i = recvKey.size() - 1; i >=0 ; i--)
         tmp.push_back(recvKey[i]);
 */
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBase58Addr, BURN_VER_R2);
-     CKeyID addrKeyId;
-     if (!GetKeyId(*pVmRunEnv->GetCatchView(),*retdata.at(0).get(), addrKeyId))
+    CKeyID addrKeyId;
+    if (!GetKeyId(*pVmRunEnv->GetCatchView(), *retdata.at(0).get(), addrKeyId))
         return RetFalse("ExGetBase58AddrFunc para err1");
 
-     string wiccaddr = addrKeyId.ToAddress();
+    string addr = addrKeyId.ToAddress();
 
-     vector<unsigned char> vTemp;
-     vTemp.assign(wiccaddr.c_str(), wiccaddr.c_str()+wiccaddr.length());
-     return RetRstToLua(L,vTemp);
+    vector<uint8_t> vTemp;
+    vTemp.assign(addr.c_str(), addr.c_str() + addr.length());
+    return RetRstToLua(L, vTemp);
 }
 
 static int ExTransferContractAsset(lua_State *L)
 {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para  err !");
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
-    vector<unsigned char> sendKey;
-    vector<unsigned char> recvKey;
+    vector<uint8_t> sendKey;
+    vector<uint8_t> recvKey;
     CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID =pVmRunEnv->GetTxAccount();
@@ -2022,31 +1982,30 @@ static int ExTransferContractAsset(lua_State *L)
 }
 
 static int ExTransferSomeAsset(lua_State *L) {
-    vector<std::shared_ptr < vector<unsigned char> > > retdata;
+    vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
-    unsigned int Size(0);
     CAssetOperate tempAsset;
-    Size = ::GetSerializeSize(tempAsset, SER_NETWORK, PROTOCOL_VERSION);
+    uint32_t size = ::GetSerializeSize(tempAsset, SER_NETWORK, PROTOCOL_VERSION);
 
-    if (!GetDataTableAssetOperate(L, -1, retdata) || retdata.size() != 2 ||
-        (retdata.at(1).get()->size()%Size) != 0 || retdata.at(0).get()->size() != 34)
-        return RetFalse(string(__FUNCTION__)+"para err !");
+    if (!GetDataTableAssetOperate(L, -1, retdata) || retdata.size() != 2 || (retdata.at(1).get()->size() % size) != 0 ||
+        retdata.at(0).get()->size() != 34)
+        return RetFalse(string(__FUNCTION__) + "para err !");
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (NULL == pVmRunEnv)
-        return RetFalse("pVmRunEnv is NULL");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
-    CDataStream ss(*retdata.at(1),SER_DISK, CLIENT_VERSION);
+    CDataStream ss(*retdata.at(1), SER_DISK, CLIENT_VERSION);
     CAssetOperate assetOp;
-    ss>>assetOp;
+    ss >> assetOp;
 
-    vector<unsigned char> sendKey;
-    vector<unsigned char> recvKey;
+    vector<uint8_t> sendKey;
+    vector<uint8_t> recvKey;
     CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID = pVmRunEnv->GetTxAccount();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
-    string addr = SendKeyID.ToAddress();
+    string addr      = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(), addr.c_str() + addr.length());
 
     recvKey.assign(retdata.at(0).get()->begin(), retdata.at(0).get()->end());
@@ -2075,7 +2034,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     int i = 0;
     CAppFundOperate op;
     memset(&op, 0, sizeof(op));
-    vector<unsigned char> vtag = assetOp.GetFundTagV();
+    vector<uint8_t> vtag = assetOp.GetFundTagV();
     op.fundTagLen = vtag.size();
 
     for (i = 0; i < op.fundTagLen; i++) {
@@ -2161,7 +2120,7 @@ static int ExLuaPrint(lua_State *L) {
         lua_pushvalue(L, i);  /* value to print */
         lua_call(L, 1, 1);
         s = lua_tolstring(L, -1, &l); /* get result */
-        if (s == NULL) return luaL_error(L, "'tostring' must return a string to 'print'");
+        if (s == nullptr) return luaL_error(L, "'tostring' must return a string to 'print'");
         if (i == 1) {
             str = std::string(s, l);
         } else {
@@ -2222,7 +2181,7 @@ static const luaL_Reg mylib[] = {
     {"TransferSomeAsset",           ExTransferSomeAsset},
     {"GetBlockTimestamp",           ExGetBlockTimestamp},
 
-    {NULL, NULL}
+    {nullptr, nullptr}
 
 };
 
@@ -2231,7 +2190,7 @@ static const luaL_Reg baseLibsEx[] = {
     {"print",                       ExLuaPrint},        // replace default print function
     {"require",                     ExLimitedRequire},  // repalace default require function
 
-    {NULL, NULL}
+    {nullptr, nullptr}
 };
 
 /*
