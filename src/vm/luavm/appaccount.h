@@ -8,6 +8,8 @@
 
 #include "commons/serialize.h"
 #include "commons/uint256.h"
+#include "entities/receipt.h"
+
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 
@@ -103,16 +105,28 @@ public:
 
     uint64_t GetUint64Value() const { return mMoney; }
 
-    const vector<uint8_t> GetFundTagV() const {
+    vector<uint8_t> GetFundTagV() const {
         assert(sizeof(vFundTag) >= fundTagLen);
-        vector<uint8_t> tag(&vFundTag[0], &vFundTag[fundTagLen]);
-        return (tag);
+        return vector<uint8_t>(&vFundTag[0], &vFundTag[0] + fundTagLen);
     }
 
-    const vector<uint8_t> GetAppUserV() const {
+    string GetFundTag() const {
+        return string(&vFundTag[0], &vFundTag[0] + fundTagLen);
+    }
+
+    vector<uint8_t> GetAppUserV() const {
         assert(sizeof(vAppuser) >= appuserIDlen && appuserIDlen > 0);
-        vector<uint8_t> tag(&vAppuser[0], &vAppuser[appuserIDlen]);
-        return (tag);
+        return vector<uint8_t>(&vAppuser[0], &vAppuser[0] + appuserIDlen);
+    }
+
+    CUserID GetUserID() const {
+        if (appuserIDlen == 6) {  // AccountType::REGID
+            return CRegID(vector<uint8_t>(&vAppuser[0], &vAppuser[0] + appuserIDlen));
+        } else if (appuserIDlen == 34) {  // AccountType::BASE58ADDR
+            return CKeyID(string(&vAppuser[0], &vAppuser[0] + appuserIDlen));
+        }
+
+        return CUserID();
     }
 
     uint8_t GetOpType() const { return opType; }
@@ -136,7 +150,7 @@ public:
     CAppUserAccount(const string &userId);
     virtual ~CAppUserAccount();
 
-    bool Operate(const vector<CAppFundOperate> &operate);
+    bool Operate(const vector<CAppFundOperate> &operate, vector<CReceipt> &receipts);
     bool GetAppCFund(CAppCFund &outFound, const vector<uint8_t> &tag, int32_t height);
     bool AutoMergeFreezeToFree(int32_t height);
 
@@ -146,14 +160,15 @@ public:
     uint64_t GetBcoins() const { return bcoins; }
     void SetBcoins(uint64_t bcoins) { this->bcoins = bcoins; }
 
-    const string &GetAccUserId() const { return mAccUserID; }
-    vector<CAppCFund> &GetFrozenFunds() { return vFrozenFunds; }
+    const string &GetAccUserId() const { return user_id; }
+    CUserID GetUserId() const;
+    vector<CAppCFund> &GetFrozenFunds() { return frozen_funds; }
     uint64_t GetAllFreezedValues();
 
     IMPLEMENT_SERIALIZE(
 		READWRITE(VARINT(bcoins));
-		READWRITE(mAccUserID);
-		READWRITE(vFrozenFunds);
+		READWRITE(user_id);
+		READWRITE(frozen_funds);
 	)
 
     bool MinusAppCFund(const vector<uint8_t> &tag, uint64_t val, int32_t height);
@@ -161,16 +176,15 @@ public:
     bool MinusAppCFund(const CAppCFund &appFund);
     bool AddAppCFund(const CAppCFund &appFund);
     bool ChangeAppCFund(const CAppCFund &appFund);
-    bool Operate(const CAppFundOperate &operate);
+    bool Operate(const CAppFundOperate &operate, vector<CReceipt> &receipts);
 
-    bool IsEmpty() const { return mAccUserID.empty(); }
-
-    void SetEmpty() { mAccUserID.clear(); }
+    bool IsEmpty() const { return user_id.empty(); }
+    void SetEmpty() { user_id.clear(); }
 
 private:
-    uint64_t bcoins;  //自由金额
-    string mAccUserID;
-    vector<CAppCFund> vFrozenFunds;
+    uint64_t bcoins;  // 自由金额
+    string user_id;
+    vector<CAppCFund> frozen_funds;
 };
 
 class CAssetOperate {

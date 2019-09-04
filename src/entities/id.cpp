@@ -10,17 +10,18 @@
 extern CCacheDBManager *pCdMan;
 
 bool CRegID::Clear() {
-    height = 0 ;
-    index = 0 ;
+    height = 0;
+    index  = 0;
     vRegID.clear();
+
     return true;
 }
 
-CRegID::CRegID(const vector<unsigned char>& vIn) {
+CRegID::CRegID(const vector<uint8_t>& vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     height = 0;
-    index = 0;
+    index  = 0;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
     ds >> height;
     ds >> index;
@@ -88,7 +89,7 @@ void CRegID::SetRegID(string strRegID) {
     }
 }
 
-void CRegID::SetRegID(const vector<unsigned char> &vIn) {
+void CRegID::SetRegID(const vector<uint8_t> &vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
@@ -96,7 +97,7 @@ void CRegID::SetRegID(const vector<unsigned char> &vIn) {
     ds >> index;
 }
 
-const vector<unsigned char> &CRegID::GetRegIdRaw() const {
+const vector<uint8_t> &CRegID::GetRegIdRaw() const {
     assert(vRegID.size() == 6);
     return vRegID;
 }
@@ -132,7 +133,7 @@ bool CRegID::IsMature(uint32_t curHeight) const {
     return ((height == 0) && (index != 0)) || ((height != 0) && curHeight > height + REG_ID_MATURITY);
 }
 
-void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
+void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
     if (vIn.size() > 0) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
         ds >> *this;

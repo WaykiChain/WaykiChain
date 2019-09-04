@@ -359,7 +359,6 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
         UnsignedCharArray accountId = GetAccountID(operate);
         CRegID regid;
         CKeyID keyid;
-        CUserID userId;
 
         if (accountId.size() == 6) {
             regid.SetRegID(accountId);
@@ -388,11 +387,11 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
             return false;
         }
 
-        userId = vmAccount.get()->keyid;
+        CUserID userId = vmAccount.get()->keyid;
         if (operate.opType == BalanceOpType::ADD_FREE) {
-            receipts.emplace_back(nullId, userId, SYMB::WICC, value, "operate bcoins in original account");
+            receipts.emplace_back(nullId, userId, SYMB::WICC, value, "operate (ADD_FREE) bcoins in original account");
         } else if (operate.opType == BalanceOpType::SUB_FREE) {
-            receipts.emplace_back(userId, nullId, SYMB::WICC, value, "operate bcoins in original account");
+            receipts.emplace_back(userId, nullId, SYMB::WICC, value, "operate (SUB_FREE) bcoins in original account");
         }
 
         newAccount.push_back(vmAccount);
@@ -505,7 +504,8 @@ bool CLuaVMRunEnv::OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundO
 
             LogPrint("vm", "before user: %s\n", pAppUserAccount.get()->ToString());
 
-            if (!pAppUserAccount.get()->Operate(tem.second)) {
+            vector<CReceipt> appOperateReceipts;
+            if (!pAppUserAccount.get()->Operate(tem.second, appOperateReceipts)) {
                 int32_t i = 0;
                 for (auto const appFundOperate : tem.second) {
                     LogPrint("vm", "Operate failed\nOperate %d: %s\n", i++, appFundOperate.ToString());
@@ -513,6 +513,10 @@ bool CLuaVMRunEnv::OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundO
                 LogPrint("vm", "GetAppUserAccount(tem.first, pAppUserAccount, true) failed\nappuserid: %s\n",
                          HexStr(tem.first));
                 return false;
+            }
+
+            for (const auto &receipt : appOperateReceipts) {
+                receipts.emplace_back(receipt);
             }
 
             newAppUserAccount.push_back(pAppUserAccount);

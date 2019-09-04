@@ -9,12 +9,13 @@
 #include "commons/serialize.h"
 #include "commons/util.h"
 #include "crypto/hash.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
 #include "main.h"
 #include "miner/miner.h"
 #include "vm/luavm/luavmrunenv.h"
+
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
+#include "json/json_spirit_writer_template.h"
 
 #include <algorithm>
 #include <boost/foreach.hpp>
@@ -61,26 +62,25 @@ CAppCFund::CAppCFund(const CAppFundOperate& operate) {
 }
 
 CAppUserAccount::CAppUserAccount() {
-    mAccUserID.clear();
+    user_id.clear();
     bcoins = 0;
-    vFrozenFunds.clear();
+    frozen_funds.clear();
 }
 
 CAppUserAccount::CAppUserAccount(const string& userId) {
-    mAccUserID.clear();
-    mAccUserID = userId;
-    bcoins     = 0;
-    vFrozenFunds.clear();
+    user_id = userId;
+    bcoins  = 0;
+    frozen_funds.clear();
 }
 
 CAppUserAccount::~CAppUserAccount() {}
 
-bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<uint8_t>& tag, int32_t height) {
-    auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(),
+bool CAppUserAccount::GetAppCFund(CAppCFund& fundOut, const vector<uint8_t>& tag, int32_t height) {
+    auto it = find_if(frozen_funds.begin(), frozen_funds.end(),
                       [&](const CAppCFund& fundIn) { return height == fundIn.GetHeight() && fundIn.GetTag() == tag; });
 
-    if (it != vFrozenFunds.end()) {
-        outFound = *it;
+    if (it != frozen_funds.end()) {
+        fundOut = *it;
         return true;
     }
 
@@ -89,22 +89,22 @@ bool CAppUserAccount::GetAppCFund(CAppCFund& outFound, const vector<uint8_t>& ta
 
 bool CAppUserAccount::AddAppCFund(const CAppCFund& appFund) {
     //需要找到超时高度和tag 都相同的才可以合并
-    auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& fundIn) {
+    auto it = find_if(frozen_funds.begin(), frozen_funds.end(), [&](const CAppCFund& fundIn) {
         return fundIn.GetTag() == appFund.GetTag() && fundIn.GetHeight() == appFund.GetHeight();
     });
 
-    if (it != vFrozenFunds.end()) {  //如果找到了
+    if (it != frozen_funds.end()) {  //如果找到了
         return it->MergeCFund(appFund);
         // return true;
     }
     //没有找到就加一个新的
-    vFrozenFunds.insert(vFrozenFunds.end(), appFund);
+    frozen_funds.insert(frozen_funds.end(), appFund);
     return true;
 }
 
 uint64_t CAppUserAccount::GetAllFreezedValues() {
     uint64_t total = 0;
-    for (auto& fund : vFrozenFunds) {
+    for (auto& fund : frozen_funds) {
         total += fund.GetValue();
     }
 
@@ -113,7 +113,7 @@ uint64_t CAppUserAccount::GetAllFreezedValues() {
 
 bool CAppUserAccount::AutoMergeFreezeToFree(int32_t height) {
     bool needRemove = false;
-    for (auto& fund : vFrozenFunds) {
+    for (auto& fund : frozen_funds) {
         if (fund.GetHeight() <= height) {
             // bcoins += fund.getvalue();
             uint64_t tempValue = 0;
@@ -126,9 +126,9 @@ bool CAppUserAccount::AutoMergeFreezeToFree(int32_t height) {
     }
 
     if (needRemove) {
-        vFrozenFunds.erase(remove_if(vFrozenFunds.begin(), vFrozenFunds.end(),
+        frozen_funds.erase(remove_if(frozen_funds.begin(), frozen_funds.end(),
                                      [&](const CAppCFund& fundIn) { return (fundIn.GetHeight() <= height); }),
-                           vFrozenFunds.end());
+                           frozen_funds.end());
     }
 
     return true;
@@ -137,10 +137,10 @@ bool CAppUserAccount::AutoMergeFreezeToFree(int32_t height) {
 bool CAppUserAccount::ChangeAppCFund(const CAppCFund& appFund) {
     //需要找到超时高度和tag 都相同的才可以合并
     assert(appFund.GetHeight() > 0);
-    auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& fundIn) {
+    auto it = find_if(frozen_funds.begin(), frozen_funds.end(), [&](const CAppCFund& fundIn) {
         return fundIn.GetTag() == appFund.GetTag() && fundIn.GetHeight() == appFund.GetHeight();
     });
-    if (it != vFrozenFunds.end()) {  //如果找到了
+    if (it != frozen_funds.end()) {  //如果找到了
         *it = appFund;
         return true;
     }
@@ -149,14 +149,14 @@ bool CAppUserAccount::ChangeAppCFund(const CAppCFund& appFund) {
 
 bool CAppUserAccount::MinusAppCFund(const CAppCFund& appFund) {
     assert(appFund.GetHeight() > 0);
-    auto it = find_if(vFrozenFunds.begin(), vFrozenFunds.end(), [&](const CAppCFund& fundIn) {
+    auto it = find_if(frozen_funds.begin(), frozen_funds.end(), [&](const CAppCFund& fundIn) {
         return fundIn.GetTag() == appFund.GetTag() && fundIn.GetHeight() == appFund.GetHeight();
     });
 
-    if (it != vFrozenFunds.end()) {  //如果找到了
+    if (it != frozen_funds.end()) {  //如果找到了
         if (it->GetValue() >= appFund.GetValue()) {
             if (it->GetValue() == appFund.GetValue()) {
-                vFrozenFunds.erase(it);
+                frozen_funds.erase(it);
                 return true;
             }
             it->SetValue(it->GetValue() - appFund.GetValue());
@@ -177,11 +177,11 @@ bool CAppUserAccount::AddAppCFund(const vector<uint8_t>& tag, uint64_t val, int3
     return AddAppCFund(fund);
 }
 
-bool CAppUserAccount::Operate(const vector<CAppFundOperate>& operate) {
+bool CAppUserAccount::Operate(const vector<CAppFundOperate>& operate, vector<CReceipt> &receipts) {
     assert(operate.size() > 0);
     // LogPrint("acc","before:%s",toString());
     for (auto const op : operate) {
-        if (!Operate(op)) {
+        if (!Operate(op, receipts)) {
             return false;
         }
     }
@@ -189,27 +189,40 @@ bool CAppUserAccount::Operate(const vector<CAppFundOperate>& operate) {
     return true;
 }
 
-bool CAppUserAccount::Operate(const CAppFundOperate& operate) {
+bool CAppUserAccount::Operate(const CAppFundOperate& operate, vector<CReceipt> &receipts) {
     // LogPrint("acc","operate:%s", operate.toString());
     if (operate.opType == ADD_FREE_OP) {
         // bcoins += operate.GetUint64Value();
         uint64_t tempValue = 0;
         if (!SafeAdd(bcoins, operate.GetUint64Value(), tempValue))
-            return ERRORMSG("Operate overflow !");
+            return ERRORMSG("Operate overflow!");
 
         bcoins = tempValue;
-        return true;
 
+        receipts.emplace_back(nullId, operate.GetUserID(), SYMB::WICC, operate.GetUint64Value(),
+                              "operate (ADD_FREE_OP) bcoins in contract user account");
+
+        return true;
     } else if (operate.opType == SUB_FREE_OP) {
         uint64_t tem = operate.GetUint64Value();
         if (bcoins >= tem) {
             bcoins -= tem;
+
+            receipts.emplace_back(operate.GetUserID(), nullId, SYMB::WICC, operate.GetUint64Value(),
+                              "operate (SUB_FREE_OP) bcoins in contract user account");
+
             return true;
         }
     } else if (operate.opType == ADD_TAG_OP) {
+        receipts.emplace_back(nullId, operate.GetUserID(), operate.GetFundTag(), operate.GetUint64Value(),
+                              "operate (ADD_TAG_OP) in contract user account");
+
         CAppCFund tep(operate);
         return AddAppCFund(tep);
     } else if (operate.opType == SUB_TAG_OP) {
+        receipts.emplace_back(operate.GetUserID(), nullId, operate.GetFundTag(), operate.GetUint64Value(),
+                              "operate (SUB_TAG_OP) in contract user account");
+
         CAppCFund tep(operate);
         return MinusAppCFund(tep);
     } else {
@@ -240,11 +253,11 @@ string CAppCFund::ToString() const { return write_string(Value(ToJson()), true);
 
 Object CAppUserAccount::ToJson() const {
     Object result;
-    result.push_back(Pair("account_uid",    HexStr(mAccUserID)));
+    result.push_back(Pair("account_uid",    HexStr(user_id)));
     result.push_back(Pair("free_value",     bcoins));
 
     Array array;
-    for (auto const te : vFrozenFunds) {
+    for (auto const te : frozen_funds) {
         array.push_back(te.ToJson());
     }
     result.push_back(Pair("frozen_funds",   array));

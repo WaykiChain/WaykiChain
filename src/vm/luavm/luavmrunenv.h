@@ -104,7 +104,7 @@ private:
      * @return:Return account id
      */
     UnsignedCharArray GetAccountID(const CVmOperate& value);
-    //	bool IsSignatureAccount(CRegID account);
+
     bool OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundOperate>> opMap);
 
     std::shared_ptr<CAppUserAccount> GetAppAccount(std::shared_ptr<CAppUserAccount>& appAccount);
@@ -128,6 +128,8 @@ public:
     vector<std::shared_ptr<CAccount>>& GetNewAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
+
+    vector<CReceipt> GetReceipts() const { return receipts; }
 
     /**
      * @brief  start to run the script
