@@ -275,7 +275,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     lua_rawseti(lua_state, -2, 0);
 
     for (size_t i = 0; i < arguments.size(); i++) {
-        lua_pushinteger(lua_state, arguments[i]);  // value值放入
+        lua_pushinteger(lua_state, (uint8_t)arguments[i]);  // value值放入
         lua_rawseti(lua_state, -2, i + 1);                         // set table at key 'n + 1'
     }
     lua_setglobal(lua_state, "contract");
