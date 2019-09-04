@@ -43,44 +43,82 @@ using namespace boost::assign;
 using std::chrono::microseconds;
 // using namespace wasm;
 
-string ToHex(string str, string separator = " ")
+
+string FromHex(string str)
 {
 
-    const std::string hex = "0123456789abcdef";
+    std::map<char, uint8_t> hex = {
+        {'0',0x00},{'1',0x01},{'2',0x02},{'3',0x03},{'4',0x04},{'5',0x05},{'6',0x06},{'7',0x07},
+        {'8',0x08},{'9',0x09},{'a',0x0a},{'b',0x0b},{'c',0x0c},{'d',0x0d},{'e',0x0e},{'f',0x0f}
+    };
     std::stringstream ss;
 
-    for (std::string::size_type i = 0; i < str.size(); ++i)
-        ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
+    for (std::string::size_type i = 0; i < str.size(); ) {
+
+        //uint8_t t = hex[(char)str[i]] | hex[(char)str[i + 1]] << 4;
+        uint8_t h = hex[(char)str[i]];
+        uint8_t l = hex[(char)str[i + 1]];
+        uint8_t t = l | h << 4;
+        ss << t ;
+
+        i += 2;
+    }
 
     return ss.str();
 
 }
 
-string ToHex(std::vector<char> str, string separator = " ")
+template <typename T>
+string ToHex(const T& t, string separator = " ")
 {
-
     const std::string hex = "0123456789abcdef";
     std::stringstream ss;
 
-    for (std::string::size_type i = 0; i < str.size(); ++i)
-        ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
+    for (std::string::size_type i = 0; i < t.size(); ++i)
+        ss << hex[(unsigned char)t[i] >> 4] << hex[(unsigned char)t[i] & 0xf] << separator;
 
     return ss.str();
 
 }
 
-string ToHex(std::vector<uint8_t> str, string separator = " ")
-{
+// string ToHex(string str, string separator = " ")
+// {
 
-    const std::string hex = "0123456789abcdef";
-    std::stringstream ss;
+//     const std::string hex = "0123456789abcdef";
+//     std::stringstream ss;
 
-    for (std::string::size_type i = 0; i < str.size(); ++i)
-        ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
+//     for (std::string::size_type i = 0; i < str.size(); ++i)
+//         ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
 
-    return ss.str();
+//     return ss.str();
 
-}
+// }
+
+// string ToHex(std::vector<char> str, string separator = " ")
+// {
+
+//     const std::string hex = "0123456789abcdef";
+//     std::stringstream ss;
+
+//     for (std::string::size_type i = 0; i < str.size(); ++i)
+//         ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
+
+//     return ss.str();
+
+// }
+
+// string ToHex(std::vector<uint8_t> str, string separator = " ")
+// {
+
+//     const std::string hex = "0123456789abcdef";
+//     std::stringstream ss;
+
+//     for (std::string::size_type i = 0; i < str.size(); ++i)
+//         ss << hex[(unsigned char)str[i] >> 4] << hex[(unsigned char)str[i] & 0xf] << separator;
+
+//     return ss.str();
+
+// }
 
 // send code and abi
 Value setcodewasmcontracttx(const Array& params, bool fHelp)
@@ -395,64 +433,48 @@ Value callwasmcontracttx(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
+Value gettablewasmcontracttx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
-                "gettablerowwasmcontracttx \"sender addr\" \"contract\" \"action\" \"data\" \"amount\" \"fee\" (\"height\")\n"
-                "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
-                "2.\"contract\":   (string, required) contract name\n"
-                "3.\"action\":   (string, required) action name\n"
-                "4.\"data\":   (json string, required) action data\n"
-                "5.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
-                "6.\"fee\":         (numeric, required) pay to miner\n"
-                "7.\"height\":      (numberic, optional) valid height\n"
+                "gettablewasmcontracttx \"contract\" \"table\" \"number\" \"begin_key\" \n"
+                "1.\"contract\": (string, required) contract name\n"
+                "2.\"table\":   (string, required) table name\n"
+                "3.\"number\":   (string, required) number\n"
+                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
                 "\nResult:\n"
-                "\"txid\":        (string)\n"
+                "\"rows\":        (string)\n"
+                "\"last_key\":    (string)\n"
+                "\"more\":        (bool)\n"
                 "\nExamples:\n" +
-                HelpExampleCli("callcontracttx",
-                               "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
+                HelpExampleCli("gettablewasmcontracttx",
+                               " \"411994-1\" \"stat\" 10") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("callcontracttx",
-                               "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
-        // 1.sender
-        // 2.contract(id)
-        // 3.table
-        // 4.scope
-        // 5.number
+                HelpExampleRpc("gettablewasmcontracttx",
+                               "\"411994-1\", \"stat\", 10"));
+        // 1.contract(id)
+        // 2.table
+        // 3.number
+        // 4.last_key
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     std::cout << "rpccall gettablerowwasmcontracttx "
-              << " sender:" << params[0].get_str()
-              << " contract:"<< params[1].get_str()
-              << " table:"<< params[2].get_str()
-              // << " scope:"<< params[3].get_str()
-              << " number:"<< params[3].get_str()
-              << " \n";
+              //<< " sender:" << params[0].get_str()
+              << " contract:" << params[0].get_str()
+              << " table:"    << params[1].get_str()
+              << " number:"   << params[2].get_str()
+              //<< " last_key:" << params[3].get_str()
+              << std::endl;
 
     EnsureWalletIsUnlocked();
 
-    CKeyID sender;
-    if (!GetKeyId(params[0].get_str(), sender))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
-
-    // if (!GetKeyId(params[1].get_str(), recvKeyId)) {
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
-    // }
-
-    CRegID contractRegID(params[1].get_str());
+    CRegID contractRegID(params[0].get_str());
     if (contractRegID.IsEmpty()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
     }
 
     uint64_t contract = wasm::RegID2Name(contractRegID);
-    uint64_t table = wasm::name(params[2].get_str()).value;
-    // uint64_t scope = 0;
-    // if (params[3].get_str().size() > 0)
-    //     scope = wasm::name(params[3].get_str()).value;
-
-    uint64_t number = 10;//params[3].get_int();
 
     CUniversalContract contractCode;
     if(!pCdMan->pContractCache->GetContract(contractRegID, contractCode))
@@ -462,32 +484,49 @@ Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
     if (abi.size() == 0)
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
 
-    std::vector<char> k = wasm::pack(std::tuple(contract, table));
+
+    uint64_t table = wasm::name(params[1].get_str()).value;
+    uint64_t number = 10;//params[3].get_int();
+
     string keyPrefix;
+    std::vector<char> k = wasm::pack(std::tuple(contract, table));
     keyPrefix.insert(keyPrefix.end(), k.begin(), k.end());
 
-    std::cout << "rpccall gettablerowwasmcontracttx "
-          << " keyPrefix:" << ToHex(keyPrefix,"")
-          << std::endl;
+    // std::cout << "rpccall gettablerowwasmcontracttx "
+    //       << " keyPrefix:" << ToHex(keyPrefix,"")
+    //       << std::endl;
 
     string lastKey = ""; // TODO: get last key
+    if(params[3].get_str().size() > 0){
+        lastKey = FromHex(params[3].get_str());
+        std::cout << "rpccall gettablerowwasmcontracttx "
+          << " lastKey:" << ToHex(lastKey,"")
+          << std::endl;
+    }
+
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, number, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
     }   
 
-    std::cout << "rpccall gettablerowwasmcontracttx "
-      << " pGetter->data_list size:" << pGetter->data_list.size()
-      << std::endl; 
+    // std::cout << "rpccall gettablerowwasmcontracttx "
+    //   << " pGetter->data_list size:" << pGetter->data_list.size()
+    //   << std::endl; 
 
     json_spirit::Object object;
     try {
-
-        //std::vector<json_spirit::Value> 
         json_spirit::Array vars;
+        string last_key;
         for (auto item : pGetter->data_list ){
-            const string& value = pGetter->GetValue(item);
-                          
+            last_key = pGetter->GetKey(item); 
+            const string& value = pGetter->GetValue(item);      
+            // std::vector<uint8_t> value{
+            //                       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+            //                       0x04,0x45,0x45,0x53,0x00,0x00,0x00,0x00,
+            //                       0x00,0xca,0x9a,0x3b,0x00,0x00,0x00,0x00,
+            //                       0x04,0x45,0x45,0x53,0x00,0x90,0x4d,0xc6,
+            //                       0x00,0x00,0x00,0x00,0x5c,0x05,0xa3,0xe1,
+            //                      };
             std::vector<char> row;
             row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
@@ -496,6 +535,8 @@ Value gettablerowwasmcontracttx(const Array& params, bool fHelp) {
         }
 
         object.push_back(Pair("rows", vars));
+        object.push_back(Pair("last_key", ToHex(last_key,"")));
+        object.push_back(Pair("more", pGetter->has_more));
 
     } catch (CException&e ){
         throw JSONRPCError(ABI_PARSE_FAIL, e.errMsg );

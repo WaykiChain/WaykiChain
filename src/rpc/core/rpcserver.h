@@ -194,7 +194,7 @@ extern json_spirit::Value getassets(const json_spirit::Array& params, bool fHelp
 
 extern json_spirit::Value setcodewasmcontracttx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value callwasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value gettablerowwasmcontracttx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gettablewasmcontracttx(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 
