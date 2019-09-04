@@ -174,8 +174,9 @@ namespace wasm {
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
-            //std::cout << "db_store key:"<<ToHex(k,"")<<" key_len:"<<key_len
-            //          << " value:"<<ToHex(v,"")<<" value_len:"<<value_len << std::endl;
+            std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
+                      << " value:"<< ToHex(v)      << " value_len:" << val_len 
+                      << std::endl;
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;
@@ -183,8 +184,7 @@ namespace wasm {
 
             //wasm_assert(wasmContext.cache.SetContractData(contract, k, v), StringPrint("wasm db_store SetContractData failed, key:", ToHex(k," ")).data());
             wasm_assert(pWasmContext->SetData(contract, k, v), StringPrint("wasm db_store SetContractData failed, key:",
-                                                                           ToHex(k,
-                                                                                 " ")).data());      //wasmContext.AppendUndo(contract, k, oldValue);
+                                                                           ToHex(k)).data());      //wasmContext.AppendUndo(contract, k, oldValue);
 
             return 1;
         }

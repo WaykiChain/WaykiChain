@@ -86,7 +86,6 @@ libcompilerbuildin_a_SOURCES = \
 #                     -I$(WASM_TYPES_DIR)
 
 libwasm_a_CXXFLAGS = -std=c++17 -fno-builtin-memcmp $(SOFTFLOAT_CFLAGS) \
-libwasm_a_CXXFLAGS = $(AM_CPPFLAGS) $(SOFTFLOAT_CFLAGS) \
                     -I$(EOSVM_INCLUDE_DIR) \
                     -I$(EOSVM_OUTCOME_DIR) \
                     -I$(COMPILER_BUILTINS) \
