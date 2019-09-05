@@ -219,22 +219,22 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 // register a contract app tx
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"app_desc\"]\n"
+        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_desc\"]\n"
             "\ncreate a transaction of registering a contract app\n"
             "\nArguments:\n"
-            "1.\"addr\":        (string, required) contract owner address from this wallet\n"
-            "2.\"filepath\":    (string, required) the file path of the app script\n"
-            "3.\"fee\":         (numeric, required) pay to miner (the larger the size of script, the bigger fees are required)\n"
-            "4.\"height\":      (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
-            "5.\"app_desc\":    (string, optional) new app description\n"
+            "1.\"addr\":            (string, required) contract owner address from this wallet\n"
+            "2.\"filepath\":        (string, required) the file path of the app script\n"
+            "3.\"fee\":             (numeric, required) pay to miner (the larger the size of script, the bigger fees are required)\n"
+            "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
+            "5.\"contract_desc\":   (string, optional) contract description\n"
             "\nResult:\n"
-            "\"txid\":          (string)\n"
+            "\"txid\":              (string)\n"
             "\nExamples:\n"
             + HelpExampleCli("submitcontractdeploytx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 11000000 10000 \"app desc\"") +
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 110000000 10000 \"Hello, WaykiChain!\"") +
                 "\nAs json rpc call\n"
             + HelpExampleRpc("submitcontractdeploytx",
-                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 11000000, 10000, \"app desc\""));
+                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 110000000, 10000, \"Hello, WaykiChain!\""));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
