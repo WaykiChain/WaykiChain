@@ -100,7 +100,7 @@ namespace wasm {
         static json_spirit::Value
         unpack( const string &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time ) {
 
-            std::cout << "unpack " << " table:" << table << std::endl;
+            //std::cout << "unpack " << " table:" << table << std::endl;
             //try {
             json_spirit::Value abi_v;
             json_spirit::read_string(abi, abi_v);
@@ -112,7 +112,7 @@ namespace wasm {
             string t = wasm::name(table).to_string();
             type_name name = abis.get_table_type(t);
 
-            std::cout << "unpack " << " name:" << name << std::endl;
+           // std::cout << "unpack " << " name:" << name << std::endl;
 
             WASM_ASSERT(name.size() > 0, ABI_PARSE_FAIL, "ABI_PARSE_FAIL", "can not get table %s's type from abi",
                         t.data());

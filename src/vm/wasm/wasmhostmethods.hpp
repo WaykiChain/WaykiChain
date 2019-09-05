@@ -190,9 +190,9 @@ namespace wasm {
             // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
-            // std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
-            //           << " value:"<< ToHex(v)      << " value_len:" << val_len 
-            //           << std::endl;
+            std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
+                      << " value:"<< ToHex(v)      << " value_len:" << val_len 
+                      << std::endl;
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;

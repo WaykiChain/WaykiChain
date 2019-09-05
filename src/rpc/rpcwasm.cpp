@@ -433,12 +433,12 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
-    std::cout << "rpccall gettablerowwasmcontracttx "
-              << " contract:" << params[0].get_str()
-              << " table:" << params[1].get_str()
-              << " numbers:" << params[2].get_str()
-              //<< " last_key:" << params[3].get_str()
-              << std::endl;
+    // std::cout << "rpccall gettablerowwasmcontracttx "
+    //           << " contract:" << params[0].get_str()
+    //           << " table:" << params[1].get_str()
+    //           << " numbers:" << params[2].get_str()
+    //           //<< " last_key:" << params[3].get_str()
+    //           << std::endl;
 
     EnsureWalletIsUnlocked();
 
@@ -464,18 +464,15 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     string keyPrefix;
     std::vector<char> k = wasm::pack(std::tuple(contract, table));
     keyPrefix.insert(keyPrefix.end(), k.begin(), k.end());
-    // std::cout << "rpccall gettablerowwasmcontracttx "
+    // std::cout << "rpccall gettablewasmcontracttx "
     //       << " keyPrefix:" << ToHex(keyPrefix,"")
     //       << std::endl;
   //std::cout << "rpccall gettablerowwasmcontracttx 1" << std::endl;
     string lastKey = ""; // TODO: get last key
     if (params.size() > 3) {
         lastKey = FromHex(params[3].get_str());
-       std::cout << "rpccall gettablerowwasmcontracttx "
-                 << " lastKey:" << ToHex(lastKey, "")
-                 << std::endl;
     }
-  //std::cout << "rpccall gettablerowwasmcontracttx 0" << std::endl;
+    //std::cout << "rpccall gettablerowwasmcontracttx numbers"<< numbers << std::endl;
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
@@ -500,11 +497,15 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
             row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
 
+            json_spirit::Object& obj = v.get_obj();
+            obj.push_back(Pair("key", ToHex(last_key, "")));
+            obj.push_back(Pair("value", ToHex(last_key, "")));
+
             vars.push_back(v);
         }
 
         object.push_back(Pair("rows", vars));
-        object.push_back(Pair("last_key", ToHex(last_key, "")));
+        //object.push_back(Pair("last_key", ToHex(last_key, "")));
         object.push_back(Pair("more", pGetter->has_more));
 
     } catch (CException &e) {
