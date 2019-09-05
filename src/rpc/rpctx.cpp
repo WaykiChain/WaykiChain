@@ -538,7 +538,6 @@ if (fHelp || params.size() > 2) {
                 "\nArguments:\n"
                 "1. count          (numeric, optional, default=10) The number of transactions to return\n"
                 "2. from           (numeric, optional, default=0) The number of transactions to skip\n"
-                "\nExamples:\n"
                 "\nResult:\n"
                 "\nExamples:\n"
                 "\nList the most recent 10 transactions in the system\n"
@@ -551,10 +550,11 @@ if (fHelp || params.size() > 2) {
     Object retObj;
     int32_t nDefCount = 10;
     int32_t nFrom = 0;
-    if(params.size() > 0) {
+    if (params.size() > 0) {
         nDefCount = params[0].get_int();
     }
-    if(params.size() > 1) {
+
+    if (params.size() > 1) {
         nFrom = params[1].get_int();
     }
     assert(pWalletMain != nullptr);
@@ -589,6 +589,7 @@ if (fHelp || params.size() > 2) {
     for (auto const &tx : pWalletMain->unconfirmedTx) {
         unconfirmedTxArray.push_back(tx.first.GetHex());
     }
+
     retObj.push_back(Pair("unconfirmed_tx", unconfirmedTxArray));
 
     return retObj;
@@ -689,31 +690,6 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     }
 
     return obj;
-}
-
-//list unconfirmed transaction of mine
-Value listunconfirmedtx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 0) {
-         throw runtime_error("listunconfirmedtx \n"
-                "\nget the list  of unconfirmedtx.\n"
-                "\nArguments:\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                + HelpExampleCli("listunconfirmedtx", "")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("listunconfirmedtx", ""));
-    }
-
-    Object retObj;
-    Array unconfirmedTxArray;
-
-    for (auto const& tx : pWalletMain->unconfirmedTx) {
-        unconfirmedTxArray.push_back(tx.first.GetHex());
-    }
-
-    retObj.push_back(Pair("unconfirmed_tx", unconfirmedTxArray));
-
-    return retObj;
 }
 
 static Value TestDisconnectBlock(int32_t number) {
