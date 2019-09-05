@@ -75,9 +75,9 @@ void CRegID::SetRegID(string strRegID) {
     vRegID.clear();
 
     if (IsSimpleRegIdStr(strRegID)) {
-        int pos = strRegID.find('-');
-        height = atoi(strRegID.substr(0, pos).c_str());
-        index  = atoi(strRegID.substr(pos + 1).c_str());
+        auto pos = strRegID.find('-');
+        height   = atoi(strRegID.substr(0, pos).c_str());
+        index    = atoi(strRegID.substr(pos + 1).c_str());
         vRegID.insert(vRegID.end(), BEGIN(height), END(height));
         vRegID.insert(vRegID.end(), BEGIN(index), END(index));
     } else if (strRegID.length() == 12) {
