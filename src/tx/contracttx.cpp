@@ -57,7 +57,6 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
                         llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
 
-    // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
         uint64_t slideWindow = 0;
         cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
@@ -309,7 +308,6 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
                         llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
 
-    // If valid height range changed little enough(i.e. 3 blocks), remove it.
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
         uint64_t slideWindow = 0;
         cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);

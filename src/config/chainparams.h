@@ -74,7 +74,6 @@ protected:
     mutable uint32_t nViewCacheSize;
     mutable int32_t nTxCacheHeight;
     mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
-    mutable bool bContractLog;     // whether to save contract script operation account log
 
 public:
     virtual ~CBaseParams() {}
@@ -96,8 +95,7 @@ public:
             payTxFee = nTransactionFee;
         }
 
-        nLogMaxSize    = GetArg("-logmaxsize", 100) * 1024 * 1024;
-        bContractLog   = GetBoolArg("-contractlog", false);  // contract account change log
+        nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
 
         return true;
     }
@@ -196,7 +194,6 @@ public:
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
     void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
     void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }
-    bool IsContractLogOn() const { return bContractLog; }
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }

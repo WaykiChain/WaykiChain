@@ -181,4 +181,5 @@ public:
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 };
-#endif //TX_CONTRACT_H
+
+#endif  // TX_CONTRACT_H
