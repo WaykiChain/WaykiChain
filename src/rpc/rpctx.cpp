@@ -1331,16 +1331,18 @@ Value gethash(const Array& params, bool fHelp) {
 }
 
 Value validateaddr(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1)
+    if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "validateaddr \"wicc_address\"\n"
+            "validateaddr \"address\"\n"
             "\ncheck whether address is valid or not\n"
             "\nArguments:\n"
-            "1.\"wicc_address\"     (string, required) WICC address\n"
+            "1.\"address\"      (string, required)\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\"") +
+            HelpExampleCli("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\"") + "\nAs json rpc call\n" +
             HelpExampleRpc("validateaddr", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\""));
+    }
+
     Object obj;
 
     string addr = params[0].get_str();
@@ -1355,67 +1357,25 @@ Value validateaddr(const Array& params, bool fHelp) {
 }
 
 Value gettotalcoins(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 0) {
+    if (fHelp || params.size() != 0) {
         throw runtime_error(
             "gettotalcoins \n"
             "\nget the total number of circulating coins excluding those locked for votes\n"
-            "\nand the toal number of registered addresses\n"
+            "\nand the total number of registered addresses\n"
             "\nArguments:\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gettotalcoins", "")
-            + HelpExampleRpc("gettotalcoins", ""));
+            "\nExamples:\n" +
+            HelpExampleCli("gettotalcoins", "") + "\nAs json rpc call\n" + HelpExampleRpc("gettotalcoins", ""));
     }
 
     Object obj;
-    {
-        uint64_t totalCoins(0);
-        uint64_t totalRegIds(0);
-        std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
-        // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
-        obj.push_back( Pair("total_coins", ValueFromAmount(totalCoins)) );
-        obj.push_back( Pair("total_regids", totalRegIds) );
-    }
-    return obj;
-}
 
-Value gettotalassets(const Array& params, bool fHelp) {
-    if(fHelp || params.size() != 1) {
-        throw runtime_error("gettotalassets \n"
-            "\nget all assets belonging to a contract\n"
-            "\nArguments:\n"
-            "1.\"contract_regid\": (string, required)\n"
-            "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("gettotalassets", "11-1")
-            + HelpExampleRpc("gettotalassets", "11-1"));
-    }
-    CRegID regId(params[0].get_str());
-    if (regId.IsEmpty() == true)
-        throw runtime_error("contract regid invalid!\n");
-
-    if (!pCdMan->pContractCache->HaveContract(regId))
-        throw runtime_error("contract regid not exist!\n");
-
-    Object obj;
-    {
-        map<string, string> mapAcc;
-        bool bRet = pCdMan->pContractCache->GetContractAccounts(regId, mapAcc);
-        if (bRet) {
-            uint64_t totalassets = 0;
-            for (auto & it : mapAcc) {
-                CAppUserAccount appAccOut;
-                CDataStream ds(it.second, SER_DISK, CLIENT_VERSION);
-                ds >> appAccOut;
-
-                totalassets += appAccOut.GetBcoins();
-                totalassets += appAccOut.GetAllFreezedValues();
-            }
-
-            obj.push_back(Pair("total_assets", ValueFromAmount(totalassets)));
-        } else
-            throw runtime_error("failed to find contract account!\n");
-    }
+    uint64_t totalCoins(0);
+    uint64_t totalRegIds(0);
+    std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
+    // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
+    obj.push_back(Pair("total_coins", ValueFromAmount(totalCoins)));
+    obj.push_back(Pair("total_regids", totalRegIds));
 
     return obj;
 }
@@ -1423,14 +1383,13 @@ Value gettotalassets(const Array& params, bool fHelp) {
 Value listdelegates(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {
         throw runtime_error(
-                "listdelegates \n"
-                "\nreturns the specified number delegates by reversed order voting number.\n"
-                "\nArguments:\n"
-                "1. number           (number, optional) the number of the delegates, default to all delegates.\n"
-                "\nResult:\n"
-                "\nExamples:\n"
-                + HelpExampleCli("listdelegates", "11")
-                + HelpExampleRpc("listdelegates", "11"));
+            "listdelegates \n"
+            "\nreturns the specified number delegates by reversed order voting number.\n"
+            "\nArguments:\n"
+            "1. number           (number, optional) the number of the delegates, default to all delegates.\n"
+            "\nResult:\n"
+            "\nExamples:\n" +
+            HelpExampleCli("listdelegates", "11") + "\nAs json rpc call\n" + HelpExampleRpc("listdelegates", "11"));
     }
 
     int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetTotalDelegateNum();

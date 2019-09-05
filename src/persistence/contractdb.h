@@ -97,7 +97,6 @@ public:
 
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
     bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
-    bool GetContractAccounts(const CRegID &contractRegId, map<string, string > &mapAcc);
 
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
         contractCache.SetBase(&pBaseIn->contractCache);

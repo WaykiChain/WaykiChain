@@ -247,7 +247,6 @@ static const CRPCCommand vRPCCommands[] =
     { "verifychain",            &verifychain,            true,      false,      false },
 
     { "gettotalcoins",          &gettotalcoins,          false,     false,      false },
-    { "gettotalassets",         &gettotalassets,         false,     false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
     { "reconsiderblock",        &reconsiderblock,        true,      true,       false },
 

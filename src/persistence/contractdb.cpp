@@ -92,13 +92,6 @@ uint32_t CContractDBCache::GetCacheSize() const {
         contractAccountCache.GetCacheSize();
 }
 
-bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, string> &mapAcc) {
-    return false;
-    /* TODO: GetContractAccounts
-    return pBase->GetContractAccounts(scriptId, mapAcc);
-    */
-}
-
 bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
     return txDiskPosCache.GetData(txid, pos);
 }
