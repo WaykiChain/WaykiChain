@@ -105,9 +105,9 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
+            + HelpExampleCli("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000\n")
+            + HelpExampleRpc("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", 200000000")
         );
     }
 
