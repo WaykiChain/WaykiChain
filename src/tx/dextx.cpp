@@ -551,7 +551,7 @@ bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         if (dealItem.buyOrderId == dealItem.sellOrderId)
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id cannot equal to sell_order_id",
                 i), REJECT_INVALID, "invalid-deal-item");
-        if (dealItem.dealCoinAmount == 0 || dealItem.dealAssetAmount == 0 || dealItem.dealPrice)
+        if (dealItem.dealCoinAmount == 0 || dealItem.dealAssetAmount == 0 || dealItem.dealPrice == 0)
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d],"
                 " deal_coin_amount or deal_asset_amount or deal_price is zero",
                 i), REJECT_INVALID, "invalid-deal-item");
