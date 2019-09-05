@@ -124,12 +124,6 @@ tuple<bool, uint64_t, string> CLuaVMRunEnv::ExecuteContract(shared_ptr<CBaseTx>&
         return std::make_tuple(false, 0, string("OperateAppAccount Account Failed"));
     }
 
-    if (SysCfg().IsContractLogOn() && vmOperateOutput.size() > 0) {
-        uint256 txid = GetCurTxHash();
-        if (!pContractCache->WriteTxOutput(txid, vmOperateOutput))
-            return std::make_tuple(false, 0, string("write tx out put Failed"));
-    }
-
     uint64_t spend = 0;
     if (!SafeMultiply(uRunStep, nBurnFactor, spend)) {
         return std::make_tuple(false, 0, string("mul error"));

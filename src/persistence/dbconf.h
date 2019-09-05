@@ -78,7 +78,6 @@ namespace dbk {
         DEFINE( TXID_DISKINDEX,       "tidx",  CONTRACT )      /* tidx{$txid} --> $DiskTxPos */ \
         DEFINE( CONTRACT_DEF,         "cdef",  CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
         DEFINE( CONTRACT_DATA,        "cdat",  CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
-        DEFINE( CONTRACT_TX_OUT,      "cout",  CONTRACT )      /* cout{$txid} --> $VmOperateOutput */ \
         DEFINE( CONTRACT_ITEM_NUM,    "citn",  CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
         DEFINE( CONTRACT_RELATED_KID, "crid",  CONTRACT )      /* cacs{$ContractTxId} --> $set<CKeyID> */ \
         DEFINE( CONTRACT_ACCOUNT,     "cacc",  CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \

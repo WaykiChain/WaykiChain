@@ -76,7 +76,6 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
 
 bool CContractDBCache::Flush() {
     contractCache.Flush();
-    txOutputCache.Flush();
     txDiskPosCache.Flush();
     contractRelatedKidCache.Flush();
     contractDataCache.Flush();
@@ -87,15 +86,10 @@ bool CContractDBCache::Flush() {
 
 uint32_t CContractDBCache::GetCacheSize() const {
     return contractCache.GetCacheSize() +
-        txOutputCache.GetCacheSize() +
         txDiskPosCache.GetCacheSize() +
         contractRelatedKidCache.GetCacheSize() +
         contractDataCache.GetCacheSize() +
         contractAccountCache.GetCacheSize();
-}
-
-bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput) {
-    return txOutputCache.SetData(txid, vOutput);
 }
 
 bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, string> &mapAcc) {
@@ -103,13 +97,6 @@ bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, s
     /* TODO: GetContractAccounts
     return pBase->GetContractAccounts(scriptId, mapAcc);
     */
-}
-
-bool CContractDBCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput) {
-    vector<CVmOperate> value;
-    if (!txOutputCache.GetData(txid, value))
-        return false;
-    return true;
 }
 
 bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {

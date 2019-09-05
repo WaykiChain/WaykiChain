@@ -56,7 +56,6 @@ public:
 
     CContractDBCache(CDBAccess *pDbAccess):
         contractCache(pDbAccess),
-        txOutputCache(pDbAccess),
         txDiskPosCache(pDbAccess),
         contractRelatedKidCache(pDbAccess),
         contractDataCache(pDbAccess),
@@ -66,7 +65,6 @@ public:
 
     CContractDBCache(CContractDBCache *pBaseIn):
         contractCache(pBaseIn->contractCache),
-        txOutputCache(pBaseIn->txOutputCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
         contractRelatedKidCache(pBaseIn->contractRelatedKidCache),
         contractDataCache(pBaseIn->contractDataCache),
@@ -96,8 +94,6 @@ public:
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
     bool SetTxIndex(const uint256 &txid, const CDiskTxPos &pos);
     bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
-    bool WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput);
-    bool GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput);
 
     bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
     bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
@@ -105,7 +101,6 @@ public:
 
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
         contractCache.SetBase(&pBaseIn->contractCache);
-        txOutputCache.SetBase(&pBaseIn->txOutputCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
         contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
         contractDataCache.SetBase(&pBaseIn->contractDataCache);
@@ -114,7 +109,6 @@ public:
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         contractCache.SetDbOpLogMap(pDbOpLogMapIn);
-        txOutputCache.SetDbOpLogMap(pDbOpLogMapIn);
         txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractRelatedKidCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractDataCache.SetDbOpLogMap(pDbOpLogMapIn);
@@ -123,7 +117,6 @@ public:
 
     bool UndoDatas() {
         return contractCache.UndoDatas() &&
-               txOutputCache.UndoDatas() &&
                txDiskPosCache.UndoDatas() &&
                contractRelatedKidCache.UndoDatas() &&
                contractDataCache.UndoDatas() &&
@@ -138,8 +131,6 @@ private:
     /////////// ContractDB
     // contract $RegId.ToRawString() -> Contract
     CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
-    // txId -> vector<CVmOperate>
-    CCompositeKVCache< dbk::CONTRACT_TX_OUT,      uint256,                  vector<CVmOperate> >   txOutputCache;
     // txId -> DiskTxPos
     CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> set<CKeyID>
