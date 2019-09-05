@@ -509,9 +509,7 @@ bool CLuaVMRunEnv::OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundO
                 return false;
             }
 
-            for (const auto &receipt : appOperateReceipts) {
-                receipts.emplace_back(receipt);
-            }
+            receipts.insert(receipts.end(), appOperateReceipts.begin(), appOperateReceipts.end());
 
             newAppUserAccount.push_back(pAppUserAccount);
 
