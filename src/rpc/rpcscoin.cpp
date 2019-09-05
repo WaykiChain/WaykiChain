@@ -684,12 +684,12 @@ Value getdexorder(const Array& params, bool fHelp) {
             "getdexorder \"order_id\"\n"
             "\nget dex order detail.\n"
             "\nArguments:\n"
-            "1.\"order_id\": (string required) order txid\n"
+            "1.\"order_id\":    (string, required) order txid\n"
             "\nResult: object of order detail\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+            + HelpExampleCli("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
+            + HelpExampleRpc("getdexorder", "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
         );
     }
     const uint256 &orderId = RPC_PARAM::GetTxid(params[0], "order_id");
@@ -707,15 +707,15 @@ Value getdexorder(const Array& params, bool fHelp) {
 extern Value getdexsysorders(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 1) {
         throw runtime_error(
-            "getdexsysorders \"height\"\n"
+            "getdexsysorders [\"height\"]\n"
             "\nget dex system-generated active orders by block height.\n"
             "\nArguments:\n"
-            "1.\"height\": (numeric optional) block height, default is current tip block height\n"
+            "1.\"height\":  (numeric, optional) block height, default is current tip block height\n"
             "\nResult:\n"
-            "\"height\" (string) the specified block height.\n"
-            "\"orders\" (string) a list of system-generated DEX orders.\n"
+            "\"height\"     (string) the specified block height.\n"
+            "\"orders\"     (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
-            + HelpExampleCli("getdexsysorders", "10 ")
+            + HelpExampleCli("getdexsysorders", "10")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("getdexsysorders", "10")
         );
@@ -745,21 +745,21 @@ extern Value getdexorders(const Array& params, bool fHelp) {
             "getdexorders [\"begin_height\"] [\"end_height\"] [\"max_count\"] [\"last_pos_info\"]\n"
             "\nget dex all active orders by block height range.\n"
             "\nArguments:\n"
-            "1.\"begin_height\": (numeric optional) the begin block height, default is 0\n"
-            "2.\"end_height\": (numeric optional) the end block height, default is current tip block height\n"
-            "3.\"max_count\": (numeric optional) the max order count to get, default is 500\n"
-            "4.\"last_pos_info\": (string optional) the last position info to get more orders, default is empty\n"
+            "1.\"begin_height\":    (numeric, optional) the begin block height, default is 0\n"
+            "2.\"end_height\":      (numeric, optional) the end block height, default is current tip block height\n"
+            "3.\"max_count\":       (numeric, optional) the max order count to get, default is 500\n"
+            "4.\"last_pos_info\":   (string, optional) the last position info to get more orders, default is empty\n"
             "\nResult:\n"
-            "\"begin_height\" (numeric) the begin block height of returned orders.\n"
-            "\"end_height\" (numeric) the end block height of returned orders.\n"
-            "\"has_more\" (bool) has more orders in db.\n"
-            "\"last_pos_info\" (string) the last position info to get more orders.\n"
-            "\"count\" (numeric) the count of returned orders.\n"
-            "\"orders\" (string) a list of system-generated DEX orders.\n"
+            "\"begin_height\"       (numeric) the begin block height of returned orders.\n"
+            "\"end_height\"         (numeric) the end block height of returned orders.\n"
+            "\"has_more\"           (bool) has more orders in db.\n"
+            "\"last_pos_info\"      (string) the last position info to get more orders.\n"
+            "\"count\"              (numeric) the count of returned orders.\n"
+            "\"orders\"             (string) a list of system-generated DEX orders.\n"
             "\nExamples:\n"
             + HelpExampleCli("getdexorders", "0 100 500")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getdexorders", "0 100 500")
+            + HelpExampleRpc("getdexorders", "0, 100, 500")
         );
     }
     int64_t tipHeight = chainActive.Height();

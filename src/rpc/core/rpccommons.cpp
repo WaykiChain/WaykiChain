@@ -275,17 +275,6 @@ Object GetTxDetailJSON(const uint256& txid) {
                     }
                     obj.push_back(Pair("receipt", receiptArray));
 
-                    // TODO: replace with receipt
-                    // if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
-                    //     vector<CVmOperate> output;
-                    //     pCdMan->pContractCache->GetTxOutput(pBaseTx->GetHash(), output);
-                    //     Array outputArray;
-                    //     for (auto &item : output) {
-                    //         outputArray.push_back(item.ToJson());
-                    //     }
-                    //     obj.push_back(Pair("list_output", outputArray));
-                    // }
-
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
                     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
