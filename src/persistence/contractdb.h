@@ -12,6 +12,7 @@
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "dbaccess.h"
+#include "dbiterator.h"
 #include "persistence/disk.h"
 #include "vm/luavm/appaccount.h"
 
@@ -26,6 +27,28 @@ class CRegID;
 class CAccount;
 class CContractDB;
 struct CDiskTxPos;
+
+typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
+
+/*  CCompositeKVCache     prefixType                       key                       value         variable           */
+/*  -------------------- --------------------         ----------------------------  ---------   --------------------- */
+    // pair<contractRegId, contractKey> -> contractData
+typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, CDBContractKey>, string>     DBContractDataCache;
+
+// prefix: pair<contractRegId, contractKey>, support to match part of cotractKey
+class CDBContractDatasGetter: public CDBListGetter<DBContractDataCache, pair<string, CDBContractKey>> {
+public:
+    typedef CDBListGetter<DBContractDataCache, pair<string, CDBContractKey>> ListGetter;
+    using ListGetter::ListGetter;
+public:
+    const string& GetKey(const ListGetter::DataListItem &item) const {
+        return item.first.second.GetKey();
+    }
+
+    const string& GetValue(const ListGetter::DataListItem &item) {
+        return item.second;
+    }
+};
 
 class CContractDBCache {
 public:
@@ -62,9 +85,6 @@ public:
     bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData);
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
-
-    // Usage: acquire all data related to the specific contract.
-    bool GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData);
 
     bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
@@ -109,6 +129,9 @@ public:
                contractDataCache.UndoDatas() &&
                contractAccountCache.UndoDatas();
     }
+
+    shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,
+        const string &contractKeyPrefix, uint32_t count, const string &lastKey);
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
@@ -121,8 +144,8 @@ private:
     CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // contractTxId -> set<CKeyID>
     CCompositeKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
-    // pair<contractRegId, contractKey> -> scriptData
-    CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >               contractDataCache;
+    // pair<contractRegId, contractKey> -> contractData
+    DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
     CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
 };

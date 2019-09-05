@@ -61,7 +61,7 @@ namespace db_util {
 
     // common Object Type, must support T.IsEmpty() and T.SetEmpty()
     template<typename T> bool IsEmpty(const T& val);
-    template<typename T> void SetEmpty(const T& val);
+    template<typename T> void SetEmpty(T& val);
 
     // string
     template<typename C>

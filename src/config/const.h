@@ -122,6 +122,7 @@ static const uint32_t MAX_CONTRACT_CODE_SIZE     = 65536;      // 64 KB max for 
 static const uint32_t MAX_CONTRACT_ARGUMENT_SIZE = 4096;       // 4 KB max for contract argument size
 static const uint32_t MAX_COMMON_TX_MEMO_SIZE    = 100;        // 100 bytes max for memo size
 static const uint32_t MAX_CONTRACT_MEMO_SIZE     = 100;        // 100 bytes max for memo size
+static const uint32_t MAX_CONTRACT_KEY_SIZE      = 512;         // 100 bytes max for memo size
 static const int32_t MAX_MULSIG_NUMBER           = 15;         // m-n multisig, refer to n
 static const int32_t MAX_MULSIG_SCRIPT_SIZE      = 1000;       // multisig script max size
 

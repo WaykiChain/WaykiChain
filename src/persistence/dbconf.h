@@ -171,6 +171,55 @@ namespace dbk {
     bool ParseDbKey(const std::string& key, PrefixType keyPrefixType, KeyElement &keyElement) {
         return ParseDbKey(Slice(key), keyPrefixType, keyElement);
     }
+
+    // CDBTailKey
+    // support patial match.
+    // must be last element of pair or tuple key,
+    template<uint32_t __MAX_KEY_SIZE>
+    class CDBTailKey {
+    public:
+        enum { MAX_KEY_SIZE = __MAX_KEY_SIZE };
+    private:
+        string key;
+    public:
+        CDBTailKey() {}
+        CDBTailKey(const string &keyIn): key(keyIn) { assert(keyIn.size() <= MAX_KEY_SIZE); }
+
+        const string& GetKey() const { return key; }
+
+        inline bool StartWith(const CDBTailKey& prefix) const {
+            return key.compare(0, prefix.key.size(), prefix.key) == 0;
+        }
+
+        inline uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const {
+            return key.size();
+        }
+
+        void Serialize(CDataStream &s, int nType, int nVersion) const {
+            s.write(key.data(), key.size());
+        }
+
+        void Unserialize(CDataStream &s, int nType, int nVersion) {
+            if (s.size() > MAX_KEY_SIZE) {
+                throw ios_base::failure("CDBTailKey::Unserialize size excceded max size");
+            }
+            // read key from s.begin() to s.end(), s.begin() is current read pos
+            key.insert(key.end(), s.begin(), s.end());
+        }
+
+        bool operator==(const CDBTailKey &other) {
+            return key == other.key;
+        }
+
+        bool operator<(const CDBTailKey &other) const {
+            return this->key < other.key;
+        }
+
+        bool IsEmpty() const { return key.empty(); }
+
+        void SetEmpty() { key.clear(); }
+
+    };
 }
 
 class SliceIterator {
