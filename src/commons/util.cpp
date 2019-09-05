@@ -1132,7 +1132,8 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     LOCK(cs_nTimeOffset);
     // Ignore duplicates
     static set<CNetAddr> setKnown;
-    if (!setKnown.insert(ip).second) return;
+    if (!setKnown.insert(ip).second)
+        return;
 
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200, 0);
@@ -1143,35 +1144,29 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1) {
         int64_t nMedian         = vTimeOffsets.median();
         vector<int64_t> vSorted = vTimeOffsets.sorted();
-        // Only let other nodes change our time by so much
-        if (abs64(nMedian) < 70) {
-            nTimeOffset = nMedian;
-        } else {
-            nTimeOffset = 0;
 
+        // As block interval is so short, i.e., 10 seconds or 3 seconds. It's not necessary to adjust
+        // out timestamp depending on other peers.
+        // Every block producer should make sure it's timestamp is exactly precise. Of course, if nobody
+        // has a time different than ours but within 1 seconds of ours, give a warning.
+
+        if (abs64(nMedian) > 1) {
             static bool fDone;
             if (!fDone) {
-                // If nobody has a time different than ours but within 5 seconds of ours, give a
-                // warning
                 bool fMatch = false;
                 for (int64_t nOffset : vSorted)
-                    if (nOffset != 0 && abs64(nOffset) < 5) fMatch = true;
+                    if (abs64(nOffset) <= 1)
+                        fMatch = true;
 
                 if (!fMatch) {
                     fDone = true;
                     string strMessage =
                         _("Warning: Please check that your computer's date and time "
-                          "are correct! If your clock is wrong Coin will not work properly.");
+                        "are correct! If your clock is wrong Coin will not work properly.");
                     strMiscWarning = strMessage;
                     LogPrint("INFO", "*** %s\n", strMessage);
                 }
             }
-        }
-
-        if (SysCfg().IsDebug()) {
-            for (int64_t n : vSorted) LogPrint("DEBUG", "%+d  ", n);
-
-            LogPrint("DEBUG", "|  ");
         }
 
         LogPrint("INFO", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);

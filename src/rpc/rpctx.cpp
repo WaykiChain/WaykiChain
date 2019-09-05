@@ -715,7 +715,8 @@ static Value TestDisconnectBlock(int32_t number) {
         } while (--number);
     }
 
-    obj.push_back(Pair("tip", strprintf("hash:%s hight:%s",chainActive.Tip()->GetBlockHash().ToString(),chainActive.Height())));
+    obj.push_back(
+        Pair("tip", strprintf("hash:%s hight:%s", chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height())));
     return obj;
 }
 
