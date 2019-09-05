@@ -24,7 +24,6 @@ extern Value gettxdetail(const Array& params, bool fHelp);
 extern Value sign(const Array& params, bool fHelp);
 extern Value getaccountinfo(const Array& params, bool fHelp);
 extern Value disconnectblock(const Array& params, bool fHelp);
-extern Value generateblock(const Array& params, bool fHelp);
 extern Value reloadtxcache(const Array& params, bool fHelp);
 
 extern Value getcontractinfo(const Array& params, bool fHelp);

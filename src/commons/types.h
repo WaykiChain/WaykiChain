@@ -34,7 +34,7 @@ using EnumTypeMap = std::unordered_map<EnumType, ValueType, EnumTypeHash<EnumTyp
 
 namespace container {
     template<typename Container>
-    void Append(Container dest, Container appended) {
+    void Append(Container &dest, const Container &appended) {
         dest.insert(dest.end(), std::begin(appended), std::end(appended));
     }
 };

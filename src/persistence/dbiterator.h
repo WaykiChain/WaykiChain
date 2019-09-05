@@ -73,9 +73,9 @@ public:
 
 
     // match string, support part string match
-    template<typename C>
-    static bool MatchPrefix(const basic_string<C> &key, const basic_string<C> &prefix) {
-        return key.compare(0, prefix.size(), prefix) == 0;
+    template<uint32_t MAX_KEY_SIZE>
+    static bool MatchPrefix(const dbk::CDBTailKey<MAX_KEY_SIZE> &key, const dbk::CDBTailKey<MAX_KEY_SIZE> &prefix) {
+        return key.StartWith(prefix);
     }
 
     template<typename T1>
@@ -112,7 +112,6 @@ public:
     typedef typename CacheType::ValueType ValueType;
 private:
     shared_ptr<leveldb::Iterator> p_db_it;
-    string prefix;
 public:
     CDBPrefixIterator(CacheType &dbCache, const PrefixElement &prefixElement)
         : Base(dbCache, prefixElement), p_db_it(nullptr) {}
@@ -123,7 +122,6 @@ public:
 
     bool First(const KeyType &lastKey) {
         p_db_it = Base::db_cache.GetDbAccessPtr()->NewIterator();
-        prefix = dbk::GenDbKey(CacheType::PREFIX_TYPE, Base::prefix_element);
         if (!db_util::IsEmpty(lastKey)) {
             string lastKeyStr = dbk::GenDbKey(CacheType::PREFIX_TYPE, lastKey);
             p_db_it->Seek(lastKeyStr);
@@ -131,6 +129,7 @@ public:
                 p_db_it->Next(); // skip the last key
             }
         } else {
+            string prefix = dbk::GenDbKey(CacheType::PREFIX_TYPE, Base::prefix_element);
             p_db_it->Seek(prefix);
         }
         return Parse();
@@ -142,15 +141,17 @@ public:
     }
 private:
     inline bool Parse() {
+        const string& prefixStr = dbk::GetKeyPrefix(CacheType::PREFIX_TYPE);
         Base::is_valid = false;
-        if (!p_db_it->Valid() || !p_db_it->key().starts_with(prefix)) return false;
+        if (!p_db_it->Valid() || !p_db_it->key().starts_with(prefixStr)) return false;
 
         const leveldb::Slice &slKey = p_db_it->key();
         const leveldb::Slice &slValue = p_db_it->value();
         if (!ParseDbKey(slKey, CacheType::PREFIX_TYPE, Base::key)) {
             throw runtime_error(strprintf("CDBPrefixIterator::Parse db key error! key=%s", HexStr(slKey.ToString())));
         }
-        assert(PrefixMatcher::MatchPrefix(Base::key, Base::prefix_element));
+        if (!PrefixMatcher::MatchPrefix(Base::key, Base::prefix_element))
+            return false;
 
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);

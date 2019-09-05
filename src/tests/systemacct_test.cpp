@@ -43,7 +43,7 @@ BOOST_FIXTURE_TEST_CASE(transfer_test, CSysAccountTest)
 	CRegID regId;
 	BOOST_CHECK(RegisterAccount(strRegAddr,10000,strTxHash));
 	BOOST_CHECK(GenerateOneBlock());
-	BOOST_CHECK(GetRegID(strRegAddr,regId));
+	BOOST_CHECK(GegRegId(strRegAddr,regId));
 	BOOST_CHECK(false == regId.IsEmpty());
 
 	//使用一个注册过的keyID地址测试，看是否能够注册成功

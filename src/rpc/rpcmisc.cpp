@@ -73,13 +73,16 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"connections\": xxxxx,          (numeric) the number of connections\n"
             "  \"conf_dir\": \"xxxxx\",         (string) the conf directory\n"
             "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
-            "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the chain\n"
-            "  \"mine_block\": xxxxx,           (numeric) whether to mine/generate blocks or not (1|0), 1: true, 0: false\n"
+            "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the "
+            "chain\n"
+            "  \"mine_block\": xxxxx,           (numeric) whether to mine/generate blocks or not (1|0), 1: true, 0: "
+            "false\n"
             "  \"time_offset\": xxxxx,          (numeric) the time offset\n"
 
             "  \"wallet_version\": xxxxx,       (numeric) the wallet version\n"
             "  \"wallet_balance\": xxxxx,       (numeric) the total coin balance of the wallet\n"
-            "  \"wallet_unlock_time\": xxxxx,   (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 GMT) that the wallet is unlocked for transfers, or 0 if the wallet is being locked\n"
+            "  \"wallet_unlock_time\": xxxxx,   (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 "
+            "GMT) that the wallet is unlocked for transfers, or 0 if the wallet is being locked\n"
 
             "  \"perkb_miner_fee\": x.xxxx,     (numeric) the transaction fee set in wicc/kb\n"
             "  \"perkb_relay_fee\": x.xxxx,     (numeric) minimum relay fee for non-free transactions in wicc/kb\n"
@@ -91,10 +94,8 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"syncblock_height\": xxxxx ,    (numeric) the block height of the loggest chain found in the network\n"
             "  \"errors\": \"xxxxx\"            (string) any error messages\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getinfo", "")
-            + HelpExampleRpc("getinfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getinfo", "") + "\nAs json rpc\n" + HelpExampleRpc("getinfo", ""));
 
     ProxyType proxy;
     GetProxy(NET_IPV4, proxy);
@@ -147,14 +148,14 @@ Value verifymessage(const Array& params, bool fHelp) {
             "\nResult:\n"
             "true|false             (boolean) If the signature is verified or not.\n"
             "\nExamples:\n"
-            "\nUnlock the wallet for 30 seconds\n"
-            + HelpExampleCli("walletpassphrase", "\"my passphrase\" 30") +
-            "\nCreate the signature\n"
-            + HelpExampleCli("signmessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"my message\"") +
-            "\nVerify the signature\n"
-            + HelpExampleCli("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"signature\" \"my message\"") +
+            "\n1) Unlock the wallet for 30 seconds\n"
+            + HelpExampleCli("walletpassphrase", "\"my_passphrase\" 30") +
+            "\n2) Create the signature\n"
+            + HelpExampleCli("signmessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"my_message\"") +
+            "\n3) Verify the signature\n"
+            + HelpExampleCli("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"signature\" \"my_message\"") +
             "\nAs json rpc\n"
-            + HelpExampleRpc("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"signature\", \"my message\"")
+            + HelpExampleRpc("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"signature\", \"my_message\"")
         );
 
     string strAddress  = params[0].get_str();

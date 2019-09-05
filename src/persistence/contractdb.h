@@ -28,19 +28,21 @@ class CAccount;
 class CContractDB;
 struct CDiskTxPos;
 
-/*  CCompositeKVCache     prefixType                       key              value           variable           */
-/*  -------------------- --------------------         -----------------  -------------   --------------------- */
-    // pair<contractRegId, contractKey> -> contractData
-typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, string>,     string >     DBContractDataCache;
+typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
 
-// prefix: pair<contractRegId, contractKey>, can match part of cotractKey (string)
-class CDBContractDatasGetter: public CDBListGetter<DBContractDataCache, pair<string, string>> {
+/*  CCompositeKVCache     prefixType                       key                       value         variable           */
+/*  -------------------- --------------------         ----------------------------  ---------   --------------------- */
+    // pair<contractRegId, contractKey> -> contractData
+typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, CDBContractKey>, string>     DBContractDataCache;
+
+// prefix: pair<contractRegId, contractKey>, support to match part of cotractKey
+class CDBContractDatasGetter: public CDBListGetter<DBContractDataCache, pair<string, CDBContractKey>> {
 public:
-    typedef CDBListGetter<DBContractDataCache, pair<string, string>> ListGetter;
+    typedef CDBListGetter<DBContractDataCache, pair<string, CDBContractKey>> ListGetter;
     using ListGetter::ListGetter;
 public:
-    const string& GetKey(const ListGetter::DataListItem &item) {
-        return item.first.second;
+    const string& GetKey(const ListGetter::DataListItem &item) const {
+        return item.first.second.GetKey();
     }
 
     const string& GetValue(const ListGetter::DataListItem &item) {
@@ -83,9 +85,6 @@ public:
     bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData);
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
-
-    // Usage: acquire all data related to the specific contract.
-    bool GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData);
 
     bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
     bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
@@ -132,10 +131,7 @@ public:
     }
 
     shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,
-        const string &contractKeyPrefix, uint32_t count, const string &lastKey) {
-        assert(contractDataCache.GetBasePtr() == nullptr && "only support top level cache");
-        return make_shared<CDBContractDatasGetter>(contractDataCache, make_pair(contractRegid.ToRawString(), contractKeyPrefix));
-    }
+        const string &contractKeyPrefix, uint32_t count, const string &lastKey);
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

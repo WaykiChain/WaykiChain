@@ -17,7 +17,7 @@
 #include "net.h"
 #include "tx/merkletx.h"
 #include "commons/util.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -361,25 +361,6 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     return true;
 }
 
-int64_t GetMinRelayFee(const CBaseTx *pBaseTx, uint32_t nBytes, bool fAllowFree) {
-    uint64_t nBaseFee = pBaseTx->nMinRelayTxFee;
-    int64_t nMinFee   = (1 + (int64_t)nBytes / 1000) * nBaseFee;
-
-    if (fAllowFree) {
-        // There is a free transaction area in blocks created by most miners,
-        // * If we are relaying we allow transactions up to DEFAULT_BLOCK_PRIORITY_SIZE - 1000
-        //   to be considered to fall into this category. We don't want to encourage sending
-        //   multiple transactions instead of one big transaction to avoid fees.
-        if (nBytes < (DEFAULT_BLOCK_PRIORITY_SIZE - 1000))
-            nMinFee = 0;
-    }
-
-    if (!CheckBaseCoinRange(nMinFee))
-        nMinFee = GetBaseCoinMaxMoney();
-
-    return nMinFee;
-}
-
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx, bool fLimitFree,
                         bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
@@ -422,11 +403,6 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
             return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
                  hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
     }
-
-    uint64_t minFees = GetMinRelayFee(pBaseTx, nSize, true);
-    if (fLimitFree && nFees < minFees)
-        return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s not pay enough fees, %d < %d",
-            hash.GetHex(), nFees, minFees), REJECT_INSUFFICIENTFEE, "insufficient fee");
 
     // Continuously rate-limit free transactions
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
@@ -1156,13 +1132,13 @@ bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, CCacheWr
         CAccount account;
         cw.accountCache.GetAccount(regId, account);
         vector<CReceipt> receipts;
-        if (!account.ProcessDelegateVotes(candidateVotes, candidateVotesInOut, currHeight, cw.accountCache, receipts)) {
-            return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate delegate vote failed, regId=%s",
-                            regId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-delegate-failed");
+        if (!account.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, currHeight, cw.accountCache, receipts)) {
+            return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate candidate votes failed, regId=%s",
+                            regId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-candidate-votes-failed");
         }
         if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
             return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : write candidate votes failed, regId=%s",
-                            regId.ToString()), WRITE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
+                            regId.ToString()), OPERATE_CANDIDATE_VOTES_FAIL, "write-candidate-votes-failed");
         }
 
         if (!cw.accountCache.SaveAccount(account)) {

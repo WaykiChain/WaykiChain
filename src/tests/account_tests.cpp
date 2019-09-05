@@ -135,38 +135,6 @@ BOOST_FIXTURE_TEST_CASE(tx_add_free,CTxTest) {
 	CheckAccountEqual();
 }
 
-/**
- * brief	:each height test 10 times
- */
-BOOST_FIXTURE_TEST_CASE(tx_minus_free,CTxTest) {
-
-	for (int i = 1; i <= TEST_SIZE / 10; i++) {
-
-//		for (int j = 0; j < 10; j++) {
-//			uint64_t nOldVectorSum = GetTotalValue(accOperate.vFreedomFund);
-//			uint64_t minusValue = random(40) + 1;
-//			CFund fund(minusValue, random(20));
-//			if (nOldVectorSum >= minusValue) {
-//
-//				BOOST_CHECK(accOperate.OperateBalance(MINUS_BCOIN, fund));
-//				BOOST_CHECK(GetTotalValue(accOperate.vFreedomFund) == nOldVectorSum - minusValue);
-//			}
-//
-//		}
-
-//		CAccount accountAfterOper = accOperate;
-//		accOperate.UndoOperateAccount(accOperate.accountOperLog);
-//		CheckAccountEqual();
-//
-//		accOperate = accountAfterOper;
-//		CAccountOperLog log;
-//		accOperate.accountOperLog = log;
-//
-//		accBeforOperate = accOperate;
-	}
-
-}
-
 BOOST_FIXTURE_TEST_CASE(red_packet, CTxTest) {
 	//gethash
 	string retHash;

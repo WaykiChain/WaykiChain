@@ -94,7 +94,7 @@ Use UPnP to map the listening port (default: 1 when listening)
 \fB\-paytxfee=\fR<amt>
 Fee per KB to add to transactions you send
 .TP
-\fB\-server\fR
+\fB\-rpcserver\fR
 Accept command line and JSON\-RPC commands
 .TP
 \fB\-testnet\fR
@@ -148,9 +148,6 @@ Set key pool size to <n> (default: 100)
 \fB\-rescan\fR
 Rescan the block chain for missing wallet transactions
 .TP
-\fB\-salvagewallet\fR
-Attempt to recover private keys from a corrupt wallet.dat
-.TP
 \fB\-checkblocks=\fR<n>
 How many blocks to check at startup (default: 288, 0 = all)
 .TP
@@ -170,13 +167,8 @@ Rebuild block chain index from current blk000??.dat files
 Set the number of script verification threads (1\-16, 0=auto, default: 0)
 .SS "Block creation options:"
 .TP
-\fB\-blockminsize=\fR<n>
-Set minimum block size in bytes (default: 0)
-.TP
 \fB\-blockmaxsize=\fR<n>
 Set maximum block size in bytes (default: 250000)
-.HP
-\fB\-blockprioritysize=\fR<n> Set maximum size of high\-priority/low\-fee transactions in bytes (default: 27000)
 .PP
 SSL options: (see the Bitcoin Wiki for SSL setup instructions)
 .TP

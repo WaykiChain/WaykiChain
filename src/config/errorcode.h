@@ -36,7 +36,8 @@ static const uint8_t WRITE_CDP_FAIL             = 0X62;
 static const uint8_t INTEREST_INSUFFICIENT      = 0x63;
 static const uint8_t UPDATE_CDP_FAIL            = 0X64;
 
-static const uint8_t WRITE_CANDIDATE_VOTES_FAIL = 0X70;
+static const uint8_t WRITE_CANDIDATE_VOTES_FAIL   = 0X70;
+static const uint8_t OPERATE_CANDIDATE_VOTES_FAIL = 0X71;
 
 static const uint8_t CREATE_SYS_ORDER_FAILED    = 0x80;
 static const uint8_t UNDO_SYS_ORDER_FAILED      = 0x81;

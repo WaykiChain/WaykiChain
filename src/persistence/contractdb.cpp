@@ -10,7 +10,7 @@
 #include "entities/key.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 
 #include <stdint.h>
 
@@ -74,19 +74,6 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
     return contractDataCache.EraseData(key);
 }
 
-bool CContractDBCache::GetContractData(const CRegID &contractRegId, vector<std::pair<string, string>> &contractData) {
-    map<std::pair<string, string>, string> elements;
-    if (!contractDataCache.GetAllElements(contractRegId.ToRawString(), elements)) {
-        return false;
-    }
-
-    for (const auto item : elements) {
-        contractData.emplace_back(std::get<1>(item.first), item.second);
-    }
-
-    return true;
-}
-
 bool CContractDBCache::Flush() {
     contractCache.Flush();
     txOutputCache.Flush();
@@ -147,8 +134,23 @@ bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &
 bool CContractDBCache::SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount) {
     return contractRelatedKidCache.SetData(txid, relAccount);
 }
+
 bool CContractDBCache::GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount) {
     return contractRelatedKidCache.GetData(txid, relAccount);
 }
 
 bool CContractDBCache::EraseTxRelAccout(const uint256 &txid) { return contractRelatedKidCache.EraseData(txid); }
+
+shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
+    const CRegID &contractRegid, const string &contractKeyPrefix, uint32_t count,
+    const string &lastKey) {
+
+    assert(contractDataCache.GetBasePtr() == nullptr && "only support top level cache");
+    if (contractKeyPrefix.size() > CDBContractKey::MAX_KEY_SIZE) {
+        LogPrint("ERROR", "CContractDBCache::CreateContractDatasGetter() contractKeyPrefix.size()=%u "
+                 "exceeded the max size=%u", contractKeyPrefix.size(), CDBContractKey::MAX_KEY_SIZE);
+        return nullptr;
+    }
+    auto prefix = make_pair(contractRegid.ToRawString(), CDBContractKey(contractKeyPrefix));
+    return make_shared<CDBContractDatasGetter>(contractDataCache, prefix);
+}

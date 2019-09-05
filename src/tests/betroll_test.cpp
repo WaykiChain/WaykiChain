@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <vector>
 #include <map>
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 //#include "vm/luavm/vm8051.h"
 #include <memory>
 #include "commons/util.h"

@@ -134,8 +134,6 @@ struct CNodeStateStats {
     int32_t nMisbehavior;
 };
 
-int64_t GetMinRelayFee(const CBaseTx *pBaseTx, uint32_t nBytes, bool fAllowFree);
-
 /** Check for standard transaction types
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */

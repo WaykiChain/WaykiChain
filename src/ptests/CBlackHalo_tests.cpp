@@ -1,9 +1,7 @@
-/*
- * CBlackHalo_tests.cpp
- *
- *  Created on: 2014��12��30��
- *      Author: ranger.shi
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "CBlackHalo_tests.h"
 
@@ -22,37 +20,35 @@ CBlackHalo::~CBlackHalo() {
 	// todo Auto-generated destructor stub
 }
 
-TEST_STATE CBlackHalo::Run()
-{
-     switch(step)
-     {
-     case 0:
-    	 RegistScript();
-    	 break;
-     case 1:
-    	 WaitRegistScript();
-    	 break;
-     case 2:
-    	 SendBuyerPackage();
-    	 break;
-     case 3:
-    	 WaitSendBuyerPackage();
-    	 break;
-     case 4:
-    	 SendSellerPackage();
-    	 break;
-     case 5:
-    	 WaitSendSellerPackage();
-    	 break;
-     case 6:
-    	 SendBuyerConfirmedPackage();
-          break;
-     case 7:
-          WaitSendBuyerConfirmedPackage();
+TEST_STATE CBlackHalo::Run() {
+    switch (step) {
+        case 0:
+            RegistScript();
+            break;
+        case 1:
+            WaitRegistScript();
+            break;
+        case 2:
+            SendBuyerPackage();
+            break;
+        case 3:
+            WaitSendBuyerPackage();
+            break;
+        case 4:
+            SendSellerPackage();
+            break;
+        case 5:
+            WaitSendSellerPackage();
+            break;
+        case 6:
+            SendBuyerConfirmedPackage();
+            break;
+        case 7:
+            WaitSendBuyerConfirmedPackage();
 
-          break;
-     }
-	return next_state;
+            break;
+    }
+    return next_state;
 }
 
 bool CBlackHalo::RegistScript(){
@@ -89,7 +85,7 @@ bool CBlackHalo::SendBuyerPackage(){
 		senddata.dnType = 0x01;
 		string strregid = "";
 		string selleraddr = SELLER_B;
-		BOOST_CHECK(basetest.GetRegID(selleraddr,strregid));
+		BOOST_CHECK(basetest.GegRegId(selleraddr,strregid));
 		CRegID Sellerregid(strregid);
 		memcpy(senddata.seller,&Sellerregid.GetRegIdRaw().at(0),sizeof(senddata.seller));
 

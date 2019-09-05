@@ -16,7 +16,7 @@ using uint128_t = unsigned __int128;
 bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const string &title,
                                           const TokenSymbol &symbol, const int64_t amount) {
     // TODO: should check the min amount of order by symbol
-    if (!CheckCoinRange(symbol, amount))
+    if (amount <= 0 || !CheckCoinRange(symbol, amount))
         return state.DoS(100, ERRORMSG("%s amount out of range, symbol=%s, amount=%llu",
                         title, symbol, amount), REJECT_INVALID, "invalid-coin-range");
 
@@ -27,7 +27,7 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
                           const TokenSymbol &coin_symbol, const TokenSymbol &asset_symbol,
                           const int64_t price) {
     // TODO: should check the price range??
-    if (price < 0)
+    if (price <= 0)
         return state.DoS(100, ERRORMSG("%s price out of range,"
                         " coin_symbol=%s, asset_symbol=%s, price=%llu",
                         title, coin_symbol, asset_symbol, price),
@@ -96,10 +96,6 @@ bool CDEXBuyLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
 
     CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
@@ -188,10 +184,6 @@ bool CDEXSellLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -277,10 +269,6 @@ bool CDEXBuyMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -364,10 +352,6 @@ bool CDEXSellMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidati
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -441,14 +425,13 @@ bool CDEXCancelOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationSt
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
+    if (orderId.IsEmpty())
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
+                         "invalid-order-id");
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
@@ -550,6 +533,24 @@ bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex match-svc regId"),
                          REJECT_INVALID, "unauthorized-settle-account");
+    }
+
+    if (dealItems.empty())
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal items is empty"),
+                         REJECT_INVALID, "invalid-deal-items");
+
+    for (size_t i = 0; i < dealItems.size(); i++) {
+        const DEXDealItem & dealItem = dealItems.at(i);
+        if (dealItem.buyOrderId.IsEmpty() || dealItem.sellOrderId.IsEmpty())
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id or sell_order_id is empty",
+                i), REJECT_INVALID, "invalid-deal-item");
+        if (dealItem.buyOrderId == dealItem.sellOrderId)
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id cannot equal to sell_order_id",
+                i), REJECT_INVALID, "invalid-deal-item");
+        if (dealItem.dealCoinAmount == 0 || dealItem.dealAssetAmount == 0 || dealItem.dealPrice)
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d],"
+                " deal_coin_amount or deal_asset_amount or deal_price is zero",
+                i), REJECT_INVALID, "invalid-deal-item");
     }
 
     CAccount srcAccount;
@@ -732,7 +733,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         sellOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
 
         // 7. check the order limit amount and get residual amount
-        uint64_t buyResidualAmount = 0;
+        uint64_t buyResidualAmount  = 0;
         uint64_t sellResidualAmount = 0;
 
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {

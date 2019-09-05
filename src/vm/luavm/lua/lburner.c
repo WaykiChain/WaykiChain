@@ -273,7 +273,7 @@ LUA_API int lua_BurnAccountOperate(lua_State *L, const char *funcName, size_t co
 }
 
 LUA_API int lua_BurnAccountGet(lua_State *L, const char *funcName, unsigned long long fuel, int version) {
-        if (IsBurnerRuning(L) && version <= L->burnerState.version) {
+    if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         L->burnerState.fuel += fuel;
         L->burnerState.fuelAccount += fuel;
         TraceBurning(L, "lua_BurnAccountGet", "%s, version=%d, fuel=%llu\n",

@@ -54,7 +54,7 @@ public:
 
 class CLuaContractInvokeTx : public CBaseTx {
 public:
-    mutable CUserID app_uid;  // app regid or address
+    mutable CUserID app_uid;  // app regid
     uint64_t coin_amount;     // coin amount (coin symbol: WICC)
     string arguments;         // arguments to invoke a contract method
 
@@ -138,7 +138,7 @@ public:
 
 class CUniversalContractInvokeTx : public CBaseTx {
 public:
-    mutable CUserID app_uid;  // app regid or address
+    mutable CUserID app_uid;  // app regid
     string arguments;         // arguments to invoke a contract method
     TokenSymbol coin_symbol;
     uint64_t coin_amount;  // transfer amount to contract account

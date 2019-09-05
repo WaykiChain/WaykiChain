@@ -1,84 +1,81 @@
-/*
- * ScriptCheck.cpp
- *
- *  Created on: Sep 2, 2014
- *      Author: ranger.shi
- */
-#include "vmrunenv.h"
-#include <algorithm>
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#include "luavmrunenv.h"
 #include "commons/SafeInt3.hpp"
 #include "tx/tx.h"
 #include "commons/util.h"
 
 #define MAX_OUTPUT_COUNT 100
 
-CVmRunEnv::CVmRunEnv() {
+CLuaVMRunEnv::CLuaVMRunEnv() {
     rawAccount.clear();
     newAccount.clear();
     rawAppUserAccount.clear();
     newAppUserAccount.clear();
-    runtimeHeight  = 0;
-    pContractCache = nullptr;
-    pAccountCache  = nullptr;
-    isCheckAccount = false;
+    receipts.clear();
+    vmOperateOutput.clear();
+    mapAppFundOperate.clear();
+
+    runtimeHeight   = 0;
+    pAccountCache   = nullptr;
+    pContractCache  = nullptr;
+    isCheckAccount  = false;
 }
 
-vector<shared_ptr<CAccount>>& CVmRunEnv::GetRawAccont() { return rawAccount; }
+vector<shared_ptr<CAccount>>& CLuaVMRunEnv::GetRawAccont() { return rawAccount; }
+vector<shared_ptr<CAccount>>& CLuaVMRunEnv::GetNewAccount() { return newAccount; }
+vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetNewAppUserAccount() { return newAppUserAccount; }
+vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
-vector<shared_ptr<CAccount>>& CVmRunEnv::GetNewAccount() { return newAccount; }
-
-vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetNewAppUserAccount() { return newAppUserAccount; }
-
-vector<shared_ptr<CAppUserAccount>>& CVmRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
-
-bool CVmRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountView, int32_t height) {
-    vmOperateOutput.clear();
-    pBaseTx       = tx;
-    runtimeHeight = height;
-    pAccountCache = &accountView;
-    CUniversalContract contract;
+bool CLuaVMRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
+                              int32_t height) {
+    pBaseTx         = tx;
+    runtimeHeight   = height;
+    pAccountCache   = &accountCache;
+    pContractCache  = &contractCache;
 
     if (tx.get()->nTxType != LCONTRACT_INVOKE_TX) {
-        LogPrint("ERROR", "%s\n", "err param");
+        LogPrint("ERROR", "unsupported tx type\n");
         return false;
     }
 
+    CUniversalContract contract;
     CLuaContractInvokeTx* contractTx = static_cast<CLuaContractInvokeTx*>(tx.get());
     if (!pContractCache->GetContract(contractTx->app_uid.get<CRegID>(), contract)) {
-        LogPrint("ERROR", "contract not found: %s\n",
-                 contractTx->app_uid.get<CRegID>().ToString());
+        LogPrint("ERROR", "contract not found: %s\n", contractTx->app_uid.get<CRegID>().ToString());
         return false;
     }
 
     if (contractTx->arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
-        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() arguments context size too large");
+        LogPrint("ERROR", "CVmScriptRun::Initialize() arguments context size too large\n");
         return false;
     }
 
     try {
-        pLua = std::make_shared<CVmlua>(contract.code, contractTx->arguments);
+        pLua = std::make_shared<CLuaVM>(contract.code, contractTx->arguments);
     } catch (exception& e) {
-        LogPrint("ERROR", "%s\n", "CVmScriptRun::Initialize() CVmlua init error");
+        LogPrint("ERROR", "CVmScriptRun::Initialize() CLuaVM init error\n");
         return false;
     }
 
-    // pVmRunEnv = this; //传CVmRunEnv对象指针给lmylib.cpp库使用
-    LogPrint("vm", "%s\n", "CVmScriptRun::Initialize() LUA");
+    LogPrint("vm", "CVmScriptRun::Initialize() CLuaVM init success\n");
 
     return true;
 }
 
-CVmRunEnv::~CVmRunEnv() {}
+CLuaVMRunEnv::~CLuaVMRunEnv() {}
 
-tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int32_t height, CCacheWrapper& cw,
+tuple<bool, uint64_t, string> CLuaVMRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pBaseTx, int32_t height, CCacheWrapper& cw,
                                                          uint64_t nBurnFactor, uint64_t& uRunStep) {
-    if (nBurnFactor == 0) return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
-
-    pContractCache = &cw.contractCache;
+    if (nBurnFactor == 0)
+        return std::make_tuple(false, 0, string("VmScript nBurnFactor == 0"));
 
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     if (tx->llFees < CBaseTx::nMinTxFee)
-        return std::make_tuple(false, 0, string("CVmRunEnv: Contract pBaseTx fee too small"));
+        return std::make_tuple(false, 0, string("CLuaVMRunEnv: Contract pBaseTx fee too small"));
 
     uint64_t fuelLimit = ((tx->llFees - CBaseTx::nMinTxFee) / nBurnFactor) * 100;
     if (fuelLimit > MAX_BLOCK_RUN_STEP) {
@@ -89,10 +86,10 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
              nBurnFactor, fuelLimit);
 
     if (fuelLimit == 0) {
-        return std::make_tuple(false, 0, string("CVmRunEnv::ExecuteContract, fees too low"));
+        return std::make_tuple(false, 0, string("CLuaVMRunEnv::ExecuteContract, fees too low"));
     }
 
-    if (!Initialize(pBaseTx, cw.accountCache, height)) {
+    if (!Initialize(pBaseTx, cw.accountCache, cw.contractCache, height)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
@@ -108,24 +105,22 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
         uRunStep = step;
     }
 
-    LogPrint("vm", "tx:%s,step:%ld\n", tx->ToString(cw.accountCache), uRunStep);
+    LogPrint("vm", "tx:%s,step:%ld\n", tx->ToString(*pAccountCache), uRunStep);
 
     if (!CheckOperate(vmOperateOutput)) {
         return std::make_tuple(false, 0, string("VmScript CheckOperate Failed"));
     }
 
-    if (!OperateAccount(vmOperateOutput, cw.accountCache, height)) {
+    if (!OperateAccount(vmOperateOutput)) {
         return std::make_tuple(false, 0, string("VmScript OperateAccount Failed"));
     }
 
-    LogPrint("vm", "isCheckAccount:%d\n", isCheckAccount);
-    if (isCheckAccount) {
-        LogPrint("vm", "isCheckAccount is true\n");
-        if (!CheckAppAcctOperate(tx))
+    LogPrint("vm", "isCheckAccount: %d\n", isCheckAccount);
+    if (isCheckAccount && !CheckAppAcctOperate(tx)) {
             return std::make_tuple(false, 0, string("VmScript CheckAppAcct Failed"));
     }
 
-    if (!OperateAppAccount(mapAppFundOperate, *pContractCache)) {
+    if (!OperateAppAccount(mapAppFundOperate)) {
         return std::make_tuple(false, 0, string("OperateAppAccount Account Failed"));
     }
 
@@ -143,8 +138,9 @@ tuple<bool, uint64_t, string> CVmRunEnv::ExecuteContract(shared_ptr<CBaseTx>& pB
     return std::make_tuple(true, spend, string("VmScript Success"));
 }
 
-shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
-    if (newAccount.size() == 0) return NULL;
+shared_ptr<CAccount> CLuaVMRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
+    if (newAccount.size() == 0)
+        return nullptr;
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = newAccount.begin(); Iter != newAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
@@ -153,21 +149,25 @@ shared_ptr<CAccount> CVmRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount)
             return temp;
         }
     }
-    return NULL;
+
+    return nullptr;
 }
-shared_ptr<CAccount> CVmRunEnv::GetAccount(shared_ptr<CAccount>& Account) {
-    if (rawAccount.size() == 0) return NULL;
+
+shared_ptr<CAccount> CLuaVMRunEnv::GetAccount(shared_ptr<CAccount>& account) {
+    if (rawAccount.size() == 0)
+        return nullptr;
     vector<shared_ptr<CAccount>>::iterator Iter;
     for (Iter = rawAccount.begin(); Iter != rawAccount.end(); Iter++) {
         shared_ptr<CAccount> temp = *Iter;
-        if (Account.get()->keyid == temp.get()->keyid) {
+        if (account.get()->keyid == temp.get()->keyid) {
             return temp;
         }
     }
-    return NULL;
+
+    return nullptr;
 }
 
-UnsignedCharArray CVmRunEnv::GetAccountID(CVmOperate value) {
+UnsignedCharArray CLuaVMRunEnv::GetAccountID(const CVmOperate& value) {
     UnsignedCharArray accountId;
     if (value.accountType == AccountType::REGID) {
         accountId.assign(value.accountId, value.accountId + 6);
@@ -185,83 +185,82 @@ UnsignedCharArray CVmRunEnv::GetAccountID(CVmOperate value) {
     return accountId;
 }
 
-shared_ptr<CAppUserAccount> CVmRunEnv::GetAppAccount(shared_ptr<CAppUserAccount>& AppAccount) {
-    if (rawAppUserAccount.size() == 0) return NULL;
+shared_ptr<CAppUserAccount> CLuaVMRunEnv::GetAppAccount(shared_ptr<CAppUserAccount>& appAccount) {
+    if (rawAppUserAccount.size() == 0)
+        return nullptr;
+
     vector<shared_ptr<CAppUserAccount>>::iterator Iter;
     for (Iter = rawAppUserAccount.begin(); Iter != rawAppUserAccount.end(); Iter++) {
         shared_ptr<CAppUserAccount> temp = *Iter;
-        if (AppAccount.get()->GetAccUserId() == temp.get()->GetAccUserId()) return temp;
+        if (appAccount.get()->GetAccUserId() == temp.get()->GetAccUserId())
+            return temp;
     }
-    return NULL;
+    return nullptr;
 }
 
-bool CVmRunEnv::CheckOperate(const vector<CVmOperate>& listoperate) {
-    // judge contract rulue
-    uint64_t addmoey = 0, miusmoney = 0;
+bool CLuaVMRunEnv::CheckOperate(const vector<CVmOperate>& operates) {
+    // judge contract rule
+    uint64_t addMoney = 0, minusMoney = 0;
     uint64_t operValue = 0;
-    if (listoperate.size() > MAX_OUTPUT_COUNT) return false;
+    if (operates.size() > MAX_OUTPUT_COUNT)
+        return false;
 
-    for (auto& it : listoperate) {
-        if (it.accountType != REGID && it.accountType != AccountType::BASE58ADDR) return false;
+    for (auto& it : operates) {
+        if (it.accountType != REGID && it.accountType != AccountType::BASE58ADDR)
+            return false;
 
         if (it.opType == BalanceOpType::ADD_FREE) {
             memcpy(&operValue, it.money, sizeof(it.money));
             /*
-            uint64_t temp = addmoey;
+            uint64_t temp = addMoney;
             temp += operValue;
-            if(temp < operValue || temp<addmoey) {
+            if(temp < operValue || temp<addMoney) {
                 return false;
             }
             */
             uint64_t temp = 0;
-            if (!SafeAdd(addmoey, operValue, temp)) {
+            if (!SafeAdd(addMoney, operValue, temp)) {
                 return false;
             }
-            addmoey = temp;
+            addMoney = temp;
         } else if (it.opType == BalanceOpType::SUB_FREE) {
             // vector<unsigned char > accountId(it.accountId,it.accountId+sizeof(it.accountId));
             UnsignedCharArray accountId = GetAccountID(it);
-            if (accountId.size() != 6) return false;
+            if (accountId.size() != 6)
+                return false;
             CRegID regId(accountId);
             CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
-            /// current tx's script cant't mius other script's regid
-            if (pContractCache->HaveContract(regId) && regId != tx->app_uid.get<CRegID>())
+            // allow to minus current contract's account only.
+            if (!pContractCache->HaveContract(regId) || regId != tx->app_uid.get<CRegID>()) {
                 return false;
+            }
 
             memcpy(&operValue, it.money, sizeof(it.money));
             /*
-            uint64_t temp = miusmoney;
+            uint64_t temp = minusMoney;
             temp += operValue;
-            if(temp < operValue || temp < miusmoney) {
+            if(temp < operValue || temp < minusMoney) {
                 return false;
             }
             */
             uint64_t temp = 0;
-            if (!SafeAdd(miusmoney, operValue, temp)) return false;
+            if (!SafeAdd(minusMoney, operValue, temp))
+                return false;
 
-            miusmoney = temp;
+            minusMoney = temp;
         } else {
-            //          Assert(0);
+            // Assert(0);
             return false;  // 输入数据错误
-        }
-
-        // vector<unsigned char> accountId(it.accountId, it.accountId + sizeof(it.accountId));
-        UnsignedCharArray accountId = GetAccountID(it);
-        if (accountId.size() == 6) {
-            CRegID regId(accountId);
-            if (regId.IsEmpty() || regId.GetKeyId(*pAccountCache) == uint160()) return false;
-
-            //  app only be allowed minus self money
-            if (!pContractCache->HaveContract(regId) && it.opType == BalanceOpType::SUB_FREE) return false;
         }
     }
 
-    if (addmoey != miusmoney) return false;
+    if (addMoney != minusMoney)
+        return false;
 
     return true;
 }
 
-bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
+bool CLuaVMRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto vOpItem : mapAppFundOperate) {
         for (auto appFund : vOpItem.second) {
@@ -274,7 +273,8 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
                 }
                 */
                 int64_t temp = 0;
-                if (!SafeAdd(appFund.mMoney, addValue, temp)) return false;
+                if (!SafeAdd(appFund.mMoney, addValue, temp))
+                    return false;
 
                 addValue = temp;
             } else if (SUB_FREE_OP == appFund.opType || SUB_TAG_OP == appFund.opType) {
@@ -286,7 +286,8 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
                 }
                 */
                 int64_t temp = 0;
-                if (!SafeAdd(appFund.mMoney, minusValue, temp)) return false;
+                if (!SafeAdd(appFund.mMoney, minusValue, temp))
+                    return false;
 
                 minusValue = temp;
             }
@@ -298,7 +299,8 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
         return false;
     }
     */
-    if (!SafeSubtract(addValue, minusValue, sumValue)) return false;
+    if (!SafeSubtract(addValue, minusValue, sumValue))
+        return false;
 
     uint64_t sysContractAcct(0);
     for (auto item : vmOperateOutput) {
@@ -308,7 +310,8 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
             uint64_t value;
             memcpy(&value, item.money, sizeof(item.money));
             int64_t temp = value;
-            if (temp < 0) return false;
+            if (temp < 0)
+                return false;
 
             /*
             temp += sysContractAcct;
@@ -317,7 +320,8 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
             */
             uint64_t tempValue = temp;
             uint64_t tempOut   = 0;
-            if (!SafeAdd(tempValue, sysContractAcct, tempOut)) return false;
+            if (!SafeAdd(tempValue, sysContractAcct, tempOut))
+                return false;
 
             sysContractAcct = tempOut;
         }
@@ -344,106 +348,94 @@ bool CVmRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
     return true;
 }
 
-bool CVmRunEnv::OperateAccount(const vector<CVmOperate>& listoperate, CAccountDBCache& accountView,
-                               const int32_t nCurHeight) {
+bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
     newAccount.clear();
-    for (auto& it : listoperate) {
-        //      CTransaction* tx = static_cast<CTransaction*>(pBaseTx.get());
-        //      CFund fund;
-        //      memcpy(&fund.value,it.money,sizeof(it.money));
-        //      fund.height = it.timeoutHeight;
+
+    for (auto& operate : operates) {
         uint64_t value;
-        memcpy(&value, it.money, sizeof(it.money));
+        memcpy(&value, operate.money, sizeof(operate.money));
 
         auto tem = std::make_shared<CAccount>();
-        //      UnsignedCharArray accountId = GetAccountID(it);
-        //      if (accountId.size() == 0) {
-        //          return false;
-        //      }
-        //      UnsignedCharArray accountId(it.accountId,it.accountId+sizeof(it.accountId));
-        UnsignedCharArray accountId = GetAccountID(it);
-        CRegID userregId;
-        CKeyID userkeyid;
+        UnsignedCharArray accountId = GetAccountID(operate);
+        CRegID regid;
+        CKeyID keyid;
 
         if (accountId.size() == 6) {
-            userregId.SetRegID(accountId);
-            if (!accountView.GetAccount(CUserID(userregId), *tem.get())) {
+            regid.SetRegID(accountId);
+            if (!pAccountCache->GetAccount(CUserID(regid), *tem.get())) {
                 return false;  // 账户不存在
             }
         } else {
-            string popaddr(accountId.begin(), accountId.end());
-            userkeyid = CKeyID(popaddr);
-            if (!accountView.GetAccount(CUserID(userkeyid), *tem.get())) {
-                tem->keyid = userkeyid;
+            keyid = CKeyID(string(accountId.begin(), accountId.end()));
+            if (!pAccountCache->GetAccount(CUserID(keyid), *tem.get())) {
+                tem->keyid = keyid;
                 // return false;
                 // 未产生过交易记录的账户
             }
         }
 
         shared_ptr<CAccount> vmAccount = GetAccount(tem);
-        if (vmAccount.get() == NULL) {
+        if (vmAccount.get() == nullptr) {
             rawAccount.push_back(tem);
             vmAccount = tem;
         }
+
         LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountId).c_str(),
                  vmAccount.get()->ToString());
 
-        bool ret = false;
-        //      vector<CDbOpLog> vAuthorLog;
-        // todolist
-        //      if(IsSignatureAccount(vmAccount.get()->regid) || vmAccount.get()->regid ==
-        //      tx->appRegId.get<CRegID>())
-        { ret = vmAccount.get()->OperateBalance(SYMB::WICC, it.opType, value); }
-        //      else{
-        //          ret = vmAccount.get()->OperateBalance((BalanceOpType)it.opType, fund,
-        //          *pContractCache, vAuthorLog,  height, &GetScriptRegID().GetRegIdRaw(), true);
-        //      }
+        if (!vmAccount.get()->OperateBalance(SYMB::WICC, operate.opType, value)) {
+            return false;
+        }
 
-        //      LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
-        if (!ret) return false;
+        CUserID userId = vmAccount.get()->keyid;
+        if (operate.opType == BalanceOpType::ADD_FREE) {
+            receipts.emplace_back(nullId, userId, SYMB::WICC, value, "operate (ADD_FREE) bcoins in original account");
+        } else if (operate.opType == BalanceOpType::SUB_FREE) {
+            receipts.emplace_back(userId, nullId, SYMB::WICC, value, "operate (SUB_FREE) bcoins in original account");
+        }
 
         newAccount.push_back(vmAccount);
-        //      pScriptDBOperLog->insert(pScriptDBOperLog->end(), vAuthorLog.begin(),
-        //      vAuthorLog.end());
+
+        LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
     }
 
     return true;
 }
 
-const CRegID& CVmRunEnv::GetScriptRegID() {  // 获取目的账户ID
+const CRegID& CLuaVMRunEnv::GetContractRegID() {
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->app_uid.get<CRegID>();
 }
 
-const CRegID& CVmRunEnv::GetTxAccount() {
+const CRegID& CLuaVMRunEnv::GetTxAccount() {
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->txUid.get<CRegID>();
 }
 
-uint64_t CVmRunEnv::GetValue() const {
+uint64_t CLuaVMRunEnv::GetValue() const {
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->coin_amount;
 }
 
-const string& CVmRunEnv::GetTxContract() {
+const string& CLuaVMRunEnv::GetTxContract() {
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->arguments;
 }
 
-int32_t CVmRunEnv::GetConfirmHeight() { return runtimeHeight; }
+int32_t CLuaVMRunEnv::GetConfirmHeight() { return runtimeHeight; }
 
-int32_t CVmRunEnv::GetBurnVersion() {
+int32_t CLuaVMRunEnv::GetBurnVersion() {
     // the burn version belong to the Feature Fork Version
     return GetFeatureForkVersion(runtimeHeight);
 }
 
-uint256 CVmRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
+uint256 CLuaVMRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
 
-CContractDBCache* CVmRunEnv::GetScriptDB() { return pContractCache; }
+CContractDBCache* CLuaVMRunEnv::GetScriptDB() { return pContractCache; }
 
-CAccountDBCache* CVmRunEnv::GetCatchView() { return pAccountCache; }
+CAccountDBCache* CLuaVMRunEnv::GetCatchView() { return pAccountCache; }
 
-void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,
+void CLuaVMRunEnv::InsertOutAPPOperte(const vector<uint8_t>& userId,
                                    const CAppFundOperate& source) {
     if (mapAppFundOperate.count(userId)) {
         mapAppFundOperate[userId].push_back(source);
@@ -454,77 +446,88 @@ void CVmRunEnv::InsertOutAPPOperte(const vector<unsigned char>& userId,
     }
 }
 
-bool CVmRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
+bool CLuaVMRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     vmOperateOutput.insert(vmOperateOutput.end(), source.begin(), source.end());
-    if (vmOperateOutput.size() < MAX_OUTPUT_COUNT) return true;
+    if (vmOperateOutput.size() < MAX_OUTPUT_COUNT)
+        return true;
+
     return false;
 }
 
 /**
- * 从脚本数据库中，取指定账户的 应用账户信息,同时解冻冻结金额到自由金额
+ * 从脚本数据库中，取指定账户的应用账户信息, 同时解冻冻结金额到自由金额
  * @param vAppUserId   账户地址或regId
- * @param sptrAcc
+ * @param pAppUserAccount
  * @return
  */
-bool CVmRunEnv::GetAppUserAccount(const vector<unsigned char>& vAppUserId,
-                                  shared_ptr<CAppUserAccount>& sptrAcc) {
+bool CLuaVMRunEnv::GetAppUserAccount(const vector<uint8_t>& vAppUserId, shared_ptr<CAppUserAccount>& pAppUserAccount) {
     assert(pContractCache);
     shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
     string appUserId(vAppUserId.begin(), vAppUserId.end());
-    if (!pContractCache->GetContractAccount(GetScriptRegID(), appUserId, *tem.get())) {
-        tem     = std::make_shared<CAppUserAccount>(appUserId);
-        sptrAcc = tem;
+    if (!pContractCache->GetContractAccount(GetContractRegID(), appUserId, *tem.get())) {
+        tem             = std::make_shared<CAppUserAccount>(appUserId);
+        pAppUserAccount = tem;
+
         return true;
     }
+
     if (!tem.get()->AutoMergeFreezeToFree(runtimeHeight)) {
         return false;
     }
-    sptrAcc = tem;
+
+    pAppUserAccount = tem;
+
     return true;
 }
 
-bool CVmRunEnv::OperateAppAccount(const map<vector<unsigned char>, vector<CAppFundOperate>> opMap,
-                                  CContractDBCache& accountView) {
+bool CLuaVMRunEnv::OperateAppAccount(const map<vector<uint8_t>, vector<CAppFundOperate>> opMap) {
     newAppUserAccount.clear();
-    if ((mapAppFundOperate.size() > 0)) {
+
+    if (!mapAppFundOperate.empty()) {
         for (auto const tem : opMap) {
-            shared_ptr<CAppUserAccount> sptrAcc;
-            if (!GetAppUserAccount(tem.first, sptrAcc)) {
-                LogPrint("vm",
-                         "GetAppUserAccount(tem.first, sptrAcc, true) failed \n appuserid :%s\n",
+            shared_ptr<CAppUserAccount> pAppUserAccount;
+            if (!GetAppUserAccount(tem.first, pAppUserAccount)) {
+                LogPrint("vm", "GetAppUserAccount(tem.first, pAppUserAccount, true) failed \n appuserid :%s\n",
                          HexStr(tem.first));
                 return false;
             }
 
-            if (!sptrAcc.get()->AutoMergeFreezeToFree(runtimeHeight)) {
-                LogPrint("vm", "AutoMergeFreezeToFreefailed \n appuser :%s\n",
-                         sptrAcc.get()->ToString());
+            if (!pAppUserAccount.get()->AutoMergeFreezeToFree(runtimeHeight)) {
+                LogPrint("vm", "AutoMergeFreezeToFree failed\nappuser :%s\n", pAppUserAccount.get()->ToString());
                 return false;
             }
 
-            shared_ptr<CAppUserAccount> vmAppAccount = GetAppAccount(sptrAcc);
-            if (vmAppAccount.get() == NULL) {
-                rawAppUserAccount.push_back(sptrAcc);
-                vmAppAccount = sptrAcc;
+            shared_ptr<CAppUserAccount> vmAppAccount = GetAppAccount(pAppUserAccount);
+            if (vmAppAccount.get() == nullptr) {
+                rawAppUserAccount.push_back(pAppUserAccount);
             }
 
-            LogPrint("vm", "before user: %s\n", sptrAcc.get()->ToString());
-            if (!sptrAcc.get()->Operate(tem.second)) {
+            LogPrint("vm", "before user: %s\n", pAppUserAccount.get()->ToString());
+
+            vector<CReceipt> appOperateReceipts;
+            if (!pAppUserAccount.get()->Operate(tem.second, appOperateReceipts)) {
                 int32_t i = 0;
-                for (auto const pint : tem.second) {
-                    LogPrint("vm", "GOperate failed \n Operate %d : %s\n", i++, pint.ToString());
+                for (auto const appFundOperate : tem.second) {
+                    LogPrint("vm", "Operate failed\nOperate %d: %s\n", i++, appFundOperate.ToString());
                 }
-                LogPrint("vm",
-                         "GetAppUserAccount(tem.first, sptrAcc, true) failed \n appuserid :%s\n",
+                LogPrint("vm", "GetAppUserAccount(tem.first, pAppUserAccount, true) failed\nappuserid: %s\n",
                          HexStr(tem.first));
                 return false;
             }
-            newAppUserAccount.push_back(sptrAcc);
-            LogPrint("vm", "after user: %s\n", sptrAcc.get()->ToString());
-            accountView.SetContractAccount(GetScriptRegID(), *sptrAcc.get());
+
+            for (const auto &receipt : appOperateReceipts) {
+                receipts.emplace_back(receipt);
+            }
+
+            newAppUserAccount.push_back(pAppUserAccount);
+
+            LogPrint("vm", "after user: %s\n", pAppUserAccount.get()->ToString());
+
+            pContractCache->SetContractAccount(GetContractRegID(), *pAppUserAccount.get());
         }
     }
+
     return true;
 }
 
-void CVmRunEnv::SetCheckAccount(bool bCheckAccount) { isCheckAccount = bCheckAccount; }
+void CLuaVMRunEnv::SetCheckAccount(bool bCheckAccount) { isCheckAccount = bCheckAccount; }

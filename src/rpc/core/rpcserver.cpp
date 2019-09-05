@@ -74,7 +74,8 @@ static bool JsonRPCHandler(HTTPRequest* req, const std::string&);
 void RPCTypeCheck(const Array& params, const list<Value_type>& typesExpected, bool fAllowNull) {
     unsigned int i = 0;
     for (auto t : typesExpected) {
-        if (params.size() <= i) break;
+        if (params.size() <= i)
+            break;
 
         const Value& v = params[i];
         if (!((v.type() == t) || (fAllowNull && (v.type() == null_type)))) {
@@ -105,6 +106,7 @@ int64_t AmountToRawValue(const Value& value) {
     int64_t nAmount = roundint64(dAmount);
     if (!CheckBaseCoinRange(nAmount))
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid amount");
+
     return nAmount;
 }
 
@@ -121,12 +123,14 @@ string HexBits(unsigned int nBits) {
 
 uint256 ParseHashV(const Value& v, string strName) {
     string strHex;
-    if (v.type() == str_type) strHex = v.get_str();
+    if (v.type() == str_type)
+        strHex = v.get_str();
     if (!IsHex(strHex))  // Note: IsHex("") is false
-        throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           strName + " must be hexadecimal string (not '" + strHex + "')");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strName + " must be hexadecimal string (not '" + strHex + "')");
+
     uint256 result;
     result.SetHex(strHex);
+
     return result;
 }
 uint256 ParseHashO(const Object& o, string strKey) {
@@ -156,14 +160,18 @@ string CRPCTable::help(string strCommand) const {
         const CRPCCommand* pcmd = mi->second;
         string strMethod        = mi->first;
         // We already filter duplicates, but these deprecated screw up the sort order
-        if (strMethod.find("label") != string::npos) continue;
-        if (strCommand != "" && strMethod != strCommand) continue;
+        if (strMethod.find("label") != string::npos)
+            continue;
+        if (strCommand != "" && strMethod != strCommand)
+            continue;
 
-        if (pcmd->reqWallet && !pWalletMain) continue;
+        if (pcmd->reqWallet && !pWalletMain)
+            continue;
         try {
             Array params;
             rpcfn_type pfn = pcmd->actor;
-            if (setDone.insert(pfn).second) (*pfn)(params, true);
+            if (setDone.insert(pfn).second)
+                (*pfn)(params, true);
         } catch (std::exception& e) {
             // Help text is returned in an exception
             string strHelp = string(e.what());
@@ -173,8 +181,10 @@ string CRPCTable::help(string strCommand) const {
             strRet += strHelp + "\n";
         }
     }
-    if (strRet == "") strRet = strprintf("help: unknown command: %s\n", strCommand);
+    if (strRet == "")
+        strRet = strprintf("help: unknown command: %s\n", strCommand);
     strRet = strRet.substr(0, strRet.size() - 1);
+
     return strRet;
 }
 
@@ -189,7 +199,8 @@ Value help(const Array& params, bool fHelp) {
             "\"text\"     (string) The help text\n");
 
     string strCommand;
-    if (params.size() > 0) strCommand = params[0].get_str();
+    if (params.size() > 0)
+        strCommand = params[0].get_str();
 
     return tableRPC.help(strCommand);
 }
@@ -273,7 +284,6 @@ static const CRPCCommand vRPCCommands[] =
     { "setgenerate",            &setgenerate,            true,      true,       false},
     { "listcontracts",          &listcontracts,          true,      false,      true },
     { "getcontractinfo",        &getcontractinfo,        true,      false,      true },
-    { "generateblock",          &generateblock,          true,      true,       true },
     { "listtxcache",            &listtxcache,            true,      false,      true },
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
@@ -281,7 +291,6 @@ static const CRPCCommand vRPCCommands[] =
     { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false},
     { "getcontractassets",      &getcontractassets,      false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
-    { "sendtxraw",              &sendtxraw,              true,      false,      false},
 
     { "signtxraw",              &signtxraw,              true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
@@ -289,6 +298,9 @@ static const CRPCCommand vRPCCommands[] =
     { "listdelegates",          &listdelegates,          true,      false,      true },
     { "decodetxraw",            &decodetxraw,            false,     false,      false},
     { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
+
+    /* submit raw tx */
+    { "submittxraw",            &submittxraw,              true,      false,    false},
 
     /* basic tx */
     { "submitsendtx",           &submitsendtx,           false,     false,      true },
@@ -315,6 +327,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexsellmarketordertx", &submitdexsellmarketordertx, true,     false,      false },
     { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
     { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
+
     { "getdexorder",                &getdexorder,                true,     false,      false },
     { "getdexsysorders",            &getdexsysorders,            true,     false,      false },
     { "getdexorders",               &getdexorders,               true,     false,      false },
@@ -344,23 +357,28 @@ static const CRPCCommand vRPCCommands[] =
 };
 
 CRPCTable::CRPCTable() {
-    unsigned int vcidx;
-    for (vcidx = 0; vcidx < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); vcidx++) {
-        const CRPCCommand* pcmd;
-        pcmd                    = &vRPCCommands[vcidx];
-        mapCommands[pcmd->name] = pcmd;
+    for (uint32_t index = 0; index < (sizeof(vRPCCommands) / sizeof(vRPCCommands[0])); ++index) {
+        const CRPCCommand* pCMD;
+        pCMD                    = &vRPCCommands[index];
+        mapCommands[pCMD->name] = pCMD;
     }
 }
 
 const CRPCCommand* CRPCTable::operator[](string name) const {
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
-    if (it == mapCommands.end()) return NULL;
+    if (it == mapCommands.end()) {
+        LogPrint("RPC", "Received an invalid request for rpc: %s\n", name);
+        return nullptr;
+    } else {
+        LogPrint("RPC", "Received a valid request for rpc: %s\n", name);
+    }
 
     return (*it).second;
 }
 
 bool HTTPAuthorized(const std::string& strAuth) {
-    if (strAuth.substr(0, 6) != "Basic ") return false;
+    if (strAuth.substr(0, 6) != "Basic ")
+        return false;
 
     string strUserPass64 = strAuth.substr(6);
     boost::trim(strUserPass64);
@@ -396,10 +414,13 @@ static bool InitRPCAuthentication() {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
         string strWhatAmI = "To use coind";
-        if (SysCfg().IsArgCount("-server"))
-            strWhatAmI = strprintf(_("To use the %s option"), "\"-server\"");
-        else if (SysCfg().IsArgCount("-daemon"))
+
+        if (SysCfg().IsArgCount("-rpcserver")) {
+            strWhatAmI = strprintf(_("To use the %s option"), "\"-rpcserver\"");
+
+        } else if (SysCfg().IsArgCount("-daemon")) {
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
+        }
 
         LogPrint("ERROR", "%s, you must set a rpcpassword in the configuration file:\n"
                   "%s\n"
@@ -439,6 +460,7 @@ bool StartRPCServer() {
     httpRPCTimerInterface = MakeUnique<HTTPRPCTimerInterface>(eventBase);
     RPCSetTimerInterface(httpRPCTimerInterface.get());
     StartHTTPServer();
+
     return true;
 }
 
@@ -461,11 +483,13 @@ void StopRPCServer() {
 void RPCRunLater(const std::string& name, std::function<void()> func, int64_t nSeconds) {
     if (!timerInterface)
         throw JSONRPCError(RPC_INTERNAL_ERROR, "No timer handler registered for RPC");
+
     deadlineTimers.erase(name);
+
     LogPrint("RPC", "queue run of timer %s in %i seconds (using %s)\n", name, nSeconds,
              timerInterface->Name());
-    deadlineTimers.emplace(
-        name, std::unique_ptr<RPCTimerBase>(timerInterface->NewTimer(func, nSeconds * 1000)));
+
+    deadlineTimers.emplace(name, std::unique_ptr<RPCTimerBase>(timerInterface->NewTimer(func, nSeconds * 1000)));
 }
 
 class JSONRequest {
@@ -482,6 +506,7 @@ void JSONRequest::parse(const Value& valRequest) {
     // Parse request
     if (valRequest.type() != obj_type)
         throw JSONRPCError(RPC_INVALID_REQUEST, "Invalid Request object");
+
     const Object& request = valRequest.get_obj();
 
     // Parse id now so errors from here on will have the id
@@ -562,6 +587,7 @@ json_spirit::Value CRPCTable::execute(const string& strMethod,
                 result = pcmd->actor(params, false);
             }
         }
+
         return result;
     } catch (std::exception& e) {
         throw JSONRPCError(RPC_MISC_ERROR, e.what());

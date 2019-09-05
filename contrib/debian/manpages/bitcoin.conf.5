@@ -47,7 +47,7 @@ Listen for RPC connections on this TCP port.
 You can use *bitcoin* or *bitcoind(1)* to send commands to *bitcoin*/*bitcoind(1)* running on another host using this option.
 .TP
 \fBrpcssl=\fR\fI'1'\fR
-Use Secure Sockets Layer (also known as TLS or HTTPS) to communicate with *bitcoin* '\-server' or *bitcoind(1)*. Example of OpenSSL settings used when *rpcssl*='1':
+Use Secure Sockets Layer (also known as TLS or HTTPS) to communicate with *bitcoin* '\-rpcserver' or *bitcoind(1)*. Example of OpenSSL settings used when *rpcssl*='1':
 .TP
 \fB\-rpcsslciphers=\fR<ciphers>
 Acceptable ciphers (default: TLSv1+HIGH:\:!SSLv2:\:!aNULL:\:!eNULL:\:!AH:\:!3DES:\:@STRENGTH)
@@ -86,4 +86,3 @@ bitcoind(1)
 This manual page was written by Micah Anderson <micah@debian.org> for the Debian system (but may be used by others). Permission is granted to copy, distribute and/or modify this document under the terms of the GNU General Public License, Version 3 or any later version published by the Free Software Foundation.
 
 On Debian systems, the complete text of the GNU General Public License can be found in /usr/share/common-licenses/GPL.
-

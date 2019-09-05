@@ -152,7 +152,7 @@ public:
 		} while (--randAddr > 0 && iterAddr != iterLast);
 		return CSendItem(iterAddr->first, iterAddr->second, sendValues[randSendValue]);
 	}
-	string GetRegID() {
+	string GegRegId() {
 		return m_strRegId;
 	}
 

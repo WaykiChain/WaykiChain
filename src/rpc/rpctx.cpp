@@ -17,7 +17,7 @@
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 
 #include <stdint.h>
 
@@ -40,7 +40,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
             "gettxdetail \"txid\"\n"
             "\nget the transaction detail by given transaction hash.\n"
             "\nArguments:\n"
-            "1.txid   (string,required) The hash of transaction.\n"
+            "1.\"txid\":    (string, required) The hash of transaction.\n"
             "\nResult an object of the transaction detail\n"
             "\nResult:\n"
             "\n\"txid\"\n"
@@ -54,17 +54,17 @@ Value gettxdetail(const Array& params, bool fHelp) {
 //create a register account tx
 Value submitaccountregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0)
-        throw runtime_error("submitaccountregistertx \"addr\" (\"fee\")\n"
-            "\nregister local account public key to get its RegId\n"
+        throw runtime_error("submitaccountregistertx \"addr\" [\"fee\"]\n"
+            "\nregister account to acquire its regid\n"
             "\nArguments:\n"
-            "1.addr: (string, required)\n"
-            "2.fee: (numeric, optional) pay tx fees to miner\n"
+            "1.\"addr\":    (string, required)\n"
+            "2.\"fee\":     (numeric, optional)\n"
             "\nResult:\n"
-            "\"txid\": (string)\n"
+            "\"txid\":      (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitaccountregistertx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 ")
+            + HelpExampleCli("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 100000")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitaccountregistertx", "n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj 100000 "));
+            + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 100000"));
 
     string addr = params[0].get_str();
     uint64_t fee = 0;
@@ -73,7 +73,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
         fee = params[1].get_uint64();
         if (fee < nDefaultFee) {
             throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Input fee smaller than mintxfee: %ld sawi", nDefaultFee));
+                               strprintf("Input fee smaller than mintxfee: %llu sawi", nDefaultFee));
         }
     } else {
         fee = nDefaultFee;
@@ -117,7 +117,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
         rtx.valid_height = chainActive.Height();
 
         if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "in submitaccountregistertx Error: Sign failed.");
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed.");
     }
 
     std::tuple<bool, string> ret;
@@ -246,7 +246,7 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (luaScriptFilePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
-    std::tuple<bool, string> result = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
+    std::tuple<bool, string> result = CLuaVM::CheckScriptSyntax(luaScriptFilePath.c_str());
     bool bOK = std::get<0>(result);
     if (!bOK)
         throw JSONRPCError(RPC_INVALID_PARAMETER, std::get<1>(result));
@@ -395,14 +395,13 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 
     string sendAddr = params[0].get_str();
     uint64_t fee    = params[2].get_uint64();  // real type
-    int32_t height     = 0;
-    if (params.size() > 3) {
-        height = params[3].get_int();
+    int32_t height  = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    if (height < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
     }
-    Array arrVotes = params[1].get_array();
 
-    CKeyID keyId;
-    if (!GetKeyId(sendAddr, keyId)) {
+    CKeyID sendKeyId;
+    if (!GetKeyId(sendAddr, sendKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
     }
     CDelegateVoteTx delegateVoteTx;
@@ -411,32 +410,30 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
         EnsureWalletIsUnlocked();
         CAccount account;
 
-        CUserID userId = keyId;
-        if (!pCdMan->pAccountCache->GetAccount(userId, account)) {
+        if (!pCdMan->pAccountCache->GetAccount(sendKeyId, account)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
         }
 
-        if (!account.HaveOwnerPubKey()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
-        }
+        CPubKey sendPubKey;
+        if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sender account not found in wallet");
+
+        CUserID sendUserId;
+        CRegID sendRegId;
+        sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
+                     ? CUserID(sendRegId)
+                     : CUserID(sendPubKey);
 
         uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
         if (balance < fee) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
 
-        if (!pWalletMain->HaveKey(keyId)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
-        }
+        delegateVoteTx.txUid        = sendUserId;
+        delegateVoteTx.llFees       = fee;
+        delegateVoteTx.valid_height = height;
 
-        delegateVoteTx.llFees = fee;
-        if (0 != height) {
-            delegateVoteTx.valid_height = height;
-        } else {
-            delegateVoteTx.valid_height = chainActive.Height();
-        }
-        delegateVoteTx.txUid = account.regid;
-
+        Array arrVotes = params[1].get_array();
         for (auto objVote : arrVotes) {
             const Value& delegateAddr  = find_value(objVote.get_obj(), "delegate");
             const Value& delegateVotes = find_value(objVote.get_obj(), "votes");
@@ -463,7 +460,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
             delegateVoteTx.candidateVotes.push_back(candidateVote);
         }
 
-        if (!pWalletMain->Sign(keyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
+        if (!pWalletMain->Sign(sendKeyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
@@ -844,30 +841,6 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     return obj;
 }
 
-Value generateblock(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1) {
-        throw runtime_error("generateblock \"addr\"\n"
-            "\ncreate a block with the appointed address\n"
-            "\nArguments:\n"
-            "1.\"addr\": (string, required)\n"
-            "\nResult:\n"
-            "\nblockhash\n"
-            "\nExamples:\n" +
-            HelpExampleCli("generateblock", "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("generateblock", "\"5Vp1xpLT8D2FQg3kaaCcjqxfdFNRhxm4oy7GXyBga9\""));
-    }
-    //get keyId
-    CKeyID keyId;
-
-    if (!GetKeyId(params[0].get_str(), keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "in generateblock :address err");
-
-    Object obj;
-    // obj.push_back(Pair("blockhash", hash.GetHex()));
-    return obj;
-}
-
 Value listtxcache(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error("listtxcache\n"
@@ -1009,21 +982,28 @@ Value saveblocktofile(const Array& params, bool fHelp) {
     return "save succeed";
 }
 
-Value sendtxraw(const Array& params, bool fHelp) {
+Value submittxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "sendtxraw \"transaction\" \n"
-            "\nsend raw transaction\n"
+            "submittxraw \"rawtx\" \n"
+            "\nsubmit raw transaction\n"
             "\nArguments:\n"
-            "1.\"transaction\": (string, required)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\"")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("sendtxraw", "\"n2dha9w3bz2HPVQzoGKda3Cgt5p5Tgv6oj\""));
+            "1.\"rawtx\":   (string, required) The raw transaction\n"
+            "\nExamples:\n" +
+            HelpExampleCli("submittxraw",
+                           "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
+                           "d10004630440220458e2239348a9442d05503137ec84b84d69c7141b3618a88c50c16f76d9655ad02206dd20806"
+                           "87cffad42f7293522568fc36850d4e3b81fa9ad860d1490cf0225cf8\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submittxraw",
+                           "\"0b01848908020001145e3550cfae2422dce90a778b0954409b1c6ccc3a045749434382dbea93000457494343c"
+                           "d10004630440220458e2239348a9442d05503137ec84b84d69c7141b3618a88c50c16f76d9655ad02206dd20806"
+                           "87cffad42f7293522568fc36850d4e3b81fa9ad860d1490cf0225cf8\""));
     }
+
     vector<uint8_t> vch(ParseHex(params[0].get_str()));
     if (vch.size() > MAX_RPC_SIG_STR_LEN) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx str is too long");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "The rawtx is too long.");
     }
 
     CDataStream stream(vch, SER_DISK, CLIENT_VERSION);
@@ -1033,7 +1013,7 @@ Value sendtxraw(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pWalletMain->CommitTx((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "sendtxraw error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "submittxraw error: " + std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("txid", std::get<1>(ret)));
@@ -1436,6 +1416,7 @@ Value gettotalassets(const Array& params, bool fHelp) {
         } else
             throw runtime_error("failed to find contract account!\n");
     }
+
     return obj;
 }
 

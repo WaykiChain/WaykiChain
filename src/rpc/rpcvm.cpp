@@ -16,7 +16,7 @@
 
 #include "config/configuration.h"
 #include "main.h"
-#include "vm/luavm/vmrunenv.h"
+#include "vm/luavm/luavmrunenv.h"
 #include <algorithm>
 
 #include "json/json_spirit_utils.h"
@@ -72,7 +72,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     if (luaScriptFilePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
 
-    std::tuple<bool, string> syntax = CVmlua::CheckScriptSyntax(luaScriptFilePath.c_str());
+    std::tuple<bool, string> syntax = CLuaVM::CheckScriptSyntax(luaScriptFilePath.c_str());
     bool bOK = std::get<0>(syntax);
     if (!bOK)
         throw JSONRPCError(RPC_INVALID_PARAMETER, std::get<1>(syntax));

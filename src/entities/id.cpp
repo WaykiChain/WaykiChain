@@ -10,17 +10,18 @@
 extern CCacheDBManager *pCdMan;
 
 bool CRegID::Clear() {
-    height = 0 ;
-    index = 0 ;
+    height = 0;
+    index  = 0;
     vRegID.clear();
+
     return true;
 }
 
-CRegID::CRegID(const vector<unsigned char>& vIn) {
+CRegID::CRegID(const vector<uint8_t>& vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     height = 0;
-    index = 0;
+    index  = 0;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
     ds >> height;
     ds >> index;
@@ -79,16 +80,19 @@ void CRegID::SetRegID(string strRegID) {
         index  = atoi(strRegID.substr(pos + 1).c_str());
         vRegID.insert(vRegID.end(), BEGIN(height), END(height));
         vRegID.insert(vRegID.end(), BEGIN(index), END(index));
-        // memcpy(&vRegID.at(0), &height, sizeof(height));
-        // memcpy(&vRegID[sizeof(height)], &index, sizeof(index));
     } else if (strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
-        memcpy(&height, &vRegID[0], sizeof(height));
-        memcpy(&index, &vRegID[sizeof(height)], sizeof(index));
+
+        if (vRegID.size() > sizeof(height) + sizeof(index)) {
+            memcpy(&height, &vRegID[0], sizeof(height));
+            memcpy(&index, &vRegID[sizeof(height)], sizeof(index));
+        } else {
+            // failed to parse strRegID, do not bother to initialize height and index.
+        }
     }
 }
 
-void CRegID::SetRegID(const vector<unsigned char> &vIn) {
+void CRegID::SetRegID(const vector<uint8_t> &vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
@@ -96,7 +100,7 @@ void CRegID::SetRegID(const vector<unsigned char> &vIn) {
     ds >> index;
 }
 
-const vector<unsigned char> &CRegID::GetRegIdRaw() const {
+const vector<uint8_t> &CRegID::GetRegIdRaw() const {
     assert(vRegID.size() == 6);
     return vRegID;
 }
@@ -124,7 +128,8 @@ string CRegID::ToString() const {
 
 CKeyID CRegID::GetKeyId(const CAccountDBCache &accountCache) const {
     CKeyID retKeyId;
-    CAccountDBCache(accountCache).GetKeyId(*this, retKeyId);
+    accountCache.GetKeyId(*this, retKeyId);
+
     return retKeyId;
 }
 
@@ -132,7 +137,7 @@ bool CRegID::IsMature(uint32_t curHeight) const {
     return ((height == 0) && (index != 0)) || ((height != 0) && curHeight > height + REG_ID_MATURITY);
 }
 
-void CRegID::SetRegIDByCompact(const vector<unsigned char> &vIn) {
+void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
     if (vIn.size() > 0) {
         CDataStream ds(vIn, SER_DISK, CLIENT_VERSION);
         ds >> *this;

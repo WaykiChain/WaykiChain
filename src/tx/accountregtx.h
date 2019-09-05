@@ -16,7 +16,7 @@ public:
 public:
     CAccountRegisterTx(const CUserID &txUidIn, const CUserID &minerUidIn, int64_t feesIn, int32_t validHeightIn) :
         CBaseTx(ACCOUNT_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
-        minerUid    = minerUidIn;
+        minerUid = minerUidIn;
     }
     CAccountRegisterTx(): CBaseTx(ACCOUNT_REGISTER_TX) {}
 
@@ -34,9 +34,6 @@ public:
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
-            assert(txUid.type() == typeid(CPubKey) &&
-                   (minerUid.type() == typeid(CPubKey) || minerUid.type() == typeid(CNullID)));
-
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << minerUid << VARINT(llFees);
 

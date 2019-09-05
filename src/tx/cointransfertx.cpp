@@ -24,15 +24,6 @@ bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    if ((txUid.type() == typeid(CRegID)) && !srcAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
-
-    if (srcAccount.GetToken(SYMB::WICC).free_amount < llFees + coin_amount) {
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, account balance insufficient"),
-                         REJECT_INVALID, "account-balance-insufficient");
-    }
-
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -84,7 +75,7 @@ bool CBaseCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
 string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%ld, llFees=%ld, memo=%s, valid_height=%d",
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%llu, llFees=%llu, memo=%s, valid_height=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_amount, llFees,
         HexStr(memo), valid_height);
 }
@@ -179,8 +170,9 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         }
     }
 
+    vector<CReceipt> receipts;
     uint64_t actualCoinsToSend = coin_amount;
-    if (coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay 0.01% to the risk reserve
+    if (coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
         CAccount fcoinGenesisAccount;
         if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read fcoinGenesisUid %s account info error"),
@@ -198,22 +190,34 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, update fcoinGenesisAccount info error"),
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+
+        CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
+        CReceipt receipt(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, "send friction fees into risk riserve");
+        receipts.push_back(receipt);
     }
+
     if (!desAccount.OperateBalance(coin_symbol, ADD_FREE, actualCoinsToSend)) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, failed to add coins in toUid %s account", toUid.ToString()),
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
 
+    CReceipt receipt(txUid, toUid, coin_symbol, actualCoinsToSend, "actual transfer coins");
+    receipts.push_back(receipt);
+
     if (!cw.accountCache.SaveAccount(desAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
     return true;
 }
 
 string CCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_symbol=%s, coin_amount=%ld, fee_symbol=%s, llFees=%ld, "
+        "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_symbol=%s, coin_amount=%llu, fee_symbol=%s, llFees=%llu, "
         "valid_height=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_symbol,
         coin_amount, fee_symbol, llFees, valid_height);

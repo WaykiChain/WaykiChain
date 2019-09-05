@@ -80,7 +80,7 @@ public:
     virtual ~CBaseParams() {}
 
     virtual bool InitialConfig() {
-        fServer = GetBoolArg("-server", false);
+        fServer = GetBoolArg("-rpcserver", false);
 
         m_mapMultiArgs["-debug"].push_back("ERROR");  // Enable ERROR logger by default
         fDebug = !m_mapMultiArgs["-debug"].empty();

@@ -1,9 +1,7 @@
-/*
- * CRPCRequest2.h
- *
- *  Created on: Dec 9, 2014
- *      Author: ranger.shi
- */
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
+// Distributed under the MIT/X11 software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef CRPCREQUEST_H_
 #define CRPCREQUEST_H_
@@ -235,9 +233,9 @@ public:
 
 	bool IsTxInTipBlock(const uint256& txid);
 
-	bool GetRegID(string& strAddr,CRegID& regId);
+	bool GegRegId(string& strAddr,CRegID& regId);
 
-	bool GetRegID(string& strAddr,string& regId);
+	bool GegRegId(string& strAddr,string& regId);
 
 	bool GetTxOperateLog(const uint256& txid, vector<CAccount>& vLog) ;
 

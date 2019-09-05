@@ -100,7 +100,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 
 { BLOCK_REWARD_TX,          std::make_tuple("BLOCK_REWARD_TX",          0,          0,         0,          0            ) },
 { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",      0,          10000,     10000,      10000        ) }, //0.0001 WICC, optional
-{ BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",        10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",        0,          10000,     10000,      10000        ) }, //0.0001 WICC
 { LCONTRACT_DEPLOY_TX,      std::make_tuple("LCONTRACT_DEPLOY_TX",      100000000,  100000000, 100000000,  100000000    ) }, //1 WICC (unit fuel rate)
 { LCONTRACT_INVOKE_TX,      std::make_tuple("LCONTRACT_INVOKE_TX",      100000,     100000,    100000,     100000       ) }, //0.001 WICC, min fees
 { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",         10000,      10000,     10000,      10000        ) }, //0.0001 WICC

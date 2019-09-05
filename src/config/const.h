@@ -82,11 +82,8 @@ static const int64_t MIN_FUEL_RATES           = 1;    // 1 unit / 100 step
 
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const uint32_t MAX_BLOCK_SIZE = 4000000;
-/** Default for -blockmaxsize and -blockminsize, which control the range of sizes the mining code will create **/
+/** Default for -blockmaxsize which control the range of sizes the mining code will create **/
 static const uint32_t DEFAULT_BLOCK_MAX_SIZE = 3750000;
-static const uint32_t DEFAULT_BLOCK_MIN_SIZE = 1024 * 10;
-/** Default for -blockprioritysize, maximum space for zero/low-fee transactions **/
-static const uint32_t DEFAULT_BLOCK_PRIORITY_SIZE = 50000;
 /** The maximum size for transactions we're willing to relay/mine */
 static const uint32_t MAX_STANDARD_TX_SIZE = 100000;
 
@@ -125,6 +122,7 @@ static const uint32_t MAX_CONTRACT_CODE_SIZE     = 65536;      // 64 KB max for 
 static const uint32_t MAX_CONTRACT_ARGUMENT_SIZE = 4096;       // 4 KB max for contract argument size
 static const uint32_t MAX_COMMON_TX_MEMO_SIZE    = 100;        // 100 bytes max for memo size
 static const uint32_t MAX_CONTRACT_MEMO_SIZE     = 100;        // 100 bytes max for memo size
+static const uint32_t MAX_CONTRACT_KEY_SIZE      = 512;         // 100 bytes max for memo size
 static const int32_t MAX_MULSIG_NUMBER           = 15;         // m-n multisig, refer to n
 static const int32_t MAX_MULSIG_SCRIPT_SIZE      = 1000;       // multisig script max size
 
