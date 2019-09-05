@@ -80,12 +80,15 @@ void CRegID::SetRegID(string strRegID) {
         index  = atoi(strRegID.substr(pos + 1).c_str());
         vRegID.insert(vRegID.end(), BEGIN(height), END(height));
         vRegID.insert(vRegID.end(), BEGIN(index), END(index));
-        // memcpy(&vRegID.at(0), &height, sizeof(height));
-        // memcpy(&vRegID[sizeof(height)], &index, sizeof(index));
     } else if (strRegID.length() == 12) {
         vRegID = ::ParseHex(strRegID);
-        memcpy(&height, &vRegID[0], sizeof(height));
-        memcpy(&index, &vRegID[sizeof(height)], sizeof(index));
+
+        if (vRegID.size() > sizeof(height) + sizeof(index)) {
+            memcpy(&height, &vRegID[0], sizeof(height));
+            memcpy(&index, &vRegID[sizeof(height)], sizeof(index));
+        } else {
+            // failed to parse strRegID, do not bother to initialize height and index.
+        }
     }
 }
 
@@ -125,7 +128,8 @@ string CRegID::ToString() const {
 
 CKeyID CRegID::GetKeyId(const CAccountDBCache &accountCache) const {
     CKeyID retKeyId;
-    CAccountDBCache(accountCache).GetKeyId(*this, retKeyId);
+    accountCache.GetKeyId(*this, retKeyId);
+
     return retKeyId;
 }
 
