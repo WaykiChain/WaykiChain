@@ -192,8 +192,9 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                             UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        CReceipt receipt(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, "send friction fees into risk riserve");
-        receipts.push_back(receipt);
+        receipts.emplace_back(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins,
+                              "send friction fees into risk riserve");
+        receipts.emplace_back(txUid, toUid, SYMB::WUSD, actualCoinsToSend, "actual transfer coins");
     }
 
     if (!desAccount.OperateBalance(coin_symbol, ADD_FREE, actualCoinsToSend)) {
@@ -201,14 +202,11 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         UPDATE_ACCOUNT_FAIL, "failed-add-coins");
     }
 
-    CReceipt receipt(txUid, toUid, coin_symbol, actualCoinsToSend, "actual transfer coins");
-    receipts.push_back(receipt);
-
     if (!cw.accountCache.SaveAccount(desAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, write dest addr %s account info error", toUid.ToString()),
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+    if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
