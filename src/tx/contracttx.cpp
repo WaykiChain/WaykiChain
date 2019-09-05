@@ -258,9 +258,6 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
         }
     }
 
-    if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
-        return ERRORMSG("CLuaContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
-
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), vmRunEnv.GetReceipts()))
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
@@ -520,9 +517,6 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
             vAddress.insert(itemKeyID);
         }
     }
-
-    if (!cw.contractCache.SetTxRelAccout(GetHash(), vAddress))
-        return ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, save tx relate account info to script db error");
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), vmRunEnv.GetReceipts()))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, set tx receipts failed!! txid=%s",

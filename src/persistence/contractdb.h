@@ -57,7 +57,6 @@ public:
     CContractDBCache(CDBAccess *pDbAccess):
         contractCache(pDbAccess),
         txDiskPosCache(pDbAccess),
-        contractRelatedKidCache(pDbAccess),
         contractDataCache(pDbAccess),
         contractAccountCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::CONTRACT);
@@ -66,7 +65,6 @@ public:
     CContractDBCache(CContractDBCache *pBaseIn):
         contractCache(pBaseIn->contractCache),
         txDiskPosCache(pBaseIn->txDiskPosCache),
-        contractRelatedKidCache(pBaseIn->contractRelatedKidCache),
         contractDataCache(pBaseIn->contractDataCache),
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
@@ -84,10 +82,6 @@ public:
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
 
-    bool SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount);
-    bool GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount);
-    bool EraseTxRelAccout(const uint256 &txid);
-
     bool Flush();
     uint32_t GetCacheSize() const;
 
@@ -101,7 +95,6 @@ public:
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
         contractCache.SetBase(&pBaseIn->contractCache);
         txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
-        contractRelatedKidCache.SetBase(&pBaseIn->contractRelatedKidCache);
         contractDataCache.SetBase(&pBaseIn->contractDataCache);
         contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
     };
@@ -109,7 +102,6 @@ public:
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         contractCache.SetDbOpLogMap(pDbOpLogMapIn);
         txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
-        contractRelatedKidCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractDataCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractAccountCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
@@ -117,7 +109,6 @@ public:
     bool UndoDatas() {
         return contractCache.UndoDatas() &&
                txDiskPosCache.UndoDatas() &&
-               contractRelatedKidCache.UndoDatas() &&
                contractDataCache.UndoDatas() &&
                contractAccountCache.UndoDatas();
     }
@@ -132,8 +123,6 @@ private:
     CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
     // txId -> DiskTxPos
     CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
-    // contractTxId -> set<CKeyID>
-    CCompositeKVCache< dbk::CONTRACT_RELATED_KID, uint256,                  set<CKeyID> >          contractRelatedKidCache;
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount

@@ -79,7 +79,6 @@ namespace dbk {
         DEFINE( CONTRACT_DEF,         "cdef",  CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
         DEFINE( CONTRACT_DATA,        "cdat",  CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
         DEFINE( CONTRACT_ITEM_NUM,    "citn",  CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
-        DEFINE( CONTRACT_RELATED_KID, "crid",  CONTRACT )      /* cacs{$ContractTxId} --> $set<CKeyID> */ \
         DEFINE( CONTRACT_ACCOUNT,     "cacc",  CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
         /**** delegate db                                                                     */ \
         DEFINE( VOTE,                 "vote",  DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1 */ \

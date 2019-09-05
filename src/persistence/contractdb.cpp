@@ -77,7 +77,6 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
 bool CContractDBCache::Flush() {
     contractCache.Flush();
     txDiskPosCache.Flush();
-    contractRelatedKidCache.Flush();
     contractDataCache.Flush();
     contractAccountCache.Flush();
 
@@ -87,7 +86,6 @@ bool CContractDBCache::Flush() {
 uint32_t CContractDBCache::GetCacheSize() const {
     return contractCache.GetCacheSize() +
         txDiskPosCache.GetCacheSize() +
-        contractRelatedKidCache.GetCacheSize() +
         contractDataCache.GetCacheSize() +
         contractAccountCache.GetCacheSize();
 }
@@ -102,7 +100,7 @@ bool CContractDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
 
 bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
     for (auto it : list) {
-        LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
+        LogPrint("DEBUG", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
                 it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
         if (!txDiskPosCache.SetData(it.first, it.second))
@@ -110,16 +108,6 @@ bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &
     }
     return true;
 }
-
-bool CContractDBCache::SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.SetData(txid, relAccount);
-}
-
-bool CContractDBCache::GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.GetData(txid, relAccount);
-}
-
-bool CContractDBCache::EraseTxRelAccout(const uint256 &txid) { return contractRelatedKidCache.EraseData(txid); }
 
 shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
     const CRegID &contractRegid, const string &contractKeyPrefix, uint32_t count,
