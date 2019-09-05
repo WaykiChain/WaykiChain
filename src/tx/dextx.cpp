@@ -489,6 +489,10 @@ bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+    if (!cw.dexCache.EraseActiveOrder(orderId, activeOrder)) {
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", orderId.ToString()),
+                        REJECT_INVALID, "order-erase-failed");
+    }
     return true;
 }
 
