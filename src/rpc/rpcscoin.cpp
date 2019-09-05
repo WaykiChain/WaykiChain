@@ -42,11 +42,11 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
             "\nExamples:\n" +
             HelpExampleCli("submitpricefeedtx",
                            "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
-                           "\"[{\\\"coin\\\": \\\"WICC\\\", \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 2500}]\"\n") +
+                           "\"[{\\\"coin\\\": \\\"WICC\\\", \\\"currency\\\": \\\"USD\\\", \\\"price\\\": 2500}]\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc("submitpricefeedtx",
-                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"[{\"coin\": \"WICC\", \"currency\": \"USD\", "
-                           "\"price\": 2500}]\"\n"));
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", [{\"coin\": \"WICC\", \"currency\": \"USD\", "
+                           "\"price\": 2500}]"));
     }
 
     const CUserID &feedUid = RPC_PARAM::GetUserId(params[0].get_str());
