@@ -178,7 +178,7 @@ public:
     TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
     CAssetUpdateData update_data;   // update data(type, value)
 public:
-    CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {};
+    CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {}
 
     CAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                    uint64_t feesIn, const TokenSymbol &assetSymbolIn, const CAssetUpdateData &updateData)

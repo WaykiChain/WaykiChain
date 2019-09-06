@@ -831,19 +831,19 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             "\nsubmit an asset issue tx.\n"
             "\nthe tx creator must have enough WICC for issued fee(550 WICC).\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) tx owner address\n"
-            "2.\"asset_symbol\": (string required) asset symbol, E.g WICC | WUSD\n"
-            "3.\"asset_owner_addr\": (string required) asset owner address, can be same as tx owner address\n"
-            "4.\"asset_name\": (string required) asset long name, E.g WaykiChain coin\n"
-            "5.\"total_supply\": (numeric required) asset total supply\n"
-            "6.\"mintable\": (boolean required) whether this asset token can be minted in the future\n"
-            "7.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "1.\"addr\":            (string, required) tx owner address\n"
+            "2.\"asset_symbol\":    (string, required) asset symbol, E.g WICC | WUSD\n"
+            "3.\"asset_owner_addr\":(string, required) asset owner address, can be same as tx owner address\n"
+            "4.\"asset_name\":      (string, required) asset long name, E.g WaykiChain coin\n"
+            "5.\"total_supply\":    (numeric, required) asset total supply\n"
+            "6.\"mintable\":        (boolean, required) whether this asset token can be minted in the future\n"
+            "7.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\" (string) The new transaction id.\n"
+            "\"txid\"               (string) The new transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitassetissuetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 1000000000000000 true")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitassetissuetx", "\"10-2\" \"CNY\" \"10-2\" \"RMB\" 1000000000000000 true")
+            + HelpExampleRpc("submitassetissuetx", "\"10-2\", \"CNY\", \"10-2\", \"RMB\", 1000000000000000, true")
         );
     }
     const CUserID& uid             = RPC_PARAM::GetUserId(params[0]);
@@ -879,17 +879,17 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             "\nsubmit an asset update tx.\n"
             "\nthe tx creator must have enough WICC for asset update fee(200 WICC).\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) tx owner address\n"
-            "2.\"asset_symbol\": (string required) asset symbol, E.g WICC | WUSD\n"
-            "3.\"update_type\": (string required) asset update type, can be (owner_uid, name, mint_amount)\n"
-            "4.\"update_value\": (string required) update the value specified by update_type, value format see the submitassetissuetx\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "1.\"addr\":            (string, required) tx owner address\n"
+            "2.\"asset_symbol\":    (string, required) asset symbol, E.g WICC | WUSD\n"
+            "3.\"update_type\":     (string, required) asset update type, can be (owner_uid, name, mint_amount)\n"
+            "4.\"update_value\":    (string, required) update the value specified by update_type, value format see the submitassetissuetx\n"
+            "5.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\" (string) The new transaction id.\n"
+            "\"txid\"               (string) The new transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitassetupdatetx", "\"10-2\" \"CNY\" \"mint_amount\" \"100000000\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitassetupdatetx", "\"10-2\" \"CNY\" \"mint_amount\" \"100000000\"")
+            + HelpExampleRpc("submitassetupdatetx", "\"10-2\", \"CNY\", \"mint_amount\", \"100000000\"")
         );
     }
 
