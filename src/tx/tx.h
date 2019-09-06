@@ -180,7 +180,7 @@ public:
         return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
             __FUNCTION__, fee_symbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");     \
     if (!CheckTxFeeSufficient(fee_symbol, llFees, height)) {                                           \
-        return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu",   \
+        return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)",  \
             __FUNCTION__, height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
     }
 
