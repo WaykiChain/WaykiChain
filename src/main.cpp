@@ -1496,8 +1496,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 // Update the on-disk chain state.
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
-    uint32_t cachesize    = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize() +
-                             pCdMan->pDelegateCache->GetCacheSize() + pCdMan->pCdpCache->GetCacheSize();
+    uint32_t cachesize        = pCdMan->pAccountCache->GetCacheSize() + pCdMan->pContractCache->GetCacheSize() +
+                         pCdMan->pDelegateCache->GetCacheSize() + pCdMan->pCdpCache->GetCacheSize();
 
     if (!IsInitialBlockDownload()
         || cachesize > SysCfg().GetViewCacheSize()
@@ -1870,8 +1870,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
         return true;  // No fork, return immediately.
 
-    auto spForkCW       = std::make_shared<CCacheWrapper>();
-    auto spCW           = std::make_shared<CCacheWrapper>(pCdMan);
+    auto spForkCW          = std::make_shared<CCacheWrapper>();
+    auto spCW              = std::make_shared<CCacheWrapper>(pCdMan);
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
     vector<CBlock> vPreBlocks;
@@ -1912,6 +1912,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
         spCW->sysParamCache = mapForkCache[blockHash]->sysParamCache;
         spCW->accountCache  = mapForkCache[blockHash]->accountCache;
+        spCW->assetCache    = mapForkCache[blockHash]->assetCache;
         spCW->contractCache = mapForkCache[blockHash]->contractCache;
         spCW->delegateCache = mapForkCache[blockHash]->delegateCache;
         spCW->cdpCache      = mapForkCache[blockHash]->cdpCache;
@@ -1953,6 +1954,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     if (forkChainTipFound) {
         spForkCW->sysParamCache  = mapForkCache[forkChainTipBlockHash]->sysParamCache;
         spForkCW->accountCache   = mapForkCache[forkChainTipBlockHash]->accountCache;
+        spForkCW->assetCache     = mapForkCache[forkChainTipBlockHash]->assetCache;
         spForkCW->contractCache  = mapForkCache[forkChainTipBlockHash]->contractCache;
         spForkCW->delegateCache  = mapForkCache[forkChainTipBlockHash]->delegateCache;
         spForkCW->cdpCache       = mapForkCache[forkChainTipBlockHash]->cdpCache;
@@ -1963,6 +1965,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     } else {
         spForkCW->sysParamCache  = spCW->sysParamCache;
         spForkCW->accountCache   = spCW->accountCache;
+        spForkCW->assetCache     = spCW->assetCache;
         spForkCW->contractCache  = spCW->contractCache;
         spForkCW->delegateCache  = spCW->delegateCache;
         spForkCW->cdpCache       = spCW->cdpCache;
@@ -2030,18 +2033,18 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     //     }
     // }
 
-    // forkChainBestBlockHeight = mapBlockIndex[spForkCW->accountCache.GetBestBlock()]->height;
-    // for (auto &item : block.vptx) {
-    //     // Verify height
-    //     if (!item->IsValidHeight(forkChainBestBlockHeight, SysCfg().GetTxCacheHeight())) {
-    //         return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s beyond the scope of valid height\n ",
-    //                          item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
-    //     }
-    //     // Verify duplicated transaction
-    //     if (spForkCW->txCache.HaveTx(item->GetHash()))
-    //         return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed",
-    //                          item->GetHash().GetHex()), REJECT_INVALID, "duplicated-txid");
-    // }
+    forkChainBestBlockHeight = mapBlockIndex[spForkCW->accountCache.GetBestBlock()]->height;
+    for (auto &item : block.vptx) {
+        // Verify height
+        if (!item->IsValidHeight(forkChainBestBlockHeight, SysCfg().GetTxCacheHeight())) {
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s beyond the scope of valid height\n ",
+                             item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
+        }
+        // Verify duplicated transaction
+        if (spForkCW->txCache.HaveTx(item->GetHash()))
+            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed",
+                             item->GetHash().GetHex()), REJECT_INVALID, "duplicated-txid");
+    }
 
     if (!vPreBlocks.empty()) {
         vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
