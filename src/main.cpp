@@ -472,10 +472,10 @@ int32_t CMerkleTx::GetBlocksToMaturity() const {
     return max(0, (BLOCK_REWARD_MATURITY + 1) - GetDepthInMainChain());
 }
 
-int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache) {
+int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &contractCache) {
     if (SysCfg().IsTxIndex()) {
         CDiskTxPos diskTxPos;
-        if (scriptDBCache.ReadTxIndex(hash, diskTxPos)) {
+        if (contractCache.ReadTxIndex(hash, diskTxPos)) {
             CAutoFile file(OpenBlockFile(diskTxPos, true), SER_DISK, CLIENT_VERSION);
             CBlockHeader header;
             try {
@@ -1078,10 +1078,10 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
     return true;
 }
 
-bool SaveTxIndex(CBaseTx &baseTx, CCacheWrapper &cw, CValidationState &state, CDiskTxPos &diskTxPos) {
+bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state, const CDiskTxPos &diskTxPos) {
     if (SysCfg().IsTxIndex()) {
         // TODO: should move to blockTxCache?
-        if (!cw.contractCache.SetTxIndex(baseTx.GetHash(), diskTxPos))
+        if (!cw.contractCache.SetTxIndex(txid, diskTxPos))
             return state.Abort(_("Failed to write transaction index"));
     }
     return true;
@@ -1228,6 +1228,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
+    std::vector<pair<uint256, CDiskTxPos> > vPos;
+    vPos.reserve(block.vptx.size());
+
     CDiskTxPos pos(pIndex->GetBlockPos(), GetSizeOfCompactSize(block.vptx.size()));
     CDiskTxPos rewardPos = pos;
     pos.nTxOffset += ::GetSerializeSize(block.vptx[0], SER_DISK, CLIENT_VERSION);
@@ -1291,10 +1294,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 return false;
             }
 
-            if (!SaveTxIndex(*pBaseTx, cw, state, pos)) {
-                cw.DisableTxUndoLog();
-                return false;
-            }
+            vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
 
             blockUndo.vtxundo.push_back(cw.txUndo);
             cw.DisableTxUndoLog();
@@ -1381,9 +1381,16 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return false;
     }
 
-    if (!SaveTxIndex(*block.vptx[0], cw, state, rewardPos)) {
+    if (!SaveTxIndex(block.vptx[0]->GetHash(), cw, state, rewardPos)) {
         cw.DisableTxUndoLog();
         return false;
+    }
+
+    for (const auto &item : vPos) {
+        if (!SaveTxIndex(item.first, cw, state, item.second)) {
+            cw.DisableTxUndoLog();
+            return false;
+        }
     }
 
     blockUndo.vtxundo.push_back(cw.txUndo);

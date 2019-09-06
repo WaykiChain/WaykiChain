@@ -112,7 +112,7 @@ string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
 bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
-int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &scriptDBCache);
+int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &contractCache);
 
 /** Abort with a message */
 bool AbortNode(const string &msg);

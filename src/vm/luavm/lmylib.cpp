@@ -825,24 +825,25 @@ static int ExGetTxContractFunc(lua_State *L) {
  * 2.第二个是打印的字符串
  */
 static int ExLogPrintFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
-    if(!GetDataTableLogPrint(L,retdata) || retdata.size() != 2) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
+    if (!GetDataTableLogPrint(L, retdata) || retdata.size() != 2) {
         return RetFalse("ExLogPrintFunc para err1");
     }
+
     CDataStream tep1(*retdata.at(0), SER_DISK, CLIENT_VERSION);
-    bool flag ;
+    bool flag;
     tep1 >> flag;
     string pdata((*retdata[1]).begin(), (*retdata[1]).end());
     LUA_BurnFuncData(L, FUEL_CALL_LogPrint, pdata.size(), 1, FUEL_DATA1_LogPrint, BURN_VER_R2);
 
-    if(flag) {
-        LogPrint("vm","%s\n", HexStr(pdata).c_str());
+    if (flag) {
+        LogPrint("vm", "%s\n", HexStr(pdata).c_str());
     } else {
-        LogPrint("vm","%s\n", pdata.c_str());
+        LogPrint("vm", "%s\n", pdata.c_str());
     }
-    return  0;
-}
 
+    return 0;
+}
 
 /**
  *unsigned short GetAccounts(const unsigned char *txid, void* const paccount, unsigned short maxlen)
@@ -935,7 +936,7 @@ static int ExIntegerToByte4Func(lua_State *L) {
     //把integer转换成4字节数组
     int height = 0;
     if(!GetDataInt(L,height)){
-        return RetFalse("ExGetBlockHashFunc para err1");
+        return RetFalse("ExIntegerToByte4Func para err1");
     }
     LUA_BurnFuncCall(L, FUEL_CALL_IntegerToByte4, BURN_VER_R2);
     CDataStream tep(SER_DISK, CLIENT_VERSION);
