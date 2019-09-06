@@ -1,12 +1,14 @@
 #pragma once
 
 #include <eosio/vm/host_function.hpp>
+#include <eosio/vm/signals.hpp>
 #include <eosio/vm/types.hpp>
 #include <eosio/vm/wasm_stack.hpp>
 #include <eosio/vm/watchdog.hpp>
 
 #include <optional>
 #include <string>
+#include <utility>
 
 namespace eosio { namespace vm {
    template <typename Host>
@@ -24,8 +26,10 @@ namespace eosio { namespace vm {
       }
 
       inline int32_t grow_linear_memory(int32_t pages) {
-	 EOS_WB_ASSERT(!(_mod.memories[0].limits.flags && (_mod.memories[0].limits.maximum < pages)), wasm_interpreter_exception, "memory limit reached");
+         EOS_WB_ASSERT(!(_mod.memories[0].limits.flags && (_mod.memories[0].limits.maximum < pages)), wasm_interpreter_exception, "memory limit reached");
          const int32_t sz = _wasm_alloc->get_current_page();
+         if (pages < 0 || !_mod.memories.size() || (_mod.memories[0].limits.flags && (_mod.memories[0].limits.maximum < sz + pages)))
+            return -1;
          _wasm_alloc->alloc<char>(pages);
          return sz;
       }
@@ -34,13 +38,11 @@ namespace eosio { namespace vm {
 
       inline void call(uint32_t index) {
          // TODO validate index is valid
-         if (index < _mod.get_imported_functions_size()) {       
+         if (index < _mod.get_imported_functions_size()) {
             // TODO validate only importing functions
             const auto& ft = _mod.types[_mod.imports[index].type.func_t];
             type_check(ft);
-            //std::cout << "before host function call";
-            _rhf(_host, *this, _mod.import_functions[index]);
-            //std::cout << "after host function call";
+            _rhf(_state.host, *this, _mod.import_functions[index]);
             inc_pc();
          } else {
             // const auto& ft = _mod.types[_mod.functions[index - _mod.get_imported_functions_size()]];
@@ -49,70 +51,23 @@ namespace eosio { namespace vm {
             setup_locals(index);
             const uint32_t& pc = _mod.function_sizes[index];
             set_pc(pc);
-            _current_offset = pc;
-            _code_index     = index - _mod.get_imported_functions_size();
+            _state.current_offset = pc;
+            _state.code_index     = index - _mod.get_imported_functions_size();
          }
-      }
-
-      void print_stack_as() {
-         // std::cout << "LABEL { ";
-         // for (int i = 0; i < _as.size(); i++) {
-         //     auto af = std::get<activation_frame>(_as.get(i));
-
-         //    std::cout << "(" << i << ")";
-         //    std::cout << "pc:" << af.pc << "offset:" << af.offset 
-         //              <<"index:" << af.index << "op_index:" << af.op_index 
-         //              <<"ret_type:" << af.ret_type << "last_cs_size:" << af.last_cs_size ;
-         //    std::cout << " }\n";
-         //  }
-      }
-
-
-      void print_stack_label() {
-         //std::cout << "LABEL { ";
-         // for (int i = 0; i < _cs.size(); i++) {
-         //    std::cout << "(" << i << ")";
-         //    if (std::holds_alternative<block_t>(_cs.get(i))){
-         //       auto label = std::get<block_t>(_cs.get(i));
-         //       std::cout << "block:" << "data:" << label.data << "pc:" << label.pc <<"index:" << label.index << "op_index:" << label.op_index << ", ";
-         //    }else if (std::holds_alternative<loop_t>(_cs.get(i))){
-         //       auto label = std::get<loop_t>(_cs.get(i));
-         //       std::cout << "loop:" << "data:" << label.data << "pc:" << label.pc <<"index:" << label.index << "op_index:" << label.op_index << ", ";
-         //    }
-         //    else if (std::holds_alternative<if__t>(_cs.get(i))){
-         //       auto label = std::get<if__t>(_cs.get(i));
-         //       std::cout << "if_:" << "data:" << label.data << "pc:" << label.pc <<"index:" << label.index << "op_index:" << label.op_index << ", ";
-         //    }
-         //    else if (std::holds_alternative<else__t>(_cs.get(i))){
-         //       auto label = std::get<else__t>(_cs.get(i));
-         //       std::cout << "else_:" << "data:" << label.data << "pc:" << label.pc <<"index:" << label.index << "op_index:" << label.op_index << ", ";
-         //    }else if (std::holds_alternative<end_t>(_cs.get(i))){
-         //       auto label = std::get<end_t>(_cs.get(i));
-         //       std::cout << "end:" << "data:" << label.data << "pc:" << label.pc <<"index:" << label.index << "op_index:" << label.op_index << ", ";
-         //    }else
-         //       std::cout << "(INDEX " << _cs.get(i).index() << "), ";
-         // }
-         // std::cout << " }\n";
       }
 
       void print_stack() {
          std::cout << "STACK { ";
          for (int i = 0; i < _os.size(); i++) {
             std::cout << "(" << i << ")";
-            if (std::holds_alternative<i32_const_t>(_os.get(i)))
-               std::cout << "i32:" << std::get<i32_const_t>(_os.get(i)).data.ui << ", ";
-            else if (std::holds_alternative<i64_const_t>(_os.get(i)))
-               std::cout << "i64:" << std::get<i64_const_t>(_os.get(i)).data.ui << ", ";
-            else if (std::holds_alternative<f32_const_t>(_os.get(i)))
-               std::cout << "f32:" << std::get<f32_const_t>(_os.get(i)).data.f << ", ";
-            else if (std::holds_alternative<f64_const_t>(_os.get(i)))
-               std::cout << "f64:" << std::get<f64_const_t>(_os.get(i)).data.f << ", ";
-            else
-               std::cout << "(INDEX " << _os.get(i).index() << "), ";
+            visit(overloaded { [&](i32_const_t el) { std::cout << "i32:" << el.data.ui << ", "; },
+                               [&](i64_const_t el) { std::cout << "i64:" << el.data.ui << ", "; },
+                               [&](f32_const_t el) { std::cout << "f32:" << el.data.f << ", "; },
+                               [&](f64_const_t el) { std::cout << "f64:" << el.data.f << ", "; },
+                               [&](auto el) { std::cout << "(INDEX " << el.index() << "), "; } }, _os.get(i));
          }
          std::cout << " }\n";
       }
-
 
       inline operand_stack& get_operand_stack() { return _os; }
       inline module&        get_module() { return _mod; }
@@ -120,135 +75,102 @@ namespace eosio { namespace vm {
       inline auto           get_wasm_allocator() { return _wasm_alloc; }
       inline char*          linear_memory() { return _linear_memory; }
       inline uint32_t       table_elem(uint32_t i) { return _mod.tables[0].table[i]; }
-      inline void           push_label(const stack_elem& el) { _cs.push(el); }
-      inline uint16_t       current_label_index() const { return _cs.current_index(); }
-      inline void           eat_labels(uint16_t index) { _cs.eat(index); }
-      inline void           push_operand(const stack_elem& el) { _os.push(el); }
-      inline stack_elem     get_operand(uint16_t index) const { return _os.get(_last_op_index + index); }
+      inline void           push_operand(const operand_stack_elem& el) { _os.push(el); }
+      inline operand_stack_elem     get_operand(uint16_t index) const { return _os.get(_last_op_index + index); }
       inline void           eat_operands(uint16_t index) { _os.eat(index); }
-      inline void           set_operand(uint16_t index, const stack_elem& el) { _os.set(_last_op_index + index, el); }
+      inline void           set_operand(uint16_t index, const operand_stack_elem& el) { _os.set(_last_op_index + index, el); }
       inline uint16_t       current_operands_index() const { return _os.current_index(); }
-      inline void           push_call(const stack_elem& el) { _as.push(el); }
-      inline stack_elem     pop_call() { return _as.pop(); }
+      inline void           push_call(const activation_frame& el) { _as.push(el); }
+      inline activation_frame     pop_call() { return _as.pop(); }
+      inline uint32_t       call_depth()const { return _as.size(); }
+      template <bool Should_Exit=false>
       inline void           push_call(uint32_t index) {
          const auto& ftype = _mod.get_function_type(index);
          _last_op_index    = _os.size() - ftype.param_types.size();
-         // _as.push(activation_frame{ _pc + 1, _current_offset, _code_index, static_cast<uint16_t>(_last_op_index),
-         //                            ftype.return_type });
-         _as.push(activation_frame{ _pc + 1, _current_offset, _code_index, static_cast<uint16_t>(_last_op_index),
-                                    ftype.return_type, _cs.size() });
-         //xiaoyu 20190727
-         // _cs.push(end_t{ 0, static_cast<uint32_t>(_current_offset + _mod.code[_code_index].code.size() - 1), 0,
-         //                 static_cast<uint16_t>(_last_op_index) });
-
-         print_stack_as();
-
+         if constexpr (Should_Exit) {
+            _as.push(activation_frame{ static_cast<uint32_t>(-1), static_cast<uint32_t>(-1), static_cast<uint32_t>(-1), static_cast<uint16_t>(_last_op_index),
+                                    ftype.return_type });
+         } else {
+            _as.push(activation_frame{ _state.pc + 1, _state.current_offset, _state.code_index, static_cast<uint16_t>(_last_op_index),
+                                    ftype.return_type });
+         }
       }
 
       inline void apply_pop_call() {
-
-        // if ( _cs.size() )
-        //     _cs.pop();
-
-        //std::cout << "apply_pop_call:" << "1-------------------------------------------------------------------------------------" << "\n";
-        //print_stack_label();
-
-         if (_as.size()) {
-            //print_stack_as();
-            //const auto& af      = std::get<activation_frame>(_as.pop());
-            auto af      = std::get<activation_frame>(_as.pop());
-            // std::cout << "pc:" << af.pc << "offset:" << af.offset 
-            // <<"index:" << af.index << "op_index:" << af.op_index 
-            // <<"ret_type:" << af.ret_type << "last_cs_size:" << af.last_cs_size ;
-
-            _current_offset     = af.offset;
-            _pc                 = af.pc;
-            _code_index         = af.index;
-            uint8_t    ret_type = af.ret_type;
-            uint16_t   op_index = af.op_index;
-            stack_elem el;
-            if (ret_type) {
-               el = pop_operand();
-               EOS_WB_ASSERT(is_a<i32_const_t>(el) && ret_type == types::i32 ||
-                                   is_a<i64_const_t>(el) && ret_type == types::i64 ||
-                                   is_a<f32_const_t>(el) && ret_type == types::f32 ||
-                                   is_a<f64_const_t>(el) && ret_type == types::f64,
+         const auto& af = _as.pop();
+         const uint8_t    ret_type = af.ret_type;
+         const uint16_t   op_index = af.op_index;
+         operand_stack_elem el;
+         if (ret_type) {
+            el = pop_operand();
+            EOS_WB_ASSERT(el.is_a<i32_const_t>() && ret_type == types::i32 ||
+                                   el.is_a<i64_const_t>() && ret_type == types::i64 ||
+                                   el.is_a<f32_const_t>() && ret_type == types::f32 ||
+                                   el.is_a<f64_const_t>() && ret_type == types::f64,
                              wasm_interpreter_exception, "wrong return type");
-            }
-
-            eat_operands(op_index);
-            if (ret_type)
-               push_operand(el);
-            if (_as.size()) {
-               _last_op_index = std::get<activation_frame>(_as.peek()).op_index;
-            }
-
-            //xiaoyu 20190727
-            while ( _cs.size() > af.last_cs_size)
-              _cs.pop();
-
-            //print_stack_as();
-        // std::cout << "last_cs_size:" << af.last_cs_size << "\n";
-            //print_stack_label();
+         }
+         if (af.offset == -1 && af.pc == -1 && af.index == -1) {
+            set_exiting_op(_state.exiting_loc);
+            _state.pc = 0;
+            _state.current_offset = 0;
+            _state.code_index = 0;
+         } else {
+            _state.current_offset     = af.offset;
+            _state.pc                 = af.pc;
+            _state.code_index         = af.index;
+            _last_op_index = _as.peek().op_index;
 
          }
-
-
-        // std::cout << "apply_pop_call:" << "2-------------------------------------------------------------------------------------" << "\n";
-        // print_stack_label();
-
-        // if ( _cs.size() )
-        //     _cs.pop();
-
-
+         eat_operands(op_index);
+         if (ret_type)
+            push_operand(el);
       }
-      inline stack_elem  pop_label() { return _cs.pop(); }
-      inline stack_elem  pop_operand() { return _os.pop(); }
-      inline stack_elem& peek_operand(size_t i = 0) { return _os.peek(i); }
-      inline stack_elem  get_global(uint32_t index) {
+      inline operand_stack_elem  pop_operand() { return _os.pop(); }
+      inline operand_stack_elem& peek_operand(size_t i = 0) { return _os.peek(i); }
+      inline operand_stack_elem  get_global(uint32_t index) {
          EOS_WB_ASSERT(index < _mod.globals.size(), wasm_interpreter_exception, "global index out of range");
          const auto& gl = _mod.globals[index];
-         // computed g
          switch (gl.type.content_type) {
-            case types::i32: return i32_const_t{ *(uint32_t*)&gl.init.value.i32 };
-            case types::i64: return i64_const_t{ *(uint64_t*)&gl.init.value.i64 };
-            case types::f32: return f32_const_t{ gl.init.value.f32 };
-            case types::f64: return f64_const_t{ gl.init.value.f64 };
+            case types::i32: return i32_const_t{ *(uint32_t*)&gl.current.value.i32 };
+            case types::i64: return i64_const_t{ *(uint64_t*)&gl.current.value.i64 };
+            case types::f32: return f32_const_t{ gl.current.value.f32 };
+            case types::f64: return f64_const_t{ gl.current.value.f64 };
             default: throw wasm_interpreter_exception{ "invalid global type" };
          }
       }
-      inline void set_global(uint32_t index, const stack_elem& el) {
+
+      inline void set_global(uint32_t index, const operand_stack_elem& el) {
          EOS_WB_ASSERT(index < _mod.globals.size(), wasm_interpreter_exception, "global index out of range");
          auto& gl = _mod.globals[index];
          EOS_WB_ASSERT(gl.type.mutability, wasm_interpreter_exception, "global is not mutable");
-         std::visit(overloaded{ [&](const i32_const_t& i) {
+         visit(overloaded{ [&](const i32_const_t& i) {
                                   EOS_WB_ASSERT(gl.type.content_type == types::i32, wasm_interpreter_exception,
                                                 "expected i32 global type");
-                                  gl.init.value.i32 = i.data.ui;
+                                  gl.current.value.i32 = i.data.ui;
                                },
                                 [&](const i64_const_t& i) {
                                    EOS_WB_ASSERT(gl.type.content_type == types::i64, wasm_interpreter_exception,
                                                  "expected i64 global type");
-                                   gl.init.value.i64 = i.data.ui;
+                                   gl.current.value.i64 = i.data.ui;
                                 },
                                 [&](const f32_const_t& f) {
                                    EOS_WB_ASSERT(gl.type.content_type == types::f32, wasm_interpreter_exception,
                                                  "expected f32 global type");
-                                   gl.init.value.f32 = f.data.ui;
+                                   gl.current.value.f32 = f.data.ui;
                                 },
                                 [&](const f64_const_t& f) {
                                    EOS_WB_ASSERT(gl.type.content_type == types::f64, wasm_interpreter_exception,
                                                  "expected f64 global type");
-                                   gl.init.value.f64 = f.data.ui;
+                                   gl.current.value.f64 = f.data.ui;
                                 },
                                 [](auto) { throw wasm_interpreter_exception{ "invalid global type" }; } },
                     el);
       }
 
-      inline bool is_true(const stack_elem& el) {
+      inline bool is_true(const operand_stack_elem& el) {
          bool ret_val = false;
-         std::visit(overloaded{ [&](const i32_const_t& i32) { ret_val = i32.data.ui; },
-                                [&](auto) { throw wasm_invalid_element{ "should be an i32 type" }; } },
+         visit(overloaded{ [&](const i32_const_t& i32) { ret_val = i32.data.ui; },
+                           [&](auto) { throw wasm_invalid_element{ "should be an i32 type" }; } },
                     el);
          return ret_val;
       }
@@ -256,7 +178,7 @@ namespace eosio { namespace vm {
       inline void type_check(const func_type& ft) {
          for (int i = 0; i < ft.param_types.size(); i++) {
             const auto& op = peek_operand((ft.param_types.size() - 1) - i);
-            std::visit(overloaded{ [&](const i32_const_t&) {
+            visit(overloaded{ [&](const i32_const_t&) {
                                      EOS_WB_ASSERT(ft.param_types[i] == types::i32, wasm_interpreter_exception,
                                                    "function param type mismatch");
                                   },
@@ -277,108 +199,141 @@ namespace eosio { namespace vm {
          }
       }
 
-      inline uint32_t get_pc() const { return _pc; }
-      inline void     set_pc(uint32_t pc) { _pc = pc; }
-      inline void     set_relative_pc(uint32_t pc) { _pc = _current_offset + pc; }
-      inline void     inc_pc() { _pc++; }
-      inline uint32_t get_code_index() const { return _code_index; }
-      inline uint32_t get_code_offset() const { return _pc - _current_offset; }
+      inline uint32_t get_pc() const { return _state.pc; }
+      inline void     set_pc(uint32_t pc) { _state.pc = pc; }
+      inline void     set_relative_pc(uint32_t pc) { _state.pc = _state.current_offset + pc; }
+      inline void     inc_pc() { _state.pc++; }
+      inline uint32_t get_code_index() const { return _state.code_index; }
+      inline uint32_t get_code_offset() const { return _state.pc - _state.current_offset; }
       inline void     exit(std::error_code err = std::error_code()) {
-         std::cout << "Exiting...\n";
          _error_code = err;
-         _executing  = false;
-      }
-      inline std::error_code get_error_code() const { return _error_code; }
-      inline bool            executing() const { return _executing; }
-
-      template <typename Visitor, typename... Args>
-      inline std::optional<stack_elem> execute_func_table(Host* host, Visitor&& visitor, uint32_t table_index,
-                                                          Args... args) {
-         return execute(host, std::forward<Visitor>(visitor), table_elem(table_index), std::forward<Args>(args)...);
+         clear_exiting_op(_state.exiting_loc);
+         _state.exiting_loc = { _state.code_index, (_state.pc+1)-_state.current_offset };
+         set_exiting_op(_state.exiting_loc);
       }
 
-      template <typename Visitor, typename... Args>
-      inline std::optional<stack_elem> execute(Host* host, Visitor&& visitor, const std::string_view func,
-                                               Args... args) {
-         uint32_t func_index = _mod.get_exported_function(func);
-         return execute(host, std::forward<Visitor>(visitor), func_index, std::forward<Args>(args)...);
-      }
-
-      template <typename Visitor, typename... Args>
-      inline std::optional<stack_elem> execute(Host* host, Visitor&& visitor, uint32_t func_index, Args... args) {
-         EOS_WB_ASSERT(func_index < std::numeric_limits<uint32_t>::max(), wasm_interpreter_exception,
-                       "cannot execute function, function not found");
-         _host          = host;
+      inline void reset() {
          _linear_memory = _wasm_alloc->get_base_ptr<char>();
-	 grow_linear_memory(_mod.memories[0].limits.initial);
+         if (_mod.memories.size()) {
+            grow_linear_memory(_mod.memories[0].limits.initial - _wasm_alloc->get_current_page());
+         }
+
          for (int i = 0; i < _mod.data.size(); i++) {
             const auto& data_seg = _mod.data[i];
             // TODO validate only use memory idx 0 in parse
             auto addr = _linear_memory + data_seg.offset.value.i32;
             memcpy((char*)(addr), data_seg.data.raw(), data_seg.data.size());
          }
-         _current_function = func_index;
-         _code_index       = func_index - _mod.import_functions.size();
-         _current_offset   = _mod.function_sizes[_current_function];
-         _exit_pc          = _current_offset + _mod.code[_code_index].code.size() - 1;
-         _pc               = _exit_pc - 1; // set to exit for return
 
-         _executing = true;
-         _os.eat(0);
-         _as.eat(0);
-         _cs.eat(0);
+         // reset the mutable globals
+         for (int i = 0; i < _mod.globals.size(); i++) {
+            if (_mod.globals[i].type.mutability)
+               _mod.globals[i].current = _mod.globals[i].init;
+         }
+         _state = execution_state{};
+         _os.eat(_state.os_index);
+         _as.eat(_state.as_index);
+
+      }
+      
+      inline void set_exiting_op( const std::pair<uint32_t, uint32_t>& exiting_loc ) {
+         if (exiting_loc.first != -1 && exiting_loc.second != -1) {
+            _mod.code.at(exiting_loc.first).code.at(exiting_loc.second).set_exiting_which();
+         }
+      }
+
+      inline void clear_exiting_op( const std::pair<uint32_t, uint32_t>& exiting_loc ) {
+         if (exiting_loc.first != -1 && exiting_loc.second != -1) {
+            _mod.code.at(exiting_loc.first).code.at(exiting_loc.second).clear_exiting_which();
+         }
+      }
+
+      inline std::error_code get_error_code() const { return _error_code; }
+
+      template <typename Visitor, typename... Args>
+      inline std::optional<operand_stack_elem> execute_func_table(Host* host, Visitor&& visitor, uint32_t table_index,
+                                                          Args... args) {
+         return execute(host, std::forward<Visitor>(visitor), table_elem(table_index), std::forward<Args>(args)...);
+      }
+
+      template <typename Visitor, typename... Args>
+      inline std::optional<operand_stack_elem> execute(Host* host, Visitor&& visitor, const std::string_view func,
+                                               Args... args) {
+         uint32_t func_index = _mod.get_exported_function(func);
+         return execute(host, std::forward<Visitor>(visitor), func_index, std::forward<Args>(args)...);
+      }
+
+      template <typename Visitor, typename... Args>
+      inline void execute_start(Host* host, Visitor&& visitor) {
+         if (_mod.start != std::numeric_limits<uint32_t>::max())
+            execute(host, std::forward<Visitor>(visitor), _mod.start);
+      }
+
+      template <typename Visitor, typename... Args>
+      inline std::optional<operand_stack_elem> execute(Host* host, Visitor&& visitor, uint32_t func_index, Args... args) {
+         EOS_WB_ASSERT(func_index < std::numeric_limits<uint32_t>::max(), wasm_interpreter_exception,
+                       "cannot execute function, function not found");
+
+         auto last_last_op_index = _last_op_index;
+
+         clear_exiting_op( _state.exiting_loc );
+         // save the state of the original calling context
+         execution_state saved_state = _state;
+
+         _linear_memory = _wasm_alloc->get_base_ptr<char>();
+
+         _state.host             = host;
+         _state.current_function = func_index;
+         _state.code_index       = func_index - _mod.import_functions.size();
+         _state.current_offset   = _mod.function_sizes[_state.current_function];
+         _state.pc               = _state.current_offset;
+         _state.exiting_loc      = {0, 0};
+         _state.as_index         = _as.size();
+         _state.os_index         = _os.size();
 
          push_args(args...);
-         push_call(func_index);
-         // type_check(_mod.types[_mod.functions[func_index - _mod.import_functions.size()]]);
+         push_call<true>(func_index);
+         type_check(_mod.types[_mod.functions[func_index - _mod.import_functions.size()]]);
          setup_locals(func_index);
-         _pc = _current_offset; // set to actual start of function
 
-         execute(visitor);
-         stack_elem ret;
-         try {
+         vm::invoke_with_signal_handler([&]() {
+            execute(visitor);
+         }, [](int sig) {
+            switch(sig) {
+             case SIGSEGV:
+             case SIGBUS:
+               break;
+             default:
+               /* TODO fix this */
+               assert(!"??????");
+            }
+            throw wasm_memory_exception{ "wasm memory out-of-bounds" };
+         });
+
+         std::optional<operand_stack_elem> ret;
+         if (_mod.get_function_type(func_index).return_count) {
             ret = pop_operand();
-         } catch (...) { return {}; }
-         _os.eat(0);
+         }
+
+         // revert the state back to original calling context
+         clear_exiting_op( _state.exiting_loc );
+         _os.eat(_state.os_index);
+         _as.eat(_state.as_index);
+         _state = saved_state;
+
+         _last_op_index = last_last_op_index;
+
          return ret;
       }
 
-      inline void jump(uint32_t label) {
-         stack_elem el = pop_label();
-         for (int i = 0; i < label; i++) el = pop_label();
-         uint16_t op_index = 0;
-         uint32_t ret      = 0;
-         std::visit(
-               overloaded{ [&](const end_t& e) {
-                             _pc      = e.pc;
-                             op_index = e.op_index;
-                          },
-                           [&](const block_t& bt) {
-                              _pc      = _current_offset + bt.pc + 1;
-                              ret      = bt.data;
-                              op_index = bt.op_index;
-                              //std::cout << "block_t jump pc: " << _current_offset << "_pc "<< _pc - _current_offset << "\n"; 
-                           },
-                           [&](const loop_t& lt) {
-                              _pc      = _current_offset + lt.pc + 1;
-                              ret      = lt.data;
-                              op_index = lt.op_index;
-                              _cs.push(el);
-                           },
-                           [&](const if__t& it) {
-                              _pc      = _current_offset + it.pc + 1;
-                              ret      = it.data;
-                              op_index = it.op_index;
-                           },
-                           [&](auto) { throw wasm_invalid_element{ "invalid element when popping control stack" }; } },
-               el);
-
-         if (ret != types::pseudo) {
+      inline void jump(uint32_t pop_info, uint32_t new_pc) {
+         _state.pc = _state.current_offset + new_pc;
+         if ((pop_info & 0x80000000u)) {
             const auto& op = pop_operand();
-            eat_operands(op_index);
+            eat_operands(_os.size() - ((pop_info & 0x7FFFFFFFu) - 1));
             push_operand(op);
          } else {
-            eat_operands(op_index);
+            eat_operands(_os.size() - pop_info);
          }
       }
 
@@ -418,36 +373,126 @@ namespace eosio { namespace vm {
          }
       }
 
+#define CREATE_TABLE_ENTRY(NAME, CODE) &&ev_label_##NAME,
+#define CREATE_EXITING_TABLE_ENTRY(NAME, CODE) &&ev_label_exiting_##NAME,
+#define CREATE_LABEL(NAME, CODE)                                                                                  \
+      ev_label_##NAME : visitor(ev_variant->template get<eosio::vm::EOS_VM_OPCODE_T(NAME)>());                    \
+      ev_variant = &_mod.code.at_no_check(_state.code_index).code.at_no_check(_state.pc - _state.current_offset); \
+      goto* dispatch_table[ev_variant->index()];
+#define CREATE_EXITING_LABEL(NAME, CODE)                                                  \
+      ev_label_exiting_##NAME :  \
+      return;
+#define CREATE_EMPTY_LABEL(NAME, CODE) ev_label_##NAME :  \
+      throw wasm_interpreter_exception{"empty operand"};
+
       template <typename Visitor>
       void execute(Visitor&& visitor) {
-         int op_count = 0;
-         do {
-            op_count ++;
-            uint32_t offset = _pc - _current_offset;
-            if (_pc == _exit_pc && _as.size() <= 1) {
-               _executing = false;
-            }
-            std::visit(visitor, _mod.code.at_no_check(_code_index).code.at_no_check(offset));
-         } while (_executing);
-
-         std::cout << "opcodes:" << op_count <<std::endl;
+         static void* dispatch_table[] = {
+            EOS_VM_CONTROL_FLOW_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_BR_TABLE_OP(CREATE_TABLE_ENTRY)
+            EOS_VM_RETURN_OP(CREATE_TABLE_ENTRY)
+            EOS_VM_CALL_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_PARAMETRIC_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_VARIABLE_ACCESS_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_MEMORY_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_I32_CONSTANT_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_I64_CONSTANT_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_F32_CONSTANT_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_F64_CONSTANT_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_COMPARISON_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_NUMERIC_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_CONVERSION_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_SYNTHETIC_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_EMPTY_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_ERROR_OPS(CREATE_TABLE_ENTRY)
+            EOS_VM_CONTROL_FLOW_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_BR_TABLE_OP(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_RETURN_OP(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_CALL_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_PARAMETRIC_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_VARIABLE_ACCESS_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_MEMORY_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_I32_CONSTANT_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_I64_CONSTANT_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_F32_CONSTANT_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_F64_CONSTANT_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_COMPARISON_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_NUMERIC_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_CONVERSION_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_SYNTHETIC_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_EMPTY_OPS(CREATE_EXITING_TABLE_ENTRY)
+            EOS_VM_ERROR_OPS(CREATE_EXITING_TABLE_ENTRY)
+            &&__ev_last
+         };
+         auto* ev_variant = &_mod.code.at_no_check(_state.code_index).code.at_no_check(_state.pc - _state.current_offset);
+         goto *dispatch_table[ev_variant->index()];
+         while (1) {
+             EOS_VM_CONTROL_FLOW_OPS(CREATE_LABEL);
+             EOS_VM_BR_TABLE_OP(CREATE_LABEL);
+             EOS_VM_RETURN_OP(CREATE_LABEL);
+             EOS_VM_CALL_OPS(CREATE_LABEL);
+             EOS_VM_PARAMETRIC_OPS(CREATE_LABEL);
+             EOS_VM_VARIABLE_ACCESS_OPS(CREATE_LABEL);
+             EOS_VM_MEMORY_OPS(CREATE_LABEL);
+             EOS_VM_I32_CONSTANT_OPS(CREATE_LABEL);
+             EOS_VM_I64_CONSTANT_OPS(CREATE_LABEL);
+             EOS_VM_F32_CONSTANT_OPS(CREATE_LABEL);
+             EOS_VM_F64_CONSTANT_OPS(CREATE_LABEL);
+             EOS_VM_COMPARISON_OPS(CREATE_LABEL);
+             EOS_VM_NUMERIC_OPS(CREATE_LABEL);
+             EOS_VM_CONVERSION_OPS(CREATE_LABEL);
+             EOS_VM_SYNTHETIC_OPS(CREATE_LABEL);
+             EOS_VM_EMPTY_OPS(CREATE_EMPTY_LABEL);
+             EOS_VM_ERROR_OPS(CREATE_LABEL);
+             EOS_VM_CONTROL_FLOW_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_BR_TABLE_OP(CREATE_EXITING_LABEL);
+             EOS_VM_RETURN_OP(CREATE_EXITING_LABEL);
+             EOS_VM_CALL_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_PARAMETRIC_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_VARIABLE_ACCESS_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_MEMORY_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_I32_CONSTANT_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_I64_CONSTANT_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_F32_CONSTANT_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_F64_CONSTANT_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_COMPARISON_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_NUMERIC_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_CONVERSION_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_SYNTHETIC_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_EMPTY_OPS(CREATE_EXITING_LABEL);
+             EOS_VM_ERROR_OPS(CREATE_EXITING_LABEL);
+             __ev_last:
+                throw wasm_interpreter_exception{"should never reach here"};
+         }
       }
 
-      bounded_allocator _base_allocator = {
-         (constants::max_stack_size + constants::max_call_depth + constants::max_nested_structures) * sizeof(stack_elem)
+#undef CREATE_EMPTY_LABEL
+#undef CREATE_EXITING_LABEL
+#undef CREATE_LABEL
+#undef CREATE_EXITING_TABLE_ENTRY
+#undef CREATE_TABLE_ENTRY
+
+      struct execution_state {
+         Host* host                                = nullptr;
+         uint32_t current_function                 = 0;
+         std::pair<int64_t, int64_t> exiting_loc = {-1,-1};
+	 uint32_t as_index         = 0;
+	 uint32_t cs_index         = 0;
+	 uint32_t os_index         = 0;
+         uint32_t code_index       = 0;
+         uint32_t current_offset   = 0;
+         uint32_t pc               = 0;
+         bool     initialized      = false;
       };
-      uint32_t                        _pc               = 0;
-      uint32_t                        _exit_pc          = 0;
-      uint32_t                        _current_function = 0;
-      uint32_t                        _code_index       = 0;
-      uint32_t                        _current_offset   = 0;
+
+      bounded_allocator _base_allocator = {
+         (constants::max_stack_size + constants::max_call_depth) * (std::max(sizeof(operand_stack_elem), sizeof(activation_frame)))
+      };
+      execution_state _state;
       uint16_t                        _last_op_index    = 0;
-      bool                            _executing        = false;
       char*                           _linear_memory    = nullptr;
       module&                         _mod;
       wasm_allocator*                 _wasm_alloc;
-      Host*                           _host;
-      control_stack                   _cs = { _base_allocator };
       operand_stack                   _os = { _base_allocator };
       call_stack                      _as = { _base_allocator };
       registered_host_functions<Host> _rhf;

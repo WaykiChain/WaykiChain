@@ -39,4 +39,5 @@ namespace eosio { namespace vm {
    DECLARE_EXCEPTION( wasm_invalid_element,              4000009, "wasm invalid_element" )
    DECLARE_EXCEPTION( wasm_link_exception,               4000010, "wasm linked function failure" )
    DECLARE_EXCEPTION( guarded_ptr_exception,             4010000, "pointer out of bounds" )
+   DECLARE_EXCEPTION( timeout_exception,                 4010001, "timeout" )
 }} // eosio::vm

@@ -1,0 +1,16 @@
+## Changes
+- memory_grow.0:
+    - Change to start with one page of memory
+        - This is necessary because the error messages for the `eosio::check` calls get put in the `data` segment so we must have a least one page of memory.
+    - Adjust memory page counts accordingly in tests
+    - Change `store_at_zero` and `load_at_zero` to store at 65537 because we start with one page
+    - Change `load_at_page_size` and `store_at_page_size` to page 2
+- memory_grow.1:
+    - Change to start with one page of memory
+        - This is necessary because the error messages for the `eosio::check` calls get put in the `data` segment so we must have a least one page of memory.
+    - Adjust memory page counts accordingly in tests
+    - Change maximum num pages to match our 33MB limit (33MB/65536 = 528)
+- memory_grow.2:
+    - Change to start with one page of memory
+        - This is necessary because the error messages for the `eosio::check` calls get put in the `data` segment so we must have a least one page of memory.
+    - Adjust memory page counts accordingly in tests

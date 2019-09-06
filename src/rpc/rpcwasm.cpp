@@ -472,7 +472,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     if (params.size() > 3) {
         lastKey = FromHex(params[3].get_str());
     }
-    //std::cout << "rpccall gettablerowwasmcontracttx numbers"<< numbers << std::endl;
+    std::cout << "rpccall gettablerowwasmcontracttx numbers:"<< numbers << std::endl;
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");

@@ -73,7 +73,7 @@ COMPILER_BUILTINS_SRC = \
   vm/wasm/compiler_builtins/floattidf.c \
   vm/wasm/compiler_builtins/floatuntidf.c
 
-libcompilerbuildin_a_CFLAGS = -fPIC $(AM_CFLAGS) $(SOFTFLOAT_CFLAGS) -I$(COMPILER_BUILTINS)
+libcompilerbuildin_a_CFLAGS = -fPIC $(AM_CFLAGS) $(SOFTFLOAT_PATH_INCLUDE) -I$(COMPILER_BUILTINS)
 
 libcompilerbuildin_a_SOURCES = \
   $(COMPILER_BUILTINS_SRC) \
@@ -85,7 +85,7 @@ libcompilerbuildin_a_SOURCES = \
 #                     -I$(COMPILER_BUILTINS) \
 #                     -I$(WASM_TYPES_DIR)
 
-libwasm_a_CXXFLAGS = -std=c++17 -fno-builtin-memcmp $(SOFTFLOAT_CFLAGS) \
+libwasm_a_CXXFLAGS = -std=c++17 -DEOS_VM_SOFTFLOAT $(SOFTFLOAT_PATH_INCLUDE) \
                     -I$(EOSVM_INCLUDE_DIR) \
                     -I$(EOSVM_OUTCOME_DIR) \
                     -I$(COMPILER_BUILTINS) \

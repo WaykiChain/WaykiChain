@@ -5,40 +5,26 @@
 #include <fstream>
 #include <string>
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/framework.hpp>
-
 #include "utils.hpp"
 
-#include <eosio/wasm_backend/leb128.hpp>
-#include <eosio/wasm_backend/wasm_interpreter.hpp>
-#include <eosio/wasm_backend/types.hpp>
-#include <eosio/wasm_backend/opcodes.hpp>
-#include <eosio/wasm_backend/parser.hpp>
-#include <eosio/wasm_backend/constants.hpp>
-#include <eosio/wasm_backend/sections.hpp>
-#include <eosio/wasm_backend/interpret_visitor.hpp>
+#include <eosio/vm/backend.hpp>
 
 using namespace eosio;
-using namespace eosio::wasm_backend;
+using namespace eosio::vm;
 
-BOOST_AUTO_TEST_SUITE(parser_tests)
-BOOST_AUTO_TEST_CASE(parse_test) { 
-   try {
-      {
-         binary_parser bp;
-         wasm_code error = { 0x01, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 };
-         wasm_code_ptr error_ptr( error.data(), 4 );
-         auto n = bp.parse_magic( error_ptr );
-         BOOST_CHECK(n != constants::magic);
-         wasm_code correct = { 0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 };
-         wasm_code_ptr correct_ptr( correct.data(), 4 );
-         n = bp.parse_magic( correct_ptr );
-         BOOST_CHECK_EQUAL(n, constants::magic);
-      }
-   } FC_LOG_AND_RETHROW() 
+TEST_CASE("small parse test", "[small_parse_test]") { 
+   module mod;
+   binary_parser bp{mod.allocator};
+   wasm_code error = { 0x01, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 };
+   wasm_code_ptr error_ptr( error.data(), 4 );
+   auto n = bp.parse_magic( error_ptr );
+   CHECK(n != constants::magic);
+   wasm_code correct = { 0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00 };
+   wasm_code_ptr correct_ptr( correct.data(), 4 );
+   n = bp.parse_magic( correct_ptr );
+   CHECKL(n == constants::magic);
 }
-
+/*
 BOOST_AUTO_TEST_CASE(actual_wasm_test) { 
    try {  
       static const std::vector<std::pair <std::vector<uint8_t>, std::vector<uint8_t>>> system_contract_types = {

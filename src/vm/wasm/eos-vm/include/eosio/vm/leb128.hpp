@@ -7,7 +7,6 @@
 #include <array>
 
 namespace eosio { namespace vm {
-
    template <size_t N>
    inline size_t constexpr bytes_needed() {
       if constexpr (N == 1 || N == 7)
@@ -15,7 +14,7 @@ namespace eosio { namespace vm {
       else if constexpr (N == 32)
          return 5;
       else
-         return 10;//xiaoyu 20190730
+         return 10;
    }
 
    template <size_t N>
@@ -158,38 +157,28 @@ namespace eosio { namespace vm {
             bytes_used = 0;
             #pragma unroll
             for (; bytes_used < bytes_needed<N>(); bytes_used++) {
-      	       storage[bytes_used] = v & 0x7f;
-      	       v >>= 7;
-      	       if ((v == -1 && (v & 0x40)) || (v == 0 && !(v & 0x40)))
-                        break;
-      	       storage[bytes_used] |= 0x80;
-      	    }
+	       storage[bytes_used] = v & 0x7f;
+	       v >>= 7;
+	       if ((v == -1 && (storage[bytes_used] & 0x40)) || (v == 0 && !(storage[bytes_used] & 0x40)))
+                  break;
+	       storage[bytes_used] |= 0x80;
+	    }
             bytes_used++;
          }
 
          template <typename T>
          inline constexpr T _to() {
             typename std::make_unsigned<T>::type ret = 0;
-
             #pragma unroll
             for (int i=bytes_used-1; i >= 0; i--) {
                ret <<= 7;
                ret |= storage[i] & 0x7f;
             }
-
-            if (bytes_used >= 1) {
-               if (storage[bytes_used-1] & 0x40){
-                  int shift = ((bytes_used) * 7);
-                  
-                  //xiaoyu 20190730
-                  if (shift >= sizeof(T) * 8) {
-                     shift = sizeof(T) * 8 - 1;
-                  }
+            if (bytes_used >= 1 && bytes_used < bytes_needed<N>()) {
+               size_t shift = ((bytes_used) * 7);
+               if (storage[bytes_used-1] & 0x40)
                   ret |= (-1ull) << shift;
-
-               }
             }
- 
             return *(T*)&ret;
          }
 

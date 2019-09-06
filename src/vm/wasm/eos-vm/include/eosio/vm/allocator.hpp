@@ -85,16 +85,6 @@ namespace eosio { namespace vm {
     private:
       T*     raw      = nullptr;
       size_t max_size = 0;
-      void   set_up_signals() {
-         struct sigaction sa;
-         sa.sa_sigaction = [](int sig, siginfo_t*, void*) {
-            throw stack_memory_exception{ "stack memory out-of-bounds" };
-         };
-         sigemptyset(&sa.sa_mask);
-         sa.sa_flags = SA_NODEFER | SA_SIGINFO;
-         sigaction(SIGSEGV, &sa, NULL);
-         sigaction(SIGBUS, &sa, NULL);
-      }
 
     public:
       template <typename U>
@@ -102,7 +92,6 @@ namespace eosio { namespace vm {
          munmap(raw, max_memory);
       }
       fixed_stack_allocator(size_t max_size) : max_size(max_size) {
-         set_up_signals();
          raw = (T*)mmap(NULL, max_memory, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
          mprotect(raw, max_size * sizeof(T), PROT_READ | PROT_WRITE);
       }
@@ -112,50 +101,32 @@ namespace eosio { namespace vm {
    class wasm_allocator {
     private:
       char*   raw       = nullptr;
-      char*   _previous = raw;
       int32_t page      = 0;
-
-      void set_up_signals() {
-         struct sigaction sa;
-         sa.sa_sigaction = [](int sig, siginfo_t*, void*) {
-            throw wasm_memory_exception{ "wasm memory out-of-bounds" };
-         };
-         sigemptyset(&sa.sa_mask);
-         sa.sa_flags = SA_NODEFER | SA_SIGINFO;
-         sigaction(SIGSEGV, &sa, NULL);
-         sigaction(SIGBUS, &sa, NULL);
-      }
 
     public:
       template <typename T>
       T* alloc(size_t size = 1 /*in pages*/) {
          EOS_WB_ASSERT(page + size <= max_pages, wasm_bad_alloc, "exceeded max number of pages");
          mprotect(raw + (page_size * page), (page_size * size), PROT_READ | PROT_WRITE);
-         T* ptr    = (T*)_previous;
-         _previous = (raw + (page_size * page));
+         T* ptr    = (T*)(raw + (page_size * page));
+         memset(ptr, 0, page_size * size);
          page += size;
          return ptr;
       }
       void free() { munmap(raw, max_memory); }
       wasm_allocator() {
-         set_up_signals();
-         raw       = (char*)mmap(NULL, max_memory, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-         _previous = raw;
-         mprotect(raw, 1 * page_size, PROT_READ | PROT_WRITE);
-         page = 1;
+         raw  = (char*)mmap(NULL, max_memory, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+         page = 0;
       }
       void reset() {
-         uint64_t size = page_size * page;
-         _previous     = raw + page_size;
-         memset(raw, 0, size);
-         page = 1;
-         mprotect(raw, size, PROT_NONE);
-         mprotect(raw, 1 * page_size, PROT_READ | PROT_WRITE);
+         mprotect(raw, page_size * page, PROT_NONE);
+         page = 0;
       }
       template <typename T>
       inline T* get_base_ptr() const {
          return reinterpret_cast<T*>(raw);
       }
       inline int32_t get_current_page() const { return page; }
+      bool is_in_region(char* p) { return p >= raw && p < raw + max_memory; }
    };
 }} // namespace eosio::vm

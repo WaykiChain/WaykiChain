@@ -21,26 +21,25 @@ int main(int argc, char** argv) {
       return -1;
    }
 
-   watchdog<std::chrono::nanoseconds> wd;
-   wd.set_duration(std::chrono::seconds(3));
+   watchdog wd{std::chrono::seconds(3)};
+
    try {
       // Read the wasm into memory.
       auto code = backend_t::read_wasm( argv[1] );
 
       // Instaniate a new backend using the wasm provided.
       backend_t bkend( code );
-      wd.set_callback([&](){
-		      bkend.get_context().exit();
-		      });
 
       // Point the backend to the allocator you want it to use.
       bkend.set_wasm_allocator( &wa );
+      bkend.initialize();
 
       // Execute any exported functions provided by the wasm.
-      bkend.execute_all(&wd);
+      bkend.execute_all(wd);
 
-   } catch ( ... ) {
+   } catch ( const eosio::vm::exception& ex ) {
       std::cerr << "eos-vm interpreter error\n";
+      std::cerr << ex.what() << " : " << ex.detail() << "\n";
    }
    return 0;
 }

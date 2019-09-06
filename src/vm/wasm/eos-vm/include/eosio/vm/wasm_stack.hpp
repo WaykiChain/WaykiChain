@@ -12,36 +12,35 @@
 #include <eosio/vm/vector.hpp>
 
 namespace eosio { namespace vm {
-   template <size_t Elems, typename Allocator>
+   template <size_t Elems, typename ElemT, typename Allocator>
    class fixed_stack {
     public:
-      fixed_stack(Allocator& alloc) : _s(managed_vector<stack_elem, Allocator>{ alloc, Elems }) {}
-      void        push(stack_elem e) { _s[_index++] = e; }
-      stack_elem& get(uint32_t index) const {
+      fixed_stack(Allocator& alloc) : _s(managed_vector<ElemT, Allocator>{ alloc, Elems }) {}
+      void        push(ElemT e) { _s[_index++] = e; }
+      ElemT& get(uint32_t index) const {
          EOS_WB_ASSERT(index <= _index, wasm_interpreter_exception, "invalid stack index");
          return _s[index];
       }
-      void set(uint32_t index, const stack_elem& el) {
+      void set(uint32_t index, const ElemT& el) {
          EOS_WB_ASSERT(index <= _index, wasm_interpreter_exception, "invalid stack index");
          _s[index] = el;
       }
-      stack_elem        pop() { return _s[--_index]; }
-      void              eat(uint32_t index) { _index = index; }
-      uint16_t          current_index() const { return _index; }
-      stack_elem&       peek() { return _s[_index - 1]; }
-      const stack_elem& peek() const { return _s[_index - 1]; }
-      stack_elem&       peek(size_t i) { return _s[_index - 1 - i]; }
-      stack_elem        get_back(size_t i) { return _s[_index - 1 - i]; }
-      void              trim(size_t amt) { _index -= amt; }
-      uint16_t          size() const { return _index; }
+      ElemT        pop() { return _s[--_index]; }
+      void         eat(uint32_t index) { _index = index; }
+      uint16_t     current_index() const { return _index; }
+      ElemT&       peek() { return _s[_index - 1]; }
+      const ElemT& peek() const { return _s[_index - 1]; }
+      ElemT&       peek(size_t i) { return _s[_index - 1 - i]; }
+      ElemT        get_back(size_t i) { return _s[_index - 1 - i]; }
+      void         trim(size_t amt) { _index -= amt; }
+      uint16_t     size() const { return _index; }
 
     private:
-      managed_vector<stack_elem, Allocator> _s;
+      managed_vector<ElemT, Allocator> _s;
       uint16_t                              _index = 0;
    };
 
-   using control_stack = fixed_stack<constants::max_nested_structures, bounded_allocator>;
-   using operand_stack = fixed_stack<constants::max_stack_size, bounded_allocator>;
-   using call_stack    = fixed_stack<constants::max_call_depth, bounded_allocator>;
+   using operand_stack = fixed_stack<constants::max_stack_size,        operand_stack_elem, bounded_allocator>;
+   using call_stack    = fixed_stack<constants::max_call_depth,        activation_frame,   bounded_allocator>;
 
 }} // namespace eosio::vm

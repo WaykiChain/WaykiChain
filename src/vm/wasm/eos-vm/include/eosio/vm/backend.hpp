@@ -6,6 +6,7 @@
 #include <eosio/vm/execution_context.hpp>
 #include <eosio/vm/interpret_visitor.hpp>
 #include <eosio/vm/parser.hpp>
+#include <eosio/vm/signals.hpp>
 #include <eosio/vm/types.hpp>
 
 #include <fstream>
@@ -27,60 +28,96 @@ namespace eosio { namespace vm {
          return call(host, mod, func, args...);
       }
 
-      inline void reset() { _walloc->reset(); }
+      inline backend& initialize(Host* host=nullptr) { 
+         _walloc->reset(); 
+	      _ctx.reset();
+         _ctx.execute_start(host, interpret_visitor(_ctx));
+	      return *this;
+      }
 
       template <typename... Args>
       inline bool call_indirect(Host* host, uint32_t func_index, Args... args) {
-         if constexpr (eos_vm_debug) {
-            _ctx.execute_func_table(host, debug_visitor(_ctx), func_index, args...);
-         } else {
-            _ctx.execute_func_table(host, interpret_visitor(_ctx), func_index, args...);
+         try {
+            if constexpr (eos_vm_debug) {
+               _ctx.execute_func_table(host, debug_visitor(_ctx), func_index, args...);
+            } else {
+               _ctx.execute_func_table(host, interpret_visitor(_ctx), func_index, args...);
+            }
+            return true;
+         } catch (...) {
+            initialize(host);
+            throw;
          }
-         return true;
       }
 
       template <typename... Args>
       inline bool call(Host* host, uint32_t func_index, Args... args) {
-         if constexpr (eos_vm_debug) {
-            _ctx.execute(host, debug_visitor(_ctx), func_index, args...);
-         } else {
-            _ctx.execute(host, interpret_visitor(_ctx), func_index, args...);
+         try {
+            if constexpr (eos_vm_debug) {
+               _ctx.execute(host, debug_visitor(_ctx), func_index, args...);
+            } else {
+               _ctx.execute(host, interpret_visitor(_ctx), func_index, args...);
+            }
+            return true;
+         } catch (...) {
+            initialize(host);
+            throw;
          }
-         return true;
       }
 
       template <typename... Args>
       inline bool call(Host* host, const std::string_view& mod, const std::string_view& func, Args... args) {
-         if constexpr (eos_vm_debug) {
-            _ctx.execute(host, debug_visitor(_ctx), func, args...);
-         } else {
-            _ctx.execute(host, interpret_visitor(_ctx), func, args...);
+         try {
+            if constexpr (eos_vm_debug) {
+               _ctx.execute(host, debug_visitor(_ctx), func, args...);
+            } else {
+               _ctx.execute(host, interpret_visitor(_ctx), func, args...);
+            }
+            return true;
+         } catch (...) {
+            initialize(host);
+            throw;
          }
-         return true;
       }
 
       template <typename... Args>
       inline auto call_with_return(Host* host, const std::string_view& mod, const std::string_view& func,
                                    Args... args) {
-         if constexpr (eos_vm_debug) {
-            return _ctx.execute(host, debug_visitor(_ctx), func, args...);
-         } else {
-            return _ctx.execute(host, interpret_visitor(_ctx), func, args...);
+         try {
+            if constexpr (eos_vm_debug) {
+               return _ctx.execute(host, debug_visitor(_ctx), func, args...);
+            } else {
+               return _ctx.execute(host, interpret_visitor(_ctx), func, args...);
+            }
+         } catch (...) {
+            initialize(host);
+            throw;
          }
       }
 
-      template <typename Watchdog = nullptr_t>
-      inline void execute_all(Watchdog* wd = nullptr, Host* host = nullptr) {
-         if constexpr (!std::is_same_v<Watchdog, nullptr_t>)
-            wd->run();
-         for (int i = 0; i < _mod.exports.size(); i++) {
-            if (_mod.exports[i].kind == external_kind::Function) {
-               std::string s{ (const char*)_mod.exports[i].field_str.raw(), _mod.exports[i].field_str.size() };
-	       if constexpr (eos_vm_debug) {
-	          _ctx.execute(host, debug_visitor(_ctx), s);
-	       } else {
-	          _ctx.execute(host, interpret_visitor(_ctx), s);
-	       }
+      template <typename Watchdog>
+      inline void execute_all(Watchdog&& wd, Host* host = nullptr) {
+         auto wd_guard = wd.scoped_run([this]() {
+            _timed_out = true;
+            mprotect(_mod.allocator._base, _mod.allocator._size, PROT_NONE);
+         });
+         try {
+            for (int i = 0; i < _mod.exports.size(); i++) {
+               if (_mod.exports[i].kind == external_kind::Function) {
+                  std::string s{ (const char*)_mod.exports[i].field_str.raw(), _mod.exports[i].field_str.size() };
+	          if constexpr (eos_vm_debug) {
+	             _ctx.execute(host, debug_visitor(_ctx), s);
+	          } else {
+	             _ctx.execute(host, interpret_visitor(_ctx), s);
+	          }
+               }
+            }
+         } catch(wasm_memory_exception&) {
+            if (_timed_out) {
+               mprotect(_mod.allocator._base, _mod.allocator._size, PROT_READ | PROT_WRITE);
+               throw timeout_exception{ "execution timed out" };
+            } else {
+               throw;
             }
          }
       }
@@ -115,5 +152,6 @@ namespace eosio { namespace vm {
       wasm_allocator*         _walloc = nullptr; // non owning pointer
       module                  _mod;
       execution_context<Host> _ctx;
+      std::atomic<bool>       _timed_out;
    };
 }} // namespace eosio::vm

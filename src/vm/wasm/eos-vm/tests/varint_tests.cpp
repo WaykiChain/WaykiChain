@@ -95,7 +95,6 @@ TEST_CASE("Testing varint", "[varint_tests]") {
     std::vector<uint8_t> tv1 = {0x1};
     std::vector<uint8_t> tv2 = {0x7f};
   
-    std::cout << "GP\n"; 
     guarded_ptr<uint8_t> gp0(tv0.data(), 5);
     guarded_ptr<uint8_t> gp1(tv1.data(), 5);
     guarded_ptr<uint8_t> gp2(tv2.data(), 5);
@@ -107,7 +106,6 @@ TEST_CASE("Testing varint", "[varint_tests]") {
     CHECK( v0.to() == 0 );
     CHECK( v1.to() == 1 );
     CHECK( (int32_t)v2.to() == -1 );
-    std::cout << "END GP\n";
    }
    
    {
@@ -149,9 +147,6 @@ TEST_CASE("Testing varint", "[varint_tests]") {
    }
    
    {
-    std::cout << "MIN " << std::numeric_limits<int64_t>::min() << "\n";
-    std::cout << "MAX " << std::numeric_limits<int64_t>::max() << "\n";
-    
     varint<32> v0((int32_t)0);
     varint<32> v1((int32_t)std::numeric_limits<int32_t>::min());
     varint<32> v2((int32_t)std::numeric_limits<int32_t>::max());

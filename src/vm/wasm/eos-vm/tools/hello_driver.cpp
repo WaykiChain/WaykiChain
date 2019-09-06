@@ -4,9 +4,6 @@
 #include <eosio/vm/watchdog.hpp>
 
 #include <iostream>
-#include <fstream>
-#include <ios>
-#include <iterator>
 
 using namespace eosio;
 using namespace eosio::vm;
@@ -54,32 +51,20 @@ int main(int argc, char** argv) {
    // finally register memset
    rhf_t::add<nullptr_t, &example_host_methods::memset, wasm_allocator>("env", "memset");
 
-   watchdog<std::chrono::nanoseconds> wd;
-   wd.set_duration(std::chrono::seconds(3));
+   watchdog wd{std::chrono::seconds(3)};
    try {
       // Instaniate a new backend using the wasm provided.
-
-      //std::ofstream f("hello.wasm",std::ios::binary);
-      //f.write((char*)hello_wasm, hello_wasm.size());
-      //f.write(hello_wasm, hello_wasm.size());
-
-      std::ofstream f("hello.wasm", std::ios::out | std::ios::binary);
-      std::ostream_iterator<uint8_t> out_iterator(f);
-      std::copy(hello_wasm.begin(), hello_wasm.end(), out_iterator);
-
-      f.close();
-
       backend_t bkend(hello_wasm);
-      wd.set_callback([&]() { bkend.get_context().exit(); });
 
       // Point the backend to the allocator you want it to use.
       bkend.set_wasm_allocator(&wa);
+      bkend.initialize();
       // Resolve the host functions indices.
       rhf_t::resolve(bkend.get_module());
 
       // Instaniate a "host"
       example_host_methods ehm;
-      ehm.field = "i am here";
+      ehm.field = "testing";
       // Execute apply.
       bkend(&ehm, "env", "apply", (uint64_t)std::atoi(argv[1]), (uint64_t)std::atoi(argv[2]),
             (uint64_t)std::atoi(argv[3]));

@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstdlib>
+#include <cstring>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -28,6 +29,15 @@ struct type_converter64 {
       return _data.f;
    }
 };
+
+// C++20: using std::bit_cast;
+template<typename T, typename U>
+T bit_cast(const U& u) {
+   static_assert(sizeof(T) == sizeof(U), "bitcast requires identical sizes.");
+   T result;
+   std::memcpy(&result, &u, sizeof(T));
+   return result;
+}
 
 inline std::vector<uint8_t> read_wasm(const std::string& fname) {
    std::ifstream wasm_file(fname, std::ios::binary);

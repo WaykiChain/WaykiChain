@@ -12,12 +12,13 @@ namespace eosio { namespace vm {
       [[gnu::always_inline]] inline void operator()(const unreachable_t& ) {}
       [[gnu::always_inline]] inline void operator()(const nop_t& ) {}
       [[gnu::always_inline]] inline void operator()(const fend_t& ) {}
+      [[gnu::always_inline]] inline void operator()(const exit_t& ) {}
       [[gnu::always_inline]] inline void operator()(const end_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const return__t& ) {}
+      [[gnu::always_inline]] inline void operator()(const return_t& ) {}
       [[gnu::always_inline]] inline void operator()(block_t& ) {}
       [[gnu::always_inline]] inline void operator()(loop_t& ) {}
-      [[gnu::always_inline]] inline void operator()(if__t& ) {}
-      [[gnu::always_inline]] inline void operator()(const else__t& ) {}
+      [[gnu::always_inline]] inline void operator()(if_t& ) {}
+      [[gnu::always_inline]] inline void operator()(const else_t& ) {}
       [[gnu::always_inline]] inline void operator()(const br_t& ) {}
       [[gnu::always_inline]] inline void operator()(const br_if_t& ) {}
       [[gnu::always_inline]] inline void operator()(const br_table_t& ) {}
@@ -182,69 +183,10 @@ namespace eosio { namespace vm {
       [[gnu::always_inline]] inline void operator()(const i64_reinterpret_f64_t& ) {}
       [[gnu::always_inline]] inline void operator()(const f32_reinterpret_i32_t& ) {}
       [[gnu::always_inline]] inline void operator()(const f64_reinterpret_i64_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC1_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC2_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC3_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC4_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC5_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC6_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC7_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC8_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xC9_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xCA_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xCB_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xCC_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xCD_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xCE_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xCF_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD0_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD1_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD2_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD3_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD4_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD5_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD6_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD7_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD8_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xD9_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xDA_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xDB_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xDC_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xDD_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xDE_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xDF_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE0_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE1_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE2_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE3_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE4_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE5_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE6_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE7_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE8_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xE9_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xEA_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xEB_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xEC_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xED_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xEE_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xEF_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF0_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF1_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF2_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF3_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF4_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF5_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF6_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF7_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF8_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xF9_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xFA_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xFB_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xFC_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xFD_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const empty0xFE_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const error_t& ) {}
+      template <typename T>
+      [[gnu::always_inline]] inline void operator()(T val) {
+         throw wasm_interpreter_exception{"invalid opcode"};
+      }
    };
 
 }} // namespace eosio::vm

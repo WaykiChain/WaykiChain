@@ -16,6 +16,6 @@ namespace eosio { namespace vm {
       max_memory            = 4ull << 31,
       max_useable_memory    = (33 * 1024 * 1024), //33mb
       page_size             = 64ull * 1024, //64kb
-      max_pages             = (max_useable_memory/page_size) - 1 // -1 for the zero page
+      max_pages             = (max_useable_memory/page_size)
    };
 }} // namespace eosio::vm
