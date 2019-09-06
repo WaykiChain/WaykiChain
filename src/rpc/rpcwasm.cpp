@@ -408,12 +408,12 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 3 || params.size() > 4) {
+    if (fHelp || params.size() < 2 || params.size() > 4) {
         throw runtime_error(
                 "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
                 "1.\"contract\": (string, required) contract name\n"
                 "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, required) numbers\n"
+                "3.\"numbers\":   (numberic, optional) numbers\n"
                 "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
                 "\nResult:\n"
                 "\"rows\":        (string)\n"
@@ -431,7 +431,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         // 4.last_key
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type));
 
     // std::cout << "rpccall gettablerowwasmcontracttx "
     //           << " contract:" << params[0].get_str()
@@ -459,7 +459,10 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
 
     uint64_t table = wasm::name(params[1].get_str()).value;
-    uint64_t numbers = std::atoi(params[2].get_str().data());
+
+    uint64_t numbers = 10;
+    if (params.size() > 2)
+        numbers = std::atoi(params[2].get_str().data());
 
     string keyPrefix;
     std::vector<char> k = wasm::pack(std::tuple(contract, table));

@@ -112,48 +112,6 @@ namespace wasm {
         rhf_t::add<WasmHostMethods, &WasmHostMethods::__unordtf2, wasm_allocator>("env", "__unordtf2");
     }
 
-    // void CWasmInterface::Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext ) {
-
-    //     // Thread specific `allocator` used for wasm linear memory.
-    //     wasm_allocator wa;
-
-    //     watchdog <std::chrono::nanoseconds> wd;
-    //     wd.set_duration(std::chrono::seconds(1));
-    //     try {
-    //         // Instaniate a new backend using the wasm provided.
-    //         backend_t bkend(code);
-    //         wd.set_callback([&]() { bkend.get_context().exit(); });
-
-    //         // Point the backend to the allocator you want it to use.
-    //         bkend.set_wasm_allocator(&wa);
-
-    //         // Resolve the host functions indices.
-    //         rhf_t::resolve(bkend.get_module());
-
-    //         // Instaniate a "host"
-    //         WasmHostMethods ehm(pWasmContext);
-
-    //         // std::cout << std::string("receiver:") << wasm::name(pWasmContext->Receiver()).to_string()
-    //         //   << std::string(" contract:") << wasm::name(pWasmContext->Contract()).to_string()
-    //         //   << std::string(" action:") << wasm::name(pWasmContext->Action()).to_string()<< std::endl;
-
-    //         wd.run();
-    //         system_clock::time_point start = system_clock::now();
-    //         // Execute apply.
-    //         bkend(&ehm, "env", "apply", pWasmContext->Receiver(), pWasmContext->Contract(), pWasmContext->Action());
-
-    //         system_clock::time_point end = system_clock::now();
-    //         std::cerr << std::string("duration:")
-    //                   << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-
-
-    //     } catch (CException &e) {
-    //         throw e;
-    //         //std::cerr << std::string("wasm-vm interpreter error\n");
-    //     }
-
-    // }
-
 
     void CWasmInterface::Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext ) {
 
