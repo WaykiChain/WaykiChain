@@ -709,6 +709,10 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
             Serialize(os, *((CCoinRewardTx *)(pa.get())), nType, nVersion); break;
         case UCOIN_BLOCK_REWARD_TX:
             Serialize(os, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
+        case UCONTRACT_DEPLOY_TX:
+            Serialize(os, *((CUniversalContractDeployTx *)(pa.get())), nType, nVersion); break;
+        case UCONTRACT_INVOKE_TX:
+            Serialize(os, *((CUniversalContractInvokeTx *)(pa.get())), nType, nVersion); break;
         case PRICE_FEED_TX:
             Serialize(os, *((CPriceFeedTx *)(pa.get())), nType, nVersion); break;
         case PRICE_MEDIAN_TX:
@@ -816,6 +820,16 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
         case UCOIN_BLOCK_REWARD_TX: {
             pa = std::make_shared<CUCoinBlockRewardTx>();
             Unserialize(is, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case UCONTRACT_DEPLOY_TX: {
+            pa = std::make_shared<CUniversalContractDeployTx>();
+            Unserialize(is, *((CUniversalContractDeployTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case UCONTRACT_INVOKE_TX: {
+            pa = std::make_shared<CUniversalContractInvokeTx>();
+            Unserialize(is, *((CUniversalContractInvokeTx *)(pa.get())), nType, nVersion);
             break;
         }
         case PRICE_FEED_TX: {
