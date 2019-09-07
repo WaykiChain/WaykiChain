@@ -368,26 +368,26 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     if (coinSymbol == SYMB::WICC) {
         if (account.GetToken(SYMB::WICC).free_amount < totalAmount)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
+            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough bcoins");
     } else if (coinSymbol == SYMB::WUSD) {
         if (account.GetToken(SYMB::WUSD).free_amount < totalAmount)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough coins");
     } else if (coinSymbol == SYMB::WGRT) {
         if (account.GetToken(SYMB::WGRT).free_amount < totalAmount)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
+            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough coins");
     } else {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
     }
 
     if (feeSymbol == SYMB::WICC) {
         if (account.GetToken(SYMB::WICC).free_amount < fee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
+            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough bcoins");
     } else if (feeSymbol == SYMB::WUSD) {
         if (account.GetToken(SYMB::WUSD).free_amount < fee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough scoins");
+            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough scoins");
     } else if (feeSymbol == SYMB::WGRT) {
         if (account.GetToken(SYMB::WGRT).free_amount < fee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough fcoins");
+            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough fcoins");
     } else {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
     }
