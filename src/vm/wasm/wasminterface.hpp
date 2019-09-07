@@ -24,7 +24,7 @@ namespace wasm {
     public:
         void Initialize( vmType type );
         void Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext );
-        //void validate(const vector<uint8_t> &code );
+        void validate( vector <uint8_t> code );
         //void exit();
 
     };

@@ -146,10 +146,27 @@ namespace wasm {
                       << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
 
 
+        } catch (vm::exception &e) {
+            WASM_THROW(WASM_ASSERT_FAIL, e.what(), e.detail())
         } catch (CException &e) {
             throw e;
             //std::cerr << std::string("wasm-vm interpreter error\n");
+        }catch (CException &e) {
+            throw e;
+            //std::cerr << std::string("wasm-vm interpreter error\n");
         }
+        WASM_RETHROW_EXCEPTIONS(WASM_ASSERT_FAIL,"wasm assert fail", "wasm assert fail" )
+
+    }
+
+    void CWasmInterface::validate( vector <uint8_t> code ) {
+
+        try {
+            backend_t bkend(code);
+        } catch (vm::exception &e) {
+            WASM_THROW(WASM_ASSERT_FAIL, e.what(), e.detail())
+        }
+        WASM_RETHROW_EXCEPTIONS(WASM_ASSERT_FAIL,"wasm assert fail", "wasm assert fail" )
 
     }
 }//wasm

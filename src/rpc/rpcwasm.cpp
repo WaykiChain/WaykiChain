@@ -158,9 +158,18 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         }
     }
 
-    if (!abiFile.empty())
-        //    throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "abi file does not exist!");
-    {
+    //validate code
+    try {
+        vector <uint8_t> code_v;
+        code_v.insert(code_v.begin(), code.begin(), code.end());
+        CWasmInterface wasmInterface;
+        wasmInterface.validate(code_v);
+    } catch (wasm::CException &e) {
+        throw JSONRPCError(WASM_ASSERT_FAIL, e.errMsg);
+    }
+
+
+    if (!abiFile.empty()) {
         char byte;
         ifstream f(abiFile, ios::binary);
         while (f.get(byte)) abi.push_back(byte);
@@ -171,12 +180,21 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         }
     }
 
-    json_spirit::Value abiJson;
-    json_spirit::read_string(abi, abiJson);
+    //validate abi
+    try {
+        json_spirit::Value abiJson;
+        json_spirit::read_string(abi, abiJson);
 
-    std::cout << "wasmsetcodecontracttx line173"
-              << " abi:" << json_spirit::write(abiJson)
-              << " \n";
+        // std::cout << "wasmsetcodecontracttx line173"
+        //   << " abi:" << json_spirit::write(abiJson)
+        //   << " \n";
+
+        abi_def abi_d;
+        from_variant(abiJson, abi_d);
+        wasm::abi_serializer abis(abi_d, max_serialization_time);
+    } catch (wasm::CException &e) {
+        throw JSONRPCError(ABI_PARSE_FAIL, e.errMsg);
+    }
 
     string memo;
     if (params.size() > 4) {
@@ -218,9 +236,9 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 
         uint64_t contract = wasm::RegID2Name(contractRegID);
 
-        std::cout << "wasmsetcodecontracttx line250"
-                  << " contract:" << contract
-                  << " \n";
+        // std::cout << "wasmsetcodecontracttx line250"
+        //           << " contract:" << contract
+        //           << " \n";
 
         tx.nTxType = WASM_CONTRACT_TX;
         tx.txUid = senderRegID;
@@ -470,12 +488,12 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     // std::cout << "rpccall gettablewasmcontracttx "
     //       << " keyPrefix:" << ToHex(keyPrefix,"")
     //       << std::endl;
-  //std::cout << "rpccall gettablerowwasmcontracttx 1" << std::endl;
+    //std::cout << "rpccall gettablerowwasmcontracttx 1" << std::endl;
     string lastKey = ""; // TODO: get last key
     if (params.size() > 3) {
         lastKey = FromHex(params[3].get_str());
     }
-    std::cout << "rpccall gettablerowwasmcontracttx numbers:"<< numbers << std::endl;
+    std::cout << "rpccall gettablerowwasmcontracttx numbers:" << numbers << std::endl;
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
@@ -500,7 +518,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
             row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
 
-            json_spirit::Object& obj = v.get_obj();
+            json_spirit::Object &obj = v.get_obj();
             obj.push_back(Pair("key", ToHex(last_key, "")));
             obj.push_back(Pair("value", ToHex(last_key, "")));
 

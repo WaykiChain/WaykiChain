@@ -7,6 +7,7 @@
 #include "wasm/types/asset.hpp"
 #include "json/json_spirit.h"
 #include "json/json_spirit_value.h"
+#include "wasm/exceptions.hpp"
 
 namespace wasm {
     using namespace json_spirit;
@@ -659,10 +660,9 @@ namespace wasm {
                     }
                 }
             }
-        } catch (...) {
-            // mvo("data", act.data);
-        }
+        } 
 
+        WASM_RETHROW_EXCEPTIONS(ABI_PARSE_FAIL, "ABI_PARSE_FAIL", "abi parse fail ")
     }
 
 

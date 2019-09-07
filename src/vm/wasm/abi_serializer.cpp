@@ -267,7 +267,7 @@ namespace wasm {
             try {
                 return btype->second.first(ds, is_array(rtype), is_optional(rtype));
             }
-            EOS_RETHROW_EXCEPTIONS(UNPACK_EXCEPTION, "UNPACK_EXCEPTION", "Unable to unpack type '%s' ", rtype.data())
+            WASM_RETHROW_EXCEPTIONS(UNPACK_EXCEPTION, "UNPACK_EXCEPTION", "Unable to unpack type '%s' ", rtype.data())
         }
 
         auto s_itr = structs.end();
@@ -276,7 +276,7 @@ namespace wasm {
             try {
                 ds >> size;
             }
-            EOS_RETHROW_EXCEPTIONS(UNPACK_EXCEPTION, "UNPACK_EXCEPTION", "Unable to unpack size of array '%s' ",
+            WASM_RETHROW_EXCEPTIONS(UNPACK_EXCEPTION, "UNPACK_EXCEPTION", "Unable to unpack size of array '%s' ",
                                    rtype.data())
 
             //std::cout << "size:---------------------------------------------- " << size.value << std::endl ;
@@ -294,7 +294,7 @@ namespace wasm {
             try {
                 ds >> flag;
             }
-            EOS_RETHROW_EXCEPTIONS(UNPACK_EXCEPTION, "UNPACK_EXCEPTION",
+            WASM_RETHROW_EXCEPTIONS(UNPACK_EXCEPTION, "UNPACK_EXCEPTION",
                                    "Unable to unpack presence flag of optional '%s' ", rtype.data())
             return flag ? _binary_to_variant(ftype, ds, ctx) : json_spirit::Value();
         } else if ((s_itr = structs.find(rtype)) != structs.end()) {

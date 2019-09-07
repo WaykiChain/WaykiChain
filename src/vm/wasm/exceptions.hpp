@@ -48,7 +48,7 @@ namespace wasm {
     }
 
 
-#define EOS_RETHROW_EXCEPTIONS( errCode, errShort, ... ) \
+#define WASM_RETHROW_EXCEPTIONS( errCode, errShort, ... ) \
     catch( ... ) {                                        \
          char buf[1024];                                  \
          sprintf( buf,  __VA_ARGS__ );                    \
