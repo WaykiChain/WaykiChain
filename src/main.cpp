@@ -1982,8 +1982,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         spForkCW->ppCache        = spCW->ppCache;
     }
 
-    uint256 forkChainBestBlockHash = spForkCW->accountCache.GetBestBlock();
-    int32_t forkChainBestBlockHeight   = mapBlockIndex[forkChainBestBlockHash]->height;
+    uint256 forkChainBestBlockHash   = spForkCW->accountCache.GetBestBlock();
+    int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
     LogPrint("INFO", "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
 
