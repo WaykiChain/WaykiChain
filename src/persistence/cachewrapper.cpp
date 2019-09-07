@@ -59,6 +59,24 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
 }
 
+CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
+    if (this == &other)
+        return *this;
+
+    this->sysParamCache  = other.sysParamCache;
+    this->accountCache   = other.accountCache;
+    this->assetCache     = other.assetCache;
+    this->contractCache  = other.contractCache;
+    this->delegateCache  = other.delegateCache;
+    this->cdpCache       = other.cdpCache;
+    this->dexCache       = other.dexCache;
+    this->txReceiptCache = other.txReceiptCache;
+    this->txCache        = other.txCache;
+    this->ppCache        = other.ppCache;
+
+    return *this;
+}
+
 void CCacheWrapper::EnableTxUndoLog(const uint256 &txid) {
     txUndo.Clear();
     SetDbOpMapLog(&txUndo.dbOpLogMap);

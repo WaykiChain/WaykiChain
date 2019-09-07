@@ -105,7 +105,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
 
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTransaction().get();
-        if (!pBaseTx->IsBlockRewardTx() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
+        if (!pBaseTx->IsBlockRewardTx() && pCdMan->pTxCache->HaveTx(pBaseTx->GetHash()) == uint256()) {
             nTxSize   = mi->second.GetTxSize();
             feeSymbol = std::get<0>(mi->second.GetFees());
             nFees     = std::get<1>(mi->second.GetFees());
@@ -241,8 +241,8 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
     CAccount account;
     if (spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account)) {
         if (curDelegate.regid != account.regid) {
-            return ERRORMSG("VerifyRewardTx() : delegate should be(%s) vs what we got(%s)", curDelegate.regid.ToString(),
-                            account.regid.ToString());
+            return ERRORMSG("VerifyRewardTx() : delegate should be (%s) vs what we got (%s)",
+                            curDelegate.regid.ToString(), account.regid.ToString());
         }
 
         const auto &blockHash      = pBlock->ComputeSignatureHash();
@@ -267,7 +267,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
         uint64_t totalRunStep = 0;
         for (uint32_t i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
-            if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
+            if (spCW->txCache.HaveTx(pBaseTx->GetHash()) != uint256())
                 return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;

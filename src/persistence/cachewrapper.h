@@ -52,11 +52,12 @@ public:
     CCacheWrapper(CCacheWrapper& cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 
+    CCacheWrapper& operator=(CCacheWrapper& other);
+
     void EnableTxUndoLog(const uint256 &txid);
     void DisableTxUndoLog();
-    const CTxUndo& GetTxUndo() const {
-        return txUndo;
-    }
+
+    const CTxUndo& GetTxUndo() const { return txUndo; }
 
     bool UndoDatas(CBlockUndo &blockUndo);
 

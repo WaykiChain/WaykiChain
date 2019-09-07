@@ -28,7 +28,7 @@ public:
     CTxMemCache(CTxMemCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
-    bool HaveTx(const uint256 &txid);
+    uint256 HaveTx(const uint256 &txid);
     bool IsContainBlock(const CBlock &block);
 
     bool AddBlockToCache(const CBlock &block);
@@ -45,6 +45,7 @@ public:
     void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
 
 private:
+    bool HaveBlock(const uint256 &blockHash) const;
     void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
 
 private:
