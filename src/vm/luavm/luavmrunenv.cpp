@@ -30,12 +30,12 @@ vector<shared_ptr<CAccount>>& CLuaVMRunEnv::GetNewAccount() { return newAccount;
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetNewAppUserAccount() { return newAppUserAccount; }
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
-bool CLuaVMRunEnv::Initialize(shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
-                              int32_t height) {
+bool CLuaVMRunEnv::Initialize(std::shared_ptr<CBaseTx>& tx, CCacheWrapper &cwIn, int32_t height) {
     pBaseTx         = tx;
     runtimeHeight   = height;
-    pAccountCache   = &accountCache;
-    pContractCache  = &contractCache;
+    pCw = &cwIn;
+    pAccountCache   = &cwIn.accountCache;
+    pContractCache  = &cwIn.contractCache;
 
     if (tx.get()->nTxType != LCONTRACT_INVOKE_TX) {
         LogPrint("ERROR", "unsupported tx type\n");
@@ -89,7 +89,7 @@ tuple<bool, uint64_t, string> CLuaVMRunEnv::ExecuteContract(shared_ptr<CBaseTx>&
         return std::make_tuple(false, 0, string("CLuaVMRunEnv::ExecuteContract, fees too low"));
     }
 
-    if (!Initialize(pBaseTx, cw.accountCache, cw.contractCache, height)) {
+    if (!Initialize(pBaseTx, cw, height)) {
         return std::make_tuple(false, 0, string("VmScript inital Failed"));
     }
 
@@ -396,6 +396,73 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
     return true;
 }
 
+bool CLuaVMRunEnv::TransferAccountAsset(const vector<AssetTransfer> &transfers) {
+
+    // TODO: count
+    for (auto& transfer : transfers) {
+        CUserID fromUid;
+        if (transfer.isContractAccount) {
+            fromUid = GetContractRegID();
+        } else {
+            fromUid = GetTxAccount();
+        }
+
+        // TODO: need to cache the from account?
+        auto pFromAccount = make_shared<CAccount>();
+        if (!pAccountCache->GetAccount(fromUid, *pFromAccount)) {
+            LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), get from_account failed! from_uid=%s, "
+                     "isContractAccount=%d", transfer.toUid.ToString(), (int)transfer.isContractAccount);
+            return false;
+        }
+
+        auto pToAccount = make_shared<CAccount>();
+        if (!pAccountCache->GetAccount(transfer.toUid, *pToAccount)) {
+            if (!transfer.toUid.is<CKeyID>()) {
+                LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), get to_account failed! to_uid=%s",
+                    transfer.toUid.ToString());
+                return false;
+            }
+            // create new user
+            pToAccount = make_shared<CAccount>(transfer.toUid.get<CKeyID>());
+            // TODO: add fuel for new user
+        }
+
+        if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount)) {
+            LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), operate SUB_FREE in from_account failed! "
+                "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu",
+                fromUid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
+                transfer.tokenAmount);
+            return false;
+        }
+
+        if (!pToAccount->OperateBalance(transfer.tokenType, ADD_FREE, transfer.tokenAmount)) {
+            LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), operate ADD_FREE in to_account failed! "
+                     "to_uid=%s, symbol=%s, amount=%llu",
+                     transfer.toUid.ToString(), transfer.tokenType, transfer.tokenAmount);
+            return false;
+        }
+
+        if (!pCw->accountCache.SetAccount(fromUid, *pFromAccount)) {
+            LogPrint("vm",
+                     "CLuaVMRunEnv::TransferAccountAsset(), save from_account failed, from_uid=%s, "
+                     "isContractAccount=%d",
+                     fromUid.ToString(), (int)transfer.isContractAccount);
+            return false;
+        }
+
+        if (!pCw->accountCache.SetAccount(transfer.toUid, *pToAccount)) {
+            LogPrint("vm",
+                     "CLuaVMRunEnv::TransferAccountAsset(), save to_account failed, to_uid=%s",
+                     transfer.toUid.ToString(), (int)transfer.isContractAccount);
+            return false;
+        }
+
+        receipts.emplace_back(fromUid, transfer.toUid, transfer.tokenType, transfer.tokenAmount,
+            "transfer account asset in contract");
+    }
+    return true;
+}
+
 const CRegID& CLuaVMRunEnv::GetContractRegID() {
     CLuaContractInvokeTx* tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
     return tx->app_uid.get<CRegID>();
@@ -424,6 +491,11 @@ int32_t CLuaVMRunEnv::GetBurnVersion() {
 }
 
 uint256 CLuaVMRunEnv::GetCurTxHash() { return pBaseTx.get()->GetHash(); }
+
+
+CCacheWrapper* CLuaVMRunEnv::GetCw() {
+    return pCw;
+}
 
 CContractDBCache* CLuaVMRunEnv::GetScriptDB() { return pContractCache; }
 

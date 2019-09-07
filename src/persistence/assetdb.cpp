@@ -27,6 +27,18 @@ bool CAssetDBCache::ExistAssetSymbol(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
 
+shared_ptr<string> CAssetDBCache::CheckTransferCoinSymbol(const TokenSymbol &symbol) {
+    size_t coinSymbolSize = symbol.size();
+        if (   coinSymbolSize == 0
+        || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
+            return make_shared<string>("empty or too long");
+        }
+        if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN &&!kCoinTypeSet.count(symbol))
+            || (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !HaveAsset(symbol)))
+            return make_shared<string>("unsupported symbol");
+    return nullptr;
+}
+
 bool CAssetDBCache::AddAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
     return assetTradingPairCache.SetData(assetTradingPair, 1);
 }

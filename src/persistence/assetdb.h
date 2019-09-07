@@ -44,6 +44,11 @@ public:
     bool HaveAsset(const TokenSymbol &tokenSymbol);
     bool SaveAsset(const CAsset &asset);
     bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
+    /**
+     * check transfer coin symbol
+     * return nullptr if succeed, else error msg
+     */
+    shared_ptr<string> CheckTransferCoinSymbol(const TokenSymbol &symbol);
 
     bool AddAssetTradingPair(const CAssetTradingPair &assetTradingPair);
     bool ExistAssetTradingPair(const CAssetTradingPair &TradingPair);

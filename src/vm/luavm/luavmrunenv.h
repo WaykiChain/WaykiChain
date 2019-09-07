@@ -12,6 +12,7 @@
 #include "entities/account.h"
 #include "entities/receipt.h"
 #include "persistence/leveldbwrapper.h"
+#include "persistence/cachewrapper.h"
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
@@ -21,6 +22,13 @@
 
 using namespace std;
 class CVmOperate;
+
+struct AssetTransfer {
+    bool isContractAccount; // Is contract account or tx sender' account
+    CUserID  toUid;         // to address of the transfer
+    TokenSymbol tokenType;  // Token type of the transfer
+    uint64_t  tokenAmount;  // Token ammount of the transfer
+};
 
 class CLuaVMRunEnv {
 private:
@@ -53,6 +61,7 @@ private:
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
 
+    CCacheWrapper   *pCw;
 	CAccountDBCache *pAccountCache;
 	CContractDBCache *pContractCache;
     vector<CReceipt> receipts;
@@ -65,13 +74,11 @@ private:
     /**
      * @brief The initialization function
      * @param Tx: run the tx's contact
-     * @param accountCache: Cache holds account
-     * @param contractCache: Cache holds contract
+     * @param pCwIn: Cache wrapper holds all db cache
      * @param height: run the Environment the block's height
      * @return : check the the tx and account is Legal true is legal false is illegal
      */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
-                    int32_t height);
+    bool Initialize(std::shared_ptr<CBaseTx>& tx, CCacheWrapper &cwIn, int32_t height);
     /**
      * @brief check action
      * @param operates: run the script return the code,check the code
@@ -86,6 +93,7 @@ private:
      * @return true operate account success
      */
     bool OperateAccount(const vector<CVmOperate>& operates);
+
     /**
      * @brief find the vOldAccount from newAccount if find success remove it from newAccount
      * @param vOldAccount: the argument
@@ -153,6 +161,7 @@ public:
     const CRegID& GetTxAccount();
     uint64_t GetValue() const;
     const string& GetTxContract();
+    CCacheWrapper* GetCw();
     CContractDBCache* GetScriptDB();
     CAccountDBCache* GetCatchView();
     int32_t GetConfirmHeight();
@@ -160,6 +169,12 @@ public:
     int32_t GetBurnVersion();
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
+    /**
+     * transfer account asset
+     * @param transfers: transfer info vector
+     * @return transfer success or not
+     */
+    bool TransferAccountAsset(const vector<AssetTransfer> &transfers);
     void InsertOutAPPOperte(const vector<uint8_t>& userId, const CAppFundOperate& source);
 
     bool GetAppUserAccount(const vector<uint8_t>& id, std::shared_ptr<CAppUserAccount>& pAppUserAccount);
