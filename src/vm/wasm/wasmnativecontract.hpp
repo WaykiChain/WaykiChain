@@ -34,5 +34,6 @@ namespace wasm {
 
 	class CWasmContext;
 	void WasmNativeSetcode(CWasmContext&);
+	void WasmNativeTransfer(CWasmContext&);
 
 };

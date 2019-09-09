@@ -251,21 +251,6 @@ namespace wasm {
         v = json_spirit::Value(t.to_string());
     }
 
-    static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
-
-        json_spirit::Object obj;
-
-        json_spirit::Value val;
-        to_variant(wasm::name(t.account), val);
-        json_spirit::Config::add(obj, "account", val);
-
-        to_variant(wasm::name(t.perm), val);
-        json_spirit::Config::add(obj, "permission", val);
-
-        v = obj;
-    }
-
-
     static inline void to_variant( const wasm::bytes &t, json_spirit::Value &v ) {
         string str(t.begin(), t.end());
         v = json_spirit::Value(str);

@@ -69,4 +69,9 @@ namespace wasm {
         //if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
     }
 
+
+    void WasmNativeTransfer( CWasmContext &context ) {
+
+    }
+
 }

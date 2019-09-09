@@ -21,7 +21,23 @@
 #include "wasm/wasmconfig.hpp"
 #include "wasm/abi_serializer.hpp"
 
+static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
+    json_spirit::Object obj;
+
+    json_spirit::Value val;
+    to_variant(wasm::name(t.account), val);
+    json_spirit::Config::add(obj, "account", val);
+
+    //std::cout << "permission" << std::endl;
+
+    to_variant(wasm::name(t.perm), val);
+    json_spirit::Config::add(obj, "permission", val);
+
+    v = obj;
+}
+
+    
 static inline void to_variant( const wasm::CInlineTransaction &t, json_spirit::Value &v ) {
     //v = json_spirit::Value(t.to_string());
 
@@ -39,7 +55,7 @@ static inline void to_variant( const wasm::CInlineTransaction &t, json_spirit::V
     json_spirit::Array arr;
     for (const auto &auth :t.authorization) {
         json_spirit::Value tmp;
-        to_variant(wasm::name(auth), tmp);
+        to_variant(auth, tmp);
         arr.push_back(tmp);
     }
     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
@@ -227,6 +243,7 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         }
 
+        std::cout << "CWasmContractTx ExecuteTx" <<std::endl;
         json_spirit::Value v;
         to_variant(trx_trace, v);
         state.SetReturn(json_spirit::write(v));

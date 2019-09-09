@@ -43,56 +43,6 @@ using namespace boost::assign;
 using std::chrono::microseconds;
 // using namespace wasm;
 
-
-// string FromHex( string str ) {
-
-//     std::map<char, uint8_t> hex = {
-//             {'0', 0x00},
-//             {'1', 0x01},
-//             {'2', 0x02},
-//             {'3', 0x03},
-//             {'4', 0x04},
-//             {'5', 0x05},
-//             {'6', 0x06},
-//             {'7', 0x07},
-//             {'8', 0x08},
-//             {'9', 0x09},
-//             {'a', 0x0a},
-//             {'b', 0x0b},
-//             {'c', 0x0c},
-//             {'d', 0x0d},
-//             {'e', 0x0e},
-//             {'f', 0x0f}
-//     };
-//     std::stringstream ss;
-
-//     for (std::string::size_type i = 0; i < str.size();) {
-
-//         //uint8_t t = hex[(char)str[i]] | hex[(char)str[i + 1]] << 4;
-//         uint8_t h = hex[(char) str[i]];
-//         uint8_t l = hex[(char) str[i + 1]];
-//         uint8_t t = l | h << 4;
-//         ss << t;
-
-//         i += 2;
-//     }
-
-//     return ss.str();
-
-// }
-
-// template<typename T>
-// string ToHex( const T &t, string separator = " " ) {
-//     const std::string hex = "0123456789abcdef";
-//     std::stringstream ss;
-
-//     for (std::string::size_type i = 0; i < t.size(); ++i)
-//         ss << hex[(unsigned char) t[i] >> 4] << hex[(unsigned char) t[i] & 0xf] << separator;
-
-//     return ss.str();
-
-// }
-
 // send code and abi
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 4 || params.size() > 7) {
@@ -249,9 +199,9 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         // tx.contract = wasm::name("wasmio").value;
         // tx.action = wasm::name("setcode").value;
         // tx.data = wasm::pack(std::tuple(contract, code, abi, memo));
-        tx.inlinetransactions.push_back({wasm::name("wasmio").value, 
+        tx.inlinetransactions.push_back({wasmio, 
                                          wasm::name("setcode").value, 
-                                         std::vector<uint64_t>{},
+                                         std::vector<permission>{{wasmio, wasmio_owner}},
                                          wasm::pack(std::tuple(contract, code, abi, memo))});
 
 
@@ -275,7 +225,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
-    
+
     Object obj;
 
     json_spirit::Value abi_v;
@@ -418,7 +368,10 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     tx.llFees = fee.GetSawiAmount();
 
 
-    tx.inlinetransactions.push_back({contract, action, std::vector<uint64_t>{}, data});
+    tx.inlinetransactions.push_back({contract, 
+                                     action, 
+                                     std::vector<permission>{{wasm::name("sender").value, wasmio_owner}}, 
+                                     data});
     // tx.contract = contract;
     // tx.action = action;
     // tx.data = data;

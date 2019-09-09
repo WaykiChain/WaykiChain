@@ -16,6 +16,12 @@ namespace wasm {
     struct permission {
         uint64_t account;
         uint64_t perm;
+        
+        IMPLEMENT_SERIALIZE (
+        READWRITE(account );
+        READWRITE(perm);
+        )
+
     };
 
     struct CInlineTransaction {
@@ -27,7 +33,7 @@ namespace wasm {
     public:
         uint64_t contract;
         uint64_t action;
-        std::vector <uint64_t> authorization;
+        std::vector <permission> authorization;
         std::vector<char> data;
 
         IMPLEMENT_SERIALIZE (
