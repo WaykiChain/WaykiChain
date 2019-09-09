@@ -12,35 +12,18 @@
 
 #define MAX_OUTPUT_COUNT 100
 
-CLuaVMRunEnv::CLuaVMRunEnv() {
-    rawAppUserAccount.clear();
-    newAppUserAccount.clear();
-    receipts.clear();
-    vmOperateOutput.clear();
-    mapAppFundOperate.clear();
-
-    p_context = nullptr;
-    isCheckAccount  = false;
-}
+CLuaVMRunEnv::CLuaVMRunEnv():
+    p_context(nullptr),
+	pLua(nullptr),
+	rawAppUserAccount(),
+	newAppUserAccount(),
+    receipts(),
+	vmOperateOutput(),
+    transfer_count(0),
+    isCheckAccount(false) {}
 
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetNewAppUserAccount() { return newAppUserAccount; }
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
-
-bool CLuaVMRunEnv::Init() {
-
-    assert(p_context->p_arguments->size() <= MAX_CONTRACT_ARGUMENT_SIZE);
-
-    try {
-        pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
-    } catch (exception& e) {
-        LogPrint("ERROR", "CVmScriptRun::Initialize() CLuaVM init error\n");
-        return false;
-    }
-
-    LogPrint("vm", "CVmScriptRun::Initialize() CLuaVM init success\n");
-
-    return true;
-}
 
 CLuaVMRunEnv::~CLuaVMRunEnv() {}
 
@@ -49,6 +32,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
 
     assert(p_context->p_arguments->size() <= MAX_CONTRACT_ARGUMENT_SIZE);
     assert(p_context->fuel_limit > 0);
+
     pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
 
     LogPrint("vm", "CVmScriptRun::ExecuteContract(), prepare to execute tx. txid=%s, fuelLimit=%llu\n", p_context->p_base_tx->GetHash().GetHex(),
@@ -67,7 +51,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
 
     LogPrint("vm", "tx:%s,step:%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), uRunStep);
 
-    if (!CheckOperate(vmOperateOutput)) {
+    if (!CheckOperate()) {
         return make_shared<string>("VmScript CheckOperate Failed");
     }
 
@@ -119,14 +103,11 @@ shared_ptr<CAppUserAccount> CLuaVMRunEnv::GetAppAccount(shared_ptr<CAppUserAccou
     return nullptr;
 }
 
-bool CLuaVMRunEnv::CheckOperate(const vector<CVmOperate>& operates) {
+bool CLuaVMRunEnv::CheckOperate() {
     // judge contract rule
     uint64_t addMoney = 0, minusMoney = 0;
     uint64_t operValue = 0;
-    if (operates.size() > MAX_OUTPUT_COUNT)
-        return false;
-
-    for (auto& it : operates) {
+    for (auto& it : vmOperateOutput) {
         if (it.accountType != REGID && it.accountType != AccountType::BASE58ADDR)
             return false;
 
@@ -326,7 +307,10 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
 
 bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer> &transfers) {
 
-    // TODO: count
+    transfer_count += transfers.size();
+    if (!CheckOperateAccountLimit())
+        return false;
+
     bool ret = true;
     for (auto& transfer : transfers) {
         bool isNewAccount = false;
@@ -452,12 +436,22 @@ void CLuaVMRunEnv::InsertOutAPPOperte(const vector<uint8_t>& userId,
     }
 }
 
+
+bool CLuaVMRunEnv::CheckOperateAccountLimit() {
+    if (vmOperateOutput.size() + transfer_count < MAX_OUTPUT_COUNT) {
+        LogPrint("vm", "[ERR]CLuaVMRunEnv::CheckOperateAccountLimit(), operate account count=%d excceed "
+            "the max limit=%d", vmOperateOutput.size() + transfer_count, MAX_OUTPUT_COUNT);
+        return false;
+    }
+    return true;
+}
+
 bool CLuaVMRunEnv::InsertOutputData(const vector<CVmOperate>& source) {
     vmOperateOutput.insert(vmOperateOutput.end(), source.begin(), source.end());
-    if (vmOperateOutput.size() < MAX_OUTPUT_COUNT)
-        return true;
+    if (!CheckOperateAccountLimit())
+        return false;
 
-    return false;
+    return true;
 }
 
 /**

@@ -64,17 +64,15 @@ private:
     vector<CReceipt> receipts;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
+    uint32_t transfer_count;
     bool isCheckAccount;  //校验账户平衡开关
 
     map<vector<uint8_t>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
 private:
     bool Init();
-    /**
-     * @brief check action
-     * @param operates: run the script return the code,check the code
-     * @return : true check success
-     */
-    bool CheckOperate(const vector<CVmOperate>& operates);
+
+    bool CheckOperateAccountLimit();
+    bool CheckOperate();
     /**
      *
      * @param operates: through the vm return code, The accounts add/minus money
