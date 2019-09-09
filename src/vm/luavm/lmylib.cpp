@@ -501,6 +501,65 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std
     return true;
 }
 
+/**
+ * Parse uidType in table
+ */
+static bool ParseUidTypeInTable(lua_State *L, const char *pKey, AccountType &uidType) {
+    lua_Integer uidTypeInt;
+    if (!(getIntegerInTable(L, pKey, uidTypeInt))) {
+        LogPrint("vm", "ParseUidTypeInTable(), get %s failed\n", pKey);
+        return false;
+    }
+
+    if (uidTypeInt == AccountType::REGID && uidTypeInt == AccountType::BASE58ADDR) {
+        LogPrint("vm", "ParseUidTypeInTable(), invalid accountType: %d\n", uidTypeInt);
+        return false;
+    }
+    uidType = (AccountType)uidTypeInt;
+    return true;
+}
+
+/**
+ * Parse uid in table
+ */
+static bool ParseUidInTable(lua_State *L, const char *pKey, AccountType uidType, CUserID &uid) {
+    int32_t len;
+    if (uidType == AccountType::REGID) {
+       len = 6;
+    } else {
+        assert(uidType == AccountType::BASE58ADDR);
+       len = 34;
+    }
+
+    vector<uint8_t> accountBuf;
+    if (!getArrayInTable(L, pKey, len, accountBuf)) {
+        LogPrint("vm","ParseUidInTable(), get %s failed\n", pKey);
+        return false;
+    }
+
+    if (uidType == AccountType::REGID) {
+        CRegID regid(accountBuf);
+        if (regid.IsEmpty()) {
+            LogPrint("vm","ParseUidInTable(), %s is invalid regid! value(hex)=%s\n", pKey, HexStr(accountBuf));
+            return false;
+        }
+        uid = regid;
+    } else {
+        assert(uidType == AccountType::BASE58ADDR);
+        CKeyID keyid;
+        CCoinAddress coinAddress;
+        string addrStr(accountBuf.begin(), accountBuf.end());
+        if (!coinAddress.SetString(addrStr) && !coinAddress.GetKeyId(keyid)) {
+            LogPrint("vm","ParseUidInTable(), %s is invalid keyid! value(hex)=%s\n", pKey, HexStr(accountBuf));
+        }
+        uid = keyid;
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// lua contract api functions added in MAJOR_VER_R1
+
 int32_t ExInt64MulFunc(lua_State *L) {
 
     int32_t argc = lua_gettop(L);    /* number of arguments */
@@ -2126,58 +2185,8 @@ int32_t ExLuaPrint(lua_State *L) {
     return 0;
 }
 
-static bool ParseUidTypeInTable(lua_State *L, const char *pKey, AccountType &uidType) {
-    lua_Integer uidTypeInt;
-    if (!(getIntegerInTable(L, pKey, uidTypeInt))) {
-        LogPrint("vm", "ParseUidTypeInTable(), get %s failed\n", pKey);
-        return false;
-    }
-
-    if (uidTypeInt == AccountType::REGID && uidTypeInt == AccountType::BASE58ADDR) {
-        LogPrint("vm", "ParseUidTypeInTable(), invalid accountType: %d\n", uidTypeInt);
-        return false;
-    }
-    uidType = (AccountType)uidTypeInt;
-    return true;
-}
-
-static bool ParseUidInTable(lua_State *L, const char *pKey, AccountType uidType, CUserID &uid) {
-    int32_t len;
-    if (uidType == AccountType::REGID) {
-       len = 6;
-    } else {
-        assert(uidType == AccountType::BASE58ADDR);
-       len = 34;
-    }
-
-    vector<uint8_t> accountBuf;
-    if (!getArrayInTable(L, pKey, len, accountBuf)) {
-        LogPrint("vm","ParseUidInTable(), get %s failed\n", pKey);
-        return false;
-    }
-
-    if (uidType == AccountType::REGID) {
-        CRegID regid(accountBuf);
-        if (regid.IsEmpty()) {
-            LogPrint("vm","ParseUidInTable(), %s is invalid regid! value(hex)=%s\n", pKey, HexStr(accountBuf));
-            return false;
-        }
-        uid = regid;
-    } else {
-        assert(uidType == AccountType::BASE58ADDR);
-        CKeyID keyid;
-        CCoinAddress coinAddress;
-        string addrStr(accountBuf.begin(), accountBuf.end());
-        if (!coinAddress.SetString(addrStr) && !coinAddress.GetKeyId(keyid)) {
-            LogPrint("vm","ParseUidInTable(), %s is invalid keyid! value(hex)=%s\n", pKey, HexStr(accountBuf));
-        }
-        uid = keyid;
-    }
-    return true;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
-// new function added in MAJOR_VER_R2
+// lua contract api function added in MAJOR_VER_R2
 
 static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, AssetTransfer &transfer) {
     if (!lua_istable(L,-1)) {
