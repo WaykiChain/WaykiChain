@@ -1681,8 +1681,8 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     uint64_t valueData = 0 ;
     int32_t len = 0;
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
-        valueData = sptrAcc->GetBcoins();
+    if (pVmRunEnv->GetAppUserAccount(accountId.GetIdV(), appAccount)) {
+        valueData = appAccount->GetBcoins();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
@@ -1785,8 +1785,8 @@ int32_t ExGetUserAppAccFundWithTagFunc(lua_State *L) {
     CAppCFund fund;
     int32_t len = 0;
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_FUND_TAG, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
-        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
+    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), appAccount)) {
+        if (!appAccount->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -2233,7 +2233,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
     return true;
 }
 
-int ExTransferAccountAssetFunc(lua_State *L) {
+int32_t ExTransferAccountAssetFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv)
         return RetFalse("ExTransferAccountAssetFunc(), pVmRunEnv is nullptr");
@@ -2279,7 +2279,7 @@ static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vec
     return true;
 }
 
-int ExTransferAccountAssetsFunc(lua_State *L) {
+int32_t ExTransferAccountAssetsFunc(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv)

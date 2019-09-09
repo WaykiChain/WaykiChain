@@ -13,27 +13,27 @@
 #include "luavmrunenv.h"
 #include "commons/SafeInt3.hpp"
 
-int ExInt64MulFunc(lua_State *L);
+int32_t ExInt64MulFunc(lua_State *L);
 
-int ExInt64AddFunc(lua_State *L);
+int32_t ExInt64AddFunc(lua_State *L);
 
-int ExInt64SubFunc(lua_State *L);
+int32_t ExInt64SubFunc(lua_State *L);
 
-int ExInt64DivFunc(lua_State *L);
+int32_t ExInt64DivFunc(lua_State *L);
 
 /**
  *bool SHA256(void const* pfrist, const unsigned short len, void * const pout)
  * This function receives an input param from a middle layer:
  *   1. The first param is the target string to be hashed twice in a BitCoin way
  */
-int ExSha256Func(lua_State *L);
+int32_t ExSha256Func(lua_State *L);
 
 /**
  *bool SHA256Once(void const* pfrist, const unsigned short len, void * const pout)
  * This function receives an input param from a middle layer:
  *   1. The first param is the target string to be hashed once
  */
-int ExSha256OnceFunc(lua_State *L);
+int32_t ExSha256OnceFunc(lua_State *L);
 
 /**
  *unsigned short Des(void const* pdata, unsigned short len, void const* pkey, unsigned short keylen, bool IsEn, void * const pOut,unsigned short poutlen)
@@ -50,7 +50,7 @@ int ExSha256OnceFunc(lua_State *L);
  *  flag = 0
  * }
  */
-int ExDesFunc(lua_State *L);
+int32_t ExDesFunc(lua_State *L);
 
 /**
  *bool SignatureVerify(void const* data, unsigned short datalen, void const* key, unsigned short keylen,
@@ -69,9 +69,9 @@ int ExDesFunc(lua_State *L);
  *  signature = {}
  * }
  */
-int ExVerifySignatureFunc(lua_State *L);
+int32_t ExVerifySignatureFunc(lua_State *L);
 
-int ExGetTxContractFunc(lua_State *L);
+int32_t ExGetTxContractFunc(lua_State *L);
 
 /**
  *void LogPrint(const void *pdata, const unsigned short datalen,PRINT_FORMAT flag )
@@ -79,41 +79,41 @@ int ExGetTxContractFunc(lua_State *L);
  * 1.第一个是打印数据的表示符号，true是一十六进制打印,否则以字符串的格式打印
  * 2.第二个是打印的字符串
  */
-int ExLogPrintFunc(lua_State *L);
+int32_t ExLogPrintFunc(lua_State *L);
 
 /**
  *unsigned short GetAccounts(const unsigned char *txid, void* const paccount, unsigned short maxlen)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 hash
  */
-int ExGetTxRegIDFunc(lua_State *L);
+int32_t ExGetTxRegIDFunc(lua_State *L);
 
-int ExByteToIntegerFunc(lua_State *L);
+int32_t ExByteToIntegerFunc(lua_State *L);
 
-int ExIntegerToByte4Func(lua_State *L);
+int32_t ExIntegerToByte4Func(lua_State *L);
 
-int ExIntegerToByte8Func(lua_State *L);
+int32_t ExIntegerToByte8Func(lua_State *L);
 
 /**
  *unsigned short GetAccountPublickey(const void* const accounid,void * const pubkey,const unsigned short maxlength)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 账户id,六个字节
  */
-int ExGetAccountPublickeyFunc(lua_State *L);
+int32_t ExGetAccountPublickeyFunc(lua_State *L);
 
 /**
  *bool QueryAccountBalance(const unsigned char* const account,Int64* const pBalance)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 账户id,六个字节
  */
-int ExQueryAccountBalanceFunc(lua_State *L);
+int32_t ExQueryAccountBalanceFunc(lua_State *L);
 
 /**
  *unsigned long GetTxConfirmHeight(const void * const txid)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个入参: hash,32个字节
  */
-int ExGetTxConfirmHeightFunc(lua_State *L);
+int32_t ExGetTxConfirmHeightFunc(lua_State *L);
 
 
 /**
@@ -121,9 +121,9 @@ int ExGetTxConfirmHeightFunc(lua_State *L);
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 int类型的参数
  */
-int ExGetBlockHashFunc(lua_State *L);
+int32_t ExGetBlockHashFunc(lua_State *L);
 
-int ExGetCurRunEnvHeightFunc(lua_State *L);
+int32_t ExGetCurRunEnvHeightFunc(lua_State *L);
 
 /**
  *bool WriteDataDB(const void* const key,const unsigned char keylen,const void * const value,const unsigned short valuelen,const unsigned long time)
@@ -131,23 +131,23 @@ int ExGetCurRunEnvHeightFunc(lua_State *L);
  * 1.第一个是 key值
  * 2.第二个是value值
  */
-int ExWriteDataDBFunc(lua_State *L);
+int32_t ExWriteDataDBFunc(lua_State *L);
 
 /**
  *bool DeleteDataDB(const void* const key,const unsigned char keylen)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 key值
  */
-int ExDeleteDataDBFunc(lua_State *L);
+int32_t ExDeleteDataDBFunc(lua_State *L);
 
 /**
  *unsigned short ReadDataValueDB(const void* const key,const unsigned char keylen, void* const value,unsigned short const maxbuffer)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 key值
  */
-int ExReadDataDBFunc(lua_State *L);
+int32_t ExReadDataDBFunc(lua_State *L);
 
-int ExGetCurTxHash(lua_State *L);
+int32_t ExGetCurTxHash(lua_State *L);
 
 /**
  *bool ExModifyDataDBFunc(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
@@ -155,7 +155,7 @@ int ExGetCurTxHash(lua_State *L);
  * 1.第一个是 key
  * 2.第二个是 value
  */
-int ExModifyDataDBFunc(lua_State *L);
+int32_t ExModifyDataDBFunc(lua_State *L);
 
 /**
  * WriteOutput - lua api
@@ -171,7 +171,7 @@ int ExModifyDataDBFunc(lua_State *L);
  * }
  * @return write succeed or not
  */
-int ExWriteOutputFunc(lua_State *L);
+int32_t ExWriteOutputFunc(lua_State *L);
 
 /**
  *bool GetContractData(const void* const scriptID,void* const pkey,short len,void* const pvalve,short maxlen)
@@ -179,7 +179,7 @@ int ExWriteOutputFunc(lua_State *L);
  * 1.脚本的id号
  * 2.数据库的key值
  */
-int ExGetContractDataFunc(lua_State *L);
+int32_t ExGetContractDataFunc(lua_State *L);
 
 /**
  * 取目的账户ID
@@ -187,15 +187,15 @@ int ExGetContractDataFunc(lua_State *L);
  * @param pVmEvn
  * @return
  */
-int ExGetContractRegIdFunc(lua_State *L);
+int32_t ExGetContractRegIdFunc(lua_State *L);
 
-int ExGetCurTxPayAmountFunc(lua_State *L);
-
-
-int ExGetUserAppAccValueFunc(lua_State *L);
+int32_t ExGetCurTxPayAmountFunc(lua_State *L);
 
 
-int ExGetUserAppAccFundWithTagFunc(lua_State *L);
+int32_t ExGetUserAppAccValueFunc(lua_State *L);
+
+
+int32_t ExGetUserAppAccFundWithTagFunc(lua_State *L);
 
 /**
  * 写应用操作输出到 pVmRunEnv->mapAppFundOperate[0]
@@ -203,17 +203,17 @@ int ExGetUserAppAccFundWithTagFunc(lua_State *L);
  * @param pVmEvn
  * @return
  */
-int ExWriteOutAppOperateFunc(lua_State *L);
+int32_t ExWriteOutAppOperateFunc(lua_State *L);
 
-int ExGetBase58AddrFunc(lua_State *L);
+int32_t ExGetBase58AddrFunc(lua_State *L);
 
-int ExTransferContractAsset(lua_State *L);
-int ExTransferSomeAsset(lua_State *L);
-int ExGetBlockTimestamp(lua_State *L);
+int32_t ExTransferContractAsset(lua_State *L);
+int32_t ExTransferSomeAsset(lua_State *L);
+int32_t ExGetBlockTimestamp(lua_State *L);
 
-int ExLimitedRequire(lua_State *L);
+int32_t ExLimitedRequire(lua_State *L);
 
-int ExLuaPrint(lua_State *L);
+int32_t ExLuaPrint(lua_State *L);
 
 ///////////////////////////////////////////////////////////////////////////////
 // new function added in MAJOR_VER_R2
@@ -231,7 +231,7 @@ int ExLuaPrint(lua_State *L);
  * }
  * @return succeed or not
  */
-int ExTransferAccountAssetFunc(lua_State *L);
+int32_t ExTransferAccountAssetFunc(lua_State *L);
 
 /**
  * TransferAccountAssets - lua api
@@ -249,6 +249,6 @@ int ExTransferAccountAssetFunc(lua_State *L);
  * ]
  * @return succeed or not
  */
-int ExTransferAccountAssetsFunc(lua_State *L);
+int32_t ExTransferAccountAssetsFunc(lua_State *L);
 
 #endif //VM_LUA_LMYLIB_H
