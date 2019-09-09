@@ -1635,17 +1635,6 @@ int32_t ExGetCurTxPayAmountFunc(lua_State *L) {
     return len;  // number of results 告诉Lua返回了几个返回值
 }
 
-struct AppAccountID {
-    uint8_t idlen;  //! the len of the tag
-    uint8_t id[CAppCFund::MAX_TAG_SIZE];
-
-    const vector<uint8_t> GetIdV() const {
-        // assert(sizeof(id) >= idlen);
-        vector<uint8_t> id(&id[0], &id[idlen]);
-        return id;
-    }
-} __attribute((aligned(1)));
-
 int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!lua_istable(L, -1)) {
@@ -1653,24 +1642,23 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
         return 0;
     }
     double doubleValue = 0;
-    vector<uint8_t> vBuf ;
-    AppAccountID accountId;
+    uint32_t idlen = 0;
+    vector<uint8_t> accountId;
     memset(&accountId, 0, sizeof(accountId));
-    if (!(getNumberInTable(L, (char *)"idLen", doubleValue))) {
+    if (!(getNumberInTable(L, "idLen", doubleValue))) {
         LogPrint("vm", "get idlen failed\n");
         return 0;
     } else {
-        accountId.idlen = (uint8_t)doubleValue;
+        idlen = (uint8_t)doubleValue;
     }
-    if ((accountId.idlen < 1) || (accountId.idlen > sizeof(accountId.id))) {
+    if ((idlen < 1) || (idlen > CAppCFund::MAX_TAG_SIZE)) {
         LogPrint("vm","idlen invalid\n");
         return 0;
     }
-    if (!getArrayInTable(L, (char *) "idValueTbl", accountId.idlen,vBuf)) {
+
+    if (!getArrayInTable(L, "idValueTbl", idlen, accountId)) {
         LogPrint("vm", "idValueTbl not table\n");
         return 0;
-    } else {
-        memcpy(&accountId.id[0], &vBuf[0], accountId.idlen);
     }
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
@@ -1681,7 +1669,7 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     uint64_t valueData = 0 ;
     int32_t len = 0;
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(accountId.GetIdV(), appAccount)) {
+    if (pVmRunEnv->GetAppUserAccount(accountId, appAccount)) {
         valueData = appAccount->GetBcoins();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
