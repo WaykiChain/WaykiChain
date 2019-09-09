@@ -177,7 +177,7 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
 // TODO: enable rescan wallet.
 Value importprivkey(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 2)
+    if (fHelp || (params.size() != 1 && params.size() != 2))
         throw runtime_error(
             "importprivkey \"privkey\"\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
