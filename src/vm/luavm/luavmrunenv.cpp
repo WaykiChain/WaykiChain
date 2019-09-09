@@ -13,8 +13,6 @@
 #define MAX_OUTPUT_COUNT 100
 
 CLuaVMRunEnv::CLuaVMRunEnv() {
-    rawAccount.clear();
-    newAccount.clear();
     rawAppUserAccount.clear();
     newAppUserAccount.clear();
     receipts.clear();
@@ -27,8 +25,6 @@ CLuaVMRunEnv::CLuaVMRunEnv() {
     isCheckAccount  = false;
 }
 
-vector<shared_ptr<CAccount>>& CLuaVMRunEnv::GetRawAccont() { return rawAccount; }
-vector<shared_ptr<CAccount>>& CLuaVMRunEnv::GetNewAccount() { return newAccount; }
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetNewAppUserAccount() { return newAppUserAccount; }
 vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { return rawAppUserAccount; }
 
@@ -132,35 +128,6 @@ tuple<bool, uint64_t, string> CLuaVMRunEnv::ExecuteContract(shared_ptr<CBaseTx>&
     }
 
     return std::make_tuple(true, spend, string("VmScript Success"));
-}
-
-shared_ptr<CAccount> CLuaVMRunEnv::GetNewAccount(shared_ptr<CAccount>& vOldAccount) {
-    if (newAccount.size() == 0)
-        return nullptr;
-    vector<shared_ptr<CAccount>>::iterator Iter;
-    for (Iter = newAccount.begin(); Iter != newAccount.end(); Iter++) {
-        shared_ptr<CAccount> temp = *Iter;
-        if (temp.get()->keyid == vOldAccount.get()->keyid) {
-            newAccount.erase(Iter);
-            return temp;
-        }
-    }
-
-    return nullptr;
-}
-
-shared_ptr<CAccount> CLuaVMRunEnv::GetAccount(shared_ptr<CAccount>& account) {
-    if (rawAccount.size() == 0)
-        return nullptr;
-    vector<shared_ptr<CAccount>>::iterator Iter;
-    for (Iter = rawAccount.begin(); Iter != rawAccount.end(); Iter++) {
-        shared_ptr<CAccount> temp = *Iter;
-        if (account.get()->keyid == temp.get()->keyid) {
-            return temp;
-        }
-    }
-
-    return nullptr;
 }
 
 UnsignedCharArray CLuaVMRunEnv::GetAccountID(const CVmOperate& value) {
@@ -345,54 +312,55 @@ bool CLuaVMRunEnv::CheckAppAcctOperate(CLuaContractInvokeTx* tx) {
 }
 
 bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
-    newAccount.clear();
 
     for (auto& operate : operates) {
         uint64_t value;
         memcpy(&value, operate.money, sizeof(operate.money));
 
-        auto tem = std::make_shared<CAccount>();
+        auto pAccount = std::make_shared<CAccount>();
         UnsignedCharArray accountId = GetAccountID(operate);
-        CRegID regid;
-        CKeyID keyid;
+        CUserID uid;
 
         if (accountId.size() == 6) {
+            CRegID regid;
             regid.SetRegID(accountId);
-            if (!pAccountCache->GetAccount(CUserID(regid), *tem.get())) {
-                return false;  // 账户不存在
+            if (!pAccountCache->GetAccount(CUserID(regid), *pAccount)) {
+                LogPrint("vm", "CLuaVMRunEnv::OperateAccount(), account not exist! regid=%s", regid.ToString());
+                return false;
             }
+            uid = regid;
         } else {
+            CKeyID keyid;
             keyid = CKeyID(string(accountId.begin(), accountId.end()));
-            if (!pAccountCache->GetAccount(CUserID(keyid), *tem.get())) {
-                tem->keyid = keyid;
-                // return false;
-                // 未产生过交易记录的账户
+            if (!pAccountCache->GetAccount(keyid, *pAccount)) {
+                pAccount = make_shared<CAccount>(keyid);
+                // TODO: new account fuel
             }
+            uid = keyid;
         }
 
-        shared_ptr<CAccount> vmAccount = GetAccount(tem);
-        if (vmAccount.get() == nullptr) {
-            rawAccount.push_back(tem);
-            vmAccount = tem;
-        }
+        LogPrint("vm", "uid=%s\nbefore account: %s\n", uid.ToString(),
+                 pAccount->ToString());
 
-        LogPrint("vm", "account id:%s\nbefore account: %s\n", HexStr(accountId).c_str(),
-                 vmAccount.get()->ToString());
-
-        if (!vmAccount.get()->OperateBalance(SYMB::WICC, operate.opType, value)) {
+        if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value)) {
+            LogPrint("vm", "CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s",
+                uid.ToString(), GetBalanceOpTypeName(operate.opType));
             return false;
         }
 
-        CUserID userId = vmAccount.get()->keyid;
         if (operate.opType == BalanceOpType::ADD_FREE) {
-            receipts.emplace_back(nullId, userId, SYMB::WICC, value, "operate (ADD_FREE) bcoins in original account");
+            receipts.emplace_back(nullId, uid, SYMB::WICC, value, "operate ADD_FREE bcoins of account in contract");
         } else if (operate.opType == BalanceOpType::SUB_FREE) {
-            receipts.emplace_back(userId, nullId, SYMB::WICC, value, "operate (SUB_FREE) bcoins in original account");
+            receipts.emplace_back(uid, nullId, SYMB::WICC, value, "operate SUB_FREE bcoins of account in contract");
         }
 
-        newAccount.push_back(vmAccount);
+        if (!pCw->accountCache.SetAccount(pAccount->keyid, *pAccount)) {
+            LogPrint("vm",
+                     "CLuaVMRunEnv::OperateAccount(), save account failed, uid=%s", uid.ToString());
+            return false;
+        }
 
-        LogPrint("vm", "after account:%s\n", vmAccount.get()->ToString());
+        LogPrint("vm", "after account:%s\n", pAccount->ToString());
     }
 
     return true;

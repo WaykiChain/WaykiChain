@@ -38,14 +38,6 @@ private:
 	 */
 	std::shared_ptr<CLuaVM> pLua;
 	/**
-	 * vm before the account state
-	 */
-	vector<std::shared_ptr<CAccount> > rawAccount;
-	/**
-	 * vm operate the account state
-	 */
-	vector<std::shared_ptr<CAccount> > newAccount;
-	/**
 	 * current run the tx
 	 */
 	std::shared_ptr<CBaseTx> pBaseTx;
@@ -96,18 +88,6 @@ private:
     bool OperateAccount(const vector<CVmOperate>& operates);
 
     /**
-     * @brief find the vOldAccount from newAccount if find success remove it from newAccount
-     * @param vOldAccount: the argument
-     * @return:Return the object
-     */
-    std::shared_ptr<CAccount> GetNewAccount(std::shared_ptr<CAccount>& vOldAccount);
-    /**
-     * @brief find the account from newAccount
-     * @param account: argument
-     * @return:Return the object
-     */
-    std::shared_ptr<CAccount> GetAccount(std::shared_ptr<CAccount>& account);
-    /**
      * @brief get the account id
      * @param value: argument
      * @return:Return account id
@@ -125,16 +105,6 @@ public:
     CLuaVMRunEnv();
     virtual ~CLuaVMRunEnv();
 
-    /**
-     * @brief get be operate the account
-     * @return the variable rawAccount
-     */
-    vector<std::shared_ptr<CAccount>>& GetRawAccont();
-    /**
-     * @brief get after operate the account
-     * @return :the variable newAccount
-     */
-    vector<std::shared_ptr<CAccount>>& GetNewAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
 

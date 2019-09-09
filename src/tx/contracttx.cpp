@@ -203,18 +203,6 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
     LogPrint("vm", "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
-    auto &accounts = vmRunEnv.GetNewAccount();
-    for (auto &account : accounts) {
-        if (account->keyid.IsNull()) {
-            return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, read account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        if (!cw.accountCache.SetAccount(CUserID(account->keyid), *account))
-            return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, write account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
-    }
-
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), vmRunEnv.GetReceipts()))
         return state.DoS(
             100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, set tx receipts failed!! txid=%s", GetHash().ToString()),
@@ -461,18 +449,6 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, "send fuel into risk riserve");
-    }
-
-    auto &accounts = vmRunEnv.GetNewAccount();
-    for (auto &account : accounts) {
-        if (account->keyid.IsNull()) {
-            return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, read account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
-        }
-
-        if (!cw.accountCache.SetAccount(CUserID(account->keyid), *account))
-            return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, write account info error"),
-                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
