@@ -28,13 +28,13 @@ vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { retu
 
 bool CLuaVMRunEnv::Init() {
 
-    if (p_context->arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) { // TODO: move to contracttx
+    if (p_context->p_arguments->size() >= MAX_CONTRACT_ARGUMENT_SIZE) { // TODO: move to contracttx
         LogPrint("ERROR", "CVmScriptRun::Initialize() arguments context size too large\n");
         return false;
     }
 
     try {
-        pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, p_context->arguments);
+        pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
     } catch (exception& e) {
         LogPrint("ERROR", "CVmScriptRun::Initialize() CLuaVM init error\n");
         return false;
@@ -84,7 +84,8 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
     }
 
     LogPrint("vm", "isCheckAccount: %d\n", isCheckAccount);
-    if (isCheckAccount && !CheckAppAcctOperate()) {
+    // CheckAppAcctOperate only support to check the WICC symbol
+    if (isCheckAccount && p_context->transfer_symbol == SYMB::WICC && !CheckAppAcctOperate()) {
             return make_shared<string>("VmScript CheckAppAcct Failed");
     }
 
@@ -188,6 +189,7 @@ bool CLuaVMRunEnv::CheckOperate(const vector<CVmOperate>& operates) {
 }
 
 bool CLuaVMRunEnv::CheckAppAcctOperate() {
+    assert(p_context->transfer_symbol == SYMB::WICC && "Only support WICC symbol");
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto vOpItem : mapAppFundOperate) {
         for (auto appFund : vOpItem.second) {
@@ -426,7 +428,7 @@ uint64_t CLuaVMRunEnv::GetValue() const {
 }
 
 const string& CLuaVMRunEnv::GetTxContract() {
-    return p_context->arguments;
+    return *p_context->p_arguments;
 }
 
 int32_t CLuaVMRunEnv::GetConfirmHeight() { return p_context->height; }

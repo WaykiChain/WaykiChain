@@ -35,7 +35,7 @@ public:
     CAccount *p_tx_user_account;
     CAccount *p_app_account;
     CUniversalContract *p_contract;
-    string arguments;
+    string *p_arguments;
 };
 
 struct AssetTransfer {

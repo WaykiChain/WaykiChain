@@ -217,6 +217,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     context.p_tx_user_account = &srcAccount;
     context.p_app_account = &desAccount;
     context.p_contract = &contract;
+    context.p_arguments = &arguments;
 
     int64_t llTime = GetTimeMillis();
     auto pExecErr = vmRunEnv.ExecuteContract(&context, nRunStep);
@@ -459,6 +460,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
     context.p_tx_user_account = &srcAccount;
     context.p_app_account = &desAccount;
     context.p_contract = &contract;
+    context.p_arguments = &arguments;
     int64_t llTime = GetTimeMillis();
     auto pExecErr = vmRunEnv.ExecuteContract(&context, nRunStep);
     if (pExecErr)
