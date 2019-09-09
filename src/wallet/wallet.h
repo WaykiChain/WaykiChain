@@ -43,7 +43,7 @@ static const int32_t nHighTransactionFeeWarning = 0.01 * COIN;
 /** A CWallet is an extension of a keystore, which also maintains a set of transactions and balances,
  * and provides the ability to create new transactions.
  */
-class CWallet : public CCryptoKeyStore, public CWalletInterface{
+class CWallet : public CCryptoKeyStore, public CWalletInterface {
 private:
     CWallet();
 

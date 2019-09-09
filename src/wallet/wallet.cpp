@@ -486,19 +486,16 @@ bool CWallet::CleanAll() {
     return true;
 }
 
-bool CWallet::Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool isMiner) const {
+bool CWallet::Sign(const CKeyID &keyId, const uint256 &hash, vector<uint8_t> &signature, bool isMiner) const {
     CKey key;
     if (GetKey(keyId, key, isMiner)) {
-        // if (isMiner == true) {
-        //     cout << "Sign miner key PubKey:" << key.GetPubKey().ToString() << endl;
-        //     cout << "Sign miner hash:" << hash.ToString() << endl;
-        // }
         return (key.Sign(hash, signature));
     }
+
     return false;
 }
 
-bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret) {
+bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const std::vector<uint8_t> &vchCryptedSecret) {
     if (!CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret))
         return false;
 
@@ -515,7 +512,7 @@ bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned
     return false;
 }
 
-bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret) {
+bool CWallet::LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<uint8_t> &vchCryptedSecret) {
     return CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret);
 }
 

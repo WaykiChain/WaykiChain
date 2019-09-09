@@ -177,12 +177,13 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
 // TODO: enable rescan wallet.
 Value importprivkey(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1)
+    if (fHelp || params.size() != 2)
         throw runtime_error(
             "importprivkey \"privkey\"\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1. \"privkey\"     (string, required) The private key (see dumpprivkey)\n"
+            "1.\"privkey\"      (string, required) The private key (see dumpprivkey)\n"
+            "2.\"address\"      (string, optional) Set the address while importing a miner privkey\n"
             "\nExamples:\n"
             "\nDump privkey first\n" +
             HelpExampleCli("dumpprivkey", "\"address\"") + "\nImport privkey\n" +
@@ -206,8 +207,22 @@ Value importprivkey(const Array& params, bool fHelp) {
     {
         LOCK2(cs_main, pWalletMain->cs_wallet);
 
-        if (!pWalletMain->AddKey(key))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
+        if (params.size() == 1) {
+            if (!pWalletMain->AddKey(key))
+                throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
+        } else {
+            CKeyCombi keyCombi;
+            CKey emptyMainKey;
+            keyCombi.SetMainKey(emptyMainKey);
+            keyCombi.SetMinerKey(key);
+
+            CKeyID keyid;
+            if (!GetKeyId(params[1].get_str(), keyid))
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+            if (!pWalletMain->AddKey(keyid, keyCombi))
+                throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
+        }
     }
 
     Object ret;

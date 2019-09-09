@@ -28,17 +28,17 @@ private:
 
 public:
     CKeyCombi();
-    CKeyCombi(CKey const &inkey, CKey const &minerKey, int nVersion);
-    CKeyCombi(CKey const &inkey, int nVersion);
+    CKeyCombi(CKey const &inkey, CKey const &minerKey, int32_t nVersion);
+    CKeyCombi(CKey const &inkey, int32_t nVersion);
 
     string ToString() const;
 
     Object ToJsonObj() const;
     bool UnSerializeFromJson(const Object &);
     int64_t GetBirthDay() const;
-    bool GetCKey(CKey &keyOut, bool IsMiner = false) const;
+    bool GetCKey(CKey &keyOut, bool isMiner = false) const;
     bool CreateANewKey();
-    bool GetPubKey(CPubKey &mOutKey, bool IsMiner = false) const;
+    bool GetPubKey(CPubKey &mOutKey, bool isMiner = false) const;
     bool CleanMainKey();
     bool CleanAll();
     bool HaveMinerKey() const;
@@ -76,11 +76,11 @@ public:
 
     // Check whether a key corresponding to a given address is present in the store.
     virtual bool HaveKey(const CKeyID &address) const                           = 0;
-    virtual bool GetKey(const CKeyID &address, CKey &keyOut, bool IsMine) const = 0;
+    virtual bool GetKey(const CKeyID &address, CKey &keyOut, bool isMine) const = 0;
     virtual void GetKeys(set<CKeyID> &setAddress, bool bFlag) const             = 0;
-    virtual bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut, bool IsMine) const;
+    virtual bool GetPubKey(const CKeyID &address, CPubKey &vchPubKeyOut, bool isMine) const;
 
-    virtual bool AddCScript(const CMulsigScript &script)                        = 0;
+    virtual bool AddCScript(const CMulsigScript &script)                      = 0;
     virtual bool HaveCScript(const CKeyID &keyId) const                       = 0;
     virtual bool GetCScript(const CKeyID &keyId, CMulsigScript &script) const = 0;
 };
@@ -121,12 +121,12 @@ public:
         }
     }
 
-    bool GetKey(const CKeyID &address, CKey &keyOut, bool IsMine = false) const {
+    bool GetKey(const CKeyID &address, CKey &keyOut, bool isMine = false) const {
         {
             LOCK(cs_KeyStore);
             KeyMap::const_iterator mi = mapKeys.find(address);
             if (mi != mapKeys.end()) {
-                return mi->second.GetCKey(keyOut, IsMine);
+                return mi->second.GetCKey(keyOut, isMine);
             }
         }
         return false;
@@ -147,7 +147,7 @@ public:
     virtual bool GetCScript(const CKeyID &keyId, CMulsigScript &script) const;
 };
 
-typedef vector<unsigned char, secure_allocator<unsigned char> > CKeyingMaterial;
-typedef map<CKeyID, pair<CPubKey, vector<unsigned char> > > CryptedKeyMap;
+typedef vector<uint8_t, secure_allocator<uint8_t> > CKeyingMaterial;
+typedef map<CKeyID, pair<CPubKey, vector<uint8_t> > > CryptedKeyMap;
 
 #endif  // ENTITIES_KEYSTORE_H

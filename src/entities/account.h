@@ -109,7 +109,7 @@ public:
     AccountTokenMap tokens;         //!< In total, 3 types of coins/tokens:
                                     //!<    1) system-issued coins: WICC, WGRT
                                     //!<    2) miner-issued stablecoins WUSD|WCNY|...
-                                    //!<    3) user-issued tokens (WRC20 compilant)
+                                    //!<    3) user-issued tokens (WRC20 compliant)
 
     uint64_t received_votes;        //!< votes received
     uint64_t last_vote_height;      //!< account's last vote block height used for computing interest
