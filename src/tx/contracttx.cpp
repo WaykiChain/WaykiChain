@@ -16,17 +16,28 @@
 #include "config/version.h"
 #include "vm/luavm/luavmrunenv.h"
 
-static uint64_t GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, TokenSymbol symbol) {
+// get and check fuel limit
+static bool GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, CValidationState &state, uint64_t &fuelLimit) {
     uint64_t fuelRate = tx.GetFuelRate(cw.contractCache);
     if (fuelRate == 0)
-        return 0;
+        return state.DoS(100, ERRORMSG("GetFuelLimit, feulRate cannot be 0"), REJECT_INVALID,
+                         "invalid-fuel-rate");
+
     uint64_t minFee;
-    GetTxMinFee(tx.nTxType, height, symbol, minFee);
-    uint64_t fuelLimit = ((tx.llFees - minFee) / fuelRate) * 100;
+    if (!GetTxMinFee(tx.nTxType, height, tx.fee_symbol, minFee))
+        return state.DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"),
+            REJECT_INVALID, "get-min-fee-failed");
+    if (tx.llFees <= minFee) {
+        return state.DoS(100, ERRORMSG("GetFuelLimit, fees is too small to invoke contract"),
+            REJECT_INVALID, "bad-tx-fee-toosmall");
+
+    }
+    fuelLimit = ((tx.llFees - minFee) / fuelRate) * 100;
     if (fuelLimit > MAX_BLOCK_RUN_STEP) {
         fuelLimit = MAX_BLOCK_RUN_STEP;
     }
-    return fuelLimit;
+    assert(fuelLimit > 0);
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,6 +177,10 @@ bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 }
 
 bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+
+    uint64_t fuelLimit;
+    if (!GetFuelLimit(*this, height, cw, state, fuelLimit)) return false;
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, read source addr account info error"),
@@ -205,13 +220,12 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CLuaVMRunEnv vmRunEnv;
-    std::shared_ptr<CBaseTx> pTx = GetNewInstance();
 
     CLuaVMContext context;
     context.p_cw = &cw;
     context.height = height;
     context.p_base_tx = this;
-    context.fuel_limit = GetFuelLimit(*this, height, cw, SYMB::WICC);
+    context.fuel_limit = fuelLimit;
     context.transfer_symbol = SYMB::WICC;
     context.transfer_amount = coin_amount;
     context.p_tx_user_account = &srcAccount;
@@ -402,6 +416,10 @@ bool CUniversalContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
 }
 
 bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+
+    uint64_t fuelLimit;
+    if (!GetFuelLimit(*this, height, cw, state, fuelLimit)) return false;
+
     vector<CReceipt> receipts;
 
     CAccount srcAccount;
@@ -447,14 +465,13 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CLuaVMRunEnv vmRunEnv;
-    std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
     CLuaVMContext context;
     context.p_cw = &cw;
     context.height = height;
     context.p_base_tx = this;
-    context.fuel_limit = GetFuelLimit(*this, height, cw, coin_symbol);
+    context.fuel_limit = fuelLimit;
     context.transfer_symbol = coin_symbol;
     context.transfer_amount = coin_amount;
     context.p_tx_user_account = &srcAccount;

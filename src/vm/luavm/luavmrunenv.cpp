@@ -28,10 +28,7 @@ vector<shared_ptr<CAppUserAccount>>& CLuaVMRunEnv::GetRawAppUserAccount() { retu
 
 bool CLuaVMRunEnv::Init() {
 
-    if (p_context->p_arguments->size() >= MAX_CONTRACT_ARGUMENT_SIZE) { // TODO: move to contracttx
-        LogPrint("ERROR", "CVmScriptRun::Initialize() arguments context size too large\n");
-        return false;
-    }
+    assert(p_context->p_arguments->size() <= MAX_CONTRACT_ARGUMENT_SIZE);
 
     try {
         pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
@@ -50,19 +47,14 @@ CLuaVMRunEnv::~CLuaVMRunEnv() {}
 std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn, uint64_t& uRunStep) {
     p_context = pContextIn;
 
-    LogPrint("vm", "prepare to execute tx. txid=%s, fuelLimit=%llu\n", p_context->p_base_tx->GetHash().GetHex(),
+    assert(p_context->p_arguments->size() <= MAX_CONTRACT_ARGUMENT_SIZE);
+    assert(p_context->fuel_limit > 0);
+    pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
+
+    LogPrint("vm", "CVmScriptRun::ExecuteContract(), prepare to execute tx. txid=%s, fuelLimit=%llu\n", p_context->p_base_tx->GetHash().GetHex(),
         p_context->fuel_limit);
 
-    if (p_context->fuel_limit == 0) {
-        return make_shared<string>("CLuaVMRunEnv::ExecuteContract, fees too low");
-    }
-
-    if (!Init()) {
-        return make_shared<string>("VmScript inital Failed");
-    }
-
     tuple<uint64_t, string> ret = pLua.get()->Run(p_context->fuel_limit, this);
-    LogPrint("vm", "CVmScriptRun::ExecuteContract() LUA\n");
 
     int64_t step = std::get<0>(ret);
     if (0 == step) {
