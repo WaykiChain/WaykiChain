@@ -508,6 +508,8 @@ private:
     uint8_t rejectCode;
     bool corruptionPossible;
 
+    string ret;
+
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
     bool DoS(int32_t level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
@@ -547,6 +549,9 @@ public:
     bool CorruptionPossible() const { return corruptionPossible; }
     uint8_t GetRejectCode() const { return rejectCode; }
     string GetRejectReason() const { return rejectReason; }
+
+    void SetReturn(string r) {ret = r;}
+    string GetReturn() {return ret;}
 };
 
 /** The currently best known chain of headers (some of which may be invalid). */

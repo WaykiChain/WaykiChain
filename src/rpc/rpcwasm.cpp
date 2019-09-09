@@ -44,54 +44,54 @@ using std::chrono::microseconds;
 // using namespace wasm;
 
 
-string FromHex( string str ) {
+// string FromHex( string str ) {
 
-    std::map<char, uint8_t> hex = {
-            {'0', 0x00},
-            {'1', 0x01},
-            {'2', 0x02},
-            {'3', 0x03},
-            {'4', 0x04},
-            {'5', 0x05},
-            {'6', 0x06},
-            {'7', 0x07},
-            {'8', 0x08},
-            {'9', 0x09},
-            {'a', 0x0a},
-            {'b', 0x0b},
-            {'c', 0x0c},
-            {'d', 0x0d},
-            {'e', 0x0e},
-            {'f', 0x0f}
-    };
-    std::stringstream ss;
+//     std::map<char, uint8_t> hex = {
+//             {'0', 0x00},
+//             {'1', 0x01},
+//             {'2', 0x02},
+//             {'3', 0x03},
+//             {'4', 0x04},
+//             {'5', 0x05},
+//             {'6', 0x06},
+//             {'7', 0x07},
+//             {'8', 0x08},
+//             {'9', 0x09},
+//             {'a', 0x0a},
+//             {'b', 0x0b},
+//             {'c', 0x0c},
+//             {'d', 0x0d},
+//             {'e', 0x0e},
+//             {'f', 0x0f}
+//     };
+//     std::stringstream ss;
 
-    for (std::string::size_type i = 0; i < str.size();) {
+//     for (std::string::size_type i = 0; i < str.size();) {
 
-        //uint8_t t = hex[(char)str[i]] | hex[(char)str[i + 1]] << 4;
-        uint8_t h = hex[(char) str[i]];
-        uint8_t l = hex[(char) str[i + 1]];
-        uint8_t t = l | h << 4;
-        ss << t;
+//         //uint8_t t = hex[(char)str[i]] | hex[(char)str[i + 1]] << 4;
+//         uint8_t h = hex[(char) str[i]];
+//         uint8_t l = hex[(char) str[i + 1]];
+//         uint8_t t = l | h << 4;
+//         ss << t;
 
-        i += 2;
-    }
+//         i += 2;
+//     }
 
-    return ss.str();
+//     return ss.str();
 
-}
+// }
 
-template<typename T>
-string ToHex( const T &t, string separator = " " ) {
-    const std::string hex = "0123456789abcdef";
-    std::stringstream ss;
+// template<typename T>
+// string ToHex( const T &t, string separator = " " ) {
+//     const std::string hex = "0123456789abcdef";
+//     std::stringstream ss;
 
-    for (std::string::size_type i = 0; i < t.size(); ++i)
-        ss << hex[(unsigned char) t[i] >> 4] << hex[(unsigned char) t[i] & 0xf] << separator;
+//     for (std::string::size_type i = 0; i < t.size(); ++i)
+//         ss << hex[(unsigned char) t[i] >> 4] << hex[(unsigned char) t[i] & 0xf] << separator;
 
-    return ss.str();
+//     return ss.str();
 
-}
+// }
 
 // send code and abi
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
@@ -246,15 +246,21 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         tx.llFees = fee.GetSawiAmount();
 
 
-        tx.contract = wasm::name("wasmio").value;
-        tx.action = wasm::name("setcode").value;
-        tx.data = wasm::pack(std::tuple(contract, code, abi, memo));
+        // tx.contract = wasm::name("wasmio").value;
+        // tx.action = wasm::name("setcode").value;
+        // tx.data = wasm::pack(std::tuple(contract, code, abi, memo));
+        tx.inlinetransactions.push_back({wasm::name("wasmio").value, 
+                                         wasm::name("setcode").value, 
+                                         std::vector<uint64_t>{},
+                                         wasm::pack(std::tuple(contract, code, abi, memo))});
+
+
 
         if (0 == height) {
             height = chainActive.Tip()->height;
         }
         tx.valid_height = height;
-        tx.nRunStep = tx.data.size();
+        //tx.nRunStep = tx.data.size();
 
 
         //CAccountDBCache view;
@@ -269,8 +275,15 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
+    
     Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
+
+    json_spirit::Value abi_v;
+    json_spirit::read_string(std::get<1>(ret), abi_v);
+
+    //obj.push_back(Pair("ret", std::get<1>(ret)));
+    json_spirit::Config::add(obj, "result",  abi_v);
+
     return obj;
 }
 
@@ -301,17 +314,17 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         // 7.height
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
-    std::cout << "rpccall wasmcontracttx line321"
-              << " sender:" << params[0].get_str()
-              << " contract:" << params[1].get_str()
-              << " action:" << params[2].get_str()
-              //<< " data:"<< json_spirit::write(params[3].get_obj())
-              << " data:" << params[3].get_str()
-              << " amount:" << params[4].get_str()
-              << " fee:" << params[5].get_str()
-              << " \n";
+    // std::cout << "rpccall wasmcontracttx line321"
+    //           << " sender:" << params[0].get_str()
+    //           << " contract:" << params[1].get_str()
+    //           << " action:" << params[2].get_str()
+    //           //<< " data:"<< json_spirit::write(params[3].get_obj())
+    //           << " data:" << params[3].get_str()
+    //           //<< " amount:" << params[4].get_str()
+    //           << " fee:" << params[4].get_str()
+    //           << " \n";
 
 
     EnsureWalletIsUnlocked();
@@ -375,8 +388,8 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     // std::vector<char> data = wasm::pack(std::tuple(issuer, maximum_supply));
 
 
-    ComboMoney amount = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
-    ComboMoney fee = RPC_PARAM::GetFee(params, 5, TxType::UCONTRACT_INVOKE_TX);
+    //ComboMoney amount = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
+    ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
 
 
     uint32_t height = chainActive.Height();
@@ -404,12 +417,14 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     tx.fee_symbol = fee.symbol;
     tx.llFees = fee.GetSawiAmount();
 
-    tx.contract = contract;
-    tx.action = action;
-    tx.data = data;
 
-    tx.symbol = amount.symbol;
-    tx.amount = amount.GetSawiAmount();
+    tx.inlinetransactions.push_back({contract, action, std::vector<uint64_t>{}, data});
+    // tx.contract = contract;
+    // tx.action = action;
+    // tx.data = data;
+
+    // tx.symbol = amount.symbol;
+    // tx.amount = amount.GetSawiAmount();
 
     if (!pWalletMain->Sign(sender, tx.ComputeSignatureHash(), tx.signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -421,7 +436,13 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     }
 
     Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
+
+    json_spirit::Value abi_v;
+    json_spirit::read_string(std::get<1>(ret), abi_v);
+
+    //obj.push_back(Pair("ret", std::get<1>(ret)));
+    json_spirit::Config::add(obj, "result",  abi_v);
+
     return obj;
 }
 

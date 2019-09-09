@@ -17,8 +17,22 @@ using namespace std;
 using namespace wasm;
 namespace wasm {
 
-    CRegID Name2RegID( uint64_t account );
-    uint64_t RegID2Name( CRegID regID );
+    // static inline CRegID Name2RegID( uint64_t account );
+    // static inline uint64_t RegID2Name( CRegID regID );
+
+    static inline CRegID Name2RegID( uint64_t account ) {
+        uint32_t height = uint32_t(account);
+        uint16_t index = uint16_t(account >> 32);
+        return CRegID(height, index);
+    }
+
+    static inline uint64_t RegID2Name( CRegID regID ) {
+
+        uint64_t account = uint64_t(regID.GetIndex());
+        account = (account << 32) + uint64_t(regID.GetHeight());
+
+        return account;
+    }
 
     class CWasmContext;
 
@@ -36,7 +50,8 @@ namespace wasm {
         ~CWasmContext() {};
 
     public:
-        vector <uint8_t> GetCode( uint64_t account );
+        std::vector <uint8_t> GetCode( uint64_t account );
+        std::string GetAbi( uint64_t account );
         void RegisterNativeHandler( uint64_t receiver, uint64_t action, nativeHandler v );
         nativeHandler *FindNativeHandle( uint64_t receiver, uint64_t action );
         void ExecuteOne( inline_transaction_trace &trace );

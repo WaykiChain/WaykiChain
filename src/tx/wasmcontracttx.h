@@ -7,13 +7,14 @@
 
 class CWasmContractTx : public CBaseTx {
 public:
-    uint64_t contract;
-    uint64_t action;
-    std::vector<char> data;
-    //vector<inlinetransaction> actions;
+    // uint64_t contract;
+    // uint64_t action;
+    // std::vector<uint64_t> permissions;
+    // std::vector<char> data;
+    vector<wasm::CInlineTransaction> inlinetransactions;
 
-    uint64_t amount;
-    TokenSymbol symbol;
+    // uint64_t amount;
+     TokenSymbol symbol;
 
 public:
     CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(WASM_CONTRACT_TX) {
@@ -28,11 +29,12 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
-        READWRITE(contract);
-        READWRITE(action);
-        READWRITE(data);
-        READWRITE(amount);
-        READWRITE(symbol);
+        // READWRITE(contract);
+        // READWRITE(action);
+        // READWRITE(data);
+        READWRITE(inlinetransactions);
+        // READWRITE(amount);
+        // READWRITE(symbol);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
@@ -40,7 +42,8 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-               << contract << action << data << amount << symbol
+               //<< contract << action << data << amount << symbol
+                << inlinetransactions
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }

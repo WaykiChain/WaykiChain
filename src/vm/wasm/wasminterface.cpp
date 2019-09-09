@@ -151,9 +151,6 @@ namespace wasm {
         } catch (CException &e) {
             throw e;
             //std::cerr << std::string("wasm-vm interpreter error\n");
-        }catch (CException &e) {
-            throw e;
-            //std::cerr << std::string("wasm-vm interpreter error\n");
         }
         WASM_RETHROW_EXCEPTIONS(WASM_ASSERT_FAIL,"wasm assert fail", "wasm assert fail" )
 

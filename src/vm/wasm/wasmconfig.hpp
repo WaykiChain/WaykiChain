@@ -1,13 +1,17 @@
 #pragma once
 
 #include <chrono>
+#include "wasm/types/name.hpp"
 
 namespace wasm {
 
     using std::chrono::microseconds;
 
-    static auto max_serialization_time = microseconds(15 * 1000);
-    static uint16_t max_inline_transaction_depth = 4;
+    const static auto max_serialization_time = microseconds(15 * 1000);
+    const static uint16_t max_inline_transaction_depth = 4;
+
+    const static uint64_t wasmio_code       = N(wasmio.code);
+    const static uint64_t wasmio_owner      = N(wasmio.owner);
 
 }  // wasm
 

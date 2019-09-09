@@ -9,19 +9,19 @@ using namespace wasm;
 
 namespace wasm {
 
-    CRegID Name2RegID( uint64_t account ) {
-        uint32_t height = uint32_t(account);
-        uint16_t index = uint16_t(account >> 32);
-        return CRegID(height, index);
-    }
+    // CRegID Name2RegID( uint64_t account ) {
+    //     uint32_t height = uint32_t(account);
+    //     uint16_t index = uint16_t(account >> 32);
+    //     return CRegID(height, index);
+    // }
 
-    uint64_t RegID2Name( CRegID regID ) {
+    // uint64_t RegID2Name( CRegID regID ) {
 
-        uint64_t account = uint64_t(regID.GetIndex());
-        account = (account << 32) + uint64_t(regID.GetHeight());
+    //     uint64_t account = uint64_t(regID.GetIndex());
+    //     account = (account << 32) + uint64_t(regID.GetHeight());
 
-        return account;
-    }
+    //     return account;
+    // }
 
     static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
         if (!trace.console.empty()) {
@@ -54,7 +54,7 @@ namespace wasm {
         //queue.pushBack(t);
     }
 
-    vector <uint8_t> CWasmContext::GetCode( uint64_t account ) {
+    std::vector <uint8_t> CWasmContext::GetCode( uint64_t account ) {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
@@ -71,7 +71,14 @@ namespace wasm {
         code.insert(code.begin(), contract.code.begin(), contract.code.end());
 
         return code;
+    }
 
+    std::string CWasmContext::GetAbi( uint64_t account ) {
+
+        CUniversalContract contract;
+        cache.contractCache.GetContract(Name2RegID(account), contract);
+
+        return contract.abi;
     }
 
     void CWasmContext::Initialize() {
@@ -132,27 +139,26 @@ namespace wasm {
         trace.receiver = receiver;
 
         auto native = FindNativeHandle(receiver, trx.action);
-        if (native) {
-            (*native)(*this);
-            //std::cout << "ExecuteTwo ---------------------------- "<< " \n";
-        } else {
-            vector <uint8_t> code = GetCode(receiver);
-            //std::cout << "code:"<< VectorToHexString(code) <<" \n";
-            if (code.size() > 0) {
-                try {
-                    //std::cout << "ExecuteOne ----------------------------"<< " \n";
-                    wasmInterface.Execute(code, this);
-                } catch (CException &e) {
-                    //std::cout << "CWasmContext ExecuteOne:" <<  e.errMsg << std::endl;
-                    throw e;
+
+        try {
+            if (native) {
+                (*native)(*this);
+            } else {
+                vector <uint8_t> code = GetCode(receiver);
+                if (code.size() > 0) {
+                        wasmInterface.Execute(code, this);
                 }
             }
+        } catch (CException &e) {
+            throw e;
         }
 
         trace.trx_id = control_trx.GetHash();
+        trace.console = _pending_console_output.str();
+
         // trace.block_height =
         // trace.block_time =
-        trace.console = _pending_console_output.str();
+
         reset_console();
 
         if (contracts_console()) {

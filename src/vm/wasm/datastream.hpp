@@ -14,16 +14,8 @@
 
 #include "types/symbol.hpp"
 #include "types/varint.hpp"
+#include "types/inlinetransaction.hpp"
 
-// #include <boost/fusion/algorithm/iteration/for_each.hpp>
-//#include <boost/fusion/include/for_each.hpp>
-// #include <boost/fusion/adapted/std_tuple.hpp>
-// #include <boost/fusion/include/std_tuple.hpp>
-
-// #include <boost/mp11/tuple.hpp>
-// #include <boost/pfr.hpp>
-
-// #warning "<eosiolib/datastream.hpp> is deprecated use <eosio/datastream.hpp>"
 
 namespace wasm {
 
@@ -1450,6 +1442,54 @@ namespace wasm {
         vi.value = (v >> 1) ^ (~(v & 1) + 1ull);                         //reverse zigzag encoding
         return ds;
     }
+
+
+
+      /**
+      *  Serialize a asset into a stream
+      *
+      *  @brief Serialize a asset
+      *  @param ds - The stream to write
+      *  @param sym - The value to serialize
+      *  @tparam DataStream - Type of datastream buffer
+      *  @return DataStream& - Reference to the datastream
+      */
+      template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+      DataStream& operator<<(DataStream& ds, const CInlineTransaction& trx) {
+
+        // ds.write( (const char*)&trx.contract, sizeof(trx.contract));
+        // ds.write( (const char*)&trx.action, sizeof(trx.action));
+        ds << trx.contract;
+        ds << trx.action;
+        ds << trx.authorization; 
+              
+        ds << trx.data;       
+        return ds;
+      }
+
+      /**
+      *  Deserialize a asset from a stream
+      *
+      *  @brief Deserialize a asset
+      *  @param ds - The stream to read
+      *  @param symbol - The destination for deserialized value
+      *  @tparam DataStream - Type of datastream buffer
+      *  @return DataStream& - Reference to the datastream
+      */
+      template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+      DataStream& operator>>(DataStream& ds, CInlineTransaction& trx) {
+
+         // ds.read((char*)&trx.contract, sizeof(trx.contract));
+         // ds.read((char*)&trx.action, sizeof(trx.action));
+
+         ds >> trx.contract;
+         ds >> trx.action;
+         ds >> trx.authorization;
+
+         ds >> trx.data;      
+
+         return ds;
+      } 
 
 
 /**
