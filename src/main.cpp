@@ -1916,16 +1916,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         uint256 blockHash   = pPreBlockIndex->GetBlockHash();
         int32_t blockHeight = pPreBlockIndex->height;
         *spCW               = *mapForkCache[blockHash];
-        // spCW->sysParamCache = mapForkCache[blockHash]->sysParamCache;
-        // spCW->accountCache  = mapForkCache[blockHash]->accountCache;
-        // spCW->assetCache    = mapForkCache[blockHash]->assetCache;
-        // spCW->contractCache = mapForkCache[blockHash]->contractCache;
-        // spCW->delegateCache = mapForkCache[blockHash]->delegateCache;
-        // spCW->cdpCache      = mapForkCache[blockHash]->cdpCache;
-        // spCW->dexCache      = mapForkCache[blockHash]->dexCache;
-        // spCW->txReceiptCache= mapForkCache[blockHash]->txReceiptCache;
-        // spCW->txCache       = mapForkCache[blockHash]->txCache;
-        // spCW->ppCache       = mapForkCache[blockHash]->ppCache;
 
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n", blockHeight, blockHash.GetHex());
     } else {
@@ -1958,28 +1948,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     if (forkChainTipFound) {
         *spForkCW = *mapForkCache[forkChainTipBlockHash];
-        // spForkCW->sysParamCache  = mapForkCache[forkChainTipBlockHash]->sysParamCache;
-        // spForkCW->accountCache   = mapForkCache[forkChainTipBlockHash]->accountCache;
-        // spForkCW->assetCache     = mapForkCache[forkChainTipBlockHash]->assetCache;
-        // spForkCW->contractCache  = mapForkCache[forkChainTipBlockHash]->contractCache;
-        // spForkCW->delegateCache  = mapForkCache[forkChainTipBlockHash]->delegateCache;
-        // spForkCW->cdpCache       = mapForkCache[forkChainTipBlockHash]->cdpCache;
-        // spForkCW->dexCache       = mapForkCache[forkChainTipBlockHash]->dexCache;
-        // spForkCW->txReceiptCache = mapForkCache[forkChainTipBlockHash]->txReceiptCache;
-        // spForkCW->txCache        = mapForkCache[forkChainTipBlockHash]->txCache;
-        // spForkCW->ppCache        = mapForkCache[forkChainTipBlockHash]->ppCache;
     } else {
         *spForkCW = *spCW;
-        // spForkCW->sysParamCache  = spCW->sysParamCache;
-        // spForkCW->accountCache   = spCW->accountCache;
-        // spForkCW->assetCache     = spCW->assetCache;
-        // spForkCW->contractCache  = spCW->contractCache;
-        // spForkCW->delegateCache  = spCW->delegateCache;
-        // spForkCW->cdpCache       = spCW->cdpCache;
-        // spForkCW->dexCache       = spCW->dexCache;
-        // spForkCW->txReceiptCache = spCW->txReceiptCache;
-        // spForkCW->txCache        = spCW->txCache;
-        // spForkCW->ppCache        = spCW->ppCache;
     }
 
     uint256 forkChainBestBlockHash   = spForkCW->accountCache.GetBestBlock();
@@ -2001,56 +1971,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
             pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
         }
-    }
-
-    // Verify reward transaction
-    if (!VerifyRewardTx(&block, *spForkCW, true)) {
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : failed to verify pos transaction, block hash=%s",
-                        block.GetHash().GetHex()), REJECT_INVALID, "bad-pos-tx");
-    }
-
-    // Verify reward value
-    CAccount delegateAccount;
-    if (!spForkCW->accountCache.GetAccount(block.vptx[0]->txUid, delegateAccount)) {
-        assert(0);
-    }
-
-    // TODO: Fees
-    // if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
-    //     auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
-    //     uint64_t llValidReward = block.GetFees() - block.GetFuel();
-    //     if (pRewardTx->reward != llValidReward) {
-    //         LogPrint("ERROR", "ProcessForkedChain() : block height:%u, block fee:%lld, block fuel:%u\n",
-    //                  block.GetHeight(), block.GetFees(), block.GetFuel());
-    //         return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-    //                          pRewardTx->reward, llValidReward), REJECT_INVALID, "bad-reward-amount");
-    //     }
-    // } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-    //     auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
-    //     uint64_t llValidReward = block.GetFees() - block.GetFuel();
-    //     if (pRewardTx->reward != llValidReward) {
-    //         return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase reward amount(actual=%d vs valid=%d)",
-    //                          pRewardTx->reward, llValidReward), REJECT_INVALID, "bad-reward-amount");
-    //     }
-
-    //     uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
-    //     if (pRewardTx->profits != profits) {
-    //         return state.DoS(100, ERRORMSG("ProcessForkedChain() : invalid coinbase profits amount(actual=%d vs valid=%d)",
-    //                          pRewardTx->profits, profits), REJECT_INVALID, "bad-reward-amount");
-    //     }
-    // }
-
-    forkChainBestBlockHeight = mapBlockIndex[spForkCW->accountCache.GetBestBlock()]->height;
-    for (auto &item : block.vptx) {
-        // Verify height
-        if (!item->IsValidHeight(forkChainBestBlockHeight, SysCfg().GetTxCacheHeight())) {
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s beyond the scope of valid height\n ",
-                             item->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
-        }
-        // Verify duplicated transaction
-        if (spForkCW->txCache.HaveTx(item->GetHash()) != uint256())
-            return state.DoS(100, ERRORMSG("ProcessForkedChain() : txid=%s has been confirmed",
-                             item->GetHash().GetHex()), REJECT_INVALID, "duplicated-txid");
     }
 
     if (!vPreBlocks.empty()) {
@@ -2160,8 +2080,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
                              REJECT_INVALID, "incorrect-height");
         }
 
-        int64_t beginTime = GetTimeMillis();
-
         // Check timestamp against prev
         if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
             (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < GetBlockInterval(block.GetHeight())) {
@@ -2171,8 +2089,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
         // Process forked branch
         if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
-            LogPrint("INFO", "ProcessForkedChain() end: %lld ms\n", GetTimeMillis() - beginTime);
-            return state.DoS(100, ERRORMSG("AcceptBlock() : check proof of pos tx"), REJECT_INVALID, "bad-pos-tx");
+            return state.DoS(100, ERRORMSG("AcceptBlock() : failed to process forked chain"), REJECT_INVALID,
+                             "failed-to-process-forked-chain");
         }
 
         // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has been upgraded:
