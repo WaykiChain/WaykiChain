@@ -7,6 +7,8 @@
 #include "commons/SafeInt3.hpp"
 #include "tx/tx.h"
 #include "commons/util.h"
+#include "vm/luavm/lua/lua.hpp"
+#include "vm/luavm/lua/lburner.h"
 
 #define MAX_OUTPUT_COUNT 100
 
@@ -396,10 +398,12 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
     return true;
 }
 
-bool CLuaVMRunEnv::TransferAccountAsset(const vector<AssetTransfer> &transfers) {
+bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer> &transfers) {
 
     // TODO: count
+    bool ret = true;
     for (auto& transfer : transfers) {
+        bool isNewAccount = false;
         CUserID fromUid;
         if (transfer.isContractAccount) {
             fromUid = GetContractRegID();
@@ -412,7 +416,7 @@ bool CLuaVMRunEnv::TransferAccountAsset(const vector<AssetTransfer> &transfers) 
         if (!pAccountCache->GetAccount(fromUid, *pFromAccount)) {
             LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), get from_account failed! from_uid=%s, "
                      "isContractAccount=%d", transfer.toUid.ToString(), (int)transfer.isContractAccount);
-            return false;
+            ret = false; break;
         }
 
         auto pToAccount = make_shared<CAccount>();
@@ -420,11 +424,11 @@ bool CLuaVMRunEnv::TransferAccountAsset(const vector<AssetTransfer> &transfers) 
             if (!transfer.toUid.is<CKeyID>()) {
                 LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), get to_account failed! to_uid=%s",
                     transfer.toUid.ToString());
-                return false;
+                ret = false; break;
             }
             // create new user
             pToAccount = make_shared<CAccount>(transfer.toUid.get<CKeyID>());
-            // TODO: add fuel for new user
+            isNewAccount = true;
         }
 
         if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount)) {
@@ -432,14 +436,14 @@ bool CLuaVMRunEnv::TransferAccountAsset(const vector<AssetTransfer> &transfers) 
                 "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu",
                 fromUid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
                 transfer.tokenAmount);
-            return false;
+            ret = false; break;
         }
 
         if (!pToAccount->OperateBalance(transfer.tokenType, ADD_FREE, transfer.tokenAmount)) {
             LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), operate ADD_FREE in to_account failed! "
                      "to_uid=%s, symbol=%s, amount=%llu",
                      transfer.toUid.ToString(), transfer.tokenType, transfer.tokenAmount);
-            return false;
+            ret = false; break;
         }
 
         if (!pCw->accountCache.SetAccount(fromUid, *pFromAccount)) {
@@ -447,20 +451,30 @@ bool CLuaVMRunEnv::TransferAccountAsset(const vector<AssetTransfer> &transfers) 
                      "CLuaVMRunEnv::TransferAccountAsset(), save from_account failed, from_uid=%s, "
                      "isContractAccount=%d",
                      fromUid.ToString(), (int)transfer.isContractAccount);
-            return false;
+            ret = false; break;
         }
 
         if (!pCw->accountCache.SetAccount(transfer.toUid, *pToAccount)) {
             LogPrint("vm",
                      "CLuaVMRunEnv::TransferAccountAsset(), save to_account failed, to_uid=%s",
                      transfer.toUid.ToString(), (int)transfer.isContractAccount);
-            return false;
+            ret = false; break;
         }
 
         receipts.emplace_back(fromUid, transfer.toUid, transfer.tokenType, transfer.tokenAmount,
             "transfer account asset in contract");
+
+        if (isNewAccount) {
+            LUA_BurnAccount(L, FUEL_ACCOUNT_NEW, BURN_VER_R2);
+
+        } else {
+            LUA_BurnAccount(L, FUEL_ACCOUNT_OPERATE, BURN_VER_R2);
+        }
     }
-    return true;
+    if (!ret) {
+        LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
+    }
+    return ret;
 }
 
 const CRegID& CLuaVMRunEnv::GetContractRegID() {

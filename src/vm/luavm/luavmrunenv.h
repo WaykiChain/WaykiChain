@@ -22,6 +22,7 @@
 
 using namespace std;
 class CVmOperate;
+struct lua_State;
 
 struct AssetTransfer {
     bool isContractAccount; // Is contract account or tx sender' account
@@ -174,7 +175,7 @@ public:
      * @param transfers: transfer info vector
      * @return transfer success or not
      */
-    bool TransferAccountAsset(const vector<AssetTransfer> &transfers);
+    bool TransferAccountAsset(lua_State *L, const vector<AssetTransfer> &transfers);
     void InsertOutAPPOperte(const vector<uint8_t>& userId, const CAppFundOperate& source);
 
     bool GetAppUserAccount(const vector<uint8_t>& id, std::shared_ptr<CAppUserAccount>& pAppUserAccount);

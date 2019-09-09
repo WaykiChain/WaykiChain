@@ -13,6 +13,9 @@
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
 
+///////////////////////////////////////////////////////////////////////////////
+// local static functions
+
 /*
  *  //3.往函数私有栈里存运算后的结果*/
 static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultData, bool needToTruncate = true) {
@@ -1618,9 +1621,9 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     shared_ptr<CAppUserAccount> appAccount;
     uint64_t valueData = 0 ;
     int32_t len = 0;
-    LUA_BurnAccountGet(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(accountId.GetIdV(), appAccount)) {
-        valueData = appAccount->GetBcoins();
+    LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
+    if (pVmRunEnv->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
+        valueData = sptrAcc->GetBcoins();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
@@ -1722,9 +1725,9 @@ int32_t ExGetUserAppAccFundWithTagFunc(lua_State *L) {
     shared_ptr<CAppUserAccount> appAccount;
     CAppCFund fund;
     int32_t len = 0;
-    LUA_BurnAccountGet(L, FUEL_ACCOUNT_GET_FUND_TAG, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), appAccount)) {
-        if (!appAccount->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
+    LUA_BurnAccount(L, FUEL_ACCOUNT_GET_FUND_TAG, BURN_VER_R2);
+    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
+        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1897,7 +1900,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     CKeyID RecvKeyID;
     bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvKey, RecvKeyID);
     if (!bValid) {
-        LUA_BurnAccountGet(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
+        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
@@ -1906,7 +1909,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     CContractDBCache* pContractScript = pVmRunEnv->GetScriptDB();
 
     if (!pContractScript->GetContractAccount(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
-        LUA_BurnAccountGet(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
+        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }
 
@@ -2228,13 +2231,13 @@ int ExTransferAccountAssetFunc(lua_State *L) {
 
     AssetTransfer transfer;
     if (!ParseAccountAssetTransfer(L, *pVmRunEnv, transfer)) {
+        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse("ExTransferAccountAssetFunc(), parse params of TransferAccountAsset function failed");
-
     }
 
     LUA_BurnAccountOperate(L, 1, BURN_VER_R2);
 
-    if (!pVmRunEnv->TransferAccountAsset({transfer})) {
+    if (!pVmRunEnv->TransferAccountAsset(L, {transfer})) {
          return RetFalse("ExTransferAccountAssetFunc(), execute pVmRunEnv->TransferAccountAsset() failed");
     }
 
@@ -2276,18 +2279,11 @@ int ExTransferAccountAssetsFunc(lua_State *L) {
     // TODO: parse vector
     vector<AssetTransfer> transfers;
     if (!ParseAccountAssetTransfers(L, *pVmRunEnv, transfers)) {
+        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse("ExTransferAccountAssetsFunc(), parse params of TransferAccountAsset function failed");
-
     }
 
-    if (!lua_istable(L,-1)) {
-        LogPrint("vm","ExTransferAccountAssetsFunc(), transfer param must be table\n");
-        return false;
-    }
-
-    LUA_BurnAccountOperate(L, 1, BURN_VER_R2);
-
-    if (!pVmRunEnv->TransferAccountAsset(transfers)) {
+    if (!pVmRunEnv->TransferAccountAsset(L, transfers)) {
          return RetFalse("ExTransferAccountAssetsFunc(), execute pVmRunEnv->TransferAccountAsset() failed");
     }
 

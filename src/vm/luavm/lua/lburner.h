@@ -64,13 +64,13 @@ LUA_API int lua_BurnStoreGet(lua_State *L, size_t keySize, size_t dataSize, int 
 LUA_API int lua_BurnAccountOperate(lua_State *L, const char *funcName, size_t count, int version);
 #define LUA_BurnAccountOperate(L, count, version) lua_BurnAccountOperate(L, __FUNCTION__, count, version)
 
-LUA_API int lua_BurnAccountGet(lua_State *L, const char *funcName, unsigned long long fuel, int version);
-#define LUA_BurnAccountGet(L, fuel, version) lua_BurnAccountGet(L, __FUNCTION__, fuel, version)
+LUA_API int lua_BurnAccount(lua_State *L, const char *funcName, unsigned long long fuel, int version);
+#define LUA_BurnAccount(L, fuel, version) lua_BurnAccount(L, __FUNCTION__, fuel, version)
 
 LUA_API int lua_BurnFuncCall(lua_State *L, const char* funcName, unsigned long long fuel, int version);
 #define LUA_BurnFuncCall(L, fuel, version) lua_BurnFuncCall(L, __FUNCTION__, fuel, version)
 
-#define lua_BurnFuncCallTag(L, tag, fuel, version) \
+#define LUA_BurnFuncCallTag(L, tag, fuel, version) \
     lua_BurnFuncCall(L, __FUNCTION__ ## " " ## tag, fuel, version)
 
 LUA_API int lua_BurnFuncData(lua_State *L, const char *funcName, unsigned long long callFuel,

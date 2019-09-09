@@ -272,13 +272,13 @@ LUA_API int lua_BurnAccountOperate(lua_State *L, const char *funcName, size_t co
     return 1;
 }
 
-LUA_API int lua_BurnAccountGet(lua_State *L, const char *funcName, unsigned long long fuel, int version) {
+LUA_API int lua_BurnAccount(lua_State *L, const char *funcName, unsigned long long fuel, int version) {
     if (IsBurnerRuning(L) && version <= L->burnerState.version) {
         L->burnerState.fuel += fuel;
         L->burnerState.fuelAccount += fuel;
-        TraceBurning(L, "lua_BurnAccountGet", "%s, version=%d, fuel=%llu\n",
+        TraceBurning(L, "lua_BurnAccount", "%s, version=%d, fuel=%llu\n",
             funcName, version, fuel);
-        return CheckBurnedOk(L, "Burned-out lua_BurnAccountGet %s()", funcName);
+        return CheckBurnedOk(L, "Burned-out lua_BurnAccount %s()", funcName);
     }
     return 1;
 }

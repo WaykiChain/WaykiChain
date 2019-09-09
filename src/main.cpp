@@ -17,7 +17,6 @@
 #include "net.h"
 #include "tx/merkletx.h"
 #include "commons/util.h"
-#include "vm/luavm/luavmrunenv.h"
 
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
