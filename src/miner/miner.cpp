@@ -158,7 +158,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         auto pRewardTx          = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
         pRewardTx->txUid        = delegate.regid;
         pRewardTx->valid_height = pBlock->GetHeight();
-        pRewardTx->profits      = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
+        pRewardTx->inflated_bcoins= delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
 
         auto pPriceMedianTx          = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         pPriceMedianTx->txUid        = delegate.regid;
@@ -402,7 +402,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
         miningBlockInfo.totalBlockSize = totalBlockSize;
         miningBlockInfo.totalFees      = totalFees;
 
-        ((CBlockRewardTx *)pBlock->vptx[0].get())->reward = reward;
+        ((CBlockRewardTx *)pBlock->vptx[0].get())->reward_fees = reward;
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());
@@ -566,7 +566,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         miningBlockInfo.totalBlockSize = totalBlockSize;
         miningBlockInfo.totalFees      = totalFees;
 
-        ((CUCoinBlockRewardTx *)pBlock->vptx[0].get())->rewards = rewards;
+        ((CUCoinBlockRewardTx *)pBlock->vptx[0].get())->reward_fees = rewards;
 
         CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         map<CoinPricePair, uint64_t> mapMedianPricePoints;

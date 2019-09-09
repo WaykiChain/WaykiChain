@@ -25,9 +25,9 @@ bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
     } else if (-1 == index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
-        account.OperateBalance(SYMB::WICC, ADD_FREE, reward);
+        account.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees);
 
-        CReceipt receipt(nullId, txUid, SYMB::WICC, reward, "reward to miner as block is mature");
+        CReceipt receipt(nullId, txUid, SYMB::WICC, reward_fees, "reward to miner as block is mature");
         if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt})) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, set tx receipts failed!! txid=%s",
                             GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
@@ -49,7 +49,7 @@ string CBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     accountCache.GetKeyId(txUid, keyId);
 
     return strprintf("txType=%s, hash=%s, ver=%d, account=%s, keyId=%s, reward=%ld", GetTxType(nTxType),
-                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), reward);
+                     GetHash().ToString(), nVersion, txUid.ToString(), keyId.GetHex(), reward_fees);
 }
 
 Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -62,8 +62,8 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
     result.push_back(Pair("to_addr",        keyId.ToAddress()));
-    result.push_back(Pair("reward_value",   reward));
     result.push_back(Pair("valid_height",   valid_height));
+    result.push_back(Pair("reward_fees",    reward_fees));
 
     return result;
 }
@@ -86,7 +86,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // When the reward transaction is mature, update account's balances, i.e, assgin the reward values to
         // the target account.
         vector<CReceipt> receipts;
-        for (const auto &item : rewards) {
+        for (const auto &item : reward_fees) {
             uint64_t rewardAmount  = item.second;
             TokenSymbol coinSymbol = item.first;
             // FIXME: support WICC/WUSD only.
@@ -101,8 +101,8 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         }
 
         // Assign profits to the delegate's account.
-        account.OperateBalance(SYMB::WICC, ADD_FREE, profits);
-        CReceipt receipt(nullId, txUid, SYMB::WICC, profits, "inflate bcoins to miner as block is mature");
+        account.OperateBalance(SYMB::WICC, ADD_FREE, inflated_bcoins);
+        CReceipt receipt(nullId, txUid, SYMB::WICC, inflated_bcoins, "inflate bcoins to miner as block is mature");
         receipts.push_back(receipt);
 
         if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt})) {
@@ -125,14 +125,14 @@ string CUCoinBlockRewardTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    string reward;
-    for (const auto &item : rewards) {
-        reward += strprintf("%s: %lu, ", item.first, item.second);
+    string rewardStr;
+    for (const auto &item : reward_fees) {
+        rewardStr += strprintf("%s: %lu, ", item.first, item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewards=%s, profits=%llu, valid_height=%d",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), reward,
-                     profits, valid_height);
+    return strprintf("txType=%s, hash=%s, ver=%d, account=%s, addr=%s, rewards=%s, inflated_bcoins=%llu, valid_height=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), rewardStr,
+                     inflated_bcoins, valid_height);
 }
 
 Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -140,9 +140,9 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    Object reward;
-    for (const auto &item : rewards) {
-        reward.push_back(Pair(item.first, item.second));
+    Object rewards;
+    for (const auto &item : reward_fees) {
+        rewards.push_back(Pair(item.first, item.second));
     }
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
@@ -150,9 +150,9 @@ Object CUCoinBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     result.push_back(Pair("ver",            nVersion));
     result.push_back(Pair("tx_uid",         txUid.ToString()));
     result.push_back(Pair("to_addr",        keyId.ToAddress()));
-    result.push_back(Pair("reward_value",   reward));
-    result.push_back(Pair("profits",        profits));
     result.push_back(Pair("valid_height",   valid_height));
+    result.push_back(Pair("reward_fees",    rewards));
+    result.push_back(Pair("inflated_bcoins",inflated_bcoins));
 
     return result;
 }

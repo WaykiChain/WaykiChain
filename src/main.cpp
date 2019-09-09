@@ -1019,7 +1019,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             account.owner_pubkey = pubKey;
             account.regid        = regId;
 
-            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward);
+            account.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, pRewardTx->reward_fees);
 
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
@@ -1345,22 +1345,22 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Verify reward values
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
         auto pRewardTx        = (CBlockRewardTx *)block.vptx[0].get();
-        if (pRewardTx->reward != rewards.at(SYMB::WICC)) {
+        if (pRewardTx->reward_fees != rewards.at(SYMB::WICC)) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
                              "bad-reward-amount");
         }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
-        if (pRewardTx->rewards != rewards) {
+        if (pRewardTx->reward_fees != rewards) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
                              "bad-reward-amount");
         }
 
         // Verify profits
         uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
-        if (pRewardTx->profits != profits) {
+        if (pRewardTx->inflated_bcoins != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
-                             pRewardTx->profits, profits), REJECT_INVALID, "bad-reward-amount");
+                             pRewardTx->inflated_bcoins, profits), REJECT_INVALID, "bad-reward-amount");
         }
     }
 
