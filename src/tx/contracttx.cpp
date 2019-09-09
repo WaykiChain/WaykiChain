@@ -16,6 +16,19 @@
 #include "config/version.h"
 #include "vm/luavm/luavmrunenv.h"
 
+static uint64_t GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, TokenSymbol symbol) {
+    uint64_t fuelRate = tx.GetFuelRate(cw.contractCache);
+    if (fuelRate == 0)
+        return 0;
+    uint64_t minFee;
+    GetTxMinFee(tx.nTxType, height, symbol, minFee);
+    uint64_t fuelLimit = ((tx.llFees - minFee) / fuelRate) * 100;
+    if (fuelLimit > MAX_BLOCK_RUN_STEP) {
+        fuelLimit = MAX_BLOCK_RUN_STEP;
+    }
+    return fuelLimit;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CLuaContractDeployTx
 
@@ -193,13 +206,23 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
     CLuaVMRunEnv vmRunEnv;
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
-    uint64_t fuelRate = GetFuelRate(cw.contractCache);
+
+    CLuaVMContext context;
+    context.p_cw = &cw;
+    context.height = height;
+    context.p_base_tx = this;
+    context.fuel_limit = GetFuelLimit(*this, height, cw, SYMB::WICC);
+    context.transfer_symbol = SYMB::WICC;
+    context.transfer_amount = coin_amount;
+    context.p_tx_user_account = &srcAccount;
+    context.p_app_account = &desAccount;
+    context.p_contract = &contract;
 
     int64_t llTime = GetTimeMillis();
-    tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, height, cw, fuelRate, nRunStep);
-    if (!std::get<0>(ret))
+    auto pExecErr = vmRunEnv.ExecuteContract(&context, nRunStep);
+    if (pExecErr)
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
-                        GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error: " + std::get<2>(ret));
+                        GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
 
     LogPrint("vm", "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
@@ -426,11 +449,21 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
     std::shared_ptr<CBaseTx> pTx = GetNewInstance();
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
+    CLuaVMContext context;
+    context.p_cw = &cw;
+    context.height = height;
+    context.p_base_tx = this;
+    context.fuel_limit = GetFuelLimit(*this, height, cw, coin_symbol);
+    context.transfer_symbol = coin_symbol;
+    context.transfer_amount = coin_amount;
+    context.p_tx_user_account = &srcAccount;
+    context.p_app_account = &desAccount;
+    context.p_contract = &contract;
     int64_t llTime = GetTimeMillis();
-    tuple<bool, uint64_t, string> ret = vmRunEnv.ExecuteContract(pTx, height, cw, fuelRate, nRunStep);
-    if (!std::get<0>(ret))
+    auto pExecErr = vmRunEnv.ExecuteContract(&context, nRunStep);
+    if (pExecErr)
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
-            GetHash().GetHex(), std::get<2>(ret)), UPDATE_ACCOUNT_FAIL, "run-script-error: " + std::get<2>(ret));
+            GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
 
     receipts.insert(receipts.end(), vmRunEnv.GetReceipts().begin(), vmRunEnv.GetReceipts().end());
 

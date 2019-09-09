@@ -24,6 +24,20 @@ using namespace std;
 class CVmOperate;
 struct lua_State;
 
+class CLuaVMContext {
+public:
+    CCacheWrapper *p_cw;
+    uint32_t height;
+	CBaseTx *p_base_tx;
+    uint64_t fuel_limit;
+    TokenSymbol transfer_symbol; // amount of tx user transfer to contract account
+    uint64_t transfer_amount; // amount of tx user transfer to contract account
+    CAccount *p_tx_user_account;
+    CAccount *p_app_account;
+    CUniversalContract *p_contract;
+    string arguments;
+};
+
 struct AssetTransfer {
     bool isContractAccount; // Is contract account or tx sender' account
     CUserID  toUid;         // to address of the transfer
@@ -33,18 +47,11 @@ struct AssetTransfer {
 
 class CLuaVMRunEnv {
 private:
+    CLuaVMContext *p_context;
 	/**
 	 * Run the script object
 	 */
 	std::shared_ptr<CLuaVM> pLua;
-	/**
-	 * current run the tx
-	 */
-	std::shared_ptr<CBaseTx> pBaseTx;
-	/**
-	 * the block height
-	 */
-	uint32_t runtimeHeight;
 	/**
 	 * vm before the app account state
 	 */
@@ -54,9 +61,6 @@ private:
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
 
-    CCacheWrapper   *pCw;
-	CAccountDBCache *pAccountCache;
-	CContractDBCache *pContractCache;
     vector<CReceipt> receipts;
 
 	vector<CVmOperate> vmOperateOutput;   //保存操作结果
@@ -64,14 +68,7 @@ private:
 
     map<vector<uint8_t>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
 private:
-    /**
-     * @brief The initialization function
-     * @param Tx: run the tx's contact
-     * @param pCwIn: Cache wrapper holds all db cache
-     * @param height: run the Environment the block's height
-     * @return : check the the tx and account is Legal true is legal false is illegal
-     */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CCacheWrapper &cwIn, int32_t height);
+    bool Init();
     /**
      * @brief check action
      * @param operates: run the script return the code,check the code
@@ -111,17 +108,12 @@ public:
     vector<CReceipt> GetReceipts() const { return receipts; }
 
     /**
-     * @brief  start to run the script
-     * @param Tx: run the tx
-     * @param accountCache: the second argument
-     * @param height: block height
-     * @param nBurnFactor: Executing a step script to spending
-     * @return: tuple<bool,uint64_t,string>  bool represent the script run success
-     * uint64_t if the script run success Run the script calls the money ,string represent run the
-     * failed's  Reason
+     * execute contract
+     * @param pContextIn: run context
+     * @param fuel: burned fuel amount
+     * @return: nullptr if run success, else error string
      */
-    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& tx, int32_t height, CCacheWrapper& cw,
-                                                       uint64_t nBurnFactor, uint64_t& uRunStep);
+    std::shared_ptr<string> ExecuteContract(CLuaVMContext *pContextIn, uint64_t& uRunStep);
 
     /**
      * @brief just for test
@@ -129,7 +121,7 @@ public:
      */
     //	shared_ptr<vector<CVmOperate> > GetOperate() const;
     const CRegID& GetContractRegID();
-    const CRegID& GetTxAccount();
+    const CRegID& GetTxUserRegid();
     uint64_t GetValue() const;
     const string& GetTxContract();
     CCacheWrapper* GetCw();
@@ -149,7 +141,7 @@ public:
     void InsertOutAPPOperte(const vector<uint8_t>& userId, const CAppFundOperate& source);
 
     bool GetAppUserAccount(const vector<uint8_t>& id, std::shared_ptr<CAppUserAccount>& pAppUserAccount);
-    bool CheckAppAcctOperate(CLuaContractInvokeTx* tx);
+    bool CheckAppAcctOperate();
     void SetCheckAccount(bool bCheckAccount);
 };
 
