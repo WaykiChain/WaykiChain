@@ -135,7 +135,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "signtxraw"              && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "getchainstate"          && n > 0) ConvertTo<int32_t>(params[0]);
+    if (strMethod == "getchaininfo"          && n > 0) ConvertTo<int32_t>(params[0]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);

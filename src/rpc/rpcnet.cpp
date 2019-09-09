@@ -391,14 +391,13 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     return obj;
 }
 
-Value getchainstate(const Array& params, bool fHelp) {
+Value getchaininfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "getchainstate \"num\"\n"
+            "getchaininfo \"num\"\n"
             "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
-            "1.num   (numeric, required) The number of the most recent blocks, number is no more "
-            "than 1000.\n"
+            "1.num   (numeric, required) The most _num_ recent blocks (shall not exceed 1000)\n"
             "\nResult:\n"
             "{\n"
             "  \"blocktime\": n, (numeric) the time of each block\n"
@@ -407,8 +406,8 @@ Value getchainstate(const Array& params, bool fHelp) {
             "  \"miner\": n, (string) RegId of the miner of each block\n"
             "}\n"
             "\nExamples:\n" +
-            HelpExampleCli("getchainstate", "5") + "\nAs json rpc call\n" +
-            HelpExampleRpc("getchainstate", "5"));
+            HelpExampleCli("getchaininfo", "5") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getchaininfo", "5"));
 
     RPCTypeCheck(params, list_of(int_type));
 
