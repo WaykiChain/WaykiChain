@@ -11,7 +11,7 @@ public:
     // uint64_t action;
     // std::vector<uint64_t> permissions;
     // std::vector<char> data;
-    vector<wasm::CInlineTransaction> inlinetransactions;
+    vector<wasm::inline_transaction> inlinetransactions;
 
     // uint64_t amount;
      TokenSymbol symbol;
@@ -64,7 +64,7 @@ public:
 
 public:
     void DispatchInlineTransaction( wasm::inline_transaction_trace& trace,
-                                    wasm::CInlineTransaction& trx,
+                                    wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
                                      CValidationState &state,

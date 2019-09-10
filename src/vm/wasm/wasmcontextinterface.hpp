@@ -20,7 +20,7 @@ namespace wasm {
         ~CWasmContextInterface() {}
 
     public:
-        virtual void ExecuteInline( CInlineTransaction trx ) {}
+        virtual void ExecuteInline( inline_transaction trx ) {}
         virtual bool HasRecipient( uint64_t account ) const { return true; }
         virtual void RequireRecipient( uint64_t recipient ) {}
         virtual uint64_t Receiver() { return 0; }

@@ -41,7 +41,7 @@ namespace wasm {
     class CWasmContext : public CWasmContextInterface {
 
     public:
-        CWasmContext( CWasmContractTx &ctrl, CInlineTransaction &t, CCacheWrapper &cw, CValidationState &s,
+        CWasmContext( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
                       uint32_t depth = 0 )
                 : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
             reset_console();
@@ -73,7 +73,7 @@ namespace wasm {
 
 //virtual
     public:
-        void ExecuteInline( CInlineTransaction t );
+        void ExecuteInline( inline_transaction t );
         bool HasRecipient( uint64_t account ) const;
         void RequireRecipient( uint64_t recipient );
         uint64_t Receiver() { return receiver; }
@@ -98,14 +98,14 @@ namespace wasm {
     public:
         uint64_t receiver;
 
-        CInlineTransaction &trx;
+        inline_transaction &trx;
         CWasmContractTx &control_trx;
         CCacheWrapper &cache;
         CValidationState &state;
 
         uint32_t recurse_depth;
         vector <uint64_t> notified;
-        vector <CInlineTransaction> inline_transactions;
+        vector <inline_transaction> inline_transactions;
 
         CWasmInterface wasmInterface;
         map <pair<uint64_t, uint64_t>, nativeHandler> native_handlers;

@@ -38,10 +38,10 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
 }
 
     
-static inline void to_variant( const wasm::CInlineTransaction &t, json_spirit::Value &v ) {
+static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v ) {
     //v = json_spirit::Value(t.to_string());
 
-    //std::cout << "CInlineTransaction" << std::endl;
+    //std::cout << "inline_transaction" << std::endl;
 
     json_spirit::Object obj;
 
@@ -65,7 +65,7 @@ static inline void to_variant( const wasm::CInlineTransaction &t, json_spirit::V
     pCdMan->pContractCache->GetContract(wasm::Name2RegID(t.contract), contract);
 
     if (contract.abi.size() > 0) {
-        //std::cout << "CInlineTransaction abi" << std::endl;
+        //std::cout << "inline_transaction abi" << std::endl;
         val = wasm::abi_serializer::unpack(contract.abi, wasm::name(t.action).to_string(), t.data,
                                            max_serialization_time);
     } else
@@ -185,7 +185,7 @@ bool CWasmContractTx::CheckTx( int nHeight, CCacheWrapper &cw, CValidationState 
 }
 
 // bool CWasmContractTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cache, CValidationState &state) {
-//     CInlineTransaction trx;
+//     inline_transaction trx;
 //     trx.contract = contract;
 //     trx.action = action;
 //     trx.data = data;
@@ -198,7 +198,7 @@ bool CWasmContractTx::CheckTx( int nHeight, CCacheWrapper &cw, CValidationState 
 
 //     wasm::transaction_trace trx_trace;
 
-//     CInlineTransactionsQueue queue;
+//     inline_transactionsQueue queue;
 //     queue.pushBack(trx);
 
 //     try {
@@ -243,7 +243,7 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         }
 
-        std::cout << "CWasmContractTx ExecuteTx" <<std::endl;
+        //std::cout << "CWasmContractTx ExecuteTx" <<std::endl;
         json_spirit::Value v;
         to_variant(trx_trace, v);
         state.SetReturn(json_spirit::write(v));
@@ -257,7 +257,7 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
 }
 
 void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace &trace,
-                                                 wasm::CInlineTransaction &trx,
+                                                 wasm::inline_transaction &trx,
                                                  uint64_t receiver,
                                                  CCacheWrapper &cache,
                                                  CValidationState &state,

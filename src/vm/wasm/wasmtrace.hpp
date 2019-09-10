@@ -8,7 +8,7 @@ namespace wasm {
     struct base_trace {
         uint256 trx_id;
         uint64_t receiver;
-        CInlineTransaction trx;
+        inline_transaction trx;
         //uint32_t block_height;
         //uint32_t block_time;
 

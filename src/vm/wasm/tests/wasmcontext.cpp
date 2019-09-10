@@ -33,7 +33,7 @@ void CWasmContext::ExecuteOne(){
 
 }
 
-void CWasmContext::ExecuteInline(CInlineTransaction t){
+void CWasmContext::ExecuteInline(inline_transaction t){
     //wasm_assert check the code and authorization
     queue.pushBack(t);
 }

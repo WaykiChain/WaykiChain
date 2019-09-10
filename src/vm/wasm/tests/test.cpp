@@ -114,13 +114,13 @@ int main(int argc, char** argv) {
     CWasmInterface wasmInterface;
     wasmInterface.Initialize(vmType::eosvm); 
     CWasmDbWrapper cache;
-    CInlineTransactionsQueue queue;
+    inline_transactionsQueue queue;
 
     name receiver = name("wasm.token"); 
     name contract = name("wasm.token");
     name action = name("create");
 
-    CInlineTransaction trx;
+    inline_transaction trx;
     trx.contract = contract.value;
     trx.action = action.value;
 
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     //trx.data = pack(args);
     trx.data = pack(std::tuple(issuer, maximum_supply));
     queue.pushBack(trx);
-    //CInlineTransaction tx = queue.queue.front();
+    //inline_transaction tx = queue.queue.front();
 
     CWasmContext wasmContextCreate(queue, cache);
 

@@ -24,11 +24,11 @@ namespace wasm {
 
     };
 
-    struct CInlineTransaction {
+    struct inline_transaction {
 
 // public:
-// 	CInlineTransaction(){};
-// 	~CInlineTransaction(){};
+// 	inline_transaction(){};
+// 	~inline_transaction(){};
 
     public:
         uint64_t contract;

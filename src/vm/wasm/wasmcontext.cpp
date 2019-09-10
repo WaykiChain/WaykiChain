@@ -48,7 +48,7 @@ namespace wasm {
     }
 
 
-    void CWasmContext::ExecuteInline( CInlineTransaction t ) {
+    void CWasmContext::ExecuteInline( inline_transaction t ) {
         //wasm_assert check the code and authorization
         inline_transactions.push_back(t);
         //queue.pushBack(t);

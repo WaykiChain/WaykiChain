@@ -491,7 +491,7 @@ namespace wasm {
             // EOS_ASSERT( data_len < context.control.get_global_properties().configuration.max_inline_action_size, inline_action_too_big,
             //           "inline action too big" );
 
-            CInlineTransaction trx = wasm::unpack<CInlineTransaction>((const char *) data, data_len);
+            inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
             //wasmContext.ExecuteInline(trx);
             pWasmContext->ExecuteInline(trx);
             //std::cout << "send_inline" << std::endl;

@@ -80,21 +80,21 @@ public:
 // class CWasmContext;
 // using nativeHandler = std::function<void(CWasmContext&)>;
 
-class CInlineTransactionsQueue {
+class inline_transactionsQueue {
 
 public:
-	CInlineTransactionsQueue(){
+	inline_transactionsQueue(){
 		trxNumber = 0;
 	};
-	~CInlineTransactionsQueue(){};
+	~inline_transactionsQueue(){};
 
-	CInlineTransaction popFront(){
-		CInlineTransaction trx = queue.front();
+	inline_transaction popFront(){
+		inline_transaction trx = queue.front();
 		queue.pop();
 		return  trx;
 	}
 
-	bool pushBack(CInlineTransaction trx){
+	bool pushBack(inline_transaction trx){
 		trxNumber ++;
 		queue.push(trx);
 		return true;
@@ -105,7 +105,7 @@ public:
     }
 public:
 	uint32_t trxNumber;
-	std::queue<CInlineTransaction> queue;
+	std::queue<inline_transaction> queue;
 };
 
 
@@ -114,7 +114,7 @@ class CWasmContext : public CWasmContextInterface {
 
 public:
 	//CWasmContext(){};
-	CWasmContext(CInlineTransactionsQueue& q, CWasmDbWrapper& c)
+	CWasmContext(inline_transactionsQueue& q, CWasmDbWrapper& c)
 	:queue(q)
 	,db(c)
     {
@@ -140,7 +140,7 @@ public:
     // nativeHandler* FindNativeHandle(uint64_t receiver, uint64_t action);
 
 public:
-    void ExecuteInline(CInlineTransaction t);
+    void ExecuteInline(inline_transaction t);
     bool HasRecipient( uint64_t account ) const;
     void RequireRecipient( uint64_t recipient );
 
@@ -159,10 +159,10 @@ public:
 	uint64_t receiver;
     vector<uint64_t> notified;
 
-    CInlineTransactionsQueue& queue;
+    inline_transactionsQueue& queue;
 	CWasmDbWrapper& db;
 
-    CInlineTransaction trx;
+    inline_transaction trx;
 
     //CWasmInterface wasmInterface;
     // map< pair<uint64_t,uint64_t>, nativeHandler>   nativeHandlers;

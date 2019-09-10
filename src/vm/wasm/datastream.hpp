@@ -1489,7 +1489,7 @@ namespace wasm {
       *  @return DataStream& - Reference to the datastream
       */
       template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-      DataStream& operator<<(DataStream& ds, const CInlineTransaction& trx) {
+      DataStream& operator<<(DataStream& ds, const inline_transaction& trx) {
 
         // ds.write( (const char*)&trx.contract, sizeof(trx.contract));
         // ds.write( (const char*)&trx.action, sizeof(trx.action));
@@ -1511,7 +1511,7 @@ namespace wasm {
       *  @return DataStream& - Reference to the datastream
       */
       template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-      DataStream& operator>>(DataStream& ds, CInlineTransaction& trx) {
+      DataStream& operator>>(DataStream& ds, inline_transaction& trx) {
 
          // ds.read((char*)&trx.contract, sizeof(trx.contract));
          // ds.read((char*)&trx.action, sizeof(trx.action));
