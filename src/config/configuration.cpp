@@ -277,7 +277,7 @@ string G_CONFIG_TABLE::initFcoinOwnerPubKey_testNet = "03307f4f5e59b89a8e0487ff0
 string G_CONFIG_TABLE::initFcoinOwnerPubkey_regNet  = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
 
 // Public Key for DEX order-matching service
-string G_CONFIG_TABLE::dexMatchPubKey_mainNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
+string G_CONFIG_TABLE::dexMatchPubKey_mainNet = "03c89c66ee32e26ee2c1bf624dc01d6d3e8eb9a09d0a0c86383944871054c1fcc6";
 string G_CONFIG_TABLE::dexMatchPubKey_testNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
 string G_CONFIG_TABLE::dexMatchPubKey_regTest = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
 
