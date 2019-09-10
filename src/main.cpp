@@ -468,6 +468,7 @@ int32_t CMerkleTx::GetDepthInMainChain(CBlockIndex *&pindexRet) const {
 int32_t CMerkleTx::GetBlocksToMaturity() const {
     if (!pTx->IsBlockRewardTx())
         return 0;
+
     return max(0, (BLOCK_REWARD_MATURITY + 1) - GetDepthInMainChain());
 }
 

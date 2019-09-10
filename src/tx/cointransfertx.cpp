@@ -109,6 +109,7 @@ static shared_ptr<string> CheckCoinSymbol(CCacheWrapper &cw, const TokenSymbol &
 /**################################ Universal Coin Transfer ########################################**/
 
 bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     // TODO: fees in WICC/WGRT/WUSD
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
