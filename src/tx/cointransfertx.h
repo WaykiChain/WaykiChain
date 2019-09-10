@@ -17,6 +17,12 @@ public:
 
 public:
     CBaseCoinTransferTx() : CBaseTx(BCOIN_TRANSFER_TX) {}
+    CBaseCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, const int32_t validHeightIn,
+                        const uint64_t coinAmount, const uint64_t feesIn, const string &memoIn)
+        : CBaseTx(BCOIN_TRANSFER_TX, txUidIn, validHeightIn, SYMB::WICC, feesIn),
+          toUid(toUidIn),
+          coin_amount(coinAmount),
+          memo(memoIn) {}
     ~CBaseCoinTransferTx() {}
 
     IMPLEMENT_SERIALIZE(

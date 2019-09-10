@@ -392,14 +392,21 @@ Value submitsendtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
     }
 
-    string memo = params.size() == 5 ? params[4].get_str() : "";
+    string memo    = params.size() == 5 ? params[4].get_str() : "";
+    int32_t height = chainActive.Height();
+    std::shared_ptr<CBaseTx> pBaseTx;
 
-    CCoinTransferTx tx(sendUserId, recvUserId, chainActive.Height(), coinSymbol, coinAmount, feeSymbol, fee, memo);
+    if (GetFeatureForkVersion(height) == MAJOR_VER_R1) {
+        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, coinAmount, fee, memo);
+    } else {  // MAJOR_VER_R2
+        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, coinSymbol, coinAmount, feeSymbol,
+                                                    fee, memo);
+    }
 
-    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
+    if (!pWalletMain->Sign(sendKeyId, pBaseTx->ComputeSignatureHash(), pBaseTx->signature))
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
 
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
+    std::tuple<bool, string> ret = pWalletMain->CommitTx(pBaseTx.get());
     if (!std::get<0>(ret)) {
         throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
