@@ -452,7 +452,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
     uint64_t table = wasm::name(params[1].get_str()).value;
 
-    uint64_t numbers = 10;
+    uint64_t numbers = default_query_rows;
     if (params.size() > 2)
         numbers = std::atoi(params[2].get_str().data());
 
@@ -467,7 +467,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     if (params.size() > 3) {
         lastKey = FromHex(params[3].get_str());
     }
-    std::cout << "rpccall gettablerowwasmcontracttx numbers:" << numbers << std::endl;
+    //std::cout << "rpccall gettablerowwasmcontracttx numbers:" << numbers << std::endl;
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
