@@ -39,9 +39,7 @@ string HelpRequiringPassphrase() {
 
 void EnsureWalletIsUnlocked() {
     if (pWalletMain->IsLocked())
-        throw JSONRPCError(
-            RPC_WALLET_UNLOCK_NEEDED,
-            "Error: Please enter the wallet passphrase with walletpassphrase first.");
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Please enter the wallet passphrase with walletpassphrase first.");
 }
 
 Value getnewaddr(const Array& params, bool fHelp) {
@@ -307,6 +305,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
             HelpExampleRpc("submitsendtx",
                            "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                            "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, WaykiChain!\""));
+
+    EnsureWalletIsUnlocked();
 
     CKeyID sendKeyId, recvKeyId;
     if (!GetKeyId(params[0].get_str(), sendKeyId))
