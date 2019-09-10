@@ -743,7 +743,6 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
                 pa->nTxType, GetTxType(pa->nTxType)));
             break;
     }
-
 }
 
 

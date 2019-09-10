@@ -83,6 +83,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 // class CAssetIssueTx
 
 bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
 
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -263,9 +264,8 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
-
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
@@ -353,7 +353,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
                     return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner uid=%s does not exist.",
                         newAccount.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
                 if (!newAccount.IsRegistered())
-                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registerd! new uid=%s",
+                    return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registered! new uid=%s",
                         newAccount.ToString()), REJECT_INVALID, "account-not-registered");
                 if (newOwnerUid.type() == typeid(CRegID) && !newOwnerUid.get<CRegID>().IsMature(height))
                     return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner regid is not matured! new uid=%s",
@@ -361,7 +361,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
 
                 asset.owner_uid = newAccount.regid;
             } else
-                LogPrint("INFO", "CAssetUpdateTx::ExecuteTx, the new owner uid=%s equal the old one=%s",
+                LogPrint("INFO", "CAssetUpdateTx::ExecuteTx, the new owner uid=%s equal the old one=%s\n",
                     newOwnerUid.ToString(), txUid.ToString());
             break;
         }

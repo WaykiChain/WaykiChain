@@ -83,6 +83,7 @@ Object CDEXBuyLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDEXBuyLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -170,6 +171,7 @@ Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDEXSellLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -257,6 +259,7 @@ Object CDEXBuyMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDEXBuyMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -340,6 +343,7 @@ Object CDEXSellMarketOrderTx::ToJson(const CAccountDBCache &accountCache) const 
 }
 
 bool CDEXSellMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -422,6 +426,7 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDEXCancelOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -531,6 +536,7 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 

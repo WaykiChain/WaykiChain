@@ -361,7 +361,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
     uint64_t coinAmount    = cmCoin.amount * CoinUnitTypeTable.at(cmCoin.unit);
     TokenSymbol feeSymbol  = cmFee.symbol;
     uint64_t fee           = cmFee.amount * CoinUnitTypeTable.at(cmFee.unit);
-    uint64_t totalAmount = coinAmount;
+    uint64_t totalAmount   = coinAmount;
     if (coinSymbol == feeSymbol) {
         totalAmount += fee;
     }
