@@ -9,6 +9,7 @@
 #include "json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
+// #include "wasm/wasmvariant.hpp"
 #include "wasm/wasmconfig.hpp"
 
 namespace wasm {
@@ -79,19 +80,19 @@ namespace wasm {
         v = wasm::variant(t.to_string());
     }
 
-    static inline void to_variant( const wasm::permission &t, wasm::variant &v ) {
+    // static inline void to_variant( const wasm::permission &t, wasm::variant &v ) {
 
-        wasm::Object obj;
+    //     wasm::Object obj;
 
-        wasm::variant val;
-        to_variant(wasm::name(t.account), val);
-        json_spirit::Config::add(obj, "account", val);
+    //     wasm::variant val;
+    //     to_variant(wasm::name(t.account), val);
+    //     json_spirit::Config::add(obj, "account", val);
 
-        to_variant(wasm::name(t.perm), val);
-        json_spirit::Config::add(obj, "permission", val);
+    //     to_variant(wasm::name(t.perm), val);
+    //     json_spirit::Config::add(obj, "permission", val);
 
-        v = obj;
-    }
+    //     v = obj;
+    // }
 
 
     static inline void to_variant( const wasm::bytes &t, wasm::variant &v ) {
