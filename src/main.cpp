@@ -568,10 +568,6 @@ bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block) {
         return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
     }
 
-    // Check the header
-    // if (!CheckProofOfWork(block.GetHash(), block.GetBits()))
-    //     return ERRORMSG("ReadBlockFromDisk : Errors in block header");
-
     return true;
 }
 
@@ -1327,7 +1323,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
-                        fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+                     fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 
@@ -1957,9 +1953,38 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     LogPrint("INFO", "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
 
+
+    {
+        // Set base to null and rebuild memory cache.
+        spForkCW->ppCache.Reset();
+
+        CBlockIndex *pBlockIndex = mapBlockIndex[forkChainBestBlockHash];
+        CBlock block;
+        if (pBlockIndex) {
+            if (!ReadBlockFromDisk(pBlockIndex, block))
+                return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
+                                pBlockIndex->GetBlockHash().ToString());
+
+            spForkCW->ppCache.SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
+        }
+
+        // TODO: parameterize 11
+        int32_t cacheHeight = 11;
+        while (pBlockIndex && cacheHeight-- > 0) {
+            if (!ReadBlockFromDisk(pBlockIndex, block))
+                return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
+                                pBlockIndex->GetBlockHash().ToString());
+
+            if (!spForkCW->ppCache.AddBlockToCache(block))
+                return ERRORMSG("ProcessForkedChain() : failed to add block [%d]: %s to price point memory cache",
+                                pBlockIndex->height, pBlockIndex->GetBlockHash().ToString());
+
+            pBlockIndex = pBlockIndex->pprev;
+        }
+    }
+
     // Connect all of the forked chain's blocks.
-    vector<CBlock>::reverse_iterator rIter = vPreBlocks.rbegin();
-    for (; rIter != vPreBlocks.rend(); ++rIter) {
+    for (auto rIter = vPreBlocks.rbegin(); rIter != vPreBlocks.rend(); ++rIter) {
         LogPrint("INFO", "ProcessForkedChain() : ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),
                  rIter->GetHash().GetHex());
 

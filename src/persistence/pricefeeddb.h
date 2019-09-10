@@ -58,6 +58,7 @@ public:
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
+    void Reset();
 
 private:
     bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);
