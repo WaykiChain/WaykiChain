@@ -348,59 +348,34 @@ Value submitsendtx(const Array& params, bool fHelp) {
                      ? CUserID(recvRegId)
                      : CUserID(recvKeyId);
 
-    ComboMoney cmCoin;
-    if (!ParseRpcInputMoney(params[2].get_str(), cmCoin, SYMB::WICC))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coin ComboMoney format error");
+    ComboMoney cmCoin = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+
+    ComboMoney cmFee = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
+
+    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(cmCoin.symbol);
+    if (pSymbolErr)
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
 
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
-    ComboMoney cmFee = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
-
-    TokenSymbol coinSymbol = cmCoin.symbol;
-    uint64_t coinAmount    = cmCoin.amount * CoinUnitTypeTable.at(cmCoin.unit);
-    TokenSymbol feeSymbol  = cmFee.symbol;
-    uint64_t fee           = cmFee.amount * CoinUnitTypeTable.at(cmFee.unit);
-    uint64_t totalAmount   = coinAmount;
-    if (coinSymbol == feeSymbol) {
-        totalAmount += fee;
-    }
-
-    if (coinSymbol == SYMB::WICC) {
-        if (account.GetToken(SYMB::WICC).free_amount < totalAmount)
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough bcoins");
-    } else if (coinSymbol == SYMB::WUSD) {
-        if (account.GetToken(SYMB::WUSD).free_amount < totalAmount)
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough coins");
-    } else if (coinSymbol == SYMB::WGRT) {
-        if (account.GetToken(SYMB::WGRT).free_amount < totalAmount)
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough coins");
-    } else {
-        throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
-    }
-
-    if (feeSymbol == SYMB::WICC) {
-        if (account.GetToken(SYMB::WICC).free_amount < fee)
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough bcoins");
-    } else if (feeSymbol == SYMB::WUSD) {
-        if (account.GetToken(SYMB::WUSD).free_amount < fee)
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough scoins");
-    } else if (feeSymbol == SYMB::WGRT) {
-        if (account.GetToken(SYMB::WGRT).free_amount < fee)
-            throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Sendaddress does not have enough fcoins");
-    } else {
-        throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
-    }
+    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
     string memo    = params.size() == 5 ? params[4].get_str() : "";
     int32_t height = chainActive.Height();
     std::shared_ptr<CBaseTx> pBaseTx;
 
     if (GetFeatureForkVersion(height) == MAJOR_VER_R1) {
-        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, coinAmount, fee, memo);
+        if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
+            throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
+                "height=%u! current height=%u", SysCfg().GetFeatureForkHeight(), height));
+
+        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetSawiAmount(),
+            cmFee.GetSawiAmount(), memo);
     } else {  // MAJOR_VER_R2
-        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, coinSymbol, coinAmount, feeSymbol,
-                                                    fee, memo);
+        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
+            cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
     }
 
     if (!pWalletMain->Sign(sendKeyId, pBaseTx->ComputeSignatureHash(), pBaseTx->signature))
