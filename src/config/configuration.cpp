@@ -272,7 +272,7 @@ string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa
 
 // TODO: replace public key.
 // Public key for initial fund coin owner
-string G_CONFIG_TABLE::initFcoinOwnerPubKey_mainNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
+string G_CONFIG_TABLE::initFcoinOwnerPubKey_mainNet = "028593c9bf1fee77085f5164ba5a8c385e7c3710de2fd8fa1d00748a1469b2176f";
 string G_CONFIG_TABLE::initFcoinOwnerPubKey_testNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
 string G_CONFIG_TABLE::initFcoinOwnerPubkey_regNet  = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
 
