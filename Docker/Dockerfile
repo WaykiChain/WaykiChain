@@ -1,6 +1,6 @@
 FROM phusion/baseimage:0.9.18
 MAINTAINER coredev@waykichainhk.com
-ARG branch='release'
+ARG branch=$SOURCE_BRANCH
 ARG debug='-debug'
 
 # Install prrequisite components
