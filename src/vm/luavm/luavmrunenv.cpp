@@ -60,7 +60,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
     }
 
     LogPrint("vm", "isCheckAccount: %d\n", isCheckAccount);
-    // CheckAppAcctOperate only support to check the WICC symbol
+    // CheckAppAcctOperate only support to check when the transfer symbol is WICC
     if (isCheckAccount && p_context->transfer_symbol == SYMB::WICC && !CheckAppAcctOperate()) {
             return make_shared<string>("VmScript CheckAppAcct Failed");
     }
@@ -162,7 +162,7 @@ bool CLuaVMRunEnv::CheckOperate() {
 }
 
 bool CLuaVMRunEnv::CheckAppAcctOperate() {
-    assert(p_context->transfer_symbol == SYMB::WICC && "Only support WICC symbol");
+    assert(p_context->transfer_symbol == SYMB::WICC);
     int64_t addValue(0), minusValue(0), sumValue(0);
     for (auto vOpItem : mapAppFundOperate) {
         for (auto appFund : vOpItem.second) {
@@ -438,7 +438,7 @@ void CLuaVMRunEnv::InsertOutAPPOperte(const vector<uint8_t>& userId,
 
 
 bool CLuaVMRunEnv::CheckOperateAccountLimit() {
-    if (vmOperateOutput.size() + transfer_count < MAX_OUTPUT_COUNT) {
+    if (vmOperateOutput.size() + transfer_count > MAX_OUTPUT_COUNT) {
         LogPrint("vm", "[ERR]CLuaVMRunEnv::CheckOperateAccountLimit(), operate account count=%d excceed "
             "the max limit=%d", vmOperateOutput.size() + transfer_count, MAX_OUTPUT_COUNT);
         return false;

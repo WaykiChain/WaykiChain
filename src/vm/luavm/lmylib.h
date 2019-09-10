@@ -220,7 +220,7 @@ int32_t ExLuaPrint(lua_State *L);
 
 /**
  * TransferAccountAsset - lua api
- * bool TransferAccountAsset( tramsferTable )
+ * boolean TransferAccountAsset( tramsferTable )
  * @param tramsferTable:          transfer param table
  * {
  *   isContractAccount: (boolean, required), Is contract account or tx sender' account
@@ -235,7 +235,7 @@ int32_t ExTransferAccountAssetFunc(lua_State *L);
 
 /**
  * TransferAccountAssets - lua api
- * bool TransferAccountAssets( tramsferTables )
+ * boolean TransferAccountAssets( tramsferTables )
  * @param tramsferTables:          array of transfer param table
  * [
  *   {
