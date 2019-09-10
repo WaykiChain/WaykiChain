@@ -1,6 +1,6 @@
 # Version
-* 2019-02-21
-* v1.2.5
+* 2019-09-10
+* v2.0.0
 
 # Run in docker
 Run waykichain coind inside a docker container!
