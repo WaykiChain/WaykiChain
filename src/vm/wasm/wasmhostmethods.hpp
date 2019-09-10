@@ -122,7 +122,8 @@ namespace wasm {
             //std::cout << "wasm_assert:" << msg << std::endl;
             if (!test) {
                 //std::cout << msg << std::endl;
-                WASM_ASSERT(false, WASM_ASSERT_FAIL, "wasm-assert-fail", "wasm-assert-fail:%s", msg)
+                //WASM_ASSERT(false, WASM_ASSERT_FAIL, "wasm-assert-fail", "wasm-assert-fail:%s", msg)
+                WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg)
             }
         }
 
@@ -132,7 +133,8 @@ namespace wasm {
                 //std::cout << code << std::endl;
                 std::ostringstream o;
                 o << code;
-                WASM_ASSERT(false, WASM_ASSERT_FAIL, "wasm-assert-code", o.str().data())
+                //WASM_ASSERT(false, WASM_ASSERT_FAIL, "wasm-assert-code", o.str().data())
+                WASM_ASSERT(false, wasm_assert_exception, o.str().data())
             }
         }
 

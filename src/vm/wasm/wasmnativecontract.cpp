@@ -12,20 +12,33 @@ namespace wasm {
     void WasmNativeSetcode( CWasmContext &context ) {
 
         CAccount sender;
-        WASM_ASSERT(context.cache.accountCache.GetAccount(context.control_trx.txUid, sender), UPDATE_ACCOUNT_FAIL,
-                    "bad-read-accountdb",
+        // WASM_ASSERT(context.cache.accountCache.GetAccount(context.control_trx.txUid, sender), UPDATE_ACCOUNT_FAIL,
+        //             "bad-read-accountdb",
+        //             "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
+        //             context.control_trx.txUid.ToString().data())
+
+        WASM_ASSERT(context.cache.accountCache.GetAccount(context.control_trx.txUid, sender), account_operation_exception,
                     "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
                     context.control_trx.txUid.ToString().data())
 
 
+        // WASM_ASSERT(sender.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, context.control_trx.llFees),
+        //             UPDATE_ACCOUNT_FAIL, "operate-account-failed",
+        //             "wasmnativecontract.Setcode, operate account failed ,regId=%s",
+        //             context.control_trx.txUid.ToString().data())
+
         WASM_ASSERT(sender.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, context.control_trx.llFees),
-                    UPDATE_ACCOUNT_FAIL, "operate-account-failed",
+                    account_operation_exception,
                     "wasmnativecontract.Setcode, operate account failed ,regId=%s",
                     context.control_trx.txUid.ToString().data())
 
 
-        WASM_ASSERT(context.cache.accountCache.SetAccount(CUserID(sender.keyid), sender), UPDATE_ACCOUNT_FAIL,
-                    "bad-save-accountdb",
+
+        // WASM_ASSERT(context.cache.accountCache.SetAccount(CUserID(sender.keyid), sender), UPDATE_ACCOUNT_FAIL,
+        //             "bad-save-accountdb",
+        //             "wasmnativecontract.Setcode, save account info error")
+
+        WASM_ASSERT(context.cache.accountCache.SetAccount(CUserID(sender.keyid), sender), account_operation_exception,
                     "wasmnativecontract.Setcode, save account info error")
 
          using SetCode = std::tuple<uint64_t, string, string, string>;
@@ -51,9 +64,11 @@ namespace wasm {
         if (abi.size() > 0) contract.abi = abi;
         if (memo.size() > 0) contract.memo = memo;
 
-        WASM_ASSERT(context.cache.contractCache.SaveContract(contractRegId, contract), UPDATE_ACCOUNT_FAIL,
-                    "bad-save-scriptdb",
-                    "wasmnativecontract.Setcode, save account info error")
+        // WASM_ASSERT(context.cache.contractCache.SaveContract(contractRegId, contract), UPDATE_ACCOUNT_FAIL,
+        //             "bad-save-scriptdb",
+        //             "wasmnativecontract.Setcode, save account info error")
+        WASM_ASSERT(context.cache.contractCache.SaveContract(contractRegId, contract), account_operation_exception,
+                     "wasmnativecontract.Setcode, save account info error")
 
         // CUniversalContract contractTest;
         // context.cache.contractCache.GetContract(contractRegId, contractTest);

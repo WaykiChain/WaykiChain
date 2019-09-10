@@ -248,8 +248,8 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
         to_variant(trx_trace, v);
         state.SetReturn(json_spirit::write(v));
 
-    } catch (CException &e) {
-        return state.DoS(100, ERRORMSG(e.errMsg.data()), e.errCode, e.errMsg);
+    } catch (wasm::exception &e) {
+        return state.DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
     }
 
     //cache.save(trace)

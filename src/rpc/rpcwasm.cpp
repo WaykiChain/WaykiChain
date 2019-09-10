@@ -114,8 +114,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         code_v.insert(code_v.begin(), code.begin(), code.end());
         CWasmInterface wasmInterface;
         wasmInterface.validate(code_v);
-    } catch (wasm::CException &e) {
-        throw JSONRPCError(WASM_ASSERT_FAIL, e.errMsg);
+    } catch (wasm::exception &e) {
+        throw JSONRPCError(e.code(), e.detail());
     }
 
 
@@ -142,8 +142,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         abi_def abi_d;
         from_variant(abiJson, abi_d);
         wasm::abi_serializer abis(abi_d, max_serialization_time);
-    } catch (wasm::CException &e) {
-        throw JSONRPCError(ABI_PARSE_FAIL, e.errMsg);
+    } catch (wasm::exception &e) {
+        throw JSONRPCError(e.code(), e.detail());
     }
 
     string memo;
@@ -231,7 +231,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     json_spirit::Value abi_v;
     json_spirit::read_string(std::get<1>(ret), abi_v);
 
-    //obj.push_back(Pair("ret", std::get<1>(ret)));
+    obj.push_back(Pair("ret", std::get<1>(ret)));
     json_spirit::Config::add(obj, "result",  abi_v);
 
     return obj;
@@ -321,9 +321,9 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
             data = wasm::abi_serializer::pack(contractCode.abi, wasm::name(action).to_string(), arguments,
                                               max_serialization_time);
             //std::cout << "rpccall wasmcontracttx action data:" << ToHex(data) << std::endl;
-        } catch (wasm::CException &e) {
+        } catch (wasm::exception &e) {
 
-            throw JSONRPCError(e.errCode, e.errMsg);
+            throw JSONRPCError(e.code(), e.detail());
         }
 
     else {
@@ -503,8 +503,8 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         //object.push_back(Pair("last_key", ToHex(last_key, "")));
         object.push_back(Pair("more", pGetter->has_more));
 
-    } catch (CException &e) {
-        throw JSONRPCError(ABI_PARSE_FAIL, e.errMsg);
+    } catch (wasm::exception &e) {
+        throw JSONRPCError( e.code(), e.detail() );
     }
 
     return object;

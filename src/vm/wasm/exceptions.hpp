@@ -2,57 +2,66 @@
 
 #include <cstdint>
 #include <string>
-// #include "commons/tinyformat.h"
 
 using namespace std;
 
-namespace wasm {
+#define WASM_EXCEPTION_BUFFER_LENGTH 1024
 
-    static const uint8_t WASM_ASSERT_FAIL = 0x71;
-    static const uint8_t ABI_PARSE_FAIL = 0x72;
-    static const uint8_t ABI_SERIALIZATION_DEADLINE_EXCEPTION = 0x73;
-    static const uint8_t UNSUPPORTED_ABI_VERSION_EXCEPTION = 0x74;
-    static const uint8_t INVALID_TYPE_INSIDE_ABI = 0x75;
-    static const uint8_t DUPLICATE_ABI_DEF_EXCEPTION = 0x76;
-    static const uint8_t ABI_CIRCULAR_DEF_EXCEPTION = 0x77;
-    static const uint8_t TRANSACTION_EXCEPTION = 0x78;
-    static const uint8_t UNPACK_EXCEPTION = 0x79;
+#define WASM_ASSERT( expr, exc_type, ... )    \
+   if ( !( expr ) ) {                     \
+       char buf[WASM_EXCEPTION_BUFFER_LENGTH];                        \
+       sprintf( buf,  __VA_ARGS__ );          \
+       throw exc_type( buf ) ; }
 
-    class CException {
-    public:
-        uint64_t errCode;
-        string errMsg;
-        string errShort;
+#define WASM_THROW( exc_type, ... )    \
+       WASM_ASSERT( false, exc_type,  __VA_ARGS__ )
 
-        CException( uint64_t code, string msg, string s ) : errCode(code), errMsg(msg), errShort(s) {}
-    };
-
-
-#define WASM_ASSERT( expr, errCode, errShort, ... )    \
-   if( !( expr ) )  {                                  \
-       char buf[1024];                               \
-       sprintf( buf,  __VA_ARGS__ );            \
-       throw CException( errCode, buf, errShort) ; }
-
-#define WASM_THROW( errCode, errShort, ... )    \
-       WASM_ASSERT( false, errCode, errShort, __VA_ARGS__ )
-
-
-#define WASM_CAPTURE_AND_RETHROW( ... )                                \
-   catch( CException& e ) {                                            \
-       throw CException( ABI_PARSE_FAIL, e.errMsg, "WASM_ABI_PARSE_FAIL"); \
-    } catch( ... ) {                                                     \
-         char buf[1024];                                                 \
-         sprintf( buf,  __VA_ARGS__ );                                   \
-         throw CException( ABI_PARSE_FAIL, buf, "WASM_ABI_PARSE_FAIL" );  \
-    }
-
-
-#define WASM_RETHROW_EXCEPTIONS( errCode, errShort, ... ) \
+#define WASM_RETHROW_EXCEPTIONS( exc_type, ... )          \
     catch( ... ) {                                        \
-         char buf[1024];                                  \
+         char buf[WASM_EXCEPTION_BUFFER_LENGTH];                                  \
          sprintf( buf,  __VA_ARGS__ );                    \
-         throw CException( errCode, buf, errShort );      \
+         throw exc_type(buf);                             \
     }
 
-}//wasm
+#define WASM_CAPTURE_AND_RETHROW( ... )       \
+   catch( exception& e ) {                    \
+       throw abi_parse_exception( e.detail() ); \
+    } catch( ... ) {                          \
+         char buf[WASM_EXCEPTION_BUFFER_LENGTH];                      \
+         sprintf( buf,  __VA_ARGS__ );        \
+         throw abi_parse_exception( buf );    \
+    }
+
+
+namespace wasm { 
+   struct exception : public std::exception {
+      virtual const char* what()const throw()=0;
+      virtual const char* detail()const throw()=0;
+      virtual uint32_t code()const throw()=0;
+   };
+}
+  
+
+#define WASM_DECLARE_EXCEPTION(name, _code, _what)                                \
+   struct name : public wasm::exception {                                         \
+      name(const char* msg) : msg(msg) {}                                         \
+      virtual const char* what()const throw() { return _what; }                   \
+      virtual const char* detail()const throw() { return msg; }                   \
+      virtual uint32_t code()const throw() { return _code; }                      \
+      const char* msg;                                                            \
+   };
+
+namespace wasm { 
+   WASM_DECLARE_EXCEPTION( wasm_assert_exception,                 5000000, "wasm assert exception" )
+   WASM_DECLARE_EXCEPTION( abi_parse_exception,                   5000001, "abi parse exception" )
+   WASM_DECLARE_EXCEPTION( abi_serialization_deadline_exception,  5000002, "abi serialization deadline exception" )
+   WASM_DECLARE_EXCEPTION( unsupport_abi_version_exception,       5000003, "unsupport abi version exception" )
+   WASM_DECLARE_EXCEPTION( invalid_type_inside_abi,               5000004, "invalid type inside abi" )
+   WASM_DECLARE_EXCEPTION( duplicate_abi_def_exception,           5000005, "duplicate abi def exception" )
+   WASM_DECLARE_EXCEPTION( abi_circular_def_exception,            5000006, "abi circular def exception" )
+   WASM_DECLARE_EXCEPTION( transaction_exception,                 5000007, "transaction exception" )
+   WASM_DECLARE_EXCEPTION( unpack_exception,                      5000008, "unpack exception" )
+   WASM_DECLARE_EXCEPTION( account_operation_exception,           5000009, "account operation exception" )
+   WASM_DECLARE_EXCEPTION( wasm_exception,                        5000010, "wasm exception" )
+
+} //wasm

@@ -105,8 +105,13 @@ namespace wasm {
             ExecuteOne(trace.inline_traces.back());
         }
 
+        // WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
+        //             TRANSACTION_EXCEPTION, "transaction_exception",
+        //             "max inline transaction depth per transaction reached");
+
+
         WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
-                    TRANSACTION_EXCEPTION, "transaction_exception",
+                    transaction_exception,
                     "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {
@@ -149,8 +154,8 @@ namespace wasm {
                         wasmInterface.Execute(code, this);
                 }
             }
-        } catch (CException &e) {
-            throw e;
+        } catch (wasm::exception &e) {
+            throw wasm_exception(e.detail());
         }
 
         trace.trx_id = control_trx.GetHash();

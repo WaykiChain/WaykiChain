@@ -543,7 +543,8 @@ namespace wasm {
             }
         }
 
-        WASM_RETHROW_EXCEPTIONS(ABI_PARSE_FAIL, "ABI_PARSE_FAIL", "abi parse fail ")
+        //WASM_RETHROW_EXCEPTIONS(ABI_PARSE_FAIL, "ABI_PARSE_FAIL", "abi parse fail ")
+        WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "abi parse fail ")
     }
 
 

@@ -550,8 +550,8 @@ public:
     uint8_t GetRejectCode() const { return rejectCode; }
     string GetRejectReason() const { return rejectReason; }
 
-    void SetReturn(string r) {ret = r;}
-    string GetReturn() {return ret;}
+    void SetReturn(std::string r) {ret = r;}
+    std::string GetReturn() {return ret;}
 };
 
 /** The currently best known chain of headers (some of which may be invalid). */
