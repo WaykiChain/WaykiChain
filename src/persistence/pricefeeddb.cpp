@@ -132,6 +132,11 @@ void CPricePointMemCache::Flush() {
     latestBlockMedianPricePoints.clear();
 }
 
+void CPricePointMemCache::Reset() {
+    pBase = nullptr;
+    latestBlockMedianPricePoints.clear();
+}
+
 bool CPricePointMemCache::GetBlockUserPrices(const CoinPricePair &coinPricePair, set<int32_t> &expired,
                                              BlockUserPriceMap &blockUserPrices) {
     const auto &iter = mapCoinPricePointCache.find(coinPricePair);
