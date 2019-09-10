@@ -187,7 +187,7 @@ public:
             } else {
                 // Got an valid element.
                 auto ret = keys.emplace(key);
-                assert(ret.second);  // TODO: throw error
+                if (!ret.second) throw runtime_error("alloc new cache item failed");
 
                 ++count;
             }
@@ -218,7 +218,7 @@ public:
             CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
             ds >> value;
             auto ret = elements.emplace(key, value);
-            assert(ret.second);  // TODO: throw error
+            if (!ret.second) throw runtime_error("alloc new cache item failed");
         }
 
         return true;
@@ -255,7 +255,7 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
+                if (!ret.second) throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -294,7 +294,7 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
+                if (!ret.second) throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -329,7 +329,7 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
+                if (!ret.second) throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -370,8 +370,8 @@ public:
 
     DBNameType GetDbNameType() const { return dbNameType; }
 
-    shared_ptr<leveldb::Iterator> NewIterator() {
-        return shared_ptr<leveldb::Iterator>(db.NewIterator());
+    std::shared_ptr<leveldb::Iterator> NewIterator() {
+        return std::shared_ptr<leveldb::Iterator>(db.NewIterator());
     }
 private:
     DBNameType dbNameType;
@@ -492,7 +492,7 @@ public:
         if (it == mapData.end()) {
             auto emptyValue = db_util::MakeEmptyValue<ValueType>();
             auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            assert(newRet.second); // TODO: if false then throw error
+            if (!newRet.second) throw runtime_error("alloc new cache item failed");
             it = newRet.first;
         }
         AddOpLog(key, it->second);
@@ -508,7 +508,7 @@ public:
         if (it == mapData.end()) {
             auto emptyValue = db_util::MakeEmptyValue<ValueType>();
             auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            assert(newRet.second); // TODO: if false then throw error
+            if (!newRet.second) throw runtime_error("alloc new cache item failed");
             it = newRet.first;
         }
         dbOpLog.Set(key, it->second);
@@ -590,33 +590,26 @@ public:
         Clear();
     }
 
-    bool UndoData(const CDbOpLog &dbOpLog) {
+    void UndoData(const CDbOpLog &dbOpLog) {
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
         mapData[key] = value;
-        return true;
     }
 
     bool UndoDatas() {
         if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (dbOpLogs != nullptr) {
-                for (auto &dbOpLog : *dbOpLogs) {
-                    if (!UndoData(dbOpLog)) return false;
+            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (pDbOpLogs != nullptr) {
+                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
+                    UndoData(*it);
                 }
             }
             return true;
+        } else {
+            assert(false && "must set the pDbOpLogMap first");
+            return false;
         }
-        return false;
-    }
-
-    bool UndoData(CDBOpLogMap &dbOpLogMap) {
-        const CDbOpLogs *dbOpLogs = dbOpLogMap.GetDbOpLogsPtr(PREFIX_TYPE);
-        for (auto &dbOpLog : *dbOpLogs) {
-            if (!UndoData(dbOpLog)) return false;
-        }
-        return true;
     }
 
     void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
@@ -648,7 +641,7 @@ private:
             if (baseIt != pBase->mapData.end()) {
                 // the found key-value add to current mapData
                 auto newRet = mapData.emplace(key, baseIt->second);
-                assert(newRet.second); // TODO: throw error
+                if (!newRet.second) throw runtime_error("alloc new cache item failed");
                 return newRet.first;
             }
         } else if (pDbAccess != NULL) {
@@ -656,7 +649,7 @@ private:
             auto pDbValue = db_util::MakeEmptyValue<ValueType>();
             if (pDbAccess->GetData(PREFIX_TYPE, key, *pDbValue)) {
                 auto newRet = mapData.emplace(key, *pDbValue);
-                assert(newRet.second); // TODO: throw error
+                if (!newRet.second) throw runtime_error("alloc new cache item failed");
                 return newRet.first;
             }
         }
@@ -942,16 +935,17 @@ public:
 
     bool UndoDatas() {
         if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (dbOpLogs != nullptr) {
-                // TODO: rbegin()
-                for (auto &dbOpLog : *dbOpLogs) {
-                    UndoData(dbOpLog);
+            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (pDbOpLogs != nullptr) {
+                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
+                    UndoData(*it);
                 }
             }
             return true;
+        } else {
+            assert(false && "must set the pDbOpLogMap first");
+            return false;
         }
-        return false;
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
