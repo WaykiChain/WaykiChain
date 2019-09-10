@@ -247,22 +247,20 @@ CBaseParams& SysCfg() {
     static shared_ptr<CBaseParams> pParams;
 
     if (!pParams.get()) {
-        string netType = SysCfg().GetArg("-nettype", "main");
-        netType = ::tolower(netType);
+        string netType = CBaseParams::GetArg("-nettype", "main");
+        std::transform(netType.begin(), netType.end(), netType.begin(), ::tolower);
 
-        if (netType == "main") {            //MAIN_NET
+        if (netType == "main") {  // MAIN_NET
             pParams = std::make_shared<CMainParams>();
-
-        } else if (netType == "test") {     //TEST_NET
+        } else if (netType == "test") {  // TEST_NET
             pParams = std::make_shared<CTestNetParams>();
-
-        } else if (netType == "regtest" {   //REGTEST_NET
+        } else if (netType == "regtest") {   //REGTEST_NET
             pParams = std::make_shared<CRegTestParams>();
-
         } else {
             throw runtime_error("Given nettype not in (main|test|regtest) \n");
         }
     }
+
     assert(pParams.get());
     return *pParams.get();
 }
