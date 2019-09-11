@@ -881,7 +881,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             "\nArguments:\n"
             "1.\"addr\":            (string, required) tx owner address\n"
             "2.\"asset_symbol\":    (string, required) asset symbol, E.g WICC | WUSD\n"
-            "3.\"update_type\":     (string, required) asset update type, can be (owner_uid, name, mint_amount)\n"
+            "3.\"update_type\":     (string, required) asset update type, can be (owner_addr, name, mint_amount)\n"
             "4.\"update_value\":    (string, required) update the value specified by update_type, value format see the submitassetissuetx\n"
             "5.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
@@ -990,8 +990,8 @@ extern Value getassets(const Array& params, bool fHelp) {
 
     Array assetArray;
     for (auto &item : pGetter->data_list) {
-        const auto &asset = item.second;
-        assetArray.push_back(asset.ToJson());
+        const CAsset &asset = item.second;
+        assetArray.push_back(AssetToJson(*pCdMan->pAccountCache, asset));
     }
 
     Object obj;

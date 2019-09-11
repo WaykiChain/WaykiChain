@@ -8,6 +8,8 @@
 
 #include "tx.h"
 
+Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset);
+
 /**
  * Issue a new asset onto Chain
  */
@@ -75,8 +77,6 @@ public:
         string,  // name
         uint64_t // mint_amount
     > ValueType;
-
-    static const EnumTypeMap<UpdateType, string> ASSET_UPDATE_TYPE_NAMES;
 private:
     UpdateType type; // update type
     ValueType value; // update value
@@ -93,8 +93,6 @@ public:
     void Set(const string &name);
 
     void Set(const uint64_t &mintAmount);
-
-    const CUserID& GetOwnerUid() { return boost::get<CUserID>(value);}
 
     UpdateType GetType() const { return type; }
 
@@ -164,9 +162,9 @@ public:
 
     string ValueToString() const;
 
-    string ToString() const;
+    string ToString(const CAccountDBCache &accountCache) const;
 
-    Object ToJson() const;
+    Object ToJson(const CAccountDBCache &accountCache) const;
 };
 
 /**

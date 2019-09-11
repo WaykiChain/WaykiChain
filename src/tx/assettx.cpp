@@ -10,9 +10,21 @@
 #include "entities/receipt.h"
 #include "persistence/assetdb.h"
 
-
 static const string ASSET_ACTION_ISSUE = "issue";
 static const string ASSET_ACTION_UPDATE = "update";
+
+Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
+    Object result;
+    CKeyID ownerKeyid;
+    accountCache.GetKeyId(asset.owner_uid, ownerKeyid);
+    result.push_back(Pair("asset_symbol",   asset.symbol));
+    result.push_back(Pair("owner_uid",      asset.owner_uid.ToString()));
+    result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
+    result.push_back(Pair("asset_name",     asset.name));
+    result.push_back(Pair("total_supply",   asset.total_supply));
+    result.push_back(Pair("mintable",       asset.mintable));
+    return result;
+}
 
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
     CAccount &txAccount, vector<CReceipt> &receipts) {
@@ -175,24 +187,31 @@ string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
 
 Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    container::Append(result, asset.ToJson());
+    container::Append(result, AssetToJson(accountCache, asset));
     return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CAssetUpdateData
 
-const EnumTypeMap<CAssetUpdateData::UpdateType, string> CAssetUpdateData::ASSET_UPDATE_TYPE_NAMES = {
-    {OWNER_UID, "owner_uid"},
-    {NAME, "name"},
-    {MINT_AMOUNT, "mint_amount"}
+static const EnumTypeMap<CAssetUpdateData::UpdateType, string> ASSET_UPDATE_TYPE_NAMES = {
+    {CAssetUpdateData::OWNER_UID,   "owner_uid"},
+    {CAssetUpdateData::NAME,        "name"},
+    {CAssetUpdateData::MINT_AMOUNT, "mint_amount"}
+};
+
+static const unordered_map<string, CAssetUpdateData::UpdateType> ASSET_UPDATE_PARSE_MAP = {
+    {"owner_addr",  CAssetUpdateData::OWNER_UID},
+    {"name",        CAssetUpdateData::NAME},
+    {"mint_amount", CAssetUpdateData::MINT_AMOUNT}
 };
 
 shared_ptr<CAssetUpdateData::UpdateType> CAssetUpdateData::ParseUpdateType(const string& str) {
-    if (str.empty()) return nullptr;
-    for (auto item : ASSET_UPDATE_TYPE_NAMES) {
-        if (item.second == str)
-            return make_shared<UpdateType>(item.first);
+    if (!str.empty()) {
+        auto it = ASSET_UPDATE_PARSE_MAP.find(str);
+        if (it != ASSET_UPDATE_PARSE_MAP.end()) {
+            return make_shared<UpdateType>(it->second);
+        }
     }
     return nullptr;
 }
@@ -229,16 +248,21 @@ string CAssetUpdateData::ValueToString() const {
     return s;
 }
 
-string CAssetUpdateData::ToString() const {
+string CAssetUpdateData::ToString(const CAccountDBCache &accountCache) const {
     string s = "update_type=" + GetUpdateTypeName(type);
     s += ", update_value=" + ValueToString();
     return s;
 }
 
-Object CAssetUpdateData::ToJson() const {
+Object CAssetUpdateData::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
     result.push_back(Pair("update_value",  ValueToString()));
+    if (type == OWNER_UID) {
+        CKeyID ownerKeyid;
+        accountCache.GetKeyId(get<CUserID>(), ownerKeyid);
+        result.push_back(Pair("owner_addr",   ownerKeyid.ToAddress()));
+    }
     return result;
 }
 
@@ -250,15 +274,14 @@ string CAssetUpdateTx::ToString(CAccountDBCache &accountCache) {
         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%ld, valid_height=%d, asset_symbol=%s, "
         "update_data=%s",
         GetTxType(nTxType), GetHash().ToString(), nVersion, fee_symbol, txUid.ToString(), llFees, valid_height,
-        asset_symbol, update_data.ToString());
+        asset_symbol, update_data.ToString(accountCache));
 }
 
 Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("asset_symbol",   asset_symbol));
-    Object dataObj = update_data.ToJson();
-    result.insert(result.end(), dataObj.begin(), dataObj.end());
+    container::Append(result, update_data.ToJson(accountCache));
 
     return result;
 }
