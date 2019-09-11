@@ -379,18 +379,20 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 }
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    // global account
-    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WGRT, 0);
+    // Stablecoin Global Reserve Account with its initial reseve creation
+    auto
+    pTx = std::make_shared<CCoinRewardTx>(  CNullID(), nStableCoinGenesisHeight,
+                                            SYMB::WUSD, kFundCoinGenesisInitialReserveAmount * COIN);
     pTx->nVersion = INIT_TX_VERSION;
     vptx.push_back(pTx);
 
-    // Initial FundCoin Owner's account
+    // FundCoin Genesis Account with the total FundCoin release creation
     pTx = std::make_shared<CCoinRewardTx>(  CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))),
                                             nStableCoinGenesisHeight,
-                                            SYMB::WGRT, kTotalFundCoinGenesisReleaseAmount * COIN);
+                                            SYMB::WGRT, kFundCoinGenesisTotalReleaseAmount * COIN);
     vptx.push_back(pTx);
 
-    // Order Matching Service's account
+    // DEX Order Matching Service Account
     pTx = std::make_shared<CCoinRewardTx>(  CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))),
                                             nStableCoinGenesisHeight,
                                             SYMB::WGRT, 0);
