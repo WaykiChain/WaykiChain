@@ -28,9 +28,9 @@ static bool GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, CValida
         return state.DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"),
             REJECT_INVALID, "get-min-fee-failed");
     if (tx.llFees <= minFee) {
-        return state.DoS(100, ERRORMSG("GetFuelLimit, fees is too small to invoke contract"),
+        return state.DoS(
+            100, ERRORMSG("GetFuelLimit, fees is too small(%llu vs %llu) to invoke contract", tx.llFees, minFee),
             REJECT_INVALID, "bad-tx-fee-toosmall");
-
     }
     fuelLimit = ((tx.llFees - minFee) / fuelRate) * 100;
     if (fuelLimit > MAX_BLOCK_RUN_STEP) {
