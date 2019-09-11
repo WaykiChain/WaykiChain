@@ -294,7 +294,7 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
         }
     }
 
-    int64_t fee    = RPC_PARAM::GetWiccFee(params, 3, LCONTRACT_DEPLOY_TX);
+    int64_t fee    = RPC_PARAM::GetWiccFee(params, 2, LCONTRACT_DEPLOY_TX);
     int32_t height = params.size() > 3 ? params[3].get_int() : chainActive.Height();
 
     CKeyID keyId;
