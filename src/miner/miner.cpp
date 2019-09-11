@@ -116,12 +116,11 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
 }
 
 static bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
-                        CRegID &delegate) {
+                               CRegID &delegate) {
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
-    uint32_t miner = slot % IniCfg().GetTotalDelegateNum();
-    delegate       = delegateList[miner];
-    LogPrint("DEBUG", "currentTime=%lld, slot=%d, miner=%d, regId=%s\n", currentTime, slot, miner,
-             delegate.ToString());
+    uint32_t index = slot % IniCfg().GetTotalDelegateNum();
+    delegate       = delegateList[index];
+    LogPrint("DEBUG", "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.ToString());
 
     return true;
 }

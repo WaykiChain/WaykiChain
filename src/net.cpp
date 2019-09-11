@@ -303,7 +303,7 @@ static string GetSystemInfo() {
 
 bool GetMyExternalIP(CNetAddr& ipRet) {
     // TODO: replace the default server.
-    string reportIp = SysCfg().GetArg("-reportip", "wicc.me/ip/report");
+    string reportIp = SysCfg().GetArg("-reportip", "wiccip.me/ip");
     auto pos        = reportIp.find("/");
     assert(pos != std::string::npos);
     string host     = reportIp.substr(0, pos);
@@ -317,8 +317,7 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     }
 
     stringstream stream;
-    stream << "POST " << uri;
-    stream << " HTTP/1.1\r\n";
+    stream << "POST" << " " << uri << " " << "HTTP/1.1\r\n";
     stream << "Host: " << host << "\r\n";
     stream << "Content-Type: application/json\r\n";
     stream << "Content-Length: " << content.length() << "\r\n";
