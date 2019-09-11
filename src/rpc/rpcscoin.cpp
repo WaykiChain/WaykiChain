@@ -869,7 +869,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     int32_t validHeight = chainActive.Height();
     CAccount ownerAccount;
     CRegID *pOwnerRegid;
-    if (!txAccount.IsMyUid(assetOwnerUid)) {
+    if (txAccount.IsMyUid(assetOwnerUid)) {
         pOwnerRegid = &txAccount.regid;
     } else {
         ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, assetOwnerUid);
