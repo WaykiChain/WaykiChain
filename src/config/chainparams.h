@@ -32,20 +32,20 @@ struct CDNSSeedData {
 };
 
 typedef enum {
-    MAIN_NET,          //!< MAIN_NET
-    TEST_NET,          //!< TESTNET
-    REGTEST_NET,       //!< REGTEST_NET
-    MAX_NETWORK_TYPES  //!< MAX_NETWORK_TYPES
+    MAIN_NET,           //!< MAIN_NET
+    TEST_NET,           //!< TESTNET
+    REGTEST_NET,        //!< REGTEST_NET
+    MAX_NETWORK_TYPES   //!< MAX_NETWORK_TYPES
 } NET_TYPE;
 
 typedef enum {
-    PUBKEY_ADDRESS,   //!< PUBKEY_ADDRESS
-    SCRIPT_ADDRESS, //!< SCRIPT_ADDRESS
-    SECRET_KEY,       //!< SECRET_KEY
-    EXT_PUBLIC_KEY,   //!< EXT_PUBLIC_KEY
-    EXT_SECRET_KEY,   //!< EXT_SECRET_KEY
-    ACC_ADDRESS,      //!< ACC_ADDRESS
-    MAX_BASE58_TYPES  //!< MAX_BASE58_TYPES
+    PUBKEY_ADDRESS,     //!< PUBKEY_ADDRESS
+    SCRIPT_ADDRESS,     //!< SCRIPT_ADDRESS
+    SECRET_KEY,         //!< SECRET_KEY
+    EXT_PUBLIC_KEY,     //!< EXT_PUBLIC_KEY
+    EXT_SECRET_KEY,     //!< EXT_SECRET_KEY
+    ACC_ADDRESS,        //!< ACC_ADDRESS
+    MAX_BASE58_TYPES    //!< MAX_BASE58_TYPES
 } Base58Type;
 
 /**

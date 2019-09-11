@@ -963,7 +963,7 @@ Value submittxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
             "submittxraw \"rawtx\" \n"
-            "\nsubmit raw transaction\n"
+            "\nsubmit raw transaction (hex format)\n"
             "\nArguments:\n"
             "1.\"rawtx\":   (string, required) The raw transaction\n"
             "\nExamples:\n" +
