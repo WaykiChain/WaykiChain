@@ -19,10 +19,6 @@
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 
-
-                                                                                                   \
-
-
 extern CWallet *pWalletMain;
 extern void SetMinerStatus(bool bStatus);
 //////////////////////////////////////////////////////////////////////////////

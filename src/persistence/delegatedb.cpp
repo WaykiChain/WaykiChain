@@ -38,9 +38,8 @@ bool CDelegateDBCache::GetTopDelegateList(vector<CRegID> &delegatesList) {
     }
 
     if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
-        LogPrint("ERROR", "CDelegateDBCache::GetTopDelegateList, only got %lu delegates(need %u)\n", delegateRegIds.size(),
-                 IniCfg().GetTotalDelegateNum());
-        return false;
+        LogPrint("INFO", "WARNING: CDelegateDBCache::GetTopDelegateList, only got %lu delegates(need %u)\n",
+                 delegateRegIds.size(), IniCfg().GetTotalDelegateNum());
     }
 
     delegatesList = delegateRegIds;
