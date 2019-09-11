@@ -22,12 +22,11 @@ class CRegID;
 
 enum AccountIDType {
     NULL_ID = 0,
-    NICK_ID,
-    REG_ID,
-    ADDRESS
+    NICK_ID = 1,
+    REG_ID  = 2,
+    ADDRESS = 3,
 };
 
-typedef tuple<AccountIDType, string> ComboAccountID;
 typedef vector<uint8_t> UnsignedCharArray;
 typedef CRegID CTxCord;
 
@@ -38,20 +37,10 @@ public:
 };
 
 class CRegID {
-private:
-    uint32_t height;
-    uint16_t index;
-    mutable vector<uint8_t> vRegID;
-
-    void SetRegID(string strRegID);
-    void SetRegIDByCompact(const vector<uint8_t> &vIn);
-
-    friend CUserID;
-
 public:
-    CRegID(string strRegID);
+    CRegID(const string &strRegID);
     CRegID(const vector<uint8_t> &vIn);
-    CRegID(uint32_t height = 0, uint16_t index = 0);
+    CRegID(const uint32_t height = 0, const uint16_t index = 0);
 
     const vector<uint8_t> &GetRegIdRaw() const;
     string ToRawString() const;
@@ -62,12 +51,8 @@ public:
 
     bool IsMature(uint32_t curHeight) const;
 
-    bool operator==(const CRegID &other) const {
-        return (this->height == other.height && this->index == other.index);
-    }
-    bool operator!=(const CRegID &other) const {
-        return (this->height != other.height || this->index != other.index);
-    }
+    bool operator==(const CRegID &other) const { return (this->height == other.height && this->index == other.index); }
+    bool operator!=(const CRegID &other) const { return (this->height != other.height || this->index != other.index); }
     bool operator<(const CRegID &other) const { return (this->height < other.height || this->index < other.index); }
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
@@ -86,12 +71,17 @@ public:
             vRegID.insert(vRegID.end(), BEGIN(index), END(index));
         }
     )
-};
 
-/**
- * tx cord, locate a tx with its block height and index
- */
-typedef CRegID CTxCord;
+private:
+    uint32_t height;
+    uint16_t index;
+    mutable vector<uint8_t> vRegID;
+
+    void SetRegID(string strRegID);
+    void SetRegIDByCompact(const vector<uint8_t> &vIn);
+
+    friend CUserID;
+};
 
 class CNickID {
 private:
