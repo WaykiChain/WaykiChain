@@ -436,7 +436,7 @@ TokenSymbol RPC_PARAM::GetOrderCoinSymbol(const Value &jsonValue) {
 }
 
 TokenSymbol RPC_PARAM::GetOrderAssetSymbol(const Value &jsonValue) {
-    // TODO: check asset symbol for oders
+    // TODO: check asset symbol for orders
     return jsonValue.get_str();
 }
 
