@@ -57,22 +57,22 @@ private:
     /* initial public key */
     static vector<string> initPubKey_mainNet;
     static vector<string> initPubKey_testNet;
-    static vector<string> initPubkey_regTest;
+    static vector<string> initPubkey_regtestNet;
 
     /* delegate public key */
     static vector<string> delegatePubKey_mainNet;
     static vector<string> delegatePubKey_testNet;
-    static vector<string> delegatePubKey_regTest;
+    static vector<string> delegatePubKey_regtestNet;
 
     /* delegate signature */
     static string delegateSignature_mainNet;
     static string delegateSignature_testNet;
-    static string delegateSignature_regNet;
+    static string delegateSignature_regtestNet;
 
     /* gensis block hash */
     static string genesisBlockHash_mainNet;
     static string genesisBlockHash_testNet;
-    static string genesisBlockHash_regNet;
+    static string genesisBlockHash_regtestNet;
 
     /* alert public key */
     static string AlertPK_MainNet;
@@ -84,17 +84,17 @@ private:
     /* fund coin initial owner public key */
     static string initFcoinOwnerPubKey_mainNet;
     static string initFcoinOwnerPubKey_testNet;
-    static string initFcoinOwnerPubkey_regNet;
+    static string initFcoinOwnerPubkey_regtestNet;
 
     /* DEX order-matching service's public key */
     static string dexMatchPubKey_mainNet;
     static string dexMatchPubKey_testNet;
-    static string dexMatchPubKey_regTest;
+    static string dexMatchPubKey_regtestNet;
 
     /* txids in stable coin genesis */
     static vector<string> stableCoinGenesisTxid_mainNet;
     static vector<string> stableCoinGenesisTxid_testNet;
-    static vector<string> stableCoinGenesisTxid_regNet;
+    static vector<string> stableCoinGenesisTxid_regtestNet;
 
     /* Peer IP seeds */
     static vector<uint32_t> pnSeed;
@@ -102,7 +102,7 @@ private:
     /* Network Magic Number */
     static uint8_t Message_mainNet[MESSAGE_START_SIZE];
     static uint8_t Message_testNet[MESSAGE_START_SIZE];
-    static uint8_t Message_regTest[MESSAGE_START_SIZE];
+    static uint8_t Message_regtestNet[MESSAGE_START_SIZE];
 
     /* Address Prefix */
     static vector<uint8_t> AddrPrefix_mainNet[MAX_BASE58_TYPES];
@@ -111,7 +111,7 @@ private:
     /* P2P Port */
     static uint32_t nDefaultPort_mainNet;
     static uint32_t nDefaultPort_testNet;
-    static uint32_t nDefaultPort_regTest;
+    static uint32_t nDefaultPort_regtestNet;
 
     /* RPC Port */
     static uint32_t nRPCPort_mainNet;
@@ -124,7 +124,7 @@ private:
     /* Start Time */
     static uint32_t StartTime_mainNet;
     static uint32_t StartTime_testNet;
-    static uint32_t StartTime_regTest;
+    static uint32_t StartTime_regtestNet;
 
     /* Initial Coin */
     static uint64_t InitialCoin;
@@ -146,7 +146,7 @@ private:
     /* Block height for stable coin genesis */
     static uint32_t nStableScoinGenesisHeight_mainNet;
     static uint32_t nStableScoinGenesisHeight_testNet;
-    static uint32_t nStableScoinGenesisHeight_regNet;
+    static uint32_t nStableScoinGenesisHeight_regtestNet;
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
