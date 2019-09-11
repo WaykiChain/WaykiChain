@@ -9,15 +9,9 @@
 
 extern CCacheDBManager *pCdMan;
 
-bool CRegID::Clear() {
-    height = 0;
-    index  = 0;
-    vRegID.clear();
+CRegID::CRegID(const string &strRegID) { SetRegID(strRegID); }
 
-    return true;
-}
-
-CRegID::CRegID(const vector<uint8_t>& vIn) {
+CRegID::CRegID(const vector<uint8_t> &vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     height = 0;
@@ -27,6 +21,13 @@ CRegID::CRegID(const vector<uint8_t>& vIn) {
     ds >> index;
 }
 
+CRegID::CRegID(const uint32_t heightIn, const uint16_t indexIn) {
+    height = heightIn;
+    index  = indexIn;
+    vRegID.clear();
+    vRegID.insert(vRegID.end(), BEGIN(heightIn), END(heightIn));
+    vRegID.insert(vRegID.end(), BEGIN(indexIn), END(indexIn));
+}
 
 bool IsDigitalString(const string str){
 
@@ -48,15 +49,15 @@ bool CRegID::IsSimpleRegIdStr(const string & str) {
         if (pos > len - 1) {
             return false;
         }
-        string firtstr = str.substr(0, pos);
-        string endstr = str.substr(pos + 1);
+        string firstStr = str.substr(0, pos);
+        string endStr = str.substr(pos + 1);
 
-        return IsDigitalString(firtstr) && IsDigitalString(endstr) ;
+        return IsDigitalString(firstStr) && IsDigitalString(endStr) ;
     }
     return false;
 }
 
-bool CRegID::GetKeyId(const string & str,CKeyID &keyId) {
+bool CRegID::GetKeyId(const string &str, CKeyID &keyId) {
     CRegID regId(str);
     if (regId.IsEmpty())
         return false;
@@ -109,14 +110,12 @@ string CRegID::ToRawString() const {
     return string(vRegID.begin(), vRegID.end());  // TODO: change the vRegID to string
 }
 
-CRegID::CRegID(string strRegID) { SetRegID(strRegID); }
-
-CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
-    height = nHeightIn;
-    index  = nIndexIn;
+bool CRegID::Clear() {
+    height = 0;
+    index  = 0;
     vRegID.clear();
-    vRegID.insert(vRegID.end(), BEGIN(nHeightIn), END(nHeightIn));
-    vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
+
+    return true;
 }
 
 string CRegID::ToString() const {
