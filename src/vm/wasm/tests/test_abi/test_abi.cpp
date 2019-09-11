@@ -72,8 +72,8 @@ void abi_token(){
 
     std::cout << VectorToHexString(dataAction) << std::endl ;
 
-   }catch( wasm::CException &e ) {
-    std::cout << e.errMsg << std::endl ;
+   }catch( wasm::exception &e ) {
+    std::cout << e.detail() << std::endl ;
    }
 
 }
@@ -108,8 +108,8 @@ void abi_serialize_incomplete_json_array(){
 
         std::cout << VectorToHexString(data) << std::endl ;
 
-       }catch( wasm::CException &e ) {
-        std::cout << e.errMsg << std::endl ;
+       }catch( wasm::exception &e ) {
+        std::cout << e.detail() << std::endl ;
        }
 }
 
@@ -480,8 +480,8 @@ void general (){
       json_spirit::Value value = wasm::abi_serializer::unpack(my_abi, "A", data, max_serialization_time);
       std::cout << json_spirit::write(value) << std::endl ;
 
-    } catch (wasm::CException& e) {
-        std::cout << e.errMsg << std::endl;
+    } catch (wasm::exception& e) {
+        std::cout << e.detail() << std::endl;
     }
 
 
@@ -531,8 +531,8 @@ void abi_type_redefine(){
       wasm::from_variant(abi_v, def);
       wasm::abi_serializer abis(def, max_serialization_time);
 
-     }catch( wasm::CException &e ) {
-      std::cout << e.errMsg << std::endl ;
+     }catch( wasm::exception &e ) {
+      std::cout << e.detail() << std::endl ;
      }
 }
 
@@ -615,8 +615,8 @@ void abi_recursive_structs(){
 
       std::cout << VectorToHexString(data) << std::endl ;
 
-     }catch( wasm::CException &e ) {
-      std::cout << e.errMsg << std::endl ;
+     }catch( wasm::exception &e ) {
+      std::cout << e.detail() << std::endl ;
      }
 }
 
@@ -642,8 +642,8 @@ void abi_to_variant(){
 
       json_spirit::Value value = wasm::abi_serializer::unpack(abi, string("transfer"), data, max_serialization_time);
       std::cout << json_spirit::write(value) << std::endl ;
-   }catch( wasm::CException &e ) {
-      std::cout << e.errMsg << std::endl ;
+   }catch( wasm::exception &e ) {
+      std::cout << e.detail() << std::endl ;
    }
 
 }

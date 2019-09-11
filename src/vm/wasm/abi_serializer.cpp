@@ -137,8 +137,12 @@ namespace wasm {
             WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "invalid type %s",
                         td.type.c_str());
 
+            //std::cout << "type:" << td.type << std::endl;
+
             WASM_ASSERT(!_is_type(td.new_type_name, ctx), duplicate_abi_def_exception,
                         "type already exists %s", td.new_type_name.c_str());
+
+            //std::cout << "new_type_name:" << td.new_type_name << std::endl;
 
             typedefs[td.new_type_name] = td.type;
         }
@@ -480,7 +484,6 @@ namespace wasm {
             try {
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
                             "Unknown type %s", t.second.c_str());
-
             }
             WASM_CAPTURE_AND_RETHROW("Unknown type %s", t.second.c_str())
         }
@@ -493,6 +496,8 @@ namespace wasm {
                     while (current.base != type_name()) {
                         ctx.check_deadline();
                         const auto &base = get_struct(current.base); //<-- force struct to inherit from another struct
+
+                        //std::cout << "base:" << current.base << std::endl;
                         WASM_ASSERT(find(types_seen.begin(), types_seen.end(), base.name) == types_seen.end(),
                                     abi_circular_def_exception,
                                     "Circular reference in struct %s", s.second.name.c_str());
