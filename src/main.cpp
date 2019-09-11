@@ -54,8 +54,6 @@ CSignatureCache signatureCache;
 CChain chainActive;
 CChain chainMostWork;
 
-/** Fees smaller than this (in sawi) are considered zero fee (for transaction creation) */
-uint64_t CBaseTx::nMinTxFee = 10000;  // Override with -mintxfee
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
 uint64_t CBaseTx::nMinRelayTxFee = 1000;
 /** Amount smaller than this (in sawi) is considered dust amount */

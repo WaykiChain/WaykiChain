@@ -216,7 +216,6 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
     return obj;
 }
 
-// register a contract app tx
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
         throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_desc\"]\n"
@@ -295,12 +294,9 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
         }
     }
 
-    uint64_t fee = params[2].get_uint64();
-    int32_t height   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    int64_t fee    = RPC_PARAM::GetWiccFee(params, 3, LCONTRACT_DEPLOY_TX);
+    int32_t height = params.size() > 3 ? params[3].get_int() : chainActive.Height();
 
-    if (fee > 0 && fee < CBaseTx::nMinTxFee) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Fee is smaller than nMinTxFee");
-    }
     CKeyID keyId;
     if (!GetKeyId(params[0].get_str(), keyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
@@ -318,11 +314,6 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
 
         if (!account.HaveOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
-        }
-
-        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
-        if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
         }
 
         if (!pWalletMain->HaveKey(keyId)) {

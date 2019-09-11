@@ -36,7 +36,6 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
 
 class CBaseTx {
 public:
-    static uint64_t nMinTxFee;
     static uint64_t nMinRelayTxFee;
     static uint64_t nDustAmountThreshold;
     static const int32_t CURRENT_VERSION = INIT_TX_VERSION;
