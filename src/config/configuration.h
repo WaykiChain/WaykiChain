@@ -141,7 +141,7 @@ private:
     /* Block height to enable feature fork version */
 	static uint32_t nFeatureForkHeight_mainNet;
     static uint32_t nFeatureForkHeight_testNet;
-    static uint32_t nFeatureForkHeight_regNet;
+    static uint32_t nFeatureForkHeight_regtestNet;
 
     /* Block height for stable coin genesis */
     static uint32_t nStableScoinGenesisHeight_mainNet;

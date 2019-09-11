@@ -122,7 +122,7 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
     switch (type) {
         case MAIN_NET: return nFeatureForkHeight_mainNet;
         case TEST_NET: return nFeatureForkHeight_testNet;
-        case REGTEST_NET: return nFeatureForkHeight_regNet;
+        case REGTEST_NET: return nFeatureForkHeight_regtestNet;
         default: assert(0);
     }
 
@@ -343,7 +343,7 @@ uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 // Block height to enable feature fork version
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet = 6000000;
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet = 520;
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regNet  = 10;
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regtestNet  = 10;
 
 // Block height for stable coin genesis
 uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_mainNet = 5880000;
