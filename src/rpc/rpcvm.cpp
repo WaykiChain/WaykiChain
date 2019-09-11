@@ -46,7 +46,7 @@ static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID 
 }
 
 Value vmexecutescript(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() < 2 || params.size() > 5) {
         throw runtime_error(
             "vmexecutescript \"addr\" \"script_path\" [\"arguments\"] [amount] [symbol:fee:unit]\n"
             "\nexecutes the script in vm simulator, and then returns the executing status.\n"
@@ -127,7 +127,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
 
     uint64_t minFee = regMinFee + invokeMinFee;
-    uint64_t totalFee = regMinFee + invokeMinFee; // set default totalFee
+    uint64_t totalFee = regMinFee + invokeMinFee * 10; // set default totalFee
     if (params.size() > 4) {
         ComboMoney feeIn = RPC_PARAM::GetFee(params, 4, LCONTRACT_DEPLOY_TX);
         assert(feeIn.symbol == SYMB::WICC);
