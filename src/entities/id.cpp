@@ -149,6 +149,21 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserID
 
+string CUserID::ToDebugString() const {
+        if (is<CRegID>()) {
+            return "R:" + get<CRegID>().ToString();
+        } else if (is<CKeyID>()) {
+            return "A:" + get<CKeyID>().ToAddress();
+        } else if (is<CPubKey>()) {
+            return "P:" + get<CPubKey>().ToString();
+        } else if (is<CNickID>()) {
+            return "N:" + get<CNickID>().ToString();
+        } else {
+            assert(is<CNullID>());
+            return "Null";
+        }
+}
+
 shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
     CRegID regId(idStr);
     if (!regId.IsEmpty())

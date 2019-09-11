@@ -866,8 +866,22 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "read system param ASSET_ISSUE_FEE error");
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetIssueFee);
 
-    CAsset asset(assetSymbol, assetOwnerUid, assetName, (uint64_t)totalSupply, mintable);
     int32_t validHeight = chainActive.Height();
+    CAccount ownerAccount;
+    CRegID *pOwnerRegid;
+    if (!txAccount.IsMyUid(assetOwnerUid)) {
+        pOwnerRegid = &txAccount.regid;
+    } else {
+        ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, assetOwnerUid);
+        pOwnerRegid = &ownerAccount.regid;
+    }
+
+    if (pOwnerRegid->IsEmpty() || !pOwnerRegid->IsMature(validHeight)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("owner regid=%s is not registerd or not mature",
+            pOwnerRegid->ToString()));
+    }
+
+    CAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
     CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), asset);
     return SubmitTx(uid, tx);
 }
@@ -964,6 +978,23 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetUpdateFee);
 
     int32_t validHeight = chainActive.Height();
+
+    if (*pUpdateType == CAssetUpdateData::OWNER_UID) {
+        CUserID &ownerUid = updateData.get<CUserID>();
+        if (txAccount.IsMyUid(ownerUid))
+            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner uid=%s is belong to old owner account",
+                    ownerUid.ToDebugString()));
+
+        CAccount newAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, ownerUid);
+        if (!newAccount.IsRegistered())
+            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner account is not registered! new uid=%s",
+                    ownerUid.ToDebugString()));
+        if (!newAccount.regid.IsMature(validHeight))
+            return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner regid is not matured! new uid=%s",
+                ownerUid.ToDebugString()));
+        ownerUid = newAccount.regid;
+    }
+
     CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, updateData);
 
     return SubmitTx(uid, tx);

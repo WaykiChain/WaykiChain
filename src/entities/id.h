@@ -211,6 +211,8 @@ public:
         }
     }
 
+    string ToDebugString() const;
+
     friend bool operator==(const CUserID &id1, const CUserID &id2) {
         if (id1.type() != id2.type()) {
             return false;
