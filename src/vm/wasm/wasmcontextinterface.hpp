@@ -16,7 +16,6 @@ namespace wasm {
 
     public:
         CWasmContextInterface() {}
-
         ~CWasmContextInterface() {}
 
     public:

@@ -20,7 +20,6 @@ namespace wasm {
 
 //CWasmInterface::CWasmInterface(vmType type){}
     CWasmInterface::~CWasmInterface() {}
-//CWasmInterface::validate(const vector<uint8_t> &code) {}
 //CWasmInterface::exit() {}
     using backend_t = eosio::vm::backend<WasmHostMethods>;
     using rhf_t     = eosio::vm::registered_host_functions<WasmHostMethods>;
@@ -147,15 +146,12 @@ namespace wasm {
 
 
         } catch (vm::exception &e) {
-            //WASM_THROW(wasm_assert_exception, e.what(), e.detail())
             WASM_THROW(wasm_exception, e.detail())
         } catch (wasm::exception &e) {
-
-          WASM_THROW(wasm_exception, e.detail())
+            WASM_THROW(wasm_exception, e.detail())
             //std::cerr << std::string("wasm-vm interpreter error\n");
         }
-        //WASM_RETHROW_EXCEPTIONS(WASM_ASSERT_FAIL,"wasm assert fail", "wasm assert fail" )
-        WASM_RETHROW_EXCEPTIONS(wasm_exception, "wasm assert fail" )
+        WASM_RETHROW_EXCEPTIONS(wasm_exception, "wasm assert fail")
 
     }
 
@@ -164,11 +160,9 @@ namespace wasm {
         try {
             backend_t bkend(code);
         } catch (vm::exception &e) {
-           // WASM_THROW(WASM_ASSERT_FAIL, e.what(), e.detail())
             WASM_THROW(wasm_exception, e.detail())
         }
-        //WASM_RETHROW_EXCEPTIONS(WASM_ASSERT_FAIL,"wasm assert fail", "wasm assert fail" )
-        WASM_RETHROW_EXCEPTIONS(wasm_exception, "wasm assert fail" )
+        WASM_RETHROW_EXCEPTIONS(wasm_exception, "wasm code parse exception")
 
     }
 }//wasm

@@ -42,6 +42,7 @@ EOSIO_VM_H = \
   vm/wasm/eos-vm/include/eosio/vm/watchdog.hpp \
   vm/wasm/types/asset.hpp \
   vm/wasm/types/inlinetransaction.hpp \
+  vm/wasm/types/check.hpp \
   vm/wasm/types/name.hpp \
   vm/wasm/types/symbol.hpp \
   vm/wasm/types/types.hpp \

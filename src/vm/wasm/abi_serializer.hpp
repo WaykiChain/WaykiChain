@@ -79,7 +79,7 @@ namespace wasm {
                 data = abis.variant_to_binary(action, data_v, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params.data())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params.c_str())
 
             return data;
 
@@ -100,7 +100,7 @@ namespace wasm {
                 data_v = abis.binary_to_variant(name, data, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", name.data())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", name.c_str())
 
             return data_v;
         }
@@ -123,14 +123,12 @@ namespace wasm {
                 name = abis.get_table_type(t);
 
                 // std::cout << "unpack " << " name:" << name << std::endl;
-                // WASM_ASSERT(name.size() > 0, ABI_PARSE_FAIL, "ABI_PARSE_FAIL", "can not get table %s's type from abi",
-                //             t.data());
                 WASM_ASSERT(name.size() > 0, abi_parse_exception, "can not get table %s's type from abi",
                             t.data());
 
                 data_v = abis.binary_to_variant(name, data, max_serialization_time);
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name.data())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name.c_str())
 
             return data_v;
         }
@@ -189,7 +187,6 @@ namespace wasm {
         std::chrono::system_clock::time_point deadline;
         uint32_t recursion_depth;
     };
-
 
 
 }  // wasm

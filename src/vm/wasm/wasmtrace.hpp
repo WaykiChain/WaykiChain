@@ -11,7 +11,6 @@ namespace wasm {
         inline_transaction trx;
         //uint32_t block_height;
         //uint32_t block_time;
-
         string console;
     };
 
@@ -24,8 +23,7 @@ namespace wasm {
         uint256 trx_id;
         //uint32_t block_height;
         //uint32_t block_time;
-
-        vector<inline_transaction_trace> traces;
+        vector <inline_transaction_trace> traces;
     };
 
 

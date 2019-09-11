@@ -9,13 +9,12 @@
 #include "json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
-// #include "wasm/wasmvariant.hpp"
 #include "wasm/wasmconfig.hpp"
 
 namespace wasm {
     using namespace json_spirit;
     using namespace wasm;
-   
+
     using variant = json_spirit::Value;
     using Object = json_spirit::Object;
     using Array = json_spirit::Array;
@@ -543,7 +542,6 @@ namespace wasm {
             }
         }
 
-        //WASM_RETHROW_EXCEPTIONS(ABI_PARSE_FAIL, "ABI_PARSE_FAIL", "abi parse fail ")
         WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "abi parse fail ")
     }
 

@@ -5,7 +5,6 @@
 #include <vector>
 #include <queue>
 #include <map>
-// #include <datastream.hpp>
 
 #include "commons/serialize.h"
 
@@ -37,7 +36,6 @@ namespace wasm {
         READWRITE(authorization);
         READWRITE(data);
         )
-
 
     };
 

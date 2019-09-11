@@ -27,10 +27,8 @@ namespace wasm {
     }
 
     static inline uint64_t RegID2Name( CRegID regID ) {
-
         uint64_t account = uint64_t(regID.GetIndex());
         account = (account << 32) + uint64_t(regID.GetHeight());
-
         return account;
     }
 

@@ -9,20 +9,6 @@ using namespace wasm;
 
 namespace wasm {
 
-    // CRegID Name2RegID( uint64_t account ) {
-    //     uint32_t height = uint32_t(account);
-    //     uint16_t index = uint16_t(account >> 32);
-    //     return CRegID(height, index);
-    // }
-
-    // uint64_t RegID2Name( CRegID regID ) {
-
-    //     uint64_t account = uint64_t(regID.GetIndex());
-    //     account = (account << 32) + uint64_t(regID.GetHeight());
-
-    //     return account;
-    // }
-
     static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
         if (!trace.console.empty()) {
 
@@ -33,8 +19,6 @@ namespace wasm {
             auto receiver_s = name(receiver).to_string();
 
             prefix << "[(" << contract_s << "," << action_s << ")->" << receiver_s << "]";
-            //prefix << "\n [(" << trace.trx.contract << "," << trace.trx.action << ")->" << receiver << "]";
-
             std::cout << prefix.str() << ": CONSOLE OUTPUT BEGIN =====================\n"
                       << trace.console << "\n"
                       << prefix.str() << ": CONSOLE OUTPUT END   =====================\n";
@@ -105,11 +89,6 @@ namespace wasm {
             ExecuteOne(trace.inline_traces.back());
         }
 
-        // WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
-        //             TRANSACTION_EXCEPTION, "transaction_exception",
-        //             "max inline transaction depth per transaction reached");
-
-
         WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
                     transaction_exception,
                     "max inline transaction depth per transaction reached");
@@ -123,14 +102,15 @@ namespace wasm {
 
     }
 
-    string VectorToHexString(std::vector<uint8_t> str, string separator = " ")
-    {
+    string VectorToHexString( std::vector <uint8_t> str, string separator = " " ) {
 
         const std::string hex = "0123456789abcdef";
         std::stringstream ss;
-     
+
         for (std::string::size_type i = 0; i < str.size(); ++i)
-            ss << hex[(unsigned uint8_t)str[i] >> 4] << hex[(unsigned uint8_t)str[i] & 0xf] << separator;
+            ss << hex[(unsigned
+        uint8_t)str[i] >> 4] << hex[(unsigned
+        uint8_t)str[i] & 0xf] << separator;
 
         return ss.str();
 
@@ -151,7 +131,7 @@ namespace wasm {
             } else {
                 vector <uint8_t> code = GetCode(receiver);
                 if (code.size() > 0) {
-                        wasmInterface.Execute(code, this);
+                    wasmInterface.Execute(code, this);
                 }
             }
         } catch (wasm::exception &e) {

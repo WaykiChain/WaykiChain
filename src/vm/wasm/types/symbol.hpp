@@ -1,16 +1,12 @@
 #pragma once
 
-// #include "system.hpp"
-// #include "print.h"
-// #include "name.hpp"
-// #include "serialize.hpp"
-
-// #include <tuple>
-// #include <limits>
 #include <string_view>
 #include<iostream>
 #include <cstdlib>
 #include <algorithm>
+
+#include "check.hpp"
+#include "wasm/exceptions.hpp"
 
 namespace wasm {
 
@@ -36,18 +32,20 @@ namespace wasm {
 
 
     static uint64_t string_to_symbol( uint8_t precision, const char *str ) {
-        //try {
-        uint32_t len = 0;
-        while (str[len]) ++len;
-        uint64_t result = 0;
-        for (uint32_t i = 0; i < len; ++i) {
-            // All characters must be upper case alphabets
-            //WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "invalid character in symbol name");
-            result |= (uint64_t(str[i]) << (8 * (i + 1)));
-        }
-        result |= uint64_t(precision);
-        return result;
-        //} FC_CAPTURE_LOG_AND_RETHROW((str))
+        try {
+            uint32_t len = 0;
+            while (str[len]) ++len;
+            uint64_t result = 0;
+            for (uint32_t i = 0; i < len; ++i) {
+                // All characters must be upper case alphabets
+                WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "invalid character in symbol name");
+                result |= (uint64_t(str[i]) << (8 * (i + 1)));
+            }
+            result |= uint64_t(precision);
+            return result;
+        } 
+
+        WASM_CAPTURE_AND_RETHROW( "%s", str )
     }
 
     /**
@@ -92,12 +90,12 @@ namespace wasm {
         constexpr explicit symbol_code( std::string_view str )
                 : value(0) {
             if (str.size() > 7) {
-                //check( false, "string is too long to be a valid symbol_code" );
+                check( false, "string is too long to be a valid symbol_code" );
                 return;
             }
             for (auto itr = str.rbegin(); itr != str.rend(); ++itr) {
                 if (*itr < 'A' || *itr > 'Z') {
-                    //check( false, "only uppercase letters allowed in symbol_code string" );
+                    check( false, "only uppercase letters allowed in symbol_code string" );
                     return;
                 }
                 value <<= 8;
@@ -266,6 +264,9 @@ namespace wasm {
      */
     class symbol {
     public:
+
+        static constexpr uint8_t max_precision = 18;
+        
         /**
          * Default constructor, construct a new symbol
          *
@@ -327,9 +328,9 @@ namespace wasm {
 
         constexpr explicit operator bool() const { return value != 0; }
 
-        //uint8_t decimals() const { return m_value & 0xFF; }
+        uint8_t decimals() const { return value & 0xFF; }
         uint64_t precision_in_10() const {
-            //WASM_ASSERT( precision() <= max_precision, symbol_type_exception, "precision ${p} should be <= 18", ("p", decimals()) );
+            WASM_ASSERT( precision() <= max_precision, symbol_type_exception, "precision %d should be <= 18", decimals() );
             uint64_t p10 = 1;
             uint64_t p = precision();
             while (p > 0) {
@@ -364,18 +365,19 @@ namespace wasm {
         }
 
         static symbol from_string( const string &from ) {
-            //try {
+            try {
+                string s = trim(from);
+                WASM_ASSERT(!s.empty(), symbol_type_exception, "creating symbol from empty string");
+                auto comma_pos = s.find(',');
+                WASM_ASSERT(comma_pos != string::npos, symbol_type_exception, "missing comma in symbol");
+                auto prec_part = s.substr(0, comma_pos);
+                uint8_t p = atoi(prec_part.data());
+                string name_part = s.substr(comma_pos + 1);
+                WASM_ASSERT( p <= max_precision, symbol_type_exception, "precision %d should be <= 18", p);
+                return symbol(string_to_symbol(p, name_part.c_str()));
+            } 
 
-            string s = trim(from);
-            //WASM_ASSERT(!s.empty(), symbol_type_exception, "creating symbol from empty string");
-            auto comma_pos = s.find(',');
-            //WASM_ASSERT(comma_pos != string::npos, symbol_type_exception, "missing comma in symbol");
-            auto prec_part = s.substr(0, comma_pos);
-            uint8_t p = atoi(prec_part.data());
-            string name_part = s.substr(comma_pos + 1);
-            //WASM_ASSERT( p <= max_precision, symbol_type_exception, "precision ${p} should be <= 18", ("p", p));
-            return symbol(string_to_symbol(p, name_part.c_str()));
-            //} FC_CAPTURE_LOG_AND_RETHROW((from))
+            WASM_CAPTURE_AND_RETHROW( "%s", from.c_str() )
         }
 
         /**

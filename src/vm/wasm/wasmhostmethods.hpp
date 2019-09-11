@@ -97,7 +97,7 @@ namespace wasm {
         }
 
         template<typename T>
-        static void AddPrefix(T t, string& k){
+        static void AddPrefix( T t, string &k ) {
 
             std::vector<char> key = wasm::pack(t);
             k = string((const char *) key.data(), key.size()) + k;
@@ -122,7 +122,6 @@ namespace wasm {
             //std::cout << "wasm_assert:" << msg << std::endl;
             if (!test) {
                 //std::cout << msg << std::endl;
-                //WASM_ASSERT(false, WASM_ASSERT_FAIL, "wasm-assert-fail", "wasm-assert-fail:%s", msg)
                 WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg)
             }
         }
@@ -133,8 +132,7 @@ namespace wasm {
                 //std::cout << code << std::endl;
                 std::ostringstream o;
                 o << code;
-                //WASM_ASSERT(false, WASM_ASSERT_FAIL, "wasm-assert-code", o.str().data())
-                WASM_ASSERT(false, wasm_assert_exception, o.str().data())
+                WASM_ASSERT(false, wasm_assert_exception, o.str().c_str())
             }
         }
 
@@ -192,17 +190,16 @@ namespace wasm {
             // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
-            std::cout << "db_store key:"<<ToHex(k) << " key_len:" << key_len
-                      << " value:"<< ToHex(v)      << " value_len:" << val_len 
+            std::cout << "db_store key:" << ToHex(k) << " key_len:" << key_len
+                      << " value:" << ToHex(v) << " value_len:" << val_len
                       << std::endl;
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->Receiver();
 
-            //wasm_assert(wasmContext.cache.SetContractData(contract, k, v), StringPrint("wasm db_store SetContractData failed, key:", ToHex(k," ")).data());
             wasm_assert(pWasmContext->SetData(contract, k, v), StringPrint("wasm db_store SetContractData failed, key:",
-                                                                           ToHex(k)).data());      //wasmContext.AppendUndo(contract, k, oldValue);
+                                                                           ToHex(k)).c_str());      //wasmContext.AppendUndo(contract, k, oldValue);
 
             return 1;
         }
@@ -225,10 +222,8 @@ namespace wasm {
             //const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->Receiver();
 
-            // wasm_assert(wasmContext.cache.EraseContractData(contract, k),
-            //             StringPrint("wasm db_remove EraseContractData failed, key:%s!\n",ToHex(k," ")).data());
             wasm_assert(pWasmContext->EraseData(contract, k),
-                        StringPrint("wasm db_remove EraseContractData failed, key:%s!\n", ToHex(k, " ")).data());
+                        StringPrint("wasm db_remove EraseContractData failed, key:%s!\n", ToHex(k, " ")).c_str());
 
             //wasmContext.AppendUndo(contract, k, oldValue);
 
@@ -281,12 +276,9 @@ namespace wasm {
 
             //std::cout << "db_update key: "<<ToHex(k,"")<<" key_len:"<<key_len << " value: "<<ToHex(v,"")<<" value_len:"<<value_len <<std::endl;
 
-            // const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->Receiver();
-            // wasm_assert(wasmContext.cache.SetContractData(contract, k, v),
-            //             StringPrint("wasm db_update SetContractData key fail, key:%s!\n",ToHex(k,"")).data());
             wasm_assert(pWasmContext->SetData(contract, k, v),
-                        StringPrint("wasm db_update SetContractData key fail, key:%s!\n", ToHex(k, "")).data());
+                        StringPrint("wasm db_update SetContractData key fail, key:%s!\n", ToHex(k, "")).c_str());
 
             return 1;
         }

@@ -3,8 +3,8 @@
 #include "symbol.hpp"
 #include<iostream>
 #include <cstdlib>
-// #include <tuple>
-// #include <limits>
+
+#include "check.hpp"
 
 namespace wasm {
     /**
@@ -44,8 +44,8 @@ namespace wasm {
          */
         asset( int64_t a, class symbol s )
                 : amount(a), sym{s} {
-            // check( is_amount_within_range(), "magnitude of asset amount must be less than 2^62" );
-            // check( symbol.is_valid(),        "invalid symbol name" );
+            check(is_amount_within_range(), "magnitude of asset amount must be less than 2^62");
+            check(sym.is_valid(), "invalid symbol name");
         }
 
         /**
@@ -71,7 +71,7 @@ namespace wasm {
          */
         void set_amount( int64_t a ) {
             amount = a;
-            //check( is_amount_within_range(), "magnitude of asset amount must be less than 2^62" );
+            check(is_amount_within_range(), "magnitude of asset amount must be less than 2^62");
         }
 
         /**
@@ -93,10 +93,10 @@ namespace wasm {
          * @post The amount of this asset is subtracted by the amount of asset a
          */
         asset &operator-=( const asset &a ) {
-            //check( a.symbol == symbol, "attempt to subtract asset with different symbol" );
+            check(a.sym == sym, "attempt to subtract asset with different symbol");
             amount -= a.amount;
-            //check( -max_amount <= amount, "subtraction underflow" );
-            //check( amount <= max_amount,  "subtraction overflow" );
+            check(-max_amount <= amount, "subtraction underflow");
+            check(amount <= max_amount, "subtraction overflow");
             return *this;
         }
 
@@ -109,10 +109,10 @@ namespace wasm {
          * @post The amount of this asset is added with the amount of asset a
          */
         asset &operator+=( int64_t a ) {
-            //check( a.symbol == symbol, "attempt to add asset with different symbol" );
+            //check( a.sym == sym, "attempt to add asset with different symbol" );
             amount += a;
-            //check( -max_amount <= amount, "addition underflow" );
-            //check( amount <= max_amount,  "addition overflow" );
+            check(-max_amount <= amount, "addition underflow");
+            check(amount <= max_amount, "addition overflow");
             return *this;
         }
 
@@ -124,10 +124,10 @@ namespace wasm {
          * @post The amount of this asset is added with the amount of asset a
          */
         asset &operator+=( const asset &a ) {
-            //check( a.symbol == symbol, "attempt to add asset with different symbol" );
+            check(a.sym == sym, "attempt to add asset with different symbol");
             amount += a.amount;
-            //check( -max_amount <= amount, "addition underflow" );
-            //check( amount <= max_amount,  "addition overflow" );
+            check(-max_amount <= amount, "addition underflow");
+            check(amount <= max_amount, "addition overflow");
             return *this;
         }
 
@@ -211,8 +211,8 @@ namespace wasm {
          * @post The amount of this asset is divided by a
          */
         asset &operator/=( int64_t a ) {
-            //check( a != 0, "divide by zero" );
-            //check( !(amount == std::numeric_limits<int64_t>::min() && a == -1), "signed division overflow" );
+            check(a != 0, "divide by zero");
+            check(!(amount == std::numeric_limits<int64_t>::min() && a == -1), "signed division overflow");
             amount /= a;
             return *this;
         }
@@ -239,8 +239,8 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend int64_t operator/( const asset &a, const asset &b ) {
-            //check( b.amount != 0, "divide by zero" );
-            //check( a.symbol == b.symbol, "comparison of assets with different symbols is not allowed" );
+            check(b.amount != 0, "divide by zero");
+            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
             return a.amount / b.amount;
         }
 
@@ -254,7 +254,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator==( const asset &a, const asset &b ) {
-            //check( a.symbol == b.symbol, "comparison of assets with different symbols is not allowed" );
+            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
             return a.amount == b.amount;
         }
 
@@ -281,7 +281,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator<( const asset &a, const asset &b ) {
-            //check( a.symbol == b.symbol, "comparison of assets with different symbols is not allowed" );
+            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
             return a.amount < b.amount;
         }
 
@@ -295,7 +295,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator<=( const asset &a, const asset &b ) {
-            //check( a.symbol == b.symbol, "comparison of assets with different symbols is not allowed" );
+            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
             return a.amount <= b.amount;
         }
 
@@ -309,7 +309,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator>( const asset &a, const asset &b ) {
-            //check( a.symbol == b.symbol, "comparison of assets with different symbols is not allowed" );
+            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
             return a.amount > b.amount;
         }
 
@@ -323,7 +323,7 @@ namespace wasm {
          * @pre Both asset must have the same symbol
          */
         friend bool operator>=( const asset &a, const asset &b ) {
-            //check( a.symbol == b.symbol, "comparison of assets with different symbols is not allowed" );
+            check(a.sym == b.sym, "comparison of assets with different symbols is not allowed");
             return a.amount >= b.amount;
         }
 
@@ -370,75 +370,75 @@ namespace wasm {
 
         asset from_string( const string &from ) {
 
-            // try {
+            try {
 
-            string s = wasm::trim(from);
+                string s = wasm::trim(from);
 
-            // Find space in order to split amount and symbol
-            auto space_pos = s.find(' ');
-            //EOS_ASSERT((space_pos != string::npos), asset_type_exception, "Asset's amount and symbol should be separated with space");
-            //auto symbol_str = fc::trim(s.substr(space_pos + 1));
-            auto symbol_str = wasm::trim(s.substr(space_pos + 1));
-            auto amount_str = s.substr(0, space_pos);
+                // Find space in order to split amount and symbol
+                auto space_pos = s.find(' ');
+                //EOS_ASSERT((space_pos != string::npos), asset_type_exception, "Asset's amount and symbol should be separated with space");
+                //auto symbol_str = fc::trim(s.substr(space_pos + 1));
+                auto symbol_str = wasm::trim(s.substr(space_pos + 1));
+                auto amount_str = s.substr(0, space_pos);
 
 
-            //std::cout << "symbol_str:" << symbol_str << "amount_str:"<<  amount_str << std::endl ;
+                //std::cout << "symbol_str:" << symbol_str << "amount_str:"<<  amount_str << std::endl ;
 
-            // Ensure that if decimal point is used (.), decimal fraction is specified
-            auto dot_pos = amount_str.find('.');
-            if (dot_pos != string::npos) {
-                //EOS_ASSERT((dot_pos != amount_str.size() - 1), asset_type_exception, "Missing decimal fraction after decimal point");
+                // Ensure that if decimal point is used (.), decimal fraction is specified
+                auto dot_pos = amount_str.find('.');
+                if (dot_pos != string::npos) {
+                    //EOS_ASSERT((dot_pos != amount_str.size() - 1), asset_type_exception, "Missing decimal fraction after decimal point");
+                }
+
+                // Parse symbol
+                string precision_digit_str;
+                if (dot_pos != string::npos) {
+                    //precision_digit_str = eosio::chain::to_string(amount_str.size() - dot_pos - 1);
+
+                    char c[8];
+                    //itos(amount_str.size() - dot_pos - 1, c, 10);
+                    sprintf(c, "%ld", amount_str.size() - dot_pos - 1);
+
+                    precision_digit_str = string(c);
+                } else {
+                    precision_digit_str = "0";
+                }
+
+                // std::cout << "precision_digit_str:" << precision_digit_str << std::endl ;
+
+                string symbol_part = precision_digit_str + ',' + symbol_str;
+                symbol sym = symbol::from_string(symbol_part);
+                // std::cout << "symbol_part:" << symbol_part << std::endl ;
+                // std::cout << "symbol:" << sym.to_string() << std::endl ;
+
+                // Parse amount
+                //safe<int64_t> int_part, fract_part;
+                int64_t int_part, fract_part = 0;
+                if (dot_pos != string::npos) {
+                    // int_part = fc::to_int64(amount_str.substr(0, dot_pos));
+                    // fract_part = fc::to_int64(amount_str.substr(dot_pos + 1));
+                    int_part = atoi(amount_str.substr(0, dot_pos).data());
+                    fract_part = atoi(amount_str.substr(dot_pos + 1).data());
+                    if (amount_str[0] == '-') fract_part *= -1;
+                } else {
+                    //int_part = fc::to_int64(amount_str);
+                    int_part = atoi(amount_str.data());
+                }
+
+                // std::cout << "int_part:" << int_part << std::endl ;
+                // std::cout << "fract_part:" << fract_part << std::endl ;
+
+                // safe<int64_t> amount = int_part;
+                int64_t amount = int_part;
+                // amount *= safe<int64_t>(sym.precision());
+                amount *= sym.precision_in_10();
+                amount += fract_part;
+
+
+                //std::cout << "amount:" << amount << std::endl ;
+                return asset(amount, sym);
             }
-
-            // Parse symbol
-            string precision_digit_str;
-            if (dot_pos != string::npos) {
-                //precision_digit_str = eosio::chain::to_string(amount_str.size() - dot_pos - 1);
-
-                char c[8];
-                //itos(amount_str.size() - dot_pos - 1, c, 10);
-                sprintf(c, "%ld", amount_str.size() - dot_pos - 1);
-
-                precision_digit_str = string(c);
-            } else {
-                precision_digit_str = "0";
-            }
-
-            // std::cout << "precision_digit_str:" << precision_digit_str << std::endl ;
-
-            string symbol_part = precision_digit_str + ',' + symbol_str;
-            symbol sym = symbol::from_string(symbol_part);
-            // std::cout << "symbol_part:" << symbol_part << std::endl ;
-            // std::cout << "symbol:" << sym.to_string() << std::endl ;
-
-            // Parse amount
-            //safe<int64_t> int_part, fract_part;
-            int64_t int_part, fract_part = 0;
-            if (dot_pos != string::npos) {
-                // int_part = fc::to_int64(amount_str.substr(0, dot_pos));
-                // fract_part = fc::to_int64(amount_str.substr(dot_pos + 1));
-                int_part = atoi(amount_str.substr(0, dot_pos).data());
-                fract_part = atoi(amount_str.substr(dot_pos + 1).data());
-                if (amount_str[0] == '-') fract_part *= -1;
-            } else {
-                //int_part = fc::to_int64(amount_str);
-                int_part = atoi(amount_str.data());
-            }
-
-            // std::cout << "int_part:" << int_part << std::endl ;
-            // std::cout << "fract_part:" << fract_part << std::endl ;
-
-            // safe<int64_t> amount = int_part;
-            int64_t amount = int_part;
-            // amount *= safe<int64_t>(sym.precision());
-            amount *= sym.precision_in_10();
-            amount += fract_part;
-
-
-            //std::cout << "amount:" << amount << std::endl ;
-            return asset(amount, sym);
-            // }
-            // FC_CAPTURE_LOG_AND_RETHROW( (from) )
+            WASM_CAPTURE_AND_RETHROW( "%s", from.c_str() )
 
         }
 
@@ -451,7 +451,7 @@ namespace wasm {
         //    eosio::print(to_string());
         // }
 
-        //EOSLIB_SERIALIZE( asset, (amount)(symbol) )
+        //WASM_SERIALIZE( asset, (amount)(symbol) )
 
         /**
         *  Serialize a asset into a stream
@@ -464,9 +464,6 @@ namespace wasm {
         */
         template<typename DataStream>
         friend inline DataStream &operator<<( DataStream &ds, const wasm::asset &asset ) {
-            // uint64_t raw = asset.amount;
-            // ds.write( (const char*)&raw, sizeof(raw));
-            // ds<<asset.sym;
             ds << asset.amount;
             ds << asset.sym;
             return ds;
@@ -483,10 +480,6 @@ namespace wasm {
         */
         template<typename DataStream>
         friend inline DataStream &operator>>( DataStream &ds, wasm::asset &asset ) {
-            // uint64_t raw = 0;
-            // ds.read((char*)&raw, sizeof(raw));
-            // asset.amount = raw;
-            // ds>>asset.sym;
             ds >> asset.amount;
             ds >> asset.sym;
 

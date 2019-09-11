@@ -1,13 +1,9 @@
-/**
- *  @file
- *  @copyright defined in eos/LICENSE
- */
 #pragma once
-
-// #include "datastream.hpp"
 
 #include <string>
 #include <string_view>
+
+#include "check.hpp"
 
 namespace wasm {
 
@@ -93,7 +89,7 @@ namespace wasm {
         constexpr explicit name( std::string_view str )
                 : value(0) {
             if (str.size() > 13) {
-                //check( false, "string is too long to be a valid name" );
+                check( false, "string is too long to be a valid name" );
             }
             if (str.empty()) {
                 return;
@@ -108,7 +104,7 @@ namespace wasm {
             if (str.size() == 13) {
                 uint64_t v = char_to_value(str[12]);
                 if (v > 0x0Full) {
-                    //check(false, "thirteenth character in name cannot be a letter that comes after j");
+                    check(false, "thirteenth character in name cannot be a letter that comes after j");
                 }
                 value |= v;
             }
@@ -121,16 +117,20 @@ namespace wasm {
          *  @return constexpr char - Converted value
          */
         static constexpr uint8_t char_to_value( char c ) {
-            if (c == '.')
+            if (c == '.'){
                 return 0;
-            else if (c >= '1' && c <= '5')
+            }
+            else if (c >= '1' && c <= '5'){
                 return (c - '1') + 1;
-            else if (c >= 'a' && c <= 'z')
+            }
+            else if (c >= 'a' && c <= 'z'){
                 return (c - 'a') + 6;
-            else
-                //check( false, "character is not in allowed character set for names" );
+            }
+            else{
+                check( false, "character is not in allowed character set for names" );
+            }
 
-                return 0; // control flow will never reach here; just added to suppress warning
+            return 0; // control flow will never reach here; just added to suppress warning
         }
 
         /**

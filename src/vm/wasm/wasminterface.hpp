@@ -1,12 +1,9 @@
 #pragma once
 
 #include <vector>
-//#include "wasmcontextinterface.hpp"
 #include "wasmcontextinterface.hpp"
 
 namespace wasm {
-
-// class CWasmContext;
 
     enum class vmType {
         eosvm,
