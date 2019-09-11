@@ -179,7 +179,8 @@ bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     uint64_t fuelLimit;
-    if (!GetFuelLimit(*this, height, cw, state, fuelLimit)) return false;
+    if (!GetFuelLimit(*this, height, cw, state, fuelLimit))
+        return false;
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
@@ -222,19 +223,19 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     CLuaVMRunEnv vmRunEnv;
 
     CLuaVMContext context;
-    context.p_cw = &cw;
-    context.height = height;
-    context.p_base_tx = this;
-    context.fuel_limit = fuelLimit;
-    context.transfer_symbol = SYMB::WICC;
-    context.transfer_amount = coin_amount;
+    context.p_cw              = &cw;
+    context.height            = height;
+    context.p_base_tx         = this;
+    context.fuel_limit        = fuelLimit;
+    context.transfer_symbol   = SYMB::WICC;
+    context.transfer_amount   = coin_amount;
     context.p_tx_user_account = &srcAccount;
-    context.p_app_account = &desAccount;
-    context.p_contract = &contract;
-    context.p_arguments = &arguments;
+    context.p_app_account     = &desAccount;
+    context.p_contract        = &contract;
+    context.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
-    auto pExecErr = vmRunEnv.ExecuteContract(&context, nRunStep);
+    auto pExecErr  = vmRunEnv.ExecuteContract(&context, nRunStep);
     if (pExecErr)
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
                         GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
@@ -420,7 +421,8 @@ bool CUniversalContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
 bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
 
     uint64_t fuelLimit;
-    if (!GetFuelLimit(*this, height, cw, state, fuelLimit)) return false;
+    if (!GetFuelLimit(*this, height, cw, state, fuelLimit))
+        return false;
 
     vector<CReceipt> receipts;
 
@@ -470,18 +472,19 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
     uint64_t fuelRate = GetFuelRate(cw.contractCache);
 
     CLuaVMContext context;
-    context.p_cw = &cw;
-    context.height = height;
-    context.p_base_tx = this;
-    context.fuel_limit = fuelLimit;
-    context.transfer_symbol = coin_symbol;
-    context.transfer_amount = coin_amount;
+    context.p_cw              = &cw;
+    context.height            = height;
+    context.p_base_tx         = this;
+    context.fuel_limit        = fuelLimit;
+    context.transfer_symbol   = coin_symbol;
+    context.transfer_amount   = coin_amount;
     context.p_tx_user_account = &srcAccount;
-    context.p_app_account = &desAccount;
-    context.p_contract = &contract;
-    context.p_arguments = &arguments;
+    context.p_app_account     = &desAccount;
+    context.p_contract        = &contract;
+    context.p_arguments       = &arguments;
+
     int64_t llTime = GetTimeMillis();
-    auto pExecErr = vmRunEnv.ExecuteContract(&context, nRunStep);
+    auto pExecErr  = vmRunEnv.ExecuteContract(&context, nRunStep);
     if (pExecErr)
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
             GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);

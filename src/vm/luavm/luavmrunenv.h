@@ -29,20 +29,20 @@ public:
     CCacheWrapper *p_cw;
     uint32_t height;
 	CBaseTx *p_base_tx;
-    uint64_t fuel_limit;
-    TokenSymbol transfer_symbol; // amount of tx user transfer to contract account
-    uint64_t transfer_amount; // amount of tx user transfer to contract account
-    CAccount *p_tx_user_account;
-    CAccount *p_app_account;
-    CUniversalContract *p_contract;
-    string *p_arguments;
+        uint64_t fuel_limit;
+        TokenSymbol transfer_symbol;  // amount of tx user transfer to contract account
+        uint64_t transfer_amount;     // amount of tx user transfer to contract account
+        CAccount* p_tx_user_account;
+        CAccount* p_app_account;
+        CUniversalContract* p_contract;
+        string* p_arguments;
 };
 
 struct AssetTransfer {
     bool isContractAccount; // Is contract account or tx sender' account
     CUserID  toUid;         // to address of the transfer
     TokenSymbol tokenType;  // Token type of the transfer
-    uint64_t  tokenAmount;  // Token ammount of the transfer
+    uint64_t  tokenAmount;  // Token amount of the transfer
 };
 
 class CLuaVMRunEnv {

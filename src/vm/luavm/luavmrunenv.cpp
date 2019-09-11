@@ -62,11 +62,11 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
     LogPrint("vm", "isCheckAccount: %d\n", isCheckAccount);
     // CheckAppAcctOperate only support to check when the transfer symbol is WICC
     if (isCheckAccount && p_context->transfer_symbol == SYMB::WICC && !CheckAppAcctOperate()) {
-            return make_shared<string>("VmScript CheckAppAcct Failed");
+        return make_shared<string>("VmScript CheckAppAcct Failed");
     }
 
     if (!OperateAppAccount(mapAppFundOperate)) {
-        return make_shared<string>("OperateAppAccount Account Failed");
+        return make_shared<string>("OperateAppAccount Failed");
     }
 
     return nullptr;
