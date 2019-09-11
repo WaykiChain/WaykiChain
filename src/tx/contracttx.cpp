@@ -32,10 +32,10 @@ static bool GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, CValida
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
-    fuelLimit = ((tx.llFees - minFee) / fuelRate) * 100;
-    if (fuelLimit > MAX_BLOCK_RUN_STEP) {
-        fuelLimit = MAX_BLOCK_RUN_STEP;
-    }
+    uint64_t reservedFeesForMiner = minFee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
+    uint64_t reservedFeesForGas   = tx.llFees - reservedFeesForMiner;
+
+    fuelLimit = std::min<uint64_t>((reservedFeesForGas / fuelRate) * 100, MAX_BLOCK_RUN_STEP);
 
     return true;
 }

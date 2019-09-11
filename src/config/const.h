@@ -136,6 +136,8 @@ static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 
 static const uint64_t INITIAL_SUBSIDY_RATE = 5;  // Initial subsidy rate upon vote casting
 static const uint64_t FIXED_SUBSIDY_RATE   = 1;  // Eventual/lasting subsidy rate for vote casting
 
+static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^2
+
 static const string EMPTY_STRING = "";
 
 #endif //CONFIG_CONST_H
