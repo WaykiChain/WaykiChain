@@ -134,13 +134,13 @@ namespace wasm {
             structs[st.name] = st;
 
         for (const auto &td : abi.types) {
-            WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "invalid type %s",
+            WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type %s",
                         td.type.c_str());
 
             //std::cout << "type:" << td.type << std::endl;
 
             WASM_ASSERT(!_is_type(td.new_type_name, ctx), duplicate_abi_def_exception,
-                        "Type already exists %s", td.new_type_name.c_str());
+                        "Type %s already exists", td.new_type_name.c_str());
 
             //std::cout << "new_type_name:" << td.new_type_name << std::endl;
 
@@ -165,13 +165,13 @@ namespace wasm {
          */
 
         WASM_ASSERT(typedefs.size() == abi.types.size(), duplicate_abi_def_exception,
-                    "duplicate type definition detected");
+                    "Duplicate type definition detected");
         WASM_ASSERT(structs.size() == abi.structs.size(), duplicate_abi_def_exception,
-                    "duplicate struct definition detected");
+                    "Duplicate struct definition detected");
         WASM_ASSERT(actions.size() == abi.actions.size(), duplicate_abi_def_exception,
-                    "duplicate action definition detected");
+                    "Duplicate action definition detected");
         WASM_ASSERT(tables.size() == abi.tables.size(), duplicate_abi_def_exception,
-                    "duplicate table definition detected");
+                    "Duplicate table definition detected");
         //WASM_ASSERT( error_messages.size() == abi.error_messages.size(), duplicate_abi_err_msg_def_exception, "duplicate error message definition detected" );
         //WASM_ASSERT( variants.size() == abi.variants.value.size(), duplicate_abi_variant_def_exception, "duplicate variant definition detected" );
 

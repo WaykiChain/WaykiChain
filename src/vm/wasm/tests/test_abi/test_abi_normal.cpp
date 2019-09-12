@@ -212,15 +212,224 @@ void abi_type_repeat(){
     abi_serializer abis;
     WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
                          "abi_type_repeat")  
+}
 
+void abi_struct_repeat(){
+
+    const char* repeat_abi = R"=====(
+    {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ],
+     "ricardian_clauses": []
+    }
+    )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_struct_repeat")    
 
 }
+
+void abi_action_repeat(){
+
+   const char* repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "account",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer"
+       },{
+         "name": "transfer",
+         "type": "transfer"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ],
+    "ricardian_clauses": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_action_repeat")    
+
+}
+
+void abi_table_repeat(){
+
+   const char* repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "account",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer",
+         "ricardian_contract": "transfer contract"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       },{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ]
+   }
+   )=====";
+
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_table_repeat") 
+}
+
 
 
 int main( int argc, char **argv ) {
 
     abi_cycle();
     abi_type_repeat();
+    abi_struct_repeat();
+    abi_action_repeat();
+    abi_table_repeat();
 
     return 0;
 
