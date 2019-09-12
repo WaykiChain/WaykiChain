@@ -333,7 +333,7 @@ Value getscoininfo(const Array& params, bool fHelp){
         Object price;
         price.push_back(Pair("coin_symbol",                     item.first.first));
         price.push_back(Pair("price_symbol",                    item.first.second));
-        price.push_back(Pair("price",                           (double)item.second / PERCENT_BOOST));
+        price.push_back(Pair("price",                           (double)item.second / PRICE_BOOST));
         prices.push_back(price);
     }
 
