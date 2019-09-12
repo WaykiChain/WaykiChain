@@ -157,7 +157,7 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
             asset.symbol), REJECT_INVALID, "asset-existed-error");
 
     shared_ptr<CAccount> pOwnerAccount;
-    if (!pTxAccount->IsMyUid(asset.owner_uid)) {
+    if (pTxAccount->IsMyUid(asset.owner_uid)) {
         pOwnerAccount = pTxAccount;
     } else {
         pOwnerAccount = make_shared<CAccount>();
