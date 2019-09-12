@@ -41,9 +41,10 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
     CAccountToken accountToken = account.GetToken(SYMB::WICC);
-    if (accountToken.voted_amount < votedAmountMin) // must stake enough bcoins to be a price feeder
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Voted Bcoins insufficient by txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-voted-boins-insufficient");
+    if (accountToken.voted_amount < votedAmountMin * COIN) // must stake enough bcoins to be a price feeder
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Voted Bcoins insufficient(%llu vs %llu) by txUid %s account error",
+                        accountToken.voted_amount, votedAmountMin, txUid.ToString()),
+                        PRICE_FEED_FAIL, "account-voted-boins-insufficient");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
