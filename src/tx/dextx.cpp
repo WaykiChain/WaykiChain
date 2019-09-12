@@ -528,22 +528,21 @@ bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &
 // class DEXDealItem
 string DEXDealItem::ToString() const {
     return strprintf(
-        "buyOrderId=%s, sellOrderId=%s, dealPrice=%llu, dealCoinAmount=%llu, "
-        "dealAssetAmount=%llu",
+        "buy_order_id=%s, sell_order_id=%s, deal_coin_amount=%llu, deal_coin_amount=%llu, "
+        "deal_asset_amount=%llu",
         buyOrderId.ToString(), sellOrderId.ToString(), dealPrice, dealCoinAmount, dealAssetAmount);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
 string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
-    string dealInfo;
+    string dealInfo="";
     for (const auto &item : dealItems) {
-        dealInfo += strprintf("{buy_order_id:%s, sell_order_id:%s, coin_amount:%lld, asset_amount:%lld, price:%lld}",
-                        item.buyOrderId.GetHex(),item.sellOrderId.GetHex(),item.dealCoinAmount,item.dealAssetAmount,item.dealPrice);
+        dealInfo += "{" + item.ToString() + "},";
     }
 
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, deal_items=%s",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, deal_items=[%s]",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         dealInfo);
 }
@@ -777,8 +776,8 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         }
         if (!isCoinAmountMatch)
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the dealCoinAmount not match!"
-                " dealItem={%s} calcCoinAmount=%llu, diff=%lld, dealPrice=%llu",
-                dealItem.ToString(), dealAmountDiff, dealItem.dealPrice),
+                " dealItem={%s} calcCoinAmount=%llu",
+                dealItem.ToString(), calcCoinAmount),
                 REJECT_INVALID, "deal-coin-amount-unmatch");
 
         buyOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
@@ -929,15 +928,18 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     return true;
 }
 
-bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &txid,
+bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &orderId,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
-    if (!cw.dexCache.GetActiveOrder(txid, dealOrder))
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! txid=%s", txid.ToString()),
+    if (!cw.dexCache.GetActiveOrder(orderId, dealOrder))
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! orderId=%s", orderId.ToString()),
                         REJECT_INVALID, "get-active-order-failed");
     if (dealOrder.order_side != orderSide)
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s, "
-            "but get order_side=%s! txid=%s", orderSide, dealOrder.order_side, txid.ToString()),
-                        REJECT_INVALID, "order-side-unmatched");
+        return state.DoS(100,
+                         ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s, "
+                                  "but get order_side=%s! orderId=%s",
+                                  GetOrderSideName(orderSide),
+                                  GetOrderSideName(dealOrder.order_side), orderId.ToString()),
+                         REJECT_INVALID, "order-side-unmatched");
 
     return true;
 }

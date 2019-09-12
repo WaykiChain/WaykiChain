@@ -358,7 +358,7 @@ public:
     virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 
 private:
-    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &txid,
+    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &orderId,
         const OrderSide orderSide, CDEXOrderDetail &dealOrder);
 
 private:
