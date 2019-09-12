@@ -156,7 +156,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             }
 
             // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
-            uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / kPercentBoost);
+            uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / PERCENT_BOOST);
             if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                     "Placed BcoinSellMarketOrder: %s, orderId: %s\n"
@@ -169,7 +169,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             } else {  // 0 ~ 1
                 uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
                 assert(fcoinMedianPrice != 0);
-                uint64_t fcoinsToInflate = fcoinsValueToInflate * kPercentBoost / fcoinMedianPrice;
+                uint64_t fcoinsToInflate = fcoinsValueToInflate * PERCENT_BOOST / fcoinMedianPrice;
                 // inflate fcoin to fcoin genesis account
                 if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinsToInflate)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),

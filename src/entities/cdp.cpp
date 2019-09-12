@@ -14,7 +14,7 @@ string CUserCDP::ToString() const {
 }
 
 Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) const {
-    double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / kPercentBoost;
+    double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / PERCENT_BOOST;
 
     Object result;
     result.push_back(Pair("cdpid",              cdpid.GetHex()));

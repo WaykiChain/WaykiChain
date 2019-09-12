@@ -53,7 +53,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
         Object price;
         price.push_back(Pair("coin_symbol",   item.first.first));
         price.push_back(Pair("price_symbol",  item.first.second));
-        price.push_back(Pair("price",         (double)item.second/kPercentBoost));
+        price.push_back(Pair("price",         (double)item.second/PERCENT_BOOST));
         prices.push_back(price);
     }
     result.push_back(Pair("median_price", prices));

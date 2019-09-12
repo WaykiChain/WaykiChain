@@ -158,7 +158,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                             READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
         }
 
-        uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / kPercentBoost);
+        uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PERCENT_BOOST);
         if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
                         cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
@@ -430,7 +430,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             uint64_t collateralRatio  = cdp.ComputeCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
-                                100.0 * collateralRatio / (double)kPercentBoost, 100.0 * startingCdpCollateralRatio / (double)kPercentBoost),
+                                100.0 * collateralRatio / (double)PERCENT_BOOST, 100.0 * startingCdpCollateralRatio / (double)PERCENT_BOOST),
                                 UPDATE_CDP_FAIL, "invalid-collatera-ratio");
             }
 
@@ -441,7 +441,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             }
 
             uint64_t bcoinsToStakeAmountMin =
-                bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / kPercentBoost);
+                bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PERCENT_BOOST);
             if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
                                  cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
@@ -678,16 +678,16 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
         totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalBcoinsToReturnLiquidator;
 
-        totalScoinsToLiquidate = ( cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / kPercentBoost )
-                                * (double)cdpLiquidateDiscountRate / kPercentBoost; //1.096N
+        totalScoinsToLiquidate = ( cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / PERCENT_BOOST )
+                                * (double)cdpLiquidateDiscountRate / PERCENT_BOOST; //1.096N
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins;
 
     } else if (collateralRatio > forcedCdpLiquidateRatio) {    // 1.04 ~ 1.13
         totalBcoinsToReturnLiquidator = cdp.total_staked_bcoins; //M
         totalBcoinsToCdpOwner = 0;
-        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * ((double) bcoinMedianPrice / kPercentBoost)
-                                * cdpLiquidateDiscountRate / kPercentBoost; //M * 97%
+        totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * ((double) bcoinMedianPrice / PERCENT_BOOST)
+                                * cdpLiquidateDiscountRate / PERCENT_BOOST; //M * 97%
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins; // M * 97% - N
 
@@ -766,7 +766,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                              READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
         }
 
-        uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / kPercentBoost);
+        uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PERCENT_BOOST);
         if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
                             cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
