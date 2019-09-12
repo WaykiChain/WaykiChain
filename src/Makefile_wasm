@@ -41,7 +41,7 @@ EOSIO_VM_H = \
   vm/wasm/eos-vm/include/eosio/vm/wasm_stack.hpp \
   vm/wasm/eos-vm/include/eosio/vm/watchdog.hpp \
   vm/wasm/types/asset.hpp \
-  vm/wasm/types/inlinetransaction.hpp \
+  vm/wasm/types/inline_transaction.hpp \
   vm/wasm/types/check.hpp \
   vm/wasm/types/name.hpp \
   vm/wasm/types/symbol.hpp \
@@ -50,7 +50,7 @@ EOSIO_VM_H = \
   vm/wasm/types/varint.hpp
 
 
-WASM_INTERFACE = vm/wasm/wasminterface.cpp
+WASM_INTERFACE = vm/wasm/wasm_interface.cpp
 
 UINT128_SRC = vm/wasm/types/uint128.cpp
 

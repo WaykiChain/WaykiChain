@@ -272,18 +272,18 @@ WASM_H = \
   vm/wasm/datastream.hpp \
   vm/wasm/exceptions.hpp \
   vm/wasm/receipt.hpp \
-  vm/wasm/wasmconfig.hpp \
-  vm/wasm/wasmcontext.hpp \
-  vm/wasm/wasmcontextinterface.hpp \
-  vm/wasm/wasmhostmethods.hpp \
-  vm/wasm/wasminterface.hpp \
-  vm/wasm/wasmnativecontract.hpp \
-  vm/wasm/wasmtrace.hpp
+  vm/wasm/wasm_config.hpp \
+  vm/wasm/wasm_context.hpp \
+  vm/wasm/wasm_context_interface.hpp \
+  vm/wasm/wasm_host_methods.hpp \
+  vm/wasm/wasm_interface.hpp \
+  vm/wasm/wasm_native_contract.hpp \
+  vm/wasm/wasm_trace.hpp
 
 WASM_CPP = \
   vm/wasm/abi_serializer.cpp \
-  vm/wasm/wasmcontext.cpp \
-  vm/wasm/wasmnativecontract.cpp \
+  vm/wasm/wasm_context.cpp \
+  vm/wasm/wasm_native_contract.cpp \
   vm/wasm/abi_serializer.cpp
 
 

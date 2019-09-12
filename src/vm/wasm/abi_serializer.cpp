@@ -140,7 +140,7 @@ namespace wasm {
             //std::cout << "type:" << td.type << std::endl;
 
             WASM_ASSERT(!_is_type(td.new_type_name, ctx), duplicate_abi_def_exception,
-                        "type already exists %s", td.new_type_name.c_str());
+                        "Type already exists %s", td.new_type_name.c_str());
 
             //std::cout << "new_type_name:" << td.new_type_name << std::endl;
 
@@ -360,7 +360,7 @@ namespace wasm {
             }
         }
 
-        WASM_THROW(invalid_type_inside_abi, "missing %s", field.data());
+        WASM_THROW(invalid_type_inside_abi, "Missing %s", field.data());
 
         json_spirit::Value var;
         return var;
@@ -409,7 +409,7 @@ namespace wasm {
                 WASM_THROW(invalid_type_inside_abi, "Unknown type %s", type.c_str());
             }
         }
-        WASM_CAPTURE_AND_RETHROW("can not convert %s to %s", type.c_str(), json_spirit::write(var).c_str())
+        WASM_CAPTURE_AND_RETHROW("Can not convert %s to %s", type.c_str(), json_spirit::write(var).c_str())
 
     }
 
@@ -510,20 +510,20 @@ namespace wasm {
                     try {
                         ctx.check_deadline();
                         WASM_ASSERT(_is_type(_remove_bin_extension(field.type), ctx), invalid_type_inside_abi,
-                                    "invalid type inside abi in type %s", field.type.c_str());
+                                    "Invalid type inside abi in type %s", field.type.c_str());
 
                     }
-                    WASM_CAPTURE_AND_RETHROW("parse error in struct %s field %s", s.first.c_str(), field.type.c_str())
+                    WASM_CAPTURE_AND_RETHROW("Parse error in struct %s field %s", s.first.c_str(), field.type.c_str())
                 }
             }
-            WASM_CAPTURE_AND_RETHROW("parse error in struct %s", s.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
         }
 
         for (const auto &a : actions) {
             try {
                 ctx.check_deadline();
                 WASM_ASSERT(_is_type(a.second, ctx), invalid_type_inside_abi,
-                            "invalid type inside abi in action %s", a.second.c_str());
+                            "Invalid type inside abi in action %s", a.second.c_str());
             }
             WASM_CAPTURE_AND_RETHROW("action %s error", a.first.c_str())
         }
@@ -532,16 +532,16 @@ namespace wasm {
             try {
                 ctx.check_deadline();
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
-                            "invalid type inside abi in table %s", t.second.c_str());
+                            "Invalid type inside abi in table %s", t.second.c_str());
             }
-            WASM_CAPTURE_AND_RETHROW("table %s error", t.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Table %s error", t.first.c_str())
         }
     }
 
 
     void abi_traverse_context::check_deadline() const {
         WASM_ASSERT(system_clock::now() < deadline, abi_serialization_deadline_exception,
-                    "serialization time limit %ldus exceeded", max_serialization_time.count());
+                    "Serialization time limit %ldus exceeded", max_serialization_time.count());
     }
 
 

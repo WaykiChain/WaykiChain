@@ -14,7 +14,7 @@
 
 #include "types/symbol.hpp"
 #include "types/varint.hpp"
-#include "types/inlinetransaction.hpp"
+#include "types/inline_transaction.hpp"
 
 
 namespace wasm {

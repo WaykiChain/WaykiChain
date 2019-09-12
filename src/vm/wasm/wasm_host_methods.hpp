@@ -8,12 +8,13 @@
 #include <sstream>
 #include <map>
 
-#include "wasmcontextinterface.hpp"
+#include "wasm_context_interface.hpp"
 #include "datastream.hpp"
 #include "softfloat.hpp"
 #include "compiler_builtins.hpp"
 #include "types/uint128.hpp"
 #include "exceptions.hpp"
+#include "wasm_log.hpp"
 
 extern map <string, string> database;
 using namespace wasm;
@@ -190,9 +191,11 @@ namespace wasm {
             // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
-            std::cout << "db_store key:" << ToHex(k) << " key_len:" << key_len
-                      << " value:" << ToHex(v) << " value_len:" << val_len
-                      << std::endl;
+            // std::cout << "db_store key:" << ToHex(k) << " key_len:" << key_len
+            //           << " value:" << ToHex(v) << " value_len:" << val_len
+            //           << std::endl;
+            WASM_TRACE("key:%s key_len:%d val:%s val_len:%d",
+                       ToHex(k).c_str(), key_len, ToHex(v).c_str(), val_len)
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;

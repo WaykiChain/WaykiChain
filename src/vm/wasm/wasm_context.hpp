@@ -7,10 +7,10 @@
 #include <map>
 
 #include "tx/wasmcontracttx.h"
-#include "wasm/types/inlinetransaction.hpp"
-#include "wasm/wasminterface.hpp"
+#include "wasm/types/inline_transaction.hpp"
+#include "wasm/wasm_interface.hpp"
 #include "wasm/datastream.hpp"
-#include "wasm/wasmtrace.hpp"
+#include "wasm/wasm_trace.hpp"
 #include "persistence/cachewrapper.h"
 
 using namespace std;

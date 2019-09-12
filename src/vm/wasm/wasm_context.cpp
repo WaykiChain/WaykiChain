@@ -1,8 +1,8 @@
-#include "wasm/wasmcontext.hpp"
-#include "wasm/wasmnativecontract.hpp"
+#include "wasm/wasm_context.hpp"
+#include "wasm/wasm_native_contract.hpp"
 #include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
-#include "wasm/wasmconfig.hpp"
+#include "wasm/wasm_config.hpp"
 
 using namespace std;
 using namespace wasm;

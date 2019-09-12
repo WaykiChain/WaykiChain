@@ -30,11 +30,11 @@
 
 #include "datastream.hpp"
 #include "abi_serializer.hpp"
-#include "wasmcontext.hpp"
+#include "wasm_context.hpp"
 #include "exceptions.hpp"
 #include "types/name.hpp"
 #include "types/asset.hpp"
-#include "wasmconfig.hpp"
+#include "wasm_config.hpp"
 
 using namespace std;
 using namespace boost;

@@ -1,5 +1,5 @@
 #include "config/errorcode.h"
-#include "wasm/wasmnativecontract.hpp"
+#include "wasm/wasm_native_contract.hpp"
 #include "wasm/exceptions.hpp"
 #include "wasm/datastream.hpp"
 #include "persistence/cachewrapper.h"

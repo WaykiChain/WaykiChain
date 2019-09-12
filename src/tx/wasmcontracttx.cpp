@@ -14,11 +14,11 @@
 #include "config/version.h"
 #include <sstream>
 
-#include "wasm/wasmcontext.hpp"
+#include "wasm/wasm_context.hpp"
 #include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/abi_def.hpp"
-#include "wasm/wasmconfig.hpp"
+#include "wasm/wasm_config.hpp"
 #include "wasm/abi_serializer.hpp"
 
 static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {

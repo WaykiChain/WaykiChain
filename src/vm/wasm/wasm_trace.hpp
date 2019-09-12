@@ -1,7 +1,7 @@
 #pragma once
 
 #include "commons/uint256.h"
-#include "wasm/types/inlinetransaction.hpp"
+#include "wasm/types/inline_transaction.hpp"
 
 namespace wasm {
 

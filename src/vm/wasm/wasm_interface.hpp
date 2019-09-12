@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "wasmcontextinterface.hpp"
+#include "wasm_context_interface.hpp"
 
 namespace wasm {
 

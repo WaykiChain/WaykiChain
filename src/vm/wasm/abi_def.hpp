@@ -8,8 +8,7 @@
 #include "json/json_spirit.h"
 #include "json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
-// #include "wasm/wasmcontext.hpp"
-#include "wasm/wasmconfig.hpp"
+#include "wasm/wasm_config.hpp"
 
 namespace wasm {
     using namespace json_spirit;

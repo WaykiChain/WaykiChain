@@ -3,8 +3,8 @@
 #include <eosio/vm/host_function.hpp>
 #include <eosio/vm/watchdog.hpp>
 
-#include "wasminterface.hpp"
-#include "wasmhostmethods.hpp"
+#include "wasm_interface.hpp"
+#include "wasm_host_methods.hpp"
 #include "types/name.hpp"
 #include "exceptions.hpp"
 
@@ -116,7 +116,7 @@ namespace wasm {
 
         // Thread specific `allocator` used for wasm linear memory.
         wasm_allocator wa;
-        watchdog wd{std::chrono::seconds(3)};
+        watchdog wd{std::chrono::seconds(1)};
         try {
             // Instaniate a new backend using the wasm provided.
             backend_t bkend(code);

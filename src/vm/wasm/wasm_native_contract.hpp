@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wasm/wasmcontext.hpp"
+#include "wasm/wasm_context.hpp"
 
 using namespace std;
 using namespace wasm;

@@ -6,7 +6,7 @@
 #include <queue>
 #include <map>
 
-#include "types/inlinetransaction.hpp"
+#include "types/inline_transaction.hpp"
 
 
 using namespace std;

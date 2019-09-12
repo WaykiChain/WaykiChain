@@ -29,7 +29,7 @@ using namespace std;
     } catch( ... ) {                             \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \
          sprintf( buf,  __VA_ARGS__ );           \
-         throw wasm_assert_exception( buf );       \
+         throw wasm_assert_exception( buf );     \
     }
 
 
@@ -48,7 +48,7 @@ namespace wasm {
       virtual const char* what()const throw() { return _what; }                   \
       virtual const char* detail()const throw() { return msg.c_str(); }           \
       virtual uint32_t code()const throw() { return _code; }                      \
-      const string msg;                                                            \
+      const string msg;                                                           \
    };
 
 namespace wasm {

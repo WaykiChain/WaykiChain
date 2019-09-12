@@ -2,8 +2,8 @@
 #define TX_WASM_CONTRACT_TX_H
 
 #include "tx.h"
-#include "wasm/types/inlinetransaction.hpp"
-#include "wasm/wasmtrace.hpp"
+#include "wasm/types/inline_transaction.hpp"
+#include "wasm/wasm_trace.hpp"
 
 class CWasmContractTx : public CBaseTx {
 public:
