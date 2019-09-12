@@ -156,12 +156,16 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    CKeyID sendKeyId, recvKeyId;
-    if (!GetKeyId(params[0].get_str(), sendKeyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+    const CUserID& txUid  = RPC_PARAM::GetUserId(params[0], true);
+    const CUserID& appUid = RPC_PARAM::GetUserId(params[1]);
 
-    if (!GetKeyId(params[1].get_str(), recvKeyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
+    CRegID appRegId;
+    if (!pCdMan->pAccountCache->GetRegId(appUid, appRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
+    }
+
+    if (!pCdMan->pContractCache->HaveContract(appRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract");
     }
 
     string arguments = ParseHexStr(params[2].get_str());
@@ -173,47 +177,18 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
     int64_t fee    = RPC_PARAM::GetWiccFee(params, 4, LCONTRACT_INVOKE_TX);
     int32_t height = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
 
-    CPubKey sendPubKey;
-    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
-    }
-
-    CUserID sendUserId;
-    CRegID sendRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
-            ? CUserID(sendRegId)
-            : CUserID(sendPubKey);
-
-    CRegID recvRegId;
-    if (!pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
-    }
-
-    if (!pCdMan->pContractCache->HaveContract(recvRegId)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
-    }
-
     CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
-    tx.txUid        = sendUserId;
-    tx.app_uid      = recvRegId;
+    tx.txUid        = txUid;
+    tx.app_uid      = appUid;
     tx.coin_amount  = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
     tx.valid_height = height;
 
-    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-    }
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
 
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
-    return obj;
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
@@ -471,13 +446,11 @@ Value listaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error(
             "listaddr\n"
-            "\nreturn Array containing address,balance,haveminerkey,regid information.\n"
+            "\nreturn Array containing address, balance, haveminerkey, regid information.\n"
             "\nArguments:\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("listaddr", "")
-            + "\nAs json rpc call\n"
-            + HelpExampleRpc("listaddr", ""));
+            "\nExamples:\n" +
+            HelpExampleCli("listaddr", "") + "\nAs json rpc call\n" + HelpExampleRpc("listaddr", ""));
     }
 
     Array retArray;

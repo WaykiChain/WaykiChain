@@ -7,7 +7,9 @@
 
 #include "config/configuration.h"
 #include "main.h"
+
 #include <algorithm>
+#include <cassert>
 
 using uint128_t = unsigned __int128;
 
@@ -17,7 +19,7 @@ using uint128_t = unsigned __int128;
 bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const string &title,
                                           const TokenSymbol &symbol, const int64_t amount) {
     // TODO: should check the min amount of order by symbol
-    static_assert(MIN_DEX_ORDER_AMOUNT < LONG_MAX);
+    static_assert(MIN_DEX_ORDER_AMOUNT < INT64_MAX);
     if (amount < (int64_t)MIN_DEX_ORDER_AMOUNT)
         return state.DoS(100, ERRORMSG("%s amount is too small, symbol=%s, amount=%llu, min_amount=%llu",
                         title, symbol, amount, MIN_DEX_ORDER_AMOUNT), REJECT_INVALID, "order-amount-too-small");

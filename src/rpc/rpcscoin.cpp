@@ -381,17 +381,14 @@ Value getusercdp(const Array& params, bool fHelp){
 
     CAccount account;
     if (!pCdMan->pAccountCache->GetAccount(*pUserId, account)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                            strprintf("The account not exists! userId=%s", pUserId->ToString()));
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!account.regid.IsEmpty());
 
     int32_t height = chainActive.Height();
     uint64_t slideWindow;
     pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice =
-        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
 
     Array cdps;
     vector<CUserCDP> userCdps;
@@ -425,8 +422,7 @@ Value getcdp(const Array& params, bool fHelp){
     uint64_t slideWindow;
     pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice =
-        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;

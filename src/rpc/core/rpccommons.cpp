@@ -397,7 +397,7 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, bool senderUid) {
         if (senderUid && pUserId->is<CKeyID>()) {
             CPubKey sendPubKey;
             if (!pWalletMain->GetPubKey(pUserId->get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
-                throw JSONRPCError(RPC_WALLET_ERROR, "Invalid address");
+                throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
 
             return CUserID(sendPubKey);
         } else {
