@@ -213,12 +213,14 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
 
+    EnsureWalletIsUnlocked();
+
     string luaScriptFilePath = GetAbsolutePath(params[1].get_str()).string();
     if (luaScriptFilePath.empty())
-        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist!");
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist");
 
     if (luaScriptFilePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
-        throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir!");
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir");
 
     std::tuple<bool, string> result = CLuaVM::CheckScriptSyntax(luaScriptFilePath.c_str());
     bool bOK = std::get<0>(result);
@@ -234,12 +236,9 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
     lSize = ftell(file);
     rewind(file);
 
-    if (lSize <= 0 || lSize > MAX_CONTRACT_CODE_SIZE) { // contract script file size must be <= 64 KB)
+    if (lSize <= 0 || lSize > MAX_CONTRACT_CODE_SIZE) {
         fclose(file);
-        throw JSONRPCError(
-            RPC_INVALID_PARAMETER,
-            (lSize == -1) ? "File size is unknown"
-                          : ((lSize == 0) ? "File is empty" : "File size exceeds 64 KB limit"));
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract script");
     }
 
     // allocate memory to contain the whole file:
@@ -280,8 +279,6 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
     assert(pWalletMain != nullptr);
     CLuaContractDeployTx tx;
     {
-        EnsureWalletIsUnlocked();
-
         CAccount account;
         if (!pCdMan->pAccountCache->GetAccount(keyId, account)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Invalid send address");
@@ -322,7 +319,6 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
     }
 }
 
-//vote a delegate transaction
 Value submitdelegatevotetx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
@@ -357,89 +353,52 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
                            "[{\"delegate\":\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                            "\"votes\":100000000}], 10000"));
     }
+
     RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
 
-    string sendAddr = params[0].get_str();
-    uint64_t fee    = params[2].get_uint64();  // real type
-    int32_t height  = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, DELEGATE_VOTE_TX);
+    int32_t height       = params.size() > 3 ? params[3].get_int() : chainActive.Height();
     if (height < 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
     }
 
-    CKeyID sendKeyId;
-    if (!GetKeyId(sendAddr, sendKeyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
-    }
     CDelegateVoteTx delegateVoteTx;
-    assert(pWalletMain != nullptr);
-    {
-        EnsureWalletIsUnlocked();
-        CAccount account;
+    delegateVoteTx.txUid        = txUid;
+    delegateVoteTx.llFees       = fee;
+    delegateVoteTx.valid_height = height;
 
-        if (!pCdMan->pAccountCache->GetAccount(sendKeyId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
+    Array arrVotes = params[1].get_array();
+    for (auto objVote : arrVotes) {
+        const Value& delegateAddr  = find_value(objVote.get_obj(), "delegate");
+        const Value& delegateVotes = find_value(objVote.get_obj(), "votes");
+        if (delegateAddr.type() == null_type || delegateVotes == null_type) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
+        }
+        CKeyID delegateKeyId;
+        if (!GetKeyId(delegateAddr.get_str(), delegateKeyId)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error");
+        }
+        CAccount delegateAcct;
+        if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
+        }
+        if (!delegateAcct.HaveOwnerPubKey()) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
         }
 
-        CPubKey sendPubKey;
-        if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sender account not found in wallet");
+        VoteType voteType    = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
+        CUserID candidateUid = CUserID(delegateAcct.regid);
+        uint64_t bcoins      = (uint64_t)abs(delegateVotes.get_int64());
+        CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
-        CUserID sendUserId;
-        CRegID sendRegId;
-        sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
-                     ? CUserID(sendRegId)
-                     : CUserID(sendPubKey);
-
-        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
-        if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
-        }
-
-        delegateVoteTx.txUid        = sendUserId;
-        delegateVoteTx.llFees       = fee;
-        delegateVoteTx.valid_height = height;
-
-        Array arrVotes = params[1].get_array();
-        for (auto objVote : arrVotes) {
-            const Value& delegateAddr  = find_value(objVote.get_obj(), "delegate");
-            const Value& delegateVotes = find_value(objVote.get_obj(), "votes");
-            if (delegateAddr.type() == null_type || delegateVotes == null_type) {
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
-            }
-            CKeyID delegateKeyId;
-            if (!GetKeyId(delegateAddr.get_str(), delegateKeyId)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error");
-            }
-            CAccount delegateAcct;
-            if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
-            }
-            if (!delegateAcct.HaveOwnerPubKey()) {
-                throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
-            }
-
-            VoteType voteType = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
-            CUserID candidateUid = CUserID(delegateAcct.regid);
-            uint64_t bcoins = (uint64_t)abs(delegateVotes.get_int64());
-            CCandidateVote candidateVote(voteType, candidateUid, bcoins);
-
-            delegateVoteTx.candidateVotes.push_back(candidateVote);
-        }
-
-        if (!pWalletMain->Sign(sendKeyId, delegateVoteTx.ComputeSignatureHash(), delegateVoteTx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-        }
+        delegateVoteTx.candidateVotes.push_back(candidateVote);
     }
 
-    std::tuple<bool, string> ret;
-    ret = pWalletMain->CommitTx((CBaseTx*)&delegateVoteTx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object objRet;
-    objRet.push_back(Pair("txid", std::get<1>(ret)));
-    return objRet;
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    return SubmitTx(account.keyid, delegateVoteTx);
 }
 
 Value listaddr(const Array& params, bool fHelp) {

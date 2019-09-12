@@ -744,8 +744,9 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
             + HelpExampleRpc("getdexsysorders", "10")
         );
     }
+
     int64_t tipHeight = chainActive.Height();
-    int64_t height = tipHeight;
+    int64_t height    = tipHeight;
     if (params.size() > 0)
         height = params[0].get_int64();
 
@@ -757,9 +758,11 @@ extern Value getdexsysorders(const Array& params, bool fHelp) {
     if (!pGetter->Execute(height)) {
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("get system-generated orders error! height=%d", height));
     }
+
     Object obj;
     obj.push_back(Pair("height", height));
     pGetter->ToJson(obj);
+
     return obj;
 }
 
@@ -786,6 +789,7 @@ extern Value getdexorders(const Array& params, bool fHelp) {
             + HelpExampleRpc("getdexorders", "0, 100, 500")
         );
     }
+
     int64_t tipHeight = chainActive.Height();
     int64_t beginHeight = 0;
     if (params.size() > 0)
