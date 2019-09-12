@@ -76,6 +76,24 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.frozen_amount -= value;
             return true;
         }
+          case VOTE: {
+            if (accountToken.free_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.free_amount, value, tokenSymbol);
+
+            accountToken.free_amount -= value;
+            accountToken.voted_amount += value;
+            return true;
+        }
+        case UNVOTE: {
+            if (accountToken.voted_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, voted_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.voted_amount, value, tokenSymbol);
+
+            accountToken.free_amount += value;
+            accountToken.voted_amount -= value;
+            return true;
+        }
         default: return false;
     }
 }

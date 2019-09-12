@@ -41,7 +41,8 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
 
-    CAccountToken accountToken = account.GetToken(SYMB::WGRT);
+    //TODO: change below to get account staked wicc amount
+    CAccountToken accountToken = account.GetToken(SYMB::WICC);
     if (accountToken.staked_amount < stakedAmountMin) // must stake enough fcoins
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
