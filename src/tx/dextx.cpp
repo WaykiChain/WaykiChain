@@ -7,6 +7,7 @@
 
 #include "config/configuration.h"
 #include "main.h"
+#include <algorithm>
 
 using uint128_t = unsigned __int128;
 
@@ -518,6 +519,15 @@ bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// class DEXDealItem
+string DEXDealItem::ToString() const {
+    return strprintf(
+        "buyOrderId=%s, sellOrderId=%s, dealPrice=%llu, dealCoinAmount=%llu, "
+        "dealAssetAmount=%llu",
+        buyOrderId.ToString(), sellOrderId.ToString(), dealPrice, dealCoinAmount, dealAssetAmount);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
 string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo;
@@ -752,16 +762,25 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
 
         // 6. check and operate deal amount
         uint64_t calcCoinAmount = CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice);
-        if (calcCoinAmount != dealItem.dealCoinAmount) {
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the dealCoinAmount not match"),
-                            REJECT_INVALID, "deal-coin-amount-unmatch");
+        int64_t dealAmountDiff = calcCoinAmount - dealItem.dealCoinAmount;
+        bool isCoinAmountMatch = false;
+        if (buyOrder.order_type == ORDER_MARKET_PRICE) {
+            isCoinAmountMatch = (std::abs(dealAmountDiff) < std::max((int64_t)1, (int64_t)(1 * dealItem.dealPrice / kPercentBoost)));
+        } else {
+            isCoinAmountMatch = (dealAmountDiff == 0);
         }
+        if (!isCoinAmountMatch)
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the dealCoinAmount not match!"
+                " dealItem={%s} calcCoinAmount=%llu, diff=%lld, dealPrice=%llu",
+                dealItem.ToString(), dealAmountDiff, dealItem.dealPrice),
+                REJECT_INVALID, "deal-coin-amount-unmatch");
+
         buyOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
         buyOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
         sellOrder.total_deal_coin_amount += dealItem.dealCoinAmount;
         sellOrder.total_deal_asset_amount += dealItem.dealAssetAmount;
 
-        // 7. check the order limit amount and get residual amount
+        // 7. check the order amount limits and get residual amount
         uint64_t buyResidualAmount  = 0;
         uint64_t sellResidualAmount = 0;
 
@@ -769,14 +788,15 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             uint64_t limitCoinAmount = buyOrder.coin_amount;
             if (limitCoinAmount < buyOrder.total_deal_coin_amount) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal coin amount exceed the limit coin amount of buy order"),
-                                REJECT_INVALID, "exceeded-deal-amount");
+                                REJECT_INVALID, "deal-coin-amount-exceeded");
             }
+
             buyResidualAmount = limitCoinAmount - buyOrder.total_deal_coin_amount;
         } else {
             uint64_t limitAssetAmount = buyOrder.asset_amount;
             if (limitAssetAmount < buyOrder.total_deal_asset_amount) {
                 return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal asset amount exceed the limit asset amount of buy order"),
-                                REJECT_INVALID, "exceeded-deal-amount");
+                                REJECT_INVALID, "deal-amount-exceeded");
             }
             buyResidualAmount = limitAssetAmount - buyOrder.total_deal_asset_amount;
         }

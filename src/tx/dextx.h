@@ -304,6 +304,8 @@ struct DEXDealItem  {
         READWRITE(VARINT(dealCoinAmount));
         READWRITE(VARINT(dealAssetAmount));
     )
+
+    string ToString() const;
 };
 
 class CDEXSettleTx: public CBaseTx {
