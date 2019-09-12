@@ -76,7 +76,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
             accountToken.frozen_amount -= value;
             return true;
         }
-          case VOTE: {
+        case VOTE: {
             if (accountToken.free_amount < value)
                 return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
                                 accountToken.free_amount, value, tokenSymbol);

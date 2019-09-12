@@ -30,7 +30,7 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
     CRegID sendRegId = txUid.get<CRegID>();
-    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a miner
+    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a delegate
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
@@ -40,10 +40,8 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
-
-    //TODO: change below to get account staked wicc amount
     CAccountToken accountToken = account.GetToken(SYMB::WICC);
-    if (accountToken.staked_amount < stakedAmountMin) // must stake enough fcoins
+    if (accountToken.voted_amount < stakedAmountMin) // must stake enough bcoins to be a price feeder
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
 
