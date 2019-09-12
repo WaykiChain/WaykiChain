@@ -288,14 +288,12 @@ static string GetSystemInfo() {
 
     string json;
     json += "{";
-    json += "\"coreCount\":" + cpu + ",";
-    // TODO: generate fingerpints.
-    json += "\"fingerprint\": \"xxx\",";
-    json += "\"memoryCapability\":" + memory + ",";
-    json += "\"totalHDD\":" + totalHDD + ",";
-    json += "\"freeHDD\":" + freeHDD + ",";
-    json += "\"osType\":\"" + systemName + "\",";
-    json += "\"osVersion\":\"" + systemRelease + "\"";
+    json += "\"vcpu_count\":" + cpu + ",";
+    json += "\"mem\":" + memory + ",";
+    json += "\"disk_total\":" + totalHDD + ",";
+    json += "\"disk_free\":" + freeHDD + ",";
+    json += "\"os_type\":\"" + systemName + "\",";
+    json += "\"os_ver\":\"" + systemRelease + "\"";
     json += "}";
 
     return json;
