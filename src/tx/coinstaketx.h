@@ -21,7 +21,7 @@ public:
     CCoinStakeTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn,
                 const BalanceOpType stakeType, const TokenSymbol &coinSymbol, const uint64_t coinAmount)
         : CBaseTx(UCOIN_STAKE_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
-          stake_ype(stakeType),
+          stake_type(stakeType),
           coin_symbol(coinSymbol),
           coin_amount(coinAmount) {}
 

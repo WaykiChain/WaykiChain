@@ -95,37 +95,39 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-Value submitfcoinstaketx(const Array& params, bool fHelp) {
+Value submitcoinstaketx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitfcoinstaketx \"addr\" \"fcoin_amount\" [\"symbol:fee:unit\"]\n"
+            "submitcoinstaketx \"addr\" \"fcoin_amount\" [\"symbol:fee:unit\"]\n"
             "\nstake fcoins\n"
             "\nArguments:\n"
-            "1.\"addr\":             (string, required)\n"
-            "2.\"fcoin_amount\":     (numeric, required) amount of fcoins to stake\n"
+            "1.\"addr\":            (string, required)\n"
+            "2.\"coin_symbol\":     (WICC|WUSD|WGRT, required)\n"
+            "2.\"coin_amount\":     (numeric, required) amount of coins to stake (positive) or unstake (negative)\n"
             "3.\"symbol:fee:unit\":  (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"                (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" 200000000")
+            + HelpExampleCli("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" 200000000")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitfcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", 200000000")
+            + HelpExampleRpc("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"WICC\", 200000000")
         );
     }
 
     EnsureWalletIsUnlocked();
 
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
-    int64_t stakeAmount     = params[1].get_int64();
+    string coinSymbol       = params[1].get_str();
+    int64_t coinAmount      = params[2].get_int64();
     ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, UCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
-    BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
+    BalanceOpType stakeType = coinAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
-    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, std::abs(stakeAmount));
+    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, coinSymbol, std::abs(coinAmount));
     return SubmitTx(account.keyid, tx);
 }
 

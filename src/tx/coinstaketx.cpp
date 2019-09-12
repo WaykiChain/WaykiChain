@@ -20,7 +20,7 @@ bool CCoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     }
 
     //TODO: use issued asset registry in future to replace below hard-coding
-    if (coin_symbol != SYMB::WICC && coin_symbol != SYMB::WUSD || coin_symbol != SYMB::WGRT ) {
+    if (coin_symbol != SYMB::WICC && coin_symbol != SYMB::WUSD && coin_symbol != SYMB::WGRT ) {
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid coin_symbol"),
                         REJECT_INVALID, "bad-coin-symbol");
     }

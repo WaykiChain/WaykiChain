@@ -46,7 +46,7 @@
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
 #include "tx/dextx.h"
-#include "tx/fcoinstaketx.h"
+#include "tx/coinstaketx.h"
 #include "tx/mulsigtx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/tx.h"

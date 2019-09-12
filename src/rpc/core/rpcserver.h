@@ -168,7 +168,7 @@ extern json_spirit::Value startcontracttpstest(const json_spirit::Array& params,
 extern json_spirit::Value getblockfailures(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitpricefeedtx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value submitfcoinstaketx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitcoinstaketx(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitdexbuylimitordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexselllimitordertx(const json_spirit::Array& params, bool fHelp);

@@ -310,7 +310,7 @@ static const CRPCCommand vRPCCommands[] =
 
     /* for CDP */
     { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },
-    { "submitfcoinstaketx",     &submitfcoinstaketx,     true,      false,      true },
+    { "submitcoinstaketx",     &submitcoinstaketx,     true,      false,      true },
     { "submitcdpstaketx",       &submitcdpstaketx,       true,      false,      true },
     { "submitcdpredeemtx",      &submitcdpredeemtx,      true,      false,      true },
     { "submitcdpliquidatetx",   &submitcdpliquidatetx,   true,      false,      true },
