@@ -132,15 +132,7 @@ public:
 
 public:
     static bool CheckSymbolChar(const char ch) {
-        return  (ch >= '0' && ch <= '9') ||
-                (ch >= 'A' && ch <= 'Z') ||
-                (ch >= 'a' && ch <= 'z') ||
-                ch == '@' ||
-                ch == '#' ||
-                ch == '.' ||
-                ch == '_' ||
-                ch == '-' ||
-                ch == '/';
+        return  ch >= 'A' && ch <= 'Z';
     }
 
     // @return nullptr if succeed, else err string
@@ -161,16 +153,17 @@ public:
 
 class CAsset: public CBaseAsset {
 public:
-    uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimit
     uint64_t min_order_amount;  // min amount for submit order tx, 0 is unlimit
+    uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimit
 public:
-    CAsset(): CBaseAsset(), max_order_amount(0), min_order_amount(0) {}
+    CAsset(): CBaseAsset(), min_order_amount(0), max_order_amount(0) {}
 
-    CAsset(CBaseAsset *pBaseAsset): CBaseAsset(*pBaseAsset), max_order_amount(0), min_order_amount(0) {}
+    CAsset(CBaseAsset *pBaseAsset): CBaseAsset(*pBaseAsset), min_order_amount(0), max_order_amount(0) {}
 
     CAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
-           uint64_t totalSupplyIn, bool mintableIn)
-        : CBaseAsset(symbolIn, ownerUseridIn, nameIn, totalSupplyIn, mintableIn){};
+           uint64_t totalSupplyIn, bool mintableIn, uint64_t minOrderAmountIn, uint64_t maxOrderAmountIn)
+        : CBaseAsset(symbolIn, ownerUseridIn, nameIn, totalSupplyIn, mintableIn),
+          min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(symbol);

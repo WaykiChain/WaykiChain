@@ -137,7 +137,7 @@ public:
         s >> ((uint8_t&)type);
         switch (type) {
             case OWNER_UID: {
-                CRegID regid;
+                CUserID regid;
                 s >> regid;
                 value = regid;
                 break;
