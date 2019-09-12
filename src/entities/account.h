@@ -40,7 +40,9 @@ enum BalanceOpType : uint8_t {
     STAKE    = 3,  //!< free   -> staked
     UNSTAKE  = 4,  //!< staked -> free
     FREEZE   = 5,  //!< free   -> frozen
-    UNFREEZE = 6   //!< frozen -> free
+    UNFREEZE = 6,  //!< frozen -> free
+    VOTE     = 7,  //!< free -> voted
+    UNVOTE   = 8   //!< voted -> free
 };
 
 struct BalanceOpTypeHash {
@@ -54,7 +56,9 @@ static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpT
     { STAKE,    "STAKE"     },
     { UNSTAKE,  "UNSTAKE"   },
     { FREEZE,   "FREEZE"    },
-    { UNFREEZE, "UNFREEZE"  }
+    { UNFREEZE, "UNFREEZE"  },
+    { VOTE,     "VOTE"      },
+    { UNVOTE,   "UNVOTE"    }
 };
 
 inline string GetBalanceOpTypeName(const BalanceOpType opType) {
@@ -64,14 +68,15 @@ inline string GetBalanceOpTypeName(const BalanceOpType opType) {
 class CAccountToken {
 public:
     uint64_t free_amount;
-    uint64_t frozen_amount;  // held within open DEX orders
-    uint64_t staked_amount;  // for staking purposes
+    uint64_t frozen_amount;     // for coins held in DEX buy/sell orders
+    uint64_t staked_amount;     // for staking
+    uint64_t voted_amount;      // for voting
 
 public:
-    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0) { }
+    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0) { }
 
-    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount)
-        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount) {}
+    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, uint64_t& votedAmount)
+        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), voted_amount(votedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other)
@@ -80,6 +85,7 @@ public:
         this->free_amount   = other.free_amount;
         this->frozen_amount = other.frozen_amount;
         this->staked_amount = other.staked_amount;
+        this->voted_amount  = other.voted_amount;
 
         return *this;
     }
@@ -88,6 +94,7 @@ public:
         READWRITE(VARINT(free_amount));
         READWRITE(VARINT(frozen_amount));
         READWRITE(VARINT(staked_amount));
+        READWRITE(VARINT(voted_amount));
     )
 };
 
