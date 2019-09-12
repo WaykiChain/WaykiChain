@@ -17,9 +17,14 @@ using uint128_t = unsigned __int128;
 bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const string &title,
                                           const TokenSymbol &symbol, const int64_t amount) {
     // TODO: should check the min amount of order by symbol
-    if (amount <= 0 || !CheckCoinRange(symbol, amount))
-        return state.DoS(100, ERRORMSG("%s amount out of range, symbol=%s, amount=%llu",
-                        title, symbol, amount), REJECT_INVALID, "invalid-coin-range");
+    static_assert(MIN_DEX_ORDER_AMOUNT < LONG_MAX);
+    if (amount < (int64_t)MIN_DEX_ORDER_AMOUNT)
+        return state.DoS(100, ERRORMSG("%s amount is too small, symbol=%s, amount=%llu, min_amount=%llu",
+                        title, symbol, amount, MIN_DEX_ORDER_AMOUNT), REJECT_INVALID, "order-amount-too-small");
+
+    if (!CheckCoinRange(symbol, amount))
+        return state.DoS(100, ERRORMSG("%s amount is out of range, symbol=%s, amount=%llu",
+                        title, symbol, amount), REJECT_INVALID, "invalid-order-amount-range");
 
     return true;
 }
@@ -765,7 +770,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         int64_t dealAmountDiff = calcCoinAmount - dealItem.dealCoinAmount;
         bool isCoinAmountMatch = false;
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {
-            isCoinAmountMatch = (std::abs(dealAmountDiff) < std::max((int64_t)1, (int64_t)(1 * dealItem.dealPrice / kPercentBoost)));
+            isCoinAmountMatch = (std::abs(dealAmountDiff) < std::max((int64_t)1, (int64_t)(1 * dealItem.dealPrice / PRICE_BOOST)));
         } else {
             isCoinAmountMatch = (dealAmountDiff == 0);
         }
