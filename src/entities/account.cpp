@@ -201,6 +201,7 @@ Object CAccount::ToJsonObj() const {
         tokenObj.push_back(Pair("free_amount",      token.free_amount));
         tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
         tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
+        tokenObj.push_back(Pair("voted_amount",     token.voted_amount));
 
         tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
     }
