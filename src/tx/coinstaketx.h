@@ -8,22 +8,24 @@
 
 #include "tx.h"
 
-class CFcoinStakeTx: public CBaseTx {
+class CCoinStakeTx: public CBaseTx {
 private:
-    BalanceOpType stakeType;
-    uint64_t fcoinsToStake;  // when negative, it means staking revocation
+    BalanceOpType stake_type;
+    TokenSymbol coin_symbol;
+    uint64_t coin_amount;
 
 public:
-    CFcoinStakeTx()
-        : CBaseTx(FCOIN_STAKE_TX), stakeType(BalanceOpType::NULL_OP), fcoinsToStake(0) {}
+    CCoinStakeTx()
+        : CBaseTx(UCOIN_STAKE_TX), stake_type(BalanceOpType::NULL_OP), coin_symbol(SYMB::WICC), coin_amount(0) {}
 
-    CFcoinStakeTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol,
-                  const uint64_t feesIn, const BalanceOpType stakeTypeIn, const uint64_t fcoinsToStakeIn)
-        : CBaseTx(FCOIN_STAKE_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
-          stakeType(stakeTypeIn),
-          fcoinsToStake(fcoinsToStakeIn) {}
+    CCoinStakeTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn,
+                const BalanceOpType stakeType, const TokenSymbol &coinSymbol, const uint64_t coinAmount)
+        : CBaseTx(UCOIN_STAKE_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
+          stake_ype(stakeType),
+          coin_symbol(coinSymbol),
+          coin_amount(coinAmount) {}
 
-    ~CFcoinStakeTx() {}
+    ~CCoinStakeTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -33,8 +35,9 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
-        READWRITE((uint8_t &)stakeType);
-        READWRITE(VARINT(fcoinsToStake));
+        READWRITE((uint8_t &)stake_type);
+        READWRITE(coin_symbol);
+        READWRITE(VARINT(coin_amount));
 
         READWRITE(signature);
     )
@@ -43,7 +46,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol
-               << VARINT(llFees) << (uint8_t)stakeType << VARINT(fcoinsToStake);
+               << VARINT(llFees) << (uint8_t)stake_type << coin_symbol << VARINT(coin_amount);
 
             sigHash = ss.GetHash();
         }
@@ -51,7 +54,7 @@ public:
         return sigHash;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CFcoinStakeTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinStakeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 

@@ -31,7 +31,7 @@ enum TxType: uint8_t {
 
     /** R2 newly added Tx types below */
     BCOIN_TRANSFER_MTX          = 7,    //!< Multisig Tx
-    FCOIN_STAKE_TX              = 8,    //!< Stake Fund Coin Tx in order to become a price feeder
+    UCOIN_STAKE_TX              = 8,    //!< Stake Fund Coin Tx in order to become a price feeder
 
     ASSET_ISSUE_TX              = 9,    //!< a user issues onchain asset
     ASSET_UPDATE_TX             = 10,   //!< a user update onchain asset
@@ -103,7 +103,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",         0,          10000,     10000,      10000        ) }, //0.0001 WICC
 
 { BCOIN_TRANSFER_MTX,       std::make_tuple("BCOIN_TRANSFER_MTX",       10000,      10000,     10000,      10000        ) }, //0.0001 WICC
-{ FCOIN_STAKE_TX,           std::make_tuple("FCOIN_STAKE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
+{ UCOIN_STAKE_TX,           std::make_tuple("UCOIN_STAKE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 
 { ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           10000,      10000,     10000,      10000        ) }, //0.0001 WICC
 { ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          10000,      10000,     10000,      10000        ) }, //0.0001 WICC

@@ -3400,8 +3400,8 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
 
         case BCOIN_TRANSFER_MTX:
             return std::make_shared<CMulsigTx>();
-        case FCOIN_STAKE_TX:
-            return std::make_shared<CFcoinStakeTx>();
+        case UCOIN_STAKE_TX:
+            return std::make_shared<CCoinStakeTx>();
 
         case UCOIN_TRANSFER_TX:
             return std::make_shared<CCoinTransferTx>();

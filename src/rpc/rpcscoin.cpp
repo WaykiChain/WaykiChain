@@ -117,7 +117,7 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
 
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
     int64_t stakeAmount     = params[1].get_int64();
-    ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, FCOIN_STAKE_TX);
+    ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, UCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
 
@@ -125,7 +125,7 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
-    CFcoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, std::abs(stakeAmount));
+    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, std::abs(stakeAmount));
     return SubmitTx(account.keyid, tx);
 }
 

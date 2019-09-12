@@ -213,7 +213,7 @@ static const int32_t INIT_BLOCK_VERSION = 1;
 
 /* No amount larger than this (in sawi) is valid */
 static const int64_t BASECOIN_MAX_MONEY   = IniCfg().GetCoinInitValue() * COIN;  // 210 million
-static const int64_t FUNDCOIN_MAX_MONEY   = BASECOIN_MAX_MONEY / 10;             // 21 million
+static const int64_t FUNDCOIN_MAX_MONEY   = BASECOIN_MAX_MONEY * 100;            // 21000 million
 static const int64_t STABLECOIN_MAX_MONEY = BASECOIN_MAX_MONEY * 10;             // 2100 million
 
 inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
