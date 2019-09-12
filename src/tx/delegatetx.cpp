@@ -39,8 +39,6 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
         IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
     }
 
-    // check candidate duplication
-    set<CKeyID> voteKeyIds;
     for (const auto &vote : candidateVotes) {
         // candidate uid should be CPubKey or CRegID
         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(vote.GetCandidateUid().type());
@@ -48,27 +46,17 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
         if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
 
-        CAccount account;
-        if (!cw.accountCache.GetAccount(vote.GetCandidateUid(), account))
+        CAccount candidateAcct;
+        if (!cw.accountCache.GetAccount(vote.GetCandidateUid(), candidateAcct))
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
-        if (vote.GetCandidateUid().type() == typeid(CPubKey)) {
-            voteKeyIds.insert(vote.GetCandidateUid().get<CPubKey>().GetKeyId());
-        } else {  // vote.GetCandidateUid().type() == typeid(CRegID)
-            voteKeyIds.insert(account.keyid);
-        }
 
         if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-            if (!account.HaveOwnerPubKey()) {
+            if (!candidateAcct.HaveOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
             }
         }
-    }
-
-    if (voteKeyIds.size() != candidateVotes.size()) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, duplication candidate"), REJECT_INVALID,
-                         "duplication-candidate-error");
     }
 
     return true;
