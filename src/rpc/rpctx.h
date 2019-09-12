@@ -16,9 +16,10 @@ using namespace json_spirit;
 class CBaseTx;
 
 extern Value submitaccountregistertx(const Array& params, bool fHelp);
-extern Value submitcontractcalltx(const Array& params, bool fHelp);
 extern Value submitcontractdeploytx(const Array& params, bool fHelp);
+extern Value submitcontractcalltx(const Array& params, bool fHelp);
 extern Value submitdelegatevotetx(const Array& params, bool fHelp);
+extern Value submituniversalcontractdeploytx(const Array& params, bool fHelp);
 
 extern Value gettxdetail(const Array& params, bool fHelp);
 extern Value sign(const Array& params, bool fHelp);

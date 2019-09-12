@@ -96,7 +96,7 @@ public:
 /**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
 class CUniversalContractDeployTx : public CBaseTx {
 public:
-    CUniversalContract  contract;  // contract script content
+    CUniversalContract contract;  // contract script content
 
 public:
     CUniversalContractDeployTx(): CBaseTx(UCONTRACT_DEPLOY_TX) {}

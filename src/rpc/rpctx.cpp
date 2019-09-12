@@ -61,11 +61,13 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
 
+    RPCTypeCheck(params, list_of(str_type)(int_type));
+
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     int64_t fee          = RPC_PARAM::GetWiccFee(params, 1, ACCOUNT_REGISTER_TX);
-    int32_t height       = chainActive.Height();
+    int32_t validHegiht  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
@@ -89,7 +91,53 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     tx.txUid        = txUid;
     tx.minerUid     = minerUid;
     tx.llFees       = fee;
-    tx.valid_height = height;
+    tx.valid_height = validHegiht;
+
+    return SubmitTx(account.keyid, tx);
+}
+
+Value submitcontractdeploytx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 3 || params.size() > 5) {
+        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
+            "\ncreate a transaction of registering a contract\n"
+            "\nArguments:\n"
+            "1.\"addr\":            (string, required) contract owner address from this wallet\n"
+            "2.\"filepath\":        (string, required) the file path of the app script\n"
+            "3.\"fee\":             (numeric, required) pay to miner (the larger the size of script, the bigger fees are required)\n"
+            "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
+            "5.\"contract_memo\":   (string, optional) contract memo\n"
+            "\nResult:\n"
+            "\"txid\":              (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submitcontractdeploytx",
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 100000000 10000 \"Hello, WaykiChain!\"") +
+                "\nAs json rpc call\n"
+            + HelpExampleRpc("submitcontractdeploytx",
+                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 100000000, 10000, \"Hello, WaykiChain!\""));
+    }
+
+    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid  = RPC_PARAM::GetUserId(params[0], true);
+    string contractScript = RPC_PARAM::GetLuaContractScript(params[1]);
+    int64_t fee           = RPC_PARAM::GetWiccFee(params, 2, LCONTRACT_DEPLOY_TX);
+    int32_t validHegiht   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    string memo           = params.size() > 4 ? params[4].get_str() : "";
+
+    if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+
+    CLuaContractDeployTx tx;
+    tx.txUid        = txUid;
+    tx.contract     = CLuaContract(contractScript, memo);
+    tx.llFees       = fee;
+    tx.nRunStep     = tx.contract.GetContractSize();
+    tx.valid_height = validHegiht;
 
     return SubmitTx(account.keyid, tx);
 }
@@ -137,9 +185,13 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
     }
 
-    int64_t amount = AmountToRawValue(params[3]);
-    int64_t fee    = RPC_PARAM::GetWiccFee(params, 4, LCONTRACT_INVOKE_TX);
-    int32_t height = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
+    int64_t amount      = AmountToRawValue(params[3]);
+    int64_t fee         = RPC_PARAM::GetWiccFee(params, 4, LCONTRACT_INVOKE_TX);
+    int32_t validHegiht = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, amount);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
     CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
@@ -148,54 +200,8 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
     tx.coin_amount  = amount;
     tx.llFees       = fee;
     tx.arguments    = arguments;
-    tx.valid_height = height;
+    tx.valid_height = validHegiht;
 
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-
-    return SubmitTx(account.keyid, tx);
-}
-
-Value submitcontractdeploytx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
-            "\ncreate a transaction of registering a contract\n"
-            "\nArguments:\n"
-            "1.\"addr\":            (string, required) contract owner address from this wallet\n"
-            "2.\"filepath\":        (string, required) the file path of the app script\n"
-            "3.\"fee\":             (numeric, required) pay to miner (the larger the size of script, the bigger fees are required)\n"
-            "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
-            "5.\"contract_memo\":   (string, optional) contract memo\n"
-            "\nResult:\n"
-            "\"txid\":              (string)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitcontractdeploytx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" 110000000 10000 \"Hello, WaykiChain!\"") +
-                "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcontractdeploytx",
-                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 110000000, 10000, \"Hello, WaykiChain!\""));
-    }
-
-    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
-
-    EnsureWalletIsUnlocked();
-
-    const CUserID& txUid  = RPC_PARAM::GetUserId(params[0], true);
-    string contractScript = RPC_PARAM::GetLuaContractScript(params[1]);
-    int64_t fee           = RPC_PARAM::GetWiccFee(params, 2, LCONTRACT_DEPLOY_TX);
-    int32_t height        = params.size() > 3 ? params[3].get_int() : chainActive.Height();
-    string memo           = params.size() > 4 ? params[4].get_str() : "";
-
-    if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
-
-    CLuaContractDeployTx tx;
-    tx.txUid        = txUid;
-    tx.contract     = CLuaContract(contractScript, memo);
-    tx.llFees       = fee;
-    tx.nRunStep     = tx.contract.GetContractSize();
-    tx.valid_height = height;
-
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     return SubmitTx(account.keyid, tx);
 }
 
@@ -240,12 +246,15 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, DELEGATE_VOTE_TX);
-    int32_t height       = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    int32_t validHegiht  = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
     CDelegateVoteTx delegateVoteTx;
     delegateVoteTx.txUid        = txUid;
     delegateVoteTx.llFees       = fee;
-    delegateVoteTx.valid_height = height;
+    delegateVoteTx.valid_height = validHegiht;
 
     Array arrVotes = params[1].get_array();
     for (auto objVote : arrVotes) {
@@ -269,13 +278,59 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
         VoteType voteType    = (delegateVotes.get_int64() > 0) ? VoteType::ADD_BCOIN : VoteType::MINUS_BCOIN;
         CUserID candidateUid = CUserID(delegateAcct.regid);
         uint64_t bcoins      = (uint64_t)abs(delegateVotes.get_int64());
-        CCandidateVote candidateVote(voteType, candidateUid, bcoins);
 
+        CCandidateVote candidateVote(voteType, candidateUid, bcoins);
         delegateVoteTx.candidateVotes.push_back(candidateVote);
     }
 
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     return SubmitTx(account.keyid, delegateVoteTx);
+}
+
+Value submituniversalcontractdeploytx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 3 || params.size() > 5) {
+        throw runtime_error("submituniversalcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
+            "\ncreate a transaction of registering a universal contract\n"
+            "\nArguments:\n"
+            "1.\"addr\":            (string, required) contract owner address from this wallet\n"
+            "2.\"filepath\":        (string, required) the file path of the app script\n"
+            "3.\"symbol:fee:unit\": (symbol:amount:unit, required) fee paid to miner, default is WICC:100000000:sawi\n"
+            "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
+            "5.\"contract_memo\":   (string, optional) contract memo\n"
+            "\nResult:\n"
+            "\"txid\":              (string)\n"
+            "\nExamples:\n"
+            + HelpExampleCli("submituniversalcontractdeploytx",
+                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" \"WICC:100000000:sawi\" 10000 \"Hello, WaykiChain!\"") +
+                "\nAs json rpc call\n"
+            + HelpExampleRpc("submituniversalcontractdeploytx",
+                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", \"WICC:100000000:sawi\", 10000, \"Hello, WaykiChain!\""));
+    }
+
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(str_type));
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid  = RPC_PARAM::GetUserId(params[0], true);
+    string contractScript = RPC_PARAM::GetLuaContractScript(params[1]); // TODO: support universal contract script
+    ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, UCONTRACT_DEPLOY_TX);
+    int32_t validHegiht   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    string memo           = params.size() > 4 ? params[4].get_str() : "";
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+
+    if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
+
+    CUniversalContractDeployTx tx;
+    tx.txUid        = txUid;
+    tx.contract     = CUniversalContract(contractScript, memo);
+    tx.fee_symbol   = cmFee.symbol;
+    tx.llFees       = cmFee.GetSawiAmount();
+    tx.nRunStep     = tx.contract.GetContractSize();
+    tx.valid_height = validHegiht;
+
+    return SubmitTx(account.keyid, tx);
 }
 
 Value listaddr(const Array& params, bool fHelp) {
@@ -297,7 +352,6 @@ Value listaddr(const Array& params, bool fHelp) {
         if (setKeyId.size() == 0) {
             return retArray;
         }
-        CAccountDBCache accView(*pCdMan->pAccountCache);
 
         for (const auto &keyId : setKeyId) {
             CUserID userId(keyId);
