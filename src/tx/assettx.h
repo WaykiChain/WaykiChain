@@ -9,18 +9,19 @@
 #include "tx.h"
 
 Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset);
+Object AssetToJson(const CAccountDBCache &accountCache, const CBaseAsset &asset);
 
 /**
  * Issue a new asset onto Chain
  */
 class CAssetIssueTx: public CBaseTx {
 public:
-    CAsset      asset;          // asset
+    CBaseAsset      asset;          // asset
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
     CAssetIssueTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
-                  uint64_t fees, const CAsset &assetIn)
+                  uint64_t fees, const CBaseAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, feeSymbol, fees),
           asset(assetIn){}
 

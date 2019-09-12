@@ -912,7 +912,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             pOwnerRegid->ToString()));
     }
 
-    CAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
+    CBaseAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
     CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), asset);
     return SubmitTx(account.keyid, tx);
 }

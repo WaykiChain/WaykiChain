@@ -13,7 +13,7 @@
 static const string ASSET_ACTION_ISSUE = "issue";
 static const string ASSET_ACTION_UPDATE = "update";
 
-Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
+Object AssetToJson(const CAccountDBCache &accountCache, const CBaseAsset &asset) {
     Object result;
     CKeyID ownerKeyid;
     accountCache.GetKeyId(asset.owner_uid, ownerKeyid);
@@ -23,6 +23,13 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
     result.push_back(Pair("asset_name",     asset.name));
     result.push_back(Pair("total_supply",   asset.total_supply));
     result.push_back(Pair("mintable",       asset.mintable));
+    return result;
+}
+
+Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
+    Object result = AssetToJson(accountCache, (CBaseAsset)asset);
+    result.push_back(Pair("max_order_amount",   asset.max_order_amount));
+    result.push_back(Pair("min_order_amount",   asset.min_order_amount));
     return result;
 }
 
@@ -182,9 +189,9 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
             return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set asset owner account to db failed! owner_uid=%s",
                 asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
     }
-    CAsset savedAsset = asset;
+    CAsset savedAsset(&asset);
     savedAsset.owner_uid = pOwnerAccount->regid;
-    if (!cw.assetCache.SaveAsset(asset))
+    if (!cw.assetCache.SaveAsset(savedAsset))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
