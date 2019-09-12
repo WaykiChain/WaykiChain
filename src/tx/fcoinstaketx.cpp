@@ -12,7 +12,7 @@
 bool CFcoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
     if (stakeType != BalanceOpType::STAKE && stakeType != BalanceOpType::UNSTAKE) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::CheckTx, invalid stakeType"),
@@ -30,7 +30,9 @@ bool CFcoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+
     return true;
 }
 
@@ -39,6 +41,10 @@ bool CFcoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
+
+    if (!GenerateRegID(account, cw, state, height, index)) {
+        return false;
+    }
 
     if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CFcoinStakeTx::ExecuteTx, insufficient bcoins in txUid %s account",

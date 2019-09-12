@@ -59,7 +59,7 @@ public:
     void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
         assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);
-    };
+    }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         assetCache.SetDbOpLogMap(pDbOpLogMapIn);

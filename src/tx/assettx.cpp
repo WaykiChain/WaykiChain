@@ -34,7 +34,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
             return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_ACTION_ISSUE error"),
                             REJECT_INVALID, "read-sysparam-error");
-    } else{
+    } else {
         assert(action == ASSET_ACTION_UPDATE);
         if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
             return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_UPDATE_FEE error"),
@@ -45,7 +45,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
                         assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
-    uint64_t riskFee = assetFee * ASSET_RISK_FEE_RATIO / kPercentBoost;
+    uint64_t riskFee       = assetFee * ASSET_RISK_FEE_RATIO / kPercentBoost;
     uint64_t minerTotalFee = assetFee - riskFee;
 
     CAccount fcoinGenesisAccount;

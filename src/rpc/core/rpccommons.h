@@ -24,8 +24,7 @@ bool GetKeyId(const string &addr, CKeyID &keyId);
 Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 
-Object SubmitTx(const CUserID &userId, CBaseTx &tx);
-
+Object SubmitTx(const CKeyID &keyid, CBaseTx &tx);
 
 namespace JSON {
     const Value& GetObjectFieldValue(const Value &jsonObj, const string &fieldName);

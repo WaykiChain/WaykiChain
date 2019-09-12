@@ -168,41 +168,23 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
     return true;
 }
 
-Object SubmitTx(const CUserID &userId, CBaseTx &tx) {
-
-    CAccount account;
-    if (!pCdMan->pAccountCache->GetAccount(userId, account) || !account.HaveOwnerPubKey()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
+Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
+    if (!pWalletMain->HaveKey(keyid)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 
-    CKeyID keyId;
-    if (!pCdMan->pAccountCache->GetKeyId(userId, keyId)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Failed to acquire key id");
+    if (!pWalletMain->Sign(keyid, tx.ComputeSignatureHash(), tx.signature)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 
-    CRegID regId;
-    pCdMan->pAccountCache->GetRegId(userId, regId);
-    tx.txUid = regId;
-
-    assert(pWalletMain != nullptr);
-    {
-        EnsureWalletIsUnlocked();
-        if (!pWalletMain->HaveKey(keyId)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
-        }
-        if (!pWalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-        }
-
-        std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx*)&tx);
-        if (!std::get<0>(ret)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-        }
-
-        Object obj;
-        obj.push_back(Pair("txid", std::get<1>(ret)));
-        return obj;
+    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
+    if (!std::get<0>(ret)) {
+        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
     }
+
+    Object obj;
+    obj.push_back(Pair("txid", std::get<1>(ret)));
+    return obj;
 }
 
 string RegIDToAddress(CUserID &userId) {
@@ -391,11 +373,31 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, size_t index, TxType txType)
 CUserID RPC_PARAM::GetUserId(const Value &jsonValue) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
-    return *pUserId;
-}
 
+     /**
+     * We need to choose the proper field as the sender/receiver's account according to
+     * the two factor: whether the sender's account is registered or not, whether the
+     * RegID is mature or not.
+     *
+     * |-------------------------------|-------------------|-------------------|
+     * |                               |      SENDER       |      RECEIVER     |
+     * |-------------------------------|-------------------|-------------------|
+     * | NOT registered                |     Public Key    |      Key ID       |
+     * |-------------------------------|-------------------|-------------------|
+     * | registered BUT immature       |     Public Key    |      Key ID       |
+     * |-------------------------------|-------------------|-------------------|
+     * | registered AND mature         |     Reg ID        |      Reg ID       |
+     * |-------------------------------|-------------------|-------------------|
+     */
+    CRegID regid;
+    if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
+        return CUserID(regid);
+    } else {
+        return *pUserId;
+    }
+}
 
 uint64_t RPC_PARAM::GetPrice(const Value &jsonValue) {
     // TODO: check price range??

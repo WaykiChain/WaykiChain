@@ -49,6 +49,8 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
                            "\"price\": 2500}]"));
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID &feedUid = RPC_PARAM::GetUserId(params[0].get_str());
 
     Array arrPricePoints = params[1].get_array();
@@ -84,13 +86,13 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     const ComboMoney &cmFee = RPC_PARAM::GetFee(params, 2, PRICE_FEED_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, feedUid);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, feedUid);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
     int32_t validHeight = chainActive.Height();
     CPriceFeedTx tx(feedUid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), pricePoints);
 
-    return SubmitTx(feedUid, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitfcoinstaketx(const Array& params, bool fHelp) {
@@ -111,6 +113,8 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
         );
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0]);
     int64_t stakeAmount     = params[1].get_int64();
     ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, FCOIN_STAKE_TX);
@@ -118,11 +122,11 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
     BalanceOpType stakeType = stakeAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
     CFcoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, std::abs(stakeAmount));
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 /*************************************************<< CDP >>**************************************************/
@@ -153,6 +157,8 @@ Value submitcdpstaketx(const Array& params, bool fHelp) {
                 "\"b850d88bf1bed66d43552dd724c18f10355e9b6657baeae262b3c86a983bee71\", \"WICC:1000000:sawi\"\n"));
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID &cdpUid = RPC_PARAM::GetUserId(params[0]);
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
@@ -179,8 +185,10 @@ Value submitcdpstaketx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "mint_amount is zero!");
     }
 
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, cdpUid);
+
     CCDPStakeTx tx(cdpUid, validHeight, cdpId, cmFee, cmBcoinsToStake, cmScoinsToMint);
-    return SubmitTx(cdpUid, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitcdpredeemtx(const Array& params, bool fHelp) {
@@ -209,6 +217,8 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
                            "20000000000, 40000000000, \"WICC:1000000:sawi\"\n"));
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID& cdpUid   = RPC_PARAM::GetUserId(params[0].get_str());
     uint256 cdpTxId         = uint256S(params[1].get_str());
     uint64_t repayAmount    = AmountToRawValue(params[2]);
@@ -216,8 +226,10 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
     const ComboMoney& cmFee = RPC_PARAM::GetFee(params, 4, CDP_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
 
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, cdpUid);
+
     CCDPRedeemTx tx(cdpUid, cmFee, validHeight, cdpTxId, repayAmount, redeemAmount);
-    return SubmitTx(cdpUid, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitcdpliquidatetx(const Array& params, bool fHelp) {
@@ -246,14 +258,18 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
                            "\"WICC:1000000:sawi\"\n"));
     }
 
-    const CUserID& userId    = RPC_PARAM::GetUserId(params[0]);
+    EnsureWalletIsUnlocked();
+
+    const CUserID& cdpUid    = RPC_PARAM::GetUserId(params[0]);
     const uint256& cdpTxId   = RPC_PARAM::GetTxid(params[1], "cdp_id");
     uint64_t liquidateAmount = AmountToRawValue(params[2]);
     const ComboMoney& cmFee  = RPC_PARAM::GetFee(params, 3, CDP_STAKE_TX);
     int32_t validHeight      = chainActive.Height();
 
-    CCDPLiquidateTx tx(userId, cmFee, validHeight, cdpTxId, liquidateAmount);
-    return SubmitTx(userId, tx);
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, cdpUid);
+
+    CCDPLiquidateTx tx(cdpUid, cmFee, validHeight, cdpTxId, liquidateAmount);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value getscoininfo(const Array& params, bool fHelp){
@@ -363,12 +379,12 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid addr");
     }
 
-    CAccount txAccount;
-    if (!pCdMan->pAccountCache->GetAccount(*pUserId, txAccount)) {
+    CAccount account;
+    if (!pCdMan->pAccountCache->GetAccount(*pUserId, account)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                             strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
-    assert(!txAccount.regid.IsEmpty());
+    assert(!account.regid.IsEmpty());
 
     int32_t height = chainActive.Height();
     uint64_t slideWindow;
@@ -379,7 +395,7 @@ Value getusercdp(const Array& params, bool fHelp){
 
     Array cdps;
     vector<CUserCDP> userCdps;
-    if (pCdMan->pCdpCache->GetCDPList(txAccount.regid, userCdps)) {
+    if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
         for (auto& cdp : userCdps) {
             cdps.push_back(cdp.ToJson(bcoinMedianPrice));
         }
@@ -444,6 +460,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
         );
     }
+
+    EnsureWalletIsUnlocked();
+
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
@@ -452,15 +471,15 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_BUY_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetAmount, price);
-    RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
+    RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
 
     int32_t validHeight = chainActive.Height();
     CDEXBuyLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
                            assetSymbol, assetAmount, price);
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
@@ -484,6 +503,8 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         );
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
@@ -492,14 +513,14 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_SELL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, assetSymbol, FREEZE, assetAmount);
 
     int32_t validHeight = chainActive.Height();
     CDEXSellLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
                             assetAmount, price);
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
@@ -522,6 +543,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
         );
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     uint64_t coinAmount            = AmountToRawValue(params[2]);
@@ -529,14 +552,14 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_BUY_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
 
     int32_t validHeight = chainActive.Height();
     CDEXBuyMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
                             coinAmount);
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
@@ -566,14 +589,14 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(txAccount, assetSymbol, FREEZE, assetAmount);
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, assetSymbol, FREEZE, assetAmount);
 
     int32_t validHeight = chainActive.Height();
     CDEXSellMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
                              assetAmount);
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
@@ -596,20 +619,22 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
         );
     }
 
+    EnsureWalletIsUnlocked();
+
     const CUserID& userId = RPC_PARAM::GetUserId(params[0]);
     const uint256& txid   = RPC_PARAM::GetTxid(params[1], "txid");
     ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, DEX_MARKET_SELL_ORDER_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
     // check active order tx
     RPC_PARAM::CheckActiveOrderExisted(*pCdMan->pDexCache, txid);
 
     int32_t validHeight = chainActive.Height();
     CDEXCancelOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), txid);
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexsettletx(const Array& params, bool fHelp) {
@@ -649,6 +674,9 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
                            "\"deal_asset_amount\":100000000}]")
         );
     }
+
+    EnsureWalletIsUnlocked();
+
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
     Array dealItemArray = params[1].get_array();
     ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_LIMIT_BUY_ORDER_TX);
@@ -670,12 +698,12 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     }
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
     int32_t validHeight = chainActive.Height();
     CDEXSettleTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), dealItems);
-    return SubmitTx(userId, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value getdexorder(const Array& params, bool fHelp) {
@@ -846,6 +874,9 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitassetissuetx", "\"10-2\", \"CNY\", \"10-2\", \"RMB\", 1000000000000000, true")
         );
     }
+
+    EnsureWalletIsUnlocked();
+
     const CUserID& uid             = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
     const CUserID& assetOwnerUid   = RPC_PARAM::GetUserId(params[2]);
@@ -858,19 +889,19 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     ComboMoney cmFee = RPC_PARAM::GetFee(params, 6, TxType::ASSET_ISSUE_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
     uint64_t assetIssueFee; //550 WICC
     if (!pCdMan->pSysParamCache->GetParam(ASSET_ISSUE_FEE, assetIssueFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "read system param ASSET_ISSUE_FEE error");
-    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetIssueFee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, assetIssueFee);
 
     int32_t validHeight = chainActive.Height();
     CAccount ownerAccount;
     CRegID *pOwnerRegid;
-    if (txAccount.IsMyUid(assetOwnerUid)) {
-        pOwnerRegid = &txAccount.regid;
+    if (account.IsMyUid(assetOwnerUid)) {
+        pOwnerRegid = &account.regid;
     } else {
         ownerAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, assetOwnerUid);
         pOwnerRegid = &ownerAccount.regid;
@@ -883,7 +914,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 
     CAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
     CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), asset);
-    return SubmitTx(uid, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitassetupdatetx(const Array& params, bool fHelp) {
@@ -906,6 +937,8 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             + HelpExampleRpc("submitassetupdatetx", "\"10-2\", \"CNY\", \"mint_amount\", \"100000000\"")
         );
     }
+
+    EnsureWalletIsUnlocked();
 
     const CUserID& uid             = RPC_PARAM::GetUserId(params[0]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[1]);
@@ -969,19 +1002,19 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     ComboMoney cmFee = RPC_PARAM::GetFee(params, 4, TxType::ASSET_UPDATE_TX);
 
     // Get account for checking balance
-    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
     uint64_t assetUpdateFee;
     if (!pCdMan->pSysParamCache->GetParam(ASSET_UPDATE_FEE, assetUpdateFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "read system param ASSET_UPDATE_FEE error");
-    RPC_PARAM::CheckAccountBalance(txAccount, SYMB::WICC, SUB_FREE, assetUpdateFee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, assetUpdateFee);
 
     int32_t validHeight = chainActive.Height();
 
     if (*pUpdateType == CAssetUpdateData::OWNER_UID) {
         CUserID &ownerUid = updateData.get<CUserID>();
-        if (txAccount.IsMyUid(ownerUid))
+        if (account.IsMyUid(ownerUid))
             return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner uid=%s is belong to old owner account",
                     ownerUid.ToDebugString()));
 
@@ -996,8 +1029,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     }
 
     CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, updateData);
-
-    return SubmitTx(uid, tx);
+    return SubmitTx(account.keyid, tx);
 }
 
 extern Value getassets(const Array& params, bool fHelp) {
