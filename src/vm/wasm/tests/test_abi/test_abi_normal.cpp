@@ -43,6 +43,8 @@ if(! (expr)){                                \
      }else {                                  \
           WASM_TRACE("%s", e.detail())        \
      }                                        \
+ }  catch(...){                               \
+    WASM_TRACE("%s", "exception")             \
  }                                            \
  if (!passed) {                               \
      WASM_TRACE("%s%s", msg, "[ failed ]")    \
@@ -542,7 +544,7 @@ void abi_type_redefine() {
 
 void abi_type_redefine_to_name() {
 
-   const char* repeat_abi = R"=====(
+    const char *repeat_abi = R"=====(
    {
      "version": "wasm::abi/1.0",
      "types": [{
@@ -570,6 +572,42 @@ void abi_type_redefine_to_name() {
 
 }
 
+void abi_type_nested_in_vector() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [],
+     "structs": [{
+         "name": "store_t",
+         "base": "",
+         "fields": [{
+            "name": "id",
+            "type": "uint64"
+         },{
+            "name": "childs",
+            "type": "store_t[]"
+         }],
+     "actions": [],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    
+    //WASM_CHECK_EXCEPTION(wasm::from_variant(var, def),passed, abi_parse_exception, "abi_type_nested_in_vector")
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, abi_circular_def_exception,
+                         "abi_type_nested_in_vector")
+
+
+}
 
 
 int main( int argc, char **argv ) {
@@ -582,6 +620,7 @@ int main( int argc, char **argv ) {
     abi_type_def();
     abi_type_redefine();
     abi_type_redefine_to_name();
+    abi_type_nested_in_vector();
 
     return 0;
 

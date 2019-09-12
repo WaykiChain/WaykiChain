@@ -4,6 +4,7 @@
 #include <wasm/types/symbol.hpp>
 #include <wasm/types/asset.hpp>
 #include <wasm/types/varint.hpp>
+#include <wasm/wasm_log.hpp>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
@@ -122,14 +123,12 @@ namespace wasm {
 
         WASM_ASSERT(boost::starts_with(abi.version, "wasm::abi/1."), unsupport_abi_version_exception,
                     "ABI has an unsupported version");
-
         typedefs.clear();
         structs.clear();
         actions.clear();
         tables.clear();
         // error_messages.clear();
         // variants.clear();
-
         for (const auto &st : abi.structs)
             structs[st.name] = st;
 
@@ -146,7 +145,6 @@ namespace wasm {
 
             typedefs[td.new_type_name] = td.type;
         }
-
         for (const auto &a : abi.actions)
             actions[a.name] = a.type;
 
@@ -163,7 +161,6 @@ namespace wasm {
          *  The ABI vector may contain duplicates which would make it
          *  an invalid ABI
          */
-
         WASM_ASSERT(typedefs.size() == abi.types.size(), duplicate_abi_def_exception,
                     "Duplicate type definition detected");
         WASM_ASSERT(structs.size() == abi.structs.size(), duplicate_abi_def_exception,
@@ -174,7 +171,6 @@ namespace wasm {
                     "Duplicate table definition detected");
         //WASM_ASSERT( error_messages.size() == abi.error_messages.size(), duplicate_abi_err_msg_def_exception, "duplicate error message definition detected" );
         //WASM_ASSERT( variants.size() == abi.variants.value.size(), duplicate_abi_variant_def_exception, "duplicate variant definition detected" );
-
         validate(ctx);
     }
 
@@ -463,6 +459,9 @@ namespace wasm {
     // }
 
     void abi_serializer::validate( wasm::abi_traverse_context &ctx ) const {
+
+        //WASM_TRACE("%s", "validate" )  
+
         for (const auto &t : typedefs) {
             try {
                 vector <type_name> types_seen{t.first, t.second};
@@ -511,10 +510,16 @@ namespace wasm {
                         ctx.check_deadline();
                         WASM_ASSERT(_is_type(_remove_bin_extension(field.type), ctx), invalid_type_inside_abi,
                                     "Invalid type inside abi in type %s", field.type.c_str());
-
                     }
                     WASM_CAPTURE_AND_RETHROW("Parse error in struct %s field %s", s.first.c_str(), field.type.c_str())
                 }
+
+                //check struct in circluar
+                try{
+                    vector<type_name>  structs_seen;
+                    check_struct_in_recursion(s.second, structs_seen, ctx);
+                }
+                WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
             }
             WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
         }
@@ -544,5 +549,25 @@ namespace wasm {
                     "Serialization time limit %ldus exceeded", max_serialization_time.count());
     }
 
+
+    void abi_serializer::check_struct_in_recursion(const struct_def& s, vector<type_name>& structs_seen, wasm::abi_traverse_context &ctx) const { 
+
+        WASM_ASSERT(find(structs_seen.begin(), structs_seen.end(), s.name) == structs_seen.end(),
+            abi_circular_def_exception,
+            "Circular reference in struct %s", s.name.c_str());
+
+        ctx.check_deadline();
+        structs_seen.push_back(s.name);
+        for (const auto &field : s.fields) {
+            ctx.check_deadline(); 
+            auto itr = structs.find(resolve_type(fundamental_type(field.type)) );
+            if ( itr != structs.end() ){ 
+                check_struct_in_recursion(itr->second, structs_seen, ctx );
+            }  
+
+        }
+
+
+    }
 
 }

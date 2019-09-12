@@ -51,6 +51,7 @@ namespace wasm {
         const struct_def &get_struct( const type_name &type ) const;
         type_name get_action_type( type_name action ) const;
         type_name get_table_type( type_name action ) const;
+        void check_struct_in_recursion(const struct_def& s, vector<type_name>& types_seen, wasm::abi_traverse_context &ctx) const;
 
         json_spirit::Value
         binary_to_variant( const type_name &type, const bytes &binary, microseconds max_serialization_time ) const;
