@@ -57,7 +57,7 @@ bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &t
 }
 
 uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t price) {
-    uint128_t coinAmount = assetAmount * (uint128_t)price / PERCENT_BOOST;
+    uint128_t coinAmount = assetAmount * (uint128_t)price / PRICE_BOOST;
     assert(coinAmount < ULLONG_MAX);
     return (uint64_t)coinAmount;
 }
