@@ -105,7 +105,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
             nTxSize   = mi->second.GetTxSize();
             feeSymbol = std::get<0>(mi->second.GetFees());
             nFees     = std::get<1>(mi->second.GetFees());
-            dFeePerKb = double(GetFeeMedianPrice(feeSymbol)) / kPercentBoost * (nFees - pBaseTx->GetFuel(nFuelRate)) /
+            dFeePerKb = double(GetFeeMedianPrice(feeSymbol)) / PERCENT_BOOST * (nFees - pBaseTx->GetFuel(nFuelRate)) /
                         (nTxSize / 1000.0);
             LogPrint("MINER", "GetPriority, medianPrice: %llu, nFees: %llu, fuel: %llu, nTxSize: %u\n",
                      GetFeeMedianPrice(feeSymbol), nFees, pBaseTx->GetFuel(nFuelRate), nTxSize);

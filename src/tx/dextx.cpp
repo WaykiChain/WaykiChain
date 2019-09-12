@@ -57,7 +57,7 @@ bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &t
 }
 
 uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t price) {
-    uint128_t coinAmount = assetAmount * (uint128_t)price / kPercentBoost;
+    uint128_t coinAmount = assetAmount * (uint128_t)price / PERCENT_BOOST;
     assert(coinAmount < ULLONG_MAX);
     return (uint64_t)coinAmount;
 }
@@ -796,7 +796,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         // 9.1 buyer pay the fee from the received assets to settler
         if (buyOrder.generate_type == USER_GEN_ORDER) {
 
-            uint64_t dealAssetFee = dealItem.dealAssetAmount * dexDealFeeRatio / kPercentBoost;
+            uint64_t dealAssetFee = dealItem.dealAssetAmount * dexDealFeeRatio / PERCENT_BOOST;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // give the fee to settler
             srcAcct.OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee);
@@ -808,7 +808,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         // 9.2 seller pay the fee from the received coins to settler
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (sellOrder.generate_type == USER_GEN_ORDER) {
-            uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / kPercentBoost;
+            uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / PERCENT_BOOST;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // give the buyer fee to settler
             srcAcct.OperateBalance(buyOrder.coin_symbol, ADD_FREE, dealCoinFee);
