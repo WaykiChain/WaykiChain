@@ -170,7 +170,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     Object DeployContractTxObj;
     EnsureWalletIsUnlocked();
-    int newHeight = chainActive.Height() + 1;
+    int32_t newHeight = chainActive.Height() + 1;
     assert(pWalletMain != nullptr);
     {
         size_t contract_size = contract.GetContractSize();

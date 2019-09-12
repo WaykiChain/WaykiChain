@@ -351,13 +351,13 @@ Value genmulsigtx(const Array& params, bool fHelp) {
             "\n create multisig transaction by multisigscript, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"multisigscript\"  (string, required) The Coin address to send to.\n"
-            "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
-            "3.\"amount\"  (numeric, required)\n"
-            "4.\"fee\"     (numeric, required)\n"
-            "5.\"height\"  (int, optional)\n"
+            "1.\"multisigscript\":  (string, required) The Coin address to send to.\n"
+            "2.\"recvaddress\":     (string, required) The Coin address to receive.\n"
+            "3.\"amount\":          (numeric, required)\n"
+            "4.\"fee\":             (numeric, required)\n"
+            "5.\"height\":          (numeric, optional)\n"
             "\nResult:\n"
-            "\"txid\"  (string) The transaction id.\n"
+            "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n" +
             HelpExampleCli("genmulsigtx",
                            "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
@@ -383,7 +383,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CKeyID recvKeyId;
     CUserID recvUserId;
     CRegID recvRegId;
-    int height = chainActive.Height();
+    int32_t height = chainActive.Height();
 
     if (!GetKeyId(params[1].get_str(), recvKeyId)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");

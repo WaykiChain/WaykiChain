@@ -57,72 +57,41 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":      (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 100000")
+            + HelpExampleCli("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 10000")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 100000"));
+            + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
 
-    string addr = params[0].get_str();
-    uint64_t fee = 0;
-    uint64_t nDefaultFee = SysCfg().GetTxFee();
-    if (params.size() > 1) {
-        fee = params[1].get_uint64();
-        if (fee < nDefaultFee) {
-            throw JSONRPCError(RPC_INSUFFICIENT_FEE,
-                               strprintf("Input fee smaller than mintxfee: %llu sawi", nDefaultFee));
-        }
-    } else {
-        fee = nDefaultFee;
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    int64_t fee          = RPC_PARAM::GetWiccFee(params, 1, ACCOUNT_REGISTER_TX);
+    int32_t height       = chainActive.Height();
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+
+    if (account.HaveOwnerPubKey())
+        throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
+
+    assert(txUid.is<CPubKey>());
+
+    CPubKey pubkey;
+    if (!pWalletMain->GetPubKey(account.keyid, pubkey))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in local wallet");
+
+    CUserID minerUid = CNullID();
+    CPubKey minerPubKey;
+    if (pWalletMain->GetPubKey(account.keyid, minerPubKey, true) && minerPubKey.IsFullyValid()) {
+        minerUid = minerPubKey;
     }
 
-    CKeyID keyId;
-    if (!GetKeyId(addr, keyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Address invalid");
+    CAccountRegisterTx tx;
+    tx.txUid        = txUid;
+    tx.minerUid     = minerUid;
+    tx.llFees       = fee;
+    tx.valid_height = height;
 
-    CAccountRegisterTx rtx;
-    assert(pWalletMain != nullptr);
-    {
-        EnsureWalletIsUnlocked();
-
-        CAccount account;
-        CUserID userId = keyId;
-        if (!pCdMan->pAccountCache->GetAccount(userId, account))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account does not exist");
-
-
-        if (account.HaveOwnerPubKey())
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
-
-        uint64_t balance = account.GetToken(SYMB::WICC).free_amount;
-        if (balance < fee) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account balance is insufficient");
-        }
-
-        CPubKey pubkey;
-        if (!pWalletMain->GetPubKey(keyId, pubkey))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in local wallet");
-
-        CPubKey minerPubKey;
-        if (pWalletMain->GetPubKey(keyId, minerPubKey, true) && minerPubKey.IsValid()) {
-            rtx.minerUid = minerPubKey;
-        } else {
-            rtx.minerUid = CNullID();
-        }
-        rtx.txUid        = pubkey;
-        rtx.llFees       = fee;
-        rtx.valid_height = chainActive.Height();
-
-        if (!pWalletMain->Sign(keyId, rtx.ComputeSignatureHash(), rtx.signature))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed.");
-    }
-
-    std::tuple<bool, string> ret;
-    ret = pWalletMain->CommitTx((CBaseTx *) &rtx);
-    if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-
-    Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
-    return obj;
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitcontractcalltx(const Array& params, bool fHelp) {
@@ -272,9 +241,6 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, DELEGATE_VOTE_TX);
     int32_t height       = params.size() > 3 ? params[3].get_int() : chainActive.Height();
-    if (height < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid height");
-    }
 
     CDelegateVoteTx delegateVoteTx;
     delegateVoteTx.txUid        = txUid;
@@ -531,13 +497,12 @@ static Value TestDisconnectBlock(int32_t number) {
     Object obj;
 
     CValidationState state;
-    if ((chainActive.Height() - number) < 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "restclient Error: number");
+    if (number >= chainActive.Height()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid number");
     }
     if (number > 0) {
         do {
             CBlockIndex * pTipIndex = chainActive.Tip();
-            LogPrint("DEBUG", "current height:%d\n", pTipIndex->height);
             if (!DisconnectBlockFromTip(state))
                 return false;
             chainMostWork.SetTip(pTipIndex->pprev);
@@ -689,11 +654,12 @@ Value reloadtxcache(const Array& params, bool fHelp) {
     }
     pCdMan->pTxCache->Clear();
     CBlockIndex *pIndex = chainActive.Tip();
-    if ((chainActive.Height() - SysCfg().GetTxCacheHeight()) >= 0) {
+    if (chainActive.Height() - SysCfg().GetTxCacheHeight() >= 0) {
         pIndex = chainActive[(chainActive.Height() - SysCfg().GetTxCacheHeight())];
     } else {
         pIndex = chainActive.Genesis();
     }
+
     CBlock block;
     do {
         if (!ReadBlockFromDisk(pIndex, block))
