@@ -35,14 +35,16 @@ namespace RPC_PARAM {
 
     ComboMoney GetComboMoney(const Value &jsonValue, const TokenSymbol &defaultSymbol = SYMB::WICC);
 
-    ComboMoney GetFee(const Array& params, size_t index, TxType txType);
-    uint64_t GetWiccFee(const Array& params, size_t index, TxType txType);
+    ComboMoney GetFee(const Array& params, const size_t index, const TxType txType);
+    uint64_t GetWiccFee(const Array& params, const size_t index, const TxType txType);
 
-    CUserID GetUserId(const Value &jsonValue, bool senderUid = false);
+    CUserID GetUserId(const Value &jsonValue, const bool senderUid = false);
+
+    string GetLuaContractScript(const Value &jsonValue);
 
     uint64_t GetPrice(const Value &jsonValue);
 
-    uint256 GetTxid(const Value &jsonValue, const string &paramName, bool canBeEmpty = false);
+    uint256 GetTxid(const Value &jsonValue, const string &paramName, const bool canBeEmpty = false);
 
     CAccount GetUserAccount(CAccountDBCache &accountCache, const CUserID &userId);
 
@@ -55,8 +57,8 @@ namespace RPC_PARAM {
 
     string GetBinStrFromHex(const Value &jsonValue, const string &paramName);
 
-    void CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
-                            const BalanceOpType opType, const uint64_t &value);
+    void CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
+                             const uint64_t value);
 
     void CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid);
 

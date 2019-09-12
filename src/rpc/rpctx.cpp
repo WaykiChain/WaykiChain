@@ -17,16 +17,12 @@
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
-#include "vm/luavm/luavmrunenv.h"
-
-#include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
 #include "json/json_spirit_utils.h"
 #include "json/json_spirit_value.h"
 #include "json/json_spirit_reader.h"
 
-#include "boost/tuple/tuple.hpp"
 #define revert(height) ((height<<24) | (height << 8 & 0xff0000) |  (height>>8 & 0xff00) | (height >> 24))
 
 using namespace std;
@@ -51,7 +47,6 @@ Value gettxdetail(const Array& params, bool fHelp) {
     return GetTxDetailJSON(uint256S(params[0].get_str()));
 }
 
-//create a register account tx
 Value submitaccountregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0)
         throw runtime_error("submitaccountregistertx \"addr\" [\"fee\"]\n"
@@ -193,14 +188,14 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_desc\"]\n"
-            "\ncreate a transaction of registering a contract app\n"
+        throw runtime_error("submitcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
+            "\ncreate a transaction of registering a contract\n"
             "\nArguments:\n"
             "1.\"addr\":            (string, required) contract owner address from this wallet\n"
             "2.\"filepath\":        (string, required) the file path of the app script\n"
             "3.\"fee\":             (numeric, required) pay to miner (the larger the size of script, the bigger fees are required)\n"
             "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
-            "5.\"contract_desc\":   (string, optional) contract description\n"
+            "5.\"contract_memo\":   (string, optional) contract memo\n"
             "\nResult:\n"
             "\"txid\":              (string)\n"
             "\nExamples:\n"
@@ -215,108 +210,24 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    string luaScriptFilePath = GetAbsolutePath(params[1].get_str()).string();
-    if (luaScriptFilePath.empty())
-        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist");
+    const CUserID& txUid  = RPC_PARAM::GetUserId(params[0], true);
+    string contractScript = RPC_PARAM::GetLuaContractScript(params[1]);
+    int64_t fee           = RPC_PARAM::GetWiccFee(params, 2, LCONTRACT_DEPLOY_TX);
+    int32_t height        = params.size() > 3 ? params[3].get_int() : chainActive.Height();
+    string memo           = params.size() > 4 ? params[4].get_str() : "";
 
-    if (luaScriptFilePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
-        throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir");
+    if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
 
-    std::tuple<bool, string> result = CLuaVM::CheckScriptSyntax(luaScriptFilePath.c_str());
-    bool bOK = std::get<0>(result);
-    if (!bOK)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, std::get<1>(result));
-
-    FILE* file = fopen(luaScriptFilePath.c_str(), "rb+");
-    if (!file)
-        throw runtime_error("submitcontractdeploytx open script file (" + luaScriptFilePath + ") error");
-
-    long lSize;
-    fseek(file, 0, SEEK_END);
-    lSize = ftell(file);
-    rewind(file);
-
-    if (lSize <= 0 || lSize > MAX_CONTRACT_CODE_SIZE) {
-        fclose(file);
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract script");
-    }
-
-    // allocate memory to contain the whole file:
-    char *buffer = (char*) malloc(sizeof(char) * lSize);
-    if (buffer == nullptr) {
-        fclose(file);
-        throw runtime_error("allocate memory failed");
-    }
-    if (fread(buffer, 1, lSize, file) != (size_t) lSize) {
-        free(buffer);
-        fclose(file);
-        throw runtime_error("read script file error");
-    } else {
-        fclose(file);
-    }
-
-    CLuaContract luaContract;
-    luaContract.code.assign(buffer, lSize);
-
-    if (buffer)
-        free(buffer);
-
-    if (params.size() > 4) {
-        luaContract.memo = params[4].get_str();
-        if (luaContract.memo.size() > MAX_CONTRACT_MEMO_SIZE) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract description is too large");
-        }
-    }
-
-    int64_t fee    = RPC_PARAM::GetWiccFee(params, 2, LCONTRACT_DEPLOY_TX);
-    int32_t height = params.size() > 3 ? params[3].get_int() : chainActive.Height();
-
-    CKeyID keyId;
-    if (!GetKeyId(params[0].get_str(), keyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid send address");
-    }
-
-    assert(pWalletMain != nullptr);
     CLuaContractDeployTx tx;
-    {
-        CAccount account;
-        if (!pCdMan->pAccountCache->GetAccount(keyId, account)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Invalid send address");
-        }
+    tx.txUid        = txUid;
+    tx.contract     = CLuaContract(contractScript, memo);
+    tx.llFees       = fee;
+    tx.nRunStep     = tx.contract.GetContractSize();
+    tx.valid_height = height;
 
-        if (!account.HaveOwnerPubKey()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
-        }
-
-        if (!pWalletMain->HaveKey(keyId)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
-        }
-
-        CRegID regId;
-        pCdMan->pAccountCache->GetRegId(keyId, regId);
-
-        tx.txUid          = regId;
-        tx.contract       = luaContract;
-        tx.llFees         = fee;
-        tx.nRunStep       = tx.contract.GetContractSize();
-        if (0 == height) {
-            height = chainActive.Height();
-        }
-        tx.valid_height = height;
-
-        if (!pWalletMain->Sign(keyId, tx.ComputeSignatureHash(), tx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-        }
-
-        std::tuple<bool, string> ret;
-        ret = pWalletMain->CommitTx((CBaseTx*)&tx);
-        if (!std::get<0>(ret)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-        }
-        Object obj;
-        obj.push_back(Pair("txid", std::get<1>(ret)));
-        return obj;
-    }
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    return SubmitTx(account.keyid, tx);
 }
 
 Value submitdelegatevotetx(const Array& params, bool fHelp) {

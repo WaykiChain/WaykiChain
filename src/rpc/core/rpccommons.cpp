@@ -5,11 +5,16 @@
 #include "rpccommons.h"
 
 #include "entities/key.h"
+#include "init.h"
 #include "main.h"
+#include "rpcserver.h"
+#include "vm/luavm/luavmrunenv.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
-#include "init.h"
-#include "rpcserver.h"
+
+#include <fstream>
+
+using namespace std;
 
 /*
 std::string split implementation by using delimeter as a character.
@@ -324,7 +329,7 @@ ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
     return money;
 }
 
-ComboMoney RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
+ComboMoney RPC_PARAM::GetFee(const Array& params, const size_t index, const TxType txType) {
     ComboMoney fee;
     if (params.size() > index) {
         fee = GetComboMoney(params[index], SYMB::WICC);
@@ -352,7 +357,7 @@ ComboMoney RPC_PARAM::GetFee(const Array& params, size_t index, TxType txType) {
     return fee;
 }
 
-uint64_t RPC_PARAM::GetWiccFee(const Array& params, size_t index, TxType txType) {
+uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const TxType txType) {
     uint64_t fee, minFee;
     if (!GetTxMinFee(txType, chainActive.Height(), SYMB::WICC, minFee))
         throw JSONRPCError(RPC_INVALID_PARAMS,
@@ -369,7 +374,7 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, size_t index, TxType txType)
     return fee;
 }
 
-CUserID RPC_PARAM::GetUserId(const Value &jsonValue, bool senderUid) {
+CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
@@ -406,12 +411,59 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, bool senderUid) {
     }
 }
 
+string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {
+    string filePath = GetAbsolutePath(jsonValue.get_str()).string();
+    if (filePath.empty())
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Lua Script file not exist");
+
+    if (filePath.compare(0, LUA_CONTRACT_LOCATION_PREFIX.size(), LUA_CONTRACT_LOCATION_PREFIX.c_str()) != 0)
+        throw JSONRPCError(RPC_SCRIPT_FILEPATH_INVALID, "Lua Script file not inside /tmp/lua dir or its subdir");
+
+    std::tuple<bool, string> result = CLuaVM::CheckScriptSyntax(filePath.c_str());
+    if (!std::get<0>(result))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, std::get<1>(result));
+
+    bool success = false;
+    string contractScript;
+    do {
+        streampos begin, end;
+        ifstream fin(filePath.c_str(), ios::binary | ios::in);
+        if (!fin)
+            break;
+
+        begin = fin.tellg();
+        fin.seekg(0, ios::end);
+        end = fin.tellg();
+
+        streampos length = end - begin;
+        if (length == 0 || length > MAX_CONTRACT_CODE_SIZE) {
+            fin.close();
+            break;
+        }
+
+        fin.seekg(0, ios::beg);
+        char *buffer = new char[length];
+        fin.read(buffer, length);
+
+        contractScript.assign(buffer, length);
+        free(buffer);
+        fin.close();
+
+        success = true;
+    } while (false);
+
+    if (!success)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract script");
+
+    return contractScript;
+}
+
 uint64_t RPC_PARAM::GetPrice(const Value &jsonValue) {
     // TODO: check price range??
     return AmountToRawValue(jsonValue);
 }
 
-uint256 RPC_PARAM::GetTxid(const Value &jsonValue, const string &paramName, bool canBeEmpty) {
+uint256 RPC_PARAM::GetTxid(const Value &jsonValue, const string &paramName, const bool canBeEmpty) {
     string binStr, errStr;
     if (!ParseHex(jsonValue.get_str(), binStr, errStr))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Get param %s error! %s", paramName, errStr));
@@ -474,8 +526,8 @@ string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramNa
     return binStr;
 }
 
-void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
-                                    const BalanceOpType opType, const uint64_t &value) {
+void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
+                                    const uint64_t value) {
     if (!account.OperateBalance(tokenSymbol, opType, value))
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
                            strprintf("Account does not have enough %s", tokenSymbol));
