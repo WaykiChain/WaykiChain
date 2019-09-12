@@ -38,7 +38,7 @@ namespace RPC_PARAM {
     ComboMoney GetFee(const Array& params, size_t index, TxType txType);
     uint64_t GetWiccFee(const Array& params, size_t index, TxType txType);
 
-    CUserID GetUserId(const Value &jsonValue);
+    CUserID GetUserId(const Value &jsonValue, bool senderUid = false);
 
     uint64_t GetPrice(const Value &jsonValue);
 

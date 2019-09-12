@@ -309,7 +309,7 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
 
     CService addrConnect(host, 80, true);
     if (!addrConnect.IsValid()) {
-        LogPrint("ERROR", "GetMyExternalIP() : service is unavalable: %s", host);
+        LogPrint("ERROR", "GetMyExternalIP() : service is unavalable: %s\n", host);
         return false;
     }
 

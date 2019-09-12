@@ -308,7 +308,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    CUserID sendUserId = RPC_PARAM::GetUserId(params[0]);
+    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
     CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);

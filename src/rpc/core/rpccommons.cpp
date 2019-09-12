@@ -369,14 +369,13 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, size_t index, TxType txType)
     return fee;
 }
 
-
-CUserID RPC_PARAM::GetUserId(const Value &jsonValue) {
+CUserID RPC_PARAM::GetUserId(const Value &jsonValue, bool senderUid) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-     /**
+    /**
      * We need to choose the proper field as the sender/receiver's account according to
      * the two factor: whether the sender's account is registered or not, whether the
      * RegID is mature or not.
@@ -395,7 +394,15 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue) {
     if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
         return CUserID(regid);
     } else {
-        return *pUserId;
+        if (senderUid && pUserId->is<CKeyID>()) {
+            CPubKey sendPubKey;
+            if (!pWalletMain->GetPubKey(pUserId->get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
+                throw JSONRPCError(RPC_WALLET_ERROR, "Invalid address");
+
+            return CUserID(sendPubKey);
+        } else {
+            return *pUserId;
+        }
     }
 }
 

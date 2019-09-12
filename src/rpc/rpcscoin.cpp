@@ -115,7 +115,7 @@ Value submitfcoinstaketx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& userId   = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
     int64_t stakeAmount     = params[1].get_int64();
     ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, FCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
@@ -159,7 +159,7 @@ Value submitcdpstaketx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID &cdpUid = RPC_PARAM::GetUserId(params[0]);
+    const CUserID &cdpUid = RPC_PARAM::GetUserId(params[0], true);
 
     ComboMoney cmBcoinsToStake, cmScoinsToMint;
     if (!ParseRpcInputMoney(params[1].get_str(), cmBcoinsToStake, SYMB::WICC))
@@ -219,7 +219,7 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& cdpUid   = RPC_PARAM::GetUserId(params[0].get_str());
+    const CUserID& cdpUid   = RPC_PARAM::GetUserId(params[0].get_str(), true);
     uint256 cdpTxId         = uint256S(params[1].get_str());
     uint64_t repayAmount    = AmountToRawValue(params[2]);
     uint64_t redeemAmount   = AmountToRawValue(params[3]);
@@ -260,7 +260,7 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& cdpUid    = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& cdpUid    = RPC_PARAM::GetUserId(params[0], true);
     const uint256& cdpTxId   = RPC_PARAM::GetTxid(params[1], "cdp_id");
     uint64_t liquidateAmount = AmountToRawValue(params[2]);
     const ComboMoney& cmFee  = RPC_PARAM::GetFee(params, 3, CDP_STAKE_TX);
@@ -463,7 +463,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
     uint64_t assetAmount           = AmountToRawValue(params[3]);
@@ -505,7 +505,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
     uint64_t assetAmount           = AmountToRawValue(params[3]);
@@ -545,7 +545,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     uint64_t coinAmount            = AmountToRawValue(params[2]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
@@ -582,7 +582,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
         );
     }
 
-    const CUserID& userId          = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
     uint64_t assetAmount           = AmountToRawValue(params[3]);
@@ -621,7 +621,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID& userId = RPC_PARAM::GetUserId(params[0]);
+    const CUserID& userId = RPC_PARAM::GetUserId(params[0], true);
     const uint256& txid   = RPC_PARAM::GetTxid(params[1], "txid");
     ComboMoney cmFee      = RPC_PARAM::GetFee(params, 2, DEX_MARKET_SELL_ORDER_TX);
 
@@ -677,7 +677,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0], true);
     Array dealItemArray = params[1].get_array();
     ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_LIMIT_BUY_ORDER_TX);
 
