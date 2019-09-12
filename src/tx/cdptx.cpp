@@ -430,7 +430,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             uint64_t collateralRatio  = cdp.ComputeCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
-                                100.0 * collateralRatio / (double)PERCENT_BOOST, 100.0 * startingCdpCollateralRatio / (double)PERCENT_BOOST),
+                                100.0 * collateralRatio / (double)RATIO_BOOST, 100.0 * startingCdpCollateralRatio / (double)RATIO_BOOST),
                                 UPDATE_CDP_FAIL, "invalid-collatera-ratio");
             }
 
@@ -678,8 +678,8 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
         totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalBcoinsToReturnLiquidator;
 
-        totalScoinsToLiquidate = ( cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / PERCENT_BOOST )
-                                * (double)cdpLiquidateDiscountRate / PERCENT_BOOST; //1.096N
+        totalScoinsToLiquidate = ( cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / RATIO_BOOST )
+                                * (double)cdpLiquidateDiscountRate / RATIO_BOOST; //1.096N
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins;
 
@@ -687,7 +687,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         totalBcoinsToReturnLiquidator = cdp.total_staked_bcoins; //M
         totalBcoinsToCdpOwner = 0;
         totalScoinsToLiquidate = totalBcoinsToReturnLiquidator * ((double) bcoinMedianPrice / PRICE_BOOST)
-                                * cdpLiquidateDiscountRate / PERCENT_BOOST; //M * 97%
+                                * cdpLiquidateDiscountRate / RATIO_BOOST; //M * 97%
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins; // M * 97% - N
 

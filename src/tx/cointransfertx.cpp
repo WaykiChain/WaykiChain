@@ -172,7 +172,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read SCOIN_RESERVE_FEE_RATIO error"),
                              READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
         }
-        uint64_t reserveFeeScoins = coin_amount * riskReserveFeeRatio / PERCENT_BOOST;
+        uint64_t reserveFeeScoins = coin_amount * riskReserveFeeRatio / RATIO_BOOST;
         actualCoinsToSend -= reserveFeeScoins;
 
         fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, reserveFeeScoins);
