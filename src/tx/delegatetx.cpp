@@ -98,30 +98,30 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     }
 
     for (const auto &vote : candidateVotes) {
-        CAccount delegate;
+        CAccount delegateAcct;
         const CUserID &delegateUId = vote.GetCandidateUid();
-        if (!cw.accountCache.GetAccount(delegateUId, delegate)) {
+        if (!cw.accountCache.GetAccount(delegateUId, delegateAcct)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read account id %s account info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        uint64_t oldVotes = delegate.received_votes;
-        if (!delegate.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
+        uint64_t oldVotes = delegateAcct.received_votes;
+        if (!delegateAcct.StakeVoteBcoins(VoteType(vote.GetCandidateVoteType()), vote.GetVotedBcoins())) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate account id %s vote fund error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-vote-error");
         }
 
         // Votes: set the new value and erase the old value
-        if (!cw.delegateCache.SetDelegateVotes(delegate.regid, delegate.received_votes)) {
+        if (!cw.delegateCache.SetDelegateVotes(delegateAcct.regid, delegateAcct.received_votes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s vote info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
 
-        if (!cw.delegateCache.EraseDelegateVotes(delegate.regid, oldVotes)) {
+        if (!cw.delegateCache.EraseDelegateVotes(delegateAcct.regid, oldVotes)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, erase account id %s vote info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-delegatedb");
         }
 
-        if (!cw.accountCache.SaveAccount(delegate)) {
+        if (!cw.accountCache.SaveAccount(delegateAcct)) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
         }

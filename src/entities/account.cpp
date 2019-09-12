@@ -266,7 +266,8 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         return false;
     }
 
-    uint64_t lastTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
+    // uint64_t lastTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
+    uint64_t lastTotalVotes = GetToken(SYMB::WICC).voted_amount;
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -350,11 +351,11 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
     uint64_t free_bcoins  = totalBcoins - newTotalVotes;
     uint64_t currBcoinAmt = GetToken(SYMB::WICC).free_amount;
     if (currBcoinAmt < free_bcoins) {
-        OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, free_bcoins - currBcoinAmt);
+        OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, free_bcoins - currBcoinAmt);
         CReceipt receipt(nullId, regid, SYMB::WICC, free_bcoins - currBcoinAmt, "add free bcoins due to revoking votes");
         receipts.push_back(receipt);
     } else {
-        OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, currBcoinAmt - free_bcoins);
+        OperateBalance(SYMB::WICC, BalanceOpType::VOTE, currBcoinAmt - free_bcoins);
         CReceipt receipt(regid, nullId, SYMB::WICC, currBcoinAmt - free_bcoins, "sub free bcoins due to increasing votes");
         receipts.push_back(receipt);
     }
@@ -364,6 +365,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
     if (!IsBcoinWithinRange(interestAmountToInflate))
         return false;
 
+    // collect inflated bcoins or fcoins
     switch (featureForkVersion) {
         case MAJOR_VER_R1: {  // for backward compatibility
             OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, interestAmountToInflate);
