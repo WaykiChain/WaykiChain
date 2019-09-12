@@ -35,15 +35,15 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }
 
-    uint64_t stakedAmountMin;
-    if (!cw.sysParamCache.GetParam(PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
+    uint64_t votedAmountMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_BCOIN_VOTE_AMOUNT_MIN, votedAmountMin)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_BCOIN_VOTE_AMOUNT_MIN error",
                         txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
     }
     CAccountToken accountToken = account.GetToken(SYMB::WICC);
-    if (accountToken.voted_amount < stakedAmountMin) // must stake enough bcoins to be a price feeder
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
+    if (accountToken.voted_amount < votedAmountMin) // must stake enough bcoins to be a price feeder
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Voted Bcoins insufficient by txUid %s account error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-voted-boins-insufficient");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
