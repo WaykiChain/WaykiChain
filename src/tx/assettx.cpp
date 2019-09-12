@@ -43,7 +43,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
                             REJECT_INVALID, "read-sysparam-error");
     } else {
         assert(action == ASSET_ACTION_UPDATE);
-        if (!cw.sysParamCache.GetParam(ASSET_ISSUE_FEE, assetFee))
+        if (!cw.sysParamCache.GetParam(ASSET_UPDATE_FEE, assetFee))
             return state.DoS(100, ERRORMSG("ProcessAssetFee, read param ASSET_UPDATE_FEE error"),
                             REJECT_INVALID, "read-sysparam-error");
     }

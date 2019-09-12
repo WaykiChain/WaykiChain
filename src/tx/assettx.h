@@ -83,7 +83,7 @@ private:
     ValueType value; // update value
 
 public:
-    static shared_ptr<UpdateType> ParseUpdateType(const string& str);
+    static std::shared_ptr<UpdateType> ParseUpdateType(const string& str);
 
     static const string& GetUpdateTypeName(UpdateType type);
 public:
@@ -110,9 +110,9 @@ public:
 
     inline unsigned int GetSerializeSize(int serializedType, int nVersion) const {
         switch (type) {
-            case OWNER_UID:     return get<CUserID>().GetSerializeSize(serializedType, nVersion);
-            case NAME:          return ::GetSerializeSize(get<string>(), serializedType, nVersion);
-            case MINT_AMOUNT:   return ::GetSerializeSize(VARINT(get<uint64_t>()), serializedType, nVersion);
+            case OWNER_UID:     return sizeof(uint8_t) + get<CUserID>().GetSerializeSize(serializedType, nVersion);
+            case NAME:          return sizeof(uint8_t) + ::GetSerializeSize(get<string>(), serializedType, nVersion);
+            case MINT_AMOUNT:   return sizeof(uint8_t) + ::GetSerializeSize(VARINT(get<uint64_t>()), serializedType, nVersion);
             default: break;
         }
         return 0;
@@ -137,9 +137,9 @@ public:
         s >> ((uint8_t&)type);
         switch (type) {
             case OWNER_UID: {
-                CUserID regid;
-                s >> regid;
-                value = regid;
+                CUserID uid;
+                s >> uid;
+                value = uid;
                 break;
             }
             case NAME: {

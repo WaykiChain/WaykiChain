@@ -84,8 +84,8 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          },  // a = 2
     { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          },  // b = 1
     { CDP_SYSORDER_PENALTY_FEE_MIN,                 std::make_tuple("R",    10)         },  // min penalty fee = 10
-    { ASSET_ISSUE_FEE,                              std::make_tuple("S",    550)        },  // asset issue fee = 550
-    { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110)        },  // asset update fee = 110
+    { ASSET_ISSUE_FEE,                              std::make_tuple("S",    550 * COIN) },  // asset issue fee = 550 WICC
+    { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110* COIN)  },  // asset update fee = 110 WICC
 
 };
 
