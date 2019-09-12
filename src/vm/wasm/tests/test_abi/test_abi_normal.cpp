@@ -26,6 +26,12 @@ using namespace wasm;
 
 //#define WASM_TEST(expr, ...) WASM_ASSERT(expr, wasm_exception, __VA_ARGS__ )
 
+#define WASM_CHECK( expr, msg )              \
+if(! (expr)){                                \
+    WASM_TRACE("%s%s", msg , "[ failed ]")   \
+    assert(false);                           \
+}
+
 #define WASM_CHECK_EXCEPTION( expr, passed, ex, msg ) \
  passed = false;                              \
  try{                                         \
@@ -41,7 +47,7 @@ using namespace wasm;
  if (!passed) {                               \
      WASM_TRACE("%s%s", msg, "[ failed ]")    \
      assert(false);                           \
- }                                            
+ }
 
 
 wasm::variant
@@ -50,7 +56,7 @@ verify_byte_round_trip_conversion( const wasm::abi_serializer &abis, const type_
     auto var2 = abis.binary_to_variant(type, bytes, max_serialization_time);
 
     auto bytes2 = abis.variant_to_binary(type, var2, max_serialization_time);
-    //WASM_TEST( ToHex(bytes) == ToHex(bytes2), "verify_byte_round_trip_conversion_fail" )
+    WASM_CHECK(ToHex(bytes) == ToHex(bytes2), "verify_byte_round_trip_conversion_fail")
 
     return var2;
 }
@@ -145,9 +151,9 @@ void abi_cycle() {
 }
 
 
-void abi_type_repeat(){
+void abi_type_repeat() {
 
-   const char* repeat_abi = R"=====(
+    const char *repeat_abi = R"=====(
    {
      "version": "wasm::abi/1.0",
      "types": [{
@@ -211,12 +217,12 @@ void abi_type_repeat(){
 
     abi_serializer abis;
     WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
-                         "abi_type_repeat")  
+                         "abi_type_repeat")
 }
 
-void abi_struct_repeat(){
+void abi_struct_repeat() {
 
-    const char* repeat_abi = R"=====(
+    const char *repeat_abi = R"=====(
     {
      "version": "wasm::abi/1.0",
      "types": [{
@@ -276,13 +282,13 @@ void abi_struct_repeat(){
 
     abi_serializer abis;
     WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
-                         "abi_struct_repeat")    
+                         "abi_struct_repeat")
 
 }
 
-void abi_action_repeat(){
+void abi_action_repeat() {
 
-   const char* repeat_abi = R"=====(
+    const char *repeat_abi = R"=====(
    {
      "version": "wasm::abi/1.0",
      "types": [{
@@ -345,13 +351,13 @@ void abi_action_repeat(){
 
     abi_serializer abis;
     WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
-                         "abi_action_repeat")    
+                         "abi_action_repeat")
 
 }
 
-void abi_table_repeat(){
+void abi_table_repeat() {
 
-   const char* repeat_abi = R"=====(
+    const char *repeat_abi = R"=====(
    {
      "version": "wasm::abi/1.0",
      "types": [{
@@ -418,7 +424,150 @@ void abi_table_repeat(){
 
     abi_serializer abis;
     WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
-                         "abi_table_repeat") 
+                         "abi_table_repeat")
+}
+
+void abi_type_def() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "account_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "account_name"
+         },{
+            "name": "to",
+            "type": "name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer",
+         "ricardian_contract": "transfer contract"
+       }
+     ],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    abi_serializer abis;
+    abis.set_abi(def, max_serialization_time);
+
+    WASM_CHECK(abis.is_type("name", max_serialization_time), "abis.is_type name");
+    WASM_CHECK(abis.is_type("account_name", max_serialization_time), "abis.is_type naaccount_nameme");
+
+    const char *test_data = R"=====(
+    {
+     "from" : "kevin",
+     "to" : "dan",
+     "amount" : 16
+    }
+    )=====";
+
+    wasm::variant var2;
+    json_spirit::read_string(std::string(test_data), var2);
+    verify_byte_round_trip_conversion(abis, "transfer", var2);
+
+    WASM_TRACE("%s%s", "abi_type_def", "[ passed ]")
+}
+
+
+void abi_type_redefine() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "account_name",
+         "type": "account_name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "account_name"
+         },{
+            "name": "to",
+            "type": "name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer",
+         "ricardian_contract": "transfer contract"
+       }
+     ],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, invalid_type_inside_abi,
+                         "abi_type_redefine")
+
+
+}
+
+void abi_type_redefine_to_name() {
+
+   const char* repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "name",
+         "type": "name"
+       }
+     ],
+     "structs": [],
+     "actions": [],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_type_redefine_to_name")
+
+
 }
 
 
@@ -430,6 +579,9 @@ int main( int argc, char **argv ) {
     abi_struct_repeat();
     abi_action_repeat();
     abi_table_repeat();
+    abi_type_def();
+    abi_type_redefine();
+    abi_type_redefine_to_name();
 
     return 0;
 
