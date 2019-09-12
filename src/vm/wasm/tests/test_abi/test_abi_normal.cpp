@@ -10,8 +10,10 @@
 // #include "wasm/abi_def.hpp"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/exceptions.hpp"
-#include "wasm/wasmvariant.hpp"
-#include "wasm/wasmconfig.hpp"
+#include "wasm/wasm_variant.hpp"
+#include "wasm/wasm_config.hpp"
+
+#include "wasm/wasm_log.hpp"
 
 
 using std::chrono::microseconds;
@@ -25,23 +27,21 @@ using namespace wasm;
 //#define WASM_TEST(expr, ...) WASM_ASSERT(expr, wasm_exception, __VA_ARGS__ )
 
 #define WASM_CHECK_EXCEPTION( expr, passed, ex, msg ) \
- std::cout << msg << "[ testing... ]" << std::endl;  \
  passed = false;                              \
  try{                                         \
      expr  ;                                  \
  } catch(wasm::exception &e){                 \
      if( ex(msg).code() == e.code()) {        \
+         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.detail())   \
          passed = true;                       \
-     }else {                                     \
-         std::cout << "e code:" << e.code() << std::endl;  \
-         std::cout << "e:" << e.detail() << std::endl;  \
-     }           \
+     }else {                                  \
+          WASM_TRACE("%s", e.detail())        \
+     }                                        \
  }                                            \
  if (!passed) {                               \
-   std::cout << msg << "[ failed ]" << std::endl;  \
-   assert(false);                             \
-  }                                           \
-  std::cout << msg << "[ passed ]" << std::endl;
+     WASM_TRACE("%s%s", msg, "[ failed ]")    \
+     assert(false);                           \
+ }                                            
 
 
 wasm::variant
@@ -120,41 +120,99 @@ void abi_cycle() {
      }
      )=====";
 
+    bool passed = false;
 
-    //std::cout << "testing:" << "duplicate_abi_type_def_exception" << std::endl;
     wasm::variant var;
     json_spirit::read_string(std::string(typedef_cycle_abi), var);
     wasm::abi_def def;
     wasm::from_variant(var, def);
 
-
-    bool passed = false;
     WASM_CHECK_EXCEPTION(wasm::abi_serializer
                                  abis(def, max_serialization_time), passed, duplicate_abi_def_exception,
-                         "duplicate_abi_type_def_exception")
+                         "typedef_cycle_abi")
 
 
-    //std::cout << "testing:" << "abi_circular_def_exception" << std::endl;
     wasm::variant var2;
     json_spirit::read_string(std::string(struct_cycle_abi), var2);
     wasm::abi_def def2;
     wasm::from_variant(var2, def2);
 
-    // std::cout << "def:" << def.version << std::endl;
-    // for (auto t : def.structs){
-    //   std::cout << "name:" << t.name << std::endl;
-    //   std::cout << "base:" << t.base << std::endl;
-    // }
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def2, max_serialization_time), passed, abi_circular_def_exception,
+                         "struct_cycle_abi")
+
+}
+
+
+void abi_type_repeat(){
+
+   const char* repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       },{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "account",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ],
+    "ricardian_clauses": []
+   }
+   )=====";
+
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
 
 
     abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_type_repeat")  
 
-    // auto f2 = [&]() {
-    //     abis.set_abi(def, max_serialization_time);
-    // };
-
-    WASM_CHECK_EXCEPTION(abis.set_abi(def2, max_serialization_time), passed, abi_circular_def_exception,
-                         "abi_circular_def_exception")
 
 }
 
@@ -162,6 +220,7 @@ void abi_cycle() {
 int main( int argc, char **argv ) {
 
     abi_cycle();
+    abi_type_repeat();
 
     return 0;
 
