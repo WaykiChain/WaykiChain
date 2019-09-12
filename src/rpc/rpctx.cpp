@@ -133,17 +133,17 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 Value submitcontractcalltx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submitcontractcalltx \"sender addr\" \"app regid\" \"arguments\" \"amount\" \"fee\" [\"height\"]\n"
+            "submitcontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" [\"height\"]\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
-            "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
-            "2.\"app regid\":   (string, required) contract RegId\n"
-            "3.\"arguments\":   (string, required) contract arguments (Hex encode required)\n"
-            "4.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
-            "5.\"fee\":         (numeric, required) pay to miner\n"
-            "6.\"height\":      (numberic, optional) valid height\n"
+            "1.\"sender_addr\":     (string, required) tx sender's base58 addr\n"
+            "2.\"contract_regid\":  (string, required) contract regid\n"
+            "3.\"arguments\":       (string, required) contract arguments (Hex encode required)\n"
+            "4.\"amount\":          (numeric, required) amount of WICC to be sent to the contract account\n"
+            "5.\"fee\":             (numeric, required) pay to miner\n"
+            "6.\"height\":          (numberic, optional) valid height\n"
             "\nResult:\n"
-            "\"txid\":          (string)\n"
+            "\"txid\":              (string)\n"
             "\nExamples:\n" +
             HelpExampleCli("submitcontractcalltx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"100-1\" \"01020304\" 10000 10000 100") +
@@ -161,7 +161,7 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 
     CRegID appRegId;
     if (!pCdMan->pAccountCache->GetRegId(appUid, appRegId)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
     }
 
     if (!pCdMan->pContractCache->HaveContract(appRegId)) {
