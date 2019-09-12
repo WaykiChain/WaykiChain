@@ -302,12 +302,11 @@ static string GetSystemInfo() {
 }
 
 bool GetMyExternalIP(CNetAddr& ipRet) {
-    // TODO: replace the default server.
-    string reportIp = SysCfg().GetArg("-reportip", "wiccip.me/ip");
-    auto pos        = reportIp.find("/");
+    string ipuri = SysCfg().GetArg("-ipuri", "wiccip.me/ip");
+    auto pos        = ipuri.find("/");
     assert(pos != std::string::npos);
-    string host     = reportIp.substr(0, pos);
-    string uri      = reportIp.substr(pos);
+    string host     = ipuri.substr(0, pos);
+    string uri      = ipuri.substr(pos);
     string content  = GetSystemInfo();
 
     CService addrConnect(host, 80, true);
