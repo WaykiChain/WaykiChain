@@ -2230,11 +2230,8 @@ int32_t ExTransferAccountAssetFunc(lua_State *L) {
 
     AssetTransfer transfer;
     if (!ParseAccountAssetTransfer(L, *pVmRunEnv, transfer)) {
-        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse("ExTransferAccountAssetFunc(), parse params of TransferAccountAsset function failed");
     }
-
-    LUA_BurnAccountOperate(L, 1, BURN_VER_R2);
 
     if (!pVmRunEnv->TransferAccountAsset(L, {transfer})) {
          return RetFalse("ExTransferAccountAssetFunc(), execute pVmRunEnv->TransferAccountAsset() failed");
@@ -2278,7 +2275,6 @@ int32_t ExTransferAccountAssetsFunc(lua_State *L) {
     // TODO: parse vector
     vector<AssetTransfer> transfers;
     if (!ParseAccountAssetTransfers(L, *pVmRunEnv, transfers)) {
-        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse("ExTransferAccountAssetsFunc(), parse params of TransferAccountAsset function failed");
     }
 
@@ -2310,6 +2306,9 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
         LogPrint("vm", "[ERROR] lua stack overflow\n");
         return 0;
     }
+
+    LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxInputAsset, BURN_VER_R2);
+
     lua_createtable (L, 0, 2); // create table object with 2 field
     // set asset.symbol
     lua_pushstring(L, pVmRunEnv->GetContext().transfer_symbol.c_str());
@@ -2366,10 +2365,13 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
         return false;
     }
 
+    LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
+
     auto pAccount = make_shared<CAccount>();
     if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *pAccount)) {
         LogPrint("vm", "%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
     }
+
     uint64_t value;
     if (!pAccount->GetBalance(tokenType, FREE_VALUE, value)) {
         value = 0;
