@@ -300,12 +300,16 @@ static string GetSystemInfo() {
 }
 
 bool GetMyExternalIP(CNetAddr& ipRet) {
-    string ipuri = SysCfg().GetArg("-ipuri", "wiccip.me/ip");
-    auto pos        = ipuri.find("/");
-    assert(pos != std::string::npos);
-    string host     = ipuri.substr(0, pos);
-    string uri      = ipuri.substr(pos);
-    string content  = GetSystemInfo();
+    string ipURI = SysCfg().GetArg("-ipuri", "wiccip.me/ip");
+    auto pos     = ipURI.find("/");
+    string host  = ipURI;
+    string uri   = "/";
+    if (pos != std::string::npos) {
+        host = ipURI.substr(0, pos);
+        uri  = ipURI.substr(pos);
+    }
+
+    string content = GetSystemInfo();
 
     CService addrConnect(host, 80, true);
     if (!addrConnect.IsValid()) {
