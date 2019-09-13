@@ -9,6 +9,7 @@
 
 #include "allocators.h"
 #include "uint256.h"
+#include "config/const.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -32,6 +33,8 @@ class CDataStream;
 class CBaseTx;
 
 static const unsigned int MAX_SIZE = 0x02000000;
+
+static const uint32_t MAX_SERIALIZE_SIZE = MAX_BLOCK_SIZE;
 
 // Used to bypass the rule against non-const reference to temporary
 // where it makes sense with wrappers such as CFlatData or CTxDB
@@ -522,6 +525,8 @@ template<typename Stream, typename C>
 void Unserialize(Stream& is, basic_string<C>& str, int, int)
 {
     unsigned int nSize = ReadCompactSize(is);
+    if (nSize > MAX_SERIALIZE_SIZE)
+        throw ios_base::failure("the string value size is too large");
     str.resize(nSize);
     if (nSize != 0)
         is.read((char*)&str[0], nSize * sizeof(str[0]));
