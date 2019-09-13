@@ -46,13 +46,13 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
 bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &title,
                           const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol) {
     if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s invalid coin symbol=%s", title, coinSymbol),
-                        REJECT_INVALID, "invalid-coin-symbol");
+        return state.DoS(100, ERRORMSG("%s invalid order coin symbol=%s", title, coinSymbol),
+                        REJECT_INVALID, "invalid-order-coin-symbol");
     }
 
     if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s invalid asset symbol=%s", title, assetSymbol),
-                        REJECT_INVALID, "invalid-asset-symbol");
+        return state.DoS(100, ERRORMSG("%s invalid order asset symbol=%s", title, assetSymbol),
+                        REJECT_INVALID, "invalid-order-asset-symbol");
     }
 
     if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
