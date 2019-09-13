@@ -130,7 +130,12 @@ namespace wasm {
         // error_messages.clear();
         // variants.clear();
         for (const auto &st : abi.structs)
+        {
             structs[st.name] = st;
+            //WASM_TRACE("%s", st.name.c_str())
+        }
+
+        //WASM_TRACE("%d", abi.structs.size())
 
         for (const auto &td : abi.types) {
             WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type %s",
@@ -231,11 +236,18 @@ namespace wasm {
     }
 
     bool abi_serializer::_is_type( const type_name &rtype, wasm::abi_traverse_context &ctx ) const {
+
+        //WASM_TRACE("%s", rtype.c_str())
         ctx.check_deadline();
         auto type = fundamental_type(rtype);
+        //WASM_TRACE("%s", type.c_str())
+
         if (built_in_types.find(type) != built_in_types.end()) return true;
         if (typedefs.find(type) != typedefs.end()) return _is_type(typedefs.find(type)->second, ctx);
+
+        //WASM_TRACE("%s", type.c_str())
         if (structs.find(type) != structs.end()) return true;
+        //WASM_TRACE("%s", type.c_str())
         //if( variants.find(type) != variants.end() ) return true;
         return false;
     }
@@ -470,6 +482,7 @@ namespace wasm {
                 vector <type_name> types_seen{t.first, t.second};
                 auto itr = typedefs.find(t.second);
                 while (itr != typedefs.end()) {
+                    //WASM_TRACE("%s", "validate" ) 
                     ctx.check_deadline();
                     WASM_ASSERT(find(types_seen.begin(), types_seen.end(), itr->second) == types_seen.end(),
                                 abi_circular_def_exception, "Circular reference in type %s",
@@ -482,13 +495,17 @@ namespace wasm {
             WASM_CAPTURE_AND_RETHROW("Unknown new type %s", t.first.c_str())
         }
 
+        //WASM_TRACE("%s", "validate" ) 
         for (const auto &t : typedefs) {
+            //WASM_TRACE("%s", t.second.c_str() ) 
             try {
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
                             "Unknown type %s", t.second.c_str());
             }
             WASM_CAPTURE_AND_RETHROW("Unknown type %s", t.second.c_str())
         }
+
+       // WASM_TRACE("%s", "validate" ) 
 
         for (const auto &s : structs) {
             try {
@@ -508,6 +525,7 @@ namespace wasm {
                         current = base;
                     }
                 }
+                //WASM_TRACE("%s", "validate" ) 
                 for (const auto &field : s.second.fields) {
                     try {
                         ctx.check_deadline();
@@ -516,6 +534,8 @@ namespace wasm {
                     }
                     WASM_CAPTURE_AND_RETHROW("Parse error in struct %s field %s", s.first.c_str(), field.type.c_str())
                 }
+
+                //WASM_TRACE("%s", "validate" ) 
 
                 //check struct in circluar
                 try{
@@ -527,6 +547,7 @@ namespace wasm {
             WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
         }
 
+        //WASM_TRACE("%s", "validate" ) 
         for (const auto &a : actions) {
             try {
                 ctx.check_deadline();
@@ -548,8 +569,11 @@ namespace wasm {
 
 
     void abi_traverse_context::check_deadline() const {
+        // WASM_TRACE("%d", std::chrono::duration_cast<std::chrono::microseconds>(deadline - system_clock::now()).count() )
+        // WASM_TRACE("max_serialization_time:%d", std::chrono::duration_cast<std::chrono::microseconds>(max_serialization_time).count() )
+
         WASM_ASSERT(system_clock::now() < deadline, abi_serialization_deadline_exception,
-                    "Serialization time limit %ldus exceeded", max_serialization_time.count());
+                    "Serialization time limit %ldus exceeded", max_serialization_time_us.count());
     }
 
 

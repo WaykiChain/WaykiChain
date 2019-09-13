@@ -653,6 +653,57 @@ void abi_large_array() {
 
 }
 
+void abi_is_type_recursion() {
+
+      const char* abi_str = R"=====(
+      {
+       "version": "wasm::abi/1.0",
+       "types": [
+        {
+            "new_type_name": "a[]",
+            "type": "a[][]"
+        }
+        ],
+        "structs": [
+         {
+            "name": "a[]",
+            "base": "",
+            "fields": []
+         },
+         {
+            "name": "hi",
+            "base": "",
+            "fields": [{
+                "name": "user",
+                "type": "name"
+              }
+            ]
+          }
+        ],
+        "actions": [{
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+          }
+        ],
+        "tables": []
+      }
+      )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi_str), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, max_serialization_time), passed,
+                         abi_serialization_deadline_exception, "abi_is_type_recursion")
+
+
+}
+
+
 
 int main( int argc, char **argv ) {
 
@@ -665,8 +716,9 @@ int main( int argc, char **argv ) {
     // abi_type_redefine();
     // abi_type_redefine_to_name();
     // abi_type_nested_in_vector();
+    //abi_large_array();
 
-    abi_large_array();
+    abi_is_type_recursion();
 
     return 0;
 

@@ -10,6 +10,7 @@
 #include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"
+#include "wasm/wasm_log.hpp"
 
 namespace wasm {
     using namespace json_spirit;
@@ -323,11 +324,13 @@ namespace wasm {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), field.name);
                         //std::cout << field.name <<std::endl ;
+                        //WASM_TRACE("%s", field.name.c_str())
                         break;
                     }
                     case ID_Type : {
                         from_variant(Config_type::get_value(*i), field.type);
                         //std::cout << field.type <<std::endl ;
+                        //WASM_TRACE("%s", field.type.c_str())
                         break;
                     }
                     default :
@@ -349,11 +352,13 @@ namespace wasm {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), s.name);
                         //std::cout << s.name <<std::endl ;
+                         //WASM_TRACE("%s", s.name.c_str())
                         break;
                     }
                     case ID_Base : {
                         from_variant(Config_type::get_value(*i), s.base);
                         //std::cout << s.base <<std::endl ;
+                        //WASM_TRACE("%s", s.base.c_str())
                         break;
                     }
                     case ID_Fields : {
@@ -503,6 +508,8 @@ namespace wasm {
                 for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                     string key = Config_type::get_name(*i);
                     ABI_Enum abi_key = mapStringValues[key];
+
+                    //WASM_TRACE("%s", key.c_str())
 
                     switch (abi_key) {
                         case ID_Comment :

@@ -166,25 +166,28 @@ namespace wasm {
 
     struct abi_traverse_context {
         abi_traverse_context( std::chrono::microseconds max_serialization_time )
-                : max_serialization_time(max_serialization_time),
+                : max_serialization_time_us(max_serialization_time),
                   deadline(system_clock::now()), // init to now, updated below
                   recursion_depth(0) {
-            if (max_serialization_time > microseconds::max() - deadline.time_since_epoch()) {
-                deadline = std::chrono::time_point<std::chrono::system_clock>::max();
+            if (max_serialization_time_us > wasm::max_serialization_time ) {
+                deadline += wasm::max_serialization_time;
             } else {
-                deadline += max_serialization_time;
+
+                deadline += max_serialization_time_us;
+
+                //WASM_TRACE("%d", deadline.count() )
             }
         }
 
         abi_traverse_context( std::chrono::microseconds max_serialization_time, system_clock::time_point deadline )
-                : max_serialization_time(max_serialization_time), deadline(deadline), recursion_depth(0) {}
+                : max_serialization_time_us(max_serialization_time), deadline(deadline), recursion_depth(0) {}
 
 
         void check_deadline() const;
 
         //fc::scoped_exit<std::function<void()>> enter_scope();
     public:
-        std::chrono::microseconds max_serialization_time;
+        std::chrono::microseconds max_serialization_time_us;
         std::chrono::system_clock::time_point deadline;
         uint32_t recursion_depth;
     };
