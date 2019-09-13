@@ -64,5 +64,5 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(account_operation_exception,          5000009, "account operation exception")
     WASM_DECLARE_EXCEPTION(wasm_assert_exception,                5000010, "wasm assert exception")
     WASM_DECLARE_EXCEPTION(symbol_type_exception,                5000011, "symbol type exception")
-
+    WASM_DECLARE_EXCEPTION(array_size_exceeds_exception,         5000012, "array size exceeds exception")
 } //wasm

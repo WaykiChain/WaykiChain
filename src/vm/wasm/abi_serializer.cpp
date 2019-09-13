@@ -286,6 +286,9 @@ namespace wasm {
             WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack size of array '%s' ",
                                     rtype.c_str())
 
+            WASM_ASSERT(size < max_array_size_for_abi, array_size_exceeds_exception, "Array size %u is biger than max %d", size.value, 
+                            max_array_size_for_abi); 
+
             //std::cout << "size:---------------------------------------------- " << size.value << std::endl ;
             json_spirit::Array vars;
             for (decltype(size.value) i = 0; i < size; ++i) {

@@ -599,7 +599,7 @@ void abi_type_nested_in_vector() {
     json_spirit::read_string(std::string(repeat_abi), var);
     wasm::abi_def def;
     wasm::from_variant(var, def);
-    
+
     //WASM_CHECK_EXCEPTION(wasm::from_variant(var, def),passed, abi_parse_exception, "abi_type_nested_in_vector")
 
     WASM_CHECK_EXCEPTION(wasm::abi_serializer
@@ -610,17 +610,63 @@ void abi_type_nested_in_vector() {
 }
 
 
+void abi_large_array() {
+
+    const char *abi_str = R"=====(
+      {
+        "version": "wasm::abi/1.0",
+        "types": [],
+        "structs": [{
+           "name": "hi",
+           "base": "",
+           "fields": [
+           ]
+         }
+       ],
+       "actions": [{
+           "name": "hi",
+           "type": "hi[]",
+           "ricardian_contract": ""
+         }
+       ],
+       "tables": []
+      }
+      )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi_str), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    bytes bin = {static_cast<char>(0xff),
+                 static_cast<char>(0xff),
+                 static_cast<char>(0xff),
+                 static_cast<char>(0xff),
+                 static_cast<char>(0x08)};
+
+    WASM_CHECK_EXCEPTION(abis.binary_to_variant("hi[]", bin, max_serialization_time);, passed,
+                         array_size_exceeds_exception, "abi_large_array")
+
+
+}
+
+
 int main( int argc, char **argv ) {
 
-    abi_cycle();
-    abi_type_repeat();
-    abi_struct_repeat();
-    abi_action_repeat();
-    abi_table_repeat();
-    abi_type_def();
-    abi_type_redefine();
-    abi_type_redefine_to_name();
-    abi_type_nested_in_vector();
+    // abi_cycle();
+    // abi_type_repeat();
+    // abi_struct_repeat();
+    // abi_action_repeat();
+    // abi_table_repeat();
+    // abi_type_def();
+    // abi_type_redefine();
+    // abi_type_redefine_to_name();
+    // abi_type_nested_in_vector();
+
+    abi_large_array();
 
     return 0;
 
