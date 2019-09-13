@@ -220,8 +220,8 @@ int32_t ExLuaPrint(lua_State *L);
 
 /**
  * TransferAccountAsset - lua api
- * boolean TransferAccountAsset( tramsferTable )
- * @param tramsferTable:          transfer param table
+ * boolean TransferAccountAsset( transferTable )
+ * @param transferTable:          transfer param table
  * {
  *   isContractAccount: (boolean, required), Is contract account or tx sender' account
  *   toAddressType: (number, required)       The to address type of the transfer, REGID = 1, BASE58 = 2

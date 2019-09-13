@@ -2208,15 +2208,17 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
         LogPrint("vm", "ParseAccountAssetTransfer(), Invalid tokenType=%s! %s \n", transfer.tokenType, *pErr);
     }
 
-    lua_Integer  tokenAmount;
-    if (!(getIntegerInTable(L, "tokenAmount", tokenAmount))) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), get outheight failed\n");
+    vector<uint8_t> amountVector;
+    if (!getArrayInTable(L, "tokenAmount", sizeof(uint64_t), amountVector)) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), get tokenAmount failed\n");
         return false;
+    };
+    assert(amountVector.size() == sizeof(uint64_t));
+    transfer.tokenAmount = *((uint64_t*)amountVector.data());
+
+    if (transfer.tokenAmount == 0 || !CheckBaseCoinRange(transfer.tokenAmount) ) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", transfer.tokenAmount);
     }
-    if (tokenAmount <= 0 || !CheckBaseCoinRange(tokenAmount) ) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld out of range\n", tokenAmount);
-    }
-    transfer.tokenAmount = tokenAmount;
 
     return true;
 }
@@ -2238,7 +2240,7 @@ int32_t ExTransferAccountAssetFunc(lua_State *L) {
          return RetFalse("ExTransferAccountAssetFunc(), execute pVmRunEnv->TransferAccountAsset() failed");
     }
 
-    return RetRstBooleanToLua(L,true);
+    return RetRstBooleanToLua(L, true);
 }
 
 static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vector<AssetTransfer> &transfers) {
