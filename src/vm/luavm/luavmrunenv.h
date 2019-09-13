@@ -141,6 +141,8 @@ public:
     bool GetAppUserAccount(const vector<uint8_t>& id, std::shared_ptr<CAppUserAccount>& pAppUserAccount);
     bool CheckAppAcctOperate();
     void SetCheckAccount(bool bCheckAccount);
+
+    CLuaVMContext &GetContext() const { assert(p_context != nullptr); return *p_context; }
 };
 
 #endif  // LUA_VM_RUNENV_H

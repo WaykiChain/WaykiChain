@@ -227,7 +227,7 @@ int32_t ExLuaPrint(lua_State *L);
  *   toAddressType: (number, required)       The to address type of the transfer, REGID = 1, BASE58 = 2
  *   toAddress: (array, required)            The to address of the transfer, array format
  *   tokenType: (string, required)           Token type of the transfer, such as WICC | WUSD
- *   tokenAmount: (array, required)          Token ammount of the transfer
+ *   tokenAmount: (array, required)          Token amount of the transfer
  * }
  * @return succeed or not
  */
@@ -235,20 +235,50 @@ int32_t ExTransferAccountAssetFunc(lua_State *L);
 
 /**
  * TransferAccountAssets - lua api
- * boolean TransferAccountAssets( tramsferTables )
- * @param tramsferTables:          array of transfer param table
+ * boolean TransferAccountAssets( transferTables )
+ * @param transferTables:          array of transfer param table
  * [
  *   {
  *     isContractAccount: (boolean, required), Is contract account or tx sender' account
  *     toAddressType: (number, required)       The to address type of the transfer, REGID = 1, BASE58 = 2
  *     toAddress: (array, required)            The to address of the transfer, array format
  *     tokenType: (string, required)           Token type of the transfer, such as WICC | WUSD
- *     tokenAmount: (array, required)          Token ammount of the transfer
+ *     tokenAmount: (array, required)          Token amount of the transfer
  *   },
  *   ...
  * ]
  * @return succeed or not
  */
 int32_t ExTransferAccountAssetsFunc(lua_State *L);
+
+/**
+ * GetCurTxInputAsset - lua api
+ * table GetCurTxTransferAsset()
+ * get symbol and amount of current tx asset input by sender of tx
+ * @return table of asset info:
+ * {
+ *     symbol: (string), symbol of current tx input asset
+ *     amount: (array)   amount of current tx input asset, array format
+ * },
+ */
+int32_t ExGetCurTxInputAssetFunc(lua_State *L);
+
+/**
+ * GetAccountAsset - lua api
+ * boolean GetAccountAsset( tramsferTable )
+ * get asset of account by address
+ * @param tramsferTable:          transfer param table
+ * {
+ *   addressType: (number, required)       address type, REGID = 1, BASE58 = 2
+ *   address: (array, required)            address, array format
+ *   tokenType: (string, required)         Token type of the transfer, such as WICC | WUSD
+ * }
+ * @return asset info table or none
+ * {
+ *     symbol: (string), transfer symbol of current tx
+ *     amount: (integer)   transfer amount of current tx
+ * },
+ */
+int32_t ExGetAccountAssetFunc(lua_State *L);
 
 #endif //VM_LUA_LMYLIB_H

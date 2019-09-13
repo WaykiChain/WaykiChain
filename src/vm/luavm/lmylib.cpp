@@ -511,7 +511,7 @@ static bool ParseUidTypeInTable(lua_State *L, const char *pKey, AccountType &uid
         return false;
     }
 
-    if (uidTypeInt == AccountType::REGID && uidTypeInt == AccountType::BASE58ADDR) {
+    if (uidTypeInt != AccountType::REGID && uidTypeInt != AccountType::BASE58ADDR) {
         LogPrint("vm", "ParseUidTypeInTable(), invalid accountType: %d\n", uidTypeInt);
         return false;
     }
@@ -2198,8 +2198,8 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
         return false;
     }
 
-    if (!(getStringInTable(L, "operatorType", transfer.tokenType))) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), get opType failed\n");
+    if (!(getStringInTable(L, "tokenType", transfer.tokenType))) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), get tokenType failed\n");
         return false;
     }
 
@@ -2213,7 +2213,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
         LogPrint("vm", "ParseAccountAssetTransfer(), get outheight failed\n");
         return false;
     }
-    if (tokenAmount < 0 ) {
+    if (tokenAmount <= 0 || !CheckBaseCoinRange(tokenAmount) ) {
         LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld out of range\n", tokenAmount);
     }
     transfer.tokenAmount = tokenAmount;
@@ -2287,6 +2287,109 @@ int32_t ExTransferAccountAssetsFunc(lua_State *L) {
     return RetRstBooleanToLua(L,true);
 }
 
+/**
+ * GetCurTxInputAsset - lua api
+ * table GetCurTxTransferAsset()
+ * get symbol and amount of current tx asset input by sender of tx
+ * @return table of asset info:
+ * {
+ *     symbol: (string), symbol of current tx input asset
+ *     amount: (integer)   amount of current tx input asset
+ * },
+ */
+int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
+
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv)
+        return RetFalse("ExTransferAccountAssetsFunc(), pVmRunEnv is nullptr");
+
+    // check stack to avoid stack overflow
+    if (!lua_checkstack(L, 2)) {
+        LogPrint("vm", "[ERROR] lua stack overflow\n");
+        return 0;
+    }
+    lua_createtable (L, 0, 2); // create table object with 2 field
+    // set asset.symbol
+    lua_pushstring(L, pVmRunEnv->GetContext().transfer_symbol.c_str());
+    lua_setfield(L, -2, "symbol");
+
+    // set asset.amount
+    lua_pushinteger(L, pVmRunEnv->GetContext().transfer_amount);
+    lua_setfield(L, -2, "amount");
+
+    return 1;
+}
+
+/**
+ * GetAccountAsset - lua api
+ * boolean GetAccountAsset( tramsferTable )
+ * get asset of account by address
+ * @param tramsferTable:          transfer param table
+ * {
+ *   addressType: (number, required)       address type, REGID = 1, BASE58 = 2
+ *   address: (array, required)            address, array format
+ *   tokenType: (string, required)         Token type of the transfer, such as WICC | WUSD
+ * }
+ * @return asset info table or none
+ * {
+ *     symbol: (string), transfer symbol of current tx
+ *     amount: (integer)   transfer amount of current tx
+ * },
+ */
+int32_t ExGetAccountAssetFunc(lua_State *L) {
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv)
+        return RetFalse("ExTransferAccountAssetsFunc(), pVmRunEnv is nullptr");
+
+    if (!lua_istable(L,-1)) {
+        LogPrint("vm","%s(), input param must be a table\n", __FUNCTION__);
+        return false;
+    }
+
+    AccountType uidType;
+    if (!(ParseUidTypeInTable(L, "addressType", uidType))) {
+        LogPrint("vm", "%s(), get addressType failed\n", __FUNCTION__);
+        return false;
+    }
+
+    CUserID uid;
+    if (!ParseUidInTable(L, "address", uidType, uid)) {
+        LogPrint("vm","%s(), get address failed\n", __FUNCTION__);
+        return false;
+    }
+
+    TokenSymbol tokenType;
+    if (!(getStringInTable(L, "tokenType", tokenType))) {
+        LogPrint("vm", "%s(), get tokenType failed\n", __FUNCTION__);
+        return false;
+    }
+
+    auto pAccount = make_shared<CAccount>();
+    if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *pAccount)) {
+        LogPrint("vm", "%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
+    }
+    uint64_t value;
+    if (!pAccount->GetBalance(tokenType, FREE_VALUE, value)) {
+        value = 0;
+    }
+
+    // check stack to avoid stack overflow
+    if (!lua_checkstack(L, 2)) {
+        LogPrint("vm", "[ERROR] lua stack overflow\n");
+        return 0;
+    }
+    lua_createtable (L, 0, 2); // create table object with 2 field
+    // set asset.symbol
+    lua_pushstring(L, tokenType.c_str());
+    lua_setfield(L, -2, "symbol");
+
+    // set asset.amount
+    lua_pushinteger(L, value);
+    lua_setfield(L, -2, "amount");
+
+    return 1;
+}
+
 static const luaL_Reg mylib[] = {
     {"Int64Mul",                    ExInt64MulFunc},
     {"Int64Add",                    ExInt64AddFunc},
@@ -2337,7 +2440,9 @@ static const luaL_Reg mylib[] = {
 ///////////////////////////////////////////////////////////////////////////////
 // new function add in MAJOR_VER_R2
     {"TransferAccountAsset",        ExTransferAccountAssetFunc},
-    {"TransferAccountAssets",        ExTransferAccountAssetsFunc},
+    {"TransferAccountAssets",       ExTransferAccountAssetsFunc},
+    {"GetCurTxInputAsset",          ExGetCurTxInputAssetFunc},
+    {"GetAccountAsset",             ExGetAccountAssetFunc},
 
     {nullptr, nullptr}
 
