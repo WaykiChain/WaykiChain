@@ -137,7 +137,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         vector<CUserCDP> userCdps;
-        if (cw.cdpCache.GetCDPList(txUid.get<CRegID>(), userCdps) && userCdps.size() > 0) {
+        if (cw.cdpCache.GetCDPList(account.regid, userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp"), REJECT_INVALID, "has-open-cdp");
         }
 
@@ -145,7 +145,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (%llu) is smaller than the minimal (%llu)",
                             partialCollateralRatio, startingCdpCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
-        CUserCDP cdp(txUid.get<CRegID>(), GetHash(), height, bcoin_symbol, scoin_symbol, bcoins_to_stake, scoins_to_mint);
+        CUserCDP cdp(account.regid, GetHash(), height, bcoin_symbol, scoin_symbol, bcoins_to_stake, scoins_to_mint);
 
         if (!cw.cdpCache.NewCDP(height, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save new cdp to db failed"),
@@ -170,7 +170,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                              REJECT_INVALID, "cdp-not-exist");
         }
 
-        if (txUid.get<CRegID>() != cdp.owner_regid) {
+        if (account.regid != cdp.owner_regid) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
                 cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
         }
@@ -337,7 +337,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                          REJECT_INVALID, "cdp-not-exist");
     }
 
-    if (txUid.get<CRegID>() != cdp.owner_regid) {
+    if (account.regid != cdp.owner_regid) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
                         cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
     }

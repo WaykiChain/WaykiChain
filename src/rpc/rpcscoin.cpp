@@ -679,7 +679,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    const CUserID &userId = RPC_PARAM::GetUserId(params[0], true);
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
     Array dealItemArray = params[1].get_array();
     ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_LIMIT_BUY_ORDER_TX);
 
