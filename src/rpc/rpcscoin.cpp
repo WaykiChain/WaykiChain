@@ -122,7 +122,7 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
     string coinSymbol       = params[1].get_str();
     int64_t coinAmount      = params[2].get_int64();
-    ComboMoney cmFee        = RPC_PARAM::GetFee(params, 2, UCOIN_STAKE_TX);
+    ComboMoney cmFee        = RPC_PARAM::GetFee(params, 3, UCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
     BalanceOpType stakeType = coinAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
 
