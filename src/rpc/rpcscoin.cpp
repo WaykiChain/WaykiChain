@@ -104,9 +104,9 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
             "1.\"addr\":            (string, required)\n"
             "2.\"coin_symbol\":     (WICC|WUSD|WGRT, required)\n"
             "2.\"coin_amount\":     (numeric, required) amount of coins to stake (positive) or unstake (negative)\n"
-            "3.\"symbol:fee:unit\":  (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "3.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\"                (string) The transaction id.\n"
+            "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" 200000000")
             + "\nAs json rpc call\n"
