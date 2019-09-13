@@ -381,6 +381,8 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
     }
 
     /**
+     * Attention: feature enable in stable coin release!
+     *
      * We need to choose the proper field as the sender/receiver's account according to
      * the two factor: whether the sender's account is registered or not, whether the
      * RegID is mature or not.
@@ -396,17 +398,25 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
      * |-------------------------------|-------------------|-------------------|
      */
     CRegID regid;
-    if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
-        return CUserID(regid);
-    } else {
-        if (senderUid && pUserId->is<CKeyID>()) {
-            CPubKey sendPubKey;
-            if (!pWalletMain->GetPubKey(pUserId->get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
-                throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
-
-            return CUserID(sendPubKey);
+    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) {
+        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
+            return CUserID(regid);
         } else {
             return *pUserId;
+        }
+    } else { // MAJOR_VER_R2
+        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
+            return CUserID(regid);
+        } else {
+            if (senderUid && pUserId->is<CKeyID>()) {
+                CPubKey sendPubKey;
+                if (!pWalletMain->GetPubKey(pUserId->get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
+                    throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
+
+                return CUserID(sendPubKey);
+            } else {
+                return *pUserId;
+            }
         }
     }
 }
