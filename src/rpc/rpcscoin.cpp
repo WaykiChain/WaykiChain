@@ -98,7 +98,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 Value submitcoinstaketx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
-            "submitcoinstaketx \"addr\" \"fcoin_amount\" [\"symbol:fee:unit\"]\n"
+            "submitcoinstaketx \"addr\" \"coin_symbol\" \"coin_amount\" [\"symbol:fee:unit\"]\n"
             "\nstake fcoins\n"
             "\nArguments:\n"
             "1.\"addr\":            (string, required)\n"

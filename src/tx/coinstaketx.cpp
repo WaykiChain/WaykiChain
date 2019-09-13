@@ -46,7 +46,7 @@ bool CCoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
+                        txUid.ToString()), UCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     if (!GenerateRegID(account, cw, state, height, index)) {
         return false;

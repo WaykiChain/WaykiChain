@@ -129,7 +129,7 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), FCOIN_STAKE_FAIL, "bad-read-accountdb");
+                        txUid.ToString()), UCOIN_STAKE_FAIL, "bad-read-accountdb");
 
     if (!GenerateRegID(srcAccount, cw, state, height, index)) {
         return false;
