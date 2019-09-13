@@ -15,6 +15,8 @@
 
 #include "wasm/wasm_log.hpp"
 
+#include "large_nested.abi.hpp"
+
 
 using std::chrono::microseconds;
 using std::chrono::system_clock;
@@ -703,6 +705,101 @@ void abi_is_type_recursion() {
 
 }
 
+void abi_recursive_structs() {
+
+      const char* abi_str = R"=====(
+      {
+        "version": "wasm::abi/1.0",
+        "types": [],
+        "structs": [
+          {
+            "name": "a",
+            "base": "",
+            "fields": [
+              {
+              "name": "user",
+              "type": "b"
+              }
+            ]
+          },
+          {
+            "name": "b",
+            "base": "",
+            "fields": [
+             {
+               "name": "user",
+               "type": "a"
+             }
+            ]
+          },
+          {
+            "name": "hi",
+            "base": "",
+            "fields": [{
+                "name": "user",
+                "type": "name"
+              },
+              {
+                "name": "arg2",
+                "type": "a"
+              }
+            ]
+         },
+         {
+           "name": "hi2",
+           "base": "",
+           "fields": [{
+               "name": "user",
+               "type": "name"
+             }
+           ]
+         }
+        ],
+        "actions": [{
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+          }
+        ],
+        "tables": []
+      }
+      )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi_str), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, max_serialization_time), passed,
+                         abi_circular_def_exception, "abi_recursive_structs")
+
+
+}
+
+void abi_very_deep_structs() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(large_nested_abi), var);
+
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    string hi_data = "{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":0}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}";
+    wasm::variant var2;
+    json_spirit::read_string(hi_data, var2); 
+
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary( "s98", var2, max_serialization_time ), passed,
+                         abi_serialization_deadline_exception, "abi_recursive_structs")
+
+}
+
+
+
+
 
 
 int main( int argc, char **argv ) {
@@ -717,8 +814,9 @@ int main( int argc, char **argv ) {
     // abi_type_redefine_to_name();
     // abi_type_nested_in_vector();
     //abi_large_array();
-
-    abi_is_type_recursion();
+    //abi_is_type_recursion();
+    //abi_recursive_structs();
+    abi_very_deep_structs();
 
     return 0;
 

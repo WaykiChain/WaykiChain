@@ -371,6 +371,8 @@ namespace wasm {
             }
         }
 
+        WASM_TRACE("%s", field.c_str())
+
         WASM_THROW(invalid_type_inside_abi, "Missing %s", field.data());
 
         json_spirit::Value var;
@@ -398,9 +400,10 @@ namespace wasm {
                     _variant_to_binary(fundamental_type(rtype), *iter, ds, ctx);
                 }
             } else if ((s_itr = structs.find(rtype)) != structs.end()) {
+
+               // WASM_TRACE("%s", rtype.c_str())
                 const auto &st = s_itr->second;
                 if (var.type() == json_spirit::obj_type) {
-
                     if (st.base != type_name()) {
                         _variant_to_binary(resolve_type(st.base), var, ds, ctx);
                     }
@@ -410,9 +413,12 @@ namespace wasm {
                         const auto &field = st.fields[i];
                         auto v = GetFieldVariant(vo, field.name, i);
                         //std::cout << "[GetFieldVariant]" << field.name << std::endl;
+                        //WASM_TRACE("%s", field.type.c_str())
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else {
+                    // WASM_TRACE("%s", json_spirit::write(var).c_str())
+                    // WASM_TRACE("%s", rtype.c_str())
                     WASM_THROW(invalid_type_inside_abi, "Unknown type %s", type.c_str())
                 }
 
@@ -475,7 +481,7 @@ namespace wasm {
 
     void abi_serializer::validate( wasm::abi_traverse_context &ctx ) const {
 
-        //WASM_TRACE("%s", "validate" )  
+        //WASM_TRACE("%d", structs.size() )  
 
         for (const auto &t : typedefs) {
             try {
@@ -538,11 +544,11 @@ namespace wasm {
                 //WASM_TRACE("%s", "validate" ) 
 
                 //check struct in circluar
-                try{
-                    vector<type_name>  structs_seen;
-                    check_struct_in_recursion(s.second, structs_seen, ctx);
-                }
-                WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
+                // try{
+                //     vector<type_name>  structs_seen;
+                //     check_struct_in_recursion(s.second, structs_seen, ctx);
+                // }
+                // WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
             }
             WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
         }
@@ -569,9 +575,6 @@ namespace wasm {
 
 
     void abi_traverse_context::check_deadline() const {
-        // WASM_TRACE("%d", std::chrono::duration_cast<std::chrono::microseconds>(deadline - system_clock::now()).count() )
-        // WASM_TRACE("max_serialization_time:%d", std::chrono::duration_cast<std::chrono::microseconds>(max_serialization_time).count() )
-
         WASM_ASSERT(system_clock::now() < deadline, abi_serialization_deadline_exception,
                     "Serialization time limit %ldus exceeded", max_serialization_time_us.count());
     }
@@ -579,22 +582,48 @@ namespace wasm {
 
     void abi_serializer::check_struct_in_recursion(const struct_def& s, vector<type_name>& structs_seen, wasm::abi_traverse_context &ctx) const { 
 
-        WASM_ASSERT(find(structs_seen.begin(), structs_seen.end(), s.name) == structs_seen.end(),
-            abi_circular_def_exception,
-            "Circular reference in struct %s", s.name.c_str());
+        // WASM_ASSERT(find(structs_seen.begin(), structs_seen.end(), s.name) == structs_seen.end(),
+        //     abi_circular_def_exception,
+        //     "Circular reference in struct %s", s.name.c_str());
 
-        ctx.check_deadline();
-        structs_seen.push_back(s.name);
-        for (const auto &field : s.fields) {
-            ctx.check_deadline(); 
-            auto itr = structs.find(resolve_type(fundamental_type(field.type)) );
-            if ( itr != structs.end() ){ 
-                check_struct_in_recursion(itr->second, structs_seen, ctx );
-            }  
+        // ctx.check_deadline();
+        // structs_seen.push_back(s.name);
+        // //WASM_TRACE("%s", s.name.c_str() ) 
 
-        }
+        // for (const auto &field : s.fields) {
+        //     ctx.check_deadline(); 
+        //     //WASM_TRACE("%s", field.type.c_str() ) 
+        //     auto itr = structs.find(resolve_type(fundamental_type(field.type)) );
+        //     if ( itr != structs.end() ){
+        //         //WASM_TRACE("%s", field.type.c_str() ) 
+        //         check_struct_in_recursion(itr->second, structs_seen, ctx );
+        //     }  
+
+        // }
 
 
     }
+
+    // void abi_serializer::check_struct_in_recursion(const struct_def& s, dag* parent, wasm::abi_traverse_context &ctx) const { 
+
+    //     // WASM_ASSERT(! parent->add(s.name),
+    //     //     abi_circular_def_exception,
+    //     //     "Circular reference in struct %s", s.name.c_str());
+
+    //     parent->add(s.name, wasm::abi_traverse_context &ctx);
+
+    //     ctx.check_deadline();
+    //     auto d = parent.add(s.name);
+    //     for (const auto &field : s.fields) {
+    //         ctx.check_deadline(); 
+    //         auto itr = structs.find(resolve_type(fundamental_type(field.type)) );
+    //         if ( itr != structs.end() ){
+    //             check_struct_in_recursion(itr->second, d, ctx );
+    //         }  
+
+    //     }
+
+
+    // }
 
 }

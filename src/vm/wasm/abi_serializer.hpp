@@ -172,10 +172,7 @@ namespace wasm {
             if (max_serialization_time_us > wasm::max_serialization_time ) {
                 deadline += wasm::max_serialization_time;
             } else {
-
                 deadline += max_serialization_time_us;
-
-                //WASM_TRACE("%d", deadline.count() )
             }
         }
 
@@ -191,6 +188,52 @@ namespace wasm {
         std::chrono::system_clock::time_point deadline;
         uint32_t recursion_depth;
     };
+
+    // struct dag {
+    //     string name;
+    //     dag* ancestor;
+    //     vector<dag*> parents;
+    //     vector<dag*> childs;
+
+    //     dag* add(string n, wasm::abi_traverse_context &ctx) {
+
+    //        WASM_ASSERT(! is_parent(n),
+    //         abi_circular_def_exception,
+    //         "Circular reference in struct %s", n.c_str());
+
+    //         dag* d = ancestor->find(n);
+    //         if ( d != nullptr ){
+    //             auto itr = d->parents.find(this);
+    //             if(itr == d->parents.end())
+    //                 d->parents.push_back(this) ;
+    //             return d;
+    //         }
+
+    //         childs.push_back( dag{n, ancestor, {this}, {}} );
+    //         return &childs.back();
+    //     }
+
+    //     dag* find(string n, wasm::abi_traverse_context &ctx){
+    //         if (name == n) return this;
+    //         for(auto c: childs){
+    //             ctx.check_deadline();
+    //             auto d = c.find(n);
+    //             if (d != nullptr)
+    //                 return d;
+    //         }
+
+    //         return nullptr;
+    //     }
+
+    //     bool is_parent(string n, wasm::abi_traverse_context &ctx){
+    //         if(name == n) return true;
+    //         for(auto p: parents){
+    //              ctx.check_deadline();
+    //             if(p->is_parent(n)) return true;
+    //         }
+    //         return false;
+    //     }
+    // }
 
 
 }  // wasm
