@@ -513,8 +513,7 @@ TokenSymbol RPC_PARAM::GetAssetIssueSymbol(const Value &jsonValue) {
     TokenSymbol symbol = jsonValue.get_str();
     if (symbol.empty() || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
         throw JSONRPCError(RPC_INVALID_PARAMS,
-                           strprintf("asset_symbol is empty or len=%d greater than %d",
-                                     symbol.size(), MAX_TOKEN_SYMBOL_LEN));
+                           "asset_symbol=%s must be composed of 6 or 7 capital letters [A-Z]");
     return symbol;
 }
 
