@@ -133,7 +133,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
 
     uint64_t partialCollateralRatio =
-        scoins_to_mint == 0 ? UINT64_MAX : uint64_t(double(bcoins_to_stake) * bcoinMedianPrice / scoins_to_mint);
+        scoins_to_mint == 0
+            ? UINT64_MAX
+            : uint64_t(double(bcoins_to_stake) * bcoinMedianPrice / PRICE_BOOST / scoins_to_mint * RATIO_BOOST);
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         vector<CUserCDP> userCdps;

@@ -62,6 +62,6 @@ uint64_t CUserCDP::ComputeCollateralRatio(uint64_t bcoinPrice) {
     } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
         return 0;
     } else {
-        return  double(bcoinPrice) * total_staked_bcoins / total_owed_scoins;
+        return  double(bcoinPrice) / PRICE_BOOST * total_staked_bcoins / total_owed_scoins * RATIO_BOOST;
     }
 }
