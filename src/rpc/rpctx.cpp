@@ -427,16 +427,18 @@ Value listaddr(const Array& params, bool fHelp) {
             return retArray;
         }
 
-        for (const auto &keyId : setKeyId) {
-            CUserID userId(keyId);
+        for (const auto &keyid : setKeyId) {
+            CUserID userId(keyid);
             CAccount account;
             pCdMan->pAccountCache->GetAccount(userId, account);
             CKeyCombi keyCombi;
-            pWalletMain->GetKeyCombi(keyId, keyCombi);
+            pWalletMain->GetKeyCombi(keyid, keyCombi);
 
             Object obj;
-            obj.push_back(Pair("addr",  keyId.ToAddress()));
-            obj.push_back(Pair("regid", account.regid.ToString()));
+            obj.push_back(Pair("addr",          keyid.ToAddress()));
+            obj.push_back(Pair("regid",         account.regid.ToString()));
+            obj.push_back(Pair("regid_mature",  account.regid.IsMature(chainActive.Height())));
+
 
             Object tokenMapObj;
             for (auto tokenPair : account.tokens) {
@@ -445,6 +447,7 @@ Value listaddr(const Array& params, bool fHelp) {
                 tokenObj.push_back(Pair("free_amount",      token.free_amount));
                 tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
                 tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
+                tokenObj.push_back(Pair("voted_amount",     token.voted_amount));
 
                 tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
             }
@@ -553,14 +556,14 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     }
 
     RPCTypeCheck(params, list_of(str_type));
-    CKeyID keyId;
+    CKeyID keyid;
     CUserID userId;
     string addr = params[0].get_str();
-    if (!GetKeyId(addr, keyId)) {
+    if (!GetKeyId(addr, keyid)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
     }
 
-    userId = keyId;
+    userId = keyid;
     Object obj;
     bool found = false;
 
@@ -569,8 +572,8 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         if (!account.owner_pubkey.IsValid()) {
             CPubKey pubKey;
             CPubKey minerPubKey;
-            if (pWalletMain->GetPubKey(keyId, pubKey)) {
-                pWalletMain->GetPubKey(keyId, minerPubKey, true);
+            if (pWalletMain->GetPubKey(keyid, pubKey)) {
+                pWalletMain->GetPubKey(keyid, minerPubKey, true);
                 account.owner_pubkey = pubKey;
                 account.keyid        = pubKey.GetKeyId();
                 if (pubKey != minerPubKey && !account.miner_pubkey.IsValid()) {
@@ -582,11 +585,11 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         obj.push_back(Pair("position", "inblock"));
 
         found = true;
-    } else {  // unregistered keyId
+    } else {  // unregistered keyid
         CPubKey pubKey;
         CPubKey minerPubKey;
-        if (pWalletMain->GetPubKey(keyId, pubKey)) {
-            pWalletMain->GetPubKey(keyId, minerPubKey, true);
+        if (pWalletMain->GetPubKey(keyid, pubKey)) {
+            pWalletMain->GetPubKey(keyid, minerPubKey, true);
             account.owner_pubkey = pubKey;
             account.keyid        = pubKey.GetKeyId();
             if (minerPubKey != pubKey) {
@@ -969,12 +972,12 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     std::set<CKeyID> keyIds;
-    CKeyID keyId;
+    CKeyID keyid;
     for (uint32_t i = 0; i < addresses.size(); i++) {
-        if (!GetKeyId(addresses[i].get_str(), keyId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId");
+        if (!GetKeyId(addresses[i].get_str(), keyid)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyid");
         }
-        keyIds.insert(keyId);
+        keyIds.insert(keyid);
     }
 
     if (keyIds.empty()) {
@@ -1191,9 +1194,9 @@ Value listcontractassets(const Array& params, bool fHelp) {
 
         CContractDBCache contractScriptTemp(*pCdMan->pContractCache);
 
-        for (const auto &keyId : setKeyId) {
+        for (const auto &keyid : setKeyId) {
 
-            string key = keyId.ToAddress();
+            string key = keyid.ToAddress();
 
             std::shared_ptr<CAppUserAccount> tem = std::make_shared<CAppUserAccount>();
             if (!contractScriptTemp.GetContractAccount(script, key, *tem.get())) {
