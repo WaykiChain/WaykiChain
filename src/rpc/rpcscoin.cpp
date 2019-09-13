@@ -1041,11 +1041,34 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
+extern Value getasset(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 1 || params.size() > 1) {
+        throw runtime_error(
+            "getasset \"asset_symbol\"\n"
+            "\nget asset by symbol.\n"
+            "\nArguments:\n"
+            "1.\"aset_symbol\":            (string, required) asset symbol\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getasset", "MINEUSD")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getasset", "MINEUSD")
+        );
+    }
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[0]);
+
+    CAsset asset;
+    if (!pCdMan->pAssetCache->GetAsset(assetSymbol, asset))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("asset not exist! asset_symbol=%s", assetSymbol));
+
+    Object obj = AssetToJson(*pCdMan->pAccountCache, asset);
+    return obj;
+}
+
 extern Value getassets(const Array& params, bool fHelp) {
-     if (fHelp || params.size() > 4) {
+     if (fHelp || params.size() > 0) {
         throw runtime_error(
             "getassets\n"
-            "\nget all assets, include active orders by block height range.\n"
+            "\nget all assets.\n"
             "\nArguments:\n"
             "\nResult: a list of assets\n"
             "\nExamples:\n"
