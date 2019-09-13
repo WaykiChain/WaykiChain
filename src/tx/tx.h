@@ -201,6 +201,10 @@ public:
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                        \
+    if (GetFeatureForkVersion(height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {                      \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),    \
+                         REJECT_INVALID, "txUid-type-error");                                                \
+    }                                                                                                        \
     if ((txUidType != typeid(CRegID)) && (txUidType != typeid(CPubKey))) {                                   \
         return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
                          "txUid-type-error");                                                                \

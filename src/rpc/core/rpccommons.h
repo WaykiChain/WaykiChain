@@ -62,6 +62,8 @@ namespace RPC_PARAM {
 
     void CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid);
 
+    void CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
+                           const TokenSymbol &assetSymbol);
     // parse hex str
     bool ParseHex(const string &hexStr, string &binStrOut, string &errStrOut);
 }

@@ -104,9 +104,9 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
             "1.\"addr\":            (string, required)\n"
             "2.\"coin_symbol\":     (WICC|WUSD|WGRT, required)\n"
             "2.\"coin_amount\":     (numeric, required) amount of coins to stake (positive) or unstake (negative)\n"
-            "3.\"symbol:fee:unit\":  (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "3.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
-            "\"txid\"                (string) The transaction id.\n"
+            "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" 200000000")
             + "\nAs json rpc call\n"
@@ -468,6 +468,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     uint64_t price                 = RPC_PARAM::GetPrice(params[4]);  // TODO: need to check price?
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_BUY_ORDER_TX);
 
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
@@ -510,6 +511,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     uint64_t price                 = RPC_PARAM::GetPrice(params[4]);
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_SELL_ORDER_TX);
 
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
@@ -549,6 +551,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_BUY_ORDER_TX);
 
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
@@ -586,6 +589,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     uint64_t assetAmount           = AmountToRawValue(params[3]);
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
 
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
