@@ -53,6 +53,9 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
     const CUserID &feedUid = RPC_PARAM::GetUserId(params[0].get_str());
 
+    if (!feedUid.is<CRegID>())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid not exist or immature");
+
     Array arrPricePoints = params[1].get_array();
     vector<CPricePoint> pricePoints;
     for (auto objPp : arrPricePoints) {
