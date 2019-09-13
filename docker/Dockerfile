@@ -1,4 +1,4 @@
-FROM phusion/baseimage:0.9.18
+FROM phusion/baseimage:0.11
 MAINTAINER coredev@waykichainhk.com
 ENV SOURCE_BRANCH "release"
 ARG debug='-debug'
