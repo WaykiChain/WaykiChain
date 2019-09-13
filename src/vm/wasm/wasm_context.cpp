@@ -68,8 +68,8 @@ namespace wasm {
     void CWasmContext::Initialize() {
 
         wasmInterface.Initialize(wasm::vmType::eosvm);
-        RegisterNativeHandler(wasmio, name("setcode").value, WasmNativeSetcode);
-        RegisterNativeHandler(wasmio_bank, name("transfer").value, WasmNativeTransfer);
+        RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
+        RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
     }
 
     void CWasmContext::Execute( inline_transaction_trace &trace ) {

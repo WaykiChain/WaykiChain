@@ -184,44 +184,6 @@ bool CWasmContractTx::CheckTx( int nHeight, CCacheWrapper &cw, CValidationState 
     return true;
 }
 
-// bool CWasmContractTx::ExecuteTx(int nHeight, int nIndex, CCacheWrapper &cache, CValidationState &state) {
-//     inline_transaction trx;
-//     trx.contract = contract;
-//     trx.action = action;
-//     trx.data = data;
-
-//    std::cout << "CWasmContractTx ExecuteTx"
-//              << " contract:"<< wasm::name(trx.contract).to_string()
-//              << " action:"<< wasm::name(trx.action).to_string()
-//              // << " data:"<< params[3].get_str()
-//              << " \n";
-
-//     wasm::transaction_trace trx_trace;
-
-//     inline_transactionsQueue queue;
-//     queue.pushBack(trx);
-
-//     try {
-//         while(queue.size()){
-//             CWasmContext wasmContext(queue, *this, cache, state);
-//             wasmContext.Initialize();
-//             wasmContext.ExecuteOne();
-
-//             //receipt for accounts in notified
-//             for(uint32_t i = 1; i < wasmContext.notified.size(); ++i){
-//                 wasmContext.receiver = wasmContext.notified[i];
-//                 wasmContext.ExecuteOne();
-//             }
-//         }
-//     } catch( CException& e ) {
-
-//        return state.DoS(100, ERRORMSG(e.errMsg.data()), e.errCode, e.errMsg);
-//     }
-
-
-//     return true;
-// }
-
 bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, CValidationState &state ) {
     
     try {

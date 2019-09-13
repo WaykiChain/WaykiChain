@@ -38,7 +38,8 @@ namespace wasm {
         return name;
     }
 
-#define N( X ) wasm::string_to_name(#X)
+#define N( X ) string_to_name(#X)
+#define NAME( X ) string_to_name(X)
 
 
     /*

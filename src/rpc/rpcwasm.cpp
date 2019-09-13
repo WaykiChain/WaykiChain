@@ -200,7 +200,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         // tx.action = wasm::name("setcode").value;
         // tx.data = wasm::pack(std::tuple(contract, code, abi, memo));
         tx.inlinetransactions.push_back({wasmio, 
-                                         wasm::name("setcode").value, 
+                                         wasm::N(setcode), 
                                          std::vector<permission>{{wasmio, wasmio_owner}},
                                          wasm::pack(std::tuple(contract, code, abi, memo))});
 
@@ -298,7 +298,7 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
 
 
     uint64_t contract = wasm::RegID2Name(contractRegID);
-    uint64_t action = wasm::name(params[2].get_str()).value;
+    uint64_t action = wasm::NAME(params[2].get_str().c_str());
 
     string arguments = params[3].get_str();
     //string arguments = json_spirit::write(params[3].get_obj());
@@ -370,7 +370,7 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
 
     tx.inlinetransactions.push_back({contract, 
                                      action, 
-                                     std::vector<permission>{{wasm::name("sender").value, wasmio_owner}}, 
+                                     std::vector<permission>{{wasm::N(sender), wasmio_owner}}, 
                                      data});
     // tx.contract = contract;
     // tx.action = action;
@@ -450,7 +450,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
 
 
-    uint64_t table = wasm::name(params[1].get_str()).value;
+    uint64_t table = wasm::NAME(params[1].get_str().c_str());
 
     uint64_t numbers = default_query_rows;
     if (params.size() > 2)
