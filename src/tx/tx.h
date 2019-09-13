@@ -8,8 +8,6 @@
 
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
@@ -17,6 +15,9 @@
 #include "config/configuration.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
+
+#include "json/json_spirit_utils.h"
+#include "json/json_spirit_value.h"
 
 #include <memory>
 #include <string>
@@ -27,7 +28,6 @@ using namespace std;
 
 class CCacheWrapper;
 class CValidationState;
-class CContractDBCache;
 
 typedef uint256 TxID;
 
