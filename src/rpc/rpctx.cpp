@@ -333,6 +333,74 @@ Value submituniversalcontractdeploytx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
+Value submituniversalcontractcalltx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 5 || params.size() > 6) {
+        throw runtime_error(
+            "submituniversalcontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" "
+            "[\"height\"]\n"
+            "\ncreate contract invocation transaction\n"
+            "\nArguments:\n"
+            "1.\"sender_addr\":     (string, required) tx sender's base58 addr\n"
+            "2.\"contract_regid\":  (string, required) contract regid\n"
+            "3.\"arguments\":       (string, required) contract arguments (Hex encode required)\n"
+            "4.\"symbol:coin:unit\":(symbol:amount:unit, required) transferred coins\n"
+            "5.\"symbol:fee:unit\": (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
+            "6.\"height\":          (numberic, optional) valid height\n"
+            "\nResult:\n"
+            "\"txid\":              (string)\n"
+            "\nExamples:\n" +
+            HelpExampleCli("submituniversalcontractcalltx",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"100-1\" \"01020304\" \"WICC:10000:sawi\" "
+                           "\"WICC:10000:sawi\" 100") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submituniversalcontractcalltx",
+                           "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"100-1\", \"01020304\", \"WICC:10000:sawi\", "
+                           "\"WICC:10000:sawi\", 100"));
+    }
+
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type)(int_type));
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid  = RPC_PARAM::GetUserId(params[0], true);
+    const CUserID& appUid = RPC_PARAM::GetUserId(params[1]);
+
+    CRegID appRegId;
+    if (!pCdMan->pAccountCache->GetRegId(appUid, appRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract regid");
+    }
+
+    if (!pCdMan->pContractCache->HaveContract(appRegId)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to acquire contract");
+    }
+
+    string arguments = ParseHexStr(params[2].get_str());
+    if (arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
+    }
+
+    ComboMoney cmCoin   = RPC_PARAM::GetComboMoney(params[3], SYMB::WICC);
+    ComboMoney cmFee    = RPC_PARAM::GetFee(params, 4, UCONTRACT_INVOKE_TX);
+    int32_t validHegiht = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+
+    CUniversalContractInvokeTx tx;
+    tx.nTxType      = UCONTRACT_INVOKE_TX;
+    tx.txUid        = txUid;
+    tx.app_uid      = appUid;
+    tx.coin_symbol  = cmCoin.symbol;
+    tx.coin_amount  = cmCoin.GetSawiAmount();
+    tx.fee_symbol   = cmFee.symbol;
+    tx.llFees       = cmFee.GetSawiAmount();
+    tx.arguments    = arguments;
+    tx.valid_height = validHegiht;
+
+    return SubmitTx(account.keyid, tx);
+}
+
 Value listaddr(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error(
