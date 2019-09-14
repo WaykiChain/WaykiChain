@@ -53,14 +53,15 @@ map<uint256, std::shared_ptr<CCacheWrapper> > mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
 CChain chainMostWork;
+bool mining;        // could be changed due to vote change
+CKeyID minerKeyId;  // miner accout keyId
+CKeyID nodeKeyId;   // 1st keyId of the node
 
 /** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
 uint64_t CBaseTx::nMinRelayTxFee = 1000;
 /** Amount smaller than this (in sawi) is considered dust amount */
 uint64_t CBaseTx::nDustAmountThreshold = 10000;
 /** Amount of blocks that other nodes claim to have */
-
-
 
 map<uint256, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256, COrphanBlock *> mapOrphanBlocksByPrev;
@@ -71,7 +72,6 @@ const string strMessageMagic = "Coin Signed Message:\n";
 
 // Internal stuff
 namespace {
-
 
     void InitializeNode(NodeId nodeid, const CNode *pNode) {
         LOCK(cs_main);
@@ -130,7 +130,6 @@ namespace {
         // loaded from disk, as those all have id 0).
 
         return pa > pb ;
-
     }
 };
 

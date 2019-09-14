@@ -11,12 +11,12 @@
 #include "commons/mruset.h"
 #include "commons/random.h"
 #include "commons/uint256.h"
+#include "commons/util.h"
 #include "compat/compat.h"
 #include "crypto/hash.h"
 #include "netbase.h"
 #include "protocol.h"
 #include "sync.h"
-#include "commons/util.h"
 
 #include <stdint.h>
 #include <deque>

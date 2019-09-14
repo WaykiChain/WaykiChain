@@ -189,6 +189,13 @@ DBErrors CWalletDB::LoadWallet(CWallet* pWallet) {
         if (!pWallet->AddKey(mCkey)) {
             throw runtime_error("add key failed ");
         }
+        nodeKeyId = mCkey.GetPubKey().GetKeyId();
+    } else {
+        set<CKeyID> keyIds;
+        pWallet->GetKeys(keyIds);
+        if (keyIds.size() > 0) {
+            nodeKeyId = keyIds[0];
+        }
     }
 
     return result;

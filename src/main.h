@@ -72,6 +72,10 @@ extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
 
+extern bool mining;     // could be changed due to vote change
+extern CKeyID minerKeyId;  // miner accout keyId
+extern CKeyID nodeKeyId;   // first keyId of the node
+
 class CTxUndo;
 class CValidationState;
 class CWalletInterface;

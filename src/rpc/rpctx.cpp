@@ -439,7 +439,6 @@ Value listaddr(const Array& params, bool fHelp) {
             obj.push_back(Pair("regid",         account.regid.ToString()));
             obj.push_back(Pair("regid_mature",  account.regid.IsMature(chainActive.Height())));
 
-
             Object tokenMapObj;
             for (auto tokenPair : account.tokens) {
                 Object tokenObj;

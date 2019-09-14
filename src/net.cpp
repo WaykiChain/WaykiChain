@@ -7,10 +7,10 @@
 #include "config/coin-config.h"
 #endif
 
-#include "net.h"
-
 #include "addrman.h"
 #include "config/chainparams.h"
+#include "net.h"
+#include "nodeinfo.h"
 #include "tx/tx.h"
 
 #ifdef WIN32
@@ -67,6 +67,7 @@ uint64_t nLocalHostNonce         = 0;
 static vector<SOCKET> vhListenSocket;
 CAddrMan addrman;
 int nMaxConnections = 125;
+string ipHost = "";
 
 vector<CNode*> vNodes;
 CCriticalSection cs_vNodes;
@@ -279,53 +280,66 @@ static string GetSystemInfo() {
     struct utsname utsName;
     uname(&utsName);
 
-    string cpu           = std::to_string(std::thread::hardware_concurrency());
-    string memory        = std::to_string(info.totalram * info.mem_unit / 1024 / 1024);      // Unit: MB
-    string totalHDD      = std::to_string(fsinfo.f_frsize * fsinfo.f_blocks / 1024 / 1024);  // Unit: MB
-    string freeHDD       = std::to_string(fsinfo.f_bsize * fsinfo.f_bfree / 1024 / 1024);    // Unit: MB
-    string systemName    = string(utsName.sysname);
-    string systemRelease = string(utsName.release);
+    struct NodeInfo nodeinfo;
+    nodeinfo(nodeinfo);
+
+    string vcpus     = std::to_string(std::thread::hardware_concurrency());
+    string memory    = std::to_string(info.totalram * info.mem_unit / 1024 / 1024);      // Unit: MB
+    string totalHDD  = std::to_string(fsinfo.f_frsize * fsinfo.f_blocks / 1024 / 1024);  // Unit: MB
+    string freeHDD   = std::to_string(fsinfo.f_bsize * fsinfo.f_bfree / 1024 / 1024);    // Unit: MB
+    string osType    = string(utsName.sysname);
+    string osVer     = string(utsName.release);
 
     string json;
+
     json += "{";
-    json += "\"vcpu_count\":" + cpu + ",";
-    json += "\"mem\":" + memory + ",";
-    json += "\"disk_total\":" + totalHDD + ",";
-    json += "\"disk_free\":" + freeHDD + ",";
-    json += "\"os_type\":\"" + systemName + "\",";
-    json += "\"os_ver\":\"" + systemRelease + "\"";
+    json += "\"vcpus\":"    + vcpus         + ",";
+    json += "\"mem\":"      + memory        + ",";
+    json += "\"diskt\":"    + totalHDD      + ",";
+    json += "\"diskf\":"    + freeHDD       + ",";
+    json += "\"ost\":\""    + osType        + "\",";
+    json += "\"osv\":\""    + osVer         + "\"";
+    json += "\"nv\":\""     + nodeinfo.nv   + "\"";
+    json += "\"nfp\":\""    + nodeinfo.nfp  + "\"";
+    json += "\"synh\":"     + nodeinfo.synh + ",";
+    json += "\"tiph\":"     + nodeinfo.tiph + ",";
+    json += "\"finh\":"     + nodeinfo.finh ; //finalized height
     json += "}";
 
     return json;
 }
 
 bool GetMyExternalIP(CNetAddr& ipRet) {
-    string ip_uri = SysCfg().GetArg("-ipuri", "wiccip.me/ip");
-    auto pos        = ip_uri.find("/");
-    assert(pos != std::string::npos);
-    string host     = ip_uri.substr(0, pos);
-    string uri      = ip_uri.substr(pos);
-    string content  = GetSystemInfo();
-
-    CService addrConnect(host, 80, true);
-    if (!addrConnect.IsValid()) {
-        LogPrint("ERROR", "GetMyExternalIP() : service is unavalable: %s\n", host);
-        return false;
+    ipHost = SysCfg().GetArg("-ipserver", "");
+    if (ipHost == "") {
+        if (SysCfg().NetworkID() == MAIN_NET)
+            ipHost = "wiccip.me";
+        else if (SysCfg().NetworkID() == TEST_NET)
+            ipHost = "wiccip.com";
+        else
+            return true; // no need for RegTest network
     }
 
+    if (ipHost.find("/") != std::string::npos) {
+        string host = ipHost;
+        ipHost = "";
+        return ERRORMSG("GetMyExternalIP() : ipserver (%s) contains /", host);
+    }
+
+    CService addrConnect(ipHost, 80, true);
+    if (!addrConnect.IsValid())
+        return ERRORMSG("GetMyExternalIP() : service is unavalable: %s\n", ipHost);
+
     stringstream stream;
-    stream << "POST" << " " << uri << " " << "HTTP/1.1\r\n";
-    stream << "Host: " << host << "\r\n";
-    stream << "Content-Type: application/json\r\n";
-    stream << "Content-Length: " << content.length() << "\r\n";
+    stream << "GET" << " " << "/ip" << " " << "HTTP/1.1\r\n";
+    stream << "Host: " << ipHost << "\r\n";
     stream << "Connection: close\r\n\r\n";
     stream << content;
     string request = stream.str();
 
     SOCKET hSocket;
-    if (!ConnectSocket(addrConnect, hSocket)) {
-        return ERRORMSG("GetMyExternalIP() : failed to connect to server: %s", addrConnect.ToString());
-    }
+    if (!ConnectSocket(addrConnect, hSocket))
+        return ERRORMSG("GetMyExternalIP() : failed to connect IP server: %s", addrConnect.ToString());
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
 
@@ -340,32 +354,76 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
 
     if (strlen(buffer) == 0) {
         return ERRORMSG("GetMyExternalIP() : failed to receive data from server: %s", addrConnect.ToString());
-    } else {
-        static const char* const key = "\"ipAddress\":\"";
-        char* from                   = strstr(buffer, key);
-        if (from == nullptr) {
-            return ERRORMSG("GetMyExternalIP() : invalid message");
-        }
-        from += strlen(key);
-        char* to   = strstr(from, "\"");
-        string ip(from, to);
 
-        CService ipAddr(ip, 0, true);
-        if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */) {
-            return ERRORMSG("GetMyExternalIP() : invalid external ip address: %s", ip);
-        }
-        ipRet.SetIP(ipAddr);
-
-        LogPrint("INFO", "GetMyExternalIP() : external ip address: %s\n", ip);
-
-        return true;
+    static const char* const key = "\"ipAddress\":\"";
+    char* from                   = strstr(buffer, key);
+    if (from == nullptr) {
+        return ERRORMSG("GetMyExternalIP() : invalid message");
     }
+    from += strlen(key);
+    char* to   = strstr(from, "\"");
+    string ip(from, to);
+
+    CService ipAddr(ip, 0, true);
+    if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */) {
+        return ERRORMSG("GetMyExternalIP() : invalid external ip address: %s", ip);
+    }
+    ipRet.SetIP(ipAddr);
+
+    LogPrint("INFO", "GetMyExternalIP() : My External IP is: %s\n", ip);
+
+    return true;
 }
 
 void ThreadGetMyExternalIP() {
     CNetAddr addrLocalHost;
     if (GetMyExternalIP(addrLocalHost)) {
         AddLocal(addrLocalHost, LOCAL_HTTP);
+    }
+}
+
+bool PostNodeInfo() {
+     if (ipHost == "")
+        return ERRORMSG("PostNodeInfo() : ipserver uninitialized");
+
+    string content  = GetSystemInfo();
+
+    CService addrConnect(host, 80, true);
+    if (!addrConnect.IsValid()) {
+        LogPrint("ERROR", "PostNodeInfo() : service is unavalable: %s\n", host);
+        return false;
+    }
+
+    stringstream stream;
+    stream << "POST" << " " << "/info" << " " << "HTTP/1.1\r\n";
+    stream << "Host: " << host << "\r\n";
+    stream << "Content-Type: application/json\r\n";
+    stream << "Content-Length: " << content.length() << "\r\n";
+    stream << "Connection: close\r\n\r\n";
+    stream << content;
+    string request = stream.str();
+
+    SOCKET hSocket;
+    if (!ConnectSocket(addrConnect, hSocket)) {
+        return ERRORMSG("ReportNodeInfo() : failed to connect to server: %s", addrConnect.ToString());
+    }
+
+    send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
+    closesocket(hSocket);
+}
+
+void ThreadPostNodeInfo() {
+    int64_t start = GetTime();
+
+    while (true) {
+        boost::this_thread::interruption_point();
+
+        while (GetTime() - start < 60 * 60) { // keep sleeping within an hour
+            boost::this_thread::interruption_point();
+            MilliSleep(1000); //sleep for 1 sec to check again.
+        }
+        start = GetTime();
+        PostNodeInfo();
     }
 }
 
@@ -1577,8 +1635,9 @@ void StartNode(boost::thread_group& threadGroup) {
     threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "msghand", &ThreadMessageHandler));
 
     // Dump network addresses
-    threadGroup.create_thread(
-        boost::bind(&LoopForever<void (*)()>, "dumpaddr", &DumpAddresses, DUMP_ADDRESSES_INTERVAL * 1000));
+    threadGroup.create_thread(boost::bind(&LoopForever<void (*)()>, "dumpaddr", &DumpAddresses, DUMP_ADDRESSES_INTERVAL * 1000));
+
+    threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "post-ip", &ThreadPostNodeInfo));
 }
 
 bool StopNode() {
