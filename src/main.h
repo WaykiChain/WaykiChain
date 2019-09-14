@@ -555,7 +555,6 @@ public:
 /** The currently best known chain of headers (some of which may be invalid). */
 extern CChain chainMostWork;
 extern CCacheDBManager *pCdMan;
-/** nSyncTipHight  */
 extern int32_t nSyncTipHeight;
 extern std::tuple<bool, boost::thread *> RunCoin(int32_t argc, char *argv[]);
 extern string externalIp;
