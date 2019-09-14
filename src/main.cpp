@@ -53,7 +53,7 @@ map<uint256, std::shared_ptr<CCacheWrapper> > mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
 CChain chainMostWork;
-bool mining;        // could be changed due to vote change
+bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
 
