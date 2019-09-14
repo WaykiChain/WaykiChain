@@ -82,6 +82,7 @@ coin_CORE_H = \
   mruset.h \
   netbase.h \
   net.h \
+  nodeinfo.h \
   persistence/assetdb.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
@@ -253,6 +254,7 @@ libcoin_server_a_SOURCES = \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
+  nodeinfo.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
   rpc/core/rpccommons.cpp \
