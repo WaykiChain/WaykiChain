@@ -281,29 +281,34 @@ static string GetSystemInfo() {
     uname(&utsName);
 
     struct NodeInfo nodeinfo;
-    nodeinfo(nodeinfo);
+    getnodeinfo(&nodeinfo);
 
-    string vcpus     = std::to_string(std::thread::hardware_concurrency());
-    string memory    = std::to_string(info.totalram * info.mem_unit / 1024 / 1024);      // Unit: MB
-    string totalHDD  = std::to_string(fsinfo.f_frsize * fsinfo.f_blocks / 1024 / 1024);  // Unit: MB
-    string freeHDD   = std::to_string(fsinfo.f_bsize * fsinfo.f_bfree / 1024 / 1024);    // Unit: MB
-    string osType    = string(utsName.sysname);
-    string osVer     = string(utsName.release);
+    string vcpus    = std::to_string(std::thread::hardware_concurrency());
+    string memory   = std::to_string(info.totalram * info.mem_unit / 1024 / 1024);      // Unit: MB
+    string totalHDD = std::to_string(fsinfo.f_frsize * fsinfo.f_blocks / 1024 / 1024);  // Unit: MB
+    string freeHDD  = std::to_string(fsinfo.f_bsize * fsinfo.f_bfree / 1024 / 1024);    // Unit: MB
+    string osType   = string(utsName.sysname);
+    string osVer    = string(utsName.release);
+    string nv       = nodeinfo.nv;
+    string nfp      = nodeinfo.nfp;
+    string synh     = std::to_string(nodeinfo.synh);
+    string tiph     = std::to_string(nodeinfo.tiph);
+    string finh     = std::to_string(nodeinfo.finh);
 
     string json;
 
     json += "{";
-    json += "\"vcpus\":"    + vcpus         + ",";
-    json += "\"mem\":"      + memory        + ",";
-    json += "\"diskt\":"    + totalHDD      + ",";
-    json += "\"diskf\":"    + freeHDD       + ",";
-    json += "\"ost\":\""    + osType        + "\",";
-    json += "\"osv\":\""    + osVer         + "\"";
-    json += "\"nv\":\""     + nodeinfo.nv   + "\"";
-    json += "\"nfp\":\""    + nodeinfo.nfp  + "\"";
-    json += "\"synh\":"     + nodeinfo.synh + ",";
-    json += "\"tiph\":"     + nodeinfo.tiph + ",";
-    json += "\"finh\":"     + nodeinfo.finh ; //finalized height
+    json += "\"vcpus\":"    + vcpus     + ",";
+    json += "\"mem\":"      + memory    + ",";
+    json += "\"diskt\":"    + totalHDD  + ",";
+    json += "\"diskf\":"    + freeHDD   + ",";
+    json += "\"ost\":\""    + osType    + "\",";
+    json += "\"osv\":\""    + osVer     + "\"";
+    json += "\"nv\":\""     + nv        + "\"";
+    json += "\"nfp\":\""    + nfp       + "\"";
+    json += "\"synh\":"     + synh      + ",";
+    json += "\"tiph\":"     + tiph      + ",";
+    json += "\"finh\":"     + finh      ; //finalized height
     json += "}";
 
     return json;
@@ -334,7 +339,7 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     stream << "GET" << " " << "/ip" << " " << "HTTP/1.1\r\n";
     stream << "Host: " << ipHost << "\r\n";
     stream << "Connection: close\r\n\r\n";
-    stream << content;
+    stream << "";
     string request = stream.str();
 
     SOCKET hSocket;
@@ -352,7 +357,7 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
 
     closesocket(hSocket);
 
-    if (strlen(buffer) == 0) {
+    if (strlen(buffer) == 0)
         return ERRORMSG("GetMyExternalIP() : failed to receive data from server: %s", addrConnect.ToString());
 
     static const char* const key = "\"ipAddress\":\"";
@@ -388,15 +393,13 @@ bool PostNodeInfo() {
 
     string content  = GetSystemInfo();
 
-    CService addrConnect(host, 80, true);
-    if (!addrConnect.IsValid()) {
-        LogPrint("ERROR", "PostNodeInfo() : service is unavalable: %s\n", host);
-        return false;
-    }
+    CService addrConnect(ipHost, 80, true);
+    if (!addrConnect.IsValid())
+        return ERRORMSG("PostNodeInfo() : service is unavalable: %s\n", ipHost);
 
     stringstream stream;
     stream << "POST" << " " << "/info" << " " << "HTTP/1.1\r\n";
-    stream << "Host: " << host << "\r\n";
+    stream << "Host: " << ipHost << "\r\n";
     stream << "Content-Type: application/json\r\n";
     stream << "Content-Length: " << content.length() << "\r\n";
     stream << "Connection: close\r\n\r\n";
@@ -404,12 +407,13 @@ bool PostNodeInfo() {
     string request = stream.str();
 
     SOCKET hSocket;
-    if (!ConnectSocket(addrConnect, hSocket)) {
-        return ERRORMSG("ReportNodeInfo() : failed to connect to server: %s", addrConnect.ToString());
-    }
+    if (!ConnectSocket(addrConnect, hSocket))
+        return ERRORMSG("PostNodeInfo() : failed to connect to server: %s", addrConnect.ToString());
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
     closesocket(hSocket);
+
+    return true;
 }
 
 void ThreadPostNodeInfo() {

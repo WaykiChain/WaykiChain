@@ -254,7 +254,6 @@ libcoin_server_a_SOURCES = \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
-  nodeinfo.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
   rpc/core/rpccommons.cpp \

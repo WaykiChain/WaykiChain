@@ -193,8 +193,9 @@ DBErrors CWalletDB::LoadWallet(CWallet* pWallet) {
     } else {
         set<CKeyID> keyIds;
         pWallet->GetKeys(keyIds);
-        if (keyIds.size() > 0) {
-            nodeKeyId = keyIds[0];
+        for (auto & keyId : keyIds) {
+            nodeKeyId = keyId;
+            break;
         }
     }
 

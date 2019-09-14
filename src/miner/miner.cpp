@@ -665,7 +665,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
                 pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey)) {
                 lastTime = GetTimeMillis();
                 mining = true;
-                minerId = minerAcct.keyid;
+                minerKeyId = minerAcct.keyid;
                 success   = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
                 LogPrint("MINER", "MineBlock() : %s to create block reward transaction, used %d ms, miner address %s\n",
                          success ? "succeed" : "failed", GetTimeMillis() - lastTime,
