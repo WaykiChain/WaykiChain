@@ -178,35 +178,59 @@ inline uint32_t GetDayBlockCount(const int32_t currBlockHeight) {
     return 24 /* hours/day */ * 60 * 60 / GetBlockInterval(currBlockHeight);
 }
 
-inline uint32_t GetSubsidyHalvingInterval(const int32_t currBlockHeight) {
-    if (SysCfg().NetworkID() == REGTEST_NET) {
-        return SysCfg().GetArg("-subsidyhalvinginterval", 500);
+inline uint32_t GetJumpHeightBySubsidy(const uint8_t targetSubsidyRate) {
+    assert(targetSubsidyRate >= FIXED_SUBSIDY_RATE && targetSubsidyRate <= INITIAL_SUBSIDY_RATE);
+
+    static map<uint8_t, uint32_t> subsidyRate2BlockHeight;
+    static bool initialized = false;
+
+    if (!initialized) {
+        uint32_t jumpHeight        = 0;
+        uint32_t featureForkHeight = SysCfg().GetFeatureForkHeight();
+        uint32_t yearHeightV1      = SysCfg().NetworkID() == REGTEST_NET ? 500 : 3153600;    // pre-stable coin release
+        uint32_t yearHeightV2      = SysCfg().NetworkID() == REGTEST_NET ? 1500 : 10512000;  // stable coin release
+        uint32_t actualJumpHeight  = yearHeightV1;
+        bool switched              = false;
+
+        for (uint8_t subsidyRate = 5; subsidyRate >= 1; --subsidyRate) {
+            subsidyRate2BlockHeight[subsidyRate] = jumpHeight;
+
+            if (!switched) {
+                if (jumpHeight + actualJumpHeight > featureForkHeight) {
+                    jumpHeight = featureForkHeight + (1.0 - (1.0 * featureForkHeight - jumpHeight) / yearHeightV1) * yearHeightV2;
+                    actualJumpHeight = yearHeightV2;
+                    switched         = true;
+                } else if (jumpHeight + actualJumpHeight == featureForkHeight) {
+                    jumpHeight       = jumpHeight + actualJumpHeight;
+                    actualJumpHeight = yearHeightV2;
+                    switched         = true;
+                } else {
+                    jumpHeight = jumpHeight + actualJumpHeight;
+                }
+            } else {
+                jumpHeight = jumpHeight + actualJumpHeight;
+            }
+        }
+
+        initialized = true;
+        assert(subsidyRate2BlockHeight.size() == 5);
     }
 
-    return GetYearBlockCount(currBlockHeight);
+    // for (const auto& item : subsidyRate2BlockHeight) {
+    //     LogPrint("DEUBG", "subsidyRate -> blockHeight: %d -> %u\n", item.first, item.second);
+    // }
+
+    return subsidyRate2BlockHeight.at(targetSubsidyRate);
 }
 
 inline uint8_t GetSubsidyRate(const int32_t currBlockHeight) {
-    uint32_t halvingTimes = currBlockHeight / GetSubsidyHalvingInterval(currBlockHeight);
-
-    // Force block reward to a fixed value when right shift is more than 3.
-    return halvingTimes > 4 ? FIXED_SUBSIDY_RATE : INITIAL_SUBSIDY_RATE - halvingTimes;
-}
-
-inline uint32_t GetJumpHeightBySubsidy(const int32_t currBlockHeight, const uint8_t targetSubsidyRate) {
-    assert(targetSubsidyRate >= FIXED_SUBSIDY_RATE && targetSubsidyRate <= INITIAL_SUBSIDY_RATE);
-    uint8_t subsidyRate                   = INITIAL_SUBSIDY_RATE;
-    uint32_t halvingTimes                 = 0;
-    const uint32_t subsidyHalvingInterval = GetSubsidyHalvingInterval(currBlockHeight);
-    map<uint8_t, uint32_t> subsidyRate2BlockHeight;
-
-    while (subsidyRate >= FIXED_SUBSIDY_RATE) {
-        subsidyRate2BlockHeight[subsidyRate] = halvingTimes * subsidyHalvingInterval;
-        halvingTimes += 1;
-        subsidyRate -= 1;
+    for (uint8_t subsidyRate = FIXED_SUBSIDY_RATE; subsidyRate <= INITIAL_SUBSIDY_RATE; ++subsidyRate) {
+        if ((uint32_t)currBlockHeight >= GetJumpHeightBySubsidy(subsidyRate))
+            return subsidyRate;
     }
 
-    return subsidyRate2BlockHeight.at(targetSubsidyRate);
+    assert(false && "failed to acquire subsidy rate");
+    return 0;
 }
 
 static const int32_t INIT_BLOCK_VERSION = 1;

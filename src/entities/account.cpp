@@ -100,7 +100,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
 uint64_t CAccount::ComputeVoteStakingInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
     if (lastVotedBcoins == 0) {
-        LogPrint("profits", "1st-time vote by the account, hence interest inflation.");
+        LogPrint("profits", "1st-time vote by the account, hence no interest inflation\n");
         return 0;  // 0 for the very 1st vote
     }
 
@@ -127,7 +127,7 @@ uint64_t CAccount::ComputeVoteStakingInterest(const uint64_t lastVotedBcoins, co
     uint64_t interest   = 0;
     uint8_t subsidy     = beginSubsidy;
     while (subsidy != endSubsidy) {
-        uint32_t jumpHeight = ::GetJumpHeightBySubsidy(currHeight, subsidy - 1);
+        uint32_t jumpHeight = ::GetJumpHeightBySubsidy(subsidy - 1);
         interest += ComputeInterest(regid, lastVotedBcoins, subsidy, beginHeight, jumpHeight, yearHeight);
         beginHeight = jumpHeight;
         subsidy -= 1;
