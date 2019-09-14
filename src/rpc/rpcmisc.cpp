@@ -108,12 +108,12 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
     obj.push_back(Pair("net_type",              netType[SysCfg().NetworkID()]));
     obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("ext_ip",                externalIp));
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
     obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
     obj.push_back(Pair("genblock",              SysCfg().GetArg("-genblock", 0)));
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
-
 
     if (pWalletMain) {
         obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));

@@ -40,7 +40,6 @@ void getnodeinfo(NodeInfo *pNodeInfo) {
     pNodeInfo->synh = nSyncTipHeight;
     pNodeInfo->tiph = chainActive.Height();
     pNodeInfo->finh = 0; // TODO: placeholder here
-
 }
 
 #endif

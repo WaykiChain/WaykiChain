@@ -368,14 +368,14 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     from += strlen(key);
     char* to   = strstr(from, "\"");
     string ip(from, to);
+    externalIp = ip;
+    CService ipAddr(externalIp, 0, true);
+    if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */)
+        return ERRORMSG("GetMyExternalIP() : invalid external ip address: %s", externalIp);
 
-    CService ipAddr(ip, 0, true);
-    if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */) {
-        return ERRORMSG("GetMyExternalIP() : invalid external ip address: %s", ip);
-    }
     ipRet.SetIP(ipAddr);
 
-    LogPrint("INFO", "GetMyExternalIP() : My External IP is: %s\n", ip);
+    LogPrint("INFO", "GetMyExternalIP() : My External IP is: %s\n", externalIp);
 
     return true;
 }

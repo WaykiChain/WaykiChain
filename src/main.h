@@ -558,6 +558,7 @@ extern CCacheDBManager *pCdMan;
 /** nSyncTipHight  */
 extern int32_t nSyncTipHeight;
 extern std::tuple<bool, boost::thread *> RunCoin(int32_t argc, char *argv[]);
+extern string externalIp;
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
