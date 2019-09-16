@@ -158,6 +158,7 @@ public:
         : CBaseTx(CDP_LIQUIDATE_TX, txUidIn, validHeightIn, cmFeeIn.symbol,
                   cmFeeIn.GetSawiAmount()),
           cdp_txid(cdpTxId),
+          liquidate_asset_symbol(),
           scoins_to_liquidate(scoinsToLiquidate) {}
 
     ~CCDPLiquidateTx() {}
@@ -171,6 +172,7 @@ public:
         READWRITE(VARINT(llFees));
 
         READWRITE(cdp_txid);
+        READWRITE(liquidate_asset_symbol);
         READWRITE(VARINT(scoins_to_liquidate));
 
         READWRITE(signature);
@@ -180,7 +182,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << VARINT(scoins_to_liquidate);
+               << cdp_txid << liquidate_asset_symbol << VARINT(scoins_to_liquidate);
             sigHash = ss.GetHash();
         }
         return sigHash;

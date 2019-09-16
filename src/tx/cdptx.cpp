@@ -860,14 +860,15 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, cdp_txid=%s, scoins_to_liquidate=%d",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, cdp_txid=%s, liquidate_asset_symbol=%s, scoins_to_liquidate=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(),
-                     cdp_txid.ToString(), scoins_to_liquidate);
+                     cdp_txid.ToString(), liquidate_asset_symbol, scoins_to_liquidate);
 }
 
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
+    result.push_back(Pair("liquidate_asset_symbol", liquidate_asset_symbol));
     result.push_back(Pair("scoins_to_liquidate", scoins_to_liquidate));
 
     return result;
