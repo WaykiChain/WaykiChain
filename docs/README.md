@@ -1,11 +1,11 @@
-Waykicoin 0.1
+WaykiChain v2.0.0.0
 =====================
 
-Copyright (c) 2017-2018 WaykiChain Developers
+Copyright (c) 2017-2019 WaykiChain Core Developers
 
 ### Need Help?
 
-* See the documentation at the [Waykicoin Wiki](https://github.com/WaykiChain/WaykiChain/wiki)
+* See the documentation at the [WaykiChain DevDocs](https://wicc-devbook.readthedocs.io/en/latest/)
 for help and more information.
 
 
