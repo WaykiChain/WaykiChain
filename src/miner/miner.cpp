@@ -33,10 +33,6 @@ MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(MAX_MINED_BLOCK_COUNT);
 CCriticalSection csMinedBlocks;
 
-
-
-
-
 // base on the last 50 blocks
 uint32_t GetElementForBurn(CBlockIndex *pIndex) {
     if (!pIndex) {
@@ -50,7 +46,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
     uint64_t nTotalStep   = 0;
     uint64_t nAverateStep = 0;
     uint32_t newFuelRate  = 0;
-    CBlockIndex *pTemp   = pIndex;
+    CBlockIndex *pTemp    = pIndex;
     for (int32_t i = 0; i < nBlock; ++i) {
         nTotalStep += pTemp->nFuel / pTemp->nFuelRate * 100;
         pTemp = pTemp->pprev;
@@ -80,7 +76,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
     static double dFeePerKb      = 0;
     static uint32_t nTxSize      = 0;
     static TokenSymbol feeSymbol = SYMB::WUSD;
-    static uint64_t nFees       = 0;
+    static uint64_t nFees        = 0;
 
     uint64_t slideWindow;
     pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
@@ -149,10 +145,10 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         pRewardTx->valid_height = pBlock->GetHeight();
 
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
-        auto pRewardTx          = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid        = delegate.regid;
-        pRewardTx->valid_height = pBlock->GetHeight();
-        pRewardTx->inflated_bcoins= delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
+        auto pRewardTx             = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
+        pRewardTx->txUid           = delegate.regid;
+        pRewardTx->valid_height    = pBlock->GetHeight();
+        pRewardTx->inflated_bcoins = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
 
         auto pPriceMedianTx          = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
         pPriceMedianTx->txUid        = delegate.regid;
@@ -523,7 +519,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             } catch (std::exception &e) {
                 LogPrint("ERROR", "CreateNewBlockStableCoinRelease() : unexpected exception: %s\n", e.what());
 
-
                 continue;
             }
 
@@ -542,7 +537,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             totalFuel += fuel;
             totalFees += fees;
             assert(fees >= fuel);
-            // FIXME: reward = (fees * X - fuel)/X, X = WUSD/WICC
             rewards[fees_symbol] += (fees - fuel);
 
             ++index;
@@ -679,7 +673,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             SetThreadPriority(THREAD_PRIORITY_NORMAL);
 
             lastTime = GetTimeMillis();
-            success   = CheckWork(pBlock, *pWallet);
+            success  = CheckWork(pBlock, *pWallet);
             LogPrint("MINER", "MineBlock() : %s to check work, used %s ms\n", success ? "succeed" : "failed",
                      GetTimeMillis() - lastTime);
 
