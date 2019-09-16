@@ -1062,7 +1062,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                      });
             }
             assert(voterAcct.GetToken(SYMB::WICC).free_amount >= maxVotes);
-            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::STAKE, maxVotes);
+            voterAcct.OperateBalance(SYMB::WICC, BalanceOpType::VOTE, maxVotes);
             cw.accountCache.SaveAccount(voterAcct);
             assert(cw.delegateCache.SetCandidateVotes(pDelegateTx->txUid.get<CRegID>(),
                                                       candidateVotes));
