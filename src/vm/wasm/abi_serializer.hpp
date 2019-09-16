@@ -52,7 +52,6 @@ namespace wasm {
         const struct_def &get_struct( const type_name &type ) const;
         type_name get_action_type( type_name action ) const;
         type_name get_table_type( type_name action ) const;
-        void check_struct_in_recursion(const struct_def& s, vector<type_name>& types_seen, wasm::abi_traverse_context &ctx) const;
         void check_struct_in_recursion(const struct_def& s, shared_ptr<dag>& parent, wasm::abi_traverse_context &ctx) const;
 
         json_spirit::Value
@@ -191,9 +190,6 @@ namespace wasm {
         uint32_t recursion_depth;
     };
 
-
-
-
     struct dag {
         string name;
         shared_ptr<dag> ancestor;
@@ -234,7 +230,6 @@ namespace wasm {
             abi_circular_def_exception,
             "Circular reference in struct %s", n.c_str());
 
-
             for(auto child: t->childs){
                 if(child->name == n)
                     return tuple(false, child);
@@ -250,7 +245,6 @@ namespace wasm {
                     return tuple(false, child);
                 }
             } 
-
             
             {//new child
                 auto child = make_shared<dag>(wasm::dag{n, t->ancestor, vector<shared_ptr<dag>>{t}, vector<shared_ptr<dag>>{}});
@@ -262,9 +256,9 @@ namespace wasm {
 
         static shared_ptr<dag> find(shared_ptr<dag> t, string n, wasm::abi_traverse_context &ctx){
             if (t->name == n) return t;
-            for(auto c: t->childs){
+            for(auto child: t->childs){
                 ctx.check_deadline();
-                auto d = wasm::dag::find(c, n, ctx);
+                auto d = wasm::dag::find(child, n, ctx);
                 if (d != nullptr)
                     return d;
             }

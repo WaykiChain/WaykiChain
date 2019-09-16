@@ -797,6 +797,23 @@ void abi_very_deep_structs() {
 
 }
 
+void abi_very_deep_structs_1us() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(large_nested_abi), var);
+
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, microseconds(1000)), passed,
+                         abi_serialization_deadline_exception, "abi_recursive_structs")
+
+}
+
+
 
 int main( int argc, char **argv ) {
 
@@ -812,7 +829,9 @@ int main( int argc, char **argv ) {
     // abi_large_array();
     // abi_is_type_recursion();
     // abi_recursive_structs();
-    abi_very_deep_structs();
+    // abi_very_deep_structs();
+
+    abi_very_deep_structs_1us();
 
     return 0;
 

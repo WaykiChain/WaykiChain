@@ -580,7 +580,7 @@ namespace wasm {
 
     void abi_traverse_context::check_deadline() const {
         WASM_ASSERT(system_clock::now() < deadline, abi_serialization_deadline_exception,
-                    "Serialization time limit %ldus exceeded", max_serialization_time_us.count());
+                    "Serialization time limit %ldms exceeded", max_serialization_time_us.count());
     }
 
 
