@@ -197,7 +197,7 @@ public:
 
 
     bool UpdateIrreverseBlock(){
-        unordered_map<string, int> minerMap ;
+        unordered_set<string> minerSet ;
         uint32_t confirmMiners = 4 ;
         if(chainActive.Tip()->height<(int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
             confirmMiners = 1 ;
@@ -212,17 +212,16 @@ public:
             ReadBlockFromDisk(pBlockIndex, block) ;
 
             auto minerRegId = block.vptx[0]->txUid.ToString() ;
-            minerMap.erase(minerRegId) ;
-            if(minerMap.size() >=confirmMiners ){
+            minerSet.erase(minerRegId) ;
+            if(minerSet.size() >=confirmMiners ){
 
                 if(!irreBlockIndex || (irreBlockIndex && irreBlockIndex->height< pBlockIndex->height)){
                     irreBlockIndex = pBlockIndex ;
                 }
-
                 return true;
 
             }
-            minerMap.insert({minerRegId, 1}) ;
+            minerSet.insert(minerRegId) ;
             pBlockIndex = pBlockIndex->pprev ;
         }
         if(irreBlockIndex == nullptr )
