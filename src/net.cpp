@@ -419,10 +419,11 @@ bool PostNodeInfo() {
 void ThreadPostNodeInfo() {
     int64_t start = GetTime();
 
+    int64_t interval_minutes = SysCfg().GetArg("-nodeinfopostinterval", 60L); //default is one hour
     while (true) {
         boost::this_thread::interruption_point();
 
-        while (GetTime() - start < 60 * 60) { // keep sleeping within an hour
+        while (GetTime() - start < interval_minutes * 60) { // keep sleeping within an hour
             boost::this_thread::interruption_point();
             MilliSleep(1000); //sleep for 1 sec to check again.
         }
