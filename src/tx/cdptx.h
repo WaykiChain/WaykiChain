@@ -11,6 +11,10 @@
 
 class CUserCDP;
 
+// CDPStakeAssetMap: symbol -> amount
+// support to stake multi token
+typedef std::map<TokenSymbol, CVarIntValue<uint64_t> > CDPStakeAssetMap;
+
 /**
  * Stake or ReStake bcoins into a CDP
  */
@@ -30,9 +34,8 @@ public:
                 const ComboMoney &cmScoinsToMint)
         : CBaseTx(CDP_STAKE_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetSawiAmount()),
           cdp_txid(cdpTxId),
-          bcoin_symbol(cmBcoinsToStake.symbol),
+          assets_to_stake({ {cmBcoinsToStake.symbol, cmBcoinsToStake.GetSawiAmount()} }),
           scoin_symbol(cmScoinsToMint.symbol),
-          bcoins_to_stake(cmBcoinsToStake.GetSawiAmount()),
           scoins_to_mint(cmScoinsToMint.GetSawiAmount()) {}
 
     ~CCDPStakeTx() {}
@@ -46,9 +49,8 @@ public:
         READWRITE(VARINT(llFees));
 
         READWRITE(cdp_txid);
-        READWRITE(bcoin_symbol);
+        READWRITE(assets_to_stake);
         READWRITE(scoin_symbol);
-        READWRITE(VARINT(bcoins_to_stake));
         READWRITE(VARINT(scoins_to_mint));
 
         READWRITE(signature);
@@ -58,7 +60,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << bcoin_symbol << scoin_symbol << VARINT(bcoins_to_stake) << VARINT(scoins_to_mint);
+               << cdp_txid << assets_to_stake << scoin_symbol << VARINT(scoins_to_mint);
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -78,11 +80,10 @@ private:
         CCacheWrapper &cw, CValidationState &state);
 
 private:
-    TxID cdp_txid;             // optional: only required for staking existing CDPs
-    TokenSymbol bcoin_symbol;  // optional: only required for 1st-time CDP staking
-    TokenSymbol scoin_symbol;  // ditto
-    uint64_t bcoins_to_stake;  // base coins amount to stake or collateralize
-    uint64_t scoins_to_mint;   // initial collateral ratio must be >= 190 (%), boosted by 10^4
+    TxID cdp_txid;                      // optional: only required for staking existing CDPs
+    CDPStakeAssetMap assets_to_stake;   // asset map to stake, support to stake multi token
+    TokenSymbol scoin_symbol;           // ditto
+    uint64_t scoins_to_mint;            // initial collateral ratio must be >= 190 (%), boosted by 10^4
 };
 
 /**
@@ -98,7 +99,7 @@ public:
         : CBaseTx(CDP_REDEEM_TX, txUidIn, validHeightIn, cmFeeIn.symbol, cmFeeIn.GetSawiAmount()),
           cdp_txid(cdpTxId),
           scoins_to_repay(scoinsToRepay),
-          bcoins_to_redeem(bcoinsToRedeem) {}
+          assets_to_redeem( { {SYMB::WICC, bcoinsToRedeem} }) {}
 
     ~CCDPRedeemTx() {}
 
@@ -112,7 +113,7 @@ public:
 
         READWRITE(cdp_txid);
         READWRITE(VARINT(scoins_to_repay));
-        READWRITE(VARINT(bcoins_to_redeem));
+        READWRITE(assets_to_redeem);
 
         READWRITE(signature);
     )
@@ -121,7 +122,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << VARINT(scoins_to_repay) << VARINT(bcoins_to_redeem);
+               << cdp_txid << VARINT(scoins_to_repay) << assets_to_redeem;
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -142,7 +143,7 @@ private:
 private:
     uint256 cdp_txid;           // CDP cdpTxId
     uint64_t scoins_to_repay;   // stablecoin amount to redeem or burn, including interest
-    uint64_t bcoins_to_redeem;
+    CDPStakeAssetMap assets_to_redeem;   // asset map to redeem, support to redeem multi token
 };
 
 /**
@@ -200,6 +201,7 @@ private:
 
 private:
     uint256     cdp_txid;            // target CDP to liquidate
+    TokenSymbol liquidate_asset_symbol;   // can be empty. Even when specified, it can also liquidate more than one asset.
     uint64_t    scoins_to_liquidate;  // partial liquidation is allowed, must include penalty fees in
 };
 

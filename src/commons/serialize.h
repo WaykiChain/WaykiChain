@@ -403,6 +403,32 @@ public:
 };
 
 template<typename I>
+class CVarIntValue {
+protected:
+    I n;
+public:
+    CVarIntValue(): n(0) {}
+    CVarIntValue(const I& nIn) : n(nIn) { }
+
+    unsigned int GetSerializeSize(int, int) const {
+        return GetSizeOfVarInt<I>(n);
+    }
+
+    template<typename Stream>
+    void Serialize(Stream &s, int, int) const {
+        WriteVarInt<Stream,I>(s, n);
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int, int) {
+        n = ReadVarInt<Stream,I>(s);
+    }
+
+    I &get() { return n; }
+    const I &get() const { return n; }
+};
+
+template<typename I>
 CVarInt<I> WrapVarInt(I& n) { return CVarInt<I>(n); }
 
 
