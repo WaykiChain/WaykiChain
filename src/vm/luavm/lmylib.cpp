@@ -2323,9 +2323,9 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
 
 /**
  * GetAccountAsset - lua api
- * boolean GetAccountAsset( tramsferTable )
+ * boolean GetAccountAsset( transferTable )
  * get asset of account by address
- * @param tramsferTable:          transfer param table
+ * @param transferTable:          transfer param table
  * {
  *   addressType: (number, required)       address type, REGID = 1, BASE58 = 2
  *   address: (array, required)            address, array format
