@@ -120,6 +120,7 @@ namespace wasm {
 
     void abi_serializer::set_abi( const abi_def &abi, const microseconds &max_serialization_time ) {
         wasm::abi_traverse_context ctx(max_serialization_time);
+        //wasm::abi_traverse_context ctx(microseconds(60 * 1000 * 1000));
 
         WASM_ASSERT(boost::starts_with(abi.version, "wasm::abi/1."), unsupport_abi_version_exception,
                     "ABI has an unsupported version");
@@ -136,23 +137,19 @@ namespace wasm {
         }
 
         //WASM_TRACE("%d", abi.structs.size())
-
+         wasm::abi_traverse_context ctx2(max_serialization_time);
         for (const auto &td : abi.types) {
             WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type %s",
                         td.type.c_str());
 
-            //std::cout << "type:" << td.type << std::endl;
-
             WASM_ASSERT(!_is_type(td.new_type_name, ctx), duplicate_abi_def_exception,
                         "Type %s already exists", td.new_type_name.c_str());
-
-            //std::cout << "new_type_name:" << td.new_type_name << std::endl;
 
             typedefs[td.new_type_name] = td.type;
         }
         for (const auto &a : abi.actions)
             actions[a.name] = a.type;
-
+ 
         for (const auto &t : abi.tables)
             tables[t.name] = t.type;
 
@@ -244,11 +241,7 @@ namespace wasm {
 
         if (built_in_types.find(type) != built_in_types.end()) return true;
         if (typedefs.find(type) != typedefs.end()) return _is_type(typedefs.find(type)->second, ctx);
-
-        //WASM_TRACE("%s", type.c_str())
         if (structs.find(type) != structs.end()) return true;
-        //WASM_TRACE("%s", type.c_str())
-        //if( variants.find(type) != variants.end() ) return true;
         return false;
     }
 
@@ -512,7 +505,6 @@ namespace wasm {
         }
 
        // WASM_TRACE("%s", "validate" ) 
-
         for (const auto &s : structs) {
             try {
                 if (s.second.base != type_name()) {
@@ -521,7 +513,6 @@ namespace wasm {
                     while (current.base != type_name()) {
                         ctx.check_deadline();
                         const auto &base = get_struct(current.base); //<-- force struct to inherit from another struct
-
                         //std::cout << "base:" << current.base << std::endl;
                         WASM_ASSERT(find(types_seen.begin(), types_seen.end(), base.name) == types_seen.end(),
                                     abi_circular_def_exception,
@@ -545,13 +536,13 @@ namespace wasm {
             WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
         }
 
-        //check struct in recursion
-        auto root = make_shared<dag>(wasm::dag{"root", nullptr, vector<shared_ptr<dag>>{}, vector<shared_ptr<dag>>{}});
-        root->ancestor = root;
+        // //check struct in recursion
+        auto r = make_shared<dag>(wasm::dag{"root", nullptr, vector<shared_ptr<dag>>{}, vector<shared_ptr<dag>>{}});
+        r->root = r;
         for (const auto &s : structs) {
             try{
-                wasm::abi_traverse_context ctx2(max_serialization_time);
-                check_struct_in_recursion(s.second, root, ctx2);
+                //wasm::abi_traverse_context ctx2(max_serialization_time);
+                check_struct_in_recursion(s.second, r, ctx);
             }
             WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
         }

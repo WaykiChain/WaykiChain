@@ -16,6 +16,7 @@
 #include "wasm/wasm_log.hpp"
 
 #include "large_nested.abi.hpp"
+#include "deep_nested.abi.hpp"
 
 
 using std::chrono::microseconds;
@@ -793,7 +794,7 @@ void abi_very_deep_structs() {
     json_spirit::read_string(hi_data, var2); 
 
     WASM_CHECK_EXCEPTION(abis.variant_to_binary( "s98", var2, max_serialization_time ), passed,
-                         abi_serialization_deadline_exception, "abi_recursive_structs")
+                         abi_serialization_deadline_exception, "abi_very_deep_structs")
 
 }
 
@@ -809,7 +810,23 @@ void abi_very_deep_structs_1us() {
     
 
     WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, microseconds(1000)), passed,
-                         abi_serialization_deadline_exception, "abi_recursive_structs")
+                         abi_serialization_deadline_exception, "abi_very_deep_structs_1us")
+
+}
+
+void abi_deep_structs_validate() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(deep_nested_abi), var);
+
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, max_serialization_time), passed,
+                         abi_serialization_deadline_exception, "abi_deep_structs_validate")
 
 }
 
@@ -817,21 +834,21 @@ void abi_very_deep_structs_1us() {
 
 int main( int argc, char **argv ) {
 
-    // abi_cycle();
-    // abi_type_repeat();
-    // abi_struct_repeat();
-    // abi_action_repeat();
-    // abi_table_repeat();
-    // abi_type_def();
-    // abi_type_redefine();
-    // abi_type_redefine_to_name();
-    // abi_type_nested_in_vector();
-    // abi_large_array();
-    // abi_is_type_recursion();
-    // abi_recursive_structs();
-    // abi_very_deep_structs();
-
+    abi_cycle();
+    abi_type_repeat();
+    abi_struct_repeat();
+    abi_action_repeat();
+    abi_table_repeat();
+    abi_type_def();
+    abi_type_redefine();
+    abi_type_redefine_to_name();
+    abi_type_nested_in_vector();
+    abi_large_array();
+    abi_is_type_recursion();
+    abi_recursive_structs();
+    abi_very_deep_structs();
     abi_very_deep_structs_1us();
+    abi_deep_structs_validate();
 
     return 0;
 

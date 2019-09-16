@@ -192,7 +192,7 @@ namespace wasm {
 
     struct dag {
         string name;
-        shared_ptr<dag> ancestor;
+        shared_ptr<dag> root;
         vector<shared_ptr<dag>> parents;
         vector<shared_ptr<dag>> childs;
 
@@ -236,7 +236,7 @@ namespace wasm {
             }
 
             {
-                auto child = wasm::dag::find(t->ancestor, n, ctx);
+                auto child = wasm::dag::find(t->root, n, ctx);
                 if ( child != nullptr ){
                     auto itr = std::find(child->parents.begin(), child->parents.end(), t);
                     if(itr == child->parents.end())
@@ -247,7 +247,7 @@ namespace wasm {
             } 
             
             {//new child
-                auto child = make_shared<dag>(wasm::dag{n, t->ancestor, vector<shared_ptr<dag>>{t}, vector<shared_ptr<dag>>{}});
+                auto child = make_shared<dag>(wasm::dag{n, t->root, vector<shared_ptr<dag>>{t}, vector<shared_ptr<dag>>{}});
                 t->childs.push_back( child );
             }
 
