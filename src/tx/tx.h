@@ -210,6 +210,12 @@ public:
                          "txUid-type-error");                                                                \
     }
 
+#define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUidType)                                              \
+    if ((candidateUidType != typeid(CRegID)) && (candidateUidType != typeid(CPubKey))) {                            \
+        return state.DoS(100, ERRORMSG("%s, candidateUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
+                         "candidateUid-type-error");                                                                \
+    }
+
 #define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUidType)                                                        \
     if ((toUidType != typeid(CRegID)) && (toUidType != typeid(CKeyID))) {                                   \
         return state.DoS(100, ERRORMSG("%s, toUid must be CRegID or CKeyID", __FUNCTION__), REJECT_INVALID, \

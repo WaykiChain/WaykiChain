@@ -41,7 +41,7 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
 
     for (const auto &vote : candidateVotes) {
         // candidate uid should be CPubKey or CRegID
-        IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(vote.GetCandidateUid().type());
+        IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(vote.GetCandidateUid().type());
 
         if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
