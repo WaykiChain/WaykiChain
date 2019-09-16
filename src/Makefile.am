@@ -26,8 +26,8 @@ SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST)
 #DIST_SUBDIRS = . test ptest
 
 #secp256k1
-DIST_SUBDIRS = secp256k1
-LIBSECP256K1=secp256k1/libsecp256k1.la
+DIST_SUBDIRS = crypto/secp256k1
+LIBSECP256K1 = crypto/secp256k1/libsecp256k1.la
 AM_CPPFLAGS += -I$(srcdir)/crypto/secp256k1/include -I$(srcdir)/crypto/secp256k1/contrib
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
