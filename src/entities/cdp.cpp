@@ -50,7 +50,8 @@ void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mi
 void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate) {
     assert(total_staked_bcoins >= bcoinsToLiquidate);
     assert(total_owed_scoins >= scoinsToLiquidate);
-    block_height = blockHeight;
+    // Attention: do NOT try to update height, depend it to compute interest while staking or redeeming.
+    // block_height = blockHeight;
     total_staked_bcoins -= bcoinsToLiquidate;
     total_owed_scoins -= scoinsToLiquidate;
     Update();
