@@ -1,4 +1,4 @@
-WaykiChain - Decentralized Application & Ecosystem Enabler
+WaykiChain - Decentralized Economy Infrastructure Service Platform
 =====================================
 
 ## :: What is WaykiChain
