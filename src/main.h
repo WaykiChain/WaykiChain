@@ -71,6 +71,7 @@ extern map<uint256, CBlockIndex *> mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
+extern bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) ;
 
 extern bool mining;     // could be changed due to vote change
 extern CKeyID minerKeyId;  // miner accout keyId
@@ -146,11 +147,16 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 class CChain {
 private:
     vector<CBlockIndex *> vChain;
+    CBlockIndex* irreBlockIndex = nullptr ;
 
 public:
     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
     CBlockIndex *Genesis() const {
         return vChain.size() > 0 ? vChain[0] : nullptr;
+    }
+
+    CBlockIndex *IrreBlockIndex(){
+        return irreBlockIndex ;
     }
 
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
@@ -187,6 +193,41 @@ public:
     /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
     int32_t Height() const {
         return vChain.size() - 1;
+    }
+
+
+    bool UpdateIrreverseBlock(){
+        unordered_set<string> minerSet ;
+        uint32_t confirmMiners = 4 ;
+        if(chainActive.Tip()->height<(int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
+            confirmMiners = 1 ;
+        } else{
+            confirmMiners = 8 ;
+        }
+
+        auto pBlockIndex = chainActive.Tip() ;
+        while(pBlockIndex->height > 0){
+
+            CBlock  block ;
+            ReadBlockFromDisk(pBlockIndex, block) ;
+
+            auto minerRegId = block.vptx[0]->txUid.ToString() ;
+            minerSet.erase(minerRegId) ;
+            if(minerSet.size() >=confirmMiners ){
+
+                if(!irreBlockIndex || (irreBlockIndex && irreBlockIndex->height< pBlockIndex->height)){
+                    irreBlockIndex = pBlockIndex ;
+                }
+                return true;
+
+            }
+            minerSet.insert(minerRegId) ;
+            pBlockIndex = pBlockIndex->pprev ;
+        }
+        if(irreBlockIndex == nullptr )
+            irreBlockIndex = vChain[0] ;
+
+        return true ;
     }
 
     /** Set/initialize a chain with a given tip. Returns the forking point. */

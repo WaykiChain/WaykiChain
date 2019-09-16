@@ -131,6 +131,8 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));
     obj.push_back(Pair("syncblock_height",      nSyncTipHeight));
+    obj.push_back(Pair("finalize_height",       chainActive.IrreBlockIndex()->height)) ;
+    obj.push_back(Pair("finalize_hash",         chainActive.IrreBlockIndex()->GetBlockHash().GetHex())) ;
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 

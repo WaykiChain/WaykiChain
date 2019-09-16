@@ -54,6 +54,9 @@ map<uint256, std::shared_ptr<CCacheWrapper> > mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
 CChain chainMostWork;
+
+
+
 bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
@@ -120,7 +123,6 @@ namespace {
         if(pa->nChainWork != pb->nChainWork){
             return (pa->nChainWork < pb->nChainWork) ;
         }
-
 
         // ... then by earliest time received, ...
         if(pa->nSequenceId != pb->nSequenceId){
@@ -1674,6 +1676,7 @@ void static FindMostWorkChain() {
         CBlockIndex *pindexTest = pIndexNew;
         bool fInvalidAncestor   = false;
         while (pindexTest && !chainActive.Contains(pindexTest)) {
+
             if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
                 // Candidate has an invalid ancestor, remove entire chain from the set.
                 if (pindexBestInvalid == nullptr || pIndexNew->nChainWork > pindexBestInvalid->nChainWork)
@@ -1705,7 +1708,10 @@ void static FindMostWorkChain() {
 
 // Try to activate to the most-work chain (thereby connecting it).
 bool ActivateBestChain(CValidationState &state) {
+
     LOCK(cs_main);
+
+
     CBlockIndex *pIndexOldTip = chainActive.Tip();
     bool fComplete            = false;
     while (!fComplete) {
@@ -1715,13 +1721,33 @@ bool ActivateBestChain(CValidationState &state) {
         // Check whether we have something to do.
         if (chainMostWork.Tip() == nullptr) break;
 
+        auto height = chainActive.Height() ;
+
+        while(height >= 0 ){
+
+            auto chainIndex = chainActive[height] ;
+            if( chainIndex &&!chainMostWork.Contains(chainIndex)){
+                if(height == chainActive.IrreBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.IrreBlockIndex()->GetBlockHash()){
+                    return false ;
+                }
+                height-- ;
+            }
+            if (chainIndex&& chainMostWork.Contains(chainIndex)){
+                break ;
+            }
+        }
+
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
+
             if (!DisconnectTip(state))
                 return false;
 
-            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip()))
+            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())){
                 mempool.ReScanMemPoolTx(pCdMan);
+            }
+
+
         }
 
         // Connect new blocks.
@@ -2073,6 +2099,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     return true;
 }
 
+
 bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     AssertLockHeld(cs_main);
 
@@ -2141,6 +2168,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
         if (!AddToBlockIndex(block, state, blockPos))
             return ERRORMSG("AcceptBlock() : AddToBlockIndex failed");
+
+        chainActive.UpdateIrreverseBlock() ;
 
     } catch (std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
@@ -2283,7 +2312,10 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s",
                             mapBlockIndex[blockHash]->height, blockHash.ToString()), 0, "duplicate");
+    if (pBlock->GetHeight() <= (uint32_t)chainActive.IrreBlockIndex()->height){
+        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.IrreBlockIndex()->height), 0, "irrreversible");
 
+    }
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
 
@@ -2583,6 +2615,7 @@ bool static LoadBlockIndexDB() {
     }
 
     chainActive.SetTip(it->second);
+    chainActive.UpdateIrreverseBlock();
     LogPrint("INFO", "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
