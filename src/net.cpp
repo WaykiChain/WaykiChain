@@ -423,7 +423,7 @@ void ThreadPostNodeInfo() {
     while (true) {
         boost::this_thread::interruption_point();
 
-        while (GetTime() - start < interval_minutes * 60) { // keep sleeping within an hour
+        while (GetTime() - start < interval_minutes * 60) {
             boost::this_thread::interruption_point();
             MilliSleep(1000); //sleep for 1 sec to check again.
         }
