@@ -340,12 +340,12 @@ uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 // Max Number of Delegate Candidate to Vote for by a single account
 uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
-// Block height to enable feature fork version
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet    = 6000000;
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet    = 520;
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regtestNet = 10;
-
 // Block height for stable coin genesis
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_mainNet     = 5880000;
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_testNet     = 500;
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_regtestNet  = 8;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_mainNet      = 4109388;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_testNet      = 500;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_regtestNet   = 8;
+
+// Block height to enable feature fork version
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet             = 4109588;  //Wed Oct 16 2019 10:16:00 GMT+0800
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet             = 520;
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regtestNet          = 10;
