@@ -6,5 +6,5 @@ set -x
 sed -i "s@^ENV SOURCE_BRANCH \"release\"@ENV SOURCE_BRANCH \"${SOURCE_BRANCH}\"@g" Dockerfile
 
 echo "Setting SOURCE_BRANCH to ${SOURCE_BRANCH}"
-RUN SOURCE_COMMIT=$(curl -s 'https://api.github.com/repos/WaykiChain/WaykiChain/commits' | grep sha | head -1 | cut -c 13-20)
+SOURCE_COMMIT=$(curl -s 'https://api.github.com/repos/WaykiChain/WaykiChain/commits' | grep sha | head -1 | cut -c 13-20)
 sed -i "s@SOURCE_COMMIT\@${SOURCE_COMMIT}@g" Dockerfile
