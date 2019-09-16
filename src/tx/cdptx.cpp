@@ -675,13 +675,14 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         collateralRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
 
     } else if (collateralRatio > nonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
-        totalBcoinsToReturnLiquidator =  cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / bcoinMedianPrice; //1.13N
+        totalBcoinsToReturnLiquidator = cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / RATIO_BOOST /
+                                        ((double)bcoinMedianPrice / PRICE_BOOST);  // 1.13N
         assert(cdp.total_staked_bcoins >= totalBcoinsToReturnLiquidator);
 
         totalBcoinsToCdpOwner = cdp.total_staked_bcoins - totalBcoinsToReturnLiquidator;
 
         totalScoinsToLiquidate = ( cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / RATIO_BOOST )
-                                * (double)cdpLiquidateDiscountRate / RATIO_BOOST; //1.096N
+                                * cdpLiquidateDiscountRate / RATIO_BOOST; //1.096N
 
         totalScoinsToReturnSysFund = totalScoinsToLiquidate - cdp.total_owed_scoins;
 
@@ -845,7 +846,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
 
     if (scoinPenaltyFees > minSysOrderPenaltyFee ) { //10+ WUSD
         uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
-        uint64_t leftScoinPenalty  = scoinPenaltyFees - scoinPenaltyFees;  // handle odd amount
+        uint64_t leftScoinPenalty  = scoinPenaltyFees - halfScoinsPenalty;  // handle odd amount
 
         // 1) save 50% penalty fees into risk riserve
         fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty);
