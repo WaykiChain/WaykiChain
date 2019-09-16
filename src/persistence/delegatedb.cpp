@@ -49,7 +49,7 @@ bool CDelegateDBCache::GetTopDelegateList(vector<CRegID> &delegatesList) {
 
 bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
     // If CRegID is empty, ignore received votes for forward compatibility.
-    if (regId.IsEmpty() || votes == 0) {
+    if (regId.IsEmpty()) {
         return true;
     }
 
@@ -65,7 +65,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
 
 bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
     // If CRegID is empty, ignore received votes for forward compatibility.
-    if (regId.IsEmpty() || votes == 0) {
+    if (regId.IsEmpty()) {
         return true;
     }
 
