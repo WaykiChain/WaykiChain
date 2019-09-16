@@ -412,7 +412,7 @@ namespace wasm {
                 } else {
                     // WASM_TRACE("%s", json_spirit::write(var).c_str())
                     // WASM_TRACE("%s", rtype.c_str())
-                    WASM_THROW(invalid_type_inside_abi, "Unknown type %s", type.c_str())
+                    WASM_THROW(pack_exception, "Unexpected input encountered while processing struct %s", type.c_str())
                 }
 
             } else {

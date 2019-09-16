@@ -67,20 +67,22 @@ verify_byte_round_trip_conversion( const wasm::abi_serializer &abis, const type_
 }
 
 void verify_round_trip_conversion( const wasm::abi_serializer &abis, const type_name &type, const std::string &json,
-                                   const std::string &hex, const std::string &expected_Json ) {
+                                   const std::string &hex, const std::string &expected_json ) {
 
     wasm::variant var;
     json_spirit::read_string(json, var);
 
     auto bytes = abis.variant_to_binary(type, var, max_serialization_time);
-    //WASM_TEST( ToHex(bytes) == hex, "verify_round_trip_conversion_fail variant_to_binary_1" )
+
+    //WASM_TRACE("%s", ToHex(bytes).c_str());
+    WASM_CHECK( ToHex(bytes,"") == hex, "verify_round_trip_conversion_fail variant_to_binary_1" )
 
 
     auto var2 = abis.binary_to_variant(type, bytes, max_serialization_time);
-    //WASM_TEST(json_spirit::write(var2) == expected_json, "verify_round_trip_conversion_fail binary_to_variant_2" );
+    WASM_CHECK(json_spirit::write(var2) == expected_json, "verify_round_trip_conversion_fail binary_to_variant_2" );
 
     auto bytes2 = abis.variant_to_binary(type, var2, max_serialization_time);
-    //WASM_TEST(ToHex(bytes2) == hex, "verify_round_trip_conversion_fail variant_to_binary_3" ); 
+    WASM_CHECK(ToHex(bytes2,"") == hex, "verify_round_trip_conversion_fail variant_to_binary_3" ); 
 
 }
 
@@ -830,25 +832,103 @@ void abi_deep_structs_validate() {
 
 }
 
+void version() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(R"({})"), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, max_serialization_time), passed,
+                         unsupport_abi_version_exception, "version")
+
+
+    json_spirit::read_string(std::string(R"({"version": ""})"), var);
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, max_serialization_time), passed,
+                         unsupport_abi_version_exception, "version")
+
+    json_spirit::read_string(std::string(R"({"version": "wasm::abi/9.0"})"), var);
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer abis(def, max_serialization_time), passed,
+                         unsupport_abi_version_exception, "version")
+
+
+    json_spirit::read_string(std::string(R"({"version": "wasm::abi/1.0"})"), var);
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    json_spirit::read_string(std::string(R"({"version": "wasm::abi/1.1"})"), var);
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis2(def, max_serialization_time);
+
+}
+
+void abi_serialize_incomplete_json_array() {
+
+    auto abi = R"({
+      "version": "wasm::abi/1.0",
+      "structs": [
+         {"name": "s", 
+          "base": "", 
+          "fields": [
+            {"name": "i0", "type": "int8"},
+            {"name": "i1", "type": "int8"},
+            {"name": "i2", "type": "int8"}
+         ]}
+      ]
+    })";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def); 
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+
+    wasm::variant var2;
+    json_spirit::read_string(string(R"([])"), var2); 
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s"), var2, max_serialization_time), passed,
+                         pack_exception, "Early end to input array specifying the fields of struct")
+
+
+    json_spirit::read_string(string(R"([1,2])"), var2); 
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s"), var2, max_serialization_time), passed,
+                         pack_exception, "Early end to input array specifying the fields of struct")
+
+
+    verify_round_trip_conversion(abis, "s", R"({"i0":1,"i1":2,"i2":3})", "010203", R"({"i0":1,"i1":2,"i2":3})");
+
+
+}
+
 
 
 int main( int argc, char **argv ) {
 
-    abi_cycle();
-    abi_type_repeat();
-    abi_struct_repeat();
-    abi_action_repeat();
-    abi_table_repeat();
-    abi_type_def();
-    abi_type_redefine();
-    abi_type_redefine_to_name();
-    abi_type_nested_in_vector();
-    abi_large_array();
-    abi_is_type_recursion();
-    abi_recursive_structs();
-    abi_very_deep_structs();
-    abi_very_deep_structs_1us();
-    abi_deep_structs_validate();
+    // abi_cycle();
+    // abi_type_repeat();
+    // abi_struct_repeat();
+    // abi_action_repeat();
+    // abi_table_repeat();
+    // abi_type_def();
+    // abi_type_redefine();
+    // abi_type_redefine_to_name();
+    // abi_type_nested_in_vector();
+    // abi_large_array();
+    // abi_is_type_recursion();
+    // abi_recursive_structs();
+    // abi_very_deep_structs();
+    // abi_very_deep_structs_1us();
+    // abi_deep_structs_validate();
+    // version();
+
+    abi_serialize_incomplete_json_array();
+
+
 
     return 0;
 
