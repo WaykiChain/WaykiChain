@@ -798,10 +798,6 @@ void abi_very_deep_structs() {
 }
 
 
-
-
-
-
 int main( int argc, char **argv ) {
 
     // abi_cycle();
@@ -813,9 +809,9 @@ int main( int argc, char **argv ) {
     // abi_type_redefine();
     // abi_type_redefine_to_name();
     // abi_type_nested_in_vector();
-    //abi_large_array();
-    //abi_is_type_recursion();
-    //abi_recursive_structs();
+    // abi_large_array();
+    // abi_is_type_recursion();
+    // abi_recursive_structs();
     abi_very_deep_structs();
 
     return 0;

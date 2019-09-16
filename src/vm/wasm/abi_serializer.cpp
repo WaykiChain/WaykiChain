@@ -541,17 +541,21 @@ namespace wasm {
                     WASM_CAPTURE_AND_RETHROW("Parse error in struct %s field %s", s.first.c_str(), field.type.c_str())
                 }
 
-                //WASM_TRACE("%s", "validate" ) 
-
-                //check struct in circluar
-                // try{
-                //     vector<type_name>  structs_seen;
-                //     check_struct_in_recursion(s.second, structs_seen, ctx);
-                // }
-                // WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
             }
             WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
         }
+
+        //check struct in recursion
+        auto root = make_shared<dag>(wasm::dag{"root", nullptr, vector<shared_ptr<dag>>{}, vector<shared_ptr<dag>>{}});
+        root->ancestor = root;
+        for (const auto &s : structs) {
+            try{
+                wasm::abi_traverse_context ctx2(max_serialization_time);
+                check_struct_in_recursion(s.second, root, ctx2);
+            }
+            WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
+        }
+
 
         //WASM_TRACE("%s", "validate" ) 
         for (const auto &a : actions) {
@@ -580,50 +584,37 @@ namespace wasm {
     }
 
 
-    void abi_serializer::check_struct_in_recursion(const struct_def& s, vector<type_name>& structs_seen, wasm::abi_traverse_context &ctx) const { 
+    void abi_serializer::check_struct_in_recursion(const struct_def& s, shared_ptr<dag>& parent, wasm::abi_traverse_context &ctx) const { 
 
-        // WASM_ASSERT(find(structs_seen.begin(), structs_seen.end(), s.name) == structs_seen.end(),
-        //     abi_circular_def_exception,
-        //     "Circular reference in struct %s", s.name.c_str());
+        //WASM_TRACE("%s" , parent->to_string().c_str());
+        auto ret = wasm::dag::add(parent, s.name, ctx);
 
-        // ctx.check_deadline();
-        // structs_seen.push_back(s.name);
-        // //WASM_TRACE("%s", s.name.c_str() ) 
+        //s already in dag
+        if(!std::get<0>(ret)) return;
+        auto d = std::get<1>(ret);
 
-        // for (const auto &field : s.fields) {
-        //     ctx.check_deadline(); 
-        //     //WASM_TRACE("%s", field.type.c_str() ) 
-        //     auto itr = structs.find(resolve_type(fundamental_type(field.type)) );
-        //     if ( itr != structs.end() ){
-        //         //WASM_TRACE("%s", field.type.c_str() ) 
-        //         check_struct_in_recursion(itr->second, structs_seen, ctx );
-        //     }  
+        //WASM_TRACE("%s" , parent->to_string().c_str());
+        ctx.check_deadline();
 
-        // }
+        vector<type_name>  fields_seen;
+        for (const auto &field : s.fields) {
+            ctx.check_deadline(); 
+            auto f = resolve_type(fundamental_type(field.type));
 
+            //skip same field type
+            auto itr_field = std::find(fields_seen.begin(), fields_seen.end(), f); 
+            if( itr_field != fields_seen.end())
+                break;
+
+            fields_seen.push_back(f);
+
+            auto itr = structs.find(f);
+            if ( itr != structs.end() ){
+                check_struct_in_recursion(itr->second, d, ctx );
+            }  
+
+        }
 
     }
-
-    // void abi_serializer::check_struct_in_recursion(const struct_def& s, dag* parent, wasm::abi_traverse_context &ctx) const { 
-
-    //     // WASM_ASSERT(! parent->add(s.name),
-    //     //     abi_circular_def_exception,
-    //     //     "Circular reference in struct %s", s.name.c_str());
-
-    //     parent->add(s.name, wasm::abi_traverse_context &ctx);
-
-    //     ctx.check_deadline();
-    //     auto d = parent.add(s.name);
-    //     for (const auto &field : s.fields) {
-    //         ctx.check_deadline(); 
-    //         auto itr = structs.find(resolve_type(fundamental_type(field.type)) );
-    //         if ( itr != structs.end() ){
-    //             check_struct_in_recursion(itr->second, d, ctx );
-    //         }  
-
-    //     }
-
-
-    // }
 
 }
