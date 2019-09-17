@@ -164,8 +164,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
                     pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId.GetHex(),
                     bcoinsValueInScoin, cdp.total_owed_scoins,
-                    currRiskReserveScoins,
-                    currRiskReserveScoins - cdp.total_owed_scoins);
+                    currRiskReserveScoins, currRiskReserveScoins - cdp.total_owed_scoins);
             } else {  // 0 ~ 1
                 uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
                 assert(fcoinMedianPrice != 0);
@@ -195,8 +194,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
                     pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId.GetHex(),
                     pFcoinSellMarketOrder->ToString(), fcoinSellMarketOrderId.GetHex(),
-                    currRiskReserveScoins,
-                    currRiskReserveScoins - cdp.total_owed_scoins);
+                    currRiskReserveScoins, currRiskReserveScoins - cdp.total_owed_scoins);
             }
 
             // c) Close the CDP
