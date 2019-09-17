@@ -34,6 +34,8 @@ static const uint64_t ASSET_RISK_FEE_RATIO = 4000; // 40% * 10000, the ratio of 
 
 static const uint64_t MIN_DEX_ORDER_AMOUNT = 0.1 * COIN; // 0.9 COINS,the min amount of dex order limit.
 
+static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;     // max count of dex settle item limit.
+
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
