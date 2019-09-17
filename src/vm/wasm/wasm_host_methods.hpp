@@ -107,13 +107,13 @@ namespace wasm {
             //std::cout << ToHex(k) << std::endl;
         }
 
-        string StringPrint( string str1, string str2 ) {
+        // string StringPrint( string str1, string str2 ) {
 
-            std::stringstream ss;
-            ss << str1 << str2 << std::endl;
-           //string msg = ss.str();
-            return ss.str();
-        }
+        //     std::stringstream ss;
+        //     ss << str1 << str2 << std::endl;
+        //    //string msg = ss.str();
+        //     return ss.str();
+        // }
 
         //system
         void abort() {
@@ -193,7 +193,7 @@ namespace wasm {
             //const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->Receiver();
 
-            wasm_assert(pWasmContext->SetData(contract, k, v), StringPrint("wasm db_store SetContractData failed, key:",
+            wasm_assert(pWasmContext->SetData(contract, k, v), ("wasm db_store SetContractData failed, key:" + 
                                                                            ToHex(k)).c_str());      //wasmContext.AppendUndo(contract, k, oldValue);
 
             return 1;
@@ -218,7 +218,7 @@ namespace wasm {
             const uint64_t contract = pWasmContext->Receiver();
 
             wasm_assert(pWasmContext->EraseData(contract, k),
-                        StringPrint("wasm db_remove EraseContractData failed, key:", ToHex(k, " ")).c_str());
+                        ("wasm db_remove EraseContractData failed, key:" + ToHex(k, " ")).c_str());
 
             //wasmContext.AppendUndo(contract, k, oldValue);
 
@@ -273,7 +273,7 @@ namespace wasm {
 
             const uint64_t contract = pWasmContext->Receiver();
             wasm_assert(pWasmContext->SetData(contract, k, v),
-                        StringPrint("wasm db_update SetContractData key fail, key:", ToHex(k, "")).c_str());
+                        ("wasm db_update SetContractData key fail, key:" + ToHex(k, "")).c_str());
 
             return 1;
         }
