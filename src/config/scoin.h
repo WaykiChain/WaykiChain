@@ -73,7 +73,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
     { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    4)          },  // 0.04% * 10000
     { SCOIN_RESERVE_FEE_RATIO,                      std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
-    { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    21000000)   },  // 10% * 210000000
+    { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    52500000)   },  // 25% * 210000000
     { GLOBAL_COLLATERAL_RATIO_MIN,                  std::make_tuple("I",    8000)       },  // 80% * 10000
     { CDP_START_COLLATERAL_RATIO,                   std::make_tuple("J",    19000)      },  // 190% * 10000 : starting collateral ratio
     { CDP_START_LIQUIDATE_RATIO,                    std::make_tuple("K",    15000)      },  // 1.13 ~ 1.5  : common liquidation
