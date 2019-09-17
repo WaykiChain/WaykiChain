@@ -157,20 +157,20 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const 
     return interest;
 }
 
-uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
-    uint64_t votes = 0;
-    if (!candidateVotes.empty()) {
-        if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
-            votes = candidateVotes[0].GetVotedBcoins(); // one bcoin eleven votes
+// uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
+//     uint64_t votes = 0;
+//     if (!candidateVotes.empty()) {
+//         if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
+//             votes = candidateVotes[0].GetVotedBcoins(); // one bcoin eleven votes
 
-        } else if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
-            for (const auto &vote : candidateVotes) {
-                votes += vote.GetVotedBcoins();         // one bcoin one vote
-            }
-        }
-    }
-    return votes;
-}
+//         } else if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
+//             for (const auto &vote : candidateVotes) {
+//                 votes += vote.GetVotedBcoins();         // one bcoin one vote
+//             }
+//         }
+//     }
+//     return votes;
+// }
 
 CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
     auto iter = tokens.find(tokenSymbol);
@@ -267,8 +267,9 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         return false;
     }
 
+    auto featureForkVersion = GetFeatureForkVersion(currHeight);
     uint64_t lastTotalVotes = GetToken(SYMB::WICC).voted_amount;
-    assert(lastTotalVotes == GetVotedBcoins(candidateVotesInOut, currHeight));
+    // assert(lastTotalVotes == GetVotedBcoins(candidateVotesInOut, currHeight));
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -343,7 +344,17 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         return vote1.GetVotedBcoins() > vote2.GetVotedBcoins();
     });
 
-    uint64_t newTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
+    uint64_t newTotalVotes = 0;
+    if (!candidateVotesInOut.empty()) {
+        if (featureForkVersion == MAJOR_VER_R1) {
+            newTotalVotes = candidateVotesInOut[0].GetVotedBcoins(); // one bcoin eleven votes
+
+        } else if (featureForkVersion == MAJOR_VER_R2) {
+            for (const auto &vote : candidateVotesInOut) {
+                newTotalVotes += vote.GetVotedBcoins();         // one bcoin one vote
+            }
+        }
+    }
 
     if (newTotalVotes > lastTotalVotes) {
         uint64_t addedVotes = newTotalVotes - lastTotalVotes;
@@ -367,7 +378,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         receipts.push_back(receipt);
     } // else newTotalVotes == lastTotalVotes // do nothing
 
-    auto featureForkVersion          = GetFeatureForkVersion(currHeight);
+
     uint64_t interestAmountToInflate = ComputeVoteStakingInterest(lastTotalVotes, currHeight);
     if (!IsBcoinWithinRange(interestAmountToInflate))
         return false;
