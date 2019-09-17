@@ -67,15 +67,13 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     int64_t fee          = RPC_PARAM::GetWiccFee(params, 1, ACCOUNT_REGISTER_TX);
-    int32_t validHegiht  = chainActive.Height();
+    int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
     if (account.HaveOwnerPubKey())
         throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
-
-    assert(txUid.is<CPubKey>());
 
     CPubKey pubkey;
     if (!pWalletMain->GetPubKey(account.keyid, pubkey))
@@ -88,10 +86,10 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     }
 
     CAccountRegisterTx tx;
-    tx.txUid        = txUid;
+    tx.txUid        = pubkey;
     tx.minerUid     = minerUid;
     tx.llFees       = fee;
-    tx.valid_height = validHegiht;
+    tx.valid_height = validHeight;
 
     return SubmitTx(account.keyid, tx);
 }
@@ -539,12 +537,12 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             "  \"keyid\": \"xxxxx\",         (string) the keyid referred to the address\n"
             "  \"nickid\": \"xxxxx\",        (string) the nickid referred to the address\n"
             "  \"regid\": \"xxxxx\",         (string) the regid referred to the address\n"
-            "  \"regid_mature\": xxxxxx,   (bool) the regid is mature or not\n"
+            "  \"regid_mature\": true|false,   (bool) the regid is mature or not\n"
             "  \"owner_pubkey\": \"xxxxx\",  (string) the public key referred to the address\n"
             "  \"miner_pubkey\": \"xxxxx\",  (string) the miner publick key referred to the address\n"
             "  \"tokens\": {},             (object) tokens object all the address owned\n"
             "  \"received_votes\": xxxxx,  (numeric) received votes in total\n"
-            "  \"received_votes\": [],     (array) votes to others\n"
+            "  \"vote_list\": [],       (array) votes to others\n"
             "  \"position\": \"xxxxx\",      (string) in wallet if the address never involved in transaction, otherwise, in block\n"
             "  \"cdp_list\": [],           (array) cdp list\n"
             "}\n"

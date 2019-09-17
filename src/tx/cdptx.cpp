@@ -220,7 +220,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         uint64_t totalBcoinsToStake   = cdp.total_staked_bcoins + assetAmount;
         uint64_t totalScoinsToOwe     = cdp.total_owed_scoins + scoins_to_mint;
-        uint64_t totalCollateralRatio = uint64_t(double(totalBcoinsToStake) * bcoinMedianPrice / totalScoinsToOwe);
+        uint64_t totalCollateralRatio = uint64_t(double(totalBcoinsToStake) * bcoinMedianPrice / PRICE_BOOST / totalScoinsToOwe * RATIO_BOOST);
 
         if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (partial=%d, total=%d) is smaller than the minimal",

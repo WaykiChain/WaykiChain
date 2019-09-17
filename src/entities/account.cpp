@@ -267,8 +267,8 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         return false;
     }
 
-    // uint64_t lastTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
     uint64_t lastTotalVotes = GetToken(SYMB::WICC).voted_amount;
+    assert(lastTotalVotes == GetVotedBcoins(candidateVotesInOut, currHeight));
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -344,22 +344,28 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
     });
 
     uint64_t newTotalVotes = GetVotedBcoins(candidateVotesInOut, currHeight);
-    uint64_t totalBcoins   = GetToken(SYMB::WICC).free_amount + lastTotalVotes;
-    if (totalBcoins < newTotalVotes) {
-        return  ERRORMSG("ProcessCandidateVotes() : delegate votes exceeds account bcoins");
-    }
 
-    uint64_t free_bcoins  = totalBcoins - newTotalVotes;
-    uint64_t currBcoinAmt = GetToken(SYMB::WICC).free_amount;
-    if (currBcoinAmt < free_bcoins) {
-        OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, free_bcoins - currBcoinAmt);
-        CReceipt receipt(nullId, regid, SYMB::WICC, free_bcoins - currBcoinAmt, "add free bcoins due to revoking votes");
+    if (newTotalVotes > lastTotalVotes) {
+        uint64_t addedVotes = newTotalVotes - lastTotalVotes;
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::VOTE, addedVotes)) {
+            return ERRORMSG(
+                "ProcessCandidateVotes() : delegate votes exceeds account bcoins when voting! "
+                "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
+                newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
+        }
+        CReceipt receipt(regid, nullId, SYMB::WICC, addedVotes, "sub free bcoins for increasing votes");
         receipts.push_back(receipt);
-    } else {
-        OperateBalance(SYMB::WICC, BalanceOpType::VOTE, currBcoinAmt - free_bcoins);
-        CReceipt receipt(regid, nullId, SYMB::WICC, currBcoinAmt - free_bcoins, "sub free bcoins due to increasing votes");
+    } else if (newTotalVotes < lastTotalVotes) {
+        uint64_t subVotes = lastTotalVotes - newTotalVotes;
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes)) {
+            return ERRORMSG(
+                "ProcessCandidateVotes() : delegate votes is not enough to unvote! "
+                "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
+                newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
+        }
+        CReceipt receipt(nullId, regid, SYMB::WICC, subVotes, "add free bcoins due to revoking votes");
         receipts.push_back(receipt);
-    }
+    } // else newTotalVotes == lastTotalVotes // do nothing
 
     auto featureForkVersion          = GetFeatureForkVersion(currHeight);
     uint64_t interestAmountToInflate = ComputeVoteStakingInterest(lastTotalVotes, currHeight);
