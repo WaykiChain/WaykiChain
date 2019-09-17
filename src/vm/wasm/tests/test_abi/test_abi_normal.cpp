@@ -927,8 +927,6 @@ int main( int argc, char **argv ) {
     // version();
     abi_serialize_incomplete_json_array();
 
-
-
     return 0;
 
 }

@@ -93,6 +93,8 @@ namespace wasm {
             _pending_console_output << val;
         }
 
+        bool is_account(uint64_t account) { return true; } 
+
     public:
         uint64_t receiver;
 

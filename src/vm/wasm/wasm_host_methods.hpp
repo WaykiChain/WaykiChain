@@ -15,6 +15,7 @@
 #include "types/uint128.hpp"
 #include "exceptions.hpp"
 #include "wasm_log.hpp"
+#include "wasm_config.hpp"
 
 extern map <string, string> database;
 using namespace wasm;
@@ -467,15 +468,15 @@ namespace wasm {
         }
 
         bool is_account( uint64_t account ) {
-            //return context.is_account( account );
+            return pWasmContext->is_account( account );
             //std::cout << "is_account:" << account << std::endl;
             // std::cout << "account:"<< account << std::endl;
-            return true;
+            //return true;
         }
 
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
-            WASM_ASSERT( data_len < max_inline_action_size, inline_transaction_too_big,
+            WASM_ASSERT( data_len < max_inline_transaction_size, inline_transaction_too_big,
                       "inline transaction too big" );
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
             pWasmContext->ExecuteInline(trx);

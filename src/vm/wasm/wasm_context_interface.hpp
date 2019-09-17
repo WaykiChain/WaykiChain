@@ -33,6 +33,8 @@ namespace wasm {
         virtual bool contracts_console() { return true; }
         virtual void console_append( string val ) {}
 
+        virtual bool is_account(uint64_t account) { return true; } 
+
     };
 
 }
