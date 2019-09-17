@@ -108,10 +108,10 @@ namespace wasm {
 
         string StringPrint( string str1, string str2 ) {
 
-            std::ostringstream ostr;
-            ostr << str1 << str2 << std::endl;
-            string msg = ostr.str();
-            return msg;
+            std::stringstream ss;
+            ss << str1 << str2 << std::endl;
+           //string msg = ss.str();
+            return ss.str();
         }
 
         //system
@@ -154,7 +154,6 @@ namespace wasm {
 
             std::memcpy(memory, pWasmContext->GetActionData(), copy_size);
 
-
             //std::string data(pWasmContext->GetActionData(),copy_size);
             //std::cout << "read_action_data:" << ToHex(data) << " copy_size:"<< copy_size <<std::endl;
             return copy_size;
@@ -184,18 +183,10 @@ namespace wasm {
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
-            //merge receiver
-            // std::stringstream ss;
-            // ss << pWasmContext->Receiver();
-            // ss << k;
-            // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
-            // std::cout << "db_store key:" << ToHex(k) << " key_len:" << key_len
-            //           << " value:" << ToHex(v) << " value_len:" << val_len
-            //           << std::endl;
-            WASM_TRACE("key:%s key_len:%d val:%s val_len:%d",
-                       ToHex(k).c_str(), key_len, ToHex(v).c_str(), val_len)
+            // WASM_TRACE("key:%s key_len:%d val:%s val_len:%d",
+            //            ToHex(k).c_str(), key_len, ToHex(v).c_str(), val_len)
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;
@@ -226,7 +217,7 @@ namespace wasm {
             const uint64_t contract = pWasmContext->Receiver();
 
             wasm_assert(pWasmContext->EraseData(contract, k),
-                        StringPrint("wasm db_remove EraseContractData failed, key:%s!\n", ToHex(k, " ")).c_str());
+                        StringPrint("wasm db_remove EraseContractData failed, key:", ToHex(k, " ")).c_str());
 
             //wasmContext.AppendUndo(contract, k, oldValue);
 
@@ -281,7 +272,7 @@ namespace wasm {
 
             const uint64_t contract = pWasmContext->Receiver();
             wasm_assert(pWasmContext->SetData(contract, k, v),
-                        StringPrint("wasm db_update SetContractData key fail, key:%s!\n", ToHex(k, "")).c_str());
+                        StringPrint("wasm db_update SetContractData key fail, key:", ToHex(k, "")).c_str());
 
             return 1;
         }
@@ -484,16 +475,10 @@ namespace wasm {
 
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
-            // //TODO: Why is this limit even needed? And why is it not consistently checked on actions in input or deferred transactions
-            // EOS_ASSERT( data_len < context.control.get_global_properties().configuration.max_inline_action_size, inline_action_too_big,
-            //           "inline action too big" );
-
+            WASM_ASSERT( data_len < max_inline_action_size, inline_transaction_too_big,
+                      "inline transaction too big" );
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
-            //wasmContext.ExecuteInline(trx);
             pWasmContext->ExecuteInline(trx);
-            //std::cout << "send_inline" << std::endl;
-            //std::string d((const char*)data, data_len);
-            //std::cout << "send_inline:" << ToHex(d) << " data_len:"<< data_len << std::endl;
 
         }
 

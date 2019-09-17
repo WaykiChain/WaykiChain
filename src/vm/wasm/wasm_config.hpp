@@ -13,7 +13,8 @@ namespace wasm {
     const static auto max_serialization_time = microseconds(15 * 1000);
     //const static auto max_serialization_time = microseconds(60 * 1000 * 1000);
     const static uint16_t max_inline_transaction_depth = 4;
-    const static uint16_t max_array_size_for_abi = 1024;
+    const static uint16_t max_abi_array_size          = 1024;
+    const static uint16_t max_inline_action_size = 4096;
 
     const static uint64_t wasmio            = N(wasmio);
     const static uint64_t wasmio_bank       = N(wasmio.bank);

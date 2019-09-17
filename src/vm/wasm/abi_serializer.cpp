@@ -130,14 +130,13 @@ namespace wasm {
         tables.clear();
         // error_messages.clear();
         // variants.clear();
-        for (const auto &st : abi.structs)
-        {
+        for (const auto &st : abi.structs) {
             structs[st.name] = st;
             //WASM_TRACE("%s", st.name.c_str())
         }
 
         //WASM_TRACE("%d", abi.structs.size())
-         wasm::abi_traverse_context ctx2(max_serialization_time);
+        wasm::abi_traverse_context ctx2(max_serialization_time);
         for (const auto &td : abi.types) {
             WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type %s",
                         td.type.c_str());
@@ -149,7 +148,7 @@ namespace wasm {
         }
         for (const auto &a : abi.actions)
             actions[a.name] = a.type;
- 
+
         for (const auto &t : abi.tables)
             tables[t.name] = t.type;
 
@@ -290,31 +289,28 @@ namespace wasm {
             }
             WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack size of array '%s' ",
                                     rtype.c_str())
+            WASM_ASSERT(size < max_abi_array_size, array_size_exceeds_exception,
+                        "Array size %u must be smaller than max %d", size.value,
+                        max_abi_array_size);
 
-            WASM_ASSERT(size < max_array_size_for_abi, array_size_exceeds_exception, "Array size %u is biger than max %d", size.value, 
-                            max_array_size_for_abi); 
-
-            //std::cout << "size:---------------------------------------------- " << size.value << std::endl ;
             json_spirit::Array vars;
             for (decltype(size.value) i = 0; i < size; ++i) {
                 auto v = _binary_to_variant(ftype, ds, ctx);
-                //std::cout << "size:---------------------------------------------- " << ftype.data() << std::endl ;
                 WASM_ASSERT(!v.is_null(), unpack_exception, "Invalid packed array '%s'",
                             rtype.c_str());
-
                 vars.emplace_back(std::move(v));
             }
             return json_spirit::Value(std::move(vars));
         } else if (is_optional(rtype)) {
+
             char flag;
             try {
                 ds >> flag;
             }
-
             WASM_RETHROW_EXCEPTIONS(unpack_exception,
                                     "Unable to unpack presence flag of optional '%s' ", rtype.c_str())
-
             return flag ? _binary_to_variant(ftype, ds, ctx) : json_spirit::Value();
+
         } else if ((s_itr = structs.find(rtype)) != structs.end()) {
             json_spirit::Object obj;
             const auto &st = s_itr->second;
@@ -329,7 +325,6 @@ namespace wasm {
             }
 
             for (uint32_t i = 0; i < st.fields.size(); ++i) {
-                // std::cout << "---------------------------------------------- " << std::endl ;
                 const auto &field = st.fields[i];
                 auto v = _binary_to_variant(_remove_bin_extension(field.type), ds, ctx);
                 json_spirit::Config::add(obj, field.name, v);
@@ -338,8 +333,6 @@ namespace wasm {
         }
 
         WASM_THROW(unpack_exception, "Unable to unpack '%s' from stream", rtype.c_str());
-
-
         json_spirit::Value var;
         return var;
     }
@@ -363,8 +356,8 @@ namespace wasm {
             }
         }
 
-        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field %s", field.c_str());
-
+        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field %s",
+                   field.c_str());
         json_spirit::Value var;
         return var;
 
@@ -373,17 +366,18 @@ namespace wasm {
     inline auto GetFieldVariant( const json_spirit::Value &v, uint32_t index ) {
         if (v.type() == json_spirit::array_type) {
             auto a = v.get_array();
-            if (index > a.size() - 1){
-                WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field no. %d", index);
+            if (index > a.size() - 1) {
+                WASM_THROW(pack_exception,
+                           "Unexpected input encountered while processing struct, And missing field no. %d in array",
+                           index);
                 json_spirit::Value var;
                 return var;
             }
-           return a[index];
+            return a[index];
         }
 
 
-        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field no. %d", index);
-
+        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, the input data must be array")
         json_spirit::Value var;
         return var;
 
@@ -401,7 +395,6 @@ namespace wasm {
             auto s_itr = structs.end();
             auto btype = built_in_types.find(fundamental_type(rtype));
             if (btype != built_in_types.end()) {
-                // std::cout  << "[built_in_types]" << btype->first << std::endl;
                 btype->second.second(var, ds, is_array(rtype), is_optional(rtype));
             } else if (is_array(rtype)) {
                 auto t = var.get_array();
@@ -410,8 +403,6 @@ namespace wasm {
                     _variant_to_binary(fundamental_type(rtype), *iter, ds, ctx);
                 }
             } else if ((s_itr = structs.find(rtype)) != structs.end()) {
-
-               // WASM_TRACE("%s", rtype.c_str())
                 const auto &st = s_itr->second;
                 if (var.type() == json_spirit::obj_type) {
                     if (st.base != type_name()) {
@@ -419,40 +410,35 @@ namespace wasm {
                     }
                     auto &vo = var.get_obj();
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
-                        // std::cout << "---------------------------------------------- " << std::endl ;
                         const auto &field = st.fields[i];
-                        //WASM_TRACE("%s", field.type.c_str())
                         auto v = GetFieldVariant(vo, field.name);
-                        //WASM_TRACE("%s", field.type.c_str())
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else if (var.type() == json_spirit::array_type) {
-
-
-                     WASM_ASSERT( st.base == type_name(), invalid_type_inside_abi,
-                        "Using input array to specify the fields of the derived struct '%s'; input arrays are currently only allowed for structs without a base",
-                        st.name.c_str() );
+                    WASM_ASSERT(st.base == type_name(), invalid_type_inside_abi,
+                                "Using input array to specify the fields of the derived struct '%s'; input arrays are currently only allowed for structs without a base",
+                                st.name.c_str());
 
                     auto &vo = var.get_array();
-                    //WASM_TRACE("vo.size %s", vo.size());
-                    WASM_ASSERT(vo.size() == st.fields.size(), pack_exception, "Unexpected input encountered while processing struct %s", type.c_str())
+                    WASM_ASSERT(vo.size() == st.fields.size(), pack_exception,
+                                "Unexpected input encountered while processing struct %s, the input array size %ld must be equal to the struct fields size %ld",
+                                type.c_str(), vo.size(), st.fields.size())
 
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
-                        //WASM_TRACE("%s", field.type.c_str())
                         auto v = GetFieldVariant(var, i);
-                        //WASM_TRACE("%s", field.type.c_str())
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
-
                 } else {
                     //WASM_TRACE("%s", json_spirit::write(var).c_str())
-                    // WASM_TRACE("%s", rtype.c_str())
-                    WASM_THROW(pack_exception, "Unexpected input encountered while processing struct %s", type.c_str())
+                    WASM_THROW(pack_exception,
+                               "Unexpected input encountered while processing struct %s, the input data should be array or struct",
+                               type.c_str())
                 }
 
             } else {
-                WASM_THROW(invalid_type_inside_abi, "Unknown type %s", type.c_str());
+                WASM_THROW(invalid_type_inside_abi, "Unknown type %s, The type should be built-in , array or struct",
+                           type.c_str());
             }
         }
         WASM_CAPTURE_AND_RETHROW("Can not convert %s to %s", type.c_str(), json_spirit::write(var).c_str())
@@ -510,14 +496,12 @@ namespace wasm {
 
     void abi_serializer::validate( wasm::abi_traverse_context &ctx ) const {
 
-        //WASM_TRACE("%d", structs.size() )  
 
         for (const auto &t : typedefs) {
             try {
                 vector <type_name> types_seen{t.first, t.second};
                 auto itr = typedefs.find(t.second);
                 while (itr != typedefs.end()) {
-                    //WASM_TRACE("%s", "validate" ) 
                     ctx.check_deadline();
                     WASM_ASSERT(find(types_seen.begin(), types_seen.end(), itr->second) == types_seen.end(),
                                 abi_circular_def_exception, "Circular reference in type %s",
@@ -530,9 +514,7 @@ namespace wasm {
             WASM_CAPTURE_AND_RETHROW("Unknown new type %s", t.first.c_str())
         }
 
-        //WASM_TRACE("%s", "validate" ) 
         for (const auto &t : typedefs) {
-            //WASM_TRACE("%s", t.second.c_str() ) 
             try {
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
                             "Unknown type %s", t.second.c_str());
@@ -540,7 +522,7 @@ namespace wasm {
             WASM_CAPTURE_AND_RETHROW("Unknown type %s", t.second.c_str())
         }
 
-       // WASM_TRACE("%s", "validate" ) 
+
         for (const auto &s : structs) {
             try {
                 if (s.second.base != type_name()) {
@@ -558,7 +540,7 @@ namespace wasm {
                         current = base;
                     }
                 }
-                //WASM_TRACE("%s", "validate" ) 
+
                 for (const auto &field : s.second.fields) {
                     try {
                         ctx.check_deadline();
@@ -573,11 +555,11 @@ namespace wasm {
         }
 
         // //check struct in recursion
-        auto r = make_shared<dag>(wasm::dag{"root", nullptr, vector<shared_ptr<dag>>{}, vector<shared_ptr<dag>>{}});
+        auto r = make_shared<dag>(
+                wasm::dag{"root", nullptr, vector < shared_ptr < dag >> {}, vector < shared_ptr < dag >> {}});
         r->root = r;
         for (const auto &s : structs) {
-            try{
-                //wasm::abi_traverse_context ctx2(max_serialization_time);
+            try {
                 check_struct_in_recursion(s.second, r, ctx);
             }
             WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
@@ -611,34 +593,35 @@ namespace wasm {
     }
 
 
-    void abi_serializer::check_struct_in_recursion(const struct_def& s, shared_ptr<dag>& parent, wasm::abi_traverse_context &ctx) const { 
+    void abi_serializer::check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
+                                                    wasm::abi_traverse_context &ctx ) const {
 
         //WASM_TRACE("%s" , parent->to_string().c_str());
         auto ret = wasm::dag::add(parent, s.name, ctx);
 
         //s already in dag
-        if(!std::get<0>(ret)) return;
+        if (!std::get<0>(ret)) return;
         auto d = std::get<1>(ret);
 
         //WASM_TRACE("%s" , parent->to_string().c_str());
         ctx.check_deadline();
 
-        vector<type_name>  fields_seen;
+        vector <type_name> fields_seen;
         for (const auto &field : s.fields) {
-            ctx.check_deadline(); 
+            ctx.check_deadline();
             auto f = resolve_type(fundamental_type(field.type));
 
-            //skip same field type
-            auto itr_field = std::find(fields_seen.begin(), fields_seen.end(), f); 
-            if( itr_field != fields_seen.end())
+            //skip same type of field
+            auto itr_field = std::find(fields_seen.begin(), fields_seen.end(), f);
+            if (itr_field != fields_seen.end())
                 break;
 
             fields_seen.push_back(f);
 
             auto itr = structs.find(f);
-            if ( itr != structs.end() ){
-                check_struct_in_recursion(itr->second, d, ctx );
-            }  
+            if (itr != structs.end()) {
+                check_struct_in_recursion(itr->second, d, ctx);
+            }
 
         }
 
