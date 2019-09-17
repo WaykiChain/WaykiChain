@@ -89,12 +89,12 @@ namespace wasm {
         static string ToHex( string str, string separator = "" ) {
 
             const std::string hex = "0123456789abcdef";
-            std::stringstream ss;
+            std::ostringstream o;
 
             for (std::string::size_type i = 0; i < str.size(); ++i)
-                ss << hex[(unsigned char) str[i] >> 4] << hex[(unsigned char) str[i] & 0xf] << separator;
+                o << hex[(unsigned char) str[i] >> 4] << hex[(unsigned char) str[i] & 0xf] << separator;
 
-            return ss.str();
+            return o.str();
 
         }
 

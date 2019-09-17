@@ -63,6 +63,8 @@ namespace wasm {
                                 microseconds max_serialization_time ) const;
         typedef std::function<json_spirit::Value(wasm::datastream<const char *> & , bool, bool)> unpack_function;
         typedef std::function<void( const json_spirit::Value &, wasm::datastream<char *> &, bool, bool )> pack_function;
+        void add_specialized_unpack_pack( const string& name,
+                                          std::pair<abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack );
 
         static std::vector<char>
         pack( const string &abi, const string &action, const string &params, microseconds max_serialization_time ) {
@@ -143,7 +145,6 @@ namespace wasm {
         map <type_name, type_name> actions;
         map <type_name, type_name> tables;
         map <uint64_t, string> error_messages;
-        //map<type_name, variant_def>   variants;
 
         map <type_name, pair<unpack_function, pack_function>> built_in_types;
 
@@ -184,7 +185,6 @@ namespace wasm {
 
         void check_deadline() const;
 
-        //fc::scoped_exit<std::function<void()>> enter_scope();
     public:
         std::chrono::microseconds max_serialization_time_us;
         std::chrono::system_clock::time_point deadline;

@@ -68,10 +68,10 @@ namespace wasm {
         set_abi(abi, max_serialization_time);
     }
 
-    // void abi_serializer::add_specialized_unpack_pack( const string& name,
-    //                                                   std::pair<abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack ) {
-    //    built_in_types[name] = std::move( unpack_pack );
-    // }
+    void abi_serializer::add_specialized_unpack_pack( const string& name,
+                                                      std::pair<abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack ) {
+       built_in_types[name] = std::move( unpack_pack );
+    }
 
     void abi_serializer::configure_built_in_types() {
 
@@ -128,8 +128,7 @@ namespace wasm {
         structs.clear();
         actions.clear();
         tables.clear();
-        // error_messages.clear();
-        // variants.clear();
+
         for (const auto &st : abi.structs) {
             structs[st.name] = st;
             //WASM_TRACE("%s", st.name.c_str())
@@ -155,9 +154,6 @@ namespace wasm {
         for (const auto &e : abi.error_messages)
             error_messages[e.error_code] = e.error_msg;
 
-        // for( const auto& v : abi.variants.value )
-        //    variants[v.name] = v;
-
         /**
          *  The ABI vector may contain duplicates which would make it
          *  an invalid ABI
@@ -170,8 +166,7 @@ namespace wasm {
                     "Duplicate action definition detected");
         WASM_ASSERT(tables.size() == abi.tables.size(), duplicate_abi_def_exception,
                     "Duplicate table definition detected");
-        //WASM_ASSERT( error_messages.size() == abi.error_messages.size(), duplicate_abi_err_msg_def_exception, "duplicate error message definition detected" );
-        //WASM_ASSERT( variants.size() == abi.variants.value.size(), duplicate_abi_variant_def_exception, "duplicate variant definition detected" );
+
         validate(ctx);
     }
 
@@ -268,7 +263,6 @@ namespace wasm {
     json_spirit::Value abi_serializer::_binary_to_variant( const type_name &type, wasm::datastream<const char *> &ds,
                                                            wasm::abi_traverse_context &ctx ) const {
         ctx.check_deadline();
-        //std::cout << "[recursion_depth:" << ctx.recursion_depth <<" type:" << type << "]"<< std::endl ;
         ctx.recursion_depth++;
 
         type_name rtype = resolve_type(type);
@@ -345,7 +339,7 @@ namespace wasm {
         return _binary_to_variant(type, ds, ctx);
     }
 
-    inline auto GetFieldVariant( const json_spirit::Value &v, field_name field ) {
+    inline auto GetFieldVariant( const type_name &s, const json_spirit::Value &v, field_name field ) {
         if (v.type() == json_spirit::obj_type) {
             auto o = v.get_obj();
             for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
@@ -356,20 +350,20 @@ namespace wasm {
             }
         }
 
-        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field %s",
-                   field.c_str());
+        WASM_THROW(pack_exception, "Missing field '%s' in input object while processing struct '%s'",
+                   field.c_str(), s.c_str());
         json_spirit::Value var;
         return var;
 
     }
 
-    inline auto GetFieldVariant( const json_spirit::Value &v, uint32_t index ) {
+    inline auto GetFieldVariant( const type_name &s, const json_spirit::Value &v, uint32_t index ) {
         if (v.type() == json_spirit::array_type) {
             auto a = v.get_array();
             if (index > a.size() - 1) {
                 WASM_THROW(pack_exception,
-                           "Unexpected input encountered while processing struct, And missing field no. %d in array",
-                           index);
+                           "Missing field no. %d in input object while processing struct '%s'",
+                           index, s.c_str());
                 json_spirit::Value var;
                 return var;
             }
@@ -377,7 +371,7 @@ namespace wasm {
         }
 
 
-        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, the input data must be array")
+        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
         json_spirit::Value var;
         return var;
 
@@ -411,7 +405,7 @@ namespace wasm {
                     auto &vo = var.get_obj();
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
-                        auto v = GetFieldVariant(vo, field.name);
+                        auto v = GetFieldVariant(st.name, vo, field.name);
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else if (var.type() == json_spirit::array_type) {
@@ -426,7 +420,7 @@ namespace wasm {
 
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
-                        auto v = GetFieldVariant(var, i);
+                        auto v = GetFieldVariant(st.name, var, i);
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else {
@@ -485,14 +479,6 @@ namespace wasm {
         if (itr != tables.end()) return itr->second;
         return type_name();
     }
-
-    // optional<string> abi_serializer::get_error_message( uint64_t error_code )const {
-    //    auto itr = error_messages.find( error_code );
-    //    if( itr == error_messages.end() )
-    //       return optional<string>();
-
-    //    return itr->second;
-    // }
 
     void abi_serializer::validate( wasm::abi_traverse_context &ctx ) const {
 
@@ -566,7 +552,6 @@ namespace wasm {
         }
 
 
-        //WASM_TRACE("%s", "validate" ) 
         for (const auto &a : actions) {
             try {
                 ctx.check_deadline();
@@ -596,14 +581,12 @@ namespace wasm {
     void abi_serializer::check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
                                                     wasm::abi_traverse_context &ctx ) const {
 
-        //WASM_TRACE("%s" , parent->to_string().c_str());
         auto ret = wasm::dag::add(parent, s.name, ctx);
 
         //s already in dag
         if (!std::get<0>(ret)) return;
         auto d = std::get<1>(ret);
 
-        //WASM_TRACE("%s" , parent->to_string().c_str());
         ctx.check_deadline();
 
         vector <type_name> fields_seen;
