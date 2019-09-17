@@ -8,7 +8,7 @@ Run waykichain coind inside a docker container!
 ## Install Depdendencies
   * Docker 17.05 or higher is required
 ## Docker Environment Requirement
-  * At least 4GB RAM (Docker -> Preferrences -> Advanced -> Memory -> 4GB or above)
+  * At least 4GB RAM (Docker -> Preferences -> Advanced -> Memory -> 4GB or above)
   * If the build below fails, make sure you've adjusted Docker Memory settings and try again.
 
 ## Build waykicoind docker image
