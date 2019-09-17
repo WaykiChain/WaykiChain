@@ -352,9 +352,8 @@ namespace wasm {
         return _binary_to_variant(type, ds, ctx);
     }
 
-    inline auto GetFieldVariant( const json_spirit::Value &v, field_name field, uint32_t index ) {
+    inline auto GetFieldVariant( const json_spirit::Value &v, field_name field ) {
         if (v.type() == json_spirit::obj_type) {
-            //std::cout << "GetFieldValue: field " << field << std::endl ;
             auto o = v.get_obj();
             for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
                 string name = Config_type::get_name(*iter);
@@ -364,12 +363,30 @@ namespace wasm {
             }
         }
 
-        WASM_TRACE("%s", field.c_str())
-
-        WASM_THROW(invalid_type_inside_abi, "Missing %s", field.data());
+        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field %s", field.c_str());
 
         json_spirit::Value var;
         return var;
+
+    }
+
+    inline auto GetFieldVariant( const json_spirit::Value &v, uint32_t index ) {
+        if (v.type() == json_spirit::array_type) {
+            auto a = v.get_array();
+            if (index > a.size() - 1){
+                WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field no. %d", index);
+                json_spirit::Value var;
+                return var;
+            }
+           return a[index];
+        }
+
+
+        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct, And missing field no. %d", index);
+
+        json_spirit::Value var;
+        return var;
+
 
     }
 
@@ -404,13 +421,32 @@ namespace wasm {
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         // std::cout << "---------------------------------------------- " << std::endl ;
                         const auto &field = st.fields[i];
-                        auto v = GetFieldVariant(vo, field.name, i);
-                        //std::cout << "[GetFieldVariant]" << field.name << std::endl;
+                        //WASM_TRACE("%s", field.type.c_str())
+                        auto v = GetFieldVariant(vo, field.name);
                         //WASM_TRACE("%s", field.type.c_str())
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
+                } else if (var.type() == json_spirit::array_type) {
+
+
+                     WASM_ASSERT( st.base == type_name(), invalid_type_inside_abi,
+                        "Using input array to specify the fields of the derived struct '%s'; input arrays are currently only allowed for structs without a base",
+                        st.name.c_str() );
+
+                    auto &vo = var.get_array();
+                    //WASM_TRACE("vo.size %s", vo.size());
+                    WASM_ASSERT(vo.size() == st.fields.size(), pack_exception, "Unexpected input encountered while processing struct %s", type.c_str())
+
+                    for (uint32_t i = 0; i < st.fields.size(); ++i) {
+                        const auto &field = st.fields[i];
+                        //WASM_TRACE("%s", field.type.c_str())
+                        auto v = GetFieldVariant(var, i);
+                        //WASM_TRACE("%s", field.type.c_str())
+                        _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
+                    }
+
                 } else {
-                    // WASM_TRACE("%s", json_spirit::write(var).c_str())
+                    //WASM_TRACE("%s", json_spirit::write(var).c_str())
                     // WASM_TRACE("%s", rtype.c_str())
                     WASM_THROW(pack_exception, "Unexpected input encountered while processing struct %s", type.c_str())
                 }

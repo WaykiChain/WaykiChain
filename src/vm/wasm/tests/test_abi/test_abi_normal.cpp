@@ -33,7 +33,7 @@ using namespace wasm;
 if(! (expr)){                                \
     WASM_TRACE("%s%s", msg , "[ failed ]")   \
     assert(false);                           \
-}
+} 
 
 #define WASM_CHECK_EXCEPTION( expr, passed, ex, msg ) \
  passed = false;                              \
@@ -67,7 +67,7 @@ verify_byte_round_trip_conversion( const wasm::abi_serializer &abis, const type_
 }
 
 void verify_round_trip_conversion( const wasm::abi_serializer &abis, const type_name &type, const std::string &json,
-                                   const std::string &hex, const std::string &expected_json ) {
+                                   const std::string &hex, const std::string &expected_json, const std::string msg ) {
 
     wasm::variant var;
     json_spirit::read_string(json, var);
@@ -84,11 +84,13 @@ void verify_round_trip_conversion( const wasm::abi_serializer &abis, const type_
     auto bytes2 = abis.variant_to_binary(type, var2, max_serialization_time);
     WASM_CHECK(ToHex(bytes2,"") == hex, "verify_round_trip_conversion_fail variant_to_binary_3" ); 
 
+    WASM_TRACE("%s%s", msg.c_str(),"[ passed ]");
+
 }
 
 void verify_round_trip_conversion( const abi_serializer &abis, const type_name &type, const std::string &json,
-                                   const std::string &hex ) {
-    verify_round_trip_conversion(abis, type, json, hex, json);
+                                   const std::string &hex, const std::string msg ) {
+    verify_round_trip_conversion(abis, type, json, hex, json, msg);
 }
 
 void abi_cycle() {
@@ -899,9 +901,7 @@ void abi_serialize_incomplete_json_array() {
     WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s"), var2, max_serialization_time), passed,
                          pack_exception, "Early end to input array specifying the fields of struct")
 
-
-    verify_round_trip_conversion(abis, "s", R"({"i0":1,"i1":2,"i2":3})", "010203", R"({"i0":1,"i1":2,"i2":3})");
-
+    verify_round_trip_conversion(abis, "s", R"([1,2,3])", "010203", R"({"i0":1,"i1":2,"i2":3})", "abi_serialize_incomplete_json_array verify_round_trip_conversion" );
 
 }
 
@@ -925,7 +925,6 @@ int main( int argc, char **argv ) {
     // abi_very_deep_structs_1us();
     // abi_deep_structs_validate();
     // version();
-
     abi_serialize_incomplete_json_array();
 
 
