@@ -17,7 +17,7 @@ using namespace std;
 
 static const uint16_t RATIO_BOOST                           = 10000;
 static const uint32_t PRICE_BOOST                           = 100000000;
-static const uint64_t kFundCoinGenesisTotalReleaseAmount    = 19950000000;  // 21 * 95% billion WGRT
+static const uint64_t kFundCoinGenesisTotalReleaseAmount    = 20160000000;  // 96% * 21 billion
 static const uint32_t kFundCoinGenesisInitialReserveAmount  = 2100000;      // 2.1 million WUSD
 
 static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
