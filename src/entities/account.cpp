@@ -98,7 +98,7 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
     }
 }
 
-uint64_t CAccount::ComputeVoteStakingInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
+uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
     if (lastVotedBcoins == 0) {
         LogPrint("profits", "1st-time vote by the account, hence no interest inflation\n");
         return 0;  // 0 for the very 1st vote
@@ -138,6 +138,26 @@ uint64_t CAccount::ComputeVoteStakingInterest(const uint64_t lastVotedBcoins, co
     return interest;
 }
 
+uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
+    int64_t epoch_last_vote = chainActive[last_vote_height]->GetBlockTime();
+    int64_t epoch_curr_vote = chainActive[currHeight]->GetBlockTime();
+    if (epoch_curr_vote <= FCOIN_VOTEMINE_EPOCH_FROM ||
+        epoch_last_vote >= FCOIN_VOTEMINE_EPOCH_TO)
+        return 0;
+
+    if (epoch_last_vote < FCOIN_VOTEMINE_EPOCH_FROM)
+        epoch_last_vote = FCOIN_VOTEMINE_EPOCH_FROM;
+
+    if (epoch_curr_vote > FCOIN_VOTEMINE_EPOCH_TO)
+        epoch_curr_vote = FCOIN_VOTEMINE_EPOCH_TO;
+
+    uint64_t duration = epoch_curr_vote - epoch_last_vote;
+    if (duration == 0) return 0;
+
+    // interest = (1% * 21 billion) * (lastVotedBcoins/0.21 billion) * (duration / 365*24*3600)
+    return (lastVotedBcoins * (duration / 31536000.0));
+}
+
 uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const {
     if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1)
         return 0;
@@ -156,21 +176,6 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const 
 
     return interest;
 }
-
-// uint64_t CAccount::GetVotedBcoins(const vector<CCandidateReceivedVote> &candidateVotes, const uint64_t currHeight) {
-//     uint64_t votes = 0;
-//     if (!candidateVotes.empty()) {
-//         if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1) {
-//             votes = candidateVotes[0].GetVotedBcoins(); // one bcoin eleven votes
-
-//         } else if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R2) {
-//             for (const auto &vote : candidateVotes) {
-//                 votes += vote.GetVotedBcoins();         // one bcoin one vote
-//             }
-//         }
-//     }
-//     return votes;
-// }
 
 CAccountToken CAccount::GetToken(const TokenSymbol &tokenSymbol) const {
     auto iter = tokens.find(tokenSymbol);
@@ -370,7 +375,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         uint64_t subVotes = lastTotalVotes - newTotalVotes;
         if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes)) {
             return ERRORMSG(
-                "ProcessCandidateVotes() : delegate votes is not enough to unvote! "
+                "ProcessCandidateVotes() : delegate votes insufficient to unvote! "
                 "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
                 newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
@@ -378,31 +383,38 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         receipts.push_back(receipt);
     } // else newTotalVotes == lastTotalVotes // do nothing
 
-
-    uint64_t interestAmountToInflate = ComputeVoteStakingInterest(lastTotalVotes, currHeight);
-    if (!IsBcoinWithinRange(interestAmountToInflate))
-        return false;
-
     // collect inflated bcoins or fcoins
     switch (featureForkVersion) {
         case MAJOR_VER_R1: {  // for backward compatibility
-            OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, interestAmountToInflate);
-            CReceipt receipt(nullId, regid, SYMB::WICC, interestAmountToInflate, "inflate interest due to voting");
+            uint64_t bcoinAmountToInflate = ComputeVoteBcoinInterest(lastTotalVotes, currHeight);
+            if (!IsBcoinWithinRange(bcoinAmountToInflate))
+                return false;
+
+            OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate);
+            CReceipt receipt(nullId, regid, SYMB::WICC, bcoinAmountToInflate, "inflate bcoin due to voting interest");
             receipts.push_back(receipt);
+
+            LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %lld\n",
+                    regid.ToString(), bcoinAmountToInflate);
+
             break;
         }
         case MAJOR_VER_R2: {  // only fcoins will be inflated for voters
-            OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, interestAmountToInflate);
-            CReceipt receipt(nullId, regid, SYMB::WGRT, interestAmountToInflate, "inflate interest due to voting");
-            receipts.push_back(receipt);
+            uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currHeight);
+
+            if (fcoinAmountToInflate > 0) {
+                OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate);
+                CReceipt receipt(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, "inflate fcoin due to voting interest");
+                receipts.push_back(receipt);
+
+                LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %lld\n",
+                    regid.ToString(), fcoinAmountToInflate);
+            }
             break;
         }
         default:
             return false;
     }
-
-    LogPrint("profits", "Account(%s) received vote staking interest amount (bcoin/fcoins): %lld\n",
-            regid.ToString(), interestAmountToInflate);
 
     // Attention: update last vote height after computing vote staking interest.
     last_vote_height = currHeight;
