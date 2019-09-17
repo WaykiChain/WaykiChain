@@ -163,7 +163,7 @@ public:
 
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[vChain.size() - 1] : nullptr;
+        return vChain.size() > 0 ? vChain[Height()] : nullptr;
     }
 
     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
@@ -176,7 +176,7 @@ public:
     /** Compare two chains efficiently. */
     friend bool operator==(const CChain &a, const CChain &b) {
         return a.vChain.size() == b.vChain.size() &&
-               a.vChain[a.vChain.size() - 1] == b.vChain[b.vChain.size() - 1];
+               a.vChain[a.Height()] == b.vChain[b.Height()];
     }
 
     /** Efficiently check whether a block is present in this chain. */
@@ -201,7 +201,7 @@ public:
     bool UpdateFinalityBlock(){
         unordered_set<string> minerSet ;
         uint32_t confirmMiners = 4 ;
-        if(chainActive.Tip()->height<(int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
+        if(chainActive.Tip()->height < (int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
             confirmMiners = 1 ;
         } else{
             confirmMiners = 8 ;
@@ -214,7 +214,6 @@ public:
             ReadBlockFromDisk(pBlockIndex, block) ;
 
             auto minerRegId = block.vptx[0]->txUid.ToString() ;
-            minerSet.erase(minerRegId) ;
             if(minerSet.size() >=confirmMiners ){
 
                 if(!finalityBlockIndex || (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height)){
