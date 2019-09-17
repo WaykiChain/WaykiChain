@@ -443,7 +443,7 @@ bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
         }
 
         default:
-            return ERRORMSG("StakeVoteBcoins() : CDelegateVoteTx ExecuteTx AccountVoteOper revocation votes are not exist");
+            return ERRORMSG("StakeVoteBcoins() : CDelegateVoteTx ExecuteTx AccountVoteOper revocation votes do not exist");
     }
 
     return true;
