@@ -303,9 +303,9 @@ static string GetSystemInfo() {
     json += "\"diskt\":"    + totalHDD  + ",";
     json += "\"diskf\":"    + freeHDD   + ",";
     json += "\"ost\":\""    + osType    + "\",";
-    json += "\"osv\":\""    + osVer     + "\"";
-    json += "\"nv\":\""     + nv        + "\"";
-    json += "\"nfp\":\""    + nfp       + "\"";
+    json += "\"osv\":\""    + osVer     + "\",";
+    json += "\"nv\":\""     + nv        + "\",";
+    json += "\"nfp\":\""    + nfp       + "\",";
     json += "\"synh\":"     + synh      + ",";
     json += "\"tiph\":"     + tiph      + ",";
     json += "\"finh\":"     + finh      ; //finalized height
