@@ -67,15 +67,13 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     int64_t fee          = RPC_PARAM::GetWiccFee(params, 1, ACCOUNT_REGISTER_TX);
-    int32_t validHegiht  = chainActive.Height();
+    int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
     if (account.HaveOwnerPubKey())
         throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
-
-    assert(txUid.is<CPubKey>());
 
     CPubKey pubkey;
     if (!pWalletMain->GetPubKey(account.keyid, pubkey))
@@ -88,10 +86,10 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     }
 
     CAccountRegisterTx tx;
-    tx.txUid        = txUid;
+    tx.txUid        = pubkey;
     tx.minerUid     = minerUid;
     tx.llFees       = fee;
-    tx.valid_height = validHegiht;
+    tx.valid_height = validHeight;
 
     return SubmitTx(account.keyid, tx);
 }
