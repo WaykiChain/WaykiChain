@@ -1557,6 +1557,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
             // strMiscWarning is read by GetWarnings(), called by Qt and the JSON-RPC code to warn the user:
             strMiscWarning = _("Warning: This version is obsolete, upgrade required!");
     }
+
 }
 
 // Disconnect chainActive's tip.
@@ -1779,6 +1780,8 @@ bool ActivateBestChain(CValidationState &state) {
             boost::replace_all(strCmd, "%s", chainActive.Tip()->GetBlockHash().GetHex());
             boost::thread t(runCommand, strCmd);  // thread runs free
         }
+
+        chainActive.UpdateFinalityBlock();
     }
 
     return true;
@@ -2168,8 +2171,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
         if (!AddToBlockIndex(block, state, blockPos))
             return ERRORMSG("AcceptBlock() : AddToBlockIndex failed");
-
-        chainActive.UpdateFinalityBlock() ;
 
     } catch (std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
