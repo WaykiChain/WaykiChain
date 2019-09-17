@@ -944,6 +944,41 @@ void abi_serialize_incomplete_json_object() {
 
 }
 
+void abi_serialize_json_mismatching_type() {
+
+   auto abi = R"({
+      "version": "wasm::abi/1.0",
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "i0", "type": "int8"}
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "f0", "type": "s1"},
+            {"name": "i1", "type": "int8"}
+         ]}
+      ]
+   })";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def); 
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+
+    wasm::variant var2;
+    json_spirit::read_string(string(R"({"f0":1,"i1":2})"), var2); 
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s2"), var2, max_serialization_time), passed,
+                         pack_exception, "Unexpected input encountered while processing struct 's2.f0'")
+
+
+    verify_round_trip_conversion(abis, "s2", R"({"f0":{"i0":1},"i1":2})", "0102", "abi_serialize_json_mismatching_type verify_round_trip_conversion");
+
+}
+
+
 
 
 
@@ -965,7 +1000,10 @@ int main( int argc, char **argv ) {
     // abi_very_deep_structs_1us();
     // abi_deep_structs_validate();
     // version();
-    abi_serialize_incomplete_json_object();
+    // abi_serialize_incomplete_json_array();
+    // abi_serialize_incomplete_json_object();
+
+    abi_serialize_json_mismatching_type();
 
     return 0;
 

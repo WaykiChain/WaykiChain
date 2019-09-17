@@ -137,11 +137,11 @@ namespace wasm {
         //WASM_TRACE("%d", abi.structs.size())
         wasm::abi_traverse_context ctx2(max_serialization_time);
         for (const auto &td : abi.types) {
-            WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type %s",
+            WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type '%s'",
                         td.type.c_str());
 
             WASM_ASSERT(!_is_type(td.new_type_name, ctx), duplicate_abi_def_exception,
-                        "Type %s already exists", td.new_type_name.c_str());
+                        "Type '%s' already exists", td.new_type_name.c_str());
 
             typedefs[td.new_type_name] = td.type;
         }
@@ -242,7 +242,7 @@ namespace wasm {
     const struct_def &abi_serializer::get_struct( const type_name &type ) const {
         auto itr = structs.find(resolve_type(type));
 
-        WASM_ASSERT(itr != structs.end(), invalid_type_inside_abi, "Unknown struct %s",
+        WASM_ASSERT(itr != structs.end(), invalid_type_inside_abi, "Unknown struct '%s'",
                     type.data());
 
         return itr->second;
@@ -415,7 +415,7 @@ namespace wasm {
 
                     auto &vo = var.get_array();
                     WASM_ASSERT(vo.size() == st.fields.size(), pack_exception,
-                                "Unexpected input encountered while processing struct %s, the input array size %ld must be equal to the struct fields size %ld",
+                                "Unexpected input encountered while processing struct '%s', the input array size '%ld' must be equal to the struct fields size '%ld'",
                                 type.c_str(), vo.size(), st.fields.size())
 
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
@@ -424,18 +424,17 @@ namespace wasm {
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else {
-                    //WASM_TRACE("%s", json_spirit::write(var).c_str())
                     WASM_THROW(pack_exception,
-                               "Unexpected input encountered while processing struct %s, the input data should be array or struct",
+                               "Unexpected input encountered while processing struct '%s', the input data should be array or struct",
                                type.c_str())
                 }
 
             } else {
-                WASM_THROW(invalid_type_inside_abi, "Unknown type %s, The type should be built-in , array or struct",
+                WASM_THROW(invalid_type_inside_abi, "Unknown type '%s', The type should be built-in , array or struct",
                            type.c_str());
             }
         }
-        WASM_CAPTURE_AND_RETHROW("Can not convert %s to %s", type.c_str(), json_spirit::write(var).c_str())
+        WASM_CAPTURE_AND_RETHROW("Can not convert '%s' to '%s'", type.c_str(), json_spirit::write(var).c_str())
 
     }
 
