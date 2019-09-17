@@ -147,7 +147,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 class CChain {
 private:
     vector<CBlockIndex *> vChain;
-    CBlockIndex* irreBlockIndex = nullptr ;
+    CBlockIndex* finalityBlockIndex = nullptr ;
 
 public:
     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
@@ -155,8 +155,10 @@ public:
         return vChain.size() > 0 ? vChain[0] : nullptr;
     }
 
-    CBlockIndex *IrreBlockIndex(){
-        return irreBlockIndex ;
+    CBlockIndex *GetFinalityBlockIndex(){
+        if(!finalityBlockIndex)
+            return chainActive[0] ;
+        return finalityBlockIndex ;
     }
 
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
@@ -196,7 +198,7 @@ public:
     }
 
 
-    bool UpdateIrreverseBlock(){
+    bool UpdateFinalityBlock(){
         unordered_set<string> minerSet ;
         uint32_t confirmMiners = 4 ;
         if(chainActive.Tip()->height<(int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
@@ -215,17 +217,16 @@ public:
             minerSet.erase(minerRegId) ;
             if(minerSet.size() >=confirmMiners ){
 
-                if(!irreBlockIndex || (irreBlockIndex && irreBlockIndex->height< pBlockIndex->height)){
-                    irreBlockIndex = pBlockIndex ;
+                if(!finalityBlockIndex || (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height)){
+                    finalityBlockIndex = pBlockIndex ;
                 }
                 return true;
-
             }
             minerSet.insert(minerRegId) ;
             pBlockIndex = pBlockIndex->pprev ;
         }
-        if(irreBlockIndex == nullptr )
-            irreBlockIndex = vChain[0] ;
+        if(finalityBlockIndex == nullptr )
+            finalityBlockIndex = vChain[0] ;
 
         return true ;
     }

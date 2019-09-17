@@ -1727,7 +1727,7 @@ bool ActivateBestChain(CValidationState &state) {
 
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
-                if(height == chainActive.IrreBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.IrreBlockIndex()->GetBlockHash()){
+                if(height == chainActive.GetFinalityBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.GetFinalityBlockIndex()->GetBlockHash()){
                     return false ;
                 }
                 height-- ;
@@ -2169,7 +2169,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
         if (!AddToBlockIndex(block, state, blockPos))
             return ERRORMSG("AcceptBlock() : AddToBlockIndex failed");
 
-        chainActive.UpdateIrreverseBlock() ;
+        chainActive.UpdateFinalityBlock() ;
 
     } catch (std::runtime_error &e) {
         return state.Abort(_("System error: ") + e.what());
@@ -2312,8 +2312,8 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s",
                             mapBlockIndex[blockHash]->height, blockHash.ToString()), 0, "duplicate");
-    if (pBlock->GetHeight() <= (uint32_t)chainActive.IrreBlockIndex()->height){
-        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.IrreBlockIndex()->height), 0, "irrreversible");
+    if (pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
+        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
     }
     if (mapOrphanBlocks.count(blockHash))
@@ -2615,7 +2615,7 @@ bool static LoadBlockIndexDB() {
     }
 
     chainActive.SetTip(it->second);
-    chainActive.UpdateIrreverseBlock();
+    chainActive.UpdateFinalityBlock();
     LogPrint("INFO", "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
