@@ -6,6 +6,7 @@
 *.log
 *.o
 *.Po
+*.sh
 
 .DS_Store
 
