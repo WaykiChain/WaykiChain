@@ -1,6 +1,6 @@
 FROM phusion/baseimage:0.11
 MAINTAINER coredev@waykichainhk.com
-ENV SOURCE_BRANCH "release"
+ENV SOURCE_BRANCH "test"
 ARG debug='-debug'
 
 # Install prrequisite components
@@ -12,7 +12,7 @@ libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-program
 libboost-test-dev libboost-thread-dev software-properties-common libdb4.8-dev libdb4.8++-dev git-core
 
 # Build WaykiChain source on its release branch
-RUN echo 'Build at source commit: SOURCE_COMMIT' && \
+RUN echo 'Build at source commit: c523c7f9' && \
     mkdir -p /opt/src && cd /opt/src && git clone -b $SOURCE_BRANCH 'https://github.com/WaykiChain/WaykiChain.git' --recursive
 RUN cd /opt/src/WaykiChain/distros/linuxshell && sh ./linux.sh \
 && cd /opt/src/WaykiChain/ && sh ./autogen-coin-man.sh "coin${debug}" \
