@@ -97,9 +97,10 @@ bool CCDPMemCache::GetCDPList(const double ratio, set<CUserCDP> &expiredCdps, se
     for (auto iter = cdps.begin(); iter != boundary; ++ iter) {
         if (db_util::IsEmpty(iter->second)) {
             expiredCdps.insert(iter->first);
+            LogPrint("CDP", "CDPMemCache::GetCDPList, found an expired item marked in current level, ignore, %s\n",
+                     iter->first.ToString());
         } else if (expiredCdps.count(iter->first) || userCdps.count(iter->first)) {
-            LogPrint("CDP", "CCDPMemCache::GetCDPList, found an expired item, ignore\n");
-            continue;
+            LogPrint("CDP", "CCDPMemCache::GetCDPList, found an expired item, ignore, %s\n", iter->first.ToString());
         } else {
             // Got a valid cdp
             LogPrint("CDP", "CCDPMemCache::GetCDPList, found an valid item, %s\n", iter->first.ToString());
