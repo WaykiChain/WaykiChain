@@ -7,114 +7,1004 @@
 #include "json/json_spirit.h"
 #include "json/json_spirit_reader_template.h"
 #include "json/json_spirit_writer.h"
-// #include "wasm/abi_def.hpp"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/exceptions.hpp"
+#include "wasm/wasm_variant.hpp"
+#include "wasm/wasm_config.hpp"
+
+#include "wasm/wasm_log.hpp"
+
+#include "large_nested.abi.hpp"
+#include "deep_nested.abi.hpp"
+
 
 using std::chrono::microseconds;
 using std::chrono::system_clock;
-
-namespace wasm {
-  using variant = json_spirit::Value;
-}
 
 using namespace std;
 using namespace json_spirit;
 using namespace wasm;
 
-//template<typename T>
-string VectorToHexString(std::vector<char> str, string separator = " ")
-{
 
-    const std::string hex = "0123456789abcdef";
-    std::stringstream ss;
- 
-    for (std::string::size_type i = 0; i < str.size(); ++i)
-        ss << hex[(unsigned uint8_t)str[i] >> 4] << hex[(unsigned uint8_t)str[i] & 0xf] << separator;
+#define WASM_TEST( expr, msg )               \
+if(! (expr)){                                \
+    WASM_TRACE("%s%s", msg , "[ failed ]")   \
+    assert(false);                           \
+} else {                                     \
+    WASM_TRACE("%s%s", msg , "[ passed ]")   \
+}
 
-    return ss.str();
+
+#define WASM_CHECK( expr, msg )              \
+if(! (expr)){                                \
+    WASM_TRACE("%s%s", msg , "[ failed ]")   \
+    assert(false);                           \
+}
+
+#define WASM_CHECK_EXCEPTION( expr, passed, ex, msg ) \
+ passed = false;                              \
+ try{                                         \
+     expr  ;                                  \
+ } catch(wasm::exception &e){                 \
+     if( ex(msg).code() == e.code()) {        \
+         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.detail())   \
+         passed = true;                       \
+     }else {                                  \
+          WASM_TRACE("%s", e.detail())        \
+     }                                        \
+ }  catch(...){                               \
+    WASM_TRACE("%s", "exception")             \
+ }                                            \
+ if (!passed) {                               \
+     WASM_TRACE("%s%s", msg, "[ failed ]")    \
+     assert(false);                           \
+ }
+
+
+wasm::variant
+verify_byte_round_trip_conversion( const wasm::abi_serializer &abis, const type_name &type, const wasm::variant &var ) {
+    auto bytes = abis.variant_to_binary(type, var, max_serialization_time);
+    auto var2 = abis.binary_to_variant(type, bytes, max_serialization_time);
+
+    auto bytes2 = abis.variant_to_binary(type, var2, max_serialization_time);
+    WASM_CHECK(ToHex(bytes) == ToHex(bytes2), "verify_byte_round_trip_conversion_fail")
+
+    return var2;
+}
+
+void verify_round_trip_conversion( const wasm::abi_serializer &abis, const type_name &type, const std::string &json,
+                                   const std::string &hex, const std::string &expected_json, const std::string msg ) {
+
+    wasm::variant var;
+    json_spirit::read_string(json, var);
+
+    auto bytes = abis.variant_to_binary(type, var, max_serialization_time);
+
+    WASM_CHECK(ToHex(bytes, "") == hex, "verify_round_trip_conversion_fail variant_to_binary_1")
+
+    auto var2 = abis.binary_to_variant(type, bytes, max_serialization_time);
+    WASM_CHECK(json_spirit::write(var2) == expected_json, "verify_round_trip_conversion_fail binary_to_variant_2");
+
+    auto bytes2 = abis.variant_to_binary(type, var2, max_serialization_time);
+    WASM_CHECK(ToHex(bytes2, "") == hex, "verify_round_trip_conversion_fail variant_to_binary_3");
+
+    WASM_TRACE("%s%s", msg.c_str(), "[ passed ]");
 
 }
 
-// auto max_serialization_time = microseconds(15*1000);
+void verify_round_trip_conversion( const abi_serializer &abis, const type_name &type, const std::string &json,
+                                   const std::string &hex, const std::string msg ) {
+    verify_round_trip_conversion(abis, type, json, hex, json, msg);
+}
 
-void abi_token(){
+void abi_cycle() {
 
-  try {
-    string abiJson;
+    const char *typedef_cycle_abi = R"=====(
+     {
+        "version": "wasm::abi/1.0",
+         "types": [{
+            "new_type_name": "A",
+            "type": "name"
+          },{
+            "new_type_name": "name",
+            "type": "A"
+          }],
+         "structs": [],
+         "actions": [],
+         "tables": [],
+         "ricardian_clauses": []
+     }
+     )=====";
 
-    char byte;
-    ifstream f("token.abi", ios::binary);
-    while(f.get(byte))  abiJson.push_back(byte);
+    const char *struct_cycle_abi = R"=====(
+     {
+         "version": "wasm::abi/1.0",
+         "types": [],
+         "structs": [{
+           "name": "A",
+           "base": "B",
+           "fields": []
+         },{
+           "name": "B",
+           "base": "C",
+           "fields": []
+         },{
+           "name": "C",
+           "base": "A",
+           "fields": []
+         }],
+         "actions": [],
+         "tables": [],
+         "ricardian_clauses": []
+     }
+     )=====";
 
-    wasm::variant v;
-    json_spirit::read_string(abiJson, v);
+    bool passed = false;
 
-    wasm::abi_def abi_d;
-    wasm::from_variant(v, abi_d);
+    wasm::variant var;
+    json_spirit::read_string(std::string(typedef_cycle_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
 
-    //string dataJson("{\"issuer\":\"walker\",\"maximum_supply\":{\"amount\":10000000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}}}");
-    string dataJson("{\"issuer\":\"walker\",\"maximum_supply\":\"1000000.0000 BTC \"}");
-    //string dataJson("{\"to\":\"walker\",\"quantity\":{\"amount\":10000000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}},\"memo\":\"issue to walker\"}");
-    //string dataJson("{\"quantity\":{\"amount\":100000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}},\"memo\":\"retire BTC\"}");
-    //string dataJson("{\"from\":\"xiaoyu\",\"to\":\"walker\",\"quantity\":{\"amount\":100000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}},\"memo\":\"transfer BTC\"}");
-    //string dataJson("{\"owner\":\"walker\",\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8},\"ram_payer\":\"xiaoyu\"}");
-    //string dataJson("{\"owner\":\"walker\",\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}}");
-    //string dataJson("{\"owner\":\"walker\",\"symbol\":\"8,BTC\" }");
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "typedef_cycle_abi")
 
-    wasm::variant dataVariant;
-    json_spirit::read_string(dataJson, dataVariant);
-    std::cout << json_spirit::write(dataVariant) << std::endl ;
+    wasm::variant var2;
+    json_spirit::read_string(std::string(struct_cycle_abi), var2);
+    wasm::abi_def def2;
+    wasm::from_variant(var2, def2);
 
-    wasm::abi_serializer abi_serializer(abi_d, max_serialization_time);
-    vector<char> dataAction = abi_serializer.variant_to_binary("create", dataVariant, max_serialization_time);
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def2, max_serialization_time), passed, abi_circular_def_exception,
+                         "struct_cycle_abi")
+
+}
 
 
-    std::cout << VectorToHexString(dataAction) << std::endl ;
+void abi_type_repeat() {
 
-   }catch( wasm::exception &e ) {
-    std::cout << e.detail() << std::endl ;
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       },{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "account",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ],
+    "ricardian_clauses": []
    }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_type_repeat")
+}
+
+void abi_struct_repeat() {
+
+    const char *repeat_abi = R"=====(
+    {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ],
+     "ricardian_clauses": []
+    }
+    )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_struct_repeat")
+
+}
+
+void abi_action_repeat() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "account",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer"
+       },{
+         "name": "transfer",
+         "type": "transfer"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ],
+    "ricardian_clauses": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_action_repeat")
+
+}
+
+void abi_table_repeat() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "actor_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "actor_name"
+         },{
+            "name": "to",
+            "type": "actor_name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       },{
+         "name": "account",
+         "base": "",
+         "fields": [{
+            "name": "account",
+            "type": "name"
+         },{
+            "name": "balance",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer",
+         "ricardian_contract": "transfer contract"
+       }
+     ],
+     "tables": [{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       },{
+         "name": "account",
+         "type": "account",
+         "index_type": "i64",
+         "key_names" : ["account"],
+         "key_types" : ["name"]
+       }
+     ]
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    abi_serializer abis;
+    WASM_CHECK_EXCEPTION(abis.set_abi(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_table_repeat")
+}
+
+void abi_type_def() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "account_name",
+         "type": "name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "account_name"
+         },{
+            "name": "to",
+            "type": "name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer",
+         "ricardian_contract": "transfer contract"
+       }
+     ],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    abi_serializer abis;
+    abis.set_abi(def, max_serialization_time);
+
+    WASM_CHECK(abis.is_type("name", max_serialization_time), "abis.is_type name");
+    WASM_CHECK(abis.is_type("account_name", max_serialization_time), "abis.is_type naaccount_nameme");
+
+    const char *test_data = R"=====(
+    {
+     "from" : "kevin",
+     "to" : "dan",
+     "amount" : 16
+    }
+    )=====";
+
+    wasm::variant var2;
+    json_spirit::read_string(std::string(test_data), var2);
+    verify_byte_round_trip_conversion(abis, "transfer", var2);
+
+    WASM_TRACE("%s%s", "abi_type_def", "[ passed ]")
+}
+
+
+void abi_type_redefine() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "account_name",
+         "type": "account_name"
+       }
+     ],
+     "structs": [{
+         "name": "transfer",
+         "base": "",
+         "fields": [{
+            "name": "from",
+            "type": "account_name"
+         },{
+            "name": "to",
+            "type": "name"
+         },{
+            "name": "amount",
+            "type": "uint64"
+         }]
+       }
+     ],
+     "actions": [{
+         "name": "transfer",
+         "type": "transfer",
+         "ricardian_contract": "transfer contract"
+       }
+     ],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, invalid_type_inside_abi,
+                         "abi_type_redefine")
+
+
+}
+
+void abi_type_redefine_to_name() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [{
+         "new_type_name": "name",
+         "type": "name"
+       }
+     ],
+     "structs": [],
+     "actions": [],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, duplicate_abi_def_exception,
+                         "abi_type_redefine_to_name")
+
+
+}
+
+void abi_type_nested_in_vector() {
+
+    const char *repeat_abi = R"=====(
+   {
+     "version": "wasm::abi/1.0",
+     "types": [],
+     "structs": [{
+         "name": "store_t",
+         "base": "",
+         "fields": [{
+            "name": "id",
+            "type": "uint64"
+         },{
+            "name": "childs",
+            "type": "store_t[]"
+         }],
+     "actions": [],
+     "tables": []
+   }
+   )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(repeat_abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed, abi_circular_def_exception,
+                         "abi_type_nested_in_vector")
 
 }
 
 
-void abi_serialize_incomplete_json_array(){
+void abi_large_array() {
 
-// try {
+    const char *abi_str = R"=====(
+      {
+        "version": "wasm::abi/1.0",
+        "types": [],
+        "structs": [{
+           "name": "hi",
+           "base": "",
+           "fields": [
+           ]
+         }
+       ],
+       "actions": [{
+           "name": "hi",
+           "type": "hi[]",
+           "ricardian_contract": ""
+         }
+       ],
+       "tables": []
+      }
+      )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi_str), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    bytes bin = {static_cast<char>(0xff),
+                 static_cast<char>(0xff),
+                 static_cast<char>(0xff),
+                 static_cast<char>(0xff),
+                 static_cast<char>(0x08)};
+
+    WASM_CHECK_EXCEPTION(abis.binary_to_variant("hi[]", bin, max_serialization_time);, passed,
+                         array_size_exceeds_exception, "abi_large_array")
+
+
+}
+
+void abi_is_type_recursion() {
+
+    const char *abi_str = R"=====(
+      {
+       "version": "wasm::abi/1.0",
+       "types": [
+        {
+            "new_type_name": "a[]",
+            "type": "a[][]"
+        }
+        ],
+        "structs": [
+         {
+            "name": "a[]",
+            "base": "",
+            "fields": []
+         },
+         {
+            "name": "hi",
+            "base": "",
+            "fields": [{
+                "name": "user",
+                "type": "name"
+              }
+            ]
+          }
+        ],
+        "actions": [{
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+          }
+        ],
+        "tables": []
+      }
+      )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi_str), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed,
+                         abi_serialization_deadline_exception, "abi_is_type_recursion")
+
+
+}
+
+void abi_recursive_structs() {
+
+    const char *abi_str = R"=====(
+      {
+        "version": "wasm::abi/1.0",
+        "types": [],
+        "structs": [
+          {
+            "name": "a",
+            "base": "",
+            "fields": [
+              {
+              "name": "user",
+              "type": "b"
+              }
+            ]
+          },
+          {
+            "name": "b",
+            "base": "",
+            "fields": [
+             {
+               "name": "user",
+               "type": "a"
+             }
+            ]
+          },
+          {
+            "name": "hi",
+            "base": "",
+            "fields": [{
+                "name": "user",
+                "type": "name"
+              },
+              {
+                "name": "arg2",
+                "type": "a"
+              }
+            ]
+         },
+         {
+           "name": "hi2",
+           "base": "",
+           "fields": [{
+               "name": "user",
+               "type": "name"
+             }
+           ]
+         }
+        ],
+        "actions": [{
+            "name": "hi",
+            "type": "hi",
+            "ricardian_contract": ""
+          }
+        ],
+        "tables": []
+      }
+      )=====";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi_str), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed,
+                         abi_circular_def_exception, "abi_recursive_structs")
+
+
+}
+
+void abi_very_deep_structs() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(large_nested_abi), var);
+
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    string hi_data = "{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":{\"f1\":0}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}";
+    wasm::variant var2;
+    json_spirit::read_string(hi_data, var2);
+
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary("s98", var2, max_serialization_time), passed,
+                         abi_serialization_deadline_exception, "abi_very_deep_structs")
+
+}
+
+void abi_very_deep_structs_1us() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(large_nested_abi), var);
+
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, microseconds(1000)), passed,
+                         abi_serialization_deadline_exception, "abi_very_deep_structs_1us")
+
+}
+
+void abi_deep_structs_validate() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(deep_nested_abi), var);
+
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed,
+                         abi_serialization_deadline_exception, "abi_deep_structs_validate")
+
+}
+
+void version() {
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(R"({})"), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed,
+                         unsupport_abi_version_exception, "version")
+
+    json_spirit::read_string(std::string(R"({"version": ""})"), var);
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed,
+                         unsupport_abi_version_exception, "version")
+
+    json_spirit::read_string(std::string(R"({"version": "wasm::abi/9.0"})"), var);
+    wasm::from_variant(var, def);
+    WASM_CHECK_EXCEPTION(wasm::abi_serializer
+                                 abis(def, max_serialization_time), passed,
+                         unsupport_abi_version_exception, "version")
+
+    json_spirit::read_string(std::string(R"({"version": "wasm::abi/1.0"})"), var);
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    json_spirit::read_string(std::string(R"({"version": "wasm::abi/1.1"})"), var);
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis2(def, max_serialization_time);
+
+}
+
+void abi_serialize_incomplete_json_array() {
+
     auto abi = R"({
       "version": "wasm::abi/1.0",
       "structs": [
-         {"name": "s", "base": "", "fields": [
+         {"name": "s", 
+          "base": "", 
+          "fields": [
             {"name": "i0", "type": "int8"},
             {"name": "i1", "type": "int8"},
             {"name": "i2", "type": "int8"}
          ]}
+      ]
+    })";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+
+    wasm::variant var2;
+    json_spirit::read_string(string(R"([])"), var2);
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s"), var2, max_serialization_time), passed,
+                         pack_exception, "Early end to input array specifying the fields of struct")
+
+    json_spirit::read_string(string(R"([1,2])"), var2);
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s"), var2, max_serialization_time), passed,
+                         pack_exception, "Early end to input array specifying the fields of struct")
+
+    verify_round_trip_conversion(abis, "s", R"([1,2,3])", "010203", R"({"i0":1,"i1":2,"i2":3})",
+                                 "abi_serialize_incomplete_json_array verify_round_trip_conversion");
+
+}
+
+void abi_serialize_incomplete_json_object() {
+
+    auto abi = R"({
+      "version": "wasm::abi/1.0",
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "i0", "type": "int8"},
+            {"name": "i1", "type": "int8"}
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "f0", "type": "s1"},
+            {"name": "i2", "type": "int8"}
+         ]}
+      ]
+   })";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+
+    wasm::variant var2;
+    json_spirit::read_string(string(R"({})"), var2);
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s2"), var2, max_serialization_time), passed,
+                         pack_exception, "Missing field 'f0' in input object")
+
+    json_spirit::read_string(string(R"({"f0":{"i0":1}})"), var2);
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s2"), var2, max_serialization_time), passed,
+                         pack_exception, "Missing field 'i1' in input object")
+
+    verify_round_trip_conversion(abis, "s2", R"({"f0":{"i0":1,"i1":2},"i2":3})", "010203",
+                                 "abi_serialize_incomplete_json_object verify_round_trip_conversion");
+
+}
+
+void abi_serialize_json_mismatching_type() {
+
+    auto abi = R"({
+      "version": "wasm::abi/1.0",
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "i0", "type": "int8"}
+         ]},
+         {"name": "s2", "base": "", "fields": [
+            {"name": "f0", "type": "s1"},
+            {"name": "i1", "type": "int8"}
+         ]}
+      ]
+   })";
+
+    bool passed = false;
+
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
+
+    wasm::variant var2;
+    json_spirit::read_string(string(R"({"f0":1,"i1":2})"), var2);
+    WASM_CHECK_EXCEPTION(abis.variant_to_binary(string("s2"), var2, max_serialization_time), passed,
+                         pack_exception, "Unexpected input encountered while processing struct 's2.f0'")
+
+    verify_round_trip_conversion(abis, "s2", R"({"f0":{"i0":1},"i1":2})", "0102",
+                                 "abi_serialize_json_mismatching_type verify_round_trip_conversion");
+
+}
+
+
+void abi_serialize_json_empty_name() {
+
+    auto abi = R"({
+      "version": "wasm::abi/1.0",
+      "structs": [
+         {"name": "s1", "base": "", "fields": [
+            {"name": "", "type": "int8"},
+         ]}
       ],
    })";
 
-   try {
-        wasm::variant abi_v;
-        json_spirit::read_string(string(abi), abi_v);
-        wasm::abi_def def;
-        wasm::from_variant(abi_v, def);
-        wasm::abi_serializer abis(def, max_serialization_time);
+    bool passed = false;
 
-        std::cout << "-----------------------------------------" << std::endl ;
+    wasm::variant var;
+    json_spirit::read_string(std::string(abi), var);
+    wasm::abi_def def;
+    wasm::from_variant(var, def);
+    wasm::abi_serializer abis(def, max_serialization_time);
 
-        wasm::variant dataV;
-        json_spirit::read_string(string(R"({"i0":1,"i1":2,"i2":3})"), dataV);
-        vector<char> data = abis.variant_to_binary("s", dataV, max_serialization_time);
+    wasm::variant var2;
+    json_spirit::read_string(string(R"({"":1})"), var2);
+    abis.variant_to_binary(string("s2"), var2, max_serialization_time);
 
-        std::cout << VectorToHexString(data) << std::endl ;
+    verify_round_trip_conversion(abis, "s1", R"({"":1})", "01",
+                                 "abi_serialize_json_empty_name verify_round_trip_conversion");
 
-       }catch( wasm::exception &e ) {
-        std::cout << e.detail() << std::endl ;
-       }
 }
 
-void general (){
-    const char* my_abi = R"=====(
+
+void general() {
+    const char *my_abi = R"=====(
 {
    "version": "wasm::abi/1.0",
    "types": [{
@@ -381,16 +1271,7 @@ void general (){
 }
 )=====";
 
-   // const char *my_other = R"=====(
-   //  {
-   //    "asset"         : "100.0000 SYS",
-   //    "asset_arr"     : ["100.0000 SYS","100.0000 SYS"],
-   //  }  
-   //  )=====";
-
-      // "uint128"           : 128,
-      // "uint128_arr"       : ["0x00000000000000000000000000000080",129],
-   const char *my_other = R"=====(
+    const char *my_other = R"=====(
     {
       "string"            : "ola ke ase",
       "string_arr"        : ["ola ke ase","ola ke desi"],
@@ -462,204 +1343,114 @@ void general (){
     }  
     )=====";
 
-    try {
-        // wasm::variant abi_v;
-        // json_spirit::read_string(string(my_abi), abi_v);
-        // std::cout << json_spirit::write(abi_v) << std::endl ;
-        // wasm::abi_def def;
-        // wasm::from_variant(abi_v, def);
-        // wasm::abi_serializer abis(def, max_serialization_time);
 
-        // wasm::variant data_v;
-        // json_spirit::read_string(string(my_other), data_v);
-        // std::cout << json_spirit::write(data_v) << std::endl ;
-        // vector<char> data = abis.variant_to_binary("A", data_v, max_serialization_time);
-      vector<char> data = wasm::abi_serializer::pack(my_abi, "A", my_other, max_serialization_time);
-      std::cout << VectorToHexString(data) << std::endl ;
+    json_spirit::Value v;
+    json_spirit::read_string(string(my_other), v);
 
-      json_spirit::Value value = wasm::abi_serializer::unpack(my_abi, "A", data, max_serialization_time);
-      std::cout << json_spirit::write(value) << std::endl ;
+    vector<char> data = wasm::abi_serializer::pack(my_abi, "A", my_other, max_serialization_time);
+    json_spirit::Value value = wasm::abi_serializer::unpack(my_abi, "A", data, max_serialization_time);
 
-    } catch (wasm::exception& e) {
-        std::cout << e.detail() << std::endl;
-    }
+    WASM_TEST(json_spirit::write(v) == json_spirit::write(value), "general")
+}
 
+
+void abi_token() {
+
+    string abiJson;
+
+    char byte;
+    ifstream f("token.abi", ios::binary);
+    while (f.get(byte)) abiJson.push_back(byte);
+
+    string param = string(R"({"issuer":"walker","maximum_supply":"100.00000000 BTC"})");
+    wasm::variant var3 = wasm::abi_serializer::unpack(abiJson,
+                                                      "create",
+                                                      wasm::abi_serializer::pack(abiJson, "create", param,
+                                                                                 max_serialization_time),
+                                                      max_serialization_time);
+
+    //WASM_TRACE("%s",json_spirit::write(var3).c_str() )
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.create")
+
+    param = string(R"({"to":"walker","quantity":"100.00000000 BTC","memo":"issue to walker"})");
+    var3 = wasm::abi_serializer::unpack(abiJson,
+                                        "issue",
+                                        wasm::abi_serializer::pack(abiJson, "issue", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.issue")
+
+
+    param = string(R"({"to":"walker","quantity":"100.00000000 BTC","memo":"issue to walker"})");
+    var3 = wasm::abi_serializer::unpack(abiJson,
+                                        "issue",
+                                        wasm::abi_serializer::pack(abiJson, "issue", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.issue")
+
+
+    param = string(R"({"quantity":"100.00000000 BTC","memo":"retire BTC"})");
+    var3 = wasm::abi_serializer::unpack(abiJson,
+                                        "retire",
+                                        wasm::abi_serializer::pack(abiJson, "retire", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.retire")
+
+
+    param = string(R"({"from":"xiaoyu","to":"walker","quantity":"100.00000000 BTC","memo":"transfer BTC"})");
+    var3 = wasm::abi_serializer::unpack(abiJson,
+                                        "transfer",
+                                        wasm::abi_serializer::pack(abiJson, "transfer", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.transfer")
+
+
+    param = string(R"({"owner":"walker","symbol":"8,BTC","payer":"xiaoyu"})");
+    var3 = wasm::abi_serializer::unpack(abiJson,
+                                        "open",
+                                        wasm::abi_serializer::pack(abiJson, "open", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.open")
+
+
+    param = string(R"({"owner":"walker","symbol":"8,BTC"})");
+    var3 = wasm::abi_serializer::unpack(abiJson,
+                                        "close",
+                                        wasm::abi_serializer::pack(abiJson, "close", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TEST(param == json_spirit::write(var3), "abi_token.close")
 
 }
 
 
-void abi_type_redefine(){
+int main( int argc, char **argv ) {
 
-    try {
-       const char* abi = R"=====(
-       {
-         "version": "wasm::abi/1.0",
-         "types": [{
-             "new_type_name": "account_name",
-             "type": "account_name"
-           }
-         ],
-         "structs": [{
-             "name": "transfer",
-             "base": "",
-             "fields": [{
-                "name": "from",
-                "type": "account_name"
-             },{
-                "name": "to",
-                "type": "name"
-             },{
-                "name": "amount",
-                "type": "uint64"
-             }]
-           }
-         ],
-         "actions": [{
-             "name": "transfer",
-             "type": "transfer",
-             "ricardian_contract": "transfer contract"
-           }
-         ],
-         "tables": []
-       }
-       )=====";
+    general();
+    abi_token();
+    version();
+    abi_cycle();
+    abi_type_repeat();
+    abi_struct_repeat();
+    abi_action_repeat();
+    abi_table_repeat();
+    abi_type_def();
+    abi_type_redefine();
+    abi_type_redefine_to_name();
+    abi_type_nested_in_vector();
+    abi_large_array();
+    abi_is_type_recursion();
+    abi_recursive_structs();
+    abi_very_deep_structs();
+    abi_very_deep_structs_1us();
+    abi_deep_structs_validate();
+    abi_serialize_incomplete_json_array();
+    abi_serialize_incomplete_json_object();
+    abi_serialize_json_mismatching_type();
+    abi_serialize_json_empty_name();
 
-
-      wasm::variant abi_v;
-      json_spirit::read_string(string(abi), abi_v);
-      wasm::abi_def def;
-      wasm::from_variant(abi_v, def);
-      wasm::abi_serializer abis(def, max_serialization_time);
-
-     }catch( wasm::exception &e ) {
-      std::cout << e.detail() << std::endl ;
-     }
-}
-
-void abi_recursive_structs(){
-
-    try {
-      const char* abi = R"=====(
-      {
-        "version": "wasm::abi/1.0",
-        "types": [],
-        "structs": [
-          {
-            "name": "hi",
-            "base": "",
-            "fields": [{
-                "name": "user",
-                "type": "name"
-              },
-              {
-                "name": "arg2",
-                "type": "a"
-              }
-            ]
-         },
-          {
-            "name": "a",
-            "base": "",
-            "fields": [
-              {
-              "name": "user",
-              "type": "b"
-              }
-            ]
-          },
-          {
-            "name": "b",
-            "base": "",
-            "fields": [
-             {
-               "name": "user",
-               "type": "a"
-             }
-            ]
-          },
-         {
-           "name": "hi2",
-           "base": "",
-           "fields": [{
-               "name": "user",
-               "type": "name"
-             }
-           ]
-         }
-        ],
-        "actions": [{
-            "name": "hi",
-            "type": "hi",
-            "ricardian_contract": ""
-          }
-        ],
-        "tables": []
-      }
-      )=====";
-
-
-      // wasm::variant abi_v;
-      // json_spirit::read_string(string(abi), abi_v);
-      // //std::cout << json_spirit::write(abi_v) << std::endl ;
-
-      // wasm::abi_def def;
-      // wasm::from_variant(abi_v, def);
-      // wasm::abi_serializer abis(def, max_serialization_time);
- 
-      // wasm::variant data_v;
-      // json_spirit::read_string(string("{\"user\":\"wasm\"}"), data_v);
-      // std::cout << json_spirit::write(data_v) << std::endl ;
-      // vector<char> data = abis.variant_to_binary("hi2", data_v, max_serialization_time);
-
-      vector<char> data = wasm::abi_serializer::pack(abi, string("hi2"), string("{\"user\":\"wasm\"}"), max_serialization_time);
-
-      std::cout << VectorToHexString(data) << std::endl ;
-
-     }catch( wasm::exception &e ) {
-      std::cout << e.detail() << std::endl ;
-     }
-}
-
-void abi_to_variant(){
-
-  try {
-      string abi;
-
-      char byte;
-      ifstream f("token.abi", ios::binary);
-      while(f.get(byte))  abi.push_back(byte);
-
-      //string json("{\"issuer\":\"walker\",\"maximum_supply\":{\"amount\":10000000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}}}");
-      //string json("{\"issuer\":\"walker\",\"maximum_supply\":\"1000000.0000 BTC\"}");
-      //string json("{\"to\":\"walker\",\"quantity\":{\"amount\":10000000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}},\"memo\":\"issue to walker\"}");
-      //string json("{\"quantity\":{\"amount\":100000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}},\"memo\":\"retire BTC\"}");
-      string json("{\"from\":\"xiaoyu\",\"to\":\"walker\",\"quantity\":{\"amount\":100000000,\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}},\"memo\":\"transfer BTC\"}");
-      //string json("{\"owner\":\"walker\",\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8},\"ram_payer\":\"xiaoyu\"}");
-      //string json("{\"owner\":\"walker\",\"symbol\":{\"symbol_code\":\"BTC\",\"precision\":8}}");
-      //string json("{\"owner\":\"walker\",\"symbol\":\"8,BTC\" }");
-      vector<char> data = wasm::abi_serializer::pack(abi, string("transfer"), json, max_serialization_time);
-      std::cout << VectorToHexString(data) << std::endl ;
-
-      json_spirit::Value value = wasm::abi_serializer::unpack(abi, string("transfer"), data, max_serialization_time);
-      std::cout << json_spirit::write(value) << std::endl ;
-   }catch( wasm::exception &e ) {
-      std::cout << e.detail() << std::endl ;
-   }
-
-}
-
-
-
-int main(int argc, char** argv) {
-
-    //abi_token();
-    //abi_serialize_incomplete_json_array();
-    general ();
-    //abi_type_redefine();
-    //abi_recursive_structs();
-
-    //abi_to_variant();
     return 0;
 
 }
+
+
+
 
