@@ -47,15 +47,15 @@ using std::chrono::microseconds;
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 4 || params.size() > 7) {
         throw runtime_error(
-                "setcodewasmcontracttx \"addr\" \"contract_id\" \"code_file\" \"abi_file\" [\"memo\"] [symbol:fee:unit]\n"
+                "setcodewasmcontracttx \"sender\" \"contract\" \"wasm_file\" \"abi_file\" [\"memo\"] [symbol:fee:unit]\n"
                 "\ncreate a transaction of registering a contract app\n"
                 "\nArguments:\n"
-                "1.\"addr\": (string required) contract owner address from this wallet\n"
-                "2.\"contract_id\": (string required), the script id, regid\n"
-                "3.\"code_file\": (string required), the file path of the contract code\n"
+                "1.\"sender\": (string required) contract owner address from this wallet\n"
+                "2.\"contract\": (string required), contract nick_name\n"
+                "3.\"wasm_file\": (string required), the file path of the contract code\n"
                 "4.\"abi_file\": (string required), the file path of the contract abi\n"
-                "5.\"memo\": (string optional) the memo of contract\n"
-                "6. \"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
+                "5.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
+                "6.\"memo\": (string optional) the memo of contract\n"
                 "\nResult:\n"
                 "\"txhash\": (string)\n"
                 "\nExamples:\n"
@@ -69,9 +69,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         // 2.contract(id)
         // 3.filepath for code
         // 4.filepath for abi
-        // 5.fee
-        // 6.memo
-        // 7.height
+        // 5.memo
+        // 6.fee
     }
 
     CKeyID sender;
@@ -135,10 +134,6 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         json_spirit::Value abiJson;
         json_spirit::read_string(abi, abiJson);
 
-        // std::cout << "wasmsetcodecontracttx line173"
-        //   << " abi:" << json_spirit::write(abiJson)
-        //   << " \n";
-
         abi_def abi_d;
         from_variant(abiJson, abi_d);
         wasm::abi_serializer abis(abi_d, max_serialization_time);
@@ -147,8 +142,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     }
 
     string memo;
-    if (params.size() > 4) {
-        string memo = params[4].get_str();
+    if (params.size() > 5) {
+        string memo = params[5].get_str();
         if (memo.size() > MAX_CONTRACT_MEMO_SIZE) {
             throw JSONRPCError(RPC_INVALID_PARAMETER,
                                strprintf("The size of the memo of a contract must less than %d bytes",
@@ -156,7 +151,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         }
     }
 
-    const ComboMoney &fee = RPC_PARAM::GetFee(params, 5, TxType::UCONTRACT_DEPLOY_TX);
+    const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
 
     int height = chainActive.Tip()->height;
 
@@ -186,24 +181,16 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 
         uint64_t contract = wasm::RegID2Name(contractRegID);
 
-        // std::cout << "wasmsetcodecontracttx line250"
-        //           << " contract:" << contract
-        //           << " \n";
-
         tx.nTxType = WASM_CONTRACT_TX;
         tx.txUid = senderRegID;
         tx.fee_symbol = fee.symbol;
         tx.llFees = fee.GetSawiAmount();
 
 
-        // tx.contract = wasm::name("wasmio").value;
-        // tx.action = wasm::name("setcode").value;
-        // tx.data = wasm::pack(std::tuple(contract, code, abi, memo));
         tx.inlinetransactions.push_back({wasmio, 
                                          wasm::N(setcode), 
                                          std::vector<permission>{{wasmio, wasmio_owner}},
                                          wasm::pack(std::tuple(contract, code, abi, memo))});
-
 
 
         if (0 == height) {
@@ -212,9 +199,6 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         tx.valid_height = height;
         //tx.nRunStep = tx.data.size();
 
-
-        //CAccountDBCache view;
-        //std::cout << "deploywasmcontracttx line112: " << tx.ToString(view) << " " << "\n";
         if (!pWalletMain->Sign(sender, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
@@ -231,7 +215,6 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     json_spirit::Value abi_v;
     json_spirit::read_string(std::get<1>(ret), abi_v);
 
-    obj.push_back(Pair("ret", std::get<1>(ret)));
     json_spirit::Config::add(obj, "result",  abi_v);
 
     return obj;
