@@ -466,8 +466,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                             cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
     } else { // partial redeem
         if (assetAmount != 0) {
-            uint64_t bcoinMedianPrice =
-                cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+            uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
             if (bcoinMedianPrice == 0) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
                                  REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -485,8 +484,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                                  READ_SYS_PARAM_FAIL, "read-min-coins-to-stake-error");
             }
 
-            uint64_t bcoinsToStakeAmountMin =
-                bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
+            uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
             if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
                                  cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");

@@ -396,11 +396,6 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         if (pTx->coin_amount < CBaseTx::nDustAmountThreshold)
             return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
                  hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
-    } else if (pBaseTx->nTxType == UCOIN_TRANSFER_TX) {
-        CCoinTransferTx *pTx = static_cast<CCoinTransferTx *>(pBaseTx);
-        if (pTx->coin_amount < CBaseTx::nDustAmountThreshold)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
-                 hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
     }
 
     // Continuously rate-limit free transactions
@@ -1208,7 +1203,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         vector<string> txids = IniCfg().GetStableCoinGenesisTxid(SysCfg().NetworkID());
         assert(txids.size() == 3);
         for (int32_t index = 0; index < 3; ++ index) {
-            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s",
+            LogPrint("INFO", "stable coin genesis block, txid actual: %s, should be: %s, in detail: %s\n",
                      block.vptx[index + 1]->GetHash().GetHex(), txids[index],
                      block.vptx[index + 1]->ToString(cw.accountCache));
             assert(block.vptx[index + 1]->nTxType == UCOIN_REWARD_TX);
@@ -1720,7 +1715,8 @@ bool ActivateBestChain(CValidationState &state) {
         fComplete = true;
 
         // Check whether we have something to do.
-        if (chainMostWork.Tip() == nullptr) break;
+        if (chainMostWork.Tip() == nullptr)
+            break;
 
         auto height = chainActive.Height() ;
 

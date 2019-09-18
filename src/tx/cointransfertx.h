@@ -58,28 +58,46 @@ public:
 };
 
 /**################################ Universal Coin Transfer ########################################**/
+
+struct SingleTransfer {
+    CUserID to_uid;
+    TokenSymbol coin_symbol = SYMB::WICC;
+    uint64_t coin_amount = 0;
+
+    SingleTransfer() {}
+
+    SingleTransfer(const CUserID &toUidIn, const TokenSymbol &coinSymbol, const uint64_t coinAmount)
+        : to_uid(toUidIn), coin_symbol(coinSymbol), coin_amount(coinAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(to_uid);
+        READWRITE(coin_symbol);
+        READWRITE(VARINT(coin_amount));
+    )
+    string ToString(const CAccountDBCache &accountCache) const ;
+
+    Object ToJson(const CAccountDBCache &accountCache) const;
+};
+
+
 /**
  * Universal Coin Transfer Tx
  *
  */
 class CCoinTransferTx: public CBaseTx {
 public:
-    mutable CUserID toUid;
-    TokenSymbol coin_symbol;
-    uint64_t coin_amount;
+    vector<SingleTransfer> transfers;
     string memo;
 
 public:
     CCoinTransferTx()
-        : CBaseTx(UCOIN_TRANSFER_TX), coin_symbol(SYMB::WICC), coin_amount(0) {}
+        : CBaseTx(UCOIN_TRANSFER_TX) {}
 
     CCoinTransferTx(const CUserID &txUidIn, const CUserID &toUidIn, const int32_t validHeightIn,
                     const TokenSymbol &coinSymbol, const uint64_t coinAmount,
                     const TokenSymbol &feeSymbol, const uint64_t feesIn, const string &memoIn)
         : CBaseTx(UCOIN_TRANSFER_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
-          toUid(toUidIn),
-          coin_symbol(coinSymbol),
-          coin_amount(coinAmount),
+          transfers( { {toUidIn, coinSymbol, coinAmount} } ),
           memo(memoIn) {}
 
     ~CCoinTransferTx() {}
@@ -89,11 +107,9 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
-        READWRITE(toUid);
-        READWRITE(coin_symbol);
-        READWRITE(VARINT(coin_amount));
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
+        READWRITE(transfers);
         READWRITE(memo);
         READWRITE(signature);
     )
@@ -101,8 +117,8 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << toUid << coin_symbol
-               << VARINT(coin_amount) << fee_symbol << VARINT(llFees) << memo;
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+               << fee_symbol << VARINT(llFees) << transfers << memo;
 
             sigHash = ss.GetHash();
         }
