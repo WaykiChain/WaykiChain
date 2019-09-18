@@ -24,7 +24,7 @@ static const uint32_t kFundCoinGenesisInitialReserveAmount  = 2100000;      // 2
 static const int64_t FCOIN_VOTEMINE_EPOCH_FROM              = 1665886560; //Sun Oct 16 2022 10:16:00 GMT+0800
 static const int64_t FCOIN_VOTEMINE_EPOCH_TO                = 1792116960; //Fri Oct 16 2026 10:16:00 GMT+0800
 
-static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;     // depends on TPS
+static const uint16_t FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK = 1000;  // depends on TPS
 
 // Except specific transactions, priority is less than 1000.0
 static const double kTransactionPriorityCeiling             = 1000.0;

@@ -827,8 +827,8 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     nStart                   = GetTimeMillis();
     CBlockIndex *pBlockIndex = chainActive.Tip();
-    int32_t nCacheHeight         = SysCfg().GetTxCacheHeight();
-    int32_t nCount               = 0;
+    int32_t nCacheHeight     = SysCfg().GetTxCacheHeight();
+    int32_t nCount           = 0;
     CBlock block;
     while (pBlockIndex && nCacheHeight-- > 0) {
         if (!ReadBlockFromDisk(pBlockIndex, block))
