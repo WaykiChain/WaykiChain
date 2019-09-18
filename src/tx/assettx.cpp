@@ -65,7 +65,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
     receipts.push_back(CReceipt(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee,
-        action + " asset fee to risk riserve"));
+        action + " asset fee to risk reserve"));
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
