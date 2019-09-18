@@ -201,8 +201,8 @@ public:
     uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
-    CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
-    CRegID GetDexMatchSvcRegId() const    { return CRegID(nStableCoinGenesisHeight, kDexMatchSvcRegisterTxIndex); }
+    CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, 1); }
+    CRegID GetDexMatchSvcRegId() const    { return CRegID(nStableCoinGenesisHeight, 3); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
     virtual const CBlock& GenesisBlock() const = 0;
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
