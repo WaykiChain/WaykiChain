@@ -348,12 +348,8 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
 
-    char buffer[4 * 1024] = {'\0'};
-    int offset            = 0;
-    int rc                = 0;
-    while (offset <= 3 * 1024 && (rc = recv(hSocket, buffer + offset, 1024, MSG_NOSIGNAL))) {
-        offset += rc;
-    }
+    char buffer[ 1024] = {'\0'};
+    recv(hSocket, buffer , 1024, MSG_NOSIGNAL);
 
     closesocket(hSocket);
 
