@@ -18,9 +18,9 @@
 #include "tx/merkletx.h"
 #include "commons/util.h"
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "p2p/chainmessage.h"
 
 #include <sstream>

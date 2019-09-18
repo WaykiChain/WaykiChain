@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "entities/id.h"
-#include "json/json_spirit.h"
+#include "commons/json/json_spirit.h"
 #include "entities/asset.h"
 #include "entities/account.h"
 #include "tx/tx.h"

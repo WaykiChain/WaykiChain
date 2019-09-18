@@ -8,9 +8,9 @@
 #include "CIpo_tests.h"
 #include "CycleTestManger.h"
 #include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_reader.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_reader.h"
 using namespace std;
 using namespace boost;
 using namespace boost::assign;
@@ -440,4 +440,3 @@ BOOST_FIXTURE_TEST_CASE(check_recharge,CIpoTest) {
     cout<<"SendIpoTx end"<<endl;
 }
 BOOST_AUTO_TEST_SUITE_END()
-

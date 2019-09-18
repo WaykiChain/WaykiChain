@@ -5,7 +5,7 @@
 #ifndef RPC_VM_H
 #define RPC_VM_H
 
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_value.h"
 
 json_spirit::Value vmexecutescript(const json_spirit::Array& params, bool fHelp);
 

@@ -11,7 +11,7 @@
 #include "commons/uint256.h"
 #include "config/configuration.h"
 #include "init.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_value.h"
 #include "main.h"
 #include "rpc/core/rpcserver.h"
 #include "sync.h"

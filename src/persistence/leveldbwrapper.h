@@ -6,12 +6,13 @@
 #ifndef PERSIST_LEVELDBWRAPPER_H
 #define PERSIST_LEVELDBWRAPPER_H
 
+#include "commons/json/json_spirit_value.h"
 #include "commons/serialize.h"
 #include "commons/util.h"
 #include "config/version.h"
 #include "dbconf.h"
 
-#include "json/json_spirit_value.h"
+
 #include <boost/filesystem/path.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>

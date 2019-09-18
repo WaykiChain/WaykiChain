@@ -13,8 +13,8 @@
 #include "miner/miner.h"
 #include "../wallet/wallet.h"
 #include "../wallet/walletdb.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 #include "persistence/contractdb.h"
 #include "vm/luavm/appaccount.h"
 

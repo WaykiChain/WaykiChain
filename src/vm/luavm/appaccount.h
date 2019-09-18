@@ -10,8 +10,8 @@
 #include "commons/uint256.h"
 #include "entities/receipt.h"
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 #include <vector>
 

@@ -21,12 +21,12 @@
 #include "rpc/core/rpcserver.h"
 #include "../test/systestbase.h"
 #include <boost/algorithm/string/predicate.hpp>
-#include "json/json_spirit_writer_template.h"
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_reader.h"
-#include "json/json_spirit_writer.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_stream_reader.h"
+#include "commons/json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_reader_template.h"
+#include "commons/json/json_spirit_reader.h"
+#include "commons/json/json_spirit_writer.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_stream_reader.h"
 #include "../tx.h"
 #include <boost/test/included/unit_test.hpp>
 

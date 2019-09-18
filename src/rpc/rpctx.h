@@ -7,8 +7,8 @@
 #define RPC_RPCTX_H
 
 #include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace std;
 using namespace json_spirit;

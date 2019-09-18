@@ -62,6 +62,9 @@ coin_CORE_H = \
   commons/serialize.h \
   commons/types.h \
   commons/util.h \
+  commons/compat/byteswap.h \
+  commons/compat/compat.h \
+  commons/compat/endian.h \
   config/configuration.h \
   config/const.h \
   config/errorcode.h \
@@ -70,7 +73,6 @@ coin_CORE_H = \
   config/clientversion.h \
   config/version.h \
   config/chainparams.h \
-  compat\compat.h \
   wallet/crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
@@ -144,15 +146,15 @@ coin_CORE_H = \
   wallet/db.h
 
 JSON_H = \
-  json/json_spirit.h \
-  json/json_spirit_error_position.h \
-  json/json_spirit_reader.h \
-  json/json_spirit_reader_template.h \
-  json/json_spirit_stream_reader.h \
-  json/json_spirit_utils.h \
-  json/json_spirit_value.h \
-  json/json_spirit_writer.h \
-  json/json_spirit_writer_template.h
+  commons/json/json_spirit.h \
+  commons/json/json_spirit_error_position.h \
+  commons/json/json_spirit_reader.h \
+  commons/json/json_spirit_reader_template.h \
+  commons/json/json_spirit_stream_reader.h \
+  commons/json/json_spirit_utils.h \
+  commons/json/json_spirit_value.h \
+  commons/json/json_spirit_writer.h \
+  commons/json/json_spirit_writer_template.h
 
 # VmScript #
 VMLUA_H = \
@@ -334,14 +336,14 @@ libcoin_common_a_SOURCES = \
   support/events.cpp \
   sync.cpp \
   tx/coinrewardtx.cpp \
-  json/json_spirit_reader.cpp \
-  json/json_spirit_value.cpp \
-  json/json_spirit_writer.cpp \
+  commons/json/json_spirit_reader.cpp \
+  commons/json/json_spirit_value.cpp \
+  commons/json/json_spirit_writer.cpp \
   $(COIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
-libcoin_common_a_SOURCES += compat/glibc_compat.cpp
-libcoin_common_a_SOURCES += compat/glibcxx_compat.cpp
+libcoin_common_a_SOURCES += commons/compat/glibc_compat.cpp
+libcoin_common_a_SOURCES += commons/compat/glibcxx_compat.cpp
 endif
 
 libcoin_cli_a_SOURCES = \

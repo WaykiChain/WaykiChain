@@ -11,8 +11,8 @@
 #include "asset.h"
 #include "id.h"
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace json_spirit;
 

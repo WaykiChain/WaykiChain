@@ -16,12 +16,12 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
 
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_reader.h"
-#include "json/json_spirit_stream_reader.h"
+#include "commons/json/json_spirit_reader_template.h"
+#include "commons/json/json_spirit_reader.h"
+#include "commons/json/json_spirit_stream_reader.h"
 
 
 using namespace json_spirit;

@@ -11,7 +11,7 @@
 #include "crypto/hash.h"
 #include "entities/asset.h"
 #include "entities/id.h"
-#include "json/json_spirit_utils.h"
+#include "commons/json/json_spirit_utils.h"
 
 static CUserID nullId;
 

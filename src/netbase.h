@@ -11,7 +11,7 @@
 #endif
 
 #include "commons/serialize.h"
-#include "compat/compat.h"
+#include "commons/compat/compat.h"
 
 #include <stdint.h>
 #include <string>

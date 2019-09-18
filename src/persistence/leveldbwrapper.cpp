@@ -12,7 +12,7 @@
 #include <leveldb/filter_policy.h>
 #include <memenv.h>
 #include <boost/filesystem.hpp>
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_value.h"
 
 void ThrowError(const leveldb::Status &status) {
     if (status.ok())

@@ -7,9 +7,9 @@
 #define ENTITIES_KEYSTORE_H
 
 #include <set>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "entities/key.h"
 #include "sync.h"
 #include "wallet/walletdb.h"
