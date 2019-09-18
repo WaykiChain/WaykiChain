@@ -351,8 +351,8 @@ Value getscoininfo(const Array& params, bool fHelp){
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
     obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
 
-    string gcr = globalOwedScoins == 0 ? "INF" ? strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100));
-    obj.push_back(Pair("global_collateral_ratio",               gcr);
+    string gcr = globalOwedScoins == 0 ? "INF" : strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100);
+    obj.push_back(Pair("global_collateral_ratio",               gcr));
     obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.2f%%", (double)globalCollateralRatioFloor / RATIO_BOOST * 100)));
     obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
 
