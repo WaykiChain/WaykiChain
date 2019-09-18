@@ -100,7 +100,6 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
 uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
     if (lastVotedBcoins == 0) {
-        LogPrint("profits", "1st-time vote by the account, hence no interest inflation\n");
         return 0;  // 0 for the very 1st vote
     }
 
@@ -139,13 +138,14 @@ uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, cons
 }
 
 uint64_t CAccount::ComputeVoteFcoinInterest(uint64_t lastVotedBcoins, uint32_t currHeight) {
-    if (lastVotedBcoins == 0 || last_vote_height >= currHeight)
+    if (lastVotedBcoins == 0)
         return 0;
 
     uint32_t lastHeight = std::min((uint32_t)last_vote_height, (uint32_t)chainActive.Height());
     currHeight = std::min((uint32_t)currHeight, (uint32_t)chainActive.Height());
     if (lastHeight >= currHeight)
         return 0;
+
     int64_t epoch_last_vote = chainActive[lastHeight]->GetBlockTime();
     int64_t epoch_curr_vote = chainActive[currHeight]->GetBlockTime();
 

@@ -443,8 +443,15 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
 
     //3. redeem in scoins and update cdp
     if (assetAmount > cdp.total_staked_bcoins) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu can not bigger than total_staked_bcoins=%llu",
-                        assetAmount, cdp.total_staked_bcoins), UPDATE_CDP_FAIL, "bcoin_to_redeem-too-large");
+        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
+                        assetAmount, cdp.total_staked_bcoins);
+        assetAmount = cdp.total_staked_bcoins;
+    }
+    uint64_t actualScoinsToRepay = scoins_to_repay;
+    if (actualScoinsToRepay > cdp.total_owed_scoins) {
+        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
+                        actualScoinsToRepay, cdp.total_staked_bcoins);
+        actualScoinsToRepay = cdp.total_owed_scoins;
     }
 
     // check account balance vs scoins_to_repay
@@ -453,11 +460,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                          "account-balance-insufficient");
     }
 
-    uint64_t realRepayScoins = scoins_to_repay;
-    if (scoins_to_repay >= cdp.total_owed_scoins) {
-        realRepayScoins = cdp.total_owed_scoins;
-    }
-    cdp.Redeem(height, assetAmount, realRepayScoins);
+    cdp.Redeem(height, assetAmount, actualScoinsToRepay);
 
     // check and save CDP to db
     if (cdp.IsFinished()) {
@@ -497,9 +500,9 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         }
     }
 
-    if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, realRepayScoins)) {
+    if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, actualScoinsToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
-                        account.regid.ToString(), realRepayScoins), UPDATE_CDP_FAIL, "bad-operate-account");
+                        account.regid.ToString(), actualScoinsToRepay), UPDATE_CDP_FAIL, "bad-operate-account");
     }
     if (!account.OperateBalance(cdp.bcoin_symbol, BalanceOpType::ADD_FREE, assetAmount)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
@@ -511,8 +514,8 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     vector<CReceipt> receipts;
-    receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, realRepayScoins, "real repaid scoins by cdp owner");
-    receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, assetAmount, "redeemed bcoins to cdp owner");
+    receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, actualScoinsToRepay, "actual scoins repaid by cdp owner");
+    receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, assetAmount, "actual bcoins redeemed to cdp owner");
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, set tx receipts failed!! txid=%s", GetHash().ToString()),

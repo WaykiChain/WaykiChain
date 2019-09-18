@@ -67,6 +67,10 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
     receipts.push_back(CReceipt(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee,
         action + " asset fee to risk riserve"));
 
+    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
+            fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
     vector<CRegID> delegateList;
     if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get top delegate list failed"),
