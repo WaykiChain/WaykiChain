@@ -176,7 +176,7 @@ public:
                               const CAccountDBCache &accountCache, vector<CReceipt> &receipts);
 
     uint64_t ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
-    uint64_t ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
+    uint64_t ComputeVoteFcoinInterest(uint64_t lastVotedBcoins, uint32_t currHeight);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }

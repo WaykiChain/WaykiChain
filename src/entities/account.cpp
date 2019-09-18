@@ -138,11 +138,15 @@ uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, cons
     return interest;
 }
 
-uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight) {
-    if (lastVotedBcoins == 0)
+uint64_t CAccount::ComputeVoteFcoinInterest(uint64_t lastVotedBcoins, uint32_t currHeight) {
+    if (lastVotedBcoins == 0 || last_vote_height >= currHeight)
         return 0;
 
-    int64_t epoch_last_vote = chainActive[last_vote_height]->GetBlockTime();
+    uint32_t lastHeight = std::min((uint32_t)last_vote_height, (uint32_t)chainActive.Height());
+    currHeight = std::min((uint32_t)currHeight, (uint32_t)chainActive.Height());
+    if (lastHeight >= currHeight)
+        return 0;
+    int64_t epoch_last_vote = chainActive[lastHeight]->GetBlockTime();
     int64_t epoch_curr_vote = chainActive[currHeight]->GetBlockTime();
 
     if (SysCfg().NetworkID() == MAIN_NET) {
