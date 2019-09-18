@@ -443,8 +443,15 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
 
     //3. redeem in scoins and update cdp
     if (assetAmount > cdp.total_staked_bcoins) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu can not bigger than total_staked_bcoins=%llu",
-                        assetAmount, cdp.total_staked_bcoins), UPDATE_CDP_FAIL, "bcoin_to_redeem-too-large");
+        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
+                        assetAmount, cdp.total_staked_bcoins);
+        assetAmount = cdp.total_staked_bcoins;
+    }
+    uint64_t realRepayScoins = scoins_to_repay;
+    if (realRepayScoins >= cdp.total_owed_scoins) {
+        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
+                        realRepayScoins, cdp.total_staked_bcoins);
+        realRepayScoins = cdp.total_owed_scoins;
     }
 
     // check account balance vs scoins_to_repay
@@ -453,10 +460,6 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                          "account-balance-insufficient");
     }
 
-    uint64_t realRepayScoins = scoins_to_repay;
-    if (scoins_to_repay >= cdp.total_owed_scoins) {
-        realRepayScoins = cdp.total_owed_scoins;
-    }
     cdp.Redeem(height, assetAmount, realRepayScoins);
 
     // check and save CDP to db
