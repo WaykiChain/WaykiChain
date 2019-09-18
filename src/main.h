@@ -199,7 +199,7 @@ public:
 
 
     bool UpdateFinalityBlock(){
-        unordered_set<string> minerSet ;
+        set<CRegID> minerSet ;
         uint32_t confirmMiners = 4 ;
         if(chainActive.Tip()->height < (int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
             confirmMiners = 1 ;
@@ -210,10 +210,6 @@ public:
         auto pBlockIndex = chainActive.Tip() ;
         while(pBlockIndex->height > 0){
 
-            CBlock  block ;
-            ReadBlockFromDisk(pBlockIndex, block) ;
-
-            auto minerRegId = block.vptx[0]->txUid.ToString() ;
             if(minerSet.size() >=confirmMiners ){
 
                 if(!finalityBlockIndex || (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height)){
@@ -221,7 +217,7 @@ public:
                 }
                 return true;
             }
-            minerSet.insert(minerRegId) ;
+            minerSet.insert(pBlockIndex->miner) ;
             pBlockIndex = pBlockIndex->pprev ;
         }
         if(finalityBlockIndex == nullptr )

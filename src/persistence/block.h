@@ -15,6 +15,7 @@
 #include "sync.h"
 #include "tx/tx.h"
 #include "disk.h"
+#include "entities/id.h"
 
 #include <stdint.h>
 #include <memory>
@@ -235,6 +236,7 @@ public:
     uint32_t nFuelRate;
     vector<unsigned char> vSignature;
 
+    CRegID miner;
 
     CBlockIndex() {
         pBlockHash       = nullptr;
@@ -287,6 +289,10 @@ public:
         nFuel          = block.GetFuel();
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
+        if(block.GetHeight() == 0 )
+            miner = CRegID("0-1") ;
+        else
+            miner          = block.vptx[0]->txUid.get<CRegID>();
     }
 
     CDiskBlockPos GetBlockPos() const {
@@ -351,8 +357,8 @@ public:
                                 uint32_t nRequired, uint32_t nToCheck);
 
     string ToString() const {
-        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, chainWork=%s)", pprev, height,
-                         merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString());
+        return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, chainWork=%s, regId=%s)", pprev, height,
+                         merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString(), miner.ToString());
     }
 
     void Print() const { LogPrint("INFO", "%s\n", ToString()); }
@@ -401,7 +407,9 @@ public:
         READWRITE(nNonce);
         READWRITE(nFuel);
         READWRITE(nFuelRate);
-        READWRITE(vSignature);)
+        READWRITE(vSignature);
+        READWRITE(miner);)
+
 
     uint256 GetBlockHash() const {
         CBlockHeader block;

@@ -121,6 +121,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
                 pIndexNew->nFuel          = diskindex.nFuel;
                 pIndexNew->nFuelRate      = diskindex.nFuelRate;
                 pIndexNew->vSignature     = diskindex.vSignature;
+                pIndexNew->miner          = diskindex.miner ;
 
                 if (!pIndexNew->CheckIndex())
                     return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());
