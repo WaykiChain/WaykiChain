@@ -17,15 +17,12 @@ using namespace std;
 
 static const uint16_t RATIO_BOOST                           = 10000;
 static const uint32_t PRICE_BOOST                           = 100000000;
+
 static const uint64_t kFundCoinGenesisTotalReleaseAmount    = 20160000000;  // 96% * 21 billion
 static const uint32_t kFundCoinGenesisInitialReserveAmount  = 2100000;      // 2.1 million WUSD
 
-static const int64_t FCOIN_VOTEMINE_EPOCH_FROM  = 1665886560; //Sun Oct 16 2022 10:16:00 GMT+0800
-static const int64_t FCOIN_VOTEMINE_EPOCH_TO    = 1792116960; //Fri Oct 16 2026 10:16:00 GMT+0800
-
-static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
-static const uint16_t kFcoinGenesisRegisterTxIndex          = 2;
-static const uint16_t kDexMatchSvcRegisterTxIndex           = 3;
+static const int64_t FCOIN_VOTEMINE_EPOCH_FROM              = 1665886560; //Sun Oct 16 2022 10:16:00 GMT+0800
+static const int64_t FCOIN_VOTEMINE_EPOCH_TO                = 1792116960; //Fri Oct 16 2026 10:16:00 GMT+0800
 
 static const uint16_t kForceSettleCDPMaxCountPerBlock       = 1000;     // depends on TPS
 

@@ -872,7 +872,7 @@ boost::filesystem::path GetDefaultDataDir() {
 #endif
 }
 
-static boost::filesystem::path pathCached[MAX_NETWORK_TYPES + 1];
+static boost::filesystem::path pathCached[NULL_NETWORK_TYPE + 1];
 static CCriticalSection csPathCached;
 
 const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
@@ -880,7 +880,7 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 
     LOCK(csPathCached);
 
-    int nNet = MAX_NETWORK_TYPES;
+    int nNet = NULL_NETWORK_TYPE;
     if (fNetSpecific)
         nNet = SysCfg().NetworkID();
 
@@ -911,7 +911,7 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 }
 
 void ClearDatadirCache() {
-    fill(&pathCached[0], &pathCached[MAX_NETWORK_TYPES + 1], boost::filesystem::path());
+    fill(&pathCached[0], &pathCached[NULL_NETWORK_TYPE + 1], boost::filesystem::path());
 }
 
 boost::filesystem::path GetConfigFile() {
