@@ -342,7 +342,7 @@ Value getscoininfo(const Array& params, bool fHelp){
         prices.push_back(price);
     }
 
-    obj.push_back(Pair("height",                                height));
+    obj.push_back(Pair("tipblock_height",                       height));
     obj.push_back(Pair("median_price",                          prices));
     obj.push_back(Pair("slide_window_block_count",              slideWindow));
 
