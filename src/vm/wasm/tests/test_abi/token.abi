@@ -7,6 +7,10 @@
             "base": "",
             "fields": [
                 {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
                     "name": "balance",
                     "type": "asset"
                 }
@@ -89,7 +93,7 @@
                     "type": "symbol"
                 },
                 {
-                    "name": "ram_payer",
+                    "name": "payer",
                     "type": "name"
                 }
             ]
@@ -166,14 +170,14 @@
     ],
     "tables": [
         {
-            "name": "account",
+            "name": "accounts",
             "type": "account",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "currency_stats",
+            "name": "stat",
             "type": "currency_stats",
             "index_type": "i64",
             "key_names": [],

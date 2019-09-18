@@ -80,7 +80,7 @@ namespace wasm {
 
                 json_spirit::Value data_v;
                 json_spirit::read_string(params, data_v);
-                std::cout << json_spirit::write(data_v) << std::endl;
+                //std::cout << json_spirit::write(data_v) << std::endl;
                 data = abis.variant_to_binary(action, data_v, max_serialization_time);
 
             }

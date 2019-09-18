@@ -107,24 +107,13 @@ namespace wasm {
         string error_msg;
     };
 
-// struct variant_def {
-//    type_name            name;
-//    vector<type_name>    types;
-// };
-
-// template<typename T>
-// struct may_not_exist {
-//    T value{};
-// };
-
     struct abi_def {
         abi_def() = default;
 
         abi_def( const vector <type_def> &types, const vector <struct_def> &structs, const vector <action_def> &actions,
                  const vector <table_def> &tables, const vector <clause_pair> &clauses,
                  const vector <error_message> &error_msgs )
-                : types(types), structs(structs), actions(actions), tables(tables), ricardian_clauses(clauses),
-                  error_messages(error_msgs) {}
+                : types(types), structs(structs), actions(actions), tables(tables), ricardian_clauses(clauses) {}
 
         string version = "";
         vector <type_def> types;
@@ -132,9 +121,6 @@ namespace wasm {
         vector <action_def> actions;
         vector <table_def> tables;
         vector <clause_pair> ricardian_clauses;
-        vector <error_message> error_messages;
-        // extensions_type                     abi_extensions;
-        // may_not_exist<vector<variant_def>>  variants;
     };
 
     enum ABI_Enum {

@@ -17,8 +17,6 @@ using namespace std;
 
 namespace wasm {
 
-    //const size_t abi_serializer::max_recursion_depth;
-
     using boost::algorithm::ends_with;
     using std::string;
 
@@ -151,9 +149,6 @@ namespace wasm {
         for (const auto &t : abi.tables)
             tables[t.name] = t.type;
 
-        for (const auto &e : abi.error_messages)
-            error_messages[e.error_code] = e.error_msg;
-
         /**
          *  The ABI vector may contain duplicates which would make it
          *  an invalid ABI
@@ -182,7 +177,7 @@ namespace wasm {
     int abi_serializer::get_integer_size( const type_name &type ) const {
         string stype = type;
 
-        WASM_ASSERT(is_integer(type), invalid_type_inside_abi, "%s is not an integer type",
+        WASM_ASSERT(is_integer(type), invalid_type_inside_abi, "'%s' is not an integer type",
                     stype.data());
 
         if (boost::starts_with(stype, "uint")) {
@@ -362,7 +357,7 @@ namespace wasm {
             auto a = v.get_array();
             if (index > a.size() - 1) {
                 WASM_THROW(pack_exception,
-                           "Missing field no. %d in input object while processing struct '%s'",
+                           "Missing field no. '%d' in input object while processing struct '%s'",
                            index, s.c_str());
                 json_spirit::Value var;
                 return var;
@@ -481,7 +476,6 @@ namespace wasm {
 
     void abi_serializer::validate( wasm::abi_traverse_context &ctx ) const {
 
-
         for (const auto &t : typedefs) {
             try {
                 vector <type_name> types_seen{t.first, t.second};
@@ -519,7 +513,7 @@ namespace wasm {
                         //std::cout << "base:" << current.base << std::endl;
                         WASM_ASSERT(find(types_seen.begin(), types_seen.end(), base.name) == types_seen.end(),
                                     abi_circular_def_exception,
-                                    "Circular reference in struct %s", s.second.name.c_str());
+                                    "Circular reference in struct '%s'", s.second.name.c_str());
 
                         types_seen.emplace_back(base.name);
                         current = base;
@@ -530,13 +524,13 @@ namespace wasm {
                     try {
                         ctx.check_deadline();
                         WASM_ASSERT(_is_type(_remove_bin_extension(field.type), ctx), invalid_type_inside_abi,
-                                    "Invalid type inside abi in type %s", field.type.c_str());
+                                    "Invalid type inside abi in type '%s'", field.type.c_str());
                     }
-                    WASM_CAPTURE_AND_RETHROW("Parse error in struct %s field %s", s.first.c_str(), field.type.c_str())
+                    WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s' field '%s'", s.first.c_str(), field.type.c_str())
                 }
 
             }
-            WASM_CAPTURE_AND_RETHROW("Parse error in struct %s", s.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s'", s.first.c_str())
         }
 
         // //check struct in recursion
@@ -547,7 +541,7 @@ namespace wasm {
             try {
                 check_struct_in_recursion(s.second, r, ctx);
             }
-            WASM_CAPTURE_AND_RETHROW("Circular reference in struct %s", s.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first.c_str())
         }
 
 
@@ -555,7 +549,7 @@ namespace wasm {
             try {
                 ctx.check_deadline();
                 WASM_ASSERT(_is_type(a.second, ctx), invalid_type_inside_abi,
-                            "Invalid type inside abi in action %s", a.second.c_str());
+                            "Invalid type inside abi in action '%s'", a.second.c_str());
             }
             WASM_CAPTURE_AND_RETHROW("action %s error", a.first.c_str())
         }
@@ -564,9 +558,9 @@ namespace wasm {
             try {
                 ctx.check_deadline();
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
-                            "Invalid type inside abi in table %s", t.second.c_str());
+                            "Invalid type inside abi in table '%s'", t.second.c_str());
             }
-            WASM_CAPTURE_AND_RETHROW("Table %s error", t.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Table '%s' error", t.first.c_str())
         }
     }
 

@@ -14,7 +14,7 @@ public:
     vector<wasm::inline_transaction> inlinetransactions;
 
     // uint64_t amount;
-     TokenSymbol symbol;
+    // TokenSymbol symbol;
 
 public:
     CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(WASM_CONTRACT_TX) {
