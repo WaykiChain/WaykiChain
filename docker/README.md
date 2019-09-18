@@ -30,9 +30,9 @@ Run waykichain coind inside a docker container!
 1. copy WaykiCoind.conf into ```conf``` dir from WaykiChain repository:
    * ``` sudo cp -r ${your_path_of_WaykiChain}/Docker/WaykiChain.conf ./dir/ ```
 1. modify content of ```WaykiCoind.conf``` accordingly
-   * For mainnet, please make sure ```nettype=main``` is removed
-   * For testnet, please make sure only ```nettype=test``` is provided
-   * For regtest, please make suer only ```nettype=regtest``` is provided
+   * For mainnet, please make sure ```nettype=main``` is set
+   * For testnet, please make sure only ```nettype=test``` is set
+   * For regtest, please make suer only ```nettype=regtest``` is set
    * For common nodes (no mining), please set ```gen=0``` to avoid computing resources waste
 1. launch the node container:
    * For mainnet, run ```$sh ./bin/run-waykicoind-main.sh```
