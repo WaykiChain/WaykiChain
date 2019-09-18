@@ -17,8 +17,11 @@ using namespace std;
 
 static const uint16_t RATIO_BOOST                           = 10000;
 static const uint32_t PRICE_BOOST                           = 100000000;
-static const uint64_t kFundCoinGenesisTotalReleaseAmount    = 19950000000;  // 21 * 95% billion WGRT
+static const uint64_t kFundCoinGenesisTotalReleaseAmount    = 20160000000;  // 96% * 21 billion
 static const uint32_t kFundCoinGenesisInitialReserveAmount  = 2100000;      // 2.1 million WUSD
+
+static const int64_t FCOIN_VOTEMINE_EPOCH_FROM  = 1665886560; //Sun Oct 16 2022 10:16:00 GMT+0800
+static const int64_t FCOIN_VOTEMINE_EPOCH_TO    = 1792116960; //Fri Oct 16 2026 10:16:00 GMT+0800
 
 static const uint16_t kFcoinGenesisIssueTxIndex             = 1;
 static const uint16_t kFcoinGenesisRegisterTxIndex          = 2;
@@ -33,6 +36,8 @@ static const double kPriceFeedTransactionPriority           = 10000.0;
 static const uint64_t ASSET_RISK_FEE_RATIO = 4000; // 40% * 10000, the ratio of asset fee into the risk riserve
 
 static const uint64_t MIN_DEX_ORDER_AMOUNT = 0.1 * COIN; // 0.9 COINS,the min amount of dex order limit.
+
+static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;     // max count of dex settle item limit.
 
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
@@ -73,7 +78,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
     { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    4)          },  // 0.04% * 10000
     { SCOIN_RESERVE_FEE_RATIO,                      std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
-    { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    21000000)   },  // 10% * 210000000
+    { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    52500000)   },  // 25% * 210000000
     { GLOBAL_COLLATERAL_RATIO_MIN,                  std::make_tuple("I",    8000)       },  // 80% * 10000
     { CDP_START_COLLATERAL_RATIO,                   std::make_tuple("J",    19000)      },  // 190% * 10000 : starting collateral ratio
     { CDP_START_LIQUIDATE_RATIO,                    std::make_tuple("K",    15000)      },  // 1.13 ~ 1.5  : common liquidation

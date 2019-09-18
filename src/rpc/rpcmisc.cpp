@@ -70,6 +70,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"protocol_version\": xxxxx,     (numeric) the protocol version\n"
             "  \"net_type\": \"xxxxx\",         (string) the blockchain network type (MAIN_NET|TEST_NET|REGTEST_NET)\n"
             "  \"proxy\": \"host:port\",        (string) the proxy server used by the node program\n"
+            "  \"ext_ip\": \"xxxxx\",           (string) the external ip of the node\n"
             "  \"conf_dir\": \"xxxxx\",         (string) the conf directory\n"
             "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
             "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the "

@@ -103,7 +103,7 @@ public:
     vector<std::shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
 
-    vector<CReceipt> GetReceipts() const { return receipts; }
+    const vector<CReceipt>& GetReceipts() const { return receipts; }
 
     /**
      * execute contract

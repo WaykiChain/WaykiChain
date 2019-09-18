@@ -5,10 +5,10 @@
 # Run in docker
 Run waykichain coind inside a docker container!
 
-## Install Depdendencies
+## Install Dependencies
   * Docker 17.05 or higher is required
 ## Docker Environment Requirement
-  * At least 4GB RAM (Docker -> Preferrences -> Advanced -> Memory -> 4GB or above)
+  * At least 4GB RAM (Docker -> Preferences -> Advanced -> Memory -> 4GB or above)
   * If the build below fails, make sure you've adjusted Docker Memory settings and try again.
 
 ## Build waykicoind docker image
@@ -53,5 +53,6 @@ Run waykichain coind inside a docker container!
 |Q | A|
 |--|--|
 |How to modify JSON RPC port | Two options: <br> <li>modify [WaykiChain.conf](https://github.com/WaykiChain/WaykiChain/wiki/WaykiChain.conf) (```rpcport=6968```)<li>modify docker container mapping port |
-|How to run a testnet | modify WaykiChain.conf by adding ```testnet=1```, otherwise it will run as mainnet |
-|How to run a regtest | modify WaykiChain.conf by adding ```regtest=1```, otherwise it will run as mainnet |
+|How to run a testnet | modify WaykiChain.conf by adding ```testnet=test```,  |
+|How to run a regtest | modify WaykiChain.conf by adding ```regtest=regtest```, |
+|How to run a mainnet | modify WaykiChain.conf by adding ```regtest=main```,  |

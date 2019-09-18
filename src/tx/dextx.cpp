@@ -575,9 +575,9 @@ bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
                          REJECT_INVALID, "unauthorized-settle-account");
     }
 
-    if (dealItems.empty())
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal items is empty"),
-                         REJECT_INVALID, "invalid-deal-items");
+    if (dealItems.empty() || dealItems.size() > MAX_SETTLE_ITEM_COUNT)
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal items is empty or count=%d is too large than %d",
+            dealItems.size(), MAX_SETTLE_ITEM_COUNT), REJECT_INVALID, "invalid-deal-items");
 
     for (size_t i = 0; i < dealItems.size(); i++) {
         const DEXDealItem & dealItem = dealItems.at(i);

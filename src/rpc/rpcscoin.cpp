@@ -395,16 +395,17 @@ Value getusercdp(const Array& params, bool fHelp){
     // TODO: multi stable coin
     uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
 
+    Object obj;
     Array cdps;
     vector<CUserCDP> userCdps;
     if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
         for (auto& cdp : userCdps) {
             cdps.push_back(cdp.ToJson(bcoinMedianPrice));
         }
+
+        obj.push_back(Pair("user_cdps", cdps));
     }
 
-    Object obj;
-    obj.push_back(Pair("user_cdps", cdps));
     return obj;
 }
 

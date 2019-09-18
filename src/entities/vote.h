@@ -109,7 +109,7 @@ public:
     }
 
     string ToString() const {
-        string str = strprintf("voteType: %s, candidateUid: %s, votes: %lld \n", GetVoteType(voteType),
+        string str = strprintf("voteType: %s, candidateUid: %s, votes: %lld\n", GetVoteType(voteType),
                                candidateUid.ToString(), votedBcoins);
         return str;
     }

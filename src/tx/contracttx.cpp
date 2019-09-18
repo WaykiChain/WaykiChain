@@ -54,19 +54,18 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter to afford fuel: %lld < %lld",
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter to afford fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
 
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        uint64_t slideWindow = 0;
-        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-        uint64_t feeMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(fee_symbol, SYMB::WUSD));
-        int32_t txSize          = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb        = double(feeMedianPrice) / PRICE_BOOST * (llFees - llFuel) / (txSize / 1000.0);
-        if (dFeePerKb != 0 && dFeePerKb < CBaseTx::nMinRelayTxFee) {
-            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fee/kb: %.4f < %lld",
-                            dFeePerKb, CBaseTx::nMinRelayTxFee), REJECT_INVALID, "fee-too-litter-in-fee/kb");
+        int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
+        double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
+        if (feePerKb < CBaseTx::nMinRelayTxFee) {
+            uint64_t minFee = ceil(double(CBaseTx::nMinRelayTxFee) * txSize / 1000.0 + llFuel);
+            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fee/kb: %llu < %llu",
+                            llFees, minFee), REJECT_INVALID,
+                            strprintf("fee-too-litter-in-fee/kb: %llu < %llu", llFees, minFee));
         }
     }
 
@@ -287,25 +286,17 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter to afford fuel: %lld < %lld",
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter to afford fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
     }
 
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-        uint64_t slideWindow = 0;
-        cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-
-        uint64_t feeMedianPrice = 10000;  // boosted by 10^4
-        if (fee_symbol != SYMB::WUSD) {
-            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(fee_symbol, SYMB::USD));
-        }
-
-        int32_t txSize   = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
-        double dFeePerKb = double(feeMedianPrice) / PRICE_BOOST * (llFees - llFuel) / (txSize / 1000.0);
-        if (dFeePerKb != 0 && dFeePerKb < CBaseTx::nMinRelayTxFee) {
-            return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter in fee/kb: %.4f < %lld",
-                            dFeePerKb, CBaseTx::nMinRelayTxFee), REJECT_INVALID, "fee-too-litter-in-fee/kb");
-        }
+    int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
+    double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
+    if (feePerKb < CBaseTx::nMinRelayTxFee) {
+        uint64_t minFee = ceil(double(CBaseTx::nMinRelayTxFee) * txSize / 1000.0 + llFuel);
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter in fee/kb: %llu < %llu",
+                        llFees, minFee), REJECT_INVALID,
+                        strprintf("fee-too-litter-in-fee/kb: %llu < %llu", llFees, minFee));
     }
 
     CAccount account;

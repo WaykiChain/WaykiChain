@@ -32,10 +32,10 @@ struct CDNSSeedData {
 };
 
 typedef enum {
-    MAIN_NET,           //!< MAIN_NET
-    TEST_NET,           //!< TESTNET
-    REGTEST_NET,        //!< REGTEST_NET
-    MAX_NETWORK_TYPES   //!< MAX_NETWORK_TYPES
+    MAIN_NET            = 0,
+    TEST_NET            = 1,
+    REGTEST_NET         = 2,
+    NULL_NETWORK_TYPE   = 3
 } NET_TYPE;
 
 typedef enum {

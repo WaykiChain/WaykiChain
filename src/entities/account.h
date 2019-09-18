@@ -175,9 +175,8 @@ public:
                               vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
                               const CAccountDBCache &accountCache, vector<CReceipt> &receipts);
 
-    uint64_t GetVotedBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
-
-    uint64_t ComputeVoteStakingInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
+    uint64_t ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
+    uint64_t ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
