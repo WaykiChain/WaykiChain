@@ -36,8 +36,8 @@ src/coind
 src/coinlua
 src/Makefile.in
 src/obj
-src/ptest/CGuarantee_tests.cpp
-src/ptest/Makefile.in
+src/tests/ptest/CGuarantee_tests.cpp
+src/tests/ptest/Makefile.in
 src/stamp-h1
 src/coin_test
 GPATH
