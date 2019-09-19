@@ -120,7 +120,7 @@ coin_CORE_H = \
   rpc/rpctx.h \
   rpc/rpcvm.h \
   rpc/rpcwallet.h \
-  support/cleanse.h \
+  commons/support/cleanse.h \
   sigcache.h \
   tx/assettx.h \
   tx/accountregtx.h \
@@ -332,13 +332,13 @@ libcoin_common_a_SOURCES = \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
   persistence/logdb.cpp \
-  support/cleanse.cpp \
-  support/events.cpp \
-  sync.cpp \
-  tx/coinrewardtx.cpp \
+  commons/support/cleanse.cpp \
+  commons/support/events.cpp \
   commons/json/json_spirit_reader.cpp \
   commons/json/json_spirit_value.cpp \
   commons/json/json_spirit_writer.cpp \
+  sync.cpp \
+  tx/coinrewardtx.cpp \
   $(COIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
