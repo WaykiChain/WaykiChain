@@ -210,17 +210,17 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
     "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"};  //regtest
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
-    {
+    { //mainnet
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
     "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
     },
-    {
+    { //testnet
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
     "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
     },
-    {
+    { //regtest
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
     "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
