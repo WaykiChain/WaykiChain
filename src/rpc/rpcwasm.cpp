@@ -51,7 +51,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
                 "\ncreate a transaction of registering a contract app\n"
                 "\nArguments:\n"
                 "1.\"sender\": (string required) contract owner address from this wallet\n"
-                "2.\"contract\": (string required), contract nick_name\n"
+                "2.\"contract\": (string required), contract name\n"
                 "3.\"wasm_file\": (string required), the file path of the contract code\n"
                 "4.\"abi_file\": (string required), the file path of the contract abi\n"
                 "5.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
@@ -223,13 +223,13 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-                "callwasmcontracttx \"sender addr\" \"contract\" \"action\" \"data\" \"amount\" \"fee\" (\"height\")\n"
-                "1.\"sender addr\": (string, required) tx sender's base58 addr\n"
+                "callwasmcontracttx \"sender addr\" \"contract\" \"action\" \"data\" \"amount\" \"fee\" \n"
+                "1.\"sender \": (string, required) tx sender's base58 addr\n"
                 "2.\"contract\":   (string, required) contract name\n"
                 "3.\"action\":   (string, required) action name\n"
                 "4.\"data\":   (json string, required) action data\n"
-                "5.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
-                "6.\"fee\":         (numeric, required) pay to miner\n"
+                // "5.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
+                "5.\"fee\":         (numeric, required) pay to miner\n"
                 "\nResult:\n"
                 "\"txid\":        (string)\n"
                 "\nExamples:\n" +
@@ -239,12 +239,10 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
                 HelpExampleRpc("callcontracttx",
                                "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
         // 1.sender
-        // 2.contract(id)
+        // 2.contract
         // 3.action
         // 4.data
-        // 5.amount
-        // 6.fee
-        // 7.height
+        // 5.fee
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
@@ -284,46 +282,28 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     uint64_t action = wasm::NAME(params[2].get_str().c_str());
 
     string arguments = params[3].get_str();
-    //string arguments = json_spirit::write(params[3].get_obj());
     if (arguments.empty() || arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments empty or the size out of range");
     }
 
-    // std::cout << "callwasmcontracttx ------------------------------------------"
-    //               << " contractRegId:" << contractRegID.ToString()
-    //               << " \n";
 
     CUniversalContract contractCode;
     pCdMan->pContractCache->GetContract(contractRegID, contractCode);
 
-    //std::cout << "rpccall wasmcontracttx contractAbi:" << contractCode.code << std::endl;
     std::vector<char> data;
-
     if (contractCode.abi.size() > 0)
         try {
             data = wasm::abi_serializer::pack(contractCode.abi, wasm::name(action).to_string(), arguments,
                                               max_serialization_time);
-            //std::cout << "rpccall wasmcontracttx action data:" << ToHex(data) << std::endl;
         } catch (wasm::exception &e) {
-
             throw JSONRPCError(e.code(), e.detail());
         }
-
     else {
-        //string params = json_spirit::write(data_v);
         data.insert(data.begin(), arguments.begin(), arguments.end());
     }
 
-    //std::cout << "rpccall wasmcontracttx action data:" << ToHex(data) << std::endl;
 
-    // wasm::name issuer = wasm::name("walker");
-    // wasm::asset maximum_supply = wasm::asset{1000000000, symbol("BTC", 4)};
-    // std::vector<char> data = wasm::pack(std::tuple(issuer, maximum_supply));
-
-
-    //ComboMoney amount = RPC_PARAM::GetComboMoney(params[4], SYMB::WICC);
     ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
-
 
     uint32_t height = chainActive.Height();
 
@@ -355,9 +335,6 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
                                      action, 
                                      std::vector<permission>{{wasm::N(sender), wasmio_owner}}, 
                                      data});
-    // tx.contract = contract;
-    // tx.action = action;
-    // tx.data = data;
 
     // tx.symbol = amount.symbol;
     // tx.amount = amount.GetSawiAmount();
@@ -375,8 +352,6 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
 
     json_spirit::Value abi_v;
     json_spirit::read_string(std::get<1>(ret), abi_v);
-
-    //obj.push_back(Pair("ret", std::get<1>(ret)));
     json_spirit::Config::add(obj, "result",  abi_v);
 
     return obj;
@@ -392,7 +367,6 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
                 "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
                 "\nResult:\n"
                 "\"rows\":        (string)\n"
-                "\"last_key\":    (string)\n"
                 "\"more\":        (bool)\n"
                 "\nExamples:\n" +
                 HelpExampleCli("gettablewasmcontracttx",
@@ -403,7 +377,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         // 1.contract(id)
         // 2.table
         // 3.number
-        // 4.last_key
+        // 4.begin_key
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type));
@@ -442,15 +416,12 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     string keyPrefix;
     std::vector<char> k = wasm::pack(std::tuple(contract, table));
     keyPrefix.insert(keyPrefix.end(), k.begin(), k.end());
-    // std::cout << "rpccall gettablewasmcontracttx "
-    //       << " keyPrefix:" << ToHex(keyPrefix,"")
-    //       << std::endl;
-    //std::cout << "rpccall gettablerowwasmcontracttx 1" << std::endl;
+
     string lastKey = ""; // TODO: get last key
     if (params.size() > 3) {
         lastKey = FromHex(params[3].get_str());
     }
-    //std::cout << "rpccall gettablerowwasmcontracttx numbers:" << numbers << std::endl;
+
     auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
     if (!pGetter || !pGetter->Execute()) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
@@ -464,13 +435,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         for (auto item : pGetter->data_list) {
             last_key = pGetter->GetKey(item);
             const string &value = pGetter->GetValue(item);
-            // std::vector<uint8_t> value{
-            //                       0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-            //                       0x04,0x45,0x45,0x53,0x00,0x00,0x00,0x00,
-            //                       0x00,0xca,0x9a,0x3b,0x00,0x00,0x00,0x00,
-            //                       0x04,0x45,0x45,0x53,0x00,0x90,0x4d,0xc6,
-            //                       0x00,0x00,0x00,0x00,0x5c,0x05,0xa3,0xe1,
-            //                      };
+
             std::vector<char> row;
             row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
@@ -483,7 +448,6 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         }
 
         object.push_back(Pair("rows", vars));
-        //object.push_back(Pair("last_key", ToHex(last_key, "")));
         object.push_back(Pair("more", pGetter->has_more));
 
     } catch (wasm::exception &e) {

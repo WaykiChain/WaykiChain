@@ -82,8 +82,8 @@ namespace wasm {
         built_in_types.emplace("uint32", pack_unpack<uint32_t>());
         built_in_types.emplace("int64", pack_unpack<int64_t>());
         built_in_types.emplace("uint64", pack_unpack<uint64_t>());
-        // built_in_types.emplace("int128",                    pack_unpack<int128_t>());
-        // built_in_types.emplace("uint128",                   pack_unpack<uint128_t>());
+        built_in_types.emplace("int128", pack_unpack<int128_t>());
+        built_in_types.emplace("uint128", pack_unpack<uint128_t>());
         built_in_types.emplace("varint32", pack_unpack<wasm::signed_int>());
         built_in_types.emplace("varuint32", pack_unpack<wasm::unsigned_int>());
 

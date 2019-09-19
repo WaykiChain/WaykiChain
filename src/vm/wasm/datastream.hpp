@@ -12,6 +12,7 @@
 #include <cstring>
 #include <sstream>
 
+#include "types/types.hpp"
 #include "types/symbol.hpp"
 #include "types/varint.hpp"
 #include "types/inline_transaction.hpp"
@@ -801,6 +802,74 @@ namespace wasm {
         }
     }
 
+
+    /**
+ *  Serialize a uint128_t into a stream
+ *
+ *  @brief Serialize a uint128_t
+ *  @param ds - The stream to write
+ *  @param v - The value to serialize
+ *  @tparam DataStream - Type of datastream
+ *  @return DataStream& - Reference to the datastream
+ */
+    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    DataStream &operator<<( DataStream &ds, const uint128_t &v ) {
+
+        ds.write((const char *) &v, sizeof(uint128_t));
+        return ds;
+    }
+
+/**
+ *  Deserialize a int128_t from a stream
+ *
+ *  @brief Deserialize a int128_t
+ *  @param ds - The stream to read
+ *  @param v - The destination for deserialized value
+ *  @tparam DataStream - Type of datastream
+ *  @return DataStream& - Reference to the datastream
+ */
+    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    DataStream &operator>>( DataStream &ds, uint128_t &v ) {
+
+        ds.read((char *) &v, sizeof(uint128_t));
+        return ds;
+    }
+
+
+    /**
+ *  Serialize a uint128_t into a stream
+ *
+ *  @brief Serialize a uint128_t
+ *  @param ds - The stream to write
+ *  @param v - The value to serialize
+ *  @tparam DataStream - Type of datastream
+ *  @return DataStream& - Reference to the datastream
+ */
+    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    DataStream &operator<<( DataStream &ds, const int128_t &v ) {
+
+        ds.write((const char *) &v, sizeof(int128_t));
+        return ds;
+    }
+
+/**
+ *  Deserialize a int128_t from a stream
+ *
+ *  @brief Deserialize a int128_t
+ *  @param ds - The stream to read
+ *  @param v - The destination for deserialized value
+ *  @tparam DataStream - Type of datastream
+ *  @return DataStream& - Reference to the datastream
+ */
+    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    DataStream &operator>>( DataStream &ds, int128_t &v ) {
+
+        ds.read((char *) &v, sizeof(int128_t));
+        return ds;
+    }
+
+
+
 /**
  *  Serialize a string into a stream
  *
@@ -1109,96 +1178,6 @@ namespace wasm {
 
 
 // /**
-//  *  Serialize a flat_set
-//  *
-//  *  @brief Serialize a flat_set
-//  *  @param ds - The stream to write
-//  *  @param s - The value to serialize
-//  *  @tparam DataStream - Type of datastream
-//  *  @tparam T - Type of the value contained in the flat_set
-//  *  @return DataStream& - Reference to the datastream
-//  */
-// template<typename DataStream, typename T>
-// [[ deprecated ]]
-// DataStream& operator << ( DataStream& ds, const boost::container::flat_set<T>& s ) {
-//    ds << unsigned_int( s.size() );
-//    for( const auto& i : s ) {
-//       ds << i;
-//    }
-//    return ds;
-// }
-
-// *
-//  *  Deserialize a flat_set
-//  *
-//  *  @brief Deserialize a flat_set
-//  *  @param ds - The stream to read
-//  *  @param s - The destination for deserialized value
-//  *  @tparam DataStream - Type of datastream
-//  *  @tparam T - Type of the value contained in the flat_set
-//  *  @return DataStream& - Reference to the datastream
-
-// template<typename DataStream, typename T>
-// [[ deprecated ]]
-// DataStream& operator >> ( DataStream& ds, boost::container::flat_set<T>& s ) {
-//    s.clear();
-//    unsigned_int sz; ds >> sz;
-
-//    for( uint32_t i = 0; i < sz.value; ++i ) {
-//       T v;
-//       ds >> v;
-//       s.emplace( std::move(v) );
-//    }
-//    return ds;
-// }
-
-
-// /**
-//  *  Serialize a flat map
-//  *
-//  *  @brief Serialize a flat map
-//  *  @param ds - The stream to write
-//  *  @param m - The value to serialize
-//  *  @tparam DataStream - Type of datastream
-//  *  @tparam K - Type of the key contained in the flat map
-//  *  @tparam V - Type of the value contained in the flat map
-//  *  @return DataStream& - Reference to the datastream
-//  */
-// template<typename DataStream, typename K, typename V>
-// [[ deprecated ]]
-// DataStream& operator<<( DataStream& ds, const boost::container::flat_map<K,V>& m ) {
-//    ds << unsigned_int( m.size() );
-//    for( const auto& i : m )
-//       ds << i.first << i.second;
-//    return ds;
-// }
-
-// *
-//  *  Deserialize a flat map
-//  *
-//  *  @brief Deserialize a flat map
-//  *  @param ds - The stream to read
-//  *  @param m - The destination for deserialized value
-//  *  @tparam DataStream - Type of datastream
-//  *  @tparam K - Type of the key contained in the flat map
-//  *  @tparam V - Type of the value contained in the flat map
-//  *  @return DataStream& - Reference to the datastream
-
-// template<typename DataStream, typename K, typename V>
-// [[ deprecated ]]
-// DataStream& operator>>( DataStream& ds, boost::container::flat_map<K,V>& m ) {
-//    m.clear();
-//    unsigned_int s; ds >> s;
-
-//    for( uint32_t i = 0; i < s.value; ++i ) {
-//       K k; V v;
-//       ds >> k >> v;
-//       m.emplace( std::move(k), std::move(v) );
-//    }
-//    return ds;
-// }
-
-// /**
 //  *  Serialize a tuple
 //  *
 //  *  @brief Serialize a tuple
@@ -1258,34 +1237,6 @@ namespace wasm {
 
         return ds;
     }
-
-// template<typename DataStream, typename... Args>
-// DataStream& operator<<( DataStream& ds, const std::tuple<Args...>& t ) {
-//    boost::fusion::for_each( t, [&]( const auto& i ) {
-//        ds << i;
-//    });
-
-//    return ds;
-// }
-
-/**
- *  Deserialize a tuple
- *
- *  @brief Deserialize a tuple
- *  @param ds - The stream to read
- *  @param t - The destination for deserialized value
- *  @tparam DataStream - Type of datastream
- *  @tparam Args - Type of the objects contained in the tuple
- *  @return DataStream& - Reference to the datastream
- */
-// template<typename DataStream, typename... Args>
-// DataStream& operator>>( DataStream& ds, std::tuple<Args...>& t ) {
-//    boost::fusion::for_each( t, [&]( auto& i ) {
-//        ds >> i;
-//    });
-
-//    return ds;
-// }
 
 // // *
 // //  *  Serialize a class

@@ -352,7 +352,7 @@ namespace wasm {
       vo = (unsigned __int128)tmp;
    }
 */
-} // namespace fc
+} // namespace 
 
 
 /*

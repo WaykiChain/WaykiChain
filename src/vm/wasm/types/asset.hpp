@@ -166,10 +166,10 @@ namespace wasm {
          * @post The amount of this asset is multiplied by a
          */
         asset &operator*=( int64_t a ) {
-            int64_t tmp = amount * a;
-            //int128_t tmp = (int128_t)amount * (int128_t)a;
-            //check( tmp <= max_amount, "multiplication overflow" );
-            //check( tmp >= -max_amount, "multiplication underflow" );
+            //int64_t tmp = amount * a;
+            int128_t tmp = (int128_t)amount * (int128_t)a;
+            check( tmp <= max_amount, "multiplication overflow" );
+            check( tmp >= -max_amount, "multiplication underflow" );
             amount = (int64_t) tmp;
             return *this;
         }

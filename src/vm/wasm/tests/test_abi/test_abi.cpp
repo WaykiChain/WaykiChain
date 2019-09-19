@@ -1189,6 +1189,12 @@ void general() {
          "name": "uint64_arr",
          "type": "uint64[]"
       },{
+         "name": "uint128",
+         "type": "uint128"
+      },{
+         "name": "uint128_arr",
+         "type": "uint128[]"
+      },{
          "name": "int8",
          "type": "int8"
       },{
@@ -1212,6 +1218,12 @@ void general() {
       },{
          "name": "int64_arr",
          "type": "int64[]"
+      },{
+         "name": "int128",
+         "type": "int128"
+      },{
+         "name": "int128_arr",
+         "type": "int128[]"
       },{
          "name": "name",
          "type": "name"
@@ -1287,6 +1299,8 @@ void general() {
       "uint32_arr"        : [32,33],
       "uint64"            : 64,
       "uint64_arr"        : [64,65],
+      "uint128"           : 128,
+      "uint128_arr"       : ["0x00000000000000000000000000000080",129],
       "int8"              : 108,
       "int8_arr"          : [108,109],
       "int16"             : 116,
@@ -1295,6 +1309,8 @@ void general() {
       "int32_arr"         : [132,133],
       "int64"             : 164,
       "int64_arr"         : [164,165],
+      "int128"            : -128,
+      "int128_arr"        : ["0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF80",-129],
       "name"              : "xname1",
       "name_arr"          : ["xname2","xname3"],
       "field"             : {"name":"name1", "type":"type1"},
@@ -1349,6 +1365,9 @@ void general() {
 
     vector<char> data = wasm::abi_serializer::pack(my_abi, "A", my_other, max_serialization_time);
     json_spirit::Value value = wasm::abi_serializer::unpack(my_abi, "A", data, max_serialization_time);
+
+    //WASM_TRACE("%s", json_spirit::write(value).c_str())
+    std::cout << json_spirit::write(value) << std::endl;
 
     WASM_TEST(json_spirit::write(v) == json_spirit::write(value), "general")
 }
@@ -1425,27 +1444,27 @@ void abi_token() {
 int main( int argc, char **argv ) {
 
     general();
-    abi_token();
-    version();
-    abi_cycle();
-    abi_type_repeat();
-    abi_struct_repeat();
-    abi_action_repeat();
-    abi_table_repeat();
-    abi_type_def();
-    abi_type_redefine();
-    abi_type_redefine_to_name();
-    abi_type_nested_in_vector();
-    abi_large_array();
-    abi_is_type_recursion();
-    abi_recursive_structs();
-    abi_very_deep_structs();
-    abi_very_deep_structs_1us();
-    abi_deep_structs_validate();
-    abi_serialize_incomplete_json_array();
-    abi_serialize_incomplete_json_object();
-    abi_serialize_json_mismatching_type();
-    abi_serialize_json_empty_name();
+    // abi_token();
+    // version();
+    // abi_cycle();
+    // abi_type_repeat();
+    // abi_struct_repeat();
+    // abi_action_repeat();
+    // abi_table_repeat();
+    // abi_type_def();
+    // abi_type_redefine();
+    // abi_type_redefine_to_name();
+    // abi_type_nested_in_vector();
+    // abi_large_array();
+    // abi_is_type_recursion();
+    // abi_recursive_structs();
+    // abi_very_deep_structs();
+    // abi_very_deep_structs_1us();
+    // abi_deep_structs_validate();
+    // abi_serialize_incomplete_json_array();
+    // abi_serialize_incomplete_json_object();
+    // abi_serialize_json_mismatching_type();
+    // abi_serialize_json_empty_name();
 
     return 0;
 

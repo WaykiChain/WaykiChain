@@ -5,12 +5,14 @@
 #include "wasm/types/varint.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
+// #include "wasm/types/inline_transaction.hpp"
 #include "json/json_spirit.h"
 #include "json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
+// #include "wasm/wasm_trace.hpp"
 
 namespace wasm {
     using namespace json_spirit;
@@ -100,6 +102,48 @@ namespace wasm {
         v = wasm::variant(str);
     }
 
+    static inline void to_variant( const int128_t &t, wasm::variant &v ) {
+
+        bool is_negative = ( t < 0);
+        uint128_t val_magnitude;
+        if (is_negative)
+            val_magnitude = static_cast<uint128_t>(-t); // Works even if val is at the lowest possible value of a int128_t
+        else
+            val_magnitude = static_cast<uint128_t>(t);  
+
+        uint128 u(val_magnitude);
+
+        if(! is_negative){
+            if(u.hi == 0){
+                v = wasm::variant(u.lo);
+                return;           
+            }
+            v = wasm::variant(string(u));
+            return;
+        } else {
+            if(u.hi == 0){
+                int64_t lo = u.lo;
+                v = wasm::variant(-lo);
+                return;           
+            }
+            v = wasm::variant("-" + string(u));
+            return;
+        }
+
+    }
+
+    static inline void to_variant( const uint128_t &t, wasm::variant &v ) {
+        uint128 u(t);
+
+        if(u.hi == 0){
+           v = wasm::variant(u.lo);
+           return;
+        }
+
+        v = wasm::variant(string(u));
+    }
+
+
     static inline void to_variant( const wasm::signed_int &t, wasm::variant &v ) {
         v = wasm::variant(static_cast< int64_t >(t));
     }
@@ -145,6 +189,7 @@ namespace wasm {
         v = wasm::variant();
     }
 
+
     static inline void to_variant( const wasm::symbol_code &t, wasm::variant &v ) {
         v = wasm::variant(t.to_string());
 
@@ -180,6 +225,36 @@ namespace wasm {
             t.insert(t.begin(), str.begin(), str.end());
         }
     }
+
+    static inline void from_variant( const wasm::variant &v, wasm::int128_t &t ) {
+
+        if (v.type() == json_spirit::str_type) {
+            string str = v.get_str();
+            
+            bool is_negative = (str[0] == '-') ? true:false;
+            if (is_negative)
+                str.substr(1, str.size()-1);
+            uint128 u(str);
+            t = is_negative? (-wasm::uint128_t(u)) : wasm::uint128_t(u);
+
+        } else if (v.type() == json_spirit::int_type) {
+            t = static_cast< wasm::int128_t >(v.get_int64());
+        }
+
+    }
+
+    static inline void from_variant( const wasm::variant &v, wasm::uint128_t &t ) {
+
+        if (v.type() == json_spirit::str_type) {
+            string str = v.get_str();
+            uint128 u(str);
+            t = wasm::uint128_t(u);
+        } else if (v.type() == json_spirit::int_type) {
+            t = static_cast< wasm::uint128_t >(v.get_uint64());
+        }
+
+    }
+    
 
     static inline void from_variant( const wasm::variant &v, wasm::signed_int &t ) {
         if (v.type() == json_spirit::int_type) {
@@ -241,7 +316,6 @@ namespace wasm {
         from_variant(v, t);
         opt = t;
     }
-
 
     static inline void from_variant( const wasm::variant &v, wasm::symbol_code &t ) {
         if (v.type() == json_spirit::str_type) {

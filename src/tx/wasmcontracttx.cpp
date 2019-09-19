@@ -29,8 +29,6 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
     to_variant(wasm::name(t.account), val);
     json_spirit::Config::add(obj, "account", val);
 
-    //std::cout << "permission" << std::endl;
-
     to_variant(wasm::name(t.perm), val);
     json_spirit::Config::add(obj, "permission", val);
 
@@ -39,9 +37,6 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
 
     
 static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v ) {
-    //v = json_spirit::Value(t.to_string());
-
-    //std::cout << "inline_transaction" << std::endl;
 
     json_spirit::Object obj;
 
@@ -65,7 +60,6 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     pCdMan->pContractCache->GetContract(wasm::Name2RegID(t.contract), contract);
 
     if (contract.abi.size() > 0) {
-        //std::cout << "inline_transaction abi" << std::endl;
         val = wasm::abi_serializer::unpack(contract.abi, wasm::name(t.action).to_string(), t.data,
                                            max_serialization_time);
     } else
@@ -78,8 +72,6 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
 
 
 static inline void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v ) {
-
-    //std::cout << "inline_transaction_trace" << std::endl;
 
     json_spirit::Object obj;
 
@@ -97,8 +89,6 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
     json_spirit::Config::add(obj, "console", val);
 
     if (t.inline_traces.size() > 0) {
-        // to_variant(t.inline_traces, val);
-        // json_spirit::Config::add(obj, "inline_traces", val);
         json_spirit::Array arr;
         for (const auto &trace :t.inline_traces) {
             json_spirit::Value tmp;
@@ -124,9 +114,6 @@ static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Va
     json_spirit::Config::add(obj, "trx_id", val);
 
     if (t.traces.size() > 0) {
-
-        //to_variant(t.traces, val);
-        //json_spirit::Config::add(obj, "traces",  json_spirit::Value(val));
         json_spirit::Array arr;
         for (const auto &trace :t.traces) {
             json_spirit::Value tmp;
@@ -195,17 +182,10 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
 
         for (auto trx: inlinetransactions) {
 
-            // std::cout << "CWasmContractTx ExecuteTx"
-            //           << " contract:" << wasm::name(trx.contract).to_string()
-            //           << " action:" << wasm::name(trx.action).to_string()
-            //           << " data:" << ToHex(trx.data)
-            //           << " \n";
-
             trx_trace.traces.emplace_back();
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         }
 
-        //std::cout << "CWasmContractTx ExecuteTx" <<std::endl;
         json_spirit::Value v;
         to_variant(trx_trace, v);
         state.SetReturn(json_spirit::write(v));
@@ -224,8 +204,6 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace 
                                                  CCacheWrapper &cache,
                                                  CValidationState &state,
                                                  uint32_t recurse_depth ) {
-
-    //std::cout << "DispatchInlineTransaction ----------------------------"<< " \n";
 
     CWasmContext wasmContext(*this, trx, cache, state, recurse_depth);
     wasmContext.receiver = receiver;
@@ -263,7 +241,6 @@ string CWasmContractTx::ToString( CAccountDBCache &accountCache ) {
 
 Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
     Object object;
-    //CAccountDBCache clone(accountCache);
 
     CKeyID senderKeyId;
     accountCache.GetKeyId(txUid, senderKeyId);
