@@ -175,17 +175,18 @@ uint32_t G_CONFIG_TABLE::GetMaxVoteCandidateNum() const { return MaxVoteCandidat
 // BaseCoin name
 string G_CONFIG_TABLE::COIN_NAME = "WaykiChain";
 
-
-vector<string> G_CONFIG_TABLE::initPubKey[] = [{
-// Public Key for mainnet
-    "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a",
-    "0226d8c242052560b3ec7c75d45ba3a8cb187ff2c21a9e96cb8755eeefd50bcdca"},{
-// Public Key for testnet
-    "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3",
-    "025fa44ce081c3b4f34982a86e85e474fca1d98bbb6da612e097c9e7041208f11a"},{
-// Public Key for regtest
-    "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8",
-    "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"}];
+vector<string> G_CONFIG_TABLE::initPubKey[3] = {
+    { // Public Key for mainnet
+        "037671de4799dbf919effa034bbcaadd78c8a942adeebe7d71155304979a02802a",
+        "0226d8c242052560b3ec7c75d45ba3a8cb187ff2c21a9e96cb8755eeefd50bcdca"
+    }, { // Public Key for testnet
+        "037de11ea5def6393f45c2461c6f55e6e5cda831545324c63fc5c04409d459a5b3",
+        "025fa44ce081c3b4f34982a86e85e474fca1d98bbb6da612e097c9e7041208f11a"
+    }, { // Public Key for regtest
+        "03b2299425981d6c2ec382cda999e604eb06b2b0f387f4b8500519c44d143cd2a8",
+        "036c5397f3227a1e209952829d249b7ad0f615e43b763ac15e3a6f52627a10df21"
+    }
+};
 
 // Initial delegates' public keys for mainnet
 vector<string> G_CONFIG_TABLE::delegatePubKey_mainNet = {
@@ -237,26 +238,26 @@ string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49
 string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
 // Gensis Block Hash
-string G_CONFIG_TABLE::genesisBlockHash[3] = [
+string G_CONFIG_TABLE::genesisBlockHash[3] = {
     "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",  //mainnet
     "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594",  //testnet
-    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"]; //regtest
+    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"}; //regtest
 
 // Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
 // TODO: replace public key.
 // Public key for initial fund coin owner
-string G_CONFIG_TABLE::initFcoinOwnerPubKey[3] = [
+string G_CONFIG_TABLE::initFcoinOwnerPubKey[3] = {
     "028593c9bf1fee77085f5164ba5a8c385e7c3710de2fd8fa1d00748a1469b2176f",   //mainnet
     "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5",   //testnet
-    "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5"];  //regtest
+    "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5"};  //regtest
 
 // Public Key for DEX order-matching service
-string G_CONFIG_TABLE::dexMatchPubKey[3] = [
+string G_CONFIG_TABLE::dexMatchPubKey[3] = {
     "03c89c66ee32e26ee2c1bf624dc01d6d3e8eb9a09d0a0c86383944871054c1fcc6",   //mainnet
     "021be050c7e67004dc494f52ca81ff7c100a7e8b527b1c5c18091c3ad7065c4d94",   //testnet
-    "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"];  //regtest
+    "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"};  //regtest
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_mainNet = {
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
