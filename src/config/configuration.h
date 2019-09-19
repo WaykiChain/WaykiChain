@@ -66,7 +66,7 @@ private:
     static string delegateSignature[3];
 
     /* gensis block hash */
-    static string genesisBlockHash[];
+    static string genesisBlockHash[3];
 
     /* alert public key */
     static string AlertPK_MainNet;
@@ -76,10 +76,10 @@ private:
     static string MerkleRootHash;
 
     /* fund coin initial owner public key */
-    static string initFcoinOwnerPubKey[];
+    static string initFcoinOwnerPubKey[3];
 
     /* DEX order-matching service's public key */
-    static string dexMatchPubKey[];
+    static string dexMatchPubKey[3];
 
     /* txids in stable coin genesis */
     static vector<string> stableCoinGenesisTxid[3];
