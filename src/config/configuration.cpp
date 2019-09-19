@@ -136,14 +136,8 @@ uint32_t G_CONFIG_TABLE::GetRPCPort(const NET_TYPE type) const {
 }
 
 uint32_t G_CONFIG_TABLE::GetStartTimeInit(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return StartTime_mainNet;
-        case TEST_NET: return StartTime_testNet;
-        case REGTEST_NET: return StartTime_regtestNet;
-        default: assert(0);
-    }
-
-    return 0;
+    assert(type >= 0 && type < 3);
+    return StartTime[type];
 }
 
 uint32_t G_CONFIG_TABLE::GetTotalDelegateNum() const { return TotalDelegateNum; }
@@ -279,9 +273,7 @@ uint32_t G_CONFIG_TABLE::nRPCPort[2] = { 18900 /*main*/, 18901 /*test*/};
 uint32_t G_CONFIG_TABLE::nUIPort[2] = { 4245 /*main*/, 4246 /*test*/};
 
 // Blockchain Start Time
-uint32_t G_CONFIG_TABLE::StartTime_mainNet    = 1525404897;
-uint32_t G_CONFIG_TABLE::StartTime_testNet    = 1505401100;
-uint32_t G_CONFIG_TABLE::StartTime_regtestNet = 1504305600;
+uint32_t G_CONFIG_TABLE::StartTime[3]  = { 1525404897 /*main*/, 1505401100 /*test*/, 1504305600 /*regtest*/};
 
 // Initial Coin
 uint64_t G_CONFIG_TABLE::InitialCoin = INITIAL_BASE_COIN_AMOUNT;  // 210 million

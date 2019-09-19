@@ -106,9 +106,7 @@ private:
     static uint32_t nUIPort[2];
 
     /* Start Time */
-    static uint32_t StartTime_mainNet;
-    static uint32_t StartTime_testNet;
-    static uint32_t StartTime_regtestNet;
+    static uint32_t StartTime[3];
 
     /* Initial Coin */
     static uint64_t InitialCoin;
