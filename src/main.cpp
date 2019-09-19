@@ -1184,9 +1184,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.accountCache.GetBestBlock()) {
-            LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
+            LogPrint("INFO", "currentblockhash=%s, hashPrevBlock=%s, bestblock=%s\n", block.GetHash().GetHex(),hashPrevBlock.GetHex(),
                      cw.accountCache.GetBestBlock().GetHex());
 
+            //return state.DoS(100, ERRORMSG("ConnectBlock() : prevblock is error"), REJECT_INVALID, "connect-block-error");
             assert(hashPrevBlock == cw.accountCache.GetBestBlock());
         }
     }
