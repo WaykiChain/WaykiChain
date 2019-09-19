@@ -401,7 +401,7 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
 	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) share/qt/extract_strings_qt.py
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = persistence/leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = config/build.h
 
@@ -410,4 +410,4 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C leveldb clean
-	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
+	rm -f persistence/leveldb/*/*.gcno persistence/leveldb/helpers/memenv/*.gcno

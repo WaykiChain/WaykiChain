@@ -19,16 +19,16 @@ static CUserID nullId;
 //       -----------------              ----------  ----------------------------
 #define RECEIPT_CODE_LIST(DEFINE) \
     /**** reward */ \
-    DEFINE(BLOCK_REWORD_TO_MINER,            101, "block reward to miner") \
-    DEFINE(COIN_BLOCK_REWORD_TO_MINER,       102, "coin block reward to miner") \
-    DEFINE(COIN_BLOCK_INFLATE,               103, "inflate coins to user of tx") \
+    DEFINE(BLOCK_REWORD_TO_MINER,               101, "block reward to miner") \
+    DEFINE(COIN_BLOCK_REWORD_TO_MINER,          102, "coin block reward to miner") \
+    DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
     /**** transfer */ \
-    DEFINE(TRANSFER_FEE_TO_RISK_RISERVE,     201, "transferred fee to risk riserve") \
-    DEFINE(TRANSFER_ACTUAL_COINS,            202, "actual transferred coins") \
+    DEFINE(TRANSFER_FEE_TO_RISK_RISERVE,        201, "transferred fee to risk riserve") \
+    DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
     /**** delegate */ \
-    DEFINE(DELEGATE_ADD_VOTE,                301, "delegate add votes") \
-    DEFINE(DELEGATE_SUB_VOTE,                302, "delegate sub votes") \
-    DEFINE(DELEGATE_VOTE_INTEREST,           303, "delegate vote interest") \
+    DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
+    DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \
+    DEFINE(DELEGATE_VOTE_INTEREST,              303, "delegate vote interest") \
     /**** CDP */ \
     DEFINE(CDP_SCOIN_FROM_LIQUIDATOR,           401, "cdp scoins to liquidator") \
     DEFINE(CDP_ASSET_TO_LIQUIDATOR,             402, "cdp assets to liquidator") \
@@ -60,7 +60,7 @@ static CUserID nullId;
     DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner")
 
 #define DEFINE_RECEIPT_CODE_TYPE(enumType, code, enumName) enumType = code,
-enum class ReceiptCode: uint32_t {
+enum ReceiptCode: uint16_t {
     RECEIPT_CODE_LIST(DEFINE_RECEIPT_CODE_TYPE)
 };
 
@@ -95,7 +95,7 @@ public:
         READWRITE(to_uid);
         READWRITE(coin_symbol);
         READWRITE(VARINT(coin_amount));
-        READWRITE(VARINT((uint32_t&)code));
+        READWRITE((uint16_t&) code);
     )
 
     json_spirit::Object ToJson() const {
