@@ -57,8 +57,8 @@ bool CCoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     if (!account.OperateBalance(coin_symbol, stake_type, coin_amount)) {
-        return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, insufficient fcoins to stake in txUid(%s)",
-                    txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-amount");
+        return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, insufficient coins to stake in txUid(%s)",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin-amount");
     }
 
     if (!cw.accountCache.SaveAccount(account))
