@@ -230,9 +230,8 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
                 CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-                receipts.emplace_back(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins,
-                                    "send friction fees into risk riserve");
-                receipts.emplace_back(txUid, transfer.to_uid, SYMB::WUSD, actualCoinsToSend, "actual transfer coins");
+                receipts.emplace_back(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RISK_RISERVE);
+                receipts.emplace_back(txUid, transfer.to_uid, SYMB::WUSD, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS);
             }
         }
 

@@ -288,9 +288,9 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
         }
 
         if (operate.opType == BalanceOpType::ADD_FREE) {
-            receipts.emplace_back(nullId, uid, SYMB::WICC, value, "operate ADD_FREE bcoins of account in contract");
+            receipts.emplace_back(nullId, uid, SYMB::WICC, value, ReceiptCode::CONTRACT_ACCOUNT_OPERATE_ADD);
         } else if (operate.opType == BalanceOpType::SUB_FREE) {
-            receipts.emplace_back(uid, nullId, SYMB::WICC, value, "operate SUB_FREE bcoins of account in contract");
+            receipts.emplace_back(uid, nullId, SYMB::WICC, value, ReceiptCode::CONTRACT_ACCOUNT_OPERATE_SUB);
         }
 
         if (!p_context->p_cw->accountCache.SetAccount(pAccount->keyid, *pAccount)) {
@@ -373,8 +373,7 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
             ret = false; break;
         }
 
-        receipts.emplace_back(fromUid, transfer.toUid, transfer.tokenType, transfer.tokenAmount,
-            "transfer account asset in contract");
+        receipts.emplace_back(fromUid, transfer.toUid, transfer.tokenType, transfer.tokenAmount, ReceiptCode::CONTRACT_ACCOUNT_TRANSFER_ASSET);
 
         if (isNewAccount) {
             LUA_BurnAccount(L, FUEL_ACCOUNT_NEW, BURN_VER_R2);

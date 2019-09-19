@@ -379,8 +379,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
                 newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
-        CReceipt receipt(regid, nullId, SYMB::WICC, addedVotes, "sub free bcoins for increasing votes");
-        receipts.push_back(receipt);
+        receipts.emplace_back(regid, nullId, SYMB::WICC, addedVotes, ReceiptCode::DELEGATE_SUB_VOTE);
     } else if (newTotalVotes < lastTotalVotes) {
         uint64_t subVotes = lastTotalVotes - newTotalVotes;
         if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes)) {
@@ -389,8 +388,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
                 newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
-        CReceipt receipt(nullId, regid, SYMB::WICC, subVotes, "add free bcoins due to revoking votes");
-        receipts.push_back(receipt);
+        receipts.emplace_back(nullId, regid, SYMB::WICC, subVotes, ReceiptCode::DELEGATE_ADD_VOTE);
     } // else newTotalVotes == lastTotalVotes // do nothing
 
     // collect inflated bcoins or fcoins
@@ -401,8 +399,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 return false;
 
             OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate);
-            CReceipt receipt(nullId, regid, SYMB::WICC, bcoinAmountToInflate, "inflate bcoin due to voting interest");
-            receipts.push_back(receipt);
+            receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
 
             LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %lld\n",
                     regid.ToString(), bcoinAmountToInflate);
@@ -414,8 +411,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
             if (fcoinAmountToInflate > 0) {
                 OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate);
-                CReceipt receipt(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, "inflate fcoin due to voting interest");
-                receipts.push_back(receipt);
+                receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
 
                 LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %lld\n",
                     regid.ToString(), fcoinAmountToInflate);
