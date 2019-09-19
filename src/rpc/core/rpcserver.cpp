@@ -14,7 +14,7 @@
 #include <boost/algorithm/string.hpp>
 #include <memory>
 #include "wallet/wallet.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "httpserver.h"
 #include "rpc/rpcvm.h"
 

@@ -11,7 +11,7 @@
 
 #include <stdint.h>
 
-#include "compat/byteswap.h"
+#include "byteswap.h"
 
 #if defined(HAVE_CONFIG_H)
 #include "config/coin-config.h"

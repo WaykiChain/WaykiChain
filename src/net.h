@@ -12,7 +12,7 @@
 #include "commons/random.h"
 #include "commons/uint256.h"
 #include "commons/util.h"
-#include "compat/compat.h"
+#include "commons/compat/compat.h"
 #include "crypto/hash.h"
 #include "netbase.h"
 #include "protocol.h"

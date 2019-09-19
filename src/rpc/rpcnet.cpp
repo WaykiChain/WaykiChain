@@ -12,7 +12,7 @@
 #include "commons/util.h"
 #include "tx/blockrewardtx.h"
 
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_value.h"
 
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>

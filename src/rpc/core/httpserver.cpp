@@ -7,7 +7,7 @@
 #include "commons/util.h"
 
 #include "config/chainparams.h"
-#include <compat/compat.h>
+#include "commons/compat/endian.h"
 #include <commons/util.h>
 #include <netbase.h>
 #include <init.h>

@@ -12,7 +12,7 @@
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "CBlackHalo_tests.h"
 #include "./rpc/core/rpcclient.h"
 

@@ -19,9 +19,9 @@
 #include "main.h"
 
 #include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_reader.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_reader.h"
 
 #define revert(height) ((height<<24) | (height << 8 & 0xff0000) |  (height>>8 & 0xff00) | (height >> 24))
 
@@ -128,7 +128,7 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
 
     if (!txUid.is<CRegID>())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid not exist or immature");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid does not exist or immature");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
@@ -183,7 +183,7 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 
     string arguments = ParseHexStr(params[2].get_str());
     if (arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size is out of range");
     }
 
     int64_t amount      = AmountToRawValue(params[3]);
@@ -270,7 +270,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
         }
         CAccount delegateAcct;
         if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address is not exist");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address does not exist");
         }
         if (!delegateAcct.HaveOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Delegate address is unregistered");
@@ -318,7 +318,7 @@ Value submituniversalcontractdeploytx(const Array& params, bool fHelp) {
     string memo           = params.size() > 4 ? params[4].get_str() : "";
 
     if (!txUid.is<CRegID>())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid not exist or immature");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid does not exist or immature");
 
     if (memo.size() > MAX_CONTRACT_MEMO_SIZE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
@@ -380,7 +380,7 @@ Value submituniversalcontractcalltx(const Array& params, bool fHelp) {
 
     string arguments = ParseHexStr(params[2].get_str());
     if (arguments.size() >= MAX_CONTRACT_ARGUMENT_SIZE) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size out of range");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments's size is out of range");
     }
 
     ComboMoney cmCoin   = RPC_PARAM::GetComboMoney(params[3], SYMB::WICC);

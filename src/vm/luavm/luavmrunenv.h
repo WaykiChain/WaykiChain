@@ -14,9 +14,9 @@
 #include "persistence/leveldbwrapper.h"
 #include "persistence/cachewrapper.h"
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
 
 #include <memory>
 
