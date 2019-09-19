@@ -321,7 +321,7 @@ Value getscoininfo(const Array& params, bool fHelp){
     uint64_t globalOwedScoins   = 0;
     pCdMan->pCdpCache->cdpMemCache.GetGlobalItem(globalStakedBcoins, globalOwedScoins);
 
-    bool global_collateral_ceiling_reached = globalStakedBcoins > globalCollateralCeiling * COIN;
+    bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
 
     set<CUserCDP> forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
