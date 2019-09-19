@@ -275,7 +275,7 @@ vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {
     {135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}};
 
 // Default P2P Port
-uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /* mainnet */, 18920 /*testnet*/, 18921 /*regtest*/ };
+uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };
 
 // Default RPC Port
 uint32_t G_CONFIG_TABLE::nRPCPort_mainNet = 18900;
