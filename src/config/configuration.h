@@ -55,9 +55,7 @@ private:
     static string COIN_NAME; /* basecoin name */
 
     /* initial public key */
-    static vector<string> initPubKey_mainNet;
-    static vector<string> initPubKey_testNet;
-    static vector<string> initPubkey_regtestNet;
+    static vector<string> initPubKey[];
 
     /* delegate public key */
     static vector<string> delegatePubKey_mainNet;
@@ -70,7 +68,7 @@ private:
     static string delegateSignature_regtestNet;
 
     /* gensis block hash */
-    static string genesisBlockHash;
+    static string genesisBlockHash[];
 
     /* alert public key */
     static string AlertPK_MainNet;
@@ -80,12 +78,10 @@ private:
     static string MerkleRootHash;
 
     /* fund coin initial owner public key */
-    static string initFcoinOwnerPubKey_mainNet;
-    static string initFcoinOwnerPubKey_testNet;
-    static string initFcoinOwnerPubkey_regtestNet;
+    static string initFcoinOwnerPubKey[];
 
     /* DEX order-matching service's public key */
-    static string dexMatchPubKey;
+    static string dexMatchPubKey[];
 
     /* txids in stable coin genesis */
     static vector<string> stableCoinGenesisTxid_mainNet;
