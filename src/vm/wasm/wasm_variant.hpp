@@ -158,7 +158,14 @@ namespace wasm {
 
     template<typename T, std::enable_if_t <std::is_floating_point<T>::value> * = nullptr>
     static inline void to_variant( const T &t, wasm::variant &v ) {
+
         v = wasm::variant(t);
+
+        // std::ostringstream o;
+        // o.precision(std::numeric_limits<float>::digits10);
+        // o << t;
+        // WASM_TRACE("%s",o.str().c_str())
+
     }
 
     template<typename T, std::enable_if_t <std::is_integral<T>::value> * = nullptr>
@@ -277,8 +284,13 @@ namespace wasm {
 
     template<typename T, std::enable_if_t <std::is_floating_point<T>::value> * = nullptr>
     static inline void from_variant( const wasm::variant &v, T &t ) {
-        if (v.type() == json_spirit::int_type) {
+        if (v.type() == json_spirit::real_type) {
             t = v.get_real();
+
+            std::ostringstream o;
+            o.precision(std::numeric_limits<float>::digits10);
+            o << t;
+            WASM_TRACE("%s",o.str().c_str())
         }
     }
 
