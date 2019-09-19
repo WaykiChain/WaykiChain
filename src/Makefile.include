@@ -1,14 +1,14 @@
 if EMBEDDED_LEVELDB
-LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/include
-LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/leveldb/helpers/memenv
-LIBLEVELDB += leveldb/libleveldb.a
-LIBMEMENV  += leveldb/libmemenv.a
+LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/persistence/leveldb/include
+LEVELDB_CPPFLAGS += -I$(top_srcdir)/src/persistence/leveldb/helpers/memenv
+LIBLEVELDB += persistence/leveldb/libleveldb.a
+LIBMEMENV  += persistence/leveldb/libmemenv.a
 endif
 AM_CPPFLAGS =  $(INCLUDES) \
   -I$(top_builddir)/src/obj \
   $(BDB_CPPFLAGS) \
   $(BOOST_CPPFLAGS) $(BOOST_INCLUDES)
-  
+
 #  AM_CPPFLAGS += -fPIC
 
 #  $(BOOST_CPPFLAGS) $(BOOST_INCLUDES) -fPIC

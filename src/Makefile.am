@@ -120,7 +120,7 @@ coin_CORE_H = \
   rpc/rpctx.h \
   rpc/rpcvm.h \
   rpc/rpcwallet.h \
-  support/cleanse.h \
+  commons/support/cleanse.h \
   sigcache.h \
   tx/assettx.h \
   tx/accountregtx.h \
@@ -332,13 +332,13 @@ libcoin_common_a_SOURCES = \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
   persistence/logdb.cpp \
-  support/cleanse.cpp \
-  support/events.cpp \
-  sync.cpp \
-  tx/coinrewardtx.cpp \
+  commons/support/cleanse.cpp \
+  commons/support/events.cpp \
   commons/json/json_spirit_reader.cpp \
   commons/json/json_spirit_value.cpp \
   commons/json/json_spirit_writer.cpp \
+  sync.cpp \
+  tx/coinrewardtx.cpp \
   $(COIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
@@ -392,7 +392,7 @@ endif
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
 
-leveldb/%.a:
+persistence/leveldb/%.a:
 	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
 	  CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
 	  OPT="$(CXXFLAGS) $(CPPFLAGS)"
@@ -401,7 +401,7 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
 	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) share/qt/extract_strings_qt.py
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = persistence/leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = config/build.h
 
@@ -410,4 +410,4 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C leveldb clean
-	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
+	rm -f persistence/leveldb/*/*.gcno persistence/leveldb/helpers/memenv/*.gcno

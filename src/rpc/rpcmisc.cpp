@@ -15,7 +15,6 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 
-
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
@@ -101,13 +100,12 @@ Value getinfo(const Array& params, bool fHelp) {
     ProxyType proxy;
     GetProxy(NET_IPV4, proxy);
     static const string fullVersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    static const string netType[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
 
     Object obj;
     obj.push_back(Pair("version",               CLIENT_VERSION));
     obj.push_back(Pair("full_version",          fullVersion));
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
-    obj.push_back(Pair("net_type",              netType[SysCfg().NetworkID()]));
+    obj.push_back(Pair("net_type",              NetTypeNames[SysCfg().NetworkID()]));
     obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
     obj.push_back(Pair("ext_ip",                externalIp));
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));

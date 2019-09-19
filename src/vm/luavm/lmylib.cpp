@@ -549,8 +549,9 @@ static bool ParseUidInTable(lua_State *L, const char *pKey, AccountType uidType,
         CKeyID keyid;
         CCoinAddress coinAddress;
         string addrStr(accountBuf.begin(), accountBuf.end());
-        if (!coinAddress.SetString(addrStr) && !coinAddress.GetKeyId(keyid)) {
-            LogPrint("vm","ParseUidInTable(), %s is invalid keyid! value(hex)=%s\n", pKey, HexStr(accountBuf));
+        if (!coinAddress.SetString(addrStr) || !coinAddress.GetKeyId(keyid) || keyid.IsEmpty()) {
+            LogPrint("vm","ParseUidInTable(), %s is invalid keyid! keyid=%s, hex=%s\n", pKey,
+                addrStr, HexStr(accountBuf));
         }
         uid = keyid;
     }

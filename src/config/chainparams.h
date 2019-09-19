@@ -78,7 +78,7 @@ protected:
 public:
     virtual ~CBaseParams() {}
 
-    virtual bool InitialConfig() {
+    virtual bool InitializeConfig() {
         fServer = GetBoolArg("-rpcserver", false);
 
         m_mapMultiArgs["-debug"].push_back("ERROR");  // Enable ERROR logger by default

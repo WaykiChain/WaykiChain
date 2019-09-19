@@ -496,7 +496,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
         }
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        receipts.emplace_back(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, "send fuel into risk riserve");
+        receipts.emplace_back(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RISERVE);
     }
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))

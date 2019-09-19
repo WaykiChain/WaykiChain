@@ -90,7 +90,7 @@ OBJS = 	vm/lmylib.o \
 		keystore.o \
 		random.o \
 		wallet/db.o \
-		support/cleanse.o \
+		commons/support/cleanse.o \
 
 RESOBJ = mylib.o
 

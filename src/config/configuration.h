@@ -55,9 +55,7 @@ private:
     static string COIN_NAME; /* basecoin name */
 
     /* initial public key */
-    static vector<string> initPubKey_mainNet;
-    static vector<string> initPubKey_testNet;
-    static vector<string> initPubkey_regtestNet;
+    static vector<string> initPubKey[];
 
     /* delegate public key */
     static vector<string> delegatePubKey_mainNet;
@@ -65,14 +63,10 @@ private:
     static vector<string> delegatePubKey_regtestNet;
 
     /* delegate signature */
-    static string delegateSignature_mainNet;
-    static string delegateSignature_testNet;
-    static string delegateSignature_regtestNet;
+    static string delegateSignature[3];
 
     /* gensis block hash */
-    static string genesisBlockHash_mainNet;
-    static string genesisBlockHash_testNet;
-    static string genesisBlockHash_regtestNet;
+    static string genesisBlockHash[];
 
     /* alert public key */
     static string AlertPK_MainNet;
@@ -82,49 +76,33 @@ private:
     static string MerkleRootHash;
 
     /* fund coin initial owner public key */
-    static string initFcoinOwnerPubKey_mainNet;
-    static string initFcoinOwnerPubKey_testNet;
-    static string initFcoinOwnerPubkey_regtestNet;
+    static string initFcoinOwnerPubKey[];
 
     /* DEX order-matching service's public key */
-    static string dexMatchPubKey_mainNet;
-    static string dexMatchPubKey_testNet;
-    static string dexMatchPubKey_regtestNet;
+    static string dexMatchPubKey[];
 
     /* txids in stable coin genesis */
-    static vector<string> stableCoinGenesisTxid_mainNet;
-    static vector<string> stableCoinGenesisTxid_testNet;
-    static vector<string> stableCoinGenesisTxid_regtestNet;
-
+    static vector<string> stableCoinGenesisTxid[3];
     /* Peer IP seeds */
     static vector<uint32_t> pnSeed;
 
     /* Network Magic Number */
-    static uint8_t Message_mainNet[MESSAGE_START_SIZE];
-    static uint8_t Message_testNet[MESSAGE_START_SIZE];
-    static uint8_t Message_regtestNet[MESSAGE_START_SIZE];
+    static uint8_t MessageMagicNumber[3][MESSAGE_START_SIZE];
 
     /* Address Prefix */
-    static vector<uint8_t> AddrPrefix_mainNet[MAX_BASE58_TYPES];
-    static vector<uint8_t> AddrPrefix_testNet[MAX_BASE58_TYPES];
+    static vector<uint8_t> AddrPrefix[2][MAX_BASE58_TYPES];
 
     /* P2P Port */
-    static uint32_t nDefaultPort_mainNet;
-    static uint32_t nDefaultPort_testNet;
-    static uint32_t nDefaultPort_regtestNet;
+    static uint32_t nP2PPort[3];
 
     /* RPC Port */
-    static uint32_t nRPCPort_mainNet;
-    static uint32_t nRPCPort_testNet;
+    static uint32_t nRPCPort[2];
 
     /* UI Port */
-    static uint32_t nUIPort_mainNet;
-    static uint32_t nUIPort_testNet;
+    static uint32_t nUIPort[2];
 
     /* Start Time */
-    static uint32_t StartTime_mainNet;
-    static uint32_t StartTime_testNet;
-    static uint32_t StartTime_regtestNet;
+    static uint32_t StartTime[3];
 
     /* Initial Coin */
     static uint64_t InitialCoin;
@@ -139,14 +117,10 @@ private:
     static uint32_t MaxVoteCandidateNum;
 
     /* Block height to enable feature fork version */
-	static uint32_t nFeatureForkHeight_mainNet;
-    static uint32_t nFeatureForkHeight_testNet;
-    static uint32_t nFeatureForkHeight_regtestNet;
+	static uint32_t nFeatureForkHeight[3];
 
     /* Block height for stable coin genesis */
-    static uint32_t nStableScoinGenesisHeight_mainNet;
-    static uint32_t nStableScoinGenesisHeight_testNet;
-    static uint32_t nStableScoinGenesisHeight_regtestNet;
+    static uint32_t nStableScoinGenesisHeight[3];
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {

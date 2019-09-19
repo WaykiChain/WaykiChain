@@ -53,7 +53,14 @@ public:
 
     bool operator==(const CRegID &other) const { return (this->height == other.height && this->index == other.index); }
     bool operator!=(const CRegID &other) const { return (this->height != other.height || this->index != other.index); }
-    bool operator<(const CRegID &other) const { return (this->height < other.height || this->index < other.index); }
+    bool operator<(const CRegID &other) const {
+        if (this->height == other.height) {
+            return this->index < other.index;
+        } else {
+            return this->height < other.height;
+        }
+    }
+
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);

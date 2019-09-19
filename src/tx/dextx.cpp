@@ -840,9 +840,8 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             // give the fee to settler
             srcAccount.OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee);
 
-            CReceipt receipt(buyOrderAccount.regid, srcAccount.regid, buyOrder.asset_symbol, dealAssetFee,
-                "deal asset fee to settler");
-            receipts.push_back(receipt);
+            receipts.emplace_back(buyOrderAccount.regid, srcAccount.regid, buyOrder.asset_symbol,
+                               dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
         }
         // 9.2 seller pay the fee from the received coins to settler
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
@@ -851,9 +850,8 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // give the buyer fee to settler
             srcAccount.OperateBalance(buyOrder.coin_symbol, ADD_FREE, dealCoinFee);
-            CReceipt receipt(buyOrderAccount.regid, srcAccount.regid, buyOrder.coin_symbol, dealCoinFee,
-                "deal coin fee to settler");
-            receipts.push_back(receipt);
+            receipts.emplace_back(buyOrderAccount.regid, srcAccount.regid, buyOrder.coin_symbol,
+                                  dealCoinFee, ReceiptCode::DEX_COIN_FEE_TO_SETTLER);
         }
 
         // 10. add the buyer's assets and seller's coins
@@ -862,12 +860,10 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, add assets to buyer or add coins to seller failed"),
                             REJECT_INVALID, "operate-account-failed");
         }
-        CReceipt buyReceipt(sellOrderAccount.regid, buyOrderAccount.regid, buyOrder.asset_symbol, buyerReceivedAssets,
-            "deal assets to buyer");
-        receipts.push_back(buyReceipt);
-        CReceipt sellReceipt(buyOrderAccount.regid, sellOrderAccount.regid, buyOrder.coin_symbol, sellerReceivedCoins,
-            "deal coins to settler");
-        receipts.push_back(sellReceipt);
+        receipts.emplace_back(sellOrderAccount.regid, buyOrderAccount.regid, buyOrder.asset_symbol,
+                              buyerReceivedAssets, ReceiptCode::DEX_ASSET_TO_BUYER);
+        receipts.emplace_back(buyOrderAccount.regid, sellOrderAccount.regid, buyOrder.coin_symbol,
+                              sellerReceivedCoins, ReceiptCode::DEX_COIN_TO_SELLER);
 
         // 11. check order fullfiled or save residual amount
         if (buyResidualAmount == 0) { // buy order fulfilled

@@ -81,7 +81,7 @@ public:
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
     virtual NET_TYPE NetworkID() const { return MAIN_NET; }
-    virtual bool InitialConfig() { return CBaseParams::InitialConfig(); }
+    virtual bool InitializeConfig() { return CBaseParams::InitializeConfig(); }
     virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     virtual const vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
     virtual bool IsInFixedSeeds(CAddress& addr) {
@@ -131,8 +131,8 @@ public:
 
     virtual NET_TYPE NetworkID() const { return TEST_NET; }
 
-    virtual bool InitialConfig() {
-        CMainParams::InitialConfig();
+    virtual bool InitializeConfig() {
+        CMainParams::InitializeConfig();
 
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
         nFeatureForkHeight =
@@ -173,8 +173,8 @@ public:
 
     virtual NET_TYPE NetworkID() const { return REGTEST_NET; }
 
-    virtual bool InitialConfig() {
-        CTestNetParams::InitialConfig();
+    virtual bool InitializeConfig() {
+        CTestNetParams::InitializeConfig();
 
         nBlockIntervalPreStableCoinRelease =
             GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
@@ -254,7 +254,7 @@ CBaseParams& SysCfg() {
             pParams = std::make_shared<CMainParams>();
         } else if (netType == "test") {  // TEST_NET
             pParams = std::make_shared<CTestNetParams>();
-        } else if (netType == "regtest") {   //REGTEST_NET
+        } else if (netType == "regtest") {  // REGTEST_NET
             pParams = std::make_shared<CRegTestParams>();
         } else {
             throw runtime_error("Given nettype not in (main|test|regtest) \n");
@@ -412,7 +412,7 @@ bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
     try {
         ReadConfigFile(CBaseParams::m_mapArgs, CBaseParams::m_mapMultiArgs);
     } catch (exception &e) {
-        fprintf(stderr, "Error reading configuration file: %s\n", e.what());
+        fprintf(stderr, "Error: reading configuration file: %s\n", e.what());
         return false;
     }
 
