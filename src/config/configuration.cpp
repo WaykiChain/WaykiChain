@@ -99,12 +99,8 @@ uint8_t* G_CONFIG_TABLE::GetMagicNumber(const NET_TYPE type) const {
 }
 
 vector<uint8_t> G_CONFIG_TABLE::GetAddressPrefix(const NET_TYPE type, const Base58Type BaseType) const {
-    switch (type) {
-        case MAIN_NET: return AddrPrefix_mainNet[BaseType];
-        case TEST_NET: return AddrPrefix_testNet[BaseType];
-        default: assert(0);
-    }
-    return vector<uint8_t>();
+    assert(type >= 0 && type < 2);
+    return AddrPrefix[type][BaseType];
 }
 
 uint32_t G_CONFIG_TABLE::GetDefaultPort(const NET_TYPE type) const {
@@ -242,10 +238,14 @@ uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
     {0xfe, 0xfa, 0xd3, 0xc6} } //regtest
 
 // Address Prefix
-vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_mainNet[MAX_BASE58_TYPES] = {
-    {73}, {51}, {153}, {0x4c, 0x1d, 0x3d, 0x5f}, {0x4c, 0x23, 0x3f, 0x4b}, {0}};
-vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {
-    {135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}};
+vector<uint8_t> G_CONFIG_TABLE::AddrPrefix[2][MAX_BASE58_TYPES] = {
+    {
+        {73}, {51}, {153}, {0x4c, 0x1d, 0x3d, 0x5f}, {0x4c, 0x23, 0x3f, 0x4b}, {0}
+    },
+    {
+        {135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}
+    };
+};
 
 // Default P2P Port
 uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };

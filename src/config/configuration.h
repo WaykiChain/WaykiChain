@@ -90,8 +90,7 @@ private:
     static uint8_t MessageMagicNumber[3][MESSAGE_START_SIZE];
 
     /* Address Prefix */
-    static vector<uint8_t> AddrPrefix_mainNet[MAX_BASE58_TYPES];
-    static vector<uint8_t> AddrPrefix_testNet[MAX_BASE58_TYPES];
+    static vector<uint8_t> AddrPrefix[2][MAX_BASE58_TYPES];
 
     /* P2P Port */
     static uint32_t nP2PPort[3];
