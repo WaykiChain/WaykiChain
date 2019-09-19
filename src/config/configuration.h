@@ -90,9 +90,7 @@ private:
     static vector<uint32_t> pnSeed;
 
     /* Network Magic Number */
-    static uint8_t Message_mainNet[MESSAGE_START_SIZE];
-    static uint8_t Message_testNet[MESSAGE_START_SIZE];
-    static uint8_t Message_regtestNet[MESSAGE_START_SIZE];
+    static uint8_t MessageMagicNumber[3][MESSAGE_START_SIZE];
 
     /* Address Prefix */
     static vector<uint8_t> AddrPrefix_mainNet[MAX_BASE58_TYPES];

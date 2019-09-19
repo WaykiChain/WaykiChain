@@ -112,13 +112,8 @@ uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(const NET_TYPE type) const {
 vector<uint32_t> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
 uint8_t* G_CONFIG_TABLE::GetMagicNumber(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return Message_mainNet;
-        case TEST_NET: return Message_testNet;
-        case REGTEST_NET: return Message_regtestNet;
-        default: assert(0);
-    }
-    return NULL;
+    assert(type >= 0 && type < 3);
+    return MessageMagicNumber[type];
 }
 
 vector<uint8_t> G_CONFIG_TABLE::GetAddressPrefix(const NET_TYPE type, const Base58Type BaseType) const {
@@ -274,9 +269,10 @@ vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0
                                            0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
 // Network Magic No.
-uint8_t G_CONFIG_TABLE::Message_mainNet[MESSAGE_START_SIZE]    = {0xff, 0x42, 0x1d, 0x1a};
-uint8_t G_CONFIG_TABLE::Message_testNet[MESSAGE_START_SIZE]    = {0xfd, 0x7d, 0x5c, 0xd8};
-uint8_t G_CONFIG_TABLE::Message_regtestNet[MESSAGE_START_SIZE] = {0xfe, 0xfa, 0xd3, 0xc6};
+uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
+    {0xff, 0x42, 0x1d, 0x1a},  //mainnet
+    {0xfd, 0x7d, 0x5c, 0xd8},  //testnet
+    {0xfe, 0xfa, 0xd3, 0xc6} } //regtest
 
 // Address Prefix
 vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_mainNet[MAX_BASE58_TYPES] = {
