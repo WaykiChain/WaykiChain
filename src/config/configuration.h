@@ -97,9 +97,7 @@ private:
     static vector<uint8_t> AddrPrefix_testNet[MAX_BASE58_TYPES];
 
     /* P2P Port */
-    static uint32_t nDefaultPort_mainNet;
-    static uint32_t nDefaultPort_testNet;
-    static uint32_t nDefaultPort_regtestNet;
+    static uint32_t nP2PPort[3];
 
     /* RPC Port */
     static uint32_t nRPCPort_mainNet;

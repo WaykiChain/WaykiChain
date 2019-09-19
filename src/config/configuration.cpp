@@ -126,14 +126,8 @@ vector<uint8_t> G_CONFIG_TABLE::GetAddressPrefix(const NET_TYPE type, const Base
 }
 
 uint32_t G_CONFIG_TABLE::GetDefaultPort(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return nDefaultPort_mainNet;
-        case TEST_NET: return nDefaultPort_testNet;
-        case REGTEST_NET: return nDefaultPort_regtestNet;
-        default: assert(0);
-    }
-
-    return 0;
+    assert(type >= 0 && type < 3);
+    return nP2PPort[type];
 }
 
 uint32_t G_CONFIG_TABLE::GetRPCPort(const NET_TYPE type) const {
@@ -281,9 +275,7 @@ vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {
     {135}, {88}, {210}, {0x7d, 0x57, 0x3a, 0x2c}, {0x7d, 0x5c, 0x5A, 0x26}, {0}};
 
 // Default P2P Port
-uint32_t G_CONFIG_TABLE::nDefaultPort_mainNet    = 8920;
-uint32_t G_CONFIG_TABLE::nDefaultPort_testNet    = 18920;
-uint32_t G_CONFIG_TABLE::nDefaultPort_regtestNet = 18921;
+uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /* mainnet */, 18920 /*testnet*/, 18921 /*regtest*/ };
 
 // Default RPC Port
 uint32_t G_CONFIG_TABLE::nRPCPort_mainNet = 18900;
