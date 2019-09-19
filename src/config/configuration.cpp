@@ -31,7 +31,7 @@ const G_CONFIG_TABLE& IniCfg() {
 
 const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
-    return genesisBlockHash[type];
+    return uint256S(genesisBlockHash[type]);
 }
 
 const string G_CONFIG_TABLE::GetAlertPkey(const NET_TYPE type) const {
