@@ -63,14 +63,8 @@ const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(const NET_TYPE type) cons
 const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
 
 string G_CONFIG_TABLE::GetDelegateSignature(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return delegateSignature_mainNet;
-        case TEST_NET: return delegateSignature_testNet;
-        case REGTEST_NET: return delegateSignature_regtestNet;
-        default: assert(0);
-    }
-
-    return "";
+    assert(type >=0 && type < 3);
+    return delegateSignature[type];
 }
 
 const string G_CONFIG_TABLE::GetInitFcoinOwnerPubKey(const NET_TYPE type) const {
@@ -229,9 +223,10 @@ vector<string> G_CONFIG_TABLE::delegatePubKey_regtestNet = {
     "03ff9fb0c58b6097bc944592faee68fbdb2d1c5cd901f6eae9198bd8b31a1e6f5e"};
 
 // Signature in genesis block
-string G_CONFIG_TABLE::delegateSignature_mainNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
-string G_CONFIG_TABLE::delegateSignature_testNet = "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec";
-string G_CONFIG_TABLE::delegateSignature_regtestNet = "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1";
+string G_CONFIG_TABLE::delegateSignature[3] = {
+    "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1",   //mainnet
+    "02fc0033e19b9999997331c98652607299b0aaf20ed2dd6f0975d03cff3aecdeec",   //testnet
+    "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1"};  //regtest
 
 // Pubkey
 string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb";

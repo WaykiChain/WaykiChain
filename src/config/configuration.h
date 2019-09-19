@@ -63,9 +63,7 @@ private:
     static vector<string> delegatePubKey_regtestNet;
 
     /* delegate signature */
-    static string delegateSignature_mainNet;
-    static string delegateSignature_testNet;
-    static string delegateSignature_regtestNet;
+    static string delegateSignature[3];
 
     /* gensis block hash */
     static string genesisBlockHash[];
