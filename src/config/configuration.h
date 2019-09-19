@@ -100,12 +100,10 @@ private:
     static uint32_t nP2PPort[3];
 
     /* RPC Port */
-    static uint32_t nRPCPort_mainNet;
-    static uint32_t nRPCPort_testNet;
+    static uint32_t nRPCPort[2];
 
     /* UI Port */
-    static uint32_t nUIPort_mainNet;
-    static uint32_t nUIPort_testNet;
+    static uint32_t nUIPort[2];
 
     /* Start Time */
     static uint32_t StartTime_mainNet;

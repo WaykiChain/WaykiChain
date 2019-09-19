@@ -131,13 +131,8 @@ uint32_t G_CONFIG_TABLE::GetDefaultPort(const NET_TYPE type) const {
 }
 
 uint32_t G_CONFIG_TABLE::GetRPCPort(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return nRPCPort_mainNet;
-        case TEST_NET: return nRPCPort_testNet;
-        default: assert(0);
-    }
-
-    return 0;
+    assert(type >=0 && type < 2);
+    return nRPCPort[type];
 }
 
 uint32_t G_CONFIG_TABLE::GetStartTimeInit(const NET_TYPE type) const {
@@ -278,12 +273,10 @@ vector<uint8_t> G_CONFIG_TABLE::AddrPrefix_testNet[MAX_BASE58_TYPES] = {
 uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };
 
 // Default RPC Port
-uint32_t G_CONFIG_TABLE::nRPCPort_mainNet = 18900;
-uint32_t G_CONFIG_TABLE::nRPCPort_testNet = 18901;
+uint32_t G_CONFIG_TABLE::nRPCPort[2] = { 18900 /*main*/, 18901 /*test*/};
 
 // Default UI Port
-uint32_t G_CONFIG_TABLE::nUIPort_mainNet = 4245;
-uint32_t G_CONFIG_TABLE::nUIPort_testNet = 4246;
+uint32_t G_CONFIG_TABLE::nUIPort[2] = { 4245 /*main*/, 4246 /*test*/};
 
 // Blockchain Start Time
 uint32_t G_CONFIG_TABLE::StartTime_mainNet    = 1525404897;
