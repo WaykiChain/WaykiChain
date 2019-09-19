@@ -99,14 +99,8 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
 }
 
 uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(const NET_TYPE type) const {
-   switch (type) {
-        case MAIN_NET: return nStableScoinGenesisHeight_mainNet;
-        case TEST_NET: return nStableScoinGenesisHeight_testNet;
-        case REGTEST_NET: return nStableScoinGenesisHeight_regtestNet;
-        default: assert(0);
-    }
-
-    return 0;
+    assert(type >= 0 && type < 3);
+    return nStableScoinGenesisHeight[type];
 }
 
 vector<uint32_t> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
@@ -287,9 +281,7 @@ uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 // Block height for stable coin genesis
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_mainNet      = 4109388;
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_testNet      = 500;
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight_regtestNet   = 8;
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3]  = { 4109388 /*main*/,  500 /*test*/, 8 /*regtest*/ };
 
 // Block height to enable feature fork version
 uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet             = 4109588;  //Wed Oct 16 2019 10:16:00 GMT+0800
