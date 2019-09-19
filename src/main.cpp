@@ -1719,9 +1719,7 @@ bool ActivateBestChain(CValidationState &state) {
             break;
 
         auto height = chainActive.Height() ;
-
         while(height >= 0 ){
-
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
                 if(height == chainActive.GetFinalityBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.GetFinalityBlockIndex()->GetBlockHash()){

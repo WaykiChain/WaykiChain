@@ -403,7 +403,6 @@ Value getchaininfo(const Array& params, bool fHelp) {
         throw runtime_error("Block number out of range.");
 
     CBlockIndex* pBlockIndex = chainActive.Tip();
-    CBlock block;
     Array blocktime;
     Array transactions;
     Array fuel;
@@ -413,10 +412,7 @@ Value getchaininfo(const Array& params, bool fHelp) {
         blocktime.push_back(pBlockIndex->GetBlockTime());
         transactions.push_back((int)pBlockIndex->nTx);
         fuel.push_back(pBlockIndex->nFuel);
-        block.SetNull();
-        if (ReadBlockFromDisk(pBlockIndex, block)) {
-            blockminer.push_back(((CBlockRewardTx *)block.vptx[0].get())->txUid.ToString());
-        }
+        blockminer.push_back(pBlockIndex->miner.ToString()) ;
         pBlockIndex = pBlockIndex->pprev;
     }
 
