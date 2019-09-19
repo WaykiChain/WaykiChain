@@ -97,14 +97,7 @@ const string G_CONFIG_TABLE::GetInitFcoinOwnerPubKey(const NET_TYPE type) const 
 }
 
 const string G_CONFIG_TABLE::GetDexMatchServicePubKey(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return dexMatchPubKey_mainNet;
-        case TEST_NET: return dexMatchPubKey_testNet;
-        case REGTEST_NET: return dexMatchPubKey_regtestNet;
-        default: assert(0);
-    }
-
-    return "";
+    return dexMatchPubKey[type];
 }
 
 const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(const NET_TYPE type) const {
@@ -277,9 +270,10 @@ string G_CONFIG_TABLE::initFcoinOwnerPubKey_testNet = "03307f4f5e59b89a8e0487ff0
 string G_CONFIG_TABLE::initFcoinOwnerPubkey_regtestNet = "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5";
 
 // Public Key for DEX order-matching service
-string G_CONFIG_TABLE::dexMatchPubKey_mainNet = "03c89c66ee32e26ee2c1bf624dc01d6d3e8eb9a09d0a0c86383944871054c1fcc6";
-string G_CONFIG_TABLE::dexMatchPubKey_testNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
-string G_CONFIG_TABLE::dexMatchPubKey_regtestNet = "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569";
+string G_CONFIG_TABLE::dexMatchPubKey[] = [
+    "03c89c66ee32e26ee2c1bf624dc01d6d3e8eb9a09d0a0c86383944871054c1fcc6",   //mainnet
+    "021be050c7e67004dc494f52ca81ff7c100a7e8b527b1c5c18091c3ad7065c4d94",   //testnet
+    "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"];  //regtest
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_mainNet = {
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",

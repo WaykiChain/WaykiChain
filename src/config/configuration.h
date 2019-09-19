@@ -87,9 +87,7 @@ private:
     static string initFcoinOwnerPubkey_regtestNet;
 
     /* DEX order-matching service's public key */
-    static string dexMatchPubKey_mainNet;
-    static string dexMatchPubKey_testNet;
-    static string dexMatchPubKey_regtestNet;
+    static string dexMatchPubKey;
 
     /* txids in stable coin genesis */
     static vector<string> stableCoinGenesisTxid_mainNet;
