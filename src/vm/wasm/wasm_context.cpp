@@ -135,7 +135,16 @@ namespace wasm {
                 }
             }
         } catch (wasm::exception &e) {
-            throw wasm_exception(e.detail());
+            //string(e.detail()) + "console:" _pending_console_output.
+
+            std::ostringstream o;
+            o << e.detail();
+            if(_pending_console_output.str().size() > 0){
+                o << " console:";
+                o << _pending_console_output.str();
+            }
+
+            throw wasm_exception(o.str().c_str());
         }
 
         trace.trx_id = control_trx.GetHash();
