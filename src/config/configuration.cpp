@@ -82,14 +82,8 @@ const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(const NET_TYPE typ
 }
 
 uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return nFeatureForkHeight_mainNet;
-        case TEST_NET: return nFeatureForkHeight_testNet;
-        case REGTEST_NET: return nFeatureForkHeight_regtestNet;
-        default: assert(0);
-    }
-
-    return 0;
+    assert(type >= 0 && type < 3);
+    return nFeatureForkHeight[type];
 }
 
 uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(const NET_TYPE type) const {
@@ -280,6 +274,7 @@ uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3]  = { 4109388 /*main*/,  500 /*test*/, 8 /*regtest*/ };
 
 // Block height to enable feature fork version
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_mainNet             = 4109588;  //Wed Oct 16 2019 10:16:00 GMT+0800
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_testNet             = 520;
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight_regtestNet          = 10;
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight[3]  {
+    4109588,    //mainnet: Wed Oct 16 2019 10:16:00 GMT+0800
+    520,        //testnet
+    10};        //regtest
