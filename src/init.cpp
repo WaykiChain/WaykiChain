@@ -491,10 +491,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     // Make sure enough file descriptors are available
-    int32_t nBind       = max((int32_t)SysCfg().IsArgCount("-bind"), 1);
+    int32_t nBind   = max((int32_t)SysCfg().IsArgCount("-bind"), 1);
     nMaxConnections = SysCfg().GetArg("-maxconnections", 125);
     nMaxConnections = max(min(nMaxConnections, (int32_t)(FD_SETSIZE - nBind - MIN_CORE_FILEDESCRIPTORS)), 0);
-    int32_t nFD         = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS);
+    int32_t nFD     = RaiseFileDescriptorLimit(nMaxConnections + MIN_CORE_FILEDESCRIPTORS);
     if (nFD < MIN_CORE_FILEDESCRIPTORS)
         return InitError(_("Not enough file descriptors available."));
 

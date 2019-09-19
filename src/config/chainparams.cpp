@@ -254,7 +254,7 @@ CBaseParams& SysCfg() {
             pParams = std::make_shared<CMainParams>();
         } else if (netType == "test") {  // TEST_NET
             pParams = std::make_shared<CTestNetParams>();
-        } else if (netType == "regtest") {   //REGTEST_NET
+        } else if (netType == "regtest") {  // REGTEST_NET
             pParams = std::make_shared<CRegTestParams>();
         } else {
             throw runtime_error("Given nettype not in (main|test|regtest) \n");

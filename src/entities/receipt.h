@@ -71,7 +71,8 @@ static const EnumTypeMap<ReceiptCode, string> RECEIPT_CODE_NAMES = {
 
 inline const string& GetReceiptCodeName(ReceiptCode code) {
     const auto it = RECEIPT_CODE_NAMES.find(code);
-    if (it != RECEIPT_CODE_NAMES.end()) return it->second;
+    if (it != RECEIPT_CODE_NAMES.end())
+        return it->second;
     return EMPTY_STRING;
 }
 
@@ -95,7 +96,7 @@ public:
         READWRITE(to_uid);
         READWRITE(coin_symbol);
         READWRITE(VARINT(coin_amount));
-        READWRITE((uint16_t&) code);
+        READWRITE((uint16_t &)code);
     )
 
     json_spirit::Object ToJson() const {
