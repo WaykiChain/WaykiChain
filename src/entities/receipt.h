@@ -65,7 +65,7 @@ enum class ReceiptCode: uint32_t {
 };
 
 #define DEFINE_RECEIPT_CODE_NAMES(enumType, code, enumName) { ReceiptCode::enumType, enumName },
-static const unordered_map<ReceiptCode, string> RECEIPT_CODE_NAMES = {
+static const EnumTypeMap<ReceiptCode, string> RECEIPT_CODE_NAMES = {
     RECEIPT_CODE_LIST(DEFINE_RECEIPT_CODE_NAMES)
 };
 
