@@ -30,14 +30,8 @@ const G_CONFIG_TABLE& IniCfg() {
 }
 
 const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return uint256S(genesisBlockHash_mainNet);
-        case TEST_NET: return uint256S(genesisBlockHash_testNet);
-        case REGTEST_NET: return uint256S(genesisBlockHash_regtestNet);
-        default: assert(0);
-    }
-
-    return uint256S("");
+    assert(type > 0 && type < 3);
+    return genesisBlockHash[type];
 }
 
 const string G_CONFIG_TABLE::GetAlertPkey(const NET_TYPE type) const {
@@ -256,9 +250,10 @@ string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49
 string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
 
 // Gensis Block Hash
-string G_CONFIG_TABLE::genesisBlockHash_mainNet = "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13";
-string G_CONFIG_TABLE::genesisBlockHash_testNet = "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594";
-string G_CONFIG_TABLE::genesisBlockHash_regtestNet = "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d";
+string G_CONFIG_TABLE::genesisBlockHash[] = [
+    "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",  //mainnet
+    "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594",  //testnet
+    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"]; //regtest
 
 // Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";

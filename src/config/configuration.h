@@ -70,9 +70,7 @@ private:
     static string delegateSignature_regtestNet;
 
     /* gensis block hash */
-    static string genesisBlockHash_mainNet;
-    static string genesisBlockHash_testNet;
-    static string genesisBlockHash_regtestNet;
+    static string genesisBlockHash;
 
     /* alert public key */
     static string AlertPK_MainNet;
