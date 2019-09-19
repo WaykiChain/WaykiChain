@@ -137,6 +137,11 @@ enum
 
 #define READWRITE(obj)      (nSerSize += ::SerReadWrite(s, (obj), nType, nVersion, ser_action))
 
+#define READWRITE_CONVERT(SerializeType, originValue) { \
+    SerializeType value = originValue; \
+    nSerSize += ::SerReadWrite(s, value, nType, nVersion, ser_action); \
+    SerConvertValue(value, originValue); \
+}
 //
 // Basic types
 //
@@ -505,6 +510,11 @@ inline unsigned int SerReadWrite(Stream& s, const T& obj, int nType, int nVersio
 template<typename Stream, typename T>
 inline unsigned int SerReadWrite(Stream& s, T& obj, int nType, int nVersion, CSerActionUnserialize ser_action);
 
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, const OriginType &origin);
+
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, OriginType &origin);
 
 //
 // If none of the specialized versions above matched, default to calling member function.
@@ -852,11 +862,13 @@ inline unsigned int SerReadWrite(Stream& s, T& obj, int nType, int nVersion, CSe
     return 0;
 }
 
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, const OriginType &origin) {}
 
-
-
-
-
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, OriginType &origin) {
+    origin = OriginType(value);
+}
 
 typedef vector<char, zero_after_free_allocator<char> > CSerializeData;
 

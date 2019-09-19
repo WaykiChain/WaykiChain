@@ -96,7 +96,7 @@ public:
         READWRITE(to_uid);
         READWRITE(coin_symbol);
         READWRITE(VARINT(coin_amount));
-        READWRITE((uint16_t &)code);
+        READWRITE_CONVERT(uint16_t, code);
     )
 
     json_spirit::Object ToJson() const {
