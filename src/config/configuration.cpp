@@ -235,7 +235,8 @@ vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0
 uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
     {0xff, 0x42, 0x1d, 0x1a},  //mainnet
     {0xfd, 0x7d, 0x5c, 0xd8},  //testnet
-    {0xfe, 0xfa, 0xd3, 0xc6} } //regtest
+    {0xfe, 0xfa, 0xd3, 0xc6}   //regtest
+};
 
 // Address Prefix
 vector<uint8_t> G_CONFIG_TABLE::AddrPrefix[2][MAX_BASE58_TYPES] = {
