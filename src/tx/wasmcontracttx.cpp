@@ -85,6 +85,9 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
     to_variant(t.trx, val);
     json_spirit::Config::add(obj, "trx", val);
 
+    to_variant(t.elapsed.count(), val);
+    json_spirit::Config::add(obj, "elapsed", val);
+
     to_variant(t.console, val);
     json_spirit::Config::add(obj, "console", val);
 
@@ -112,6 +115,9 @@ static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Va
     json_spirit::Value val;
     to_variant(t.trx_id.ToString(), val);
     json_spirit::Config::add(obj, "trx_id", val);
+
+    to_variant(t.elapsed.count(), val);
+    json_spirit::Config::add(obj, "elapsed", val);
 
     if (t.traces.size() > 0) {
         json_spirit::Array arr;
@@ -175,6 +181,8 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
     
     try {
 
+        auto start = system_clock::now();
+        
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
         //trx_trace.block_height = nHeight;
@@ -185,6 +193,8 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
             trx_trace.traces.emplace_back();
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         }
+
+        trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
         json_spirit::Value v;
         to_variant(trx_trace, v);

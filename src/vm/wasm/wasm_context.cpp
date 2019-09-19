@@ -6,6 +6,8 @@
 
 using namespace std;
 using namespace wasm;
+using std::chrono::microseconds;
+using std::chrono::system_clock;
 
 namespace wasm {
 
@@ -119,6 +121,9 @@ namespace wasm {
     void CWasmContext::ExecuteOne( inline_transaction_trace &trace ) {
 
         //std::cout << "ExecuteOne ----------------------------"<< " \n";
+        //reset_console();
+
+        auto start = system_clock::now();
 
         trace.trx = trx;
         trace.receiver = receiver;
@@ -135,12 +140,10 @@ namespace wasm {
                 }
             }
         } catch (wasm::exception &e) {
-            //string(e.detail()) + "console:" _pending_console_output.
-
             std::ostringstream o;
             o << e.detail();
             if(_pending_console_output.str().size() > 0){
-                o << " console:";
+                o << " pending console output:";
                 o << _pending_console_output.str();
             }
 
@@ -148,7 +151,9 @@ namespace wasm {
         }
 
         trace.trx_id = control_trx.GetHash();
+        trace.elapsed =  std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
         trace.console = _pending_console_output.str();
+
 
         // trace.block_height =
         // trace.block_time =

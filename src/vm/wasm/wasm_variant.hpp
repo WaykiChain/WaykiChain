@@ -287,10 +287,10 @@ namespace wasm {
         if (v.type() == json_spirit::real_type) {
             t = v.get_real();
 
-            std::ostringstream o;
-            o.precision(std::numeric_limits<float>::digits10);
-            o << t;
-            WASM_TRACE("%s",o.str().c_str())
+            // std::ostringstream o;
+            // o.precision(std::numeric_limits<float>::digits10);
+            // o << t;
+            // WASM_TRACE("%s",o.str().c_str())
         }
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include "commons/uint256.h"
 #include "wasm/types/inline_transaction.hpp"
 
@@ -11,6 +12,7 @@ namespace wasm {
         inline_transaction trx;
         //uint32_t block_height;
         //uint32_t block_time;
+        std::chrono::microseconds elapsed;
         string console;
     };
 
@@ -21,6 +23,7 @@ namespace wasm {
 
     struct transaction_trace {
         uint256 trx_id;
+        std::chrono::microseconds elapsed;
         //uint32_t block_height;
         //uint32_t block_time;
         vector <inline_transaction_trace> traces;
