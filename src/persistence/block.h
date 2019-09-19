@@ -290,9 +290,9 @@ public:
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
         if(block.GetHeight() == 0 )
-            miner = CRegID("0-1") ;
+            miner = CRegID("0-1");
         else
-            miner          = block.vptx[0]->txUid.get<CRegID>();
+            miner = block.vptx[0]->txUid.get<CRegID>();
     }
 
     CDiskBlockPos GetBlockPos() const {
