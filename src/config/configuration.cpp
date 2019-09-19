@@ -77,14 +77,8 @@ const string G_CONFIG_TABLE::GetDexMatchServicePubKey(const NET_TYPE type) const
 }
 
 const vector<string> G_CONFIG_TABLE::GetStableCoinGenesisTxid(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return stableCoinGenesisTxid_mainNet;
-        case TEST_NET: return stableCoinGenesisTxid_testNet;
-        case REGTEST_NET: return stableCoinGenesisTxid_regtestNet;
-        default: assert(0);
-    }
-
-    return vector<string>();
+    assert(type >= 0 && type < 3);
+    return stableCoinGenesisTxid[type];
 }
 
 uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
@@ -213,7 +207,6 @@ string G_CONFIG_TABLE::genesisBlockHash[3] = {
 // Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
 
-// TODO: replace public key.
 // Public key for initial fund coin owner
 string G_CONFIG_TABLE::initFcoinOwnerPubKey[3] = {
     "028593c9bf1fee77085f5164ba5a8c385e7c3710de2fd8fa1d00748a1469b2176f",   //mainnet
@@ -226,20 +219,23 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
     "021be050c7e67004dc494f52ca81ff7c100a7e8b527b1c5c18091c3ad7065c4d94",   //testnet
     "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"};  //regtest
 
-vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_mainNet = {
+vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
+    {
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
-
-vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_testNet = {
+    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    },
+    {
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
-
-vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid_regtestNet = {
+    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    },
+    {
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"};
+    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    }
+};
 
 // IP Address
 vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,

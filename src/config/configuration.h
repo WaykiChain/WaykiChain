@@ -82,10 +82,7 @@ private:
     static string dexMatchPubKey[];
 
     /* txids in stable coin genesis */
-    static vector<string> stableCoinGenesisTxid_mainNet;
-    static vector<string> stableCoinGenesisTxid_testNet;
-    static vector<string> stableCoinGenesisTxid_regtestNet;
-
+    static vector<string> stableCoinGenesisTxid[3];
     /* Peer IP seeds */
     static vector<uint32_t> pnSeed;
 
