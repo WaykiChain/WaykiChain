@@ -200,7 +200,7 @@ string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa
 // Public key for initial fund coin owner
 string G_CONFIG_TABLE::initFcoinOwnerPubKey[3] = {
     "028593c9bf1fee77085f5164ba5a8c385e7c3710de2fd8fa1d00748a1469b2176f",   //mainnet
-    "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5",   //testnet
+    "022b05bec85ac78054ba762ac8625e30c85f2a8f23fd62890236706d3ad29646d4",   //testnet
     "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5"};  //regtest
 
 // Public Key for DEX order-matching service
