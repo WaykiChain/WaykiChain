@@ -213,30 +213,9 @@ bool GetKeyId(const string &addr, CKeyID &keyId) {
 Object GetTxDetailJSON(const uint256& txid) {
     Object obj;
     {
-        LOCK(cs_main);
-        CBlock genesisblock;
-        CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
-        ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
-        assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
-        for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
-            if (txid == genesisblock.GetTxid(i)) {
-                obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
-
-                obj.push_back(Pair("confirmations",     chainActive.Height()));
-                obj.push_back(Pair("confirmed_height",  (int32_t)0));
-                obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
-                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
-
-                CDataStream ds(SER_DISK, CLIENT_VERSION);
-                ds << genesisblock.vptx[i];
-                obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-                return obj;
-            }
-        }
-
         std::shared_ptr<CBaseTx> pBaseTx;
 
+        LOCK(cs_main);
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
             if (pCdMan->pContractCache->ReadTxIndex(txid, postx)) {
@@ -280,6 +259,28 @@ Object GetTxDetailJSON(const uint256& txid) {
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << pBaseTx;
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+                return obj;
+            }
+        }
+
+        /* try */
+        CBlock genesisblock;
+        CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
+        ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
+        assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
+        for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
+            if (txid == genesisblock.GetTxid(i)) {
+                obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
+
+                obj.push_back(Pair("confirmations",     chainActive.Height()));
+                obj.push_back(Pair("confirmed_height",  chainActive.Height()));
+                obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
+                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
+
+                CDataStream ds(SER_DISK, CLIENT_VERSION);
+                ds << genesisblock.vptx[i];
+                obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
                 return obj;
             }
         }
