@@ -346,9 +346,6 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
                 continue;
             }
 
-            // Need to re-sync all to cache layer except for transaction cache, as it depends on
-            // the global transaction cache to verify whether a transaction(txid) has been confirmed
-            // already in block.
             spCW->Flush();
 
             auto fuel        = pBaseTx->GetFuel(fuelRate);
@@ -507,9 +504,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 continue;
             }
 
-            // Need to re-sync all to cache layer except for transaction cache, as it depends on
-            // the global transaction cache to verify whether a transaction(txid) has been confirmed
-            // already in block.
             spCW->Flush();
 
             auto fuel        = pBaseTx->GetFuel(fuelRate);

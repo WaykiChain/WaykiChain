@@ -41,7 +41,7 @@ bool CPricePointMemCache::AddBlockPricePointInBatch(const int32_t blockHeight, c
     for (CPricePoint pp : pps) {
         if (ExistBlockUserPrice(blockHeight, regId, pp.GetCoinPricePair())) {
             LogPrint("PRICEFEED", "CPricePointMemCache::AddBlockPricePointInBatch, existed block user price, "
-                     "height: %d, redId: %s, pricePoint: %s", blockHeight, regId.ToString(), pp.ToString());
+                     "height: %d, redId: %s, pricePoint: %s\n", blockHeight, regId.ToString(), pp.ToString());
             return false;
         }
 
