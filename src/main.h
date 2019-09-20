@@ -205,11 +205,11 @@ public:
         uint32_t confirmMiners = 8 ;
 
         if(SysCfg().NetworkID() == MAIN_NET && chainActive.Height()< 3880000){
-            confirmMiners = 1 ;
+            confirmMiners = 0 ;
         }
 
         if(SysCfg().NetworkID() == TEST_NET && chainActive.Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
-            confirmMiners = 1 ;
+            confirmMiners = 0 ;
         }
 
 
