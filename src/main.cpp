@@ -270,6 +270,39 @@ CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
     }
     return pIndex;
 }
+bool CChain::UpdateFinalityBlock(){
+    set<CRegID> minerSet ;
+    uint32_t confirmMiners = FINALITY_BLOCK_CONFIRM_MINER_COUNT ;
+
+    if(SysCfg().NetworkID() == MAIN_NET && chainActive.Height()< 3880000){
+        confirmMiners = 0 ;
+    }
+
+    if(SysCfg().NetworkID() == TEST_NET && chainActive.Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
+        confirmMiners = 0 ;
+    }
+
+
+    auto pBlockIndex = chainActive.Tip() ;
+    while(pBlockIndex->height > 0){
+
+        if(minerSet.size() >=confirmMiners ){
+
+            if(!finalityBlockIndex || (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height)){
+
+                assert(chainActive.Contains(finalityBlockIndex));
+                finalityBlockIndex = pBlockIndex ;
+            }
+            return true;
+        }
+        minerSet.insert(pBlockIndex->miner) ;
+        pBlockIndex = pBlockIndex->pprev ;
+    }
+    if(finalityBlockIndex == nullptr )
+        finalityBlockIndex = vChain[0] ;
+
+    return true ;
+}
 
 CBlockLocator CChain::GetLocator(const CBlockIndex *pIndex) const {
     int32_t nStep = 1;

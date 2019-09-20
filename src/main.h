@@ -200,38 +200,7 @@ public:
     }
 
 
-    bool UpdateFinalityBlock(){
-        set<CRegID> minerSet ;
-        uint32_t confirmMiners = 8 ;
-
-        if(SysCfg().NetworkID() == MAIN_NET && chainActive.Height()< 3880000){
-            confirmMiners = 0 ;
-        }
-
-        if(SysCfg().NetworkID() == TEST_NET && chainActive.Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
-            confirmMiners = 0 ;
-        }
-
-
-        auto pBlockIndex = chainActive.Tip() ;
-        while(pBlockIndex->height > 0){
-
-            if(minerSet.size() >=confirmMiners ){
-
-                if(!finalityBlockIndex || (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height)){
-                    finalityBlockIndex = pBlockIndex ;
-                }
-                return true;
-            }
-            minerSet.insert(pBlockIndex->miner) ;
-            pBlockIndex = pBlockIndex->pprev ;
-        }
-        if(finalityBlockIndex == nullptr )
-            finalityBlockIndex = vChain[0] ;
-
-        return true ;
-    }
-
+    bool UpdateFinalityBlock() ;
     /** Set/initialize a chain with a given tip. Returns the forking point. */
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 
