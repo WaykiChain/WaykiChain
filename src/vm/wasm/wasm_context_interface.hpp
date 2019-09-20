@@ -38,6 +38,9 @@ namespace wasm {
         virtual void require_auth2( uint64_t account, uint64_t permission ) {}
         virtual bool has_authorization( uint64_t account ) const {return true;}
 
+
+        virtual uint64_t block_time() { return 0; }
+
     };
 
 }

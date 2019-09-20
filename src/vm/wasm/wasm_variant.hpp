@@ -82,21 +82,6 @@ namespace wasm {
         v = wasm::variant(t.to_string());
     }
 
-    // static inline void to_variant( const wasm::permission &t, wasm::variant &v ) {
-
-    //     wasm::Object obj;
-
-    //     wasm::variant val;
-    //     to_variant(wasm::name(t.account), val);
-    //     json_spirit::Config::add(obj, "account", val);
-
-    //     to_variant(wasm::name(t.perm), val);
-    //     json_spirit::Config::add(obj, "permission", val);
-
-    //     v = obj;
-    // }
-
-
     static inline void to_variant( const wasm::bytes &t, wasm::variant &v ) {
         string str(t.begin(), t.end());
         v = wasm::variant(str);
@@ -158,14 +143,7 @@ namespace wasm {
 
     template<typename T, std::enable_if_t <std::is_floating_point<T>::value> * = nullptr>
     static inline void to_variant( const T &t, wasm::variant &v ) {
-
         v = wasm::variant(t);
-
-        // std::ostringstream o;
-        // o.precision(std::numeric_limits<float>::digits10);
-        // o << t;
-        // WASM_TRACE("%s",o.str().c_str())
-
     }
 
     template<typename T, std::enable_if_t <std::is_integral<T>::value> * = nullptr>
@@ -196,10 +174,29 @@ namespace wasm {
         v = wasm::variant();
     }
 
+    static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
+        //to_variant(t.hash, v);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash) - 1]);
+        v = wasm::variant(str);
+
+
+    }
+
+    static inline void to_variant( const wasm::checksum256_type &t, wasm::variant &v ) {
+        //to_variant(t.hash, v);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash) - 1]);
+        v = wasm::variant(str);
+
+    }
+
+    static inline void to_variant( const wasm::checksum512_type &t, wasm::variant &v ) {
+        string str(&t.hash[0], &t.hash[sizeof(t.hash) - 1]);
+        v = wasm::variant(str);
+    }
+
 
     static inline void to_variant( const wasm::symbol_code &t, wasm::variant &v ) {
-        v = wasm::variant(t.to_string());
-
+         v = wasm::variant(t.to_string());
     }
 
     static inline void to_variant( const wasm::symbol &t, wasm::variant &v ) {
@@ -328,6 +325,26 @@ namespace wasm {
         from_variant(v, t);
         opt = t;
     }
+
+    static inline void from_variant( const wasm::variant &v, wasm::checksum160_type &t ) {
+        if (v.type() == json_spirit::str_type) {
+            v.get_str().copy((char *)&t, sizeof(t));
+        }
+    }
+
+    static inline void from_variant( const wasm::variant &v, wasm::checksum256_type &t ) {
+        if (v.type() == json_spirit::str_type) {
+            v.get_str().copy((char *)&t, sizeof(t));
+        }
+    }
+
+
+    static inline void from_variant( const wasm::variant &v, checksum512_type &t ) {
+        if (v.type() == json_spirit::str_type) {
+            v.get_str().copy((char *)&t, sizeof(t));
+        }
+    }
+
 
     static inline void from_variant( const wasm::variant &v, wasm::symbol_code &t ) {
         if (v.type() == json_spirit::str_type) {

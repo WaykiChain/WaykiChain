@@ -869,7 +869,6 @@ namespace wasm {
     }
 
 
-
 /**
  *  Serialize a string into a stream
  *
@@ -1476,24 +1475,115 @@ namespace wasm {
         return ds;
     }
 
-
-/**
- * Defines data stream for reading and writing data in the form of bytes
+    /**
+ *  Serialize a capi_checksum160 type
  *
- * @addtogroup datastream Data Stream
- * @ingroup core
- * @{
+ *  @brief Serializea capi_checksum160 type
+ *  @param ds - The stream to write
+ *  @param cs - The value to serialize
+ *  @tparam Stream - Type of datastream buffer
+ *  @return datastream<Stream>& - Reference to the datastream
  */
+    template<typename Stream>
+    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const checksum160_type &cs ) {
+        ds.write((const char *) &cs.hash[0], sizeof(cs.hash));
+        return ds;
+    }
 
-/**
- * Unpack data inside a fixed size buffer as T
- *
- * @brief Unpack data inside a fixed size buffer as T
- * @tparam T - Type of the unpacked data
- * @param buffer - Pointer to the buffer
- * @param len - Length of the buffer
- * @return T - The unpacked data
- */
+    /**
+     *  Deserialize a capi_checksum160 type
+     *
+     *  @brief Deserialize a capi_checksum160 type
+     *  @param ds - The stream to read
+     *  @param cs - The destination for deserialized value
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+    template<typename Stream>
+    inline datastream<Stream> &operator>>( datastream<Stream> &ds, checksum160_type &cs ) {
+        ds.read((char *) &cs.hash[0], sizeof(cs.hash));
+        return ds;
+    }
+
+    /**
+     *  Serialize a checksum256_type type
+     *
+     *  @brief Serializea capi_checksum160 type
+     *  @param ds - The stream to write
+     *  @param cs - The value to serialize
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+    template<typename Stream>
+    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const checksum256_type &cs ) {
+        ds.write((const char *) &cs.hash[0], sizeof(cs.hash));
+        return ds;
+    }
+
+    /**
+     *  Deserialize a checksum256_type type
+     *
+     *  @brief Deserialize a capi_checksum160 type
+     *  @param ds - The stream to read
+     *  @param cs - The destination for deserialized value
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+    template<typename Stream>
+    inline datastream<Stream> &operator>>( datastream<Stream> &ds, checksum256_type &cs ) {
+        ds.read((char *) &cs.hash[0], sizeof(cs.hash));
+        return ds;
+    }
+
+
+    /**
+     *  Serialize a capi_checksum512 type
+     *
+     *  @brief Serialize a capi_checksum512 type
+     *  @param ds - The stream to write
+     *  @param cs - The value to serialize
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+    */
+    template<typename Stream>
+    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const checksum512_type &cs ) {
+        ds.write((const char *) &cs.hash[0], sizeof(cs.hash));
+        return ds;
+    }
+
+    /**
+     *  Deserialize a capi_checksum512 type
+     *
+     *  @brief Deserialize a capi_checksum512 type
+     *  @param ds - The stream to read
+     *  @param cs - The destination for deserialized value
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+    template<typename Stream>
+    inline datastream<Stream> &operator>>( datastream<Stream> &ds, checksum512_type &cs ) {
+        ds.read((char *) &cs.hash[0], sizeof(cs.hash));
+        return ds;
+    }
+
+
+    /**
+     * Defines data stream for reading and writing data in the form of bytes
+     *
+     * @addtogroup datastream Data Stream
+     * @ingroup core
+     * @{
+     */
+
+    /**
+     * Unpack data inside a fixed size buffer as T
+     *
+     * @brief Unpack data inside a fixed size buffer as T
+     * @tparam T - Type of the unpacked data
+     * @param buffer - Pointer to the buffer
+     * @param len - Length of the buffer
+     * @return T - The unpacked data
+     */
     template<typename T>
     T unpack( const char *buffer, size_t len ) {
         T result;
@@ -1502,27 +1592,27 @@ namespace wasm {
         return result;
     }
 
-/**
- * Unpack data inside a variable size buffer as T
- *
- * @brief Unpack data inside a variable size buffer as T
- * @tparam T - Type of the unpacked data
- * @param bytes - Buffer
- * @return T - The unpacked data
- */
+    /**
+     * Unpack data inside a variable size buffer as T
+     *
+     * @brief Unpack data inside a variable size buffer as T
+     * @tparam T - Type of the unpacked data
+     * @param bytes - Buffer
+     * @return T - The unpacked data
+     */
     template<typename T>
     T unpack( const std::vector<char> &bytes ) {
         return unpack<T>(bytes.data(), bytes.size());
     }
 
-/**
- * Get the size of the packed data
- *
- * @brief Get the size of the packed data
- * @tparam T - Type of the data to be packed
- * @param value - Data to be packed
- * @return size_t - Size of the packed data
- */
+    /**
+     * Get the size of the packed data
+     *
+     * @brief Get the size of the packed data
+     * @tparam T - Type of the data to be packed
+     * @param value - Data to be packed
+     * @return size_t - Size of the packed data
+     */
     template<typename T>
     size_t pack_size( const T &value ) {
         datastream<size_t> ps;
@@ -1530,14 +1620,14 @@ namespace wasm {
         return ps.tellp();
     }
 
-/**
- * Get packed data
- *
- * @brief Get packed data
- * @tparam T - Type of the data to be packed
- * @param value - Data to be packed
- * @return bytes - The packed data
- */
+    /**
+     * Get packed data
+     *
+     * @brief Get packed data
+     * @tparam T - Type of the data to be packed
+     * @param value - Data to be packed
+     * @return bytes - The packed data
+     */
     template<typename T>
     std::vector<char> pack( const T &value ) {
         std::vector<char> result;
@@ -1548,69 +1638,6 @@ namespace wasm {
         return result;
     }
 
-///@}
-
-// /**
-//  *  Serialize a capi_checksum160 type
-//  *
-//  *  @brief Serializea capi_checksum160 type
-//  *  @param ds - The stream to write
-//  *  @param cs - The value to serialize
-//  *  @tparam Stream - Type of datastream buffer
-//  *  @return datastream<Stream>& - Reference to the datastream
-//  */
-// template<typename Stream>
-// inline datastream<Stream>& operator<<(datastream<Stream>& ds, const capi_checksum160& cs) {
-//    ds.write((const char*)&cs.hash[0], sizeof(cs.hash));
-//    return ds;
-// }
-
-// /**
-//  *  Deserialize a capi_checksum160 type
-//  *
-//  *  @brief Deserialize a capi_checksum160 type
-//  *  @param ds - The stream to read
-//  *  @param cs - The destination for deserialized value
-//  *  @tparam Stream - Type of datastream buffer
-//  *  @return datastream<Stream>& - Reference to the datastream
-//  */
-// template<typename Stream>
-// inline datastream<Stream>& operator>>(datastream<Stream>& ds, capi_checksum160& cs) {
-//    ds.read((char*)&cs.hash[0], sizeof(cs.hash));
-//    return ds;
-// }
-
-// *
-//  *  Serialize a capi_checksum512 type
-//  *
-//  *  @brief Serialize a capi_checksum512 type
-//  *  @param ds - The stream to write
-//  *  @param cs - The value to serialize
-//  *  @tparam Stream - Type of datastream buffer
-//  *  @return datastream<Stream>& - Reference to the datastream
-
-// template<typename Stream>
-// inline datastream<Stream>& operator<<(datastream<Stream>& ds, const capi_checksum512& cs) {
-//    ds.write((const char*)&cs.hash[0], sizeof(cs.hash));
-//    return ds;
-// }
-
-// /**
-//  *  Deserialize a capi_checksum512 type
-//  *
-//  *  @brief Deserialize a capi_checksum512 type
-//  *  @param ds - The stream to read
-//  *  @param cs - The destination for deserialized value
-//  *  @tparam Stream - Type of datastream buffer
-//  *  @return datastream<Stream>& - Reference to the datastream
-//  */
-// template<typename Stream>
-// inline datastream<Stream>& operator>>(datastream<Stream>& ds, capi_checksum512& cs) {
-//    ds.read((char*)&cs.hash[0], sizeof(cs.hash));
-//    return ds;
-// }
-
-///@}
 
 
 

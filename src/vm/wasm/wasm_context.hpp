@@ -97,6 +97,7 @@ namespace wasm {
         void require_auth( uint64_t account ) {}
         void require_auth2( uint64_t account, uint64_t permission ) {}
         bool has_authorization( uint64_t account ) const {return true;}
+        uint64_t block_time() { return 0; }
 
     public:
         uint64_t receiver;

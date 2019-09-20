@@ -42,4 +42,9 @@ namespace wasm {
     using uint128_t        = unsigned __int128;
     using bytes            = vector<char>;
 
+
+   struct __attribute__((aligned (16))) checksum160_type { uint8_t hash[20]; };
+   struct __attribute__((aligned (16))) checksum256_type { uint8_t hash[32]; };
+   struct __attribute__((aligned (16))) checksum512_type { uint8_t hash[64]; };    
+
 }  // wasm

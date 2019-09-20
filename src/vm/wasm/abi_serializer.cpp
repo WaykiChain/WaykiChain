@@ -105,9 +105,9 @@ namespace wasm {
         built_in_types.emplace("bytes", pack_unpack<bytes>());
         built_in_types.emplace("string", pack_unpack<string>());
 
-        // built_in_types.emplace("checksum160",               pack_unpack<checksum160_type>());
-        // built_in_types.emplace("checksum256",               pack_unpack<checksum256_type>());
-        // built_in_types.emplace("checksum512",               pack_unpack<checksum512_type>());
+        built_in_types.emplace("checksum160",               pack_unpack<checksum160_type>());
+        built_in_types.emplace("checksum256",               pack_unpack<checksum256_type>());
+        built_in_types.emplace("checksum512",               pack_unpack<checksum512_type>());
 
         // built_in_types.emplace("public_key",                pack_unpack<public_key_type>());
         // built_in_types.emplace("signature",                 pack_unpack<signature_type>());

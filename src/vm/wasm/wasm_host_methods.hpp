@@ -107,14 +107,6 @@ namespace wasm {
             //std::cout << ToHex(k) << std::endl;
         }
 
-        // string StringPrint( string str1, string str2 ) {
-
-        //     std::stringstream ss;
-        //     ss << str1 << str2 << std::endl;
-        //    //string msg = ss.str();
-        //     return ss.str();
-        // }
-
         //system
         void abort() {
             wasm_assert(false, "abort() called");
@@ -141,7 +133,8 @@ namespace wasm {
         uint64_t current_time() {
             //return static_cast<uint64_t>( context.control.pending_block_time().time_since_epoch().count() );
             //std::cout << "current_time" << std::endl;
-            return 0;
+            //return 0;
+            return pWasmContext->block_time();
         }
 
 
@@ -172,6 +165,15 @@ namespace wasm {
             //return wasmContext.receiver;
             return pWasmContext->Receiver();
         }
+
+        void sha256(const void* data, uint32_t data_len, void* hash_val) {
+
+            // string k = string((const char *) data, data_len);
+
+            // SHA256(k.data(), k.size(), hash_val.begin());
+
+        }
+
 
         //database
         int32_t db_store( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {

@@ -25,7 +25,7 @@ using namespace std;
 
 #define WASM_CAPTURE_AND_RETHROW( ... )          \
    catch( exception& e ) {                       \
-       throw;  \
+       throw;                                    \
     } catch( ... ) {                             \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \
          sprintf( buf,  __VA_ARGS__ );           \
