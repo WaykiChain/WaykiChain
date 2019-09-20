@@ -50,6 +50,10 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
 
     Array prices;
     for (auto &item : block.GetBlockMedianPrice()) {
+        if (item.second == 0) {
+            continue;
+        }
+
         Object price;
         price.push_back(Pair("coin_symbol",   item.first.first));
         price.push_back(Pair("price_symbol",  item.first.second));
