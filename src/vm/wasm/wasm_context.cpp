@@ -35,23 +35,13 @@ namespace wasm {
 
 
     void CWasmContext::ExecuteInline( inline_transaction t ) {
-        //wasm_assert check the code and authorization
         inline_transactions.push_back(t);
-        //queue.pushBack(t);
     }
 
     std::vector <uint8_t> CWasmContext::GetCode( uint64_t account ) {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
-
-        //CRegID contractRegID = Name2RegID(account);
-
-        // std::cout << "GetCode ------------------------------------------"
-        //           << " contractRegId:" << contractRegID.ToString()
-        //           << " abi:"<< contract.abi
-        //           // << " data:"<< params[3].get_str()
-        //           << " \n";
 
         vector <uint8_t> code;
         code.insert(code.begin(), contract.code.begin(), contract.code.end());
@@ -76,8 +66,6 @@ namespace wasm {
 
     void CWasmContext::Execute( inline_transaction_trace &trace ) {
 
-
-        //std::cout << "Execute ----------------------------"<< " \n";
         Initialize();
 
         notified.push_back(receiver);
@@ -95,7 +83,6 @@ namespace wasm {
                     "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {
-            //std::cout << "Execute ----------------------------"<< inline_transactions.size() << " \n";
             trace.inline_traces.emplace_back();
             control_trx.DispatchInlineTransaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
                                                   state, recurse_depth + 1);
@@ -103,23 +90,7 @@ namespace wasm {
 
     }
 
-    string VectorToHexString( std::vector <uint8_t> str, string separator = " " ) {
-
-        const std::string hex = "0123456789abcdef";
-        std::stringstream ss;
-
-        for (std::string::size_type i = 0; i < str.size(); ++i)
-            ss << hex[(unsigned
-        uint8_t)str[i] >> 4] << hex[(unsigned
-        uint8_t)str[i] & 0xf] << separator;
-
-        return ss.str();
-
-    }
-
     void CWasmContext::ExecuteOne( inline_transaction_trace &trace ) {
-
-        //reset_console();
 
         auto start = system_clock::now();
 
@@ -138,16 +109,6 @@ namespace wasm {
                 }
             }
         }
-        // } catch (wasm::exception &e) {
-        //     std::ostringstream o;
-        //     o << e.detail();
-        //     if(_pending_console_output.str().size() > 0){
-        //         o << " pending console output:";
-        //         o << _pending_console_output.str();
-        //     }
-
-        //     throw wasm_exception(o.str().c_str());
-        // }
         WASM_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str().c_str() )
 
         trace.trx_id = control_trx.GetHash();
@@ -175,7 +136,6 @@ namespace wasm {
     void CWasmContext::RequireRecipient( uint64_t recipient ) {
 
         if (!HasRecipient(recipient)) {
-            //std::cout << "RequireRecipient" << recipient << std::endl;
             notified.push_back(recipient);
         }
 

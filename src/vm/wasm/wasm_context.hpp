@@ -62,13 +62,6 @@ namespace wasm {
         std::ostringstream &get_console_stream() { return _pending_console_output; }
         const std::ostringstream &get_console_stream() const { return _pending_console_output; }
 
-        // template<typename T, typename ...Ts>
-        // void console_append(T val, Ts ...rest) {
-        //     console_append(val);
-        //     console_append(rest...);
-        // };
-
-
 //virtual
     public:
         void ExecuteInline( inline_transaction t );

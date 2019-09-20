@@ -103,8 +103,6 @@ namespace wasm {
 
             std::vector<char> key = wasm::pack(t);
             k = string((const char *) key.data(), key.size()) + k;
-
-            //std::cout << ToHex(k) << std::endl;
         }
 
         //system

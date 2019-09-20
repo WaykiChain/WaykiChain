@@ -1153,6 +1153,24 @@ void general() {
          "name": "string_arr",
          "type": "string[]"
       },{
+         "name": "checksum160",
+         "type": "checksum160"
+      },{
+         "name": "checksum160_arr",
+         "type": "checksum160[]"
+      },{
+         "name": "checksum256",
+         "type": "checksum256"
+      },{
+         "name": "checksum256_arr",
+         "type": "checksum256[]"
+      },{
+         "name": "checksum512",
+         "type": "checksum512"
+      },{
+         "name": "checksum512_arr",
+         "type": "checksum512[]"
+      },{
          "name": "fieldname",
          "type": "field_name"
       },{
@@ -1287,6 +1305,12 @@ void general() {
     {
       "string"            : "ola ke ase",
       "string_arr"        : ["ola ke ase","ola ke desi"],
+      "checksum160"       : "ba7816bf8f01cfea414140de5dae2223b00361a3",
+      "checksum160_arr"   : ["ba7816bf8f01cfea414140de5dae2223b00361a3","ba7816bf8f01cfea414140de5dae2223b00361a3"],
+      "checksum256"       : "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      "checksum256_arr"   : ["ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad","ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"],
+      "checksum512"       : "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015adba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+      "checksum512_arr"   : ["ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015adba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad","ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015adba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"],
       "fieldname"         : "name1",
       "fieldname_arr"     : ["name1","name2"],
       "typename"          : "name3",
@@ -1367,6 +1391,7 @@ void general() {
     json_spirit::Value value = wasm::abi_serializer::unpack(my_abi, "A", data, max_serialization_time);
 
     //WASM_TRACE("%s", json_spirit::write(value).c_str())
+    std::cout << json_spirit::write(v) << std::endl;
     std::cout << json_spirit::write(value) << std::endl;
 
     WASM_TEST(json_spirit::write(v) == json_spirit::write(value), "general")

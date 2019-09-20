@@ -1475,8 +1475,8 @@ namespace wasm {
         return ds;
     }
 
-    /**
- *  Serialize a capi_checksum160 type
+/**
+ *  Serialize a checksum160 type
  *
  *  @brief Serializea capi_checksum160 type
  *  @param ds - The stream to write
@@ -1491,7 +1491,7 @@ namespace wasm {
     }
 
     /**
-     *  Deserialize a capi_checksum160 type
+     *  Deserialize a checksum160 type
      *
      *  @brief Deserialize a capi_checksum160 type
      *  @param ds - The stream to read
@@ -1508,7 +1508,7 @@ namespace wasm {
     /**
      *  Serialize a checksum256_type type
      *
-     *  @brief Serializea capi_checksum160 type
+     *  @brief Serializea capi_checksum256 type
      *  @param ds - The stream to write
      *  @param cs - The value to serialize
      *  @tparam Stream - Type of datastream buffer
@@ -1523,7 +1523,7 @@ namespace wasm {
     /**
      *  Deserialize a checksum256_type type
      *
-     *  @brief Deserialize a capi_checksum160 type
+     *  @brief Deserialize a checksum256 type
      *  @param ds - The stream to read
      *  @param cs - The destination for deserialized value
      *  @tparam Stream - Type of datastream buffer
@@ -1537,9 +1537,9 @@ namespace wasm {
 
 
     /**
-     *  Serialize a capi_checksum512 type
+     *  Serialize a checksum512 type
      *
-     *  @brief Serialize a capi_checksum512 type
+     *  @brief Serialize a checksum512 type
      *  @param ds - The stream to write
      *  @param cs - The value to serialize
      *  @tparam Stream - Type of datastream buffer
@@ -1552,9 +1552,9 @@ namespace wasm {
     }
 
     /**
-     *  Deserialize a capi_checksum512 type
+     *  Deserialize a checksum512 type
      *
-     *  @brief Deserialize a capi_checksum512 type
+     *  @brief Deserialize a checksum512 type
      *  @param ds - The stream to read
      *  @param cs - The destination for deserialized value
      *  @tparam Stream - Type of datastream buffer

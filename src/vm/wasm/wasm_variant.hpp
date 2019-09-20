@@ -176,22 +176,24 @@ namespace wasm {
 
     static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
-        string str(&t.hash[0], &t.hash[sizeof(t.hash) - 1]);
-        v = wasm::variant(str);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
+        v = wasm::variant(ToHex(str,""));
 
 
     }
 
     static inline void to_variant( const wasm::checksum256_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
-        string str(&t.hash[0], &t.hash[sizeof(t.hash) - 1]);
-        v = wasm::variant(str);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
+        //WASM_TRACE("%s", ToHex(str,"").c_str())
+        v = wasm::variant(ToHex(str,""));
 
     }
 
     static inline void to_variant( const wasm::checksum512_type &t, wasm::variant &v ) {
-        string str(&t.hash[0], &t.hash[sizeof(t.hash) - 1]);
-        v = wasm::variant(str);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
+
+        v = wasm::variant(ToHex(str,""));
     }
 
 
@@ -328,20 +330,21 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum160_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            v.get_str().copy((char *)&t, sizeof(t));
+            FromHex(v.get_str()).copy((char *)&t, sizeof(t));
         }
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum256_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            v.get_str().copy((char *)&t, sizeof(t));
+            //WASM_TRACE("%s", v.get_str().c_str())
+            FromHex(v.get_str()).copy((char *)&t, sizeof(t));
         }
     }
 
 
     static inline void from_variant( const wasm::variant &v, checksum512_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            v.get_str().copy((char *)&t, sizeof(t));
+            FromHex(v.get_str()).copy((char *)&t, sizeof(t));
         }
     }
 

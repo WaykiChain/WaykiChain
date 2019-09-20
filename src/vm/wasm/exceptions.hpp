@@ -19,10 +19,10 @@ using namespace std;
 #define WASM_RETHROW_EXCEPTIONS( exc_type, ... )          \
     catch( exception& e ) {                         \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
-         char buf2[WASM_EXCEPTION_BUFFER_LENGTH];          \
          sprintf( buf,  __VA_ARGS__ );                    \
-         sprintf( buf2,"%s , %s", e.detail(), buf);          \
-         throw exc_type(buf2);                             \
+         std::ostringstream o;                            \
+         o << e.detail() << " , " << buf;                   \
+         throw exc_type(o.str().c_str());                 \
     } catch( ... ) {                                      \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
          sprintf( buf,  __VA_ARGS__ );                    \
