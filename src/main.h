@@ -202,12 +202,16 @@ public:
 
     bool UpdateFinalityBlock(){
         set<CRegID> minerSet ;
-        uint32_t confirmMiners = 4 ;
-        if(chainActive.Tip()->height < (int32_t)SysCfg().GetStableCoinGenesisHeight()  && SysCfg().NetworkID() != REGTEST_NET){
+        uint32_t confirmMiners = 8 ;
+
+        if(SysCfg().NetworkID() == MAIN_NET && chainActive.Height()< 3880000){
             confirmMiners = 1 ;
-        } else{
-            confirmMiners = 8 ;
         }
+
+        if(SysCfg().NetworkID() == TEST_NET && chainActive.Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
+            confirmMiners = 1 ;
+        }
+
 
         auto pBlockIndex = chainActive.Tip() ;
         while(pBlockIndex->height > 0){
