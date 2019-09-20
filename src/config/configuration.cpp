@@ -200,7 +200,7 @@ string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa
 // Public key for initial fund coin owner
 string G_CONFIG_TABLE::initFcoinOwnerPubKey[3] = {
     "028593c9bf1fee77085f5164ba5a8c385e7c3710de2fd8fa1d00748a1469b2176f",   //mainnet
-    "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5",   //testnet
+    "022b05bec85ac78054ba762ac8625e30c85f2a8f23fd62890236706d3ad29646d4",   //testnet
     "03307f4f5e59b89a8e0487ff01dd6c4e925a8c8bfc06091b2efb33f08c27e236c5"};  //regtest
 
 // Public Key for DEX order-matching service
@@ -210,17 +210,17 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
     "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"};  //regtest
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
-    {
-    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
-    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    { //mainnet
+    "b4a22ea2d2970563d2802386adc8fca81fab644b46e5ebf66a6999b219187a81",
+    "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba",
+    "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"
     },
-    {
-    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
-    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    { //testnet
+    "91192277514fb254a52b32477aade6a8c73dbf5377535d9ea41995ab5533ccea",
+    "5feb49f2f2af2858809dd235e7b4e3a633086f311ab1fca8a4a5180ab1a0fe10",
+    "751cc6d03b7e17200056f788623d9ab349f297b008a02046f6993f135d38fd1d"
     },
-    {
+    { //regtest
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
     "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
     "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
