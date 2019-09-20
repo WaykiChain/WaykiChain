@@ -17,14 +17,20 @@ using namespace std;
        WASM_ASSERT( false, exc_type,  __VA_ARGS__ )
 
 #define WASM_RETHROW_EXCEPTIONS( exc_type, ... )          \
-    catch( ... ) {                                        \
+    catch( exception& e ) {                         \
+         char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
+         char buf2[WASM_EXCEPTION_BUFFER_LENGTH];          \
+         sprintf( buf,  __VA_ARGS__ );                    \
+         sprintf( buf2,"%s , %s", e.detail(), buf);          \
+         throw exc_type(buf2);                             \
+    } catch( ... ) {                                      \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
          sprintf( buf,  __VA_ARGS__ );                    \
          throw exc_type(buf);                             \
     }
 
 #define WASM_CAPTURE_AND_RETHROW( ... )          \
-   catch( exception& e ) {                       \
+    catch( exception& e ) {                       \
        throw;                                    \
     } catch( ... ) {                             \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \

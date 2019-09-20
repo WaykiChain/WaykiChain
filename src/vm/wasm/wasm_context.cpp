@@ -137,16 +137,18 @@ namespace wasm {
                     wasmInterface.Execute(code, this);
                 }
             }
-        } catch (wasm::exception &e) {
-            std::ostringstream o;
-            o << e.detail();
-            if(_pending_console_output.str().size() > 0){
-                o << " pending console output:";
-                o << _pending_console_output.str();
-            }
-
-            throw wasm_exception(o.str().c_str());
         }
+        // } catch (wasm::exception &e) {
+        //     std::ostringstream o;
+        //     o << e.detail();
+        //     if(_pending_console_output.str().size() > 0){
+        //         o << " pending console output:";
+        //         o << _pending_console_output.str();
+        //     }
+
+        //     throw wasm_exception(o.str().c_str());
+        // }
+        WASM_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str().c_str() )
 
         trace.trx_id = control_trx.GetHash();
         trace.elapsed =  std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
