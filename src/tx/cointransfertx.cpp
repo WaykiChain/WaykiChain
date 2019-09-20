@@ -81,15 +81,13 @@ string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+    SingleTransfer transfer(toUid, SYMB::WICC, coin_amount);
+    Array transferArray;
+    transferArray.push_back(transfer.ToJson(accountCache));
 
-    CKeyID desKeyId;
-    accountCache.GetKeyId(toUid,            desKeyId);
-    result.push_back(Pair("to_uid",         toUid.ToString()));
-    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
-    result.push_back(Pair("coin_symbol",    SYMB::WICC));
-    result.push_back(Pair("coin_amount",    coin_amount));
-    result.push_back(Pair("memo",           HexStr(memo)));
+    Object result = CBaseTx::ToJson(accountCache);
+    result.push_back(Pair("transfers",   transferArray));
+    result.push_back(Pair("memo",        HexStr(memo)));
 
     return result;
 }
