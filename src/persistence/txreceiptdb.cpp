@@ -7,12 +7,12 @@
 #include "config/chainparams.h"
 
 bool CTxReceiptDBCache::SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts) {
-    if (!SysCfg().IsReceiptEnabled()) return true;
+    if (!SysCfg().IsGenReceipt()) return true;
     return txReceiptCache.SetData(txid, receipts);
 }
 
 bool CTxReceiptDBCache::GetTxReceipts(const TxID &txid, vector<CReceipt> &receipts) {
-    if (!SysCfg().IsReceiptEnabled()) return false;
+    if (!SysCfg().IsGenReceipt()) return false;
     return txReceiptCache.GetData(txid, receipts);
 }
 

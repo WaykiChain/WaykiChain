@@ -686,7 +686,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     SysCfg().SetLogFailures(SysCfg().GetBoolArg("-logfailures", false));
 
-    SysCfg().SetReceiptEnabled(SysCfg().GetBoolArg("-receipt", false));
+    SysCfg().SetGenReceipt(SysCfg().GetBoolArg("-genreceipt", false));
 
     filesystem::path blocksDir = GetDataDir() / "blocks";
     if (!filesystem::exists(blocksDir)) {

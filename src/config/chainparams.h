@@ -69,7 +69,7 @@ protected:
     mutable bool fBenchmark;
     mutable bool fTxIndex;
     mutable bool fLogFailures;
-    mutable bool fReceipt;
+    mutable bool fGenReceipt;
     mutable int64_t nTimeBestReceived;
     mutable uint64_t payTxFee;
     mutable uint32_t nViewCacheSize;
@@ -183,7 +183,7 @@ public:
     bool IsBenchmark() const { return fBenchmark; }
     bool IsTxIndex() const { return fTxIndex; }
     bool IsLogFailures() const { return fLogFailures; };
-    bool IsReceiptEnabled() const { return fReceipt; };
+    bool IsGenReceipt() const { return fGenReceipt; };
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
     uint32_t GetViewCacheSize() const { return nViewCacheSize; }
     int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
@@ -193,7 +193,7 @@ public:
     void SetBenchMark(bool flag) const { fBenchmark = flag; }
     void SetTxIndex(bool flag) const { fTxIndex = flag; }
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
-    void SetReceiptEnabled(bool flag) const { fReceipt = flag; }
+    void SetGenReceipt(bool flag) const { fGenReceipt = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
     void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
     void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }

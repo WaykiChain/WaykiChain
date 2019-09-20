@@ -233,7 +233,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
                     obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
 
-                    if (SysCfg().IsReceiptEnabled()) {
+                    if (SysCfg().IsGenReceipt()) {
                         vector<CReceipt> receipts;
                         pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
                         Array receiptArray;
