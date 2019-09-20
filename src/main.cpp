@@ -288,9 +288,11 @@ bool CChain::UpdateFinalityBlock(){
 
         if(minerSet.size() >=confirmMiners ){
 
-            if(!finalityBlockIndex || (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height)){
+            if( (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height) || !finalityBlockIndex ){
 
-                assert(chainActive.Contains(finalityBlockIndex));
+                if(finalityBlockIndex)
+                    assert(chainActive.Contains(finalityBlockIndex));
+
                 finalityBlockIndex = pBlockIndex ;
             }
             return true;
