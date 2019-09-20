@@ -218,6 +218,7 @@ string HelpMessage() {
     strUsage += "  -reindex               " + _("Rebuild block chain index from current blk000??.dat files") + " " + _("on startup") + "\n";
     strUsage += "  -txindex               " + _("Maintain a full transaction index (default: 0)") + "\n";
     strUsage += "  -logfailures           " + _("Log failures into level db in detail (default: 0)") + "\n";
+    strUsage += "  -receipt               " + _("Whether the receipt feature is supported (default: 0)") + "\n";
 
     strUsage += "\n" + _("Connection options:") + "\n";
     strUsage += "  -addnode=<ip>          " + _("Add a node to connect to and attempt to keep the connection open") + "\n";
@@ -684,6 +685,8 @@ bool AppInit(boost::thread_group &threadGroup) {
     SysCfg().SetReIndex(SysCfg().GetBoolArg("-reindex", false));
 
     SysCfg().SetLogFailures(SysCfg().GetBoolArg("-logfailures", false));
+
+    SysCfg().SetReceiptEnabled(SysCfg().GetBoolArg("-receipt", false));
 
     filesystem::path blocksDir = GetDataDir() / "blocks";
     if (!filesystem::exists(blocksDir)) {

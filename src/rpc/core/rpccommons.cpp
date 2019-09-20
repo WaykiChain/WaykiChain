@@ -233,13 +233,15 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
                     obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
 
-                    vector<CReceipt> receipts;
-                    pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
-                    Array receiptArray;
-                    for (const auto &receipt : receipts) {
-                        receiptArray.push_back(receipt.ToJson());
+                    if (SysCfg().IsReceiptEnabled()) {
+                        vector<CReceipt> receipts;
+                        pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
+                        Array receiptArray;
+                        for (const auto &receipt : receipts) {
+                            receiptArray.push_back(receipt.ToJson());
+                        }
+                        obj.push_back(Pair("receipt", receiptArray));
                     }
-                    obj.push_back(Pair("receipt", receiptArray));
 
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
