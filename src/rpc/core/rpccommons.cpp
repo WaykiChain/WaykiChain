@@ -236,11 +236,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     if (SysCfg().IsGenReceipt()) {
                         vector<CReceipt> receipts;
                         pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
-                        Array receiptArray;
-                        for (const auto &receipt : receipts) {
-                            receiptArray.push_back(receipt.ToJson());
-                        }
-                        obj.push_back(Pair("receipt", receiptArray));
+                        obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                     }
 
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -309,6 +305,31 @@ const char* JSON::GetValueTypeName(const Value_type &valueType) {
     }
     return "unknown";
 }
+
+
+Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt) {
+    CKeyID fromKeyId, toKeyId;
+    accountCache.GetKeyId(receipt.from_uid, fromKeyId);
+    accountCache.GetKeyId(receipt.to_uid, toKeyId);
+
+    Object obj;
+    obj.push_back(Pair("from_addr",     fromKeyId.ToAddress()));
+    obj.push_back(Pair("to_addr",       toKeyId.ToAddress()));
+    obj.push_back(Pair("coin_symbol",   receipt.coin_symbol));
+    obj.push_back(Pair("coin_amount",   receipt.coin_amount));
+    obj.push_back(Pair("receipt_code",  (uint64_t)receipt.code));
+    obj.push_back(Pair("memo",          GetReceiptCodeName(receipt.code)));
+    return obj;
+}
+
+Array JSON::ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &receipts) {
+    Array array;
+    for (const auto &receipt : receipts) {
+        array.push_back(ToJson(accountCache, receipt));
+    }
+    return array;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // namespace RPC_PARAM

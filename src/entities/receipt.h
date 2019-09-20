@@ -98,19 +98,6 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE_CONVERT(uint16_t, code);
     )
-
-    json_spirit::Object ToJson() const {
-        json_spirit::Object obj;
-
-        obj.push_back(Pair("from_uid",      from_uid.ToString()));
-        obj.push_back(Pair("to_uid",        to_uid.ToString()));
-        obj.push_back(Pair("coin_symbol",   coin_symbol));
-        obj.push_back(Pair("coin_amount",   coin_amount));
-        obj.push_back(Pair("receipt_code",  (uint64_t)code));
-        obj.push_back(Pair("memo",          GetReceiptCodeName(code)));
-
-        return obj;
-    }
 };
 
 #endif  // ENTITIES_RECEIPT_H
