@@ -211,9 +211,9 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
     { //mainnet
-    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
-    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    "b4a22ea2d2970563d2802386adc8fca81fab644b46e5ebf66a6999b219187a81",
+    "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba",
+    "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"
     },
     { //testnet
     "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
