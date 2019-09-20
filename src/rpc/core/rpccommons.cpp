@@ -213,30 +213,9 @@ bool GetKeyId(const string &addr, CKeyID &keyId) {
 Object GetTxDetailJSON(const uint256& txid) {
     Object obj;
     {
-        LOCK(cs_main);
-        CBlock genesisblock;
-        CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
-        ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
-        assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
-        for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
-            if (txid == genesisblock.GetTxid(i)) {
-                obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
-
-                obj.push_back(Pair("confirmations",     chainActive.Height()));
-                obj.push_back(Pair("confirmed_height",  (int32_t)0));
-                obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
-                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
-
-                CDataStream ds(SER_DISK, CLIENT_VERSION);
-                ds << genesisblock.vptx[i];
-                obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
-                return obj;
-            }
-        }
-
         std::shared_ptr<CBaseTx> pBaseTx;
 
+        LOCK(cs_main);
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
             if (pCdMan->pContractCache->ReadTxIndex(txid, postx)) {
@@ -254,13 +233,11 @@ Object GetTxDetailJSON(const uint256& txid) {
                     obj.push_back(Pair("confirmed_time",    (int32_t)header.GetTime()));
                     obj.push_back(Pair("block_hash",        header.GetHash().GetHex()));
 
-                    vector<CReceipt> receipts;
-                    pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
-                    Array receiptArray;
-                    for (const auto &receipt : receipts) {
-                        receiptArray.push_back(receipt.ToJson());
+                    if (SysCfg().IsGenReceipt()) {
+                        vector<CReceipt> receipts;
+                        pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
+                        obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                     }
-                    obj.push_back(Pair("receipt", receiptArray));
 
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
@@ -280,6 +257,28 @@ Object GetTxDetailJSON(const uint256& txid) {
                 CDataStream ds(SER_DISK, CLIENT_VERSION);
                 ds << pBaseTx;
                 obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+                return obj;
+            }
+        }
+
+        /* try */
+        CBlock genesisblock;
+        CBlockIndex* pGenesisBlockIndex = mapBlockIndex[SysCfg().GetGenesisBlockHash()];
+        ReadBlockFromDisk(pGenesisBlockIndex, genesisblock);
+        assert(genesisblock.GetMerkleRootHash() == genesisblock.BuildMerkleTree());
+        for (uint32_t i = 0; i < genesisblock.vptx.size(); ++i) {
+            if (txid == genesisblock.GetTxid(i)) {
+                obj = genesisblock.vptx[i]->ToJson(*pCdMan->pAccountCache);
+
+                obj.push_back(Pair("confirmations",     chainActive.Height()));
+                obj.push_back(Pair("confirmed_height",  chainActive.Height()));
+                obj.push_back(Pair("confirmed_time",    (int32_t)genesisblock.GetTime()));
+                obj.push_back(Pair("block_hash",        genesisblock.GetHash().GetHex()));
+
+                CDataStream ds(SER_DISK, CLIENT_VERSION);
+                ds << genesisblock.vptx[i];
+                obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
                 return obj;
             }
         }
@@ -306,6 +305,31 @@ const char* JSON::GetValueTypeName(const Value_type &valueType) {
     }
     return "unknown";
 }
+
+
+Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt) {
+    CKeyID fromKeyId, toKeyId;
+    accountCache.GetKeyId(receipt.from_uid, fromKeyId);
+    accountCache.GetKeyId(receipt.to_uid, toKeyId);
+
+    Object obj;
+    obj.push_back(Pair("from_addr",     fromKeyId.ToAddress()));
+    obj.push_back(Pair("to_addr",       toKeyId.ToAddress()));
+    obj.push_back(Pair("coin_symbol",   receipt.coin_symbol));
+    obj.push_back(Pair("coin_amount",   receipt.coin_amount));
+    obj.push_back(Pair("receipt_code",  (uint64_t)receipt.code));
+    obj.push_back(Pair("memo",          GetReceiptCodeName(receipt.code)));
+    return obj;
+}
+
+Array JSON::ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &receipts) {
+    Array array;
+    for (const auto &receipt : receipts) {
+        array.push_back(ToJson(accountCache, receipt));
+    }
+    return array;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // namespace RPC_PARAM

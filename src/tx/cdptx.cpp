@@ -174,8 +174,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         if (partialCollateralRatio < startingCdpCollateralRatio)
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (%llu) is smaller than the minimal (%llu)",
-                            partialCollateralRatio, startingCdpCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (%.2f%%) is smaller than the minimal (%.2f%%)",
+                            100.0 * partialCollateralRatio / RATIO_BOOST, 100.0 * startingCdpCollateralRatio / RATIO_BOOST),
+                            REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
         CUserCDP cdp(account.regid, GetHash(), height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
 
@@ -477,7 +478,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             uint64_t collateralRatio  = cdp.ComputeCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
-                                100.0 * collateralRatio / (double)RATIO_BOOST, 100.0 * startingCdpCollateralRatio / (double)RATIO_BOOST),
+                                100.0 * collateralRatio / RATIO_BOOST, 100.0 * startingCdpCollateralRatio / RATIO_BOOST),
                                 UPDATE_CDP_FAIL, "invalid-collatera-ratio");
             }
 

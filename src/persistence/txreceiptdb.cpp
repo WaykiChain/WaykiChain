@@ -4,12 +4,15 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "txreceiptdb.h"
+#include "config/chainparams.h"
 
 bool CTxReceiptDBCache::SetTxReceipts(const TxID &txid, const vector<CReceipt> &receipts) {
+    if (!SysCfg().IsGenReceipt()) return true;
     return txReceiptCache.SetData(txid, receipts);
 }
 
 bool CTxReceiptDBCache::GetTxReceipts(const TxID &txid, vector<CReceipt> &receipts) {
+    if (!SysCfg().IsGenReceipt()) return false;
     return txReceiptCache.GetData(txid, receipts);
 }
 

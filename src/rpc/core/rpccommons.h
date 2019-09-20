@@ -29,6 +29,9 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx);
 namespace JSON {
     const Value& GetObjectFieldValue(const Value &jsonObj, const string &fieldName);
     const char* GetValueTypeName(const Value_type &valueType);
+
+    Object ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt);
+    Array ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &receipts);
 }
 
 namespace RPC_PARAM {
