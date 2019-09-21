@@ -197,7 +197,7 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
     // }
 
     vector<uint64_t> prices;
-    int32_t beginBlockHeight = std::max((blockHeight - slideWindow), uint64_t(0));
+    int32_t beginBlockHeight = std::max<int32_t>((blockHeight - slideWindow), 0);
     for (int32_t height = blockHeight; height > beginBlockHeight; --height) {
         const auto &iter = blockUserPrices.find(height);
         if (iter != blockUserPrices.end()) {
