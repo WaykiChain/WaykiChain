@@ -107,7 +107,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { UCOIN_STAKE_TX,           std::make_tuple("UCOIN_STAKE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) },
 
 { ASSET_ISSUE_TX,           std::make_tuple("ASSET_ISSUE_TX",           0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) }, //plus 550 WICC
-{ ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) },
+{ ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) }, //plus 110 WICC
 { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) },
 
 { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,          0,          0           ) },

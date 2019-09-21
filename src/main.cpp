@@ -1254,7 +1254,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             if (index == 1 && haveMedianPriceTx) {
                 if (havePriceFeedTx && !needExecuteTx) {
-                    needExecuteTx = true;
+                    needExecuteTx       = true;
                     medianPriceTxOffset = pos.nTxOffset;
                     pos.nTxOffset += ::GetSerializeSize(block.vptx[1], SER_DISK, CLIENT_VERSION);
                     continue;
