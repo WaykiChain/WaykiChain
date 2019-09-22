@@ -115,7 +115,7 @@ protected:
 class CPricePoint {
 public:
     CoinPricePair coin_price_pair;
-    uint64_t price;     // boosted by 10^4
+    uint64_t price;  // boosted by 10^8
 
 public:
     CPricePoint() {}

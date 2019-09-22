@@ -59,9 +59,9 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
     Array arrPricePoints = params[1].get_array();
     vector<CPricePoint> pricePoints;
     for (auto objPp : arrPricePoints) {
-        const Value& coinValue = find_value(objPp.get_obj(), "coin");
+        const Value& coinValue     = find_value(objPp.get_obj(), "coin");
         const Value& currencyValue = find_value(objPp.get_obj(), "currency");
-        const Value& priceValue = find_value(objPp.get_obj(), "price");
+        const Value& priceValue    = find_value(objPp.get_obj(), "price");
         if (coinValue.type() == null_type || currencyValue.type() == null_type || priceValue.type() == null_type) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "null type not allowed!");
         }
