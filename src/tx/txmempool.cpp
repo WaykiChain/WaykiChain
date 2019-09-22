@@ -32,8 +32,8 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
     this->nTxSize   = other.nTxSize;
     this->dPriority = other.dPriority;
 
-    this->nTime     = other.nTime;
-    this->height   = other.height;
+    this->nTime  = other.nTime;
+    this->height = other.height;
 }
 
 CTxMemPool::CTxMemPool() {

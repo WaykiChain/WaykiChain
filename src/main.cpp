@@ -1566,8 +1566,7 @@ bool static DisconnectTip(CValidationState &state) {
         auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
         if (!DisconnectBlock(block, *spCW, pIndexDelete, state))
-            return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed",
-                            pIndexDelete->GetBlockHash().ToString());
+            return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
         spCW->Flush();
@@ -1582,15 +1581,15 @@ bool static DisconnectTip(CValidationState &state) {
     // Update chainActive and related variables.
     UpdateTip(pIndexDelete->pprev, block);
     // Resurrect mempool transactions from the disconnected block.
-    for (const auto &ptx : block.vptx) {
+    for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
         CValidationState stateDummy;
-        if (!ptx->IsBlockRewardTx()) {
-            if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
-                mempool.Remove(ptx.get(), removed, true);
+        if (!pTx->IsBlockRewardTx() && !pTx->IsMedianPriceTx()) {
+            if (!AcceptToMemoryPool(mempool, stateDummy, pTx.get(), false)) {
+                mempool.Remove(pTx.get(), removed, true);
             }
         } else {
-            EraseTransaction(ptx->GetHash());
+            EraseTransaction(pTx->GetHash());
         }
     }
 
