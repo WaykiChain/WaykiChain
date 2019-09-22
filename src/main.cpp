@@ -1571,8 +1571,20 @@ bool static DisconnectTip(CValidationState &state) {
 
         // Need to re-sync all to global cache layer.
         spCW->Flush();
+
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegateList();
+
+        // Attention: need to reset the lastest block median price
+        CBlockIndex *pPreBlockIndex = pIndexDelete->pprev;
+        CBlock preBlock;
+        if (pPreBlockIndex) {
+            if (!ReadBlockFromDisk(pPreBlockIndex, preBlock))
+                return ERRORMSG("DisconnectTip() : failed to read block [%d]: %s", pPreBlockIndex->height,
+                                pPreBlockIndex->GetBlockHash().ToString());
+
+            pCdMan->pPpCache->SetLatestBlockMedianPricePoints(preBlock.GetBlockMedianPrice());
+        }
     }
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);

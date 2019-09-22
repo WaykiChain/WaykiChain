@@ -5,9 +5,9 @@
 
 #include "pricefeeddb.h"
 
+#include "config/scoin.h"
 #include "main.h"
 #include "tx/pricefeedtx.h"
-#include "config/scoin.h"
 
 void CConsecutiveBlockPrice::AddUserPrice(const int32_t blockHeight, const CRegID &regId, const uint64_t price) {
     mapBlockUserPrices[blockHeight][regId] = price;
@@ -29,7 +29,7 @@ void CPricePointMemCache::SetLatestBlockMedianPricePoints(
     const map<CoinPricePair, uint64_t> &latestBlockMedianPricePointsIn) {
     latestBlockMedianPricePoints = latestBlockMedianPricePointsIn;
     string prices;
-    for (const auto &item: latestBlockMedianPricePointsIn) {
+    for (const auto &item : latestBlockMedianPricePointsIn) {
         prices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 
@@ -40,13 +40,19 @@ bool CPricePointMemCache::AddBlockPricePointInBatch(const int32_t blockHeight, c
                                                     const vector<CPricePoint> &pps) {
     for (CPricePoint pp : pps) {
         if (ExistBlockUserPrice(blockHeight, regId, pp.GetCoinPricePair())) {
-            LogPrint("PRICEFEED", "CPricePointMemCache::AddBlockPricePointInBatch, existed block user price, "
-                     "height: %d, redId: %s, pricePoint: %s\n", blockHeight, regId.ToString(), pp.ToString());
+            LogPrint("PRICEFEED",
+                     "CPricePointMemCache::AddBlockPricePointInBatch, existed block user price, "
+                     "height: %d, redId: %s, pricePoint: %s\n",
+                     blockHeight, regId.ToString(), pp.ToString());
             return false;
         }
 
         CConsecutiveBlockPrice &cbp = mapCoinPricePointCache[pp.GetCoinPricePair()];
         cbp.AddUserPrice(blockHeight, regId, pp.GetPrice());
+        LogPrint("PRICEFEED",
+                 "CPricePointMemCache::AddBlockPricePointInBatch, add block user price, "
+                 "height: %d, redId: %s, pricePoint: %s\n",
+                 blockHeight, regId.ToString(), pp.ToString());
     }
 
     return true;
@@ -74,7 +80,7 @@ bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {
     }
 
     // More than 3 transactions in the block.
-    for (uint32_t i = 2; i < block.vptx.size(); ++ i) {
+    for (uint32_t i = 2; i < block.vptx.size(); ++i) {
         if (!block.vptx[i]->IsPriceFeedTx()) {
             break;
         }
@@ -87,26 +93,30 @@ bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {
 }
 
 bool CPricePointMemCache::DeleteBlockPricePoint(const int32_t blockHeight) {
-    for (auto &item : mapCoinPricePointCache) {
-        item.second.DeleteUserPrice(blockHeight);
+    if (mapCoinPricePointCache.empty()) {
+        // TODO: multi stable coin
+        mapCoinPricePointCache[CoinPricePair(SYMB::WICC, SYMB::USD)].DeleteUserPrice(blockHeight);
+        mapCoinPricePointCache[CoinPricePair(SYMB::WGRT, SYMB::USD)].DeleteUserPrice(blockHeight);
+    } else {
+        for (auto &item : mapCoinPricePointCache) {
+            item.second.DeleteUserPrice(blockHeight);
+        }
     }
 
     return true;
 }
 
-bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) {
-    return DeleteBlockPricePoint(block.GetHeight());
-}
+bool CPricePointMemCache::DeleteBlockFromCache(const CBlock &block) { return DeleteBlockPricePoint(block.GetHeight()); }
 
 void CPricePointMemCache::BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn) {
     for (const auto &item : mapCoinPricePointCacheIn) {
+        // map<int32_t /* block height */, map<CRegID, uint64_t /* price */>>
         const auto &mapBlockUserPrices = item.second.mapBlockUserPrices;
         for (const auto &userPrice : mapBlockUserPrices) {
             if (userPrice.second.empty()) {
-                mapCoinPricePointCache[item.first /* CoinPricePair */].mapBlockUserPrices.erase(
-                    userPrice.first /* height */);
+                mapCoinPricePointCache[item.first /* CoinPricePair */].mapBlockUserPrices.erase(userPrice.first /* height */);
             } else {
-                // typedef map<int32_t /* block height */, map<CRegID, uint64_t /* price */>> BlockUserPriceMap;
+                // map<CRegID, uint64_t /* price */>;
                 for (const auto &priceItem : userPrice.second) {
                     mapCoinPricePointCache[item.first /* CoinPricePair */]
                         .mapBlockUserPrices[userPrice.first /* height */]
@@ -212,7 +222,9 @@ uint64_t CPricePointMemCache::ComputeBlockMedianPrice(const int32_t blockHeight,
     // }
 
     uint64_t medianPrice = ComputeMedianNumber(prices);
-    LogPrint("PRICEFEED", "CPricePointMemCache::ComputeBlockMedianPrice, computed median number: %llu\n", medianPrice);
+    LogPrint("PRICEFEED",
+             "CPricePointMemCache::ComputeBlockMedianPrice, blockHeight: %d, computed median number: %llu\n",
+             blockHeight, medianPrice);
 
     return medianPrice;
 }
@@ -231,11 +243,12 @@ uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const ui
     uint64_t medianPrice = ComputeBlockMedianPrice(blockHeight, slideWindow, coinPricePair);
 
     if (medianPrice == 0) {
-        medianPrice = latestBlockMedianPricePoints.count(coinPricePair) ?
-                    latestBlockMedianPricePoints[coinPricePair] : 0;
+        medianPrice = latestBlockMedianPricePoints.count(coinPricePair) ? latestBlockMedianPricePoints[coinPricePair] : 0;
 
-        LogPrint("PRICEFEED", "CPricePointMemCache::GetMedianPrice, use previous block median price: %s/%s -> %llu\n",
-                 std::get<0>(coinPricePair), std::get<1>(coinPricePair), medianPrice);
+        LogPrint("PRICEFEED",
+                 "CPricePointMemCache::GetMedianPrice, use previous block median price: blockHeight: %d, "
+                 "price: %s/%s -> %llu\n",
+                 blockHeight, std::get<0>(coinPricePair), std::get<1>(coinPricePair), medianPrice);
     }
 
     return medianPrice;
@@ -246,14 +259,14 @@ bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight, c
     CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
     uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
     mapMedianPricePoints.emplace(bcoinPricePair, bcoinMedianPrice);
-    LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, %s/%s -> %llu\n", SYMB::WICC, SYMB::USD,
-             bcoinMedianPrice);
+    LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, blockHeight: %d, price: %s/%s -> %llu\n",
+             blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice);
 
     CoinPricePair fcoinPricePair(SYMB::WGRT, SYMB::USD);
     uint64_t fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
     mapMedianPricePoints.emplace(fcoinPricePair, fcoinMedianPrice);
-    LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, %s/%s -> %llu\n", SYMB::WGRT, SYMB::USD,
-             fcoinMedianPrice);
+    LogPrint("PRICEFEED", "CPricePointMemCache::GetBlockMedianPricePoints, blockHeight: %d, price: %s/%s -> %llu\n",
+             blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice);
 
     // Update latest block median price points.
     SetLatestBlockMedianPricePoints(mapMedianPricePoints);
