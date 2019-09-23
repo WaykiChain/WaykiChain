@@ -63,7 +63,7 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
         val = wasm::abi_serializer::unpack(contract.abi, wasm::name(t.action).to_string(), t.data,
                                            max_serialization_time);
     } else
-        to_variant(ToHex(t.data), val);
+        to_variant(ToHex(t.data,""), val);
 
     json_spirit::Config::add(obj, "data", val);
 
