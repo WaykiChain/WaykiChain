@@ -1240,10 +1240,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog(pBaseTx->GetHash());
             if (!pBaseTx->ExecuteTx(pIndex->height, index, cw, state)) {
-                if (SysCfg().IsLogFailures()) {
-                    pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                      state.GetRejectReason());
-                }
+                pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                  state.GetRejectReason());
                 cw.DisableTxUndoLog();
                 return false;
             }
@@ -1310,10 +1308,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Execute block reward transaction
     cw.EnableTxUndoLog(block.vptx[0]->GetHash());
     if (!block.vptx[0]->ExecuteTx(pIndex->height, 0, cw, state)) {
-        if (SysCfg().IsLogFailures()) {
-            pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
-                                              state.GetRejectReason());
-        }
+        pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
+                                          state.GetRejectReason());
         cw.DisableTxUndoLog();
         return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
     }
@@ -1354,10 +1350,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             cw.EnableTxUndoLog(block.vptx[0]->GetHash());
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->height, -1, cw, state)) {
-                if (SysCfg().IsLogFailures()) {
-                    pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(),
-                                                      state.GetRejectCode(), state.GetRejectReason());
-                }
+                pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
+                                                  state.GetRejectReason());
                 cw.DisableTxUndoLog();
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
             }
