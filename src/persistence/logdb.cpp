@@ -27,6 +27,4 @@ bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<ui
     return true;
 }
 
-void CLogDBCache::Flush() {
-    executeFailCache.Flush();
-}
+void CLogDBCache::Flush() { executeFailCache.Flush(); }

@@ -386,17 +386,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
-    // TODO: consider different coin types.
     auto nFees = std::get<1>(entry.GetFees());
     auto nSize = entry.GetTxSize();
-
-    if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
-        CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
-        if (pTx->coin_amount < CBaseTx::nDustAmountThreshold)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
-                 hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
-    }
-
     // Continuously rate-limit free transactions
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
     // be annoying or make others' transactions take longer to confirm.

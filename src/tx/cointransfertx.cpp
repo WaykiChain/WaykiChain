@@ -15,6 +15,10 @@ bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
+    if (coin_amount < CBaseTx::nDustAmountThreshold)
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", coin_amount,
+                         CBaseTx::nDustAmountThreshold), REJECT_DUST, "invalid-coin-amount");
+
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
@@ -114,7 +118,6 @@ Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    // TODO: fees in WICC/WGRT/WUSD
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -135,12 +138,12 @@ bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
         }
 
         if (transfers[i].coin_amount < CBaseTx::nDustAmountThreshold)
-            return state.DoS(0, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], dust amount, %d < %d",
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
                 i, transfers[i].coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "invalid-coin-amount");
 
 
         if (!CheckBaseCoinRange(transfers[i].coin_amount))
-            return state.DoS(0, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], coin_amount out of valid range",
+            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], coin_amount out of valid range",
                 i, transfers[i].coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "invalid-coin-amount");
     }
 
