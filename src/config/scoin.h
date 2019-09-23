@@ -26,9 +26,9 @@ static const int64_t FCOIN_VOTEMINE_EPOCH_TO                = 1792116960; //Fri 
 
 static const uint16_t FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK  = 1000;  // depends on TPS
 
-static const double TRANSACTION_PRIORITY_CEILING            = 1000.0; // Most trx priority is less than 1000.0
-static const double PRICE_MEDIAN_TRANSACTION_PRIORITY       = 9000.0;
-static const double PRICE_FEED_TRANSACTION_PRIORITY         = 10000.0;
+static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;  // Most trx priority is less than 1000.0
+static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 10000.0;
+static const double PRICE_FEED_TRANSACTION_PRIORITY   = 20000.0;
 
 static const uint64_t ASSET_RISK_FEE_RATIO                  = 4000; // 40% * 10000, the ratio of asset fee into the risk riserve
 static const uint64_t MIN_DEX_ORDER_AMOUNT                  = 0.1 * COIN; // min amount of dex order limit

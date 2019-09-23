@@ -24,18 +24,23 @@ class CBaseTx;
 class CAccountDBCache;
 class CAccount;
 
-typedef std::tuple<double /* priority */, double /* FeePerKb */, std::shared_ptr<CBaseTx> > TxPriority;
+#include <cmath>
 
-class TxPriorityCompare {
-    bool byFee;
+using namespace std;
 
-public:
-    TxPriorityCompare(bool byFeeIn) : byFee(byFeeIn) {}
-    bool operator()(const TxPriority &a, const TxPriority &b) {
-        if (byFee) {
-            return std::get<1>(a) == std::get<1>(b) ? std::get<0>(a) < std::get<0>(b) : std::get<1>(a) < std::get<1>(b);
+struct TxPriority {
+    double priority;
+    double feePerKb;
+    std::shared_ptr<CBaseTx> baseTx;
+
+    TxPriority(const double priorityIn, const double feePerKbIn, const std::shared_ptr<CBaseTx> &baseTxIn)
+        : priority(priorityIn), feePerKb(feePerKbIn), baseTx(baseTxIn) {}
+
+    bool operator<(const TxPriority &other) const {
+        if (fabs(this->priority - other.priority) <= 1000) {
+            return this->feePerKb < other.feePerKb;
         } else {
-            return std::get<0>(a) == std::get<0>(b) ? std::get<1>(a) < std::get<1>(b) : std::get<0>(a) < std::get<0>(b);
+            return this->priority < other.priority;
         }
     }
 };

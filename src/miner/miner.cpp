@@ -70,9 +70,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
 }
 
 // Sort transactions by priority and fee to decide priority orders to process transactions.
-void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
-    vecPriority.reserve(mempool.memPoolTxs.size());
-
+void GetPriorityTx(set<TxPriority> &txPriorities, const int32_t nFuelRate) {
     static TokenSymbol feeSymbol;
     static uint64_t fee    = 0;
     static uint32_t txSize = 0;
@@ -90,7 +88,7 @@ void GetPriorityTx(vector<TxPriority> &vecPriority, const int32_t nFuelRate) {
 
             LogPrint("MINER", "GetPriority, feeSymbol: %s, fee: %llu, txSize: %u, feePerKb: %.4f, priority: %.4f\n",
                      feeSymbol, fee, txSize, feePerKb, priority);
-            vecPriority.push_back(TxPriority(priority, feePerKb, mi->second.GetTransaction()));
+            txPriorities.emplace(TxPriority(priority, feePerKb, mi->second.GetTransaction()));
         }
     }
 }
@@ -296,17 +294,15 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
         uint64_t reward         = 0;
 
         // Calculate && sort transactions from memory pool.
-        vector<TxPriority> txPriorities;
+        set<TxPriority> txPriorities;
         GetPriorityTx(txPriorities, fuelRate);
-        TxPriorityCompare comparer(false); // Priority by size first.
-        make_heap(txPriorities.begin(), txPriorities.end(), comparer);
+
         LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
 
         // Collect transactions into the block.
-        for (auto item : txPriorities) {
-
-            CBaseTx *pBaseTx = std::get<2>(item).get();
+        for (auto itor = txPriorities.rbegin(); itor != txPriorities.rend(); ++itor) {
+            CBaseTx *pBaseTx = itor->baseTx.get();
 
             uint32_t txSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             if (totalBlockSize + txSize >= nBlockMaxSize) {
@@ -356,7 +352,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
             ++index;
 
-            pBlock->vptx.push_back(std::get<2>(item));
+            pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d, runStep:%d, fuelRate:%d, txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
@@ -445,27 +441,25 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};
 
         // Calculate && sort transactions from memory pool.
-        vector<TxPriority> txPriorities;
+        set<TxPriority> txPriorities;
         GetPriorityTx(txPriorities, fuelRate);
 
         // Push block price median transaction into queue.
-        txPriorities.push_back(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
+        txPriorities.emplace(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
 
-        TxPriorityCompare comparer(false); // Priority by size first.
-        make_heap(txPriorities.begin(), txPriorities.end(), comparer);
         LogPrint("MINER", "CreateNewBlockStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
 
         auto startTime = std::chrono::steady_clock::now();
         // Collect transactions into the block.
-        for (auto item : txPriorities) {
+        for (auto itor = txPriorities.rbegin(); itor != txPriorities.rend(); ++itor) {
             auto endTime  = std::chrono::steady_clock::now();
             auto costTime = std::chrono::duration<double>(endTime - startTime).count();
             if (costTime >= GetBlockInterval(height) - 1) {
                 break;
             }
 
-            CBaseTx *pBaseTx = std::get<2>(item).get();
+            CBaseTx *pBaseTx = itor->baseTx.get();
 
             uint32_t txSize = pBaseTx->GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
             if (totalBlockSize + txSize >= nBlockMaxSize) {
@@ -483,7 +477,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
                 // Special case for price median tx,
                 if (pBaseTx->IsPriceMedianTx()) {
-                    CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)std::get<2>(item).get();
+                    CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)itor->baseTx.get();
 
                     map<CoinPricePair, uint64_t> mapMedianPricePoints;
                     uint64_t slideWindow = 0;
@@ -530,7 +524,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
             ++index;
 
-            pBlock->vptx.push_back(std::get<2>(item));
+            pBlock->vptx.push_back(itor->baseTx);
 
             LogPrint("fuel", "miner total fuel:%d, tx fuel:%d, runStep:%d, fuelRate:%d, txid:%s\n", totalFuel,
                      pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
