@@ -134,10 +134,6 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
         pRewardTx->txUid           = delegate.regid;
         pRewardTx->valid_height    = pBlock->GetHeight();
         pRewardTx->inflated_bcoins = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
-
-        auto pPriceMedianTx          = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
-        pPriceMedianTx->txUid        = delegate.regid;
-        pPriceMedianTx->valid_height = pBlock->GetHeight();
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
@@ -247,11 +243,10 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
 
             CValidationState state;
             if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state)) {
-                if (SysCfg().IsLogFailures()) {
-                    pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
-                                                      state.GetRejectReason());
-                }
-                return ERRORMSG("VerifyRewardTx() : failed to execute transaction, txid=%s", pBaseTx->GetHash().GetHex());
+                pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
+                                                  state.GetRejectReason());
+                return ERRORMSG("VerifyRewardTx() : failed to execute transaction, txid=%s",
+                                pBaseTx->GetHash().GetHex());
             }
 
             totalRunStep += pBaseTx->nRunStep;
@@ -329,9 +324,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
                     LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
 
-                    if (SysCfg().IsLogFailures())
-                        pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                        state.GetRejectReason());
+                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
                     continue;
                 }
 
@@ -430,7 +424,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         return nullptr;
 
     pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
-    pBlock->vptx.push_back(std::make_shared<CBlockPriceMedianTx>());
 
     // Largest block you're willing to create:
     uint32_t nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
@@ -443,7 +436,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
         CBlockIndex *pIndexPrev            = chainActive.Tip();
         int32_t height                     = pIndexPrev->height + 1;
-        int32_t index                      = 1; // 0: block reward tx; 1: median price tx
+        int32_t index                      = 0; // 0: block reward tx
         uint32_t fuelRate                  = GetElementForBurn(pIndexPrev);
         uint64_t totalBlockSize            = ::GetSerializeSize(*pBlock, SER_NETWORK, PROTOCOL_VERSION);
         uint64_t totalRunStep              = 0;
@@ -454,16 +447,20 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         // Calculate && sort transactions from memory pool.
         vector<TxPriority> txPriorities;
         GetPriorityTx(txPriorities, fuelRate);
+
+        // Push block price median transaction into queue.
+        txPriorities.push_back(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
+
         TxPriorityCompare comparer(false); // Priority by size first.
         make_heap(txPriorities.begin(), txPriorities.end(), comparer);
         LogPrint("MINER", "CreateNewBlockStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
 
-        auto startTime = std::chrono::steady_clock::now() ;
+        auto startTime = std::chrono::steady_clock::now();
         // Collect transactions into the block.
         for (auto item : txPriorities) {
-            auto endTime    = std::chrono::steady_clock::now();
-            double costTime = std::chrono::duration<double>(endTime - startTime).count();
+            auto endTime  = std::chrono::steady_clock::now();
+            auto costTime = std::chrono::duration<double>(endTime - startTime).count();
             if (costTime >= GetBlockInterval(height) - 1) {
                 break;
             }
@@ -481,14 +478,27 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
             try {
                 CValidationState state;
+
                 pBaseTx->nFuelRate = fuelRate;
+
+                // Special case for price median tx,
+                if (pBaseTx->IsPriceMedianTx()) {
+                    CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)std::get<2>(item).get();
+
+                    map<CoinPricePair, uint64_t> mapMedianPricePoints;
+                    uint64_t slideWindow = 0;
+                    spCW->sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
+                    spCW->ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints);
+
+                    pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
+                }
+
                 if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
                     LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction, txid: %s\n",
                              pBaseTx->GetHash().GetHex());
 
-                    if (SysCfg().IsLogFailures())
-                        pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                        state.GetRejectReason());
+                    pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                      state.GetRejectReason());
                     continue;
                 }
 
@@ -534,13 +544,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         miningBlockInfo.totalFees      = totalFees;
 
         ((CUCoinBlockRewardTx *)pBlock->vptx[0].get())->reward_fees = rewards;
-
-        CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)pBlock->vptx[1].get();
-        map<CoinPricePair, uint64_t> mapMedianPricePoints;
-        uint64_t slideWindow = 0;
-        cwIn.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-        cwIn.ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints);
-        pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
 
         // Fill in header
         pBlock->SetPrevBlockHash(pIndexPrev->GetBlockHash());

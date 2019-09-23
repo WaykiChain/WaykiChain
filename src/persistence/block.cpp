@@ -79,11 +79,24 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
 }
 
 map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
-    if (vptx.size() == 1 || !vptx[1]->IsMedianPriceTx()) {
+    if (GetFeatureForkVersion(GetHeight()) == MAJOR_VER_R1) {
         return map<CoinPricePair, uint64_t>();
     }
 
-    return ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
+    for (size_t index = 1; index < vptx.size(); ++ index) {
+        if (vptx[index]->IsPriceFeedTx()) {
+            continue;
+        } else if (vptx[index]->IsPriceMedianTx()) {
+            return ((CBlockPriceMedianTx*)vptx[index].get())->GetMedianPrice();
+        } else {
+            break;
+        }
+    }
+
+    LogPrint("ERROR", "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
+             GetHash().GetHex());
+    assert(false && "block does not have price median tx");
+    return map<CoinPricePair, uint64_t>();
 }
 
 void CBlock::Print(CAccountDBCache& accountCache) const {

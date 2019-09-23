@@ -405,10 +405,10 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s already in mempool", hash.GetHex()),
             REJECT_INVALID, "tx-already-in-mempool");
 
-    // is it a miner reward tx or median price tx?
-    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsMedianPriceTx())
+    // is it a miner reward tx or price median tx?
+    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
         return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward/median price transaction, can't put into mempool",
+            ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward/price median transaction, can't put into mempool",
             hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
@@ -423,17 +423,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
-    // TODO: consider different coin types.
     auto nFees = std::get<1>(entry.GetFees());
     auto nSize = entry.GetTxSize();
-
-    if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
-        CBaseCoinTransferTx *pTx = static_cast<CBaseCoinTransferTx *>(pBaseTx);
-        if (pTx->coin_amount < CBaseTx::nDustAmountThreshold)
-            return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s transfer dust amount, %d < %d",
-                 hash.GetHex(), pTx->coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "dust amount");
-    }
-
     // Continuously rate-limit free transactions
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
     // be annoying or make others' transactions take longer to confirm.
@@ -1274,34 +1265,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         uint32_t fuelRate     = block.GetFuelRate();
         uint64_t totalRunStep = 0;
 
-        bool haveMedianPriceTx = block.vptx[1]->IsMedianPriceTx();
-        bool havePriceFeedTx   = (haveMedianPriceTx && (block.vptx.size() > 2) && (block.vptx[2]->IsPriceFeedTx()));
-        int32_t lastPriceFeedTxIndex   = 2;      // 0: block reward tx; 1: median price tx
-        bool needExecuteTx             = false;  // Execute it after all price feed tx(s) executed.
-        uint32_t medianPriceTxOffset   = 0;
-        uint32_t lastPriceFeedTxOffset = 0;
-        if (havePriceFeedTx) {
-            while (block.vptx.size() > (uint32_t)lastPriceFeedTxIndex + 1 &&
-                   block.vptx[lastPriceFeedTxIndex + 1]->IsPriceFeedTx()) {
-                ++lastPriceFeedTxIndex;
-            }
-        }
-
-        LogPrint("INFO", "Connect() : haveMedianPriceTx: %d, havePriceFeedTx: %d, lastPriceFeedTxIndex: %d, tx: %llu\n",
-                 haveMedianPriceTx, havePriceFeedTx, lastPriceFeedTxIndex, block.vptx.size());
-
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
-            if (index == 1 && haveMedianPriceTx) {
-                if (havePriceFeedTx && !needExecuteTx) {
-                    needExecuteTx       = true;
-                    medianPriceTxOffset = pos.nTxOffset;
-                    pos.nTxOffset += ::GetSerializeSize(block.vptx[1], SER_DISK, CLIENT_VERSION);
-                    continue;
-                } else {
-                    // Execute median price tx normally.
-                }
-            }
-
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
             if (cw.txCache.HaveTx((pBaseTx->GetHash())) != uint256())
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
@@ -1314,10 +1278,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog(pBaseTx->GetHash());
             if (!pBaseTx->ExecuteTx(pIndex->height, index, cw, state)) {
-                if (SysCfg().IsLogFailures()) {
-                    pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
-                                                      state.GetRejectReason());
-                }
+                pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
+                                                  state.GetRejectReason());
                 cw.DisableTxUndoLog();
                 return false;
             }
@@ -1342,18 +1304,6 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             rewards[fees_symbol] += (fees - fuel);
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
-
-            if (index == 1 && haveMedianPriceTx && needExecuteTx) {
-                // Jump to the tx referred to index = lastPriceFeedTxIndex + 1
-                index         = lastPriceFeedTxIndex;  // autoincrement in loop for(;;)
-                pos.nTxOffset = lastPriceFeedTxOffset;
-            } else if (havePriceFeedTx && index == lastPriceFeedTxIndex) {
-                // Jump to the median price tx referred to index = 1
-                assert(block.vptx[1]->IsMedianPriceTx());
-                index                 = 0;  // autoincrement in loop for(;;)
-                lastPriceFeedTxOffset = pos.nTxOffset;
-                pos.nTxOffset         = medianPriceTxOffset;
-            }
 
             LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                      fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
@@ -1396,10 +1346,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     // Execute block reward transaction
     cw.EnableTxUndoLog(block.vptx[0]->GetHash());
     if (!block.vptx[0]->ExecuteTx(pIndex->height, 0, cw, state)) {
-        if (SysCfg().IsLogFailures()) {
-            pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
-                                              state.GetRejectReason());
-        }
+        pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
+                                          state.GetRejectReason());
         cw.DisableTxUndoLog();
         return ERRORMSG("ConnectBlock() : failed to execute reward transaction");
     }
@@ -1440,10 +1388,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             cw.EnableTxUndoLog(block.vptx[0]->GetHash());
             if (!matureBlock.vptx[0]->ExecuteTx(pIndex->height, -1, cw, state)) {
-                if (SysCfg().IsLogFailures()) {
-                    pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(),
-                                                      state.GetRejectCode(), state.GetRejectReason());
-                }
+                pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
+                                                  state.GetRejectReason());
                 cw.DisableTxUndoLog();
                 return ERRORMSG("ConnectBlock() : execute mature block reward tx error!");
             }
@@ -1614,7 +1560,7 @@ bool static DisconnectTip(CValidationState &state) {
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegateList();
 
-        // Attention: need to reset the lastest block median price
+        // Attention: need to reset the lastest block price median
         CBlockIndex *pPreBlockIndex = pIndexDelete->pprev;
         CBlock preBlock;
         if (pPreBlockIndex) {
@@ -1636,7 +1582,7 @@ bool static DisconnectTip(CValidationState &state) {
     for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
         CValidationState stateDummy;
-        if (!pTx->IsBlockRewardTx() && !pTx->IsMedianPriceTx()) {
+        if (!pTx->IsBlockRewardTx() && !pTx->IsPriceMedianTx()) {
             if (!AcceptToMemoryPool(mempool, stateDummy, pTx.get(), false)) {
                 mempool.Remove(pTx.get(), removed, true);
             }
@@ -2108,6 +2054,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
+    uint32_t priceMedianTxCount = 0;
     for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
@@ -2116,13 +2063,19 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsBlockRewardTx())
-                return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-coinbase-multiple");
+                return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
+                                 "bad-block-reward-tx-multiple");
 
-            // Second transaction must be median price transaction if existed.
-            if (1 != i && block.vptx[i]->IsMedianPriceTx())
-                return state.DoS(100, ERRORMSG("CheckBlock() : more than one median price tx"), REJECT_INSUFFICIENTFEE,
-                                 "bad-median-price-multiple");
+            if (block.vptx[i]->IsPriceMedianTx()) {
+                ++ priceMedianTxCount;
+            }
         }
+    }
+
+    // In stable coin release, every block should have one price median tx only.
+    if (GetFeatureForkVersion(block.GetHeight()) == MAJOR_VER_R2 && priceMedianTxCount != 1) {
+        return state.DoS(100, ERRORMSG("CheckBlock() : price median tx number error"), REJECT_INVALID,
+                         "bad-price-median-tx-number");
     }
 
     if (uniqueTx.size() != block.vptx.size())

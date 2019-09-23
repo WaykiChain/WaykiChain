@@ -82,7 +82,7 @@ public:
     virtual uint64_t GetFuel(uint32_t nFuelRate);
     uint32_t GetFuelRate(CContractDBCache &contractCache);
     virtual double GetPriority() const {
-        return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+        return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
@@ -101,7 +101,7 @@ public:
                        const int32_t index);
 
     bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
-    bool IsMedianPriceTx() { return nTxType == PRICE_MEDIAN_TX; }
+    bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
 
 protected:

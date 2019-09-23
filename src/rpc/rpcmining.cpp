@@ -215,7 +215,7 @@ Value getminedblocks(const Array& params, bool fHelp) {
     Array ret;
 
     auto minedBlocks = GetMinedBlocks(count);
-    for ( auto &blockInfo : minedBlocks) {
+    for (auto& blockInfo : minedBlocks) {
         Object obj;
         obj.push_back(Pair("time",          blockInfo.time));
         obj.push_back(Pair("nonce",         blockInfo.nonce));

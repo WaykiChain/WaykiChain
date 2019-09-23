@@ -13,7 +13,8 @@ private:
     map<CoinPricePair, uint64_t> median_price_points;
 
 public:
-    CBlockPriceMedianTx(): CBaseTx(PRICE_MEDIAN_TX) {}
+    CBlockPriceMedianTx() : CBaseTx(PRICE_MEDIAN_TX) {}
+    CBlockPriceMedianTx(const int32_t validHeight) : CBaseTx(PRICE_MEDIAN_TX) { valid_height = validHeight; }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));

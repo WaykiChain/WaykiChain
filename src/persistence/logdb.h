@@ -31,9 +31,7 @@ public:
 
     void Flush();
 
-    void SetBaseViewPtr(CLogDBCache *pBaseIn) {
-        executeFailCache.SetBase(&pBaseIn->executeFailCache);
-    };
+    void SetBaseViewPtr(CLogDBCache *pBaseIn) { executeFailCache.SetBase(&pBaseIn->executeFailCache); }
 
 private:
 /*  CSimpleKVCache  prefixType             key                 value                        variable      */
