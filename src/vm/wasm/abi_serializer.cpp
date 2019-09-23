@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <wasm/exceptions.hpp>
 #include <wasm/abi_serializer.hpp>
 #include <wasm/types/name.hpp>
@@ -94,9 +96,9 @@ namespace wasm {
         built_in_types.emplace("float64", pack_unpack<double>());
         // built_in_types.emplace("float128",                  pack_unpack<uint128_t>());
 
-        // built_in_types.emplace("time_point",                pack_unpack<std::time_point>());
-        // built_in_types.emplace("time_point_sec",            pack_unpack<std::time_point_sec>());
-        // built_in_types.emplace("block_timestamp_type",      pack_unpack<block_timestamp_type>());
+        built_in_types.emplace("time_point",                pack_unpack<system_clock::time_point>());
+        //built_in_types.emplace("time_point_sec",            pack_unpack<std::time_point_sec>());
+        //built_in_types.emplace("block_timestamp_type",      pack_unpack<block_timestamp_type>());
 
         built_in_types.emplace("table_name", pack_unpack<name>());
         built_in_types.emplace("action_name", pack_unpack<name>());
@@ -115,7 +117,6 @@ namespace wasm {
         built_in_types.emplace("symbol", pack_unpack<symbol>());
         built_in_types.emplace("symbol_code", pack_unpack<symbol_code>());
         built_in_types.emplace("asset", pack_unpack<asset>());
-        // built_in_types.emplace("extended_asset",            pack_unpack<extended_asset>());
     }
 
     void abi_serializer::set_abi( const abi_def &abi, const microseconds &max_serialization_time ) {

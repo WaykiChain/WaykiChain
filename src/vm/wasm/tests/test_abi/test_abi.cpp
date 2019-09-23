@@ -1153,6 +1153,12 @@ void general() {
          "name": "string_arr",
          "type": "string[]"
       },{
+         "name": "time_point",
+         "type": "time_point"
+      },{
+         "name": "time_point_arr",
+         "type": "time_point[]"
+      },{
          "name": "checksum160",
          "type": "checksum160"
       },{
@@ -1305,6 +1311,8 @@ void general() {
     {
       "string"            : "ola ke ase",
       "string_arr"        : ["ola ke ase","ola ke desi"],
+      "time_point"        : "2021-12-20T15:30:30",
+      "time_point_arr"    : ["2021-12-20T15:30:30","2021-12-20T15:31:30"],
       "checksum160"       : "ba7816bf8f01cfea414140de5dae2223b00361a3",
       "checksum160_arr"   : ["ba7816bf8f01cfea414140de5dae2223b00361a3","ba7816bf8f01cfea414140de5dae2223b00361a3"],
       "checksum256"       : "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",

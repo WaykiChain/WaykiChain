@@ -11,6 +11,7 @@
 #include <variant>
 #include <cstring>
 #include <sstream>
+#include <chrono>
 
 #include "types/types.hpp"
 #include "types/symbol.hpp"
@@ -19,6 +20,8 @@
 
 
 namespace wasm {
+
+     using std::chrono::system_clock;
 
 /**
  *  A data stream for reading and writing data in the form of bytes
@@ -1474,6 +1477,67 @@ namespace wasm {
 
         return ds;
     }
+
+
+    /**
+ *  Serialize a checksum160 type
+ *
+ *  @brief Serializea capi_checksum160 type
+ *  @param ds - The stream to write
+ *  @param cs - The value to serialize
+ *  @tparam Stream - Type of datastream buffer
+ *  @return datastream<Stream>& - Reference to the datastream
+ */
+    template<typename Stream>
+    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const system_clock::time_point &t ) {
+        ds.write((const char *) &t, sizeof(t));
+        return ds;
+    }
+
+    /**
+     *  Deserialize a checksum160 type
+     *
+     *  @brief Deserialize a capi_checksum160 type
+     *  @param ds - The stream to read
+     *  @param cs - The destination for deserialized value
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+    template<typename Stream>
+    inline datastream<Stream> &operator>>( datastream<Stream> &ds, system_clock::time_point &t ) {
+        ds.read((char *) &t, sizeof(t));
+        return ds;
+    }
+
+    /**
+ *  Serialize a checksum160 type
+ *
+ *  @brief Serializea capi_checksum160 type
+ *  @param ds - The stream to write
+ *  @param cs - The value to serialize
+ *  @tparam Stream - Type of datastream buffer
+ *  @return datastream<Stream>& - Reference to the datastream
+ */
+    // template<typename Stream>
+    // inline datastream<Stream> &operator<<( datastream<Stream> &ds, const system_clock::time_point_sec &t ) {
+    //     ds.write((const char *) &t, sizeof(t));
+    //     return ds;
+    // }
+
+    /**
+     *  Deserialize a checksum160 type
+     *
+     *  @brief Deserialize a capi_checksum160 type
+     *  @param ds - The stream to read
+     *  @param cs - The destination for deserialized value
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+    // template<typename Stream>
+    // inline datastream<Stream> &operator>>( datastream<Stream> &ds, system_clock::time_point_sec &t ) {
+    //     ds.read((char *) &t, sizeof(t));
+    //     return ds;
+    // }
 
 /**
  *  Serialize a checksum160 type

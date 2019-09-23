@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "wasm/types/types.hpp"
 #include "wasm/types/uint128.hpp"
 #include "wasm/types/varint.hpp"
@@ -17,6 +19,7 @@
 namespace wasm {
     using namespace json_spirit;
     using namespace wasm;
+    using std::chrono::system_clock;
 
     using variant = json_spirit::Value;
     using Object = json_spirit::Object;
@@ -71,6 +74,37 @@ namespace wasm {
             ss << hex[(unsigned char) t[i] >> 4] << hex[(unsigned char) t[i] & 0xf] << separator;
 
         return ss.str();
+
+    }
+
+    static inline string FromTime(const std::time_t &t){
+
+        char szTime[128];
+        std::tm *p;
+        p = localtime(&t);
+        sprintf( szTime, "%4d-%2d-%2dT%2d:%2d:%2d",p->tm_year+1900, p->tm_mon+1, p->tm_mday,p->tm_hour, p->tm_min, p->tm_sec); 
+
+        return string(szTime);
+
+    }
+
+    static inline std::time_t ToTime(const std::string &t){
+                                   
+            int year, month, day, hour, minute, second;
+            sscanf((char*)t.data(), "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+            std::tm time = {};
+            time.tm_year = year - 1900;                 
+            time.tm_mon = month - 1;                    
+            time.tm_mday = day;                         
+            time.tm_hour = hour;                        
+            time.tm_min = minute;                       
+            time.tm_sec = second;                       
+            time.tm_isdst = 0;                        
+            time_t t_ = mktime(&time);   
+         
+
+            return t_;
+
 
     }
 
@@ -151,6 +185,15 @@ namespace wasm {
         v = wasm::variant(static_cast< int64_t >(t));
     }
 
+    static inline void to_variant( const system_clock::time_point &t, wasm::variant &v ) {
+
+          std::time_t time = std::chrono::system_clock::to_time_t(t);
+          v = wasm::variant(FromTime(time));
+
+          //WASM_TRACE("%s", FromTime(time).c_str());
+
+    }
+
 
     template<typename T>
     static inline void to_variant( const std::vector <T> &ts, wasm::variant &v ) {
@@ -173,6 +216,13 @@ namespace wasm {
         }
         v = wasm::variant();
     }
+
+    // static inline void to_variant( const std::time_point_sec &t, wasm::variant &v ) {
+    //     // string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
+    //     // v = wasm::variant(ToHex(str,""));
+
+    // }
+
 
     static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
@@ -301,6 +351,14 @@ namespace wasm {
         }
     }
 
+    static inline void from_variant( const wasm::variant &v, system_clock::time_point &t ) {
+        if (v.type() == json_spirit::str_type) {
+
+            t = std::chrono::system_clock::from_time_t(ToTime(v.get_str()));
+
+        }
+    }
+
     template<typename T>
     static inline void from_variant( const wasm::variant &v, vector <T> &ts ) {
         if (v.type() == json_spirit::array_type) {
@@ -327,6 +385,12 @@ namespace wasm {
         from_variant(v, t);
         opt = t;
     }
+
+    // static inline void from_variant( const wasm::variant &v, std::time_point_sec &t ) {
+    //     if (v.type() == json_spirit::str_type) {
+
+    //     }
+    // }
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum160_type &t ) {
         if (v.type() == json_spirit::str_type) {
