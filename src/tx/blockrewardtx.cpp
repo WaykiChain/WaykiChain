@@ -9,9 +9,7 @@
 #include "entities/receipt.h"
 #include "main.h"
 
-bool CBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
+bool CBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) { return true; }
 
 bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;
@@ -68,9 +66,7 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    return true;
-}
+bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) { return true; }
 
 bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount account;

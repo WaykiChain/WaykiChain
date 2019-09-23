@@ -14,12 +14,7 @@ static uint256 OrderIdGenerator(const uint256 &txid, const uint32_t index) {
     return ss.GetHash();
 }
 
-bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
-    // TODO: txUid == miner?
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
-
-    return true;
-}
+bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) { return true; }
 
 /**
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 104%)

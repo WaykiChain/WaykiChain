@@ -203,7 +203,7 @@ inline void ProcessGetData(CNode *pFrom) {
                 }
                 if (!pushed && inv.type == MSG_TX) {
                     std::shared_ptr<CBaseTx> pBaseTx = mempool.Lookup(inv.hash);
-                    if (pBaseTx.get() && !pBaseTx->IsBlockRewardTx() && !pBaseTx->IsMedianPriceTx()) {
+                    if (pBaseTx.get() && !pBaseTx->IsBlockRewardTx() && !pBaseTx->IsPriceMedianTx()) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << pBaseTx;
@@ -503,7 +503,7 @@ inline bool ProcessAddrMessage(CNode* pFrom, CDataStream &vRecv){
 inline bool ProcessTxMessage(CNode* pFrom, string strCommand , CDataStream& vRecv){
     std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
-    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsMedianPriceTx()) {
+    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx()) {
         return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, PRICE_MEDIAN_TX from network "
                         "should be accepted, raw string: %s", HexStr(vRecv.begin(), vRecv.end()));
     }
