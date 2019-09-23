@@ -72,5 +72,7 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(symbol_type_exception,                5000011, "symbol type exception")
     WASM_DECLARE_EXCEPTION(array_size_exceeds_exception,         5000012, "array size exceeds exception")
     WASM_DECLARE_EXCEPTION(pack_exception,                       5000013, "pack exception")
-    WASM_DECLARE_EXCEPTION(inline_transaction_too_big,           5000013, "inline transaction too big")
+    WASM_DECLARE_EXCEPTION(inline_transaction_too_big,           5000014, "inline transaction too big")
+    WASM_DECLARE_EXCEPTION(wasm_api_data_too_big,                5000015, "wasm api data too big")
+
 } //wasm

@@ -47,7 +47,7 @@ namespace wasm {
                 {'e', 0x0e},
                 {'f', 0x0f}
         };
-        std::stringstream ss;
+        std::ostringstream o;
 
         for (std::string::size_type i = 0; i < str.size();) {
 
@@ -55,12 +55,12 @@ namespace wasm {
             uint8_t h = hex[(char) str[i]];
             uint8_t l = hex[(char) str[i + 1]];
             uint8_t t = l | h << 4;
-            ss << t;
+            o << t;
 
             i += 2;
         }
 
-        return ss.str();
+        return o.str();
 
     }
 
@@ -68,12 +68,12 @@ namespace wasm {
     template<typename T>
     static inline string ToHex( const T &t, string separator = " " ) {
         const std::string hex = "0123456789abcdef";
-        std::stringstream ss;
+        std::ostringstream o;
 
         for (std::string::size_type i = 0; i < t.size(); ++i)
-            ss << hex[(unsigned char) t[i] >> 4] << hex[(unsigned char) t[i] & 0xf] << separator;
+            o << hex[(unsigned char) t[i] >> 4] << hex[(unsigned char) t[i] & 0xf] << separator;
 
-        return ss.str();
+        return o.str();
 
     }
 
@@ -85,27 +85,23 @@ namespace wasm {
         sprintf( szTime, "%4d-%2d-%2dT%2d:%2d:%2d",p->tm_year+1900, p->tm_mon+1, p->tm_mday,p->tm_hour, p->tm_min, p->tm_sec); 
 
         return string(szTime);
-
     }
 
     static inline std::time_t ToTime(const std::string &t){
                                    
-            int year, month, day, hour, minute, second;
-            sscanf((char*)t.data(), "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
-            std::tm time = {};
-            time.tm_year = year - 1900;                 
-            time.tm_mon = month - 1;                    
-            time.tm_mday = day;                         
-            time.tm_hour = hour;                        
-            time.tm_min = minute;                       
-            time.tm_sec = second;                       
-            time.tm_isdst = 0;                        
-            time_t t_ = mktime(&time);   
-         
-
-            return t_;
-
-
+        int year, month, day, hour, minute, second;
+        sscanf((char*)t.data(), "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+        std::tm time = {};
+        time.tm_year = year - 1900;                 
+        time.tm_mon = month - 1;                    
+        time.tm_mday = day;                         
+        time.tm_hour = hour;                        
+        time.tm_min = minute;                       
+        time.tm_sec = second;                       
+        time.tm_isdst = 0;                        
+        time_t t_ = mktime(&time);   
+     
+        return t_;
     }
 
     static inline void to_variant( const std::string &t, wasm::variant &v ) {
@@ -191,7 +187,6 @@ namespace wasm {
           v = wasm::variant(FromTime(time));
 
           //WASM_TRACE("%s", FromTime(time).c_str());
-
     }
 
 

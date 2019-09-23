@@ -176,7 +176,12 @@ namespace wasm {
         //database
         int32_t db_store( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
-            //std::cout << "db_store" << std::endl;
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "key size too big" );
+
+            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "value size too big" );
+
 
             //const uint64_t payer = wasmContext.receiver;
             const uint64_t payer = pWasmContext->Receiver();
@@ -200,6 +205,10 @@ namespace wasm {
         }
 
         int32_t db_remove( const void *key, uint32_t key_len ) {
+
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "key size too big" );
+
             //std::cout << "db_remove" << std::endl;
             //const uint64_t payer = wasmContext.receiver;
             const uint64_t payer = pWasmContext->Receiver();
@@ -226,6 +235,13 @@ namespace wasm {
         }
 
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
+
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+          "key size too big" );
+
+            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "value size too big" );
+
             //std::cout << "db_get" << std::endl;
             string k = string((const char *) key, key_len);
 
@@ -256,6 +272,13 @@ namespace wasm {
         }
 
         int32_t db_update( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
+
+
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "key size too big" );
+
+            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "value size too big" );
             //std::cout << "db_update" << std::endl;
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
@@ -336,20 +359,23 @@ namespace wasm {
         }
 
         void prints( const char *str ) {
-            //std::cout << "prints" << std::endl ;
+            WASM_ASSERT( strlen(str) < max_wasm_api_data_size, wasm_api_data_too_big,
+                  "string size too big" );
             //std::cout << str ;
             if (!print_ignore) {
                 std::ostringstream o;
                 o << str;
+
                 pWasmContext->console_append(o.str());
             }
         }
 
-        void prints_l( const char *str, uint32_t len ) {
-            //std::cout << "prints_l" << std::endl;
-            //std::cout << string(str,len);
+        void prints_l( const char *str, uint32_t str_len ) {
+            WASM_ASSERT( str_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                  "string size too big" );
+
             if (!print_ignore) {
-                pWasmContext->console_append(string(str, len));
+                pWasmContext->console_append(string(str, str_len));
             }
         }
 
@@ -435,8 +461,12 @@ namespace wasm {
 
         void printhex( char *data, uint32_t data_len ) {
             if (!print_ignore) {
+
+                WASM_ASSERT( data_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                      "wasm api data too big" );
+
                 string str(data, data_len);
-                pWasmContext->console_append(ToHex(str, " "));
+                pWasmContext->console_append(ToHex(str, ""));
             }
         }
 

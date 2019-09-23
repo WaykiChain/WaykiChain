@@ -15,6 +15,7 @@ namespace wasm {
     const static uint16_t max_inline_transaction_depth = 4;
     const static uint16_t max_abi_array_size          = 1024;
     const static uint16_t max_inline_transaction_size = 4096;
+    const static uint16_t max_wasm_api_data_size      = 4096;
 
     const static uint64_t wasmio            = N(wasmio);
     const static uint64_t wasmio_bank       = N(wasmio.bank);
