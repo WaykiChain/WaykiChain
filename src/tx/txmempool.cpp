@@ -32,8 +32,8 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
     this->nTxSize   = other.nTxSize;
     this->dPriority = other.dPriority;
 
-    this->nTime     = other.nTime;
-    this->height   = other.height;
+    this->nTime  = other.nTime;
+    this->height = other.height;
 }
 
 CTxMemPool::CTxMemPool() {
@@ -117,9 +117,6 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
         }
     }
 
-    // Need to re-sync all to cache layer except for transaction cache, as it's depend on
-    // the global transaction cache to verify whether a transaction(txid) has been confirmed
-    // already in block.
     spCW->Flush();
 
     return true;

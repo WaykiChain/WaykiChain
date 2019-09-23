@@ -19,9 +19,28 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (price_points.size() == 0 || price_points.size() > 3) { //FIXME: hardcode here
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
-            REJECT_INVALID, "bad-tx-pricepoint-size-error");
+    if (price_points.size() == 0 || price_points.size() > 2) {  // FIXME: hardcode here
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, price points number not within 1..2"), REJECT_INVALID,
+                         "bad-tx-pricepoint-size-error");
+    }
+
+    for (const auto &pricePoint : price_points) {
+        const CoinPricePair &coinPrice = pricePoint.coin_price_pair;
+        if (std::get<0>(coinPrice) != SYMB::WICC && std::get<0>(coinPrice) != SYMB::WGRT) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, coin type should be WICC or WGRT"), REJECT_INVALID,
+                             "bad-tx-coin-type");
+        }
+
+        if (std::get<1>(coinPrice) != SYMB::USD) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, currency type should be USD"), REJECT_INVALID,
+                             "bad-tx-currency-type");
+        }
+
+        const uint64_t &price = pricePoint.price;
+        if (price == 0) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID,
+                             "bad-tx-invalid-price");
+        }
     }
 
     CAccount account;

@@ -125,7 +125,7 @@ bool CLuaContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 }
 
 uint64_t CLuaContractDeployTx::GetFuel(uint32_t nFuelRate) {
-    return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
+    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
 }
 
 string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
@@ -355,7 +355,7 @@ bool CUniversalContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCache
 }
 
 uint64_t CUniversalContractDeployTx::GetFuel(uint32_t nFuelRate) {
-    return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
+    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
 }
 
 string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {

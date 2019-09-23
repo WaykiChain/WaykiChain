@@ -135,8 +135,8 @@ public:
         CMainParams::InitializeConfig();
 
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
-        nFeatureForkHeight =
-            std::max((int64_t)nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
+        nFeatureForkHeight       = std::max<uint32_t>(nStableCoinGenesisHeight + 1,
+                                                GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
         fServer = true;
 
         return true;
@@ -180,8 +180,8 @@ public:
             GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
         nBlockIntervalStableCoinRelease = GetArg("-blockintervalstablecoinrelease", BLOCK_INTERVAL_STABLE_COIN_RELEASE);
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(REGTEST_NET));
-        nFeatureForkHeight =
-            std::max((int64_t)nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
+        nFeatureForkHeight       = std::max<uint32_t>(
+            nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer = true;
 
         return true;

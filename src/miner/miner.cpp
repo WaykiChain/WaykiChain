@@ -284,7 +284,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
     // Largest block you're willing to create:
     uint32_t nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((uint32_t)1000, std::min((uint32_t)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
+    nBlockMaxSize = std::max<uint32_t>(1000, std::min<uint32_t>((MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // Collect memory pool transactions into the block
     {
@@ -346,9 +346,6 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
                 continue;
             }
 
-            // Need to re-sync all to cache layer except for transaction cache, as it depends on
-            // the global transaction cache to verify whether a transaction(txid) has been confirmed
-            // already in block.
             spCW->Flush();
 
             auto fuel        = pBaseTx->GetFuel(fuelRate);
@@ -438,7 +435,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
     // Largest block you're willing to create:
     uint32_t nBlockMaxSize = SysCfg().GetArg("-blockmaxsize", DEFAULT_BLOCK_MAX_SIZE);
     // Limit to between 1K and MAX_BLOCK_SIZE-1K for sanity:
-    nBlockMaxSize = std::max((uint32_t)1000, std::min((uint32_t)(MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
+    nBlockMaxSize = std::max<uint32_t>(1000, std::min<uint32_t>((MAX_BLOCK_SIZE - 1000), nBlockMaxSize));
 
     // Collect memory pool transactions into the block
     {
@@ -507,9 +504,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 continue;
             }
 
-            // Need to re-sync all to cache layer except for transaction cache, as it depends on
-            // the global transaction cache to verify whether a transaction(txid) has been confirmed
-            // already in block.
             spCW->Flush();
 
             auto fuel        = pBaseTx->GetFuel(fuelRate);

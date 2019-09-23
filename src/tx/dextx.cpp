@@ -765,7 +765,7 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
         int64_t dealAmountDiff = calcCoinAmount - dealItem.dealCoinAmount;
         bool isCoinAmountMatch = false;
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {
-            isCoinAmountMatch = (std::abs(dealAmountDiff) <= std::max((int64_t)1, (int64_t)(1 * dealItem.dealPrice / PRICE_BOOST)));
+            isCoinAmountMatch = (std::abs(dealAmountDiff) <= std::max<int64_t>(1, (1 * dealItem.dealPrice / PRICE_BOOST)));
         } else {
             isCoinAmountMatch = (dealAmountDiff == 0);
         }

@@ -407,7 +407,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     // is it a miner reward tx or median price tx?
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsMedianPriceTx())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward transaction, can't put into mempool",
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward/median price transaction, can't put into mempool",
             hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
@@ -1292,7 +1293,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             if (index == 1 && haveMedianPriceTx) {
                 if (havePriceFeedTx && !needExecuteTx) {
-                    needExecuteTx = true;
+                    needExecuteTx       = true;
                     medianPriceTxOffset = pos.nTxOffset;
                     pos.nTxOffset += ::GetSerializeSize(block.vptx[1], SER_DISK, CLIENT_VERSION);
                     continue;
@@ -1605,13 +1606,24 @@ bool static DisconnectTip(CValidationState &state) {
         auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
         if (!DisconnectBlock(block, *spCW, pIndexDelete, state))
-            return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed",
-                            pIndexDelete->GetBlockHash().ToString());
+            return ERRORMSG("DisconnectTip() : DisconnectBlock %s failed", pIndexDelete->GetBlockHash().ToString());
 
         // Need to re-sync all to global cache layer.
         spCW->Flush();
+
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegateList();
+
+        // Attention: need to reset the lastest block median price
+        CBlockIndex *pPreBlockIndex = pIndexDelete->pprev;
+        CBlock preBlock;
+        if (pPreBlockIndex) {
+            if (!ReadBlockFromDisk(pPreBlockIndex, preBlock))
+                return ERRORMSG("DisconnectTip() : failed to read block [%d]: %s", pPreBlockIndex->height,
+                                pPreBlockIndex->GetBlockHash().ToString());
+
+            pCdMan->pPpCache->SetLatestBlockMedianPricePoints(preBlock.GetBlockMedianPrice());
+        }
     }
     if (SysCfg().IsBenchmark())
         LogPrint("INFO", "- Disconnect: %.2fms\n", (GetTimeMicros() - nStart) * 0.001);
@@ -1621,15 +1633,15 @@ bool static DisconnectTip(CValidationState &state) {
     // Update chainActive and related variables.
     UpdateTip(pIndexDelete->pprev, block);
     // Resurrect mempool transactions from the disconnected block.
-    for (const auto &ptx : block.vptx) {
+    for (const auto &pTx : block.vptx) {
         list<std::shared_ptr<CBaseTx> > removed;
         CValidationState stateDummy;
-        if (!ptx->IsBlockRewardTx()) {
-            if (!AcceptToMemoryPool(mempool, stateDummy, ptx.get(), false)) {
-                mempool.Remove(ptx.get(), removed, true);
+        if (!pTx->IsBlockRewardTx() && !pTx->IsMedianPriceTx()) {
+            if (!AcceptToMemoryPool(mempool, stateDummy, pTx.get(), false)) {
+                mempool.Remove(pTx.get(), removed, true);
             }
         } else {
-            EraseTransaction(ptx->GetHash());
+            EraseTransaction(pTx->GetHash());
         }
     }
 
