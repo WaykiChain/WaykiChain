@@ -48,23 +48,6 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    CRegID sendRegId = txUid.get<CRegID>();
-    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a delegate
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
-    }
-
-    uint64_t stakedAmountMin;
-    if (!cw.sysParamCache.GetParam(PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
-                        txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
-    }
-    CAccountToken accountToken = account.GetToken(SYMB::WICC);
-    if (accountToken.staked_amount < stakedAmountMin * COIN) // must stake enough bcoins to be a price feeder
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
-                        accountToken.voted_amount, stakedAmountMin, txUid.ToString()),
-                        PRICE_FEED_FAIL, "account-staked-boins-insufficient");
-
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
@@ -74,6 +57,23 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+
+    CRegID sendRegId = txUid.get<CRegID>();
+    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a delegate
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account is not a delegate error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
+    }
+
+    uint64_t stakedAmountMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
+                        txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
+    }
+    CAccountToken accountToken = account.GetToken(SYMB::WICC);
+    if (accountToken.staked_amount < stakedAmountMin * COIN) // must stake enough bcoins to be a price feeder
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
+                        accountToken.voted_amount, stakedAmountMin, txUid.ToString()),
+                        PRICE_FEED_FAIL, "account-staked-boins-insufficient");
 
     if (!account.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
