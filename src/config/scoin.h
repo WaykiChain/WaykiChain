@@ -19,23 +19,20 @@ static const uint16_t RATIO_BOOST                           = 10000;
 static const uint32_t PRICE_BOOST                           = 100000000;
 
 static const uint64_t kFundCoinGenesisTotalReleaseAmount    = 20160000000;  // 96% * 21 billion
-static const uint32_t kFundCoinGenesisInitialReserveAmount  = 2100000;      // 2.1 million WUSD
+static const uint32_t kFundCoinGenesisInitialReserveAmount  = 1000000;      // 1 m WUSD
 
 static const int64_t FCOIN_VOTEMINE_EPOCH_FROM              = 1665886560; //Sun Oct 16 2022 10:16:00 GMT+0800
 static const int64_t FCOIN_VOTEMINE_EPOCH_TO                = 1792116960; //Fri Oct 16 2026 10:16:00 GMT+0800
 
-static const uint16_t FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK = 1000;  // depends on TPS
+static const uint16_t FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK  = 1000;  // depends on TPS
 
-// Except specific transactions, priority is less than 1000.0
-static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;
-static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 9000.0;
-static const double PRICE_FEED_TRANSACTION_PRIORITY   = 10000.0;
+static const double TRANSACTION_PRIORITY_CEILING            = 1000.0; // Most trx priority is less than 1000.0
+static const double PRICE_MEDIAN_TRANSACTION_PRIORITY       = 9000.0;
+static const double PRICE_FEED_TRANSACTION_PRIORITY         = 10000.0;
 
-static const uint64_t ASSET_RISK_FEE_RATIO = 4000; // 40% * 10000, the ratio of asset fee into the risk riserve
-
-static const uint64_t MIN_DEX_ORDER_AMOUNT = 0.1 * COIN; // 0.9 COINS,the min amount of dex order limit.
-
-static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;     // max count of dex settle item limit.
+static const uint64_t ASSET_RISK_FEE_RATIO                  = 4000; // 40% * 10000, the ratio of asset fee into the risk riserve
+static const uint64_t MIN_DEX_ORDER_AMOUNT                  = 0.1 * COIN; // min amount of dex order limit
+static const uint64_t MAX_SETTLE_ITEM_COUNT                 = 10000;     // max count of dex settle item limit.
 
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
