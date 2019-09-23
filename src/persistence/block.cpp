@@ -79,7 +79,7 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
 }
 
 map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
-    if (GetFeatureForkVersion(GetBlockHeader().GetHeight()) == MAJOR_VER_R1) {
+    if (GetFeatureForkVersion(GetHeight()) == MAJOR_VER_R1) {
         return map<CoinPricePair, uint64_t>();
     }
 
