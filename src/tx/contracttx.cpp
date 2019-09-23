@@ -54,8 +54,8 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter to afford fuel: %llu < %llu",
-                        llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
+        return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
+                        llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
     }
 
     if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
@@ -63,9 +63,9 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
         double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
         if (feePerKb < CBaseTx::nMinRelayTxFee) {
             uint64_t minFee = ceil(double(CBaseTx::nMinRelayTxFee) * txSize / 1000.0 + llFuel);
-            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too litter in fee/kb: %llu < %llu",
+            return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small in fee/kb: %llu < %llu",
                             llFees, minFee), REJECT_INVALID,
-                            strprintf("fee-too-litter-in-fee/kb: %llu < %llu", llFees, minFee));
+                            strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
         }
     }
 
@@ -286,17 +286,17 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
 
     uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
     if (llFees < llFuel) {
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter to afford fuel: %llu < %llu",
-                        llFees, llFuel), REJECT_INVALID, "fee-too-litter-to-afford-fuel");
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
+                        llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
     }
 
     int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
     double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
     if (feePerKb < CBaseTx::nMinRelayTxFee) {
         uint64_t minFee = ceil(double(CBaseTx::nMinRelayTxFee) * txSize / 1000.0 + llFuel);
-        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too litter in fee/kb: %llu < %llu",
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small in fee/kb: %llu < %llu",
                         llFees, minFee), REJECT_INVALID,
-                        strprintf("fee-too-litter-in-fee/kb: %llu < %llu", llFees, minFee));
+                        strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
     }
 
     CAccount account;
