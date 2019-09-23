@@ -93,6 +93,8 @@ map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
         }
     }
 
+    LogPrint("ERROR", "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
+             GetHash().GetHex());
     assert(false && "block does not have price median tx");
     return map<CoinPricePair, uint64_t>();
 }
