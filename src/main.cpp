@@ -1997,6 +1997,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     // Check for duplicate txids. This is caught by ConnectInputs(),
     // but catching it earlier avoids a potential DoS attack:
     set<uint256> uniqueTx;
+    uint32_t priceMedianTxCount = 0;
     for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
@@ -2005,14 +2006,19 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {
             if (0 != i && block.vptx[i]->IsBlockRewardTx())
-                return state.DoS(100, ERRORMSG("CheckBlock() : more than one coinbase"), REJECT_INVALID, "bad-coinbase-multiple");
+                return state.DoS(100, ERRORMSG("CheckBlock() : more than one block reward tx"), REJECT_INVALID,
+                                 "bad-block-reward-tx-multiple");
 
-            // Second transaction must be price median transaction if existed.
-            // TODO:
-            // if (1 != i && block.vptx[i]->IsPriceMedianTx())
-            //     return state.DoS(100, ERRORMSG("CheckBlock() : more than one price median tx"), REJECT_INSUFFICIENTFEE,
-            //                      "bad-median-price-multiple");
+            if (block.vptx[i]->IsPriceMedianTx()) {
+                ++ priceMedianTxCount;
+            }
         }
+    }
+
+    // In stable coin release, every block should have one price median tx only.
+    if (GetFeatureForkVersion(block.GetHeight()) == MAJOR_VER_R2 && priceMedianTxCount != 1) {
+        return state.DoS(100, ERRORMSG("CheckBlock() : price median tx number error"), REJECT_INVALID,
+                         "bad-price-median-tx-number");
     }
 
     if (uniqueTx.size() != block.vptx.size())
