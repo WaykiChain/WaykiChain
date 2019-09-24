@@ -1,0 +1,20 @@
+{
+    "____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",
+    "version": "wasm::abi/1.1",
+    "structs": [],
+    "types": [],
+    "actions": [],
+    "tables": [],
+    "ricardian_clauses": [
+        {
+            "id": "UserAgreement",
+            "body": "User agreement for the chain can go here."
+        },
+        {
+            "id": "BlockProducerAgreement",
+            "body": "I, {{producer}}, hereby nominate myself for consideration as an elected block producer.\n\nIf {{producer}} is selected to produce blocks by the system contract, I will sign blocks with {{producer_key}} and I hereby attest that I will keep this key secret and secure.\n\nIf {{producer}} is unable to perform obligations under this contract I will resign my position by resubmitting this contract with the null producer key."
+        }
+    ],
+    "variants": [],
+    "abi_extensions": []
+}
