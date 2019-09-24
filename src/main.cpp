@@ -1242,8 +1242,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     if (!VerifyRewardTx(&block, cw, false))
-        return state.DoS(100, ERRORMSG("ConnectBlock() : the block hash=%s check pos tx error", block.GetHash().GetHex()),
-                         REJECT_INVALID, "bad-pos-tx");
+        return state.DoS(100, ERRORMSG("ConnectBlock() : the block hash=%s verify reward tx error", block.GetHash().GetHex()),
+                         REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
     int64_t nStart = GetTimeMicros();
@@ -1281,7 +1281,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
                 cw.DisableTxUndoLog();
-                return false;
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s execute failed, in detail: %s",
+                    pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
 
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
