@@ -1415,61 +1415,61 @@ void abi_token() {
     while (f.get(byte)) abiJson.push_back(byte);
 
     string param = string(R"({"issuer":"walker","maximum_supply":"100.00000000 BTC"})");
-    wasm::variant var3 = wasm::abi_serializer::unpack(abiJson,
+    wasm::variant var = wasm::abi_serializer::unpack(abiJson,
                                                       "create",
                                                       wasm::abi_serializer::pack(abiJson, "create", param,
                                                                                  max_serialization_time),
                                                       max_serialization_time);
 
-    //WASM_TRACE("%s",json_spirit::write(var3).c_str() )
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.create")
+    //WASM_TRACE("%s",json_spirit::write(var).c_str() )
+    WASM_TEST(param == json_spirit::write(var), "abi_token.create")
 
     param = string(R"({"to":"walker","quantity":"100.00000000 BTC","memo":"issue to walker"})");
-    var3 = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack(abiJson,
                                         "issue",
                                         wasm::abi_serializer::pack(abiJson, "issue", param, max_serialization_time),
                                         max_serialization_time);
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.issue")
+    WASM_TEST(param == json_spirit::write(var), "abi_token.issue")
 
 
     param = string(R"({"to":"walker","quantity":"100.00000000 BTC","memo":"issue to walker"})");
-    var3 = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack(abiJson,
                                         "issue",
                                         wasm::abi_serializer::pack(abiJson, "issue", param, max_serialization_time),
                                         max_serialization_time);
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.issue")
+    WASM_TEST(param == json_spirit::write(var), "abi_token.issue")
 
 
     param = string(R"({"quantity":"100.00000000 BTC","memo":"retire BTC"})");
-    var3 = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack(abiJson,
                                         "retire",
                                         wasm::abi_serializer::pack(abiJson, "retire", param, max_serialization_time),
                                         max_serialization_time);
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.retire")
+    WASM_TEST(param == json_spirit::write(var), "abi_token.retire")
 
 
     param = string(R"({"from":"xiaoyu","to":"walker","quantity":"100.00000000 BTC","memo":"transfer BTC"})");
-    var3 = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack(abiJson,
                                         "transfer",
                                         wasm::abi_serializer::pack(abiJson, "transfer", param, max_serialization_time),
                                         max_serialization_time);
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.transfer")
+    WASM_TEST(param == json_spirit::write(var), "abi_token.transfer")
 
 
     param = string(R"({"owner":"walker","symbol":"8,BTC","payer":"xiaoyu"})");
-    var3 = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack(abiJson,
                                         "open",
                                         wasm::abi_serializer::pack(abiJson, "open", param, max_serialization_time),
                                         max_serialization_time);
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.open")
+    WASM_TEST(param == json_spirit::write(var), "abi_token.open")
 
 
     param = string(R"({"owner":"walker","symbol":"8,BTC"})");
-    var3 = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack(abiJson,
                                         "close",
                                         wasm::abi_serializer::pack(abiJson, "close", param, max_serialization_time),
                                         max_serialization_time);
-    WASM_TEST(param == json_spirit::write(var3), "abi_token.close")
+    WASM_TEST(param == json_spirit::write(var), "abi_token.close")
 
 }
 
@@ -1477,27 +1477,27 @@ void abi_token() {
 int main( int argc, char **argv ) {
 
     general();
-    // abi_token();
-    // version();
-    // abi_cycle();
-    // abi_type_repeat();
-    // abi_struct_repeat();
-    // abi_action_repeat();
-    // abi_table_repeat();
-    // abi_type_def();
-    // abi_type_redefine();
-    // abi_type_redefine_to_name();
-    // abi_type_nested_in_vector();
-    // abi_large_array();
-    // abi_is_type_recursion();
-    // abi_recursive_structs();
-    // abi_very_deep_structs();
-    // abi_very_deep_structs_1us();
-    // abi_deep_structs_validate();
-    // abi_serialize_incomplete_json_array();
-    // abi_serialize_incomplete_json_object();
-    // abi_serialize_json_mismatching_type();
-    // abi_serialize_json_empty_name();
+    abi_token();
+    version();
+    abi_cycle();
+    abi_type_repeat();
+    abi_struct_repeat();
+    abi_action_repeat();
+    abi_table_repeat();
+    abi_type_def();
+    abi_type_redefine();
+    abi_type_redefine_to_name();
+    abi_type_nested_in_vector();
+    abi_large_array();
+    abi_is_type_recursion();
+    abi_recursive_structs();
+    abi_very_deep_structs();
+    abi_very_deep_structs_1us();
+    abi_deep_structs_validate();
+    abi_serialize_incomplete_json_array();
+    abi_serialize_incomplete_json_object();
+    abi_serialize_json_mismatching_type();
+    abi_serialize_json_empty_name();
 
     return 0;
 
