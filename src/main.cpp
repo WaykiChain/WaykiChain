@@ -1243,7 +1243,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
                 cw.DisableTxUndoLog();
-                return false;
+                return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s executive failed, in detail: %s",
+                    pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-executive-failed");
             }
 
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
