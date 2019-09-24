@@ -37,19 +37,15 @@ public:
         sysParamCache.Flush();
         return true;
     }
+
     uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize(); }
 
-    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) {
-        sysParamCache.SetBase(&pBaseIn->sysParamCache);
-    };
+    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) { sysParamCache.SetBase(&pBaseIn->sysParamCache); }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
-        sysParamCache.SetDbOpLogMap(pDbOpLogMapIn);
-    }
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { sysParamCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
-    bool UndoDatas() {
-        return sysParamCache.UndoDatas();
-    }
+    bool UndoDatas() { return sysParamCache.UndoDatas(); }
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
