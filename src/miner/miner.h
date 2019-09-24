@@ -38,7 +38,11 @@ struct TxPriority {
 
     bool operator<(const TxPriority &other) const {
         if (fabs(this->priority - other.priority) <= 1000) {
-            return this->feePerKb < other.feePerKb;
+            if (fabs(this->feePerKb < other.feePerKb) <= 1e-8) {
+                return this->baseTx->GetHash() < other.baseTx->GetHash();
+            } else {
+                return this->feePerKb < other.feePerKb;
+            }
         } else {
             return this->priority < other.priority;
         }
