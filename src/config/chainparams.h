@@ -75,6 +75,7 @@ protected:
     mutable uint32_t nViewCacheSize;
     mutable int32_t nTxCacheHeight;
     mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
+    mutable int nMaxForkTime; // to limit the maximum fork time in seconds.
 
 public:
     virtual ~CBaseParams() {}
@@ -97,6 +98,7 @@ public:
         }
 
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
+        nMaxForkTime = GetArg("-maxforktime", 24 * 60 * 60);
 
         return true;
     }
@@ -130,6 +132,7 @@ public:
         te += strprintf("nViewCacheSize:%u\n",                      nViewCacheSize);
         te += strprintf("nTxCacheHeight:%u\n",                      nTxCacheHeight);
         te += strprintf("nLogMaxSize:%u\n",                         nLogMaxSize);
+        te += strprintf("nMaxForkTime:%d\n",                      nMaxForkTime);
 
         return te;
     }
@@ -197,6 +200,7 @@ public:
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
     void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
     void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }
+    int32_t GetMaxForkHeight(int32_t currBlockHeight) const;
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }

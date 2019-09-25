@@ -431,4 +431,11 @@ CBaseParams::CBaseParams() {
     fServer                 = 0;
     fServer                 = 0;
     nRPCPort                = 0;
+    nMaxForkTime = 24 * 60 * 60; //86400 s
+}
+
+int32_t CBaseParams::GetMaxForkHeight(int32_t currBlockHeight) const {
+    uint32_t interval = GetBlockInterval(currBlockHeight);
+    if (interval != 0) return nMaxForkTime / (uint32_t)interval;
+    return 0 ;
 }
