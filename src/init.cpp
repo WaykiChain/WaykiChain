@@ -693,24 +693,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         filesystem::create_directories(blocksDir);
     }
 
-    // cache size calculations
-    size_t nTotalCache = (SysCfg().GetArg("-dbcache", DEFAULT_DB_CACHE) << 20);
-    if (nTotalCache < (MIN_DB_CACHE << 20))
-        nTotalCache = (MIN_DB_CACHE << 20);  // total cache cannot be less than MIN_DB_CACHE
-    else if (nTotalCache > (MAX_DB_CACHE << 20))
-        nTotalCache = (MAX_DB_CACHE << 20);  // total cache cannot be greater than MAX_DB_CACHE
-    size_t nBlockTreeDBCache = nTotalCache / 8;
-    if (nBlockTreeDBCache > (1 << 21) && !SysCfg().GetBoolArg("-txindex", false))
-        nBlockTreeDBCache = (1 << 21);  // block tree db cache shouldn't be larger than 2 MiB
-    nTotalCache -= nBlockTreeDBCache;
-    size_t nAccountDBCache = nTotalCache / 2;  // use half of the remaining cache for coindb cache
-    nTotalCache -= nAccountDBCache;
-    size_t nContractDBCache = nTotalCache / 2;
-    nTotalCache -= nContractDBCache;
-    size_t nDelegateDBCache = nTotalCache / 2;
-    nTotalCache -= nDelegateDBCache;
-
-    SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
+    SysCfg().SetViewCacheSize(300 << 10);  // coins in memory require around 300K bytes
 
     try {
         pWalletMain = CWallet::GetInstance();

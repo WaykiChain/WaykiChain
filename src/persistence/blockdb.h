@@ -24,7 +24,7 @@ private:
 
 public:
     CBlockIndexDB(bool fMemory = false, bool fWipe = false) :
-        CLevelDBWrapper(GetDataDir() / "blocks" / "index", 5000, fMemory, fWipe) {}
+        CLevelDBWrapper(GetDataDir() / "blocks" / "index", 2 << 20 /* 2MB */, fMemory, fWipe) {}
 
     // CBlockIndexDB(const std::string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
 

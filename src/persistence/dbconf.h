@@ -21,16 +21,16 @@ typedef leveldb::Slice Slice;
 //         DBNameType            DBName             DBCacheSize           description
 //         ----------           --------------    --------------     ----------------------------
 #define DB_NAME_LIST(DEFINE) \
-    DEFINE( SYSPARAM,           "sysparam",         500 )               /* system params */ \
-    DEFINE( ACCOUNT,            "account",          5000 )              /* accounts & account assets */ \
-    DEFINE( ASSET,              "asset",            1000 )              /* asset registry */ \
-    DEFINE( BLOCK,              "block",            5000 )              /* block & tx indexes */ \
-    DEFINE( CONTRACT,           "contract",         10000 )             /* contract */ \
-    DEFINE( DELEGATE,           "delegate",         1000 )              /* delegates */ \
-    DEFINE( CDP,                "cdp",              10000 )             /* cdp */ \
-    DEFINE( DEX,                "dex",              100000 )            /* dex */ \
-    DEFINE( LOG,                "log",              1000 )              /* log */ \
-    DEFINE( RECEIPT,            "receipt",          1000 )              /* tx receipt */ \
+    DEFINE( SYSPARAM,           "sysparam",         (50 << 10) )      /* system params */ \
+    DEFINE( ACCOUNT,            "account",          (50 << 20) )      /* accounts & account assets */ \
+    DEFINE( ASSET,              "asset",            (100 << 10) )     /* asset registry */ \
+    DEFINE( BLOCK,              "block",            (500 << 10) )     /* block & tx indexes */ \
+    DEFINE( CONTRACT,           "contract",         (50 << 20) )      /* contract */ \
+    DEFINE( DELEGATE,           "delegate",         (100 << 10) )     /* delegates */ \
+    DEFINE( CDP,                "cdp",              (50 << 20) )      /* cdp */ \
+    DEFINE( DEX,                "dex",              (50 << 20) )      /* dex */ \
+    DEFINE( LOG,                "log",              (100 << 10) )     /* log */ \
+    DEFINE( RECEIPT,            "receipt",          (100 << 10) )     /* tx receipt */ \
     /*                                                                  */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "",               0)                  /* enum count, must be the last one */
