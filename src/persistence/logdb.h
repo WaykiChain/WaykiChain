@@ -38,7 +38,7 @@ public:
     void SetBaseViewPtr(CLogDBCache *pBaseIn) { executeFailCache.SetBase(&pBaseIn->executeFailCache); }
 
 private:
-/*  CCompositeKVCache  prefixType             key                 value                        variable      */
+/*  CCompositeKVCache    prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */
     // [prefix]{height}{txid} --> {error code, error message}
     CCompositeKVCache<dbk::TX_EXECUTE_FAIL,    string,            std::pair<uint8_t, string> > executeFailCache;

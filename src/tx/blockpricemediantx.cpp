@@ -90,7 +90,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                             READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
         }
 
-        cw.cdpCache.cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCDPList);
+        cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCDPList);
 
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
                 "forceLiquidateRatio: %llu, forceLiquidateCDPList: %llu\n",

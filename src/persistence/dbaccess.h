@@ -259,46 +259,50 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+                if (!ret.second)
+                    throw runtime_error("alloc new cache item failed");
             }
         }
 
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
+    // map<std::pair<string, uint256>, ValueType>
     template <typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix,
-                        set<std::pair<string, string>> &expiredKeys,
-                        map<std::pair<string, string>, ValueType> &elements) {
-        std::pair<string, string> key;
+                        set<std::pair<string, uint256>> &expiredKeys,
+                        set<ValueType> &elements) {
+        std::pair<string, uint256> key;
         ValueType value;
         shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
         ssKey.write(keyPrefix.c_str(), keyPrefix.size());
-        ssKey << prefix;  // write the prefix
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
             leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) != prefix) {
+            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) > prefix) {
                 break;
             }
 
             if (expiredKeys.count(key)) {
                 continue;
-            } else if (elements.count(key)) {
+            }
+
+            leveldb::Slice slValue = pCursor->value();
+            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+            ds >> value;
+
+            if (elements.count(value)) {
                 // skip it if the element existed in memory cache(upper level cache)
                 continue;
             } else {
                 // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+                auto ret = elements.emplace(value);
+                if (!ret.second)
+                    throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -333,7 +337,8 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+                if (!ret.second)
+                    throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -455,9 +460,10 @@ public:
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
-    bool GetAllElements(const string &prefix, map<std::pair<string, string>, ValueType> &elements) {
-        set<std::pair<string, string>> expiredKeys;
+    // NOT a general implementation to acquire all elements from memory and LDB.
+    // map<std::pair<string, uint256>, ValueType>
+    bool GetAllElements(const string &prefix, set<ValueType> &elements) {
+        set<std::pair<string, uint256>> expiredKeys;
         if (!GetAllElements(prefix, expiredKeys, elements)) {
             // TODO: log
             return false;
@@ -723,27 +729,21 @@ private:
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
-    bool GetAllElements(const string &prefix, set<std::pair<string, string>> &expiredKeys,
-                        map<std::pair<string, string>, ValueType> &elements) {
+    // map<std::pair<string, uint256>, ValueType>
+    bool GetAllElements(const string &prefix, set<std::pair<string, uint256>> &expiredKeys, set<ValueType> &elements) {
         if (!mapData.empty()) {
-            // Tips: the final prefix is consist of std::pair<prefix, string()>.
-            auto boundary = mapData.upper_bound(std::make_pair(prefix, string("")));
+            static uint256 dummy = uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+            auto boundary = mapData.upper_bound(std::make_pair(prefix, dummy));
 
-            if (boundary != mapData.end()) {
-                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
-                    if (db_util::IsEmpty(iter->second)) {
-                        expiredKeys.insert(iter->first);
-                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
-                        // TODO: log
-                        continue;
-                    } else if (std::get<0>(iter->first) != prefix) {
-                        // break the loop if prefix does not match.
-                        break;
-                    } else {
-                        // Got a valid element.
-                        elements.emplace(iter->first, iter->second);
-                    }
+            for (auto iter = mapData.begin(); iter != boundary; ++iter) {
+                if (db_util::IsEmpty(iter->second)) {
+                    expiredKeys.insert(iter->first);
+                } else if (expiredKeys.count(iter->first) || elements.count(iter->second)) {
+                    // Skip
+                    continue;
+                } else {
+                    // Got a valid element.
+                    elements.emplace(iter->second);
                 }
             }
         }
@@ -844,6 +844,10 @@ public:
     }
 
     uint32_t GetCacheSize() const {
+        if (!ptrData) {
+            return 0;
+        }
+
         return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
     }
 
@@ -1005,7 +1009,7 @@ private:
 private:
     mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
-    mutable std::shared_ptr<ValueType> ptrData;
+    mutable std::shared_ptr<ValueType> ptrData = nullptr;
     CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 

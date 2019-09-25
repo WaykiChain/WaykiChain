@@ -18,7 +18,7 @@ bool CDelegateDBCache::LoadTopDelegateList() {
 
     for (const auto &regId : regIds) {
         string strRegId = std::get<1>(regId);
-        delegateRegIds.push_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
+        delegateRegIds.emplace_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
     }
 
     return true;

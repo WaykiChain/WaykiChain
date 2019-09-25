@@ -313,13 +313,13 @@ Value getscoininfo(const Array& params, bool fHelp){
     // TODO: multi stable coin
     uint64_t bcoinMedianPrice =
         pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
-    uint64_t globalCollateralRatio = pCdMan->pCdpCache->cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice);
+    uint64_t globalCollateralRatio = pCdMan->pCdpCache->GetGlobalCollateralRatio(bcoinMedianPrice);
     bool globalCollateralRatioFloorReached =
         pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
 
     uint64_t globalStakedBcoins = 0;
     uint64_t globalOwedScoins   = 0;
-    pCdMan->pCdpCache->cdpMemCache.GetGlobalItem(globalStakedBcoins, globalOwedScoins);
+    pCdMan->pCdpCache->GetGlobalItem(globalStakedBcoins, globalOwedScoins);
 
     bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
 
@@ -329,7 +329,7 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
     }
 
-    pCdMan->pCdpCache->cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
+    pCdMan->pCdpCache->GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
                                                                forceLiquidateCdps);
 
     Object obj;
