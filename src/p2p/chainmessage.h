@@ -503,9 +503,13 @@ inline bool ProcessAddrMessage(CNode* pFrom, CDataStream &vRecv){
 inline bool ProcessTxMessage(CNode* pFrom, string strCommand , CDataStream& vRecv){
     std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
 
+    if (pBaseTx == nullptr) {
+        // TODO: record the misebehaving or ban the peer node.
+        return ERRORMSG("Unknown transaction type, ignore");
+    }
+
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx()) {
-        return ERRORMSG("None of BLOCK_REWARD_TX, UCOIN_BLOCK_REWARD_TX, PRICE_MEDIAN_TX from network "
-                        "should be accepted, raw string: %s", HexStr(vRecv.begin(), vRecv.end()));
+        return ERRORMSG("Forbidden transaction from network, raw: %s", HexStr(vRecv.begin(), vRecv.end()));
     }
 
     vRecv >> pBaseTx;
