@@ -213,7 +213,10 @@ bool CCoinTransferTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         i, SysCfg().GetFcoinGenesisRegId().ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
                 }
 
-                fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, reserveFeeScoins);
+                if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, ADD_FREE, reserveFeeScoins)) {
+                    return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, add scoins to fcoin genesis account failed"),
+                                     UPDATE_ACCOUNT_FAIL, "failed-add-scoins");
+                }
                 if (!cw.accountCache.SaveAccount(fcoinGenesisAccount))
                     return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, transfers[%d],"
                         " update fcoinGenesisAccount info error", i),
