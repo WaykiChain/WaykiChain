@@ -11,38 +11,36 @@
 #include "commons/uint256.h"
 #include "config/configuration.h"
 #include "config/const.h"
+#include "entities/asset.h"
 #include "entities/key.h"
 #include "sync.h"
-#include "tx/tx.h"
 #include "disk.h"
 
 #include <stdint.h>
 #include <memory>
 
-
+typedef uint256 TxID;
+class CBlockDBCache;
 class CDiskBlockPos;
 class CNode;
-class CAccountDBCache;
 
 enum BlockStatus {
-    BLOCK_VALID_UNKNOWN      = 0,
-    BLOCK_VALID_HEADER       = 1,  // parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
-    BLOCK_VALID_TREE         = 2,  // parent found, difficulty matches, timestamp >= median previous, checkpoint
-    BLOCK_VALID_TRANSACTIONS = 3,  // only first tx is coinbase, 2 <= coinbase input script length <= 100, transactions valid, no duplicate txids, sigops, size, merkle root
-    BLOCK_VALID_CHAIN        = 4,  // outputs do not overspend inputs, no double spends, coinbase output ok, immature coinbase spends, BIP30
-    BLOCK_VALID_SCRIPTS      = 5,  // scripts/signatures ok                      0000 0101
-    BLOCK_VALID_MASK         = 7,  //                                            0000 0111
+    BLOCK_VALID_UNKNOWN         = 0,
+    BLOCK_VALID_HEADER          = 1,  // parsed, version ok, hash satisfies claimed PoW, 1 <= vtx count <= max, timestamp not in future
+    BLOCK_VALID_TREE            = 2,  // parent found, difficulty matches, timestamp >= median previous, checkpoint
+    BLOCK_VALID_TRANSACTIONS    = 3,  // only first tx is coinbase, 2 <= coinbase input script length <= 100, transactions valid, no duplicate txids, sigops, size, merkle root
+    BLOCK_VALID_CHAIN           = 4,  // outputs do not overspend inputs, no double spends, coinbase output ok, immature coinbase spends, BIP30
+    BLOCK_VALID_SCRIPTS         = 5,  // scripts/signatures ok                          0000 0101
+    BLOCK_VALID_MASK            = 7,  //                                                0000 0111
 
-    BLOCK_HAVE_DATA = 8,   // full block available in blk*.dat           0000 1000
-    BLOCK_HAVE_UNDO = 16,  // undo data available in rev*.dat            0001 0000
-    BLOCK_HAVE_MASK = 24,  // BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO          0001 1000
+    BLOCK_HAVE_DATA             = 8,   // full block available in blk*.dat              0000 1000
+    BLOCK_HAVE_UNDO             = 16,  // undo data available in rev*.dat               0001 0000
+    BLOCK_HAVE_MASK             = 24,  // BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO             0001 1000
 
-    BLOCK_FAILED_VALID = 32,  // stage after last reached validness failed  0010 0000
-    BLOCK_FAILED_CHILD = 64,  // descends from failed block                 0100 0000
-    BLOCK_FAILED_MASK  = 96   // BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD    0110 0000
+    BLOCK_FAILED_VALID          = 32,  // stage after last reached validness failed     0010 0000
+    BLOCK_FAILED_CHILD          = 64,  // descends from failed block                    0100 0000
+    BLOCK_FAILED_MASK           = 96   // BLOCK_FAILED_VALID | BLOCK_FAILED_CHILD       0110 0000
 };
-
-
 
 
 /** Nodes collect new transactions into a block, hash them into a hash tree,
@@ -56,6 +54,7 @@ class CBlockHeader {
 public:
     // header
     static const int32_t CURRENT_VERSION = INIT_BLOCK_VERSION;
+
 protected:
     int32_t nVersion;
     uint256 prevBlockHash;
@@ -177,7 +176,7 @@ public:
     map<TokenSymbol, uint64_t> GetFees() const;
     map<CoinPricePair, uint64_t> GetBlockMedianPrice() const;
 
-    void Print(CAccountDBCache &accountCache) const;
+    void Print(CBlockDBCache &blockCache) const;
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -275,10 +274,10 @@ public:
         nStatus          = 0;
         nSequenceId      = 0;
 
-        int64_t nTxSize = 0;
-        for (auto &pTx : block.vptx) {
-            nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
-        }
+        // int64_t nTxSize = 0;
+        // for (auto &pTx : block.vptx) {
+        //     nTxSize += pTx->GetSerializeSize(SER_DISK, PROTOCOL_VERSION);
+        // }
 
         nVersion       = block.GetVersion();
         merkleRootHash = block.GetMerkleRootHash();

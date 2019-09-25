@@ -558,7 +558,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
 bool CheckWork(CBlock *pBlock, CWallet &wallet) {
     // Print block information
-    pBlock->Print(*pCdMan->pAccountCache);
+    pBlock->Print(*pCdMan->pBlockCache);
 
     // Found a solution
     {

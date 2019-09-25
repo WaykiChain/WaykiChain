@@ -868,7 +868,7 @@ int32_t ExGetTxContractFunc(lua_State *L) {
         const string &curTxArguments = pVmRunEnv->GetTxContract();
         LUA_BurnFuncData(L, FUEL_CALL_GetCurTxContract, curTxArguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
         len = RetRstToLua(L, curTxArguments, false);
-    } else if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
+    } else if (GetTransaction(pBaseTx, hash, pVmRunEnv->GetCw()->blockCache, false)) {
         if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
             CLuaContractInvokeTx *tx = static_cast<CLuaContractInvokeTx *>(pBaseTx.get());
             LUA_BurnFuncData(L, FUEL_CALL_GetTxContract, tx->arguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
@@ -936,7 +936,7 @@ int32_t ExGetTxRegIDFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxRegID, BURN_VER_R2);
     std::shared_ptr<CBaseTx> pBaseTx;
     int32_t len = 0;
-    if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
+    if (GetTransaction(pBaseTx, hash, pVmRunEnv->GetCw()->blockCache, false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
             if (tx->txUid.type() != typeid(CRegID))
@@ -1130,7 +1130,7 @@ int32_t ExGetTxConfirmHeightFunc(lua_State *L) {
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxConfirmHeight, BURN_VER_R2);
-    int32_t height = GetTxConfirmHeight(hash1, *pVmRunEnv->GetScriptDB());
+    int32_t height = GetTxConfirmHeight(hash1, pVmRunEnv->GetCw()->blockCache);
     if (-1 == height) {
         return RetFalse("ExGetTxConfirmHeightFunc para err2");
     } else {

@@ -23,6 +23,10 @@ namespace db_util {
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
+    // int
+    inline bool IsEmpty(const int val) { return val == false; }
+    inline void SetEmpty(int &val) { val = false; }
+
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val == 0; }
     inline void SetEmpty(uint8_t &val) { val = 0; }
@@ -144,9 +148,9 @@ namespace db_util {
 
 class CDBAccess {
 public:
-    CDBAccess(DBNameType dbNameTypeIn, size_t nCacheSize, bool fMemory, bool fWipe) :
+    CDBAccess(DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
               dbNameType(dbNameTypeIn),
-              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), nCacheSize, fMemory, fWipe ) {}
+              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>

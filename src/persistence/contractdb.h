@@ -56,7 +56,6 @@ public:
 
     CContractDBCache(CDBAccess *pDbAccess):
         contractCache(pDbAccess),
-        txDiskPosCache(pDbAccess),
         contractDataCache(pDbAccess),
         contractAccountCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::CONTRACT);
@@ -64,7 +63,6 @@ public:
 
     CContractDBCache(CContractDBCache *pBaseIn):
         contractCache(pBaseIn->contractCache),
-        txDiskPosCache(pBaseIn->txDiskPosCache),
         contractDataCache(pBaseIn->contractDataCache),
         contractAccountCache(pBaseIn->contractAccountCache) {};
 
@@ -85,30 +83,20 @@ public:
     bool Flush();
     uint32_t GetCacheSize() const;
 
-    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    bool SetTxIndex(const uint256 &txid, const CDiskTxPos &pos);
-    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
-
-    bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
-    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
-
     void SetBaseViewPtr(CContractDBCache *pBaseIn) {
         contractCache.SetBase(&pBaseIn->contractCache);
-        txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
         contractDataCache.SetBase(&pBaseIn->contractDataCache);
         contractAccountCache.SetBase(&pBaseIn->contractAccountCache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         contractCache.SetDbOpLogMap(pDbOpLogMapIn);
-        txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractDataCache.SetDbOpLogMap(pDbOpLogMapIn);
         contractAccountCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     bool UndoDatas() {
         return contractCache.UndoDatas() &&
-               txDiskPosCache.UndoDatas() &&
                contractDataCache.UndoDatas() &&
                contractAccountCache.UndoDatas();
     }
@@ -121,8 +109,6 @@ private:
     /////////// ContractDB
     // contract $RegId.ToRawString() -> Contract
     CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
-    // txId -> DiskTxPos
-    CCompositeKVCache< dbk::TXID_DISKINDEX,       uint256,                  CDiskTxPos >           txDiskPosCache;
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount

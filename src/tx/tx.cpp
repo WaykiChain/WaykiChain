@@ -98,12 +98,12 @@ bool CBaseTx::GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationSta
 
 uint64_t CBaseTx::GetFuel(uint32_t nFuelRate) { return nRunStep == 0 ? 0 : ceil(nRunStep / 100.0f) * nFuelRate; }
 
-uint32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
+uint32_t CBaseTx::GetFuelRate(CBlockDBCache &blockCache) {
     if (nFuelRate > 0)
         return nFuelRate;
 
     CDiskTxPos txPos;
-    if (scriptDB.ReadTxIndex(GetHash(), txPos)) {
+    if (blockCache.ReadTxIndex(GetHash(), txPos)) {
         CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
         CBlockHeader header;
         try {

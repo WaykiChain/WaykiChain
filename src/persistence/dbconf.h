@@ -14,31 +14,37 @@
 
 typedef leveldb::Slice Slice;
 
-#define DEF_DB_NAME_ENUM(enumType, enumName) enumType,
-#define DEF_DB_NAME_ARRAY(enumType, enumName) enumName,
+#define DEF_DB_NAME_ENUM(enumType, enumName, cacheSize) enumType,
+#define DEF_DB_NAME_ARRAY(enumType, enumName, cacheSize) enumName,
+#define DEF_CACHE_SIZE_ARRAY(enumType, enumName, cacheSize) cacheSize,
 
-//         DBNameType            DBName           description
-//         ----------           --------------     ----------------------------
+//         DBNameType            DBName             DBCacheSize           description
+//         ----------           --------------    --------------     ----------------------------
 #define DB_NAME_LIST(DEFINE) \
-    DEFINE( SYSPARAM,           "sysparam")     /* system params */ \
-    DEFINE( ACCOUNT,            "account")      /* accounts & account assets */ \
-    DEFINE( ASSET,              "asset")        /* assets */ \
-    DEFINE( BLOCK,              "block")        /* block */ \
-    DEFINE( CONTRACT,           "contract")     /* contract */ \
-    DEFINE( DELEGATE,           "delegate")     /* delegates */ \
-    DEFINE( CDP,                "cdp")          /* cdp */ \
-    DEFINE( DEX,                "dex")          /* dex */ \
-    DEFINE( LOG,                "log")          /* log */ \
-    DEFINE( RECEIPT,            "txreceipt")    /* txreceipt */ \
-    /*                                                                */  \
+    DEFINE( SYSPARAM,           "sysparam",         500 )               /* system params */ \
+    DEFINE( ACCOUNT,            "account",          5000 )              /* accounts & account assets */ \
+    DEFINE( ASSET,              "asset",            1000 )              /* asset registry */ \
+    DEFINE( BLOCK,              "block",            5000 )              /* block & tx indexes */ \
+    DEFINE( CONTRACT,           "contract",         10000 )             /* contract */ \
+    DEFINE( DELEGATE,           "delegate",         1000 )              /* delegates */ \
+    DEFINE( CDP,                "cdp",              10000 )             /* cdp */ \
+    DEFINE( DEX,                "dex",              100000 )            /* dex */ \
+    DEFINE( LOG,                "log",              1000 )              /* log */ \
+    DEFINE( RECEIPT,            "receipt",          1000 )              /* tx receipt */ \
+    /*                                                                  */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
-    DEFINE( DB_NAME_COUNT,        "")       /* enum count, must be the last one */
+    DEFINE( DB_NAME_COUNT,        "",               0)                  /* enum count, must be the last one */
 
 enum DBNameType {
     DB_NAME_LIST(DEF_DB_NAME_ENUM)
 };
 
+
 #define DB_NAME_NONE DB_NAME_COUNT
+
+static const int DBCacheSize[DBNameType::DB_NAME_COUNT + 1] {
+    DB_NAME_LIST(DEF_CACHE_SIZE_ARRAY)
+};
 
 static const std::string kDbNames[DBNameType::DB_NAME_COUNT + 1] {
     DB_NAME_LIST(DEF_DB_NAME_ARRAY)
