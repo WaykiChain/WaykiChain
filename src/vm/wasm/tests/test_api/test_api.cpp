@@ -1,5 +1,6 @@
 
 #include"tester.hpp"
+#include<limits>
 
 void print_tests(validating_tester &tester ) {
 
@@ -55,34 +56,34 @@ void print_tests(validating_tester &tester ) {
    WASM_CHECK_EQUAl( tx5_act_cnsl.substr(89, 13), "aaaaaaaaaaaaj" );
    WASM_CHECK_EQUAl( tx5_act_cnsl.substr(102,13), "zzzzzzzzzzzzj" );
 
-   // //test printi128
-   // auto tx6_trace = CALL_TEST_FUNCTION( tester, "test_print", "test_printi128", {} );
-   // auto tx6_act_cnsl = tx6_trace->traces.front().console;
-   // size_t start = 0;
-   // size_t end = tx6_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), U128Str(1) );
-   // start = end + 1; end = tx6_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), U128Str(0) );
-   // start = end + 1; end = tx6_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), "-" + U128Str(static_cast<unsigned __int128>(std::numeric_limits<__int128>::lowest())) );
-   // start = end + 1; end = tx6_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), "-" + U128Str(87654323456) );
+   //test printi128
+   auto tx6_trace = CALL_TEST_FUNCTION( tester, "test_print", "test_printi128", {} );
+   auto tx6_act_cnsl = tx6_trace->traces.front().console;
+   size_t start = 0;
+   size_t end = tx6_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), U128Str(1) );
+   start = end + 1; end = tx6_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), U128Str(0) );
+   start = end + 1; end = tx6_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), "-" + U128Str(static_cast<unsigned __int128>(std::numeric_limits<__int128>::lowest())) );
+   start = end + 1; end = tx6_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx6_act_cnsl.substr(start, end-start), "-" + U128Str(87654323456) );
 
 
    // // test printui128
-   // auto tx7_trace = CALL_TEST_FUNCTION( tester, "test_print", "test_printui128", {} );
-   // auto tx7_act_cnsl = tx7_trace->traces.front().console;
-   // start = 0; end = tx7_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx7_act_cnsl.substr(start, end-start), U128Str(std::numeric_limits<unsigned __int128>::max()) );
-   // start = end + 1; end = tx7_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx7_act_cnsl.substr(start, end-start), U128Str(0) );
-   // start = end + 1; end = tx7_act_cnsl.find('\n', start);
-   // WASM_CHECK_EQUAl( tx7_act_cnsl.substr(start, end-start), U128Str(87654323456) );
+   auto tx7_trace = CALL_TEST_FUNCTION( tester, "test_print", "test_printui128", {} );
+   auto tx7_act_cnsl = tx7_trace->traces.front().console;
+   start = 0; end = tx7_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx7_act_cnsl.substr(start, end-start), U128Str(std::numeric_limits<unsigned __int128>::max()) );
+   start = end + 1; end = tx7_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx7_act_cnsl.substr(start, end-start), U128Str(0) );
+   start = end + 1; end = tx7_act_cnsl.find('\n', start);
+   WASM_CHECK_EQUAl( tx7_act_cnsl.substr(start, end-start), U128Str(87654323456) );
 
    // test printsf
    auto tx8_trace = CALL_TEST_FUNCTION( tester, "test_print", "test_printsf", {} );
    auto tx8_act_cnsl = tx8_trace->traces.front().console;
-   size_t start = 0; size_t end = tx8_act_cnsl.find('\n', start);
+   start = 0; end = tx8_act_cnsl.find('\n', start);
    WASM_CHECK_EQUAl( tx8_act_cnsl.substr(start, end-start), "5.000000e-01" );
    start = end + 1; end = tx8_act_cnsl.find('\n', start);
    WASM_CHECK_EQUAl( tx8_act_cnsl.substr(start, end-start), "-3.750000e+00" );
