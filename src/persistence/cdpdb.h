@@ -91,10 +91,11 @@ public:
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+        regId2CDPCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     bool UndoDatas() {
-        return cdpCache.UndoDatas();
+        return cdpCache.UndoDatas() && regId2CDPCache.UndoDatas();
     }
 
 private:

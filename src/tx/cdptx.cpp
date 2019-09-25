@@ -174,7 +174,8 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCDPList(account.regid, userCdps) && userCdps.size() > 0) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp"), REJECT_INVALID, "has-open-cdp");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp! regid=%s, old_cdpid=%s",
+                account.regid.ToString(), userCdps.at(0).cdpid.ToString()), REJECT_INVALID, "has-open-cdp");
         }
 
         if (partialCollateralRatio < startingCdpCollateralRatio)
