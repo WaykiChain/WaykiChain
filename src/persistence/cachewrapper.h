@@ -63,7 +63,7 @@ public:
 
     void Flush();
 private:
-    void SetDbOpMapLog(CDBOpLogMap *pDbOpLogMap);
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

@@ -168,6 +168,10 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
             : uint64_t(double(assetAmount) * bcoinMedianPrice / PRICE_BOOST / scoins_to_mint * RATIO_BOOST);
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
+        if (assetAmount == 0 || scoins_to_mint == 0) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, invalid amount"), REJECT_INVALID, "invalid-amount");
+        }
+
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCDPList(account.regid, userCdps) && userCdps.size() > 0) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp"), REJECT_INVALID, "has-open-cdp");

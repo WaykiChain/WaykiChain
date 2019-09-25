@@ -79,17 +79,17 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
 
 void CCacheWrapper::EnableTxUndoLog(const uint256 &txid) {
     txUndo.Clear();
-    SetDbOpMapLog(&txUndo.dbOpLogMap);
+    SetDbOpLogMap(&txUndo.dbOpLogMap);
 }
 
 void CCacheWrapper::DisableTxUndoLog() {
-    SetDbOpMapLog(nullptr);
+    SetDbOpLogMap(nullptr);
 }
 
 bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
     for (auto it = blockUndo.vtxundo.rbegin(); it != blockUndo.vtxundo.rend(); it++) {
         // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
-        SetDbOpMapLog(&it->dbOpLogMap);
+        SetDbOpLogMap(&it->dbOpLogMap);
         bool ret = sysParamCache.UndoDatas() &&
                     accountCache.UndoDatas() &&
                     assetCache.UndoDatas() &&
@@ -120,7 +120,7 @@ void CCacheWrapper::Flush() {
     ppCache.Flush();
 }
 
-void CCacheWrapper::SetDbOpMapLog(CDBOpLogMap *pDbOpLogMap) {
+void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     sysParamCache.SetDbOpLogMap(pDbOpLogMap);
     accountCache.SetDbOpLogMap(pDbOpLogMap);
     assetCache.SetDbOpLogMap(pDbOpLogMap);
