@@ -410,8 +410,11 @@ namespace wasm {
             if (!print_ignore) {
                 // Assumes float representation on native side is the same as on the WASM side
                 std::ostringstream o;
+                o.setf( std::ios::scientific, std::ios::floatfield );
                 o.precision(std::numeric_limits<float>::digits10);
                 o << val;
+
+
                 pWasmContext->console_append(o.str());
             }
         }
@@ -420,6 +423,7 @@ namespace wasm {
             if (!print_ignore) {
                 // Assumes double representation on native side is the same as on the WASM side
                 std::ostringstream o;
+                o.setf( std::ios::scientific, std::ios::floatfield );
                 o.precision(std::numeric_limits<double>::digits10);
                 o << val;
                 pWasmContext->console_append(o.str());
@@ -442,6 +446,7 @@ namespace wasm {
             if (!print_ignore) {
 
                 std::ostringstream o;
+                o.setf( std::ios::scientific, std::ios::floatfield );
                 o.precision(std::numeric_limits<long double>::digits10);
 
 #ifdef __x86_64__

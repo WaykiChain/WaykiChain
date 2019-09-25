@@ -17,7 +17,7 @@ using namespace std;
        WASM_ASSERT( false, exc_type,  __VA_ARGS__ )
 
 #define WASM_RETHROW_EXCEPTIONS( exc_type, ... )          \
-    catch( exception& e ) {                         \
+    catch( wasm::exception& e ) {                         \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
          sprintf( buf,  __VA_ARGS__ );                    \
          std::ostringstream o;                            \
@@ -30,7 +30,7 @@ using namespace std;
     }
 
 #define WASM_CAPTURE_AND_RETHROW( ... )          \
-    catch( exception& e ) {                       \
+    catch( wasm::exception& e ) {                       \
        throw;                                    \
     } catch( ... ) {                             \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \
