@@ -380,7 +380,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s is nonstandard transaction due to %s",
             hash.GetHex(), reason), REJECT_NONSTANDARD, reason);
 
-    auto spCW = std::make_shared<CCacheWrapper>(*mempool.cw);
+    auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
     if (!pBaseTx->CheckTx(chainActive.Height(), *spCW, state))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
@@ -1834,11 +1834,10 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
         return true;  // No fork, return immediately.
 
-    auto spForkCW          = std::make_shared<CCacheWrapper>();
-    auto spCW              = std::make_shared<CCacheWrapper>(pCdMan);
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
     vector<CBlock> vPreBlocks;
+    std::shared_ptr<CCacheWrapper> spCW = nullptr;
 
     // If the block's previous block is not the active chain's tip, find the forked point.
     while (!chainActive.Contains(pPreBlockIndex)) {
@@ -1870,13 +1869,16 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
     }
 
-    if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
-        uint256 blockHash   = pPreBlockIndex->GetBlockHash();
-        int32_t blockHeight = pPreBlockIndex->height;
-        *spCW               = *mapForkCache[blockHash];
-
-        LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n", blockHeight, blockHash.GetHex());
+    if (forkChainTipFound) {
+        spCW = mapForkCache[forkChainTipBlockHash];
+    } else if (mapForkCache.count(pPreBlockIndex->GetBlockHash())) {
+        forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
+        spCW                  = mapForkCache[forkChainTipBlockHash];
+        forkChainTipFound     = true;
+        LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
+            pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
     } else {
+        spCW              = CCacheWrapper::NewCopyFrom(pCdMan);
         int64_t beginTime        = GetTimeMillis();
         CBlockIndex *pBlockIndex = chainActive.Tip();
 
@@ -1904,21 +1906,15 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         LogPrint("INFO", "ProcessForkedChain() : disconnect blocks elapse: %lld ms\n", GetTimeMillis() - beginTime);
     }
 
-    if (forkChainTipFound) {
-        *spForkCW = *mapForkCache[forkChainTipBlockHash];
-    } else {
-        *spForkCW = *spCW;
-    }
 
-    uint256 forkChainBestBlockHash   = spForkCW->blockCache.GetBestBlock();
+    uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlock();
     int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
     LogPrint("INFO", "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
 
-
     {
         // Set base to null and rebuild memory cache.
-        spForkCW->ppCache.Reset();
+        spCW->ppCache.Reset();
 
         CBlockIndex *pBlockIndex = mapBlockIndex[forkChainBestBlockHash];
         CBlock block;
@@ -1927,7 +1923,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
                 return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
                                 pBlockIndex->GetBlockHash().ToString());
 
-            spForkCW->ppCache.SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
+            spCW->ppCache.SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
         }
 
         // TODO: parameterize 11
@@ -1937,7 +1933,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
                 return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
                                 pBlockIndex->GetBlockHash().ToString());
 
-            if (!spForkCW->ppCache.AddBlockToCache(block))
+            if (!spCW->ppCache.AddBlockToCache(block))
                 return ERRORMSG("ProcessForkedChain() : failed to add block [%d]: %s to price point memory cache",
                                 pBlockIndex->height, pBlockIndex->GetBlockHash().ToString());
 
@@ -1945,28 +1941,30 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
     }
 
-    // Connect all of the forked chain's blocks.
-    for (auto rIter = vPreBlocks.rbegin(); rIter != vPreBlocks.rend(); ++rIter) {
-        LogPrint("INFO", "ProcessForkedChain() : ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),
-                 rIter->GetHash().GetHex());
-
-        if (!ConnectBlock(*rIter, *spForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
-            return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
-        }
-
-        CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
-        if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
-            pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
-        }
-    }
-
     if (!vPreBlocks.empty()) {
+        auto spNewForkCW          = std::make_shared<CCacheWrapper>(spCW.get());
+        // Connect all of the forked chain's blocks.
+        for (auto rIter = vPreBlocks.rbegin(); rIter != vPreBlocks.rend(); ++rIter) {
+            LogPrint("INFO", "ProcessForkedChain() : ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),
+                    rIter->GetHash().GetHex());
+
+            if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
+                return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
+            }
+
+            CBlockIndex *pConnBlockIndex = mapBlockIndex[rIter->GetHash()];
+            if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
+                pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
+            }
+        }
+        spNewForkCW->Flush(); // flush to spCW
+
         vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
         if (forkChainTipFound) {
             mapForkCache.erase(forkChainTipBlockHash);
         }
 
-        mapForkCache[iterBlock->GetHash()] = spForkCW;
+        mapForkCache[iterBlock->GetHash()] = spCW;
     }
 
     return true;

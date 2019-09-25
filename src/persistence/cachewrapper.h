@@ -37,7 +37,8 @@ public:
     CPricePointMemCache ppCache;
 
     CTxUndo             txUndo;
-
+public:
+    static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
 public:
     CCacheWrapper();
 
@@ -52,10 +53,12 @@ public:
                   CTxReceiptDBCache* pReceiptCacheIn,
                   CTxMemCache *pTxCacheIn,
                   CPricePointMemCache *pPpCacheIn);
-    CCacheWrapper(CCacheWrapper& cwIn);
+    CCacheWrapper(CCacheWrapper* cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 
     CCacheWrapper& operator=(CCacheWrapper& other);
+
+    void CopyFrom(CCacheDBManager* pCdMan);
 
     void EnableTxUndoLog(const uint256 &txid);
     void DisableTxUndoLog();
@@ -66,6 +69,9 @@ public:
 
     void Flush();
 private:
+    CCacheWrapper(const CCacheWrapper&) = delete;
+    CCacheWrapper& operator=(const CCacheWrapper&) = delete;
+
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 };
 

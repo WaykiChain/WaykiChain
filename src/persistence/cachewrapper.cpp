@@ -6,6 +6,13 @@
 #include "cachewrapper.h"
 #include "main.h"
 
+
+std::shared_ptr<CCacheWrapper>CCacheWrapper::NewCopyFrom(CCacheDBManager* pCdMan) {
+    auto pNewCopy = make_shared<CCacheWrapper>();
+    pNewCopy->CopyFrom(pCdMan);
+    return pNewCopy;
+}
+
 CCacheWrapper::CCacheWrapper() {}
 
 CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
@@ -33,19 +40,19 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
     ppCache.SetBaseViewPtr(pPpCacheIn);
 }
 
-CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
-    sysParamCache.SetBaseViewPtr(&cwIn.sysParamCache);
-    blockCache.SetBaseViewPtr(&cwIn.blockCache);
-    accountCache.SetBaseViewPtr(&cwIn.accountCache);
-    assetCache.SetBaseViewPtr(&cwIn.assetCache);
-    contractCache.SetBaseViewPtr(&cwIn.contractCache);
-    delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
-    cdpCache.SetBaseViewPtr(&cwIn.cdpCache);
-    dexCache.SetBaseViewPtr(&cwIn.dexCache);
-    txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCache);
+CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
+    sysParamCache.SetBaseViewPtr(&cwIn->sysParamCache);
+    blockCache.SetBaseViewPtr(&cwIn->blockCache);
+    accountCache.SetBaseViewPtr(&cwIn->accountCache);
+    assetCache.SetBaseViewPtr(&cwIn->assetCache);
+    contractCache.SetBaseViewPtr(&cwIn->contractCache);
+    delegateCache.SetBaseViewPtr(&cwIn->delegateCache);
+    cdpCache.SetBaseViewPtr(&cwIn->cdpCache);
+    dexCache.SetBaseViewPtr(&cwIn->dexCache);
+    txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
 
-    txCache.SetBaseViewPtr(&cwIn.txCache);
-    ppCache.SetBaseViewPtr(&cwIn.ppCache);
+    txCache.SetBaseViewPtr(&cwIn->txCache);
+    ppCache.SetBaseViewPtr(&cwIn->ppCache);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
@@ -61,6 +68,21 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
+}
+
+void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
+    sysParamCache = *pCdMan->pSysParamCache;
+    blockCache = *pCdMan->pBlockCache;
+    accountCache = *pCdMan->pAccountCache;
+    assetCache = *pCdMan->pAssetCache;
+    contractCache = *pCdMan->pContractCache;
+    delegateCache = *pCdMan->pDelegateCache;
+    cdpCache = *pCdMan->pCdpCache;
+    dexCache = *pCdMan->pDexCache;
+    txReceiptCache = *pCdMan->pReceiptCache;
+
+    txCache = *pCdMan->pTxCache;
+    ppCache = *pCdMan->pPpCache;
 }
 
 CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {

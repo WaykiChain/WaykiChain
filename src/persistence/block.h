@@ -260,7 +260,7 @@ public:
         vSignature.clear();
     }
 
-    CBlockIndex(CBlock &block) {
+    CBlockIndex(const CBlock &block) {
         pBlockHash       = nullptr;
         pprev            = nullptr;
         pskip            = nullptr;

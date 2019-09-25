@@ -188,7 +188,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
     if (pBlock->GetMerkleRootHash() != pBlock->BuildMerkleTree())
         return ERRORMSG("VerifyRewardTx() : wrong merkle root hash");
 
-    auto spCW = std::make_shared<CCacheWrapper>(cwIn);
+    auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
 
     CBlockIndex *pBlockIndex = mapBlockIndex[pBlock->GetPrevBlockHash()];
     if (pBlock->GetHeight() != 1 || pBlock->GetPrevBlockHash() != SysCfg().GetGenesisBlockHash()) {
@@ -311,7 +311,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
                 continue;
             }
 
-            auto spCW = std::make_shared<CCacheWrapper>(cwIn);
+            auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
 
             try {
                 CValidationState state;
@@ -468,7 +468,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 continue;
             }
 
-            auto spCW = std::make_shared<CCacheWrapper>(cwIn);
+            auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
 
             try {
                 CValidationState state;

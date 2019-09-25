@@ -398,7 +398,7 @@ public:
      */
     CCompositeKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CCompositeKVCache(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CCompositeKVCache(CCompositeKVCache *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
@@ -409,7 +409,7 @@ public:
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
+    void SetBase(CCompositeKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
@@ -807,7 +807,7 @@ public:
      */
     CSimpleKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CSimpleKVCache(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
+    CSimpleKVCache(CSimpleKVCache *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     }
@@ -817,7 +817,23 @@ public:
         assert(pDbAccessIn != nullptr);
     }
 
-    void SetBase(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn) {
+    CSimpleKVCache(const CSimpleKVCache &other) {
+        operator=(other);
+    }
+
+    CSimpleKVCache& operator=(const CSimpleKVCache& other) {
+        pBase = other.pBase;
+        pDbAccess = other.pDbAccess;
+        if (other.ptrData == nullptr) {
+            ptrData = nullptr;
+        } else {
+            ptrData = make_shared<ValueType>(*other.ptrData);
+        }
+        pDbOpLogMap = other.pDbOpLogMap;
+        return *this;
+    }
+
+    void SetBase(CSimpleKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(!ptrData);
         pBase = pBaseIn;
