@@ -3,6 +3,7 @@
 #include <wasm/wasm_config.hpp>
 #include <wasm/wasm_trace.hpp>
 #include <wasm/types/name.hpp>
+#include <wasm/types/uint128.hpp>
 #include "wasm_context.hpp"
 #include <cassert>
 #include <fstream>
@@ -13,6 +14,14 @@ if(! (expr)){                                \
     assert(false);                           \
 } else {                                     \
     WASM_TRACE("%s%s", msg , "[ passed ]")   \
+}
+
+#define WASM_CHECK_EQUAl( t1, t2 )   \
+if(! (t1 == t2)){                     \
+    WASM_TRACE("%s", "[ failed ]")   \
+    assert(false);                   \
+} else {                             \
+    WASM_TRACE("%s", "[ passed ]")   \
 }
 
 
@@ -50,6 +59,11 @@ string U64Str(uint64_t i)
    return ss.str();
 }
 
+string U128Str(unsigned __int128 i)
+{
+   return string(uint128(i));
+}
+
 class base_tester {
 public:
     typedef string action_result;
@@ -74,9 +88,9 @@ struct test_api_action {
 };
 
 template<typename T>
-void CallFunction( validating_tester &test, T ac, const vector<char> &data, const vector <uint64_t> &scope = {N(testapi)} ) {
+shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const vector<char> &data, const vector <uint64_t> &scope = {N(testapi)} ) {
     {
-        //transaction_trace trx_trace;
+        shared_ptr<transaction_trace> trx_trace = make_shared<transaction_trace>(transaction_trace{});
         inline_transaction trx;
         trx.contract = ac.get_account();
         trx.action = ac.get_name();
@@ -87,13 +101,13 @@ void CallFunction( validating_tester &test, T ac, const vector<char> &data, cons
         }
 
         try {
-            test.ctrl.ExecuteTx(test.trace, trx);
+            test.ctrl.ExecuteTx(*trx_trace, trx);
         } catch (wasm::exception &e) {
             //WASM_TRACE("%s", e.detail())
             WASM_CHECK(false, e.detail())
         }
 
-        //return &trx_trace;
+        return trx_trace;
     }
 }
 
