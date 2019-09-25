@@ -129,7 +129,10 @@ void types_tests(validating_tester &tester ) {
 	CALL_TEST_FUNCTION( tester, "test_types", "string_to_name", {});
 }
 
-
+void datastream_tests(validating_tester &tester ) {
+	set_code(tester, N(testapi), "wasm/test_api.wasm");
+	CALL_TEST_FUNCTION( tester, "test_datastream", "test_basic", {} );
+}
 
 
 int main( int argc, char **argv ) {
@@ -137,5 +140,6 @@ int main( int argc, char **argv ) {
     validating_tester tester;
     print_tests(tester);
     types_tests(tester);
+    datastream_tests(tester);
 
 }
