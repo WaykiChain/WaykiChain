@@ -30,8 +30,8 @@ public:
     const string GetAlertPkey(const NET_TYPE type) const;
 
     const vector<string> GetInitPubKey(const NET_TYPE type) const;
-    const uint8_t GetGenesisBlockNonce(const NET_TYPE type) const;
-    const uint256 GetGenesisBlockHash(const NET_TYPE type) const;
+    uint8_t GetGenesisBlockNonce(const NET_TYPE type) const;
+    uint256 GetGenesisBlockHash(const NET_TYPE type) const;
     string GetDelegateSignature(const NET_TYPE type) const;
     const vector<string> GetDelegatePubKey(const NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;

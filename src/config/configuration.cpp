@@ -29,12 +29,12 @@ const G_CONFIG_TABLE& IniCfg() {
     return *psCfg;
 }
 
-const uint8_t G_CONFIG_TABLE::GetGenesisBlockNonce(const NET_TYPE type) const {
+uint8_t G_CONFIG_TABLE::GetGenesisBlockNonce(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
     return GenesisBlockNonce[type];
 }
 
-const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
+uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
     return uint256S(genesisBlockHash[type]);
 }
@@ -196,7 +196,7 @@ string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf73
 // Gensis Block Hash
 string G_CONFIG_TABLE::genesisBlockHash[3] = {
     "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",  //mainnet
-    "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594",  //testnet
+    "7d06f69186e0fe39b9c40417d448fd36b43f193a2cee1ccae7f99b181080ee40",  //testnet
     "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"}; //regtest
 
 // Merkle Root Hash
@@ -216,7 +216,7 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
     { //mainnet
-    "b4a22ea2d2970563d2802386adc8fca81fab644b46e5ebf66a6999b219187a81",
+    "cc587f5b0280863b09ecfc1e0c9e21615b1775de90aaac51ff02d5dc9a26bbda",
     "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba",
     "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"
     },
