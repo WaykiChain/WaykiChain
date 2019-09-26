@@ -51,7 +51,7 @@ struct CUserCDP {
           scoin_symbol(scoinSymbol),
           total_staked_bcoins(totalStakedBcoins),
           total_owed_scoins(totalOwedScoins) {
-              Update();
+              ComputeCollateralRatioBase();
           }
 
     // Attention: NEVER use block_height as a comparative factor, as block_height may not change, i.e. liquidating
@@ -85,7 +85,7 @@ struct CUserCDP {
         READWRITE(VARINT(total_staked_bcoins));
         READWRITE(VARINT(total_owed_scoins));
         if (fRead) {
-            Update();
+            ComputeCollateralRatioBase();
         }
     )
 
@@ -93,7 +93,7 @@ struct CUserCDP {
 
     Object ToJson(uint64_t bcoinMedianPrice) const;
 
-    inline void Update() const {
+    inline void ComputeCollateralRatioBase() const {
         if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
             collateral_ratio_base = UINT64_MAX;  // big safe percent
         } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
@@ -103,13 +103,19 @@ struct CUserCDP {
         }
     }
 
+    uint64_t GetCollateralRatio(uint64_t bcoinPrice) {
+        ComputeCollateralRatioBase();
+        if(collateral_ratio_base == UINT64_MAX)
+            return UINT64_MAX;
+
+        return  (double(bcoinPrice) / PRICE_BOOST) * collateral_ratio_base * RATIO_BOOST;
+    }
+
     void Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t scoinsToRepay);
 
     void AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mintedScoins);
 
     void LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate);
-
-    uint64_t ComputeCollateralRatio(uint64_t bcoinPrice);
 
     bool IsFinished() const { return total_owed_scoins == 0 && total_staked_bcoins == 0; }
 

@@ -264,7 +264,7 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
             CRegID regid;
             regid.SetRegID(accountId);
             if (!p_context->p_cw->accountCache.GetAccount(CUserID(regid), *pAccount)) {
-                LogPrint("vm", "[ERR]CLuaVMRunEnv::OperateAccount(), account not exist! regid=%s", regid.ToString());
+                LogPrint("vm", "[ERR]CLuaVMRunEnv::OperateAccount(), account not exist! regid=%s\n", regid.ToString());
                 return false;
             }
             uid = regid;
@@ -282,7 +282,7 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
                  pAccount->ToString());
 
         if (!pAccount->OperateBalance(SYMB::WICC, operate.opType, value)) {
-            LogPrint("vm", "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s",
+            LogPrint("vm", "[ERR]CLuaVMRunEnv::OperateAccount(), operate account failed! uid=%s, operate=%s\n",
                 uid.ToString(), GetBalanceOpTypeName(operate.opType));
             return false;
         }
@@ -295,7 +295,7 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
 
         if (!p_context->p_cw->accountCache.SetAccount(pAccount->keyid, *pAccount)) {
             LogPrint("vm",
-                     "[ERR]CLuaVMRunEnv::OperateAccount(), save account failed, uid=%s", uid.ToString());
+                     "[ERR]CLuaVMRunEnv::OperateAccount(), save account failed, uid=%s\n", uid.ToString());
             return false;
         }
 
@@ -325,35 +325,35 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
         auto pFromAccount = make_shared<CAccount>();
         if (!p_context->p_cw->accountCache.GetAccount(fromUid, *pFromAccount)) {
             LogPrint("vm", "[ERR]CLuaVMRunEnv::TransferAccountAsset(), get from_account failed! from_uid=%s, "
-                     "isContractAccount=%d", transfer.toUid.ToString(), (int)transfer.isContractAccount);
+                     "isContractAccount=%d\n", transfer.toUid.ToString(), (int)transfer.isContractAccount);
             ret = false; break;
         }
 
         auto pToAccount = make_shared<CAccount>();
         if (!p_context->p_cw->accountCache.GetAccount(transfer.toUid, *pToAccount)) {
             if (!transfer.toUid.is<CKeyID>()) {
-                LogPrint("vm", "[ERR]CLuaVMRunEnv::TransferAccountAsset(), get to_account failed! to_uid=%s",
+                LogPrint("vm", "[ERR]CLuaVMRunEnv::TransferAccountAsset(), get to_account failed! to_uid=%s\n",
                     transfer.toUid.ToString());
                 ret = false; break;
             }
             // create new user
             pToAccount = make_shared<CAccount>(transfer.toUid.get<CKeyID>());
             isNewAccount = true;
-            LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), create new user! to_uid=%s",
+            LogPrint("vm", "CLuaVMRunEnv::TransferAccountAsset(), create new user! to_uid=%s\n",
                 transfer.toUid.ToString());
         }
 
         if (!pFromAccount->OperateBalance(transfer.tokenType, SUB_FREE, transfer.tokenAmount)) {
             LogPrint("vm", "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate SUB_FREE in from_account failed! "
-                "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu",
+                "from_uid=%s, isContractAccount=%d, symbol=%s, amount=%llu, account_amount=%llu\n",
                 fromUid.ToString(), (int)transfer.isContractAccount, transfer.tokenType,
-                transfer.tokenAmount);
+                transfer.tokenAmount, pFromAccount->GetBalance(transfer.tokenType, BalanceType::FREE_VALUE));
             ret = false; break;
         }
 
         if (!pToAccount->OperateBalance(transfer.tokenType, ADD_FREE, transfer.tokenAmount)) {
             LogPrint("vm", "[ERR]CLuaVMRunEnv::TransferAccountAsset(), operate ADD_FREE in to_account failed! "
-                     "to_uid=%s, symbol=%s, amount=%llu",
+                     "to_uid=%s, symbol=%s, amount=%llu\n",
                      transfer.toUid.ToString(), transfer.tokenType, transfer.tokenAmount);
             ret = false; break;
         }
@@ -361,14 +361,14 @@ bool CLuaVMRunEnv::TransferAccountAsset(lua_State *L, const vector<AssetTransfer
         if (!p_context->p_cw->accountCache.SetAccount(pFromAccount->keyid, *pFromAccount)) {
             LogPrint("vm",
                      "[ERR]CLuaVMRunEnv::TransferAccountAsset(), save from_account failed, from_uid=%s, "
-                     "isContractAccount=%d",
+                     "isContractAccount=%d\n",
                      fromUid.ToString(), (int)transfer.isContractAccount);
             ret = false; break;
         }
 
         if (!p_context->p_cw->accountCache.SetAccount(pToAccount->keyid, *pToAccount)) {
             LogPrint("vm",
-                     "[ERR]CLuaVMRunEnv::TransferAccountAsset(), save to_account failed, to_uid=%s",
+                     "[ERR]CLuaVMRunEnv::TransferAccountAsset(), save to_account failed, to_uid=%s\n",
                      transfer.toUid.ToString(), (int)transfer.isContractAccount);
             ret = false; break;
         }
@@ -439,7 +439,7 @@ void CLuaVMRunEnv::InsertOutAPPOperte(const vector<uint8_t>& userId,
 bool CLuaVMRunEnv::CheckOperateAccountLimit() {
     if (vmOperateOutput.size() + transfer_count > MAX_OUTPUT_COUNT) {
         LogPrint("vm", "[ERR]CLuaVMRunEnv::CheckOperateAccountLimit(), operate account count=%d excceed "
-            "the max limit=%d", vmOperateOutput.size() + transfer_count, MAX_OUTPUT_COUNT);
+            "the max limit=%d\n", vmOperateOutput.size() + transfer_count, MAX_OUTPUT_COUNT);
         return false;
     }
     return true;

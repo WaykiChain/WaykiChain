@@ -484,7 +484,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
                                  REJECT_INVALID, "acquire-bcoin-median-price-err");
             }
-            uint64_t collateralRatio  = cdp.ComputeCollateralRatio(bcoinMedianPrice);
+            uint64_t collateralRatio  = cdp.GetCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, the cdp collatera ratio=%.2f%% cannot < %.2f%% after redeem",
                                 100.0 * collateralRatio / RATIO_BOOST, 100.0 * startingCdpCollateralRatio / RATIO_BOOST),
@@ -727,7 +727,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     uint64_t totalScoinsToReturnSysFund    = 0;
     uint64_t totalBcoinsToCdpOwner         = 0;
 
-    uint64_t collateralRatio = cdp.ComputeCollateralRatio(bcoinMedianPrice);
+    uint64_t collateralRatio = cdp.GetCollateralRatio(bcoinMedianPrice);
     if (collateralRatio > startingCdpLiquidateRatio) {  // 1.5++
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%llu) > %llu!",
                         collateralRatio, startingCdpLiquidateRatio), REJECT_INVALID, "cdp-not-liquidate-ready");

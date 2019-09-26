@@ -241,6 +241,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getchaininfo",          &getchaininfo,          false,     false,      false },
 
     /* Block chain and UTXO */
+    { "getfcoingenesistxinfo",  &getfcoingenesistxinfo,  true,      true,       false },
     { "getblockcount",          &getblockcount,          true,      true,       false },
     { "getblock",               &getblock,               false,     false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },

@@ -29,7 +29,12 @@ const G_CONFIG_TABLE& IniCfg() {
     return *psCfg;
 }
 
-const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
+uint8_t G_CONFIG_TABLE::GetGenesisBlockNonce(const NET_TYPE type) const {
+    assert(type >= 0 && type < 3);
+    return GenesisBlockNonce[type];
+}
+
+uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
     return uint256S(genesisBlockHash[type]);
 }
@@ -51,9 +56,9 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(const NET_TYPE type) const {
 
 const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(const NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: return delegatePubKey_mainNet;
-        case TEST_NET: return delegatePubKey_testNet;
-        case REGTEST_NET: return delegatePubKey_regtestNet;
+        case MAIN_NET:      return delegatePubKey_mainNet;
+        case TEST_NET:      return delegatePubKey_testNet;
+        case REGTEST_NET:   return delegatePubKey_regtestNet;
         default: assert(0);
     }
 
@@ -191,7 +196,7 @@ string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf73
 // Gensis Block Hash
 string G_CONFIG_TABLE::genesisBlockHash[3] = {
     "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",  //mainnet
-    "0xf8aea423c73890eb982c77793cf2fff1dcc1c4d141f42a4c6841b1ffe87ac594",  //testnet
+    "7d06f69186e0fe39b9c40417d448fd36b43f193a2cee1ccae7f99b181080ee40",  //testnet
     "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"}; //regtest
 
 // Merkle Root Hash
@@ -211,18 +216,18 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
     { //mainnet
-    "b4a22ea2d2970563d2802386adc8fca81fab644b46e5ebf66a6999b219187a81",
+    "cc587f5b0280863b09ecfc1e0c9e21615b1775de90aaac51ff02d5dc9a26bbda",
     "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba",
     "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"
     },
     { //testnet
-    "91192277514fb254a52b32477aade6a8c73dbf5377535d9ea41995ab5533ccea",
+    "aafa4d424a032e6d87fd983e5f7ae27eb30d8ca0e9ff61c065125381ae3399cd",
     "5feb49f2f2af2858809dd235e7b4e3a633086f311ab1fca8a4a5180ab1a0fe10",
     "751cc6d03b7e17200056f788623d9ab349f297b008a02046f6993f135d38fd1d"
     },
     { //regtest
-    "578cbf63fb95f9e8d00fb83d712f94e57c98f0da7972a0736a8962277cd40f47",
-    "ecd82e2ebd8415f23e9fb44342aaf99a781304314ecc2b1cd237d48b3ae0a1ff",
+    "bab7f09fae61d74275ac4434780e4698222c8229a7454fd475270e4b18a97777",
+    "dfd6fe595c49653f7b8dd6513d7df77b8f7d8fa1e6b79d8cbff71cff650faea5",
     "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
     }
 };
@@ -231,10 +236,13 @@ vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
 vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
                                            0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
+//Genesis block nonce
+uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108 /*mainnet*/, 100 /*testnet*/, 68 /*regtest*/};
+
 // Network Magic No.
 uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
     {0xff, 0x42, 0x1d, 0x1a},  //mainnet
-    {0xfd, 0x7d, 0x5c, 0xd9},  //testnet
+    {0xfd, 0x7d, 0x5c, 0xe0},  //testnet
     {0xfe, 0xfa, 0xd3, 0xc6}   //regtest
 };
 
@@ -245,19 +253,16 @@ vector<uint8_t> G_CONFIG_TABLE::AddrPrefix[2][MAX_BASE58_TYPES] = {
 };
 
 // Default P2P Port
-uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };
+uint32_t G_CONFIG_TABLE::nP2PPort[3]    = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };
 
 // Default RPC Port
-uint32_t G_CONFIG_TABLE::nRPCPort[2] = { 18900 /*main*/, 18901 /*test*/};
-
-// Default UI Port
-uint32_t G_CONFIG_TABLE::nUIPort[2] = { 4245 /*main*/, 4246 /*test*/};
+uint32_t G_CONFIG_TABLE::nRPCPort[2]    = { 18900 /*main*/, 18901 /*test*/};
 
 // Blockchain Start Time
-uint32_t G_CONFIG_TABLE::StartTime[3]  = { 1525404897 /*main*/, 1505401100 /*test*/, 1504305600 /*regtest*/};
+uint32_t G_CONFIG_TABLE::StartTime[3]   = { 1525404897 /*main*/, 1505401100 /*test*/, 1504305600 /*regtest*/};
 
 // Initial Coin
-uint64_t G_CONFIG_TABLE::InitialCoin = INITIAL_BASE_COIN_AMOUNT;  // 210 million
+uint64_t G_CONFIG_TABLE::InitialCoin    = INITIAL_BASE_COIN_AMOUNT;  // 210 million
 
 // Default Miner Fee
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;
@@ -268,10 +273,13 @@ uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 // Block height for stable coin genesis
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3]  = { 4109388 /*main*/,  500 /*test*/, 8 /*regtest*/ };
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3] {
+    4109388,    // main
+    500,        // test
+    8};         // regtest
 
 // Block height to enable feature fork version
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight[3]  {
-    4109588,    //mainnet: Wed Oct 16 2019 10:16:00 GMT+0800
-    520,        //testnet
-    10};        //regtest
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight[3] {
+    4109588,    // mainnet: Wed Oct 16 2019 10:16:00 GMT+0800
+    520,        // testnet
+    10};        // regtest

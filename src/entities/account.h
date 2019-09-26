@@ -167,6 +167,8 @@ public:
     CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
+
+    uint64_t GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType);
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
 

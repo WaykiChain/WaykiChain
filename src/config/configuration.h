@@ -30,7 +30,8 @@ public:
     const string GetAlertPkey(const NET_TYPE type) const;
 
     const vector<string> GetInitPubKey(const NET_TYPE type) const;
-    const uint256 GetGenesisBlockHash(const NET_TYPE type) const;
+    uint8_t GetGenesisBlockNonce(const NET_TYPE type) const;
+    uint256 GetGenesisBlockHash(const NET_TYPE type) const;
     string GetDelegateSignature(const NET_TYPE type) const;
     const vector<string> GetDelegatePubKey(const NET_TYPE type) const;
     const uint256 GetMerkleRootHash() const;
@@ -86,6 +87,9 @@ private:
     /* Peer IP seeds */
     static vector<uint32_t> pnSeed;
 
+    /* Genesis Block Nonce */
+    static uint8_t GenesisBlockNonce[3];
+
     /* Network Magic Number */
     static uint8_t MessageMagicNumber[3][MESSAGE_START_SIZE];
 
@@ -97,9 +101,6 @@ private:
 
     /* RPC Port */
     static uint32_t nRPCPort[2];
-
-    /* UI Port */
-    static uint32_t nUIPort[2];
 
     /* Start Time */
     static uint32_t StartTime[3];
