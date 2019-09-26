@@ -2486,7 +2486,7 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
 
 bool AbortNode(const string &strMessage) {
     strMiscWarning = strMessage;
-    LogPrint("INFO", "*** %s\n", strMessage);
+    LogPrint("ERROR", "Detect abort ERROR! *** %s\n", strMessage);
     StartShutdown();
 
     return false;
