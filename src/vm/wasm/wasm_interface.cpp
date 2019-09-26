@@ -144,14 +144,14 @@ namespace wasm {
             std::cerr << std::string("duration:")
                       << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
 
+            return;
 
         } catch (vm::exception &e) {
             WASM_THROW(wasm_exception, e.detail())
         } catch (wasm::exception &e) {
             WASM_THROW(wasm_exception, e.detail())
-            //std::cerr << std::string("wasm-vm interpreter error\n");
         }
-        WASM_RETHROW_EXCEPTIONS(wasm_exception, "wasm assert fail")
+        WASM_THROW(wasm_exception, "wasm assert fail")
 
     }
 

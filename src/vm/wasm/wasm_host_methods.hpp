@@ -156,6 +156,7 @@ namespace wasm {
             //auto size = wasmContext.trx.data.size();
             auto size = pWasmContext->GetActionDataSize();
             //std::cout << "action_data_size size:"<< size << std::endl;
+            //WASM_TRACE("%d",size)
             return size;
         }
 

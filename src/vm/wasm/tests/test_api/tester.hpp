@@ -44,6 +44,25 @@ if(! (t1 == t2)){                     \
      assert(false);                           \
  }
 
+ #define CHECK_EXCEPTION( expr, passed, ex, msg ) \
+ passed = false;                              \
+ try{                                         \
+     expr  ;                                  \
+ } catch(wasm::exception &e){                 \
+     if( ex(msg).code() == e.code() && string(e.detail()).find(string(msg),0)) {  \
+         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.detail())   \
+         passed = true;                                                     \
+     }else {                                                                \
+        WASM_TRACE("%s", e.detail())         \
+     }                                       \
+ } catch(...){                               \
+    WASM_TRACE("%s", "exception")             \
+ }                                            \
+ if (!passed) {                               \
+     WASM_TRACE("%s%s", msg, "[ failed ]")    \
+     assert(false);                           \
+ }
+
 
 string I64Str(int64_t i)
 {
@@ -104,7 +123,8 @@ shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const
             test.ctrl.ExecuteTx(*trx_trace, trx);
         } catch (wasm::exception &e) {
             //WASM_TRACE("%s", e.detail())
-            WASM_CHECK(false, e.detail())
+            //WASM_CHECK(false, e.detail())
+            throw;
         }
 
         return trx_trace;

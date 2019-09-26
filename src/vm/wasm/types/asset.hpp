@@ -5,6 +5,7 @@
 #include <cstdlib>
 
 #include "check.hpp"
+#include "types.hpp"
 
 namespace wasm {
     /**

@@ -141,9 +141,10 @@ void action_tests(validating_tester &tester ) {
   set_code(tester, N(testapi), "wasm/test_api.wasm");
   CALL_TEST_FUNCTION( tester, "test_action", "assert_true", {} );
 
+  bool passed;
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "assert_false", {} ), passed, wasm_exception, "test_action::assert_false")
+
   dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
-  WASM_TRACE("%d",sizeof(dummy13))
-  
   CALL_TEST_FUNCTION( tester, "test_action", "read_action_normal", wasm::pack(dummy13));
 }
 
