@@ -30,6 +30,7 @@ public:
     const string GetAlertPkey(const NET_TYPE type) const;
 
     const vector<string> GetInitPubKey(const NET_TYPE type) const;
+    const uint8_t GetGenesisBlockNonce(const NET_TYPE type) const;
     const uint256 GetGenesisBlockHash(const NET_TYPE type) const;
     string GetDelegateSignature(const NET_TYPE type) const;
     const vector<string> GetDelegatePubKey(const NET_TYPE type) const;
@@ -85,6 +86,9 @@ private:
     static vector<string> stableCoinGenesisTxid[3];
     /* Peer IP seeds */
     static vector<uint32_t> pnSeed;
+
+    /* Genesis Block Nonce */
+    static uint8_t GenesisBlockNonce[3];
 
     /* Network Magic Number */
     static uint8_t MessageMagicNumber[3][MESSAGE_START_SIZE];

@@ -29,6 +29,11 @@ const G_CONFIG_TABLE& IniCfg() {
     return *psCfg;
 }
 
+const uint8_t G_CONFIG_TABLE::GetGenesisBlockNonce(const NET_TYPE type) const {
+    assert(type >= 0 && type < 3);
+    return GenesisBlockNonce[type];
+}
+
 const uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
     return uint256S(genesisBlockHash[type]);
@@ -51,9 +56,9 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(const NET_TYPE type) const {
 
 const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(const NET_TYPE type) const {
     switch (type) {
-        case MAIN_NET: return delegatePubKey_mainNet;
-        case TEST_NET: return delegatePubKey_testNet;
-        case REGTEST_NET: return delegatePubKey_regtestNet;
+        case MAIN_NET:      return delegatePubKey_mainNet;
+        case TEST_NET:      return delegatePubKey_testNet;
+        case REGTEST_NET:   return delegatePubKey_regtestNet;
         default: assert(0);
     }
 
@@ -231,10 +236,13 @@ vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
 vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0xDC36FB0D, 0x91A11C77, 0xFFFFE60D,
                                            0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
+//Genesis block nonce
+uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108, /*mainnet*/, 100, /*testnet*/, 68 /*regtest*/};
+
 // Network Magic No.
 uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
     {0xff, 0x42, 0x1d, 0x1a},  //mainnet
-    {0xfd, 0x7d, 0x5c, 0xd9},  //testnet
+    {0xfd, 0x7d, 0x5c, 0xe0},  //testnet
     {0xfe, 0xfa, 0xd3, 0xc6}   //regtest
 };
 
@@ -245,19 +253,19 @@ vector<uint8_t> G_CONFIG_TABLE::AddrPrefix[2][MAX_BASE58_TYPES] = {
 };
 
 // Default P2P Port
-uint32_t G_CONFIG_TABLE::nP2PPort[3] = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };
+uint32_t G_CONFIG_TABLE::nP2PPort[3]    = {8920 /*main*/, 18920 /*test*/, 18921 /*regtest*/ };
 
 // Default RPC Port
-uint32_t G_CONFIG_TABLE::nRPCPort[2] = { 18900 /*main*/, 18901 /*test*/};
+uint32_t G_CONFIG_TABLE::nRPCPort[2]    = { 18900 /*main*/, 18901 /*test*/};
 
 // Default UI Port
-uint32_t G_CONFIG_TABLE::nUIPort[2] = { 4245 /*main*/, 4246 /*test*/};
+uint32_t G_CONFIG_TABLE::nUIPort[2]     = { 4245 /*main*/, 4246 /*test*/};
 
 // Blockchain Start Time
-uint32_t G_CONFIG_TABLE::StartTime[3]  = { 1525404897 /*main*/, 1505401100 /*test*/, 1504305600 /*regtest*/};
+uint32_t G_CONFIG_TABLE::StartTime[3]   = { 1525404897 /*main*/, 1505401100 /*test*/, 1504305600 /*regtest*/};
 
 // Initial Coin
-uint64_t G_CONFIG_TABLE::InitialCoin = INITIAL_BASE_COIN_AMOUNT;  // 210 million
+uint64_t G_CONFIG_TABLE::InitialCoin    = INITIAL_BASE_COIN_AMOUNT;  // 210 million
 
 // Default Miner Fee
 uint64_t G_CONFIG_TABLE::DefaultFee = 15;
@@ -268,10 +276,13 @@ uint32_t G_CONFIG_TABLE::TotalDelegateNum = 11;
 uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 // Block height for stable coin genesis
-uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3]  = { 4109388 /*main*/,  500 /*test*/, 8 /*regtest*/ };
+uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3] {
+    4109388,    // main
+    500,        // test
+    8};         // regtest
 
 // Block height to enable feature fork version
-uint32_t G_CONFIG_TABLE::nFeatureForkHeight[3]  {
-    4109588,    //mainnet: Wed Oct 16 2019 10:16:00 GMT+0800
-    520,        //testnet
-    10};        //regtest
+uint32_t G_CONFIG_TABLE::nFeatureForkHeight[3] {
+    4109588,    // mainnet: Wed Oct 16 2019 10:16:00 GMT+0800
+    520,        // testnet
+    10};        // regtest
