@@ -76,5 +76,7 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(inline_transaction_too_big,           5000014, "inline transaction too big")
     WASM_DECLARE_EXCEPTION(wasm_api_data_too_big,                5000015, "wasm api data too big")
     WASM_DECLARE_EXCEPTION(overlapping_memory_error,             5000016, "memcpy can only accept non-aliasing pointers")
-    WASM_DECLARE_EXCEPTION(unsatisfied_authorization,            5000016, "unsatisfied authorization")
+    WASM_DECLARE_EXCEPTION(unsatisfied_authorization,            5000017, "unsatisfied authorization")
+    WASM_DECLARE_EXCEPTION(abort_called,                         5000018, "abort called")
+    WASM_DECLARE_EXCEPTION(wasm_assert_code_exception,           5000019, "wasm assert code")
 } //wasm

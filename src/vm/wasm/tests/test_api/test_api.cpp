@@ -152,7 +152,7 @@ void action_tests(validating_tester &tester ) {
   CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_0", raw_bytes );
 
   raw_bytes.resize((1<<16)+1);
-  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_0", raw_bytes), passed, wasm_exception,"access violation")
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_0", raw_bytes), passed, wasm_exception,"wasm memory out-of-bounds")
 
   // test read_action_to_64k
   raw_bytes.resize(1);
@@ -160,14 +160,20 @@ void action_tests(validating_tester &tester ) {
 
   //test read_action_to_64k
   raw_bytes.resize(3);
-  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"access violation")
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"wasm memory out-of-bounds")
 
     // test require_notice
    auto test_require_notice = [](auto& test, std::vector<char>& data){
       CALL_TEST_FUNCTION( test, "test_action", "require_notice", data);
    };
 
-    CHECK_EXCEPTION(test_require_notice(tester, raw_bytes), passed, wasm_assert_exception, "Should've failed")
+  CHECK_EXCEPTION(test_require_notice(tester, raw_bytes), passed, wasm_assert_exception, "Should've failed")
+
+  // test test_current_receiver
+  CALL_TEST_FUNCTION( tester, "test_action", "test_current_receiver", wasm::pack(N(testapi)));
+
+  // test test_abort
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "test_abort", {} ), passed, abort_called, "abort() called")
   
 
 }
@@ -176,7 +182,6 @@ void require_notice_tests(validating_tester &tester ) {
 
   set_code(tester, N(testapi), "wasm/test_api.wasm");
   set_code(tester, N(acc5), "wasm/test_api.wasm");
-
   CALL_TEST_FUNCTION( tester, "test_action", "require_notice_tests", {});
 
 

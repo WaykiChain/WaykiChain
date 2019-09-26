@@ -49,7 +49,7 @@ if(! (t1 == t2)){                     \
  try{                                         \
      expr  ;                                  \
  } catch(wasm::exception &e){                 \
-     if( ex(msg).code() == e.code() && string(e.detail()).find(string(msg),0)) {  \
+     if( ex(msg).code() == e.code() && (string(e.detail()).find(string(msg),0)) != std::string::npos) {  \
          WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.detail())   \
          passed = true;                                                     \
      }else {                                                                \

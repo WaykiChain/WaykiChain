@@ -107,7 +107,7 @@ namespace wasm {
 
         //system
         void abort() {
-            wasm_assert(false, "abort() called");
+            WASM_ASSERT(false, abort_called, "wasm-assert-fail:%s", "abort() called" )
         }
 
         void wasm_assert( uint32_t test, const char *msg ) {
@@ -124,7 +124,7 @@ namespace wasm {
                 //std::cout << code << std::endl;
                 std::ostringstream o;
                 o << code;
-                WASM_ASSERT(false, wasm_assert_exception, o.str().c_str())
+                WASM_ASSERT(false, wasm_assert_code_exception, o.str().c_str())
             }
         }
 
