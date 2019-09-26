@@ -7,6 +7,7 @@
 #define PERSIST_CACHEWRAPPER_H
 
 #include "accountdb.h"
+#include "blockdb.h"
 #include "cdpdb.h"
 #include "contractdb.h"
 #include "delegatedb.h"
@@ -23,6 +24,7 @@ class CBlockUndo;
 class CCacheWrapper {
 public:
     CSysParamDBCache    sysParamCache;
+    CBlockDBCache       blockCache;
     CAccountDBCache     accountCache;
     CAssetDBCache       assetCache;
     CContractDBCache    contractCache;
@@ -35,24 +37,28 @@ public:
     CPricePointMemCache ppCache;
 
     CTxUndo             txUndo;
-
+public:
+    static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
 public:
     CCacheWrapper();
 
     CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
+                  CBlockDBCache*  pBlockCacheIn,
                   CAccountDBCache* pAccountCacheIn,
                   CAssetDBCache* pAssetCache,
                   CContractDBCache* pContractCacheIn,
                   CDelegateDBCache* pDelegateCacheIn,
                   CCDPDBCache* pCdpCacheIn,
                   CDexDBCache* pDexCacheIn,
-                  CTxReceiptDBCache* pTxReceiptCacheIn,
+                  CTxReceiptDBCache* pReceiptCacheIn,
                   CTxMemCache *pTxCacheIn,
                   CPricePointMemCache *pPpCacheIn);
-    CCacheWrapper(CCacheWrapper& cwIn);
+    CCacheWrapper(CCacheWrapper* cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 
     CCacheWrapper& operator=(CCacheWrapper& other);
+
+    void CopyFrom(CCacheDBManager* pCdMan);
 
     void EnableTxUndoLog(const uint256 &txid);
     void DisableTxUndoLog();
@@ -63,6 +69,9 @@ public:
 
     void Flush();
 private:
+    CCacheWrapper(const CCacheWrapper&) = delete;
+    CCacheWrapper& operator=(const CCacheWrapper&) = delete;
+
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 };
 

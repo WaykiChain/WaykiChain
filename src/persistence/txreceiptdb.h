@@ -31,6 +31,10 @@ public:
 
     void Flush();
 
+    uint32_t GetCacheSize() const {
+        return txReceiptCache.GetCacheSize();
+    }
+
     void SetBaseViewPtr(CTxReceiptDBCache *pBaseIn) { txReceiptCache.SetBase(&pBaseIn->txReceiptCache); }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { txReceiptCache.SetDbOpLogMap(pDbOpLogMapIn); }

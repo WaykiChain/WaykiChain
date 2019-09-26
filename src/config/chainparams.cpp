@@ -365,22 +365,20 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
     // Stablecoin Global Reserve Account with its initial reseve creation
-    auto
-    pTx = std::make_shared<CCoinRewardTx>(  CNullID(), nStableCoinGenesisHeight,
-                                            SYMB::WUSD, kFundCoinGenesisInitialReserveAmount * COIN);
+    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
+                                               FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT * COIN);
     pTx->nVersion = INIT_TX_VERSION;
     vptx.push_back(pTx);
 
     // FundCoin Genesis Account with the total FundCoin release creation
-    pTx = std::make_shared<CCoinRewardTx>(  CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))),
-                                            nStableCoinGenesisHeight,
-                                            SYMB::WGRT, kFundCoinGenesisTotalReleaseAmount * COIN);
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT,
+                                          FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN);
     vptx.push_back(pTx);
 
     // DEX Order Matching Service Account
-    pTx = std::make_shared<CCoinRewardTx>(  CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))),
-                                            nStableCoinGenesisHeight,
-                                            SYMB::WGRT, 0);
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT, 0);
     vptx.push_back(pTx);
 
     return true;
@@ -419,7 +417,7 @@ CBaseParams::CBaseParams() {
     nLogMaxSize             = 100 * 1024 * 1024;  // 100M
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
-    nViewCacheSize          = 2000000;
+    nCacheSize              = 300 << 10;  // 300K bytes
     payTxFee                = 10000;
     nDefaultPort            = 0;
     fPrintLogToConsole      = 0;
@@ -431,4 +429,13 @@ CBaseParams::CBaseParams() {
     fServer                 = 0;
     fServer                 = 0;
     nRPCPort                = 0;
+    nMaxForkTime            = 24 * 60 * 60;  // 86400 seconds
+}
+
+int32_t CBaseParams::GetMaxForkHeight(int32_t currBlockHeight) const {
+    uint32_t interval = GetBlockInterval(currBlockHeight);
+    if (interval != 0)
+        return nMaxForkTime / (uint32_t)interval;
+
+    return 0 ;
 }

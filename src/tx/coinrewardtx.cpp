@@ -35,8 +35,8 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     account.keyid        = keyId;
 
     if (!account.OperateBalance(coin_symbol, ADD_FREE, coin_amount))
-        return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, OperateBalance failed"), UPDATE_ACCOUNT_FAIL,
-                         "operate-balance-failed");
+        return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
+                         "operate-account-failed");
 
     if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, write secure account info error"),

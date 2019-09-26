@@ -99,7 +99,7 @@ map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
     return map<CoinPricePair, uint64_t>();
 }
 
-void CBlock::Print(CAccountDBCache& accountCache) const {
+void CBlock::Print(CBlockDBCache& blockCache) const {
     string medianPrices;
     for (const auto &item : GetBlockMedianPrice()) {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
@@ -111,7 +111,7 @@ void CBlock::Print(CAccountDBCache& accountCache) const {
              vptx.size(), nFuel, nFuelRate, medianPrices);
     // LogPrint("INFO", "list transactions:\n");
     // for (uint32_t i = 0; i < vptx.size(); i++) {
-    //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));
+    //     LogPrint("INFO", "%s ", vptx[i]->ToString(blockCache));
     // }
     // LogPrint("INFO", "  vMerkleTree: ");
     // for (uint32_t i = 0; i < vMerkleTree.size(); i++) {

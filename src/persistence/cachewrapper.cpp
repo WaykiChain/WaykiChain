@@ -6,57 +6,83 @@
 #include "cachewrapper.h"
 #include "main.h"
 
+
+std::shared_ptr<CCacheWrapper>CCacheWrapper::NewCopyFrom(CCacheDBManager* pCdMan) {
+    auto pNewCopy = make_shared<CCacheWrapper>();
+    pNewCopy->CopyFrom(pCdMan);
+    return pNewCopy;
+}
+
 CCacheWrapper::CCacheWrapper() {}
 
 CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
+                             CBlockDBCache*  pBlockCacheIn,
                              CAccountDBCache* pAccountCacheIn,
                              CAssetDBCache* pAssetCache,
                              CContractDBCache* pContractCacheIn,
                              CDelegateDBCache* pDelegateCacheIn,
                              CCDPDBCache* pCdpCacheIn,
                              CDexDBCache* pDexCacheIn,
-                             CTxReceiptDBCache* pTxReceiptCacheIn,
+                             CTxReceiptDBCache* pReceiptCacheIn,
                              CTxMemCache* pTxCacheIn,
                              CPricePointMemCache *pPpCacheIn) {
     sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
+    blockCache.SetBaseViewPtr(pBlockCacheIn);
     accountCache.SetBaseViewPtr(pAccountCacheIn);
     assetCache.SetBaseViewPtr(pAssetCache);
     contractCache.SetBaseViewPtr(pContractCacheIn);
     delegateCache.SetBaseViewPtr(pDelegateCacheIn);
     cdpCache.SetBaseViewPtr(pCdpCacheIn);
     dexCache.SetBaseViewPtr(pDexCacheIn);
-    txReceiptCache.SetBaseViewPtr(pTxReceiptCacheIn);
+    txReceiptCache.SetBaseViewPtr(pReceiptCacheIn);
 
     txCache.SetBaseViewPtr(pTxCacheIn);
     ppCache.SetBaseViewPtr(pPpCacheIn);
 }
 
-CCacheWrapper::CCacheWrapper(CCacheWrapper& cwIn) {
-    sysParamCache.SetBaseViewPtr(&cwIn.sysParamCache);
-    accountCache.SetBaseViewPtr(&cwIn.accountCache);
-    assetCache.SetBaseViewPtr(&cwIn.assetCache);
-    contractCache.SetBaseViewPtr(&cwIn.contractCache);
-    delegateCache.SetBaseViewPtr(&cwIn.delegateCache);
-    cdpCache.SetBaseViewPtr(&cwIn.cdpCache);
-    dexCache.SetBaseViewPtr(&cwIn.dexCache);
-    txReceiptCache.SetBaseViewPtr(&cwIn.txReceiptCache);
+CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
+    sysParamCache.SetBaseViewPtr(&cwIn->sysParamCache);
+    blockCache.SetBaseViewPtr(&cwIn->blockCache);
+    accountCache.SetBaseViewPtr(&cwIn->accountCache);
+    assetCache.SetBaseViewPtr(&cwIn->assetCache);
+    contractCache.SetBaseViewPtr(&cwIn->contractCache);
+    delegateCache.SetBaseViewPtr(&cwIn->delegateCache);
+    cdpCache.SetBaseViewPtr(&cwIn->cdpCache);
+    dexCache.SetBaseViewPtr(&cwIn->dexCache);
+    txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
 
-    txCache.SetBaseViewPtr(&cwIn.txCache);
-    ppCache.SetBaseViewPtr(&cwIn.ppCache);
+    txCache.SetBaseViewPtr(&cwIn->txCache);
+    ppCache.SetBaseViewPtr(&cwIn->ppCache);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     sysParamCache.SetBaseViewPtr(pCdMan->pSysParamCache);
+    blockCache.SetBaseViewPtr(pCdMan->pBlockCache);
     accountCache.SetBaseViewPtr(pCdMan->pAccountCache);
     assetCache.SetBaseViewPtr(pCdMan->pAssetCache);
     contractCache.SetBaseViewPtr(pCdMan->pContractCache);
     delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
     cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
-    txReceiptCache.SetBaseViewPtr(pCdMan->pTxReceiptCache);
+    txReceiptCache.SetBaseViewPtr(pCdMan->pReceiptCache);
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
+}
+
+void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
+    sysParamCache = *pCdMan->pSysParamCache;
+    blockCache = *pCdMan->pBlockCache;
+    accountCache = *pCdMan->pAccountCache;
+    assetCache = *pCdMan->pAssetCache;
+    contractCache = *pCdMan->pContractCache;
+    delegateCache = *pCdMan->pDelegateCache;
+    cdpCache = *pCdMan->pCdpCache;
+    dexCache = *pCdMan->pDexCache;
+    txReceiptCache = *pCdMan->pReceiptCache;
+
+    txCache = *pCdMan->pTxCache;
+    ppCache = *pCdMan->pPpCache;
 }
 
 CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
@@ -64,6 +90,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
         return *this;
 
     this->sysParamCache  = other.sysParamCache;
+    this->blockCache     = other.blockCache;
     this->accountCache   = other.accountCache;
     this->assetCache     = other.assetCache;
     this->contractCache  = other.contractCache;
@@ -90,7 +117,8 @@ bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
     for (auto it = blockUndo.vtxundo.rbegin(); it != blockUndo.vtxundo.rend(); it++) {
         // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
         SetDbOpLogMap(&it->dbOpLogMap);
-        bool ret = sysParamCache.UndoDatas() &&
+        bool ret =  sysParamCache.UndoDatas() &&
+                    blockCache.UndoDatas() &&
                     accountCache.UndoDatas() &&
                     assetCache.UndoDatas() &&
                     contractCache.UndoDatas() &&
@@ -98,6 +126,7 @@ bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
                     cdpCache.UndoDatas() &&
                     dexCache.UndoDatas() &&
                     txReceiptCache.UndoDatas();
+
         if (!ret) {
             return ERRORMSG("CCacheWrapper::UndoDatas() : undo datas of tx failed! txUndo=%s", txUndo.ToString());
         }
@@ -108,6 +137,7 @@ bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
 
 void CCacheWrapper::Flush() {
     sysParamCache.Flush();
+    blockCache.Flush();
     accountCache.Flush();
     assetCache.Flush();
     contractCache.Flush();
@@ -122,6 +152,7 @@ void CCacheWrapper::Flush() {
 
 void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     sysParamCache.SetDbOpLogMap(pDbOpLogMap);
+    blockCache.SetDbOpLogMap(pDbOpLogMap);
     accountCache.SetDbOpLogMap(pDbOpLogMap);
     assetCache.SetDbOpLogMap(pDbOpLogMap);
     contractCache.SetDbOpLogMap(pDbOpLogMap);

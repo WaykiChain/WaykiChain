@@ -56,6 +56,11 @@ public:
 
     bool Flush();
 
+    uint32_t GetCacheSize() const {
+        return assetCache.GetCacheSize() +
+            assetTradingPairCache.GetCacheSize();
+    }
+
     void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
         assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);

@@ -398,7 +398,9 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
             if (!IsBcoinWithinRange(bcoinAmountToInflate))
                 return false;
 
-            OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate);
+            if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate)) {
+                return ERRORMSG("ProcessCandidateVotes() : add bcoins to infalte failed");
+            }
             receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
 
             LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %lld\n",
@@ -410,7 +412,9 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
             uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currHeight);
 
             if (fcoinAmountToInflate > 0) {
-                OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate);
+                if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate)) {
+                    return ERRORMSG("ProcessCandidateVotes() : add fcoins to infalte failed");
+                }
                 receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
 
                 LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %lld\n",

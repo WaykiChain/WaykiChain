@@ -23,6 +23,10 @@ namespace db_util {
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
+    // int
+    inline bool IsEmpty(const int val) { return val == false; }
+    inline void SetEmpty(int &val) { val = false; }
+
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val == 0; }
     inline void SetEmpty(uint8_t &val) { val = 0; }
@@ -144,9 +148,9 @@ namespace db_util {
 
 class CDBAccess {
 public:
-    CDBAccess(DBNameType dbNameTypeIn, size_t nCacheSize, bool fMemory, bool fWipe) :
+    CDBAccess(DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
               dbNameType(dbNameTypeIn),
-              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), nCacheSize, fMemory, fWipe ) {}
+              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>
@@ -255,46 +259,50 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+                if (!ret.second)
+                    throw runtime_error("alloc new cache item failed");
             }
         }
 
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
+    // map<std::pair<string, uint256>, ValueType>
     template <typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix,
-                        set<std::pair<string, string>> &expiredKeys,
-                        map<std::pair<string, string>, ValueType> &elements) {
-        std::pair<string, string> key;
+                        set<std::pair<string, uint256>> &expiredKeys,
+                        set<ValueType> &elements) {
+        std::pair<string, uint256> key;
         ValueType value;
         shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
         ssKey.write(keyPrefix.c_str(), keyPrefix.size());
-        ssKey << prefix;  // write the prefix
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
             leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) != prefix) {
+            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) > prefix) {
                 break;
             }
 
             if (expiredKeys.count(key)) {
                 continue;
-            } else if (elements.count(key)) {
+            }
+
+            leveldb::Slice slValue = pCursor->value();
+            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+            ds >> value;
+
+            if (elements.count(value)) {
                 // skip it if the element existed in memory cache(upper level cache)
                 continue;
             } else {
                 // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+                auto ret = elements.emplace(value);
+                if (!ret.second)
+                    throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -329,7 +337,8 @@ public:
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+                if (!ret.second)
+                    throw runtime_error("alloc new cache item failed");
             }
         }
 
@@ -394,7 +403,7 @@ public:
      */
     CCompositeKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CCompositeKVCache(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CCompositeKVCache(CCompositeKVCache *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
@@ -405,7 +414,7 @@ public:
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
+    void SetBase(CCompositeKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
@@ -451,9 +460,10 @@ public:
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
-    bool GetAllElements(const string &prefix, map<std::pair<string, string>, ValueType> &elements) {
-        set<std::pair<string, string>> expiredKeys;
+    // NOT a general implementation to acquire all elements from memory and LDB.
+    // map<std::pair<string, uint256>, ValueType>
+    bool GetAllElements(const string &prefix, set<ValueType> &elements) {
+        set<std::pair<string, uint256>> expiredKeys;
         if (!GetAllElements(prefix, expiredKeys, elements)) {
             // TODO: log
             return false;
@@ -500,31 +510,6 @@ public:
         return true;
     }
 
-    bool SetData(const KeyType &key, const ValueType &value, CDbOpLog &dbOpLog) {
-        if (db_util::IsEmpty(key)) {
-            return false;
-        }
-        auto it = GetDataIt(key);
-        if (it == mapData.end()) {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            if (!newRet.second) throw runtime_error("alloc new cache item failed");
-            it = newRet.first;
-        }
-        dbOpLog.Set(key, it->second);
-        it->second = value;
-        return true;
-    }
-
-    bool SetData(const KeyType &key, const ValueType &value, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (SetData(key, value, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
-    }
-
     bool HaveData(const KeyType &key) const {
         if (db_util::IsEmpty(key)) {
             return false;
@@ -543,32 +528,6 @@ public:
             db_util::SetEmpty(it->second);
         }
         return true;
-    }
-
-    bool EraseData(const KeyType &key, CDbOpLog &dbOpLog) {
-        if (db_util::IsEmpty(key)) {
-            return false;
-        }
-        Iterator it = GetDataIt(key);
-        if (it != mapData.end()) {
-            dbOpLog.Set(key, it->second);
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(key, *emptyValue);
-        }
-        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            db_util::SetEmpty(it->second);
-        }
-        return true;
-    }
-
-    bool EraseData(const KeyType &key, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (EraseData(key, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
     }
 
     void Clear() {
@@ -610,10 +569,6 @@ public:
             assert(false && "must set the pDbOpLogMap first");
             return false;
         }
-    }
-
-    void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
-        dbOpLog.Get(key, value);
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
@@ -719,27 +674,21 @@ private:
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
-    bool GetAllElements(const string &prefix, set<std::pair<string, string>> &expiredKeys,
-                        map<std::pair<string, string>, ValueType> &elements) {
+    // map<std::pair<string, uint256>, ValueType>
+    bool GetAllElements(const string &prefix, set<std::pair<string, uint256>> &expiredKeys, set<ValueType> &elements) {
         if (!mapData.empty()) {
-            // Tips: the final prefix is consist of std::pair<prefix, string()>.
-            auto boundary = mapData.upper_bound(std::make_pair(prefix, string("")));
+            static uint256 dummy = uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+            auto boundary = mapData.upper_bound(std::make_pair(prefix, dummy));
 
-            if (boundary != mapData.end()) {
-                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
-                    if (db_util::IsEmpty(iter->second)) {
-                        expiredKeys.insert(iter->first);
-                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
-                        // TODO: log
-                        continue;
-                    } else if (std::get<0>(iter->first) != prefix) {
-                        // break the loop if prefix does not match.
-                        break;
-                    } else {
-                        // Got a valid element.
-                        elements.emplace(iter->first, iter->second);
-                    }
+            for (auto iter = mapData.begin(); iter != boundary; ++iter) {
+                if (db_util::IsEmpty(iter->second)) {
+                    expiredKeys.insert(iter->first);
+                } else if (expiredKeys.count(iter->first) || elements.count(iter->second)) {
+                    // Skip
+                    continue;
+                } else {
+                    // Got a valid element.
+                    elements.emplace(iter->second);
                 }
             }
         }
@@ -803,7 +752,7 @@ public:
      */
     CSimpleKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CSimpleKVCache(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
+    CSimpleKVCache(CSimpleKVCache *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     }
@@ -813,9 +762,26 @@ public:
         assert(pDbAccessIn != nullptr);
     }
 
-    void SetBase(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn) {
+    CSimpleKVCache(const CSimpleKVCache &other) {
+        operator=(other);
+    }
+
+    CSimpleKVCache& operator=(const CSimpleKVCache& other) {
+        pBase = other.pBase;
+        pDbAccess = other.pDbAccess;
+        // deep copy for shared_ptr
+        if (other.ptrData == nullptr) {
+            ptrData = nullptr;
+        } else {
+            ptrData = make_shared<ValueType>(*other.ptrData);
+        }
+        pDbOpLogMap = other.pDbOpLogMap;
+        return *this;
+    }
+
+    void SetBase(CSimpleKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
-        assert(!ptrData);
+        assert(!ptrData && "Must SetBase before have any data");
         pBase = pBaseIn;
     }
 
@@ -824,6 +790,10 @@ public:
     }
 
     uint32_t GetCacheSize() const {
+        if (!ptrData) {
+            return 0;
+        }
+
         return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
     }
 
@@ -837,36 +807,12 @@ public:
     }
 
     bool SetData(const ValueType &value) {
-        if (ptrData) {
-            AddOpLog(*ptrData);
-            *ptrData = value;
-        } else {
-            AddOpLog(*(db_util::MakeEmptyValue<ValueType>()));
-            ptrData = std::make_shared<ValueType>(value);
+        if (!ptrData) {
+            ptrData = db_util::MakeEmptyValue<ValueType>();
         }
+        AddOpLog(*ptrData);
+        *ptrData = value;
         return true;
-    }
-
-    bool SetData(const ValueType &value, CDbOpLog &dbOpLog) {
-        if (ptrData) {
-            dbOpLog.Set(*ptrData);
-            *ptrData = value;
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(*emptyValue);
-            ptrData = std::make_shared<ValueType>(value);
-        }
-        return true;
-    }
-
-
-    bool SetData(const ValueType &value, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (SetData(value, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
     }
 
     bool HaveData() const {
@@ -883,32 +829,8 @@ public:
         return true;
     }
 
-    bool EraseData(CDbOpLog &dbOpLog) {
-        auto ptr = GetDataPtr();
-        if (ptr) {
-            dbOpLog.Set(*ptrData);
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(*emptyValue);
-        }
-        if (ptr && !db_util::IsEmpty(*ptr)) {
-            db_util::SetEmpty(*ptr);
-        }
-        return true;
-    }
-
-    bool EraseData(CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (EraseData(dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
-    }
-
     void Clear() {
-        if (ptrData)
-            ptrData = nullptr;
+        ptrData = nullptr;
     }
 
     void Flush() {
@@ -921,14 +843,13 @@ public:
                 assert(pBase == nullptr);
                 pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
             }
+            ptrData = nullptr;
         }
-
-        Clear();
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
         if (!ptrData) {
-            ptrData = make_shared<ValueType>();
+            ptrData = db_util::MakeEmptyValue<ValueType>();
         }
         dbOpLog.Get(*ptrData);
     }
@@ -943,7 +864,7 @@ public:
             }
             return true;
         } else {
-            assert(false && "must set the pDbOpLogMap first");
+            assert(false && "Must set the pDbOpLogMap first");
             return false;
         }
     }
@@ -958,12 +879,11 @@ private:
         } else if (pBase != nullptr){
             auto ptr = pBase->GetDataPtr();
             if (ptr) {
-                assert(!db_util::IsEmpty(*ptr));
                 ptrData = std::make_shared<ValueType>(*ptr);
                 return ptrData;
             }
         } else if (pDbAccess != NULL) {
-            auto ptrDbData = std::make_shared<ValueType>();
+            auto ptrDbData = db_util::MakeEmptyValue<ValueType>();
 
             if (pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
                 assert(!db_util::IsEmpty(*ptrDbData));
@@ -985,7 +905,7 @@ private:
 private:
     mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
-    mutable std::shared_ptr<ValueType> ptrData;
+    mutable std::shared_ptr<ValueType> ptrData = nullptr;
     CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 

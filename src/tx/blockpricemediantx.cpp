@@ -90,7 +90,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                             READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
         }
 
-        cw.cdpCache.cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCDPList);
+        cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCDPList);
 
         LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
                 "forceLiquidateRatio: %llu, forceLiquidateCDPList: %llu\n",
@@ -202,7 +202,10 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
         // 4. update fcoin genesis account
         uint64_t prevScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
         assert(prevScoins >= currRiskReserveScoins);
-        fcoinGenesisAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins);
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins)) {
+            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, opeate fcoin genesis account failed"),
+                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+        }
         cw.accountCache.SaveAccount(fcoinGenesisAccount);
     } while (false);
 

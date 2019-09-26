@@ -80,7 +80,7 @@ private:
 public:
     CDEXSysOrdersGetter(DEXBlockOrdersCache &dbCache)
         : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
-    }    
+    }
     bool Execute(uint32_t height);
 
     void ToJson(Object &obj);
@@ -102,6 +102,11 @@ public:
         activeOrderCache.Flush();
         blockOrdersCache.Flush();
         return true;
+    }
+
+    uint32_t GetCacheSize() const {
+        return activeOrderCache.GetCacheSize() +
+            blockOrdersCache.GetCacheSize();
     }
     void SetBaseViewPtr(CDexDBCache *pBaseIn) {
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);

@@ -13,80 +13,16 @@
 
 using namespace std;
 
-//void static BatchWriteHashBestChain(CLevelDBBatch &batch, const uint256 &hash) {
-//	batch.Write('B', hash);
-//}
 
-CBlockTreeDB::CBlockTreeDB(size_t nCacheSize, bool fMemory, bool fWipe) :
-    CLevelDBWrapper(GetDataDir() / "blocks" / "index", nCacheSize, fMemory, fWipe) {}
-
-bool CBlockTreeDB::WriteBlockIndex(const CDiskBlockIndex &blockindex) {
-    return Write(dbk::GenDbKey(dbk::BLOCK_INDEX, blockindex.GetBlockHash()), blockindex);
+/********************** CBlockIndexDB ********************************/
+bool CBlockIndexDB::WriteBlockIndex(const CDiskBlockIndex &blockIndex) {
+    return Write(dbk::GenDbKey(dbk::BLOCK_INDEX, blockIndex.GetBlockHash()), blockIndex);
 }
-
-bool CBlockTreeDB::EraseBlockIndex(const uint256 &blockHash) {
+bool CBlockIndexDB::EraseBlockIndex(const uint256 &blockHash) {
     return Erase(dbk::GenDbKey(dbk::BLOCK_INDEX, blockHash));
 }
 
-// TODO: need to delete WriteBestInvalidWork
-// bool CBlockTreeDB::WriteBestInvalidWork(const uint256 &bnBestInvalidWork) {
-//     // Obsolete; only written for backward compatibility.
-//     return Write('I', bnBestInvalidWork);
-// }
-
-bool CBlockTreeDB::WriteBlockFileInfo(int nFile, const CBlockFileInfo &info) {
-    return Write(dbk::GenDbKey(dbk::BLOCKFILE_NUM_INFO, nFile), info);
-}
-
-bool CBlockTreeDB::ReadBlockFileInfo(int nFile, CBlockFileInfo &info) {
-    return Read(dbk::GenDbKey(dbk::BLOCKFILE_NUM_INFO, nFile), info);
-}
-
-bool CBlockTreeDB::WriteLastBlockFile(int nFile) {
-    return Write(dbk::GetKeyPrefix(dbk::LAST_BLOCKFILE), nFile);
-}
-
-bool CBlockTreeDB::WriteReindexing(bool fReindexing) {
-    if (fReindexing)
-        return Write(dbk::GetKeyPrefix(dbk::REINDEX), '1');
-    else
-        return Erase(dbk::GetKeyPrefix(dbk::REINDEX));
-}
-
-bool CBlockTreeDB::ReadReindexing(bool &fReindexing) {
-    fReindexing = Exists(dbk::GetKeyPrefix(dbk::REINDEX));
-    return true;
-}
-
-bool CBlockTreeDB::ReadLastBlockFile(int &nFile) {
-    return Read(dbk::GetKeyPrefix(dbk::LAST_BLOCKFILE), nFile);
-}
-
-// bool CBlockTreeDB::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) { return Read(make_pair('t', txid), pos); }
-
-// bool CBlockTreeDB::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &vect) {
-//     CLevelDBBatch batch;
-//     for (vector<pair<uint256, CDiskTxPos> >::const_iterator it = vect.begin(); it != vect.end(); it++) {
-//         LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n", it->first.GetHex(), it->second.nFile,
-//                  it->second.nPos, it->second.nTxOffset);
-//         batch.Write(make_pair('t', it->first), it->second);
-//     }
-//     return WriteBatch(batch);
-// }
-
-bool CBlockTreeDB::WriteFlag(const string &name, bool fValue) {
-    return Write(dbk::GenDbKey(dbk::FLAG, name), fValue ? '1' : '0');
-}
-
-bool CBlockTreeDB::ReadFlag(const string &name, bool &fValue) {
-    char ch;
-    if (!Read(dbk::GenDbKey(dbk::FLAG, name), ch))
-        return false;
-    fValue = ch == '1';
-    return true;
-}
-
-bool CBlockTreeDB::LoadBlockIndexGuts() {
+bool CBlockIndexDB::LoadBlockIndexes() {
     leveldb::Iterator *pCursor = NewIterator();
     const std::string &prefix = dbk::GetKeyPrefix(dbk::BLOCK_INDEX);
 
@@ -100,28 +36,28 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
             if (slKey.starts_with(prefix)) {
                 leveldb::Slice slValue = pCursor->value();
                 CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                CDiskBlockIndex diskindex;
-                ssValue >> diskindex;
+                CDiskBlockIndex diskIndex;
+                ssValue >> diskIndex;
 
                 // Construct block index object
-                CBlockIndex *pIndexNew    = InsertBlockIndex(diskindex.GetBlockHash());
-                pIndexNew->pprev          = InsertBlockIndex(diskindex.hashPrev);
-                pIndexNew->height         = diskindex.height;
-                pIndexNew->nFile          = diskindex.nFile;
-                pIndexNew->nDataPos       = diskindex.nDataPos;
-                pIndexNew->nUndoPos       = diskindex.nUndoPos;
-                pIndexNew->nVersion       = diskindex.nVersion;
-                pIndexNew->merkleRootHash = diskindex.merkleRootHash;
-                pIndexNew->hashPos        = diskindex.hashPos;
-                pIndexNew->nTime          = diskindex.nTime;
-                pIndexNew->nBits          = diskindex.nBits;
-                pIndexNew->nNonce         = diskindex.nNonce;
-                pIndexNew->nStatus        = diskindex.nStatus;
-                pIndexNew->nTx            = diskindex.nTx;
-                pIndexNew->nFuel          = diskindex.nFuel;
-                pIndexNew->nFuelRate      = diskindex.nFuelRate;
-                pIndexNew->vSignature     = diskindex.vSignature;
-                pIndexNew->miner          = diskindex.miner ;
+                CBlockIndex *pIndexNew    = InsertBlockIndex(diskIndex.GetBlockHash());
+                pIndexNew->pprev          = InsertBlockIndex(diskIndex.hashPrev);
+                pIndexNew->height         = diskIndex.height;
+                pIndexNew->nFile          = diskIndex.nFile;
+                pIndexNew->nDataPos       = diskIndex.nDataPos;
+                pIndexNew->nUndoPos       = diskIndex.nUndoPos;
+                pIndexNew->nVersion       = diskIndex.nVersion;
+                pIndexNew->merkleRootHash = diskIndex.merkleRootHash;
+                pIndexNew->hashPos        = diskIndex.hashPos;
+                pIndexNew->nTime          = diskIndex.nTime;
+                pIndexNew->nBits          = diskIndex.nBits;
+                pIndexNew->nNonce         = diskIndex.nNonce;
+                pIndexNew->nStatus        = diskIndex.nStatus;
+                pIndexNew->nTx            = diskIndex.nTx;
+                pIndexNew->nFuel          = diskIndex.nFuel;
+                pIndexNew->nFuelRate      = diskIndex.nFuelRate;
+                pIndexNew->vSignature     = diskIndex.vSignature;
+                pIndexNew->miner          = diskIndex.miner ;
 
                 if (!pIndexNew->CheckIndex())
                     return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());
@@ -137,6 +73,13 @@ bool CBlockTreeDB::LoadBlockIndexGuts() {
     delete pCursor;
 
     return true;
+}
+
+bool CBlockIndexDB::WriteBlockFileInfo(int32_t nFile, const CBlockFileInfo &info) {
+    return Write(dbk::GenDbKey(dbk::BLOCKFILE_NUM_INFO, nFile), info);
+}
+bool CBlockIndexDB::ReadBlockFileInfo(int32_t nFile, CBlockFileInfo &info) {
+    return Read(dbk::GenDbKey(dbk::BLOCKFILE_NUM_INFO, nFile), info);
 }
 
 CBlockIndex *InsertBlockIndex(uint256 hash) {
@@ -156,4 +99,78 @@ CBlockIndex *InsertBlockIndex(uint256 hash) {
     pIndexNew->pBlockHash = &((*mi).first);
 
     return pIndexNew;
+}
+
+
+/************************* CBlockDBCache ****************************/
+uint32_t CBlockDBCache::GetCacheSize() const {
+    return
+        txDiskPosCache.GetCacheSize() +
+        flagCache.GetCacheSize() +
+        bestBlockHashCache.GetCacheSize() +
+        lastBlockFileCache.GetCacheSize() +
+        reindexCache.GetCacheSize();
+}
+
+bool CBlockDBCache::Flush() {
+    txDiskPosCache.Flush();
+    flagCache.Flush();
+    bestBlockHashCache.Flush();
+    lastBlockFileCache.Flush();
+    reindexCache.Flush();
+
+    return true;
+}
+
+uint256 CBlockDBCache::GetBestBlock() const {
+    uint256 blockHash;
+    bestBlockHashCache.GetData(blockHash);
+    return blockHash;
+}
+
+bool CBlockDBCache::SetBestBlock(const uint256 &blockHashIn) {
+    return bestBlockHashCache.SetData(blockHashIn);
+}
+
+bool CBlockDBCache::WriteLastBlockFile(int32_t nFile) {
+    return lastBlockFileCache.SetData(nFile);
+}
+bool CBlockDBCache::ReadLastBlockFile(int32_t &nFile) {
+    return lastBlockFileCache.GetData(nFile);
+}
+
+bool CBlockDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
+    return txDiskPosCache.GetData(txid, pos);
+}
+
+bool CBlockDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
+    return txDiskPosCache.SetData(txid, pos);
+}
+
+bool CBlockDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
+    for (auto it : list) {
+        LogPrint("DEBUG", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
+                it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
+
+        if (!txDiskPosCache.SetData(it.first, it.second))
+            return false;
+    }
+    return true;
+}
+
+bool CBlockDBCache::WriteReindexing(bool fReindexing) {
+    if (fReindexing)
+        return reindexCache.SetData(true);
+    else
+        return reindexCache.EraseData();
+}
+bool CBlockDBCache::ReadReindexing(bool &fReindexing) {
+    return reindexCache.GetData(fReindexing);
+}
+
+bool CBlockDBCache::WriteFlag(const string &name, bool fValue) {
+    return flagCache.SetData(name, fValue);
+}
+bool CBlockDBCache::ReadFlag(const string &name, bool &fValue) {
+    return flagCache.GetData(name, fValue);
 }

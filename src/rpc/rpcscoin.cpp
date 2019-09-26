@@ -313,13 +313,13 @@ Value getscoininfo(const Array& params, bool fHelp){
     // TODO: multi stable coin
     uint64_t bcoinMedianPrice =
         pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
-    uint64_t globalCollateralRatio = pCdMan->pCdpCache->cdpMemCache.GetGlobalCollateralRatio(bcoinMedianPrice);
+    uint64_t globalCollateralRatio = pCdMan->pCdpCache->GetGlobalCollateralRatio(bcoinMedianPrice);
     bool globalCollateralRatioFloorReached =
         pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
 
     uint64_t globalStakedBcoins = 0;
     uint64_t globalOwedScoins   = 0;
-    pCdMan->pCdpCache->cdpMemCache.GetGlobalItem(globalStakedBcoins, globalOwedScoins);
+    pCdMan->pCdpCache->GetGlobalItem(globalStakedBcoins, globalOwedScoins);
 
     bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
 
@@ -329,7 +329,7 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
     }
 
-    pCdMan->pCdpCache->cdpMemCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
+    pCdMan->pCdpCache->GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
                                                                forceLiquidateCdps);
 
     Object obj;
@@ -464,7 +464,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC\", 1000000, 200000000\n")
         );
     }
 
@@ -507,7 +507,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "\nExamples:\n"
             + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC\", 1000000, 200000000\n")
         );
     }
 
@@ -548,7 +548,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD\" 200000000 \"WICC\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\" \"WUSD\" 200000000 \"WICC\"\n")
+            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD\", 200000000, \"WICC\"\n")
         );
     }
 
@@ -588,7 +588,7 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "\nExamples:\n"
             + HelpExampleCli("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\", \"WUSD\", \"WICC\", 200000000\n")
         );
     }
 
@@ -625,7 +625,7 @@ Value submitdexcancelordertx(const Array& params, bool fHelp) {
             + HelpExampleCli("submitdexcancelordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "
                              "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\" ")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexcancelordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "\
+            + HelpExampleRpc("submitdexcancelordertx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", "\
                              "\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
         );
     }
@@ -677,7 +677,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
                            "\\\"deal_coin_amount\\\":100000000,"
                            "\\\"deal_asset_amount\\\":100000000}]\" ")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" "\
+            + HelpExampleRpc("submitdexsettletx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", "\
                            "[{\"buy_order_id\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\", "
                            "\"sell_order_id\":\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8a1\", "
                            "\"deal_price\":100000000,"

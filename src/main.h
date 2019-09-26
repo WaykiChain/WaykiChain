@@ -53,13 +53,13 @@
 #include "tx/txmempool.h"
 #include "tx/assettx.h"
 
-class CBlockIndex;
+// class CBlockIndex;
 class CBloomFilter;
 class CChain;
 class CInv;
-class CAccountDBCache;
-class CBlockTreeDB;
-class CSysParamDBCache;
+// class CSysParamDBCache;
+// class CBlockDBCache;
+// class CAccountDBCache;
 
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
@@ -117,9 +117,9 @@ void ThreadScriptCheck();
 /** Format a string that describes several potential problems detected by the core */
 string GetWarnings(string strFor);
 /** Retrieve a transaction (from memory pool, or from disk, if possible) */
-bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CContractDBCache &scriptDBCache, bool bSearchMempool = true);
+bool GetTransaction(std::shared_ptr<CBaseTx> &pBaseTx, const uint256 &hash, CBlockDBCache &blockCache, bool bSearchMempool = true);
 /** Retrieve a transaction height comfirmed in block*/
-int32_t GetTxConfirmHeight(const uint256 &hash, CContractDBCache &contractCache);
+int32_t GetTxConfirmHeight(const uint256 &hash, CBlockDBCache &blockCache);
 
 /** Abort with a message */
 bool AbortNode(const string &msg);
@@ -211,8 +211,6 @@ public:
     CBlockIndex *FindFork(const CBlockLocator &locator) const;
 }; //end of CChain
 
-
-
 class CCacheDBManager {
 public:
     CDBAccess           *pSysParamDb;
@@ -220,6 +218,7 @@ public:
 
     CDBAccess           *pAccountDb;
     CAccountDBCache     *pAccountCache;
+
     CDBAccess           *pAssetDb;
     CAssetDBCache       *pAssetCache;
 
@@ -235,48 +234,51 @@ public:
     CDBAccess           *pDexDb;
     CDexDBCache         *pDexCache;
 
-    CBlockTreeDB        *pBlockTreeDb;
+    CBlockIndexDB       *pBlockIndexDb;
+    CDBAccess           *pBlockDb;
+    CBlockDBCache        *pBlockCache;
 
     CDBAccess           *pLogDb;
     CLogDBCache         *pLogCache;
 
-    CDBAccess           *pTxReceiptDb;
-    CTxReceiptDBCache   *pTxReceiptCache;
+    CDBAccess           *pReceiptDb;
+    CTxReceiptDBCache   *pReceiptCache;
 
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;
 
 public:
-    CCacheDBManager(bool fReIndex, bool fMemory, size_t nAccountDBCache, size_t nContractDBCache,
-                    size_t nDelegateDBCache, size_t nBlockTreeDBCache) {
-        pSysParamDb     = new CDBAccess(DBNameType::SYSPARAM, nAccountDBCache, false, fReIndex);  // TODO fix cache size
+    CCacheDBManager(bool fReIndex, bool fMemory) {
+        pSysParamDb     = new CDBAccess(DBNameType::SYSPARAM, false, fReIndex);
         pSysParamCache  = new CSysParamDBCache(pSysParamDb);
 
-        pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, nAccountDBCache, false, fReIndex);
+        pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, false, fReIndex);
         pAccountCache   = new CAccountDBCache(pAccountDb);
 
-        pAssetDb        = new CDBAccess(DBNameType::ASSET, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pAssetDb        = new CDBAccess(DBNameType::ASSET, false, fReIndex);
         pAssetCache     = new CAssetDBCache(pAssetDb);
 
-        pContractDb     = new CDBAccess(DBNameType::CONTRACT, nContractDBCache, false, fReIndex);
+        pContractDb     = new CDBAccess(DBNameType::CONTRACT, false, fReIndex);
         pContractCache  = new CContractDBCache(pContractDb);
 
-        pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, nDelegateDBCache, false, fReIndex);
+        pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, false, fReIndex);
         pDelegateCache  = new CDelegateDBCache(pDelegateDb);
 
-        pCdpDb          = new CDBAccess(DBNameType::CDP, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pCdpDb          = new CDBAccess(DBNameType::CDP, false, fReIndex);
         pCdpCache       = new CCDPDBCache(pCdpDb);
 
-        pDexDb          = new CDBAccess(DBNameType::DEX, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pDexDb          = new CDBAccess(DBNameType::DEX, false, fReIndex);
         pDexCache       = new CDexDBCache(pDexDb);
 
-        pBlockTreeDb    = new CBlockTreeDB(nBlockTreeDBCache, false, fReIndex);
+        pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
+        pBlockDb        = new CDBAccess(DBNameType::BLOCK, false, fReIndex);
+        pBlockCache     = new CBlockDBCache(pBlockDb);
 
-        pLogDb          = new CDBAccess(DBNameType::LOG, nAccountDBCache, false, fReIndex); //TODO fix cache size
+        pLogDb          = new CDBAccess(DBNameType::LOG, false, fReIndex);
         pLogCache       = new CLogDBCache(pLogDb);
 
-        pTxReceiptDb    = new CDBAccess(DBNameType::RECEIPT, nAccountDBCache, false, fReIndex); //TODO fix cache size
-        pTxReceiptCache = new CTxReceiptDBCache(pTxReceiptDb);
+        pReceiptDb      = new CDBAccess(DBNameType::RECEIPT, false, fReIndex);
+        pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
 
         // memory-only cache
         pTxCache        = new CTxMemCache();
@@ -292,18 +294,19 @@ public:
         delete pCdpCache;       pCdpCache = nullptr;
         delete pDexCache;       pDexCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
-        delete pTxReceiptCache; pTxReceiptCache = nullptr;
+        delete pReceiptCache;   pReceiptCache = nullptr;
 
         delete pSysParamDb;     pSysParamDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
         delete pAssetDb;        pAssetDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
-        delete pBlockTreeDb;    pBlockTreeDb = nullptr;
+        delete pBlockIndexDb;   pBlockIndexDb = nullptr;
+        delete pBlockCache;     pBlockCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
         delete pDexDb;          pDexDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
-        delete pTxReceiptDb;    pTxReceiptDb = nullptr;
+        delete pReceiptDb;      pReceiptDb = nullptr;
 
         // memory-only cache
         delete pTxCache;        pTxCache = nullptr;
@@ -312,6 +315,9 @@ public:
 
     bool Flush() {
         if (pSysParamCache) pSysParamCache->Flush();
+
+        if (pBlockIndexDb) pBlockIndexDb->Flush();
+        if (pBlockCache) pBlockCache->Flush();
 
         if (pAccountCache) pAccountCache->Flush();
 
@@ -325,11 +331,11 @@ public:
 
         if (pDexCache) pDexCache->Flush();
 
-        if (pBlockTreeDb) pBlockTreeDb->Flush();
+        if (pBlockCache) pBlockCache->Flush();
 
         if (pLogCache) pLogCache->Flush();
 
-        if (pTxReceiptCache) pTxReceiptCache->Flush();
+        if (pReceiptCache) pReceiptCache->Flush();
 
         // Memory only cache, not bother to flush.
         // if (pTxCache)

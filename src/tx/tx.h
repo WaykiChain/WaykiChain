@@ -12,6 +12,7 @@
 #include "entities/asset.h"
 #include "entities/id.h"
 #include "persistence/contractdb.h"
+#include "persistence/blockdb.h"
 #include "config/configuration.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
@@ -80,7 +81,7 @@ public:
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(uint32_t nFuelRate);
-    uint32_t GetFuelRate(CContractDBCache &contractCache);
+    uint32_t GetFuelRate(CBlockDBCache &blockCache);
     virtual double GetPriority() const {
         return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }

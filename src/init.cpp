@@ -349,7 +349,7 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
             LoadExternalBlockFile(file, &pos);
             nFile++;
         }
-        pCdMan->pBlockTreeDb->WriteReindexing(false);
+        pCdMan->pBlockCache->WriteReindexing(false);
         SysCfg().SetReIndex(false);
         LogPrint("INFO", "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
@@ -693,31 +693,12 @@ bool AppInit(boost::thread_group &threadGroup) {
         filesystem::create_directories(blocksDir);
     }
 
-    // cache size calculations
-    size_t nTotalCache = (SysCfg().GetArg("-dbcache", DEFAULT_DB_CACHE) << 20);
-    if (nTotalCache < (MIN_DB_CACHE << 20))
-        nTotalCache = (MIN_DB_CACHE << 20);  // total cache cannot be less than MIN_DB_CACHE
-    else if (nTotalCache > (MAX_DB_CACHE << 20))
-        nTotalCache = (MAX_DB_CACHE << 20);  // total cache cannot be greater than MAX_DB_CACHE
-    size_t nBlockTreeDBCache = nTotalCache / 8;
-    if (nBlockTreeDBCache > (1 << 21) && !SysCfg().GetBoolArg("-txindex", false))
-        nBlockTreeDBCache = (1 << 21);  // block tree db cache shouldn't be larger than 2 MiB
-    nTotalCache -= nBlockTreeDBCache;
-    size_t nAccountDBCache = nTotalCache / 2;  // use half of the remaining cache for coindb cache
-    nTotalCache -= nAccountDBCache;
-    size_t nContractDBCache = nTotalCache / 2;
-    nTotalCache -= nContractDBCache;
-    size_t nDelegateDBCache = nTotalCache / 2;
-    nTotalCache -= nDelegateDBCache;
-
-    SysCfg().SetViewCacheSize(nTotalCache / 300);  // coins in memory require around 300 bytes
-
     try {
         pWalletMain = CWallet::GetInstance();
         RegisterWallet(pWalletMain);
         pWalletMain->LoadWallet(false);
     } catch (std::exception &e) {
-        cout << "load wallet failed: " << e.what() << endl;
+        std::cout << "load wallet failed: " << e.what() << std::endl;
     }
 
     int64_t nStart = GetTimeMillis();
@@ -732,10 +713,9 @@ bool AppInit(boost::thread_group &threadGroup) {
                 delete pCdMan;
 
                 bool fReIndex = SysCfg().IsReindex();
-                pCdMan = new CCacheDBManager(fReIndex, false, nAccountDBCache, nContractDBCache, nDelegateDBCache,
-                                             nBlockTreeDBCache);
+                pCdMan = new CCacheDBManager(fReIndex, false);
                 if (fReIndex)
-                    pCdMan->pBlockTreeDb->WriteReindexing(true);
+                    pCdMan->pBlockCache->WriteReindexing(true);
 
                 mempool.SetMemPoolCache(pCdMan);
 
@@ -812,7 +792,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 CBlock block;
                 ReadBlockFromDisk(pIndex, block);
                 block.BuildMerkleTree();
-                block.Print(*pCdMan->pAccountCache);
+                block.Print(*pCdMan->pBlockCache);
                 LogPrint("INFO", "\n");
                 nFound++;
             }

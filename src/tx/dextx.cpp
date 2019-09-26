@@ -838,7 +838,10 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             uint64_t dealAssetFee = dealItem.dealAssetAmount * dexDealFeeRatio / RATIO_BOOST;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // give the fee to settler
-            srcAccount.OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee);
+            if (!srcAccount.OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, add coins to settler account failed"),
+                                 REJECT_INVALID, "operate-account-failed");
+            }
 
             receipts.emplace_back(buyOrderAccount.regid, srcAccount.regid, buyOrder.asset_symbol,
                                dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
@@ -849,7 +852,10 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
             uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / RATIO_BOOST;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // give the buyer fee to settler
-            srcAccount.OperateBalance(buyOrder.coin_symbol, ADD_FREE, dealCoinFee);
+            if (!srcAccount.OperateBalance(buyOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
+                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, add coins to seller account failed"),
+                                 REJECT_INVALID, "operate-account-failed");
+            }
             receipts.emplace_back(buyOrderAccount.regid, srcAccount.regid, buyOrder.coin_symbol,
                                   dealCoinFee, ReceiptCode::DEX_COIN_FEE_TO_SETTLER);
         }
@@ -871,7 +877,10 @@ bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                 if (buyOrder.coin_amount > buyOrder.total_deal_coin_amount) {
                     uint64_t residualCoinAmount = buyOrder.coin_amount - buyOrder.total_deal_coin_amount;
 
-                    buyOrderAccount.OperateBalance(SYMB::WUSD, UNFREEZE, residualCoinAmount);
+                    if (!buyOrderAccount.OperateBalance(SYMB::WUSD, UNFREEZE, residualCoinAmount)) {
+                        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, operate account failed"),
+                                         REJECT_INVALID, "operate-account-failed");
+                    }
                 } else {
                     assert(buyOrder.coin_amount == buyOrder.total_deal_coin_amount);
                 }

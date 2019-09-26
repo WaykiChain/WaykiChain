@@ -218,7 +218,7 @@ Object GetTxDetailJSON(const uint256& txid) {
         LOCK(cs_main);
         if (SysCfg().IsTxIndex()) {
             CDiskTxPos postx;
-            if (pCdMan->pContractCache->ReadTxIndex(txid, postx)) {
+            if (pCdMan->pBlockCache->ReadTxIndex(txid, postx)) {
                 CAutoFile file(OpenBlockFile(postx, true), SER_DISK, CLIENT_VERSION);
                 CBlockHeader header;
 
@@ -235,7 +235,7 @@ Object GetTxDetailJSON(const uint256& txid) {
 
                     if (SysCfg().IsGenReceipt()) {
                         vector<CReceipt> receipts;
-                        pCdMan->pTxReceiptCache->GetTxReceipts(txid, receipts);
+                        pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
                         obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                     }
 

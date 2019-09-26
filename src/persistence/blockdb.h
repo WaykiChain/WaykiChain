@@ -11,35 +11,117 @@
 #include <vector>
 #include "commons/arith_uint256.h"
 #include "leveldbwrapper.h"
+#include "dbaccess.h"
 #include "persistence/block.h"
 
 #include <map>
 
 /** Access to the block database (blocks/index/) */
-class CBlockTreeDB : public CLevelDBWrapper {
+class CBlockIndexDB : public CLevelDBWrapper {
 private:
-    CBlockTreeDB(const CBlockTreeDB &);
-    void operator=(const CBlockTreeDB &);
+    CBlockIndexDB(const CBlockIndexDB &);
+    void operator=(const CBlockIndexDB &);
 
 public:
-    CBlockTreeDB(size_t nCacheSize, bool fMemory = false, bool fWipe = false);
-    CBlockTreeDB(const std::string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+    CBlockIndexDB(bool fMemory = false, bool fWipe = false) :
+        CLevelDBWrapper(GetDataDir() / "blocks" / "index", 2 << 20 /* 2MB */, fMemory, fWipe) {}
 
+    // CBlockIndexDB(const std::string &name, size_t nCacheSize, bool fMemory = false, bool fWipe = false);
+
+public:
     bool WriteBlockIndex(const CDiskBlockIndex &blockindex);
     bool EraseBlockIndex(const uint256 &blockHash);
-    // TODO: need to delete WriteBestInvalidWork
-//    bool WriteBestInvalidWork(const uint256 &bnBestInvalidWork);
-    bool ReadBlockFileInfo(int nFile, CBlockFileInfo &fileinfo);
-    bool WriteBlockFileInfo(int nFile, const CBlockFileInfo &fileinfo);
-    bool ReadLastBlockFile(int &nFile);
+    bool LoadBlockIndexes();
+
+    bool ReadBlockFileInfo(int32_t nFile, CBlockFileInfo &fileinfo);
+    bool WriteBlockFileInfo(int32_t nFile, const CBlockFileInfo &fileinfo);
+};
+
+
+/** Access to the block database (blocks/index/) */
+class CBlockDBCache {
+public:
+    CBlockDBCache() {};
+
+    CBlockDBCache(CDBAccess *pDbAccess):
+        txDiskPosCache(pDbAccess),
+        flagCache(pDbAccess),
+        bestBlockHashCache(pDbAccess),
+        lastBlockFileCache(pDbAccess),
+        reindexCache(pDbAccess) {
+        assert(pDbAccess->GetDbNameType() == DBNameType::BLOCK);
+    };
+
+    CBlockDBCache(CBlockDBCache *pBaseIn):
+        txDiskPosCache(pBaseIn->txDiskPosCache),
+        flagCache(pBaseIn->flagCache),
+        bestBlockHashCache(pBaseIn->bestBlockHashCache),
+        lastBlockFileCache(pBaseIn->lastBlockFileCache),
+        reindexCache(pBaseIn->reindexCache) {};
+
+public:
+    bool Flush();
+    uint32_t GetCacheSize() const;
+
+    bool GetTxHashByAddress(const CKeyID &keyId, uint32_t height, map<string, string > &mapTxHash);
+    bool SetTxHashByAddress(const CKeyID &keyId, uint32_t height, uint32_t index, const uint256 &txid);
+
+    void SetBaseViewPtr(CBlockDBCache *pBaseIn) {
+        txDiskPosCache.SetBase(&pBaseIn->txDiskPosCache);
+        flagCache.SetBase(&pBaseIn->flagCache);
+        bestBlockHashCache.SetBase(&pBaseIn->bestBlockHashCache);
+        lastBlockFileCache.SetBase(&pBaseIn->lastBlockFileCache);
+        reindexCache.SetBase(&pBaseIn->reindexCache);
+
+    };
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        txDiskPosCache.SetDbOpLogMap(pDbOpLogMapIn);
+        flagCache.SetDbOpLogMap(pDbOpLogMapIn);
+        bestBlockHashCache.SetDbOpLogMap(pDbOpLogMapIn);
+        lastBlockFileCache.SetDbOpLogMap(pDbOpLogMapIn);
+        reindexCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoDatas() {
+        return txDiskPosCache.UndoDatas() &&
+               flagCache.UndoDatas() &&
+               bestBlockHashCache.UndoDatas() &&
+               lastBlockFileCache.UndoDatas() &&
+               reindexCache.UndoDatas();
+    }
+
+    bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
+    bool SetTxIndex(const uint256 &txid, const CDiskTxPos &pos);
+    bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
+
+    bool ReadLastBlockFile(int32_t &nFile);
     bool WriteLastBlockFile(int nFile);
+
     bool WriteReindexing(bool fReindex);
     bool ReadReindexing(bool &fReindex);
-    //  bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
-    //  bool WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list);
+
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
-    bool LoadBlockIndexGuts();
+
+    uint256 GetBestBlock() const;
+    bool SetBestBlock(const uint256 &blockHash);
+
+private:
+/*  CCompositeKVCache      prefixType               key                     value                 variable               */
+/*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
+    // txId -> DiskTxPos
+    CCompositeKVCache< dbk::TXID_DISKINDEX,         uint256,                  CDiskTxPos >          txDiskPosCache;
+    // flag$name -> bool
+    CCompositeKVCache< dbk::FLAG,                   string,                   bool>                 flagCache;
+
+
+/*  CSimpleKVCache          prefixType             value           variable           */
+/*  -------------------- --------------------   -------------   --------------------- */
+    CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      bestBlockHashCache;    // best blockHash
+    CSimpleKVCache< dbk::LAST_BLOCKFILE,            int>          lastBlockFileCache;
+    CSimpleKVCache< dbk::REINDEX,                   bool>         reindexCache;
+
 };
 
 /** Create a new block index entry for a given block hash */

@@ -55,7 +55,7 @@ public:
     bool UndoDatas() { return voteRegIdCache.UndoDatas() && regId2VoteCache.UndoDatas(); }
 
 private:
-/*  CSimpleKVCache  prefixType     key                              value                   variable       */
+/*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
     CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;

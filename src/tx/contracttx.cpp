@@ -18,7 +18,7 @@
 
 // get and check fuel limit
 static bool GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, CValidationState &state, uint64_t &fuelLimit) {
-    uint64_t fuelRate = tx.GetFuelRate(cw.contractCache);
+    uint64_t fuelRate = tx.GetFuelRate(cw.blockCache);
     if (fuelRate == 0)
         return state.DoS(100, ERRORMSG("GetFuelLimit, fuelRate cannot be 0"), REJECT_INVALID, "invalid-fuel-rate");
 
@@ -52,7 +52,7 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
                          REJECT_INVALID, "vmscript-invalid");
     }
 
-    uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
+    uint64_t llFuel = GetFuel(GetFuelRate(cw.blockCache));
     if (llFees < llFuel) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
@@ -284,7 +284,7 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
                          REJECT_INVALID, "vmscript-invalid");
     }
 
-    uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
+    uint64_t llFuel = GetFuel(GetFuelRate(cw.blockCache));
     if (llFees < llFuel) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
@@ -460,7 +460,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CLuaVMRunEnv vmRunEnv;
-    uint64_t fuelRate = GetFuelRate(cw.contractCache);
+    uint64_t fuelRate = GetFuelRate(cw.blockCache);
 
     CLuaVMContext context;
     context.p_cw              = &cw;
