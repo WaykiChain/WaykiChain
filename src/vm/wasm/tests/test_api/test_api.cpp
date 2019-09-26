@@ -162,6 +162,29 @@ void action_tests(validating_tester &tester ) {
   raw_bytes.resize(3);
   CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"access violation")
 
+    // test require_notice
+   auto test_require_notice = [](auto& test, std::vector<char>& data){
+      // signed_transaction trx;
+      // auto tm = test_api_action<TEST_METHOD("test_action", "require_notice")>{};
+
+      // action act(std::vector<permission_level>{{N(testapi), config::active_name}}, tm);
+      // vector<char>& dest = *(vector<char> *)(&act.data);
+      // std::copy(data.begin(), data.end(), std::back_inserter(dest));
+      // trx.actions.push_back(act);
+
+      // test.set_transaction_headers(trx);
+      // trx.sign(test.get_private_key(N(inita), "active"), control->get_chain_id());
+      // auto res = test.push_transaction(trx);
+      // BOOST_CHECK_EQUAL(res->receipt->status, transaction_receipt::executed);
+
+      CALL_TEST_FUNCTION( test, "test_action", "require_notice", data);
+
+
+   };
+
+    CHECK_EXCEPTION(test_require_notice(tester, raw_bytes), passed, wasm_exception, "Should've failed")
+  
+
 }
 
 
