@@ -510,31 +510,6 @@ public:
         return true;
     }
 
-    bool SetData(const KeyType &key, const ValueType &value, CDbOpLog &dbOpLog) {
-        if (db_util::IsEmpty(key)) {
-            return false;
-        }
-        auto it = GetDataIt(key);
-        if (it == mapData.end()) {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            if (!newRet.second) throw runtime_error("alloc new cache item failed");
-            it = newRet.first;
-        }
-        dbOpLog.Set(key, it->second);
-        it->second = value;
-        return true;
-    }
-
-    bool SetData(const KeyType &key, const ValueType &value, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (SetData(key, value, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
-    }
-
     bool HaveData(const KeyType &key) const {
         if (db_util::IsEmpty(key)) {
             return false;
@@ -553,32 +528,6 @@ public:
             db_util::SetEmpty(it->second);
         }
         return true;
-    }
-
-    bool EraseData(const KeyType &key, CDbOpLog &dbOpLog) {
-        if (db_util::IsEmpty(key)) {
-            return false;
-        }
-        Iterator it = GetDataIt(key);
-        if (it != mapData.end()) {
-            dbOpLog.Set(key, it->second);
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(key, *emptyValue);
-        }
-        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            db_util::SetEmpty(it->second);
-        }
-        return true;
-    }
-
-    bool EraseData(const KeyType &key, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (EraseData(key, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
     }
 
     void Clear() {
@@ -620,10 +569,6 @@ public:
             assert(false && "must set the pDbOpLogMap first");
             return false;
         }
-    }
-
-    void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
-        dbOpLog.Get(key, value);
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
@@ -824,6 +769,7 @@ public:
     CSimpleKVCache& operator=(const CSimpleKVCache& other) {
         pBase = other.pBase;
         pDbAccess = other.pDbAccess;
+        // deep copy for shared_ptr
         if (other.ptrData == nullptr) {
             ptrData = nullptr;
         } else {
@@ -835,7 +781,7 @@ public:
 
     void SetBase(CSimpleKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
-        assert(!ptrData);
+        assert(!ptrData && "Must SetBase before have any data");
         pBase = pBaseIn;
     }
 
@@ -861,36 +807,12 @@ public:
     }
 
     bool SetData(const ValueType &value) {
-        if (ptrData) {
-            AddOpLog(*ptrData);
-            *ptrData = value;
-        } else {
-            AddOpLog(*(db_util::MakeEmptyValue<ValueType>()));
-            ptrData = std::make_shared<ValueType>(value);
+        if (!ptrData) {
+            ptrData = db_util::MakeEmptyValue<ValueType>();
         }
+        AddOpLog(*ptrData);
+        *ptrData = value;
         return true;
-    }
-
-    bool SetData(const ValueType &value, CDbOpLog &dbOpLog) {
-        if (ptrData) {
-            dbOpLog.Set(*ptrData);
-            *ptrData = value;
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(*emptyValue);
-            ptrData = std::make_shared<ValueType>(value);
-        }
-        return true;
-    }
-
-
-    bool SetData(const ValueType &value, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (SetData(value, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
     }
 
     bool HaveData() const {
@@ -907,32 +829,8 @@ public:
         return true;
     }
 
-    bool EraseData(CDbOpLog &dbOpLog) {
-        auto ptr = GetDataPtr();
-        if (ptr) {
-            dbOpLog.Set(*ptrData);
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(*emptyValue);
-        }
-        if (ptr && !db_util::IsEmpty(*ptr)) {
-            db_util::SetEmpty(*ptr);
-        }
-        return true;
-    }
-
-    bool EraseData(CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (EraseData(dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
-    }
-
     void Clear() {
-        if (ptrData)
-            ptrData = nullptr;
+        ptrData = nullptr;
     }
 
     void Flush() {
@@ -945,14 +843,13 @@ public:
                 assert(pBase == nullptr);
                 pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
             }
+            ptrData = nullptr;
         }
-
-        Clear();
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
         if (!ptrData) {
-            ptrData = make_shared<ValueType>();
+            ptrData = db_util::MakeEmptyValue<ValueType>();
         }
         dbOpLog.Get(*ptrData);
     }
@@ -967,7 +864,7 @@ public:
             }
             return true;
         } else {
-            assert(false && "must set the pDbOpLogMap first");
+            assert(false && "Must set the pDbOpLogMap first");
             return false;
         }
     }
@@ -982,12 +879,11 @@ private:
         } else if (pBase != nullptr){
             auto ptr = pBase->GetDataPtr();
             if (ptr) {
-                assert(!db_util::IsEmpty(*ptr));
                 ptrData = std::make_shared<ValueType>(*ptr);
                 return ptrData;
             }
         } else if (pDbAccess != NULL) {
-            auto ptrDbData = std::make_shared<ValueType>();
+            auto ptrDbData = db_util::MakeEmptyValue<ValueType>();
 
             if (pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
                 assert(!db_util::IsEmpty(*ptrDbData));
