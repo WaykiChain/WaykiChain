@@ -237,7 +237,7 @@ vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0
                                            0x3D304B2F, 0xB21A4E75, 0x0C2AFE2F, 0xC246FE2F, 0x0947FE2F};
 
 //Genesis block nonce
-uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108, /*mainnet*/, 100, /*testnet*/, 68 /*regtest*/};
+uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108 /*mainnet*/, 100 /*testnet*/, 68 /*regtest*/};
 
 // Network Magic No.
 uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {

@@ -78,6 +78,32 @@ Value getblockcount(const Array& params, bool fHelp) {
     return chainActive.Height();
 }
 
+Value getfcoingenesistxinfo(const Array& params, bool fHelp) {
+    Object output;
+
+    NET_TYPE netType = SysCfg().NetworkID();
+    uint32_t nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(netType);
+
+    // Stablecoin Global Reserve Account with its initial reseve creation
+    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
+                                               FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT * COIN);
+    pTx->nVersion = INIT_TX_VERSION;
+    output.push_back(Pair("fcoin_global_account_txid", pTx->GetHash().GetHex()));
+
+    // FundCoin Genesis Account with the total FundCoin release creation
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(netType))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT,
+                                          FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN);
+    output.push_back(Pair("fcoin_genesis_account_txid", pTx->GetHash().GetHex()));
+
+    // DEX Order Matching Service Account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(netType))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT, 0);
+    output.push_back(Pair("dex_match_account_txid", pTx->GetHash().GetHex()));
+
+    return output;
+}
+
 Value getrawmempool(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)
