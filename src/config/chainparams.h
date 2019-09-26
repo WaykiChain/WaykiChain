@@ -72,10 +72,10 @@ protected:
     mutable bool fGenReceipt;
     mutable int64_t nTimeBestReceived;
     mutable uint64_t payTxFee;
-    mutable uint32_t nViewCacheSize;
+    mutable uint32_t nCacheSize;
     mutable int32_t nTxCacheHeight;
     mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
-    mutable int nMaxForkTime; // to limit the maximum fork time in seconds.
+    mutable int32_t nMaxForkTime;  // to limit the maximum fork time in seconds.
 
 public:
     virtual ~CBaseParams() {}
@@ -129,10 +129,10 @@ public:
         te += strprintf("paytxfee:%llu\n",                          payTxFee);
         te += strprintf("nBlockIntervalPreStableCoinRelease:%u\n",  nBlockIntervalPreStableCoinRelease);
         te += strprintf("nBlockIntervalStableCoinRelease:%u\n",     nBlockIntervalStableCoinRelease);
-        te += strprintf("nViewCacheSize:%u\n",                      nViewCacheSize);
+        te += strprintf("nCacheSize:%u\n",                          nCacheSize);
         te += strprintf("nTxCacheHeight:%u\n",                      nTxCacheHeight);
         te += strprintf("nLogMaxSize:%u\n",                         nLogMaxSize);
-        te += strprintf("nMaxForkTime:%d\n",                      nMaxForkTime);
+        te += strprintf("nMaxForkTime:%d\n",                        nMaxForkTime);
 
         return te;
     }
@@ -188,7 +188,7 @@ public:
     bool IsLogFailures() const { return fLogFailures; };
     bool IsGenReceipt() const { return fGenReceipt; };
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
-    uint32_t GetViewCacheSize() const { return nViewCacheSize; }
+    uint32_t GetCacheSize() const { return nCacheSize; }
     int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
     uint32_t GetLogMaxSize() const { return nLogMaxSize; }
     void SetImporting(bool flag) const { fImporting = flag; }
@@ -198,8 +198,6 @@ public:
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
     void SetGenReceipt(bool flag) const { fGenReceipt = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
-    void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
-    void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }
     int32_t GetMaxForkHeight(int32_t currBlockHeight) const;
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }

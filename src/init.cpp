@@ -693,14 +693,12 @@ bool AppInit(boost::thread_group &threadGroup) {
         filesystem::create_directories(blocksDir);
     }
 
-    SysCfg().SetViewCacheSize(300 << 10);  // coins in memory require around 300K bytes
-
     try {
         pWalletMain = CWallet::GetInstance();
         RegisterWallet(pWalletMain);
         pWalletMain->LoadWallet(false);
     } catch (std::exception &e) {
-        cout << "load wallet failed: " << e.what() << endl;
+        std::cout << "load wallet failed: " << e.what() << std::endl;
     }
 
     int64_t nStart = GetTimeMillis();

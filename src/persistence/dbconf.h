@@ -42,7 +42,7 @@ enum DBNameType {
 
 #define DB_NAME_NONE DB_NAME_COUNT
 
-static const int DBCacheSize[DBNameType::DB_NAME_COUNT + 1] {
+static const int32_t DBCacheSize[DBNameType::DB_NAME_COUNT + 1] {
     DB_NAME_LIST(DEF_CACHE_SIZE_ARRAY)
 };
 
