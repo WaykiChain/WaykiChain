@@ -2208,6 +2208,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
     auto pErr = vmRunEnv.GetCw()->assetCache.CheckTransferCoinSymbol(transfer.tokenType);
     if (pErr) {
         LogPrint("vm", "ParseAccountAssetTransfer(), Invalid tokenType=%s! %s \n", transfer.tokenType, *pErr);
+        return false;
     }
 
     vector<uint8_t> amountVector;
@@ -2223,6 +2224,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
 
     if (amount == 0 || !CheckBaseCoinRange(amount) ) {
         LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", transfer.tokenAmount);
+        return false;
     }
     transfer.tokenAmount = amount;
 
@@ -2287,11 +2289,13 @@ int32_t ExTransferAccountAssetsFunc(lua_State *L) {
     // TODO: parse vector
     vector<AssetTransfer> transfers;
     if (!ParseAccountAssetTransfers(L, *pVmRunEnv, transfers)) {
-        return RetFalse("ExTransferAccountAssetsFunc(), parse params of TransferAccountAsset function failed");
+        LogPrint("vm","[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
+        return 0;
     }
 
     if (!pVmRunEnv->TransferAccountAsset(L, transfers)) {
-         return RetFalse("ExTransferAccountAssetsFunc(), execute pVmRunEnv->TransferAccountAsset() failed");
+        LogPrint("vm","[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
+        return 0;
     }
 
     return RetRstBooleanToLua(L,true);
@@ -2359,33 +2363,38 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
     }
 
     if (!lua_istable(L,-1)) {
-        LogPrint("vm","%s(), input param must be a table\n", __FUNCTION__);
+        LogPrint("vm","[ERROR]%s(), input param must be a table\n", __FUNCTION__);
         return 0;
     }
 
     AccountType uidType;
     if (!(ParseUidTypeInTable(L, "addressType", uidType))) {
-        LogPrint("vm", "%s(), get addressType failed\n", __FUNCTION__);
+        LogPrint("vm", "[ERROR]%s(), get addressType failed\n", __FUNCTION__);
         return 0;
     }
 
     CUserID uid;
     if (!ParseUidInTable(L, "address", uidType, uid)) {
-        LogPrint("vm","%s(), get address failed\n", __FUNCTION__);
+        LogPrint("vm","[ERROR]%s(), get address failed\n", __FUNCTION__);
         return 0;
     }
 
     TokenSymbol tokenType;
     if (!(getStringInTable(L, "tokenType", tokenType))) {
-        LogPrint("vm", "%s(), get tokenType failed\n", __FUNCTION__);
+        LogPrint("vm", "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
         return 0;
     }
-
+    auto pErr = pVmRunEnv->GetCw()->assetCache.CheckTransferCoinSymbol(tokenType);
+    if (pErr) {
+        LogPrint("vm", "[ERROR]%s(), Invalid tokenType=%s! %s \n", __FUNCTION__, tokenType, *pErr);
+        return 0;
+    }
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
 
     auto pAccount = make_shared<CAccount>();
     if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *pAccount)) {
-        LogPrint("vm", "%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
+        LogPrint("vm", "[ERROR]%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
+        return 0;
     }
 
     uint64_t value;
