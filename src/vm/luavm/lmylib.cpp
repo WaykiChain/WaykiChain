@@ -260,8 +260,9 @@ static bool getArrayInTable(lua_State *L, const char *pKey, uint16_t usLen, Arra
     arrayOut.clear();
     //默认栈顶是table，将key入栈
     lua_pushstring(L, pKey);
-    lua_gettable(L, 1);
+    lua_gettable(L, -2);
     if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
         LogPrint("vm", "getTableInTable is not table\n");
         return false;
     }
@@ -2215,27 +2216,35 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
         return false;
     };
     assert(amountVector.size() == sizeof(uint64_t));
-    transfer.tokenAmount = *((uint64_t*)amountVector.data());
 
-    if (transfer.tokenAmount == 0 || !CheckBaseCoinRange(transfer.tokenAmount) ) {
+    int64_t amount = 0;
+    CDataStream ssAmount(amountVector, SER_DISK, CLIENT_VERSION);
+    ssAmount >> amount;
+
+    if (amount == 0 || !CheckBaseCoinRange(amount) ) {
         LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", transfer.tokenAmount);
     }
+    transfer.tokenAmount = amount;
 
     return true;
 }
 
 int32_t ExTransferAccountAssetFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (nullptr == pVmRunEnv)
-        return RetFalse("ExTransferAccountAssetFunc(), pVmRunEnv is nullptr");
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
 
     AssetTransfer transfer;
     if (!ParseAccountAssetTransfer(L, *pVmRunEnv, transfer)) {
-        return RetFalse("ExTransferAccountAssetFunc(), parse params of TransferAccountAsset function failed");
+        LogPrint("vm","[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
+        return 0;
     }
 
     if (!pVmRunEnv->TransferAccountAsset(L, {transfer})) {
-         return RetFalse("ExTransferAccountAssetFunc(), execute pVmRunEnv->TransferAccountAsset() failed");
+        LogPrint("vm","[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
+        return 0;
     }
 
     return RetRstBooleanToLua(L, true);
@@ -2243,7 +2252,7 @@ int32_t ExTransferAccountAssetFunc(lua_State *L) {
 
 static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vector<AssetTransfer> &transfers) {
     if (!lua_istable(L, -1)) {
-        LogPrint("vm","ParseAccountAssetTransfers(), transfers param must be table\n");
+        LogPrint("vm","[ERROR]%s(), transfers param must be table\n", __FUNCTION__);
         return false;
     }
     //默认栈顶是table，将key入栈
@@ -2252,15 +2261,15 @@ static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vec
         LogPrint("vm","ParseAccountAssetTransfers(), transfers param is empty table\n");
         return false;
     }
-    for (size_t i = 0; i < sz; i++) {
+    for (size_t i = 1; i <= sz; i++) {
         AssetTransfer transfer;
         lua_geti(L, -1, i);
         if (!ParseAccountAssetTransfer(L, vmRunEnv, transfer)) {
-            LogPrint("vm","ParseAccountAssetTransfers(), ParseAccountAssetTransfer[%d] failed\n", sz);
-            lua_pop(L, -1); // pop the read item
+            LogPrint("vm","ParseAccountAssetTransfers(), ParseAccountAssetTransfer[%d] failed\n", i);
+            lua_pop(L, 1); // pop the read item
             return false;
         }
-        lua_pop(L, -1); // pop the read item
+        lua_pop(L, 1); // pop the read item
         transfers.push_back(transfer);
     }
 
@@ -2270,8 +2279,10 @@ static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vec
 int32_t ExTransferAccountAssetsFunc(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (nullptr == pVmRunEnv)
-        return RetFalse("ExTransferAccountAssetsFunc(), pVmRunEnv is nullptr");
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
 
     // TODO: parse vector
     vector<AssetTransfer> transfers;
@@ -2299,12 +2310,14 @@ int32_t ExTransferAccountAssetsFunc(lua_State *L) {
 int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (nullptr == pVmRunEnv)
-        return RetFalse("ExTransferAccountAssetsFunc(), pVmRunEnv is nullptr");
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
 
     // check stack to avoid stack overflow
     if (!lua_checkstack(L, 2)) {
-        LogPrint("vm", "[ERROR] lua stack overflow\n");
+        LogPrint("vm", "[ERROR] ExGetCurTxInputAssetFunc(), lua stack overflow\n");
         return 0;
     }
 
@@ -2340,30 +2353,32 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
  */
 int32_t ExGetAccountAssetFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if (nullptr == pVmRunEnv)
-        return RetFalse("ExTransferAccountAssetsFunc(), pVmRunEnv is nullptr");
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
 
     if (!lua_istable(L,-1)) {
         LogPrint("vm","%s(), input param must be a table\n", __FUNCTION__);
-        return false;
+        return 0;
     }
 
     AccountType uidType;
     if (!(ParseUidTypeInTable(L, "addressType", uidType))) {
         LogPrint("vm", "%s(), get addressType failed\n", __FUNCTION__);
-        return false;
+        return 0;
     }
 
     CUserID uid;
     if (!ParseUidInTable(L, "address", uidType, uid)) {
         LogPrint("vm","%s(), get address failed\n", __FUNCTION__);
-        return false;
+        return 0;
     }
 
     TokenSymbol tokenType;
     if (!(getStringInTable(L, "tokenType", tokenType))) {
         LogPrint("vm", "%s(), get tokenType failed\n", __FUNCTION__);
-        return false;
+        return 0;
     }
 
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
