@@ -102,9 +102,6 @@ private:
     /* RPC Port */
     static uint32_t nRPCPort[2];
 
-    /* UI Port */
-    static uint32_t nUIPort[2];
-
     /* Start Time */
     static uint32_t StartTime[3];
 

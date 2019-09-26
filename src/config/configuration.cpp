@@ -258,9 +258,6 @@ uint32_t G_CONFIG_TABLE::nP2PPort[3]    = {8920 /*main*/, 18920 /*test*/, 18921 
 // Default RPC Port
 uint32_t G_CONFIG_TABLE::nRPCPort[2]    = { 18900 /*main*/, 18901 /*test*/};
 
-// Default UI Port
-uint32_t G_CONFIG_TABLE::nUIPort[2]     = { 4245 /*main*/, 4246 /*test*/};
-
 // Blockchain Start Time
 uint32_t G_CONFIG_TABLE::StartTime[3]   = { 1525404897 /*main*/, 1505401100 /*test*/, 1504305600 /*regtest*/};
 
