@@ -86,8 +86,6 @@ void GetPriorityTx(set<TxPriority> &txPriorities, const int32_t nFuelRate) {
             feePerKb  = double(fee - pBaseTx->GetFuel(nFuelRate)) / txSize * 1000.0;
             priority  = mi->second.GetPriority();
 
-            LogPrint("MINER", "GetPriority, feeSymbol: %s, fee: %llu, txSize: %u, feePerKb: %.4f, priority: %.4f\n",
-                     feeSymbol, fee, txSize, feePerKb, priority);
             txPriorities.emplace(TxPriority(priority, feePerKb, mi->second.GetTransaction()));
         }
     }
@@ -485,11 +483,15 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                     spCW->ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints);
 
                     pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
+                    pPriceMedianTx->ComputeSignatureHash(true);
                 }
 
+                LogPrint("MINER", "CreateNewBlockStableCoinRelease() : begin to pack transaction: %s\n",
+                         pBaseTx->ToString(spCW->accountCache));
+
                 if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
-                    LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction, txid: %s\n",
-                             pBaseTx->GetHash().GetHex());
+                    LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction: %s\n",
+                             pBaseTx->ToString(spCW->accountCache));
 
                     pCdMan->pLogCache->SetExecuteFail(height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                       state.GetRejectReason());
