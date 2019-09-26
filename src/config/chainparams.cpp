@@ -55,8 +55,8 @@ public:
         genesis.ClearSignature();
         genesisBlockHash = genesis.GetHash();
 
-        cout << "GetGenesisBlockHash: " << IniCfg().GetGenesisBlockHash(MAIN_NET).GetHex()
-            << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
+        // cout << "GetGenesisBlockHash: " << IniCfg().GetGenesisBlockHash(MAIN_NET).GetHex()
+        //     << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
 
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(MAIN_NET));
         // assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
@@ -124,8 +124,8 @@ public:
         for (auto& item : vFixedSeeds)
             item.SetPort(GetDefaultPort());
 
-        cout << "GetGenesisBlockHash: " << IniCfg().GetGenesisBlockHash(TEST_NET).GetHex()
-            << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
+        // cout << "GetGenesisBlockHash: " << IniCfg().GetGenesisBlockHash(TEST_NET).GetHex()
+        //     << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
 
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(TEST_NET));
         vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
