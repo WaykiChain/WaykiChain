@@ -21,8 +21,9 @@ using namespace std;
          char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
          sprintf( buf,  __VA_ARGS__ );                    \
          std::ostringstream o;                            \
-         o << e.detail() << " , " << buf;                   \
-         throw exc_type(o.str().c_str());                 \
+         o << e.detail() << " , " << buf;                 \
+         e.msg = o.str();          \
+         throw;                  \
     } catch( ... ) {                                      \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
          sprintf( buf,  __VA_ARGS__ );                    \
@@ -30,7 +31,7 @@ using namespace std;
     }
 
 #define WASM_CAPTURE_AND_RETHROW( ... )          \
-    catch( wasm::exception& e ) {                       \
+    catch( wasm::exception& e ) {                \
        throw;                                    \
     } catch( ... ) {                             \
          char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \
@@ -44,17 +45,17 @@ namespace wasm {
         virtual const char *what() const throw() = 0;
         virtual const char *detail() const throw() = 0;
         virtual uint32_t code() const throw() = 0;
+        string msg;  
     };
 }
 
 
 #define WASM_DECLARE_EXCEPTION( name, _code, _what )                              \
    struct name : public wasm::exception {                                         \
-      name(const char* msg) : msg(string(msg)) {}                                 \
+      name(const char* m) { msg = string(m); }                                     \
       virtual const char* what()const throw() { return _what; }                   \
       virtual const char* detail()const throw() { return msg.c_str(); }           \
       virtual uint32_t code()const throw() { return _code; }                      \
-      const string msg;                                                           \
    };
 
 namespace wasm {

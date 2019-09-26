@@ -142,7 +142,7 @@ void action_tests(validating_tester &tester ) {
   CALL_TEST_FUNCTION( tester, "test_action", "assert_true", {} );
 
   bool passed;
-  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "assert_false", {} ), passed, wasm_exception, "test_action::assert_false")
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "assert_false", {} ), passed, wasm_assert_exception, "test_action::assert_false")
 
   dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
   CALL_TEST_FUNCTION( tester, "test_action", "read_action_normal", wasm::pack(dummy13));
@@ -164,26 +164,21 @@ void action_tests(validating_tester &tester ) {
 
     // test require_notice
    auto test_require_notice = [](auto& test, std::vector<char>& data){
-      // signed_transaction trx;
-      // auto tm = test_api_action<TEST_METHOD("test_action", "require_notice")>{};
-
-      // action act(std::vector<permission_level>{{N(testapi), config::active_name}}, tm);
-      // vector<char>& dest = *(vector<char> *)(&act.data);
-      // std::copy(data.begin(), data.end(), std::back_inserter(dest));
-      // trx.actions.push_back(act);
-
-      // test.set_transaction_headers(trx);
-      // trx.sign(test.get_private_key(N(inita), "active"), control->get_chain_id());
-      // auto res = test.push_transaction(trx);
-      // BOOST_CHECK_EQUAL(res->receipt->status, transaction_receipt::executed);
-
       CALL_TEST_FUNCTION( test, "test_action", "require_notice", data);
-
-
    };
 
-    CHECK_EXCEPTION(test_require_notice(tester, raw_bytes), passed, wasm_exception, "Should've failed")
+    CHECK_EXCEPTION(test_require_notice(tester, raw_bytes), passed, wasm_assert_exception, "Should've failed")
   
+
+}
+
+void require_notice_tests(validating_tester &tester ) {
+
+  set_code(tester, N(testapi), "wasm/test_api.wasm");
+  set_code(tester, N(acc5), "wasm/test_api.wasm");
+
+  CALL_TEST_FUNCTION( tester, "test_action", "require_notice_tests", {});
+
 
 }
 
@@ -195,5 +190,6 @@ int main( int argc, char **argv ) {
     types_tests(tester);
     datastream_tests(tester);
     action_tests(tester);
+    require_notice_tests(tester);
 
 }

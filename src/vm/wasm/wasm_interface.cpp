@@ -149,9 +149,10 @@ namespace wasm {
         } catch (vm::exception &e) {
             WASM_THROW(wasm_exception, e.detail())
         } catch (wasm::exception &e) {
-            WASM_THROW(wasm_exception, e.detail())
+            //WASM_THROW(wasm_exception, e.detail())
+            throw;
         }
-        WASM_THROW(wasm_exception, "wasm assert fail")
+        WASM_THROW(wasm_exception, "wasm fail")
 
     }
 
