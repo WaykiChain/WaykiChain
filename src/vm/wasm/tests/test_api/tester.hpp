@@ -133,4 +133,47 @@ constexpr uint64_t TEST_METHOD( const char *CLASS, const char *METHOD ) {
     return ((uint64_t(DJBH(CLASS)) << 32) | uint32_t(DJBH(METHOD)));
 }
 
+struct dummy_action {
+   static uint64_t get_name() {
+      return N(dummyaction);
+   }
+   static uint64_t get_account() {
+      return N(testapi);
+   }
+
+  char a; //1
+  uint64_t b; //8
+  int32_t  c; //4
+};
+
+/**
+ *  Serialize a checksum512 type
+ *
+ *  @brief Serialize a checksum512 type
+ *  @param ds - The stream to write
+ *  @param cs - The value to serialize
+ *  @tparam Stream - Type of datastream buffer
+ *  @return datastream<Stream>& - Reference to the datastream
+*/
+template<typename Stream>
+inline datastream<Stream> &operator<<( datastream<Stream> &ds, const dummy_action &t ) {
+    ds.write((const char *) &t, sizeof(t));
+    return ds;
+}
+
+/**
+ *  Deserialize a checksum512 type
+ *
+ *  @brief Deserialize a checksum512 type
+ *  @param ds - The stream to read
+ *  @param cs - The destination for deserialized value
+ *  @tparam Stream - Type of datastream buffer
+ *  @return datastream<Stream>& - Reference to the datastream
+ */
+template<typename Stream>
+inline datastream<Stream> &operator>>( datastream<Stream> &ds, dummy_action &t ) {
+    ds.read((char *) &t, sizeof(t));
+    return ds;
+}
+
 #define CALL_TEST_FUNCTION( _TESTER, CLS, MTH, DATA ) CallFunction(_TESTER, test_api_action<TEST_METHOD(CLS, MTH)>{}, DATA)

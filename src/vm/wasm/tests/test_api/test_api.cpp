@@ -100,7 +100,6 @@ void print_tests(validating_tester &tester ) {
    start = end + 1; end = tx9_act_cnsl.find('\n', start);
    WASM_CHECK_EQUAl( tx9_act_cnsl.substr(start, end-start), "6.666666666666666e-07" );
 
-
    // test printqf
 #ifdef __x86_64__
    std::string expect1 = "5.000000000000000000e-01";
@@ -134,6 +133,20 @@ void datastream_tests(validating_tester &tester ) {
 	CALL_TEST_FUNCTION( tester, "test_datastream", "test_basic", {} );
 }
 
+#define DUMMY_ACTION_DEFAULT_A 0x45
+#define DUMMY_ACTION_DEFAULT_B 0xab11cd1244556677
+#define DUMMY_ACTION_DEFAULT_C 0x7451ae12
+
+void action_tests(validating_tester &tester ) {
+  set_code(tester, N(testapi), "wasm/test_api.wasm");
+  CALL_TEST_FUNCTION( tester, "test_action", "assert_true", {} );
+
+  dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
+  WASM_TRACE("%d",sizeof(dummy13))
+  
+  CALL_TEST_FUNCTION( tester, "test_action", "read_action_normal", wasm::pack(dummy13));
+}
+
 
 int main( int argc, char **argv ) {
 
@@ -141,5 +154,7 @@ int main( int argc, char **argv ) {
     print_tests(tester);
     types_tests(tester);
     datastream_tests(tester);
+
+    action_tests(tester);
 
 }
