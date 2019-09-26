@@ -112,7 +112,9 @@ bool CCDPDBCache::EraseCDPFromRatioDB(const CUserCDP &userCdp) {
     globalStakedBcoinsCache.SetData(globalStakedBcoins);
     globalOwedScoinsCache.SetData(globalOwedScoins);
 
-    uint64_t ratio  = std::min<uint64_t>(userCdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST, UINT64_MAX);
+    uint64_t boostedRatio = userCdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST;
+    uint64_t ratio        = std::min<uint64_t>(
+        (boostedRatio < userCdp.collateral_ratio_base /* overflown */) ? UINT64_MAX : boostedRatio, UINT64_MAX);
     string strRatio = strprintf("%016x", ratio);
     auto key        = std::make_pair(strRatio, userCdp.cdpid);
 
