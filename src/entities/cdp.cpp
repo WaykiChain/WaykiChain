@@ -34,7 +34,7 @@ void CUserCDP::Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t sco
     block_height = blockHeight;
     total_staked_bcoins -= bcoinsToRedeem;
     total_owed_scoins -= scoinsToRepay;
-    Update();
+    ComputeCollateralRatioBase();
 }
 
 
@@ -44,7 +44,7 @@ void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mi
     block_height = blockHeight;
     total_staked_bcoins += bcoinsToStake;
     total_owed_scoins += mintedScoins;
-    Update();
+    ComputeCollateralRatioBase();
 }
 
 void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate) {
@@ -54,15 +54,5 @@ void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate,
     // block_height = blockHeight;
     total_staked_bcoins -= bcoinsToLiquidate;
     total_owed_scoins -= scoinsToLiquidate;
-    Update();
-}
-
-uint64_t CUserCDP::ComputeCollateralRatio(uint64_t bcoinPrice) {
-    if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
-        return UINT64_MAX; // big safe percent
-    } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
-        return 0;
-    } else {
-        return  double(bcoinPrice) / PRICE_BOOST * total_staked_bcoins / total_owed_scoins * RATIO_BOOST;
-    }
+    ComputeCollateralRatioBase();
 }
