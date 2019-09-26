@@ -305,8 +305,8 @@ namespace wasm {
 
         //memory
         char *memcpy( void *dest, const void *src, int len ) {
-            // EOS_ASSERT((size_t)(std::abs((ptrdiff_t)dest.value - (ptrdiff_t)src.value)) >= length,
-            //       overlapping_memory_error, "memcpy can only accept non-aliasing pointers");
+            WASM_ASSERT((int)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
+                  overlapping_memory_error, "memcpy can only accept non-aliasing pointers");
             //std::cout << "memcpy" << std::endl;
             return (char *) std::memcpy(dest, src, len);
         }

@@ -146,6 +146,22 @@ void action_tests(validating_tester &tester ) {
 
   dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
   CALL_TEST_FUNCTION( tester, "test_action", "read_action_normal", wasm::pack(dummy13));
+
+  // test read_action_to_0
+  std::vector<char> raw_bytes((1<<16));
+  CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_0", raw_bytes );
+
+  raw_bytes.resize((1<<16)+1);
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_0", raw_bytes), passed, wasm_exception,"access violation")
+
+  // test read_action_to_64k
+  raw_bytes.resize(1);
+  CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_64k", raw_bytes );
+
+  //test read_action_to_64k
+  raw_bytes.resize(3);
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( tester, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"access violation")
+
 }
 
 
@@ -155,7 +171,6 @@ int main( int argc, char **argv ) {
     print_tests(tester);
     types_tests(tester);
     datastream_tests(tester);
-
     action_tests(tester);
 
 }
