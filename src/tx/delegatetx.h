@@ -14,7 +14,7 @@ public:
 
 public:
     CDelegateVoteTx(const CUserID &txUidIn, const vector<CCandidateVote> &candidateVotesIn, const uint64_t feesIn,
-                    const int validHeightIn)
+                    const int32_t validHeightIn)
         : CBaseTx(DELEGATE_VOTE_TX, txUidIn, validHeightIn, feesIn) {
         candidateVotes = candidateVotesIn;
     }
@@ -49,8 +49,8 @@ public:
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
-    virtual bool CheckTx(int height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
 };
 
 #endif

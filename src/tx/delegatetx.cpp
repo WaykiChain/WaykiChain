@@ -15,7 +15,7 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -62,7 +62,7 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
     return true;
 }
 
-bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read account info error"), UPDATE_ACCOUNT_FAIL,
