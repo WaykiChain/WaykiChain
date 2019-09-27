@@ -1288,7 +1288,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Verify reward values
     if (block.vptx[0]->nTxType == BLOCK_REWARD_TX) {
-        auto pRewardTx        = (CBlockRewardTx *)block.vptx[0].get();
+        auto pRewardTx = (CBlockRewardTx *)block.vptx[0].get();
         if (pRewardTx->reward_fees != rewards.at(SYMB::WICC)) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
                              "bad-reward-amount");
@@ -1310,7 +1310,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute block reward transaction
     cw.EnableTxUndoLog();
-            CTxExecuteContext context(pIndex->height, 0, &cw, &state);
+    CTxExecuteContext context(pIndex->height, 0, &cw, &state);
     if (!block.vptx[0]->ExecuteTx(context)) {
         pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                           state.GetRejectReason());
