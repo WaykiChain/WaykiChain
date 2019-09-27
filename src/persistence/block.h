@@ -17,6 +17,7 @@
 #include "disk.h"
 #include "entities/id.h"
 
+
 #include <stdint.h>
 #include <memory>
 
@@ -288,10 +289,10 @@ public:
         nFuel          = block.GetFuel();
         nFuelRate      = block.GetFuelRate();
         vSignature     = block.GetSignature();
-        if(block.GetHeight() == 0 )
+      /*  if(block.GetHeight() == 0 )
             miner = CRegID("0-1");
         else
-            miner = block.vptx[0]->txUid.get<CRegID>();
+            miner = block.vptx[0]->txUid.get<CRegID>();*/
     }
 
     CDiskBlockPos GetBlockPos() const {
