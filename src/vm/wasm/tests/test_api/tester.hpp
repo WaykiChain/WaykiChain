@@ -115,6 +115,8 @@ shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const
         trx.action = ac.get_name();
         trx.data = data;
 
+        //std::cout << "CallFunction:" << wasm::name(trx.contract).to_string() << std::endl;
+
         for (auto a:scope) {
             trx.authorization.push_back(permission{a, wasmio_owner});
         }

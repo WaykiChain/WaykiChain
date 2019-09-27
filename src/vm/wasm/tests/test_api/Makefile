@@ -351,7 +351,7 @@ CXXFLAGS += -std=gnu++1z -fPIC ${PLATFORM_CXXFLAGS} -I. -I$(EOSVM_INCLUDE_DIR) \
 								                      -I$(WASM_TYPES) \
 								                      -I$(VM_DIR) 
 
-LDFLAGS += $(PLATFORM_LDFLAGS)
+LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework
 
 WASM_EMPTY = 
 COMPILER_BUILTINS_PATH_SOURCE = $(COMPILER_BUILTINS)/
@@ -367,7 +367,7 @@ UINT128_OBJECTS = uint128.o
 
 test:libwasm.a test_api.cpp wasm_context.cpp
 	@echo "building tests"
-	@${CXX} -o test $(CXXFLAGS) test_api.cpp wasm_context.cpp libwasm.a 
+	@${CXX} -o test ${LDFLAGS} $(CXXFLAGS) test_api.cpp wasm_context.cpp libwasm.a 
 	@rm -rf *.o
 
 libwasm.a:$(WASM_INTERFACE) 
