@@ -2223,7 +2223,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
     ssAmount >> amount;
 
     if (amount == 0 || !CheckBaseCoinRange(amount) ) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", transfer.tokenAmount);
+        LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", amount);
         return false;
     }
     transfer.tokenAmount = amount;
