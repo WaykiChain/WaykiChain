@@ -39,14 +39,15 @@ class CTxExecuteContext {
 public:
     int32_t height;
     int32_t index;
+    uint32_t fuel_rate;
     CCacheWrapper *pCw;
     CValidationState *pState;
 
-    CTxExecuteContext() : height(0), index(0), pCw(nullptr), pState(nullptr) {}
+    CTxExecuteContext() : height(0), index(0), fuel_rate(0), pCw(nullptr), pState(nullptr) {}
 
-    CTxExecuteContext(int32_t heightIn, int32_t indexIn, CCacheWrapper *pCwIn,
+    CTxExecuteContext(int32_t heightIn, int32_t indexIn, uint32_t fuelRateIn, CCacheWrapper *pCwIn,
                       CValidationState *pStateIn)
-        : height(heightIn), index(indexIn), pCw(pCwIn), pState(pStateIn) {}
+        : height(heightIn), index(indexIn), fuel_rate(fuelRateIn), pCw(pCwIn), pState(pStateIn) {}
 };
 
 class CBaseTx {
@@ -95,7 +96,6 @@ public:
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(uint32_t nFuelRate);
-    uint32_t GetFuelRate(CBlockDBCache &blockCache);
     virtual double GetPriority() const {
         return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }

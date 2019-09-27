@@ -382,7 +382,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
-    CTxExecuteContext context(chainActive.Height(), 0, spCW.get(), &state);
+    uint32_t fuelRate = GetElementForBurn(chainActive.Tip());
+    CTxExecuteContext context(chainActive.Height(), 0, fuelRate, spCW.get(), &state);
     if (!pBaseTx->CheckTx(context))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
@@ -1240,7 +1241,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog();
-            CTxExecuteContext context(pIndex->height, index, &cw, &state);
+            CTxExecuteContext context(pIndex->height, index, fuelRate, &cw, &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
@@ -1310,7 +1311,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute block reward transaction
     cw.EnableTxUndoLog();
-    CTxExecuteContext context(pIndex->height, 0, &cw, &state);
+    CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, &cw, &state);
     if (!block.vptx[0]->ExecuteTx(context)) {
         pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                           state.GetRejectReason());
@@ -1353,7 +1354,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             cw.EnableTxUndoLog();
-            CTxExecuteContext context(pIndex->height, -1, &cw, &state);
+            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, &cw, &state);
             if (!matureBlock.vptx[0]->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
@@ -2015,7 +2016,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
-        CTxExecuteContext context(block.GetHeight(), i + 1, &cw, &state);
+        CTxExecuteContext context(block.GetHeight(), i + 1, block.GetFuelRate(), &cw, &state);
         if (fCheckTx && !block.vptx[i]->CheckTx(context))
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 

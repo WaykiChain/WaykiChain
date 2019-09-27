@@ -17,17 +17,17 @@
 #include "vm/luavm/luavmrunenv.h"
 
 // get and check fuel limit
-static bool GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, CValidationState &state, uint64_t &fuelLimit) {
-    uint64_t fuelRate = tx.GetFuelRate(cw.blockCache);
+static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuelLimit) {
+    uint64_t fuelRate = context.fuel_rate;
     if (fuelRate == 0)
-        return state.DoS(100, ERRORMSG("GetFuelLimit, fuelRate cannot be 0"), REJECT_INVALID, "invalid-fuel-rate");
+        return context.pState->DoS(100, ERRORMSG("GetFuelLimit, fuelRate cannot be 0"), REJECT_INVALID, "invalid-fuel-rate");
 
     uint64_t minFee;
-    if (!GetTxMinFee(tx.nTxType, height, tx.fee_symbol, minFee))
-        return state.DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
+    if (!GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, minFee))
+        return context.pState->DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
 
     if (tx.llFees < minFee) {
-        return state.DoS(
+        return context.pState->DoS(
             100, ERRORMSG("GetFuelLimit, fees is too small(%llu vs %llu) to invoke contract", tx.llFees, minFee),
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
@@ -53,7 +53,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "vmscript-invalid");
     }
 
-    uint64_t llFuel = GetFuel(GetFuelRate(cw.blockCache));
+    uint64_t llFuel = GetFuel(context.fuel_rate);
     if (llFees < llFuel) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
@@ -126,10 +126,6 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-uint64_t CLuaContractDeployTx::GetFuel(uint32_t nFuelRate) {
-    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
-}
-
 string CLuaContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
@@ -182,7 +178,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     uint64_t fuelLimit;
-    if (!GetFuelLimit(*this, context.height, cw, state, fuelLimit))
+    if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
     CAccount srcAccount;
@@ -289,7 +285,7 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "vmscript-invalid");
     }
 
-    uint64_t llFuel = GetFuel(GetFuelRate(cw.blockCache));
+    uint64_t llFuel = GetFuel(context.fuel_rate);
     if (llFees < llFuel) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small to cover fuel: %llu < %llu",
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
@@ -360,10 +356,6 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-uint64_t CUniversalContractDeployTx::GetFuel(uint32_t nFuelRate) {
-    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
-}
-
 string CUniversalContractDeployTx::ToString(CAccountDBCache &accountCache) {
     CKeyID keyId;
     accountCache.GetKeyId(txUid, keyId);
@@ -420,7 +412,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     uint64_t fuelLimit;
-    if (!GetFuelLimit(*this, context.height, cw, state, fuelLimit))
+    if (!GetFuelLimit(*this, context, fuelLimit))
         return false;
 
     vector<CReceipt> receipts;
@@ -468,7 +460,6 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                         app_uid.get<CRegID>().ToString()), READ_ACCOUNT_FAIL, "bad-read-script");
 
     CLuaVMRunEnv vmRunEnv;
-    uint64_t fuelRate = GetFuelRate(cw.blockCache);
 
     CLuaVMContext luaContext;
     luaContext.p_cw              = &cw;
@@ -494,7 +485,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {
-        uint64_t fuel = GetFuel(fuelRate);
+        uint64_t fuel = GetFuel(context.fuel_rate);
         CAccount fcoinGenesisAccount;
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
 

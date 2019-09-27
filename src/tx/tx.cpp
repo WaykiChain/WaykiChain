@@ -95,27 +95,8 @@ bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
     return true;
 }
 
-uint64_t CBaseTx::GetFuel(uint32_t nFuelRate) { return nRunStep == 0 ? 0 : ceil(nRunStep / 100.0f) * nFuelRate; }
-
-uint32_t CBaseTx::GetFuelRate(CBlockDBCache &blockCache) {
-    if (nFuelRate > 0)
-        return nFuelRate;
-
-    CDiskTxPos txPos;
-    if (blockCache.ReadTxIndex(GetHash(), txPos)) {
-        CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
-        CBlockHeader header;
-        try {
-            file >> header;
-        } catch (std::exception &e) {
-            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-        }
-        nFuelRate = header.GetFuelRate();
-    } else {
-        nFuelRate = GetElementForBurn(chainActive.Tip());
-    }
-
-    return nFuelRate;
+uint64_t CBaseTx::GetFuel(uint32_t fuelRate) {
+    return nRunStep == 0 || fuelRate == 0 ? 0 : ceil(nRunStep / 100.0f) * fuelRate;
 }
 
 Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {
