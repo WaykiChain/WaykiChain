@@ -45,8 +45,8 @@ public:
 
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
-    bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
     bool SetMedianPricePoints(map<CoinPricePair, uint64_t> &mapMedianPricePointsIn) {

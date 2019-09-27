@@ -111,14 +111,15 @@ bool CDEXBuyLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
     return true;
 }
 
-bool CDEXBuyLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -149,7 +150,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     orderDetail.coin_amount   = CalcCoinAmount(asset_amount, bid_price);
     orderDetail.asset_amount  = asset_amount;
     orderDetail.price         = bid_price;
-    orderDetail.tx_cord       = CTxCord(height, index);
+    orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid    = srcAccount.regid;
     // other fields keep the default value
 
@@ -202,14 +203,15 @@ bool CDEXSellLimitOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
     return true;
 }
 
-bool CDEXSellLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSellLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -239,7 +241,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     orderDetail.coin_amount   = CalcCoinAmount(asset_amount, ask_price);
     orderDetail.asset_amount  = asset_amount;
     orderDetail.price         = ask_price;
-    orderDetail.tx_cord       = CTxCord(height, index);
+    orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid = srcAccount.regid;
     // other fields keep the default value
 
@@ -291,14 +293,15 @@ bool CDEXBuyMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
     return true;
 }
 
-bool CDEXBuyMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -327,7 +330,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
     orderDetail.coin_amount   = coin_amount;
     orderDetail.asset_amount  = 0; // unkown in buy market price order
     orderDetail.price         = 0; // unkown in buy market price order
-    orderDetail.tx_cord       = CTxCord(height, index);
+    orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid = srcAccount.regid;
     // other fields keep the default value
 
@@ -378,14 +381,15 @@ bool CDEXSellMarketOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidati
     return true;
 }
 
-bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSellMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -415,7 +419,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapp
     orderDetail.coin_amount   = 0; // unkown in sell market price order
     orderDetail.asset_amount  = asset_amount;
     orderDetail.price         = 0; // unkown in sell market price order
-    orderDetail.tx_cord       = CTxCord(height, index);
+    orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid    = srcAccount.regid;
     // other fields keep the default value
 
@@ -463,14 +467,15 @@ bool CDEXCancelOrderTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationSt
     return true;
 }
 
-bool CDEXCancelOrderTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -695,7 +700,8 @@ bool CDEXSettleTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
             update active order to dex db
         }
 */
-bool CDEXSettleTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
 
     CAccount srcAccount;

@@ -112,11 +112,10 @@ public:
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 
     // If the sender has no regid before, geneate a regid for the sender.
-    bool GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                       const int32_t index);
+    bool GenerateRegID(CTxExecuteContext &context, CAccount &account);
 };
 
 #endif //COIN_MULSIGTX_H

@@ -62,14 +62,15 @@ bool CDelegateVoteTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
     return true;
 }
 
-bool CDelegateVoteTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read account info error"), UPDATE_ACCOUNT_FAIL,
                          "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -83,7 +84,7 @@ bool CDelegateVoteTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     vector<CReceipt> receipts;
-    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, height, cw.accountCache, receipts)) {
+    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, cw.accountCache, receipts)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s",
                         txUid.ToString()), OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");
     }

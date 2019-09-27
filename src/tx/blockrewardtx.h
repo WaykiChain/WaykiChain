@@ -55,7 +55,7 @@ public:
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 class CUCoinBlockRewardTx : public CBaseTx {
@@ -109,7 +109,7 @@ public:
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 #endif // TX_BLOCK_REWARD_H

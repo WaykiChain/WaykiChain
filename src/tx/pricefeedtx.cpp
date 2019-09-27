@@ -52,7 +52,8 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     return true;
 }
 
-bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
@@ -86,7 +87,7 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     // update the price feed cache accordingly
-    if (!cw.ppCache.AddBlockPricePointInBatch(height, txUid.get<CRegID>(), price_points)) {
+    if (!cw.ppCache.AddBlockPricePointInBatch(context.height, txUid.get<CRegID>(), price_points)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }

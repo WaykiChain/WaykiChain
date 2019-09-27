@@ -149,7 +149,8 @@ bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
     return true;
 }
 
-bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
     shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
     if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
@@ -175,7 +176,7 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
                 "account not exist, owner_uid=%s", asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
     }
 
-    if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(height)) {
+    if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s is not registerd or not mature",
             asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
     }
@@ -372,7 +373,8 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
 }
 
 
-bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
@@ -408,7 +410,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
             if (!newAccount.IsRegistered())
                 return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registered! new uid=%s",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "account-not-registered");
-            if (!newAccount.regid.IsMature(height))
+            if (!newAccount.regid.IsMature(context.height))
                 return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner regid is not matured! new uid=%s",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "account-not-matured");
 

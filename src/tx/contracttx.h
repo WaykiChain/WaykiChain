@@ -49,7 +49,7 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 class CLuaContractInvokeTx : public CBaseTx {
@@ -90,7 +90,7 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 /**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
@@ -133,7 +133,7 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 class CUniversalContractInvokeTx : public CBaseTx {
@@ -179,7 +179,7 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 #endif  // TX_CONTRACT_H

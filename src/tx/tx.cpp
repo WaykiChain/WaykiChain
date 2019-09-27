@@ -75,21 +75,20 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     return true;
 }
 
-bool CBaseTx::GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                            const int32_t index) {
+bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
     if (txUid.type() == typeid(CPubKey)) {
         account.owner_pubkey = txUid.get<CPubKey>();
 
         CRegID regId;
-        if (cw.accountCache.GetRegId(txUid, regId)) {
+        if (context.pCw->accountCache.GetRegId(txUid, regId)) {
             // account has regid already, return
             return true;
         }
 
         // generate a new regid for the account
-        account.regid = CRegID(height, index);
-        if (!cw.accountCache.SaveAccount(account))
-            return state.DoS(100, ERRORMSG("CBaseTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
+        account.regid = CRegID(context.height, context.index);
+        if (!context.pCw->accountCache.SaveAccount(account))
+            return context.pState->DoS(100, ERRORMSG("CBaseTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
                              "bad-write-accountdb");
     }
 

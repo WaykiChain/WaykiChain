@@ -11,16 +11,17 @@
 
 bool CBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) { return true; }
 
-bool CBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (0 == index) {
+    if (0 == context.index) {
         // When the reward transaction is immature, should NOT update account's balances.
-    } else if (-1 == index) {
+    } else if (-1 == context.index) {
         // When the reward transaction is mature, update account's balances, i.e, assign the reward value to
         // the target account.
         if (!account.OperateBalance(SYMB::WICC, ADD_FREE, reward_fees)) {
@@ -71,7 +72,8 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CUCoinBlockRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) { return true; }
 
-bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(
@@ -79,6 +81,7 @@ bool CUCoinBlockRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
             UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
+    int32_t index = context.index;
     if (0 == index) {
         // When the reward transaction is immature, should NOT update account's balances.
     } else if (-1 == index) {

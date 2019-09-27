@@ -35,6 +35,20 @@ typedef uint256 TxID;
 string GetTxType(const TxType txType);
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
+class CTxExecuteContext {
+public:
+    int32_t height;
+    int32_t index;
+    CCacheWrapper *pCw;
+    CValidationState *pState;
+
+    CTxExecuteContext() : height(0), index(0), pCw(nullptr), pState(nullptr) {}
+
+    CTxExecuteContext(int32_t heightIn, int32_t indexIn, CCacheWrapper *pCwIn,
+                      CValidationState *pStateIn)
+        : height(heightIn), index(indexIn), pCw(pCwIn), pState(pStateIn) {}
+};
+
 class CBaseTx {
 public:
     static uint64_t nMinRelayTxFee;
@@ -93,13 +107,12 @@ public:
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                  = 0;
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) = 0;
+    virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
 
     // If the sender has no regid before, geneate a regid for the sender.
-    bool GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                       const int32_t index);
+    bool GenerateRegID(CTxExecuteContext &context, CAccount &account);
 
     bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }

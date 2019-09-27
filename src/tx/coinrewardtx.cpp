@@ -13,10 +13,11 @@ bool CCoinRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
     return height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
 }
 
-bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     CAccount account;
-    CRegID regId(height, index);
+    CRegID regId(context.height, context.index);
     CKeyID keyId;
     CPubKey pubKey;
     if (txUid.is<CPubKey>()) {

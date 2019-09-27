@@ -41,13 +41,14 @@ bool CCoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     return true;
 }
 
-bool CCoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinStakeTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), UCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    if (!GenerateRegID(account, cw, state, height, index)) {
+    if (!GenerateRegID(context, account)) {
         return false;
     }
 

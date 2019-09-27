@@ -19,7 +19,8 @@ bool CBlockPriceMedianTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidation
 /**
  *  force settle/liquidate any under-collateralized CDP (collateral ratio <= 104%)
  */
-bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     uint64_t slideWindow;
     if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error"),
@@ -27,7 +28,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
     }
 
     map<CoinPricePair, uint64_t> mapMedianPricePoints;
-    if (!cw.ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints)) {
+    if (!cw.ppCache.GetBlockMedianPricePoints(context.height, slideWindow, mapMedianPricePoints)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, failed to get block median price points"),
                          READ_PRICE_POINT_FAIL, "bad-read-price-points");
     }
@@ -39,7 +40,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                                      item.first.second, item.second);
         }
 
-        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", height, pricePoints);
+        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", context.height, pricePoints);
 
         pricePoints.clear();
         for (const auto item : median_price_points) {
@@ -47,7 +48,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                                      item.first.second, item.second);
         }
 
-        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", height, pricePoints);
+        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", context.height, pricePoints);
 
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
                          "bad-median-price-points");
@@ -57,13 +58,13 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
 
         // 0. acquire median prices
         // TODO: multi stable coin
-        uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+        uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
         if (bcoinMedianPrice == 0) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire bcoin median price\n");
             break;
         }
 
-        uint64_t fcoinMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WGRT, SYMB::USD));
+        uint64_t fcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(SYMB::WGRT, SYMB::USD));
         if (fcoinMedianPrice == 0) {
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
             break;
@@ -142,7 +143,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
             auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
-                CTxCord(height, index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
+                CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
             uint256 bcoinSellMarketOrderId = OrderIdGenerator(GetHash(), orderIndex++);
             if (!cw.dexCache.CreateActiveOrder(bcoinSellMarketOrderId, *pBcoinSellMarketOrder)) {
                 return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed",
@@ -175,7 +176,7 @@ bool CBlockPriceMedianTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper
                 }
 
                 auto pFcoinSellMarketOrder =
-                    CDEXSysOrder::CreateSellMarketOrder(CTxCord(height, index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
+                    CDEXSysOrder::CreateSellMarketOrder(CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
                 uint256 fcoinSellMarketOrderId = OrderIdGenerator(GetHash(), orderIndex++);
                 if (!cw.dexCache.CreateActiveOrder(fcoinSellMarketOrderId, *pFcoinSellMarketOrder)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed",

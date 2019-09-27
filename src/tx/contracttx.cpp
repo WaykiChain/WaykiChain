@@ -84,7 +84,8 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
     return true;
 }
 
-bool CLuaContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, read regist addr %s account info error", txUid.ToString()),
@@ -103,7 +104,7 @@ bool CLuaContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
     // create script account
     CAccount contractAccount;
-    CRegID contractRegId(height, index);
+    CRegID contractRegId(context.height, context.index);
     CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.keyid  = keyId;
     contractAccount.regid  = contractRegId;
@@ -175,10 +176,11 @@ bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
     return true;
 }
 
-bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     uint64_t fuelLimit;
-    if (!GetFuelLimit(*this, height, cw, state, fuelLimit))
+    if (!GetFuelLimit(*this, context.height, cw, state, fuelLimit))
         return false;
 
     CAccount srcAccount;
@@ -187,7 +189,7 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -221,20 +223,20 @@ bool CLuaContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrappe
 
     CLuaVMRunEnv vmRunEnv;
 
-    CLuaVMContext context;
-    context.p_cw              = &cw;
-    context.height            = height;
-    context.p_base_tx         = this;
-    context.fuel_limit        = fuelLimit;
-    context.transfer_symbol   = SYMB::WICC;
-    context.transfer_amount   = coin_amount;
-    context.p_tx_user_account = &srcAccount;
-    context.p_app_account     = &desAccount;
-    context.p_contract        = &contract;
-    context.p_arguments       = &arguments;
+    CLuaVMContext luaContext;
+    luaContext.p_cw              = &cw;
+    luaContext.height            = context.height;
+    luaContext.p_base_tx         = this;
+    luaContext.fuel_limit        = fuelLimit;
+    luaContext.transfer_symbol   = SYMB::WICC;
+    luaContext.transfer_amount   = coin_amount;
+    luaContext.p_tx_user_account = &srcAccount;
+    luaContext.p_app_account     = &desAccount;
+    luaContext.p_contract        = &contract;
+    luaContext.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
-    auto pExecErr  = vmRunEnv.ExecuteContract(&context, nRunStep);
+    auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, nRunStep);
     if (pExecErr)
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
                         GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
@@ -314,7 +316,8 @@ bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
     return true;
 }
 
-bool CUniversalContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, read regist addr %s account info error",
@@ -333,7 +336,7 @@ bool CUniversalContractDeployTx::ExecuteTx(int32_t height, int32_t index, CCache
 
     // create script account
     CAccount contractAccount;
-    CRegID contractRegId(height, index);
+    CRegID contractRegId(context.height, context.index);
     CKeyID keyId           = Hash160(contractRegId.GetRegIdRaw());
     contractAccount.keyid  = keyId;
     contractAccount.regid  = contractRegId;
@@ -409,10 +412,11 @@ bool CUniversalContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CVal
     return true;
 }
 
-bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     uint64_t fuelLimit;
-    if (!GetFuelLimit(*this, height, cw, state, fuelLimit))
+    if (!GetFuelLimit(*this, context.height, cw, state, fuelLimit))
         return false;
 
     vector<CReceipt> receipts;
@@ -423,7 +427,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -462,20 +466,20 @@ bool CUniversalContractInvokeTx::ExecuteTx(int32_t height, int32_t index, CCache
     CLuaVMRunEnv vmRunEnv;
     uint64_t fuelRate = GetFuelRate(cw.blockCache);
 
-    CLuaVMContext context;
-    context.p_cw              = &cw;
-    context.height            = height;
-    context.p_base_tx         = this;
-    context.fuel_limit        = fuelLimit;
-    context.transfer_symbol   = coin_symbol;
-    context.transfer_amount   = coin_amount;
-    context.p_tx_user_account = &srcAccount;
-    context.p_app_account     = &desAccount;
-    context.p_contract        = &contract;
-    context.p_arguments       = &arguments;
+    CLuaVMContext luaContext;
+    luaContext.p_cw              = &cw;
+    luaContext.height            = context.height;
+    luaContext.p_base_tx         = this;
+    luaContext.fuel_limit        = fuelLimit;
+    luaContext.transfer_symbol   = coin_symbol;
+    luaContext.transfer_amount   = coin_amount;
+    luaContext.p_tx_user_account = &srcAccount;
+    luaContext.p_app_account     = &desAccount;
+    luaContext.p_contract        = &contract;
+    luaContext.p_arguments       = &arguments;
 
     int64_t llTime = GetTimeMillis();
-    auto pExecErr  = vmRunEnv.ExecuteContract(&context, nRunStep);
+    auto pExecErr  = vmRunEnv.ExecuteContract(&luaContext, nRunStep);
     if (pExecErr)
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
             GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);

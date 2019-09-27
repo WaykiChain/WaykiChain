@@ -97,7 +97,8 @@ bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &s
     return true;
 }
 
-bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     //0. check preconditions
     uint64_t globalCollateralRatioMin;
     if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin)) {
@@ -116,7 +117,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
     uint64_t assetAmount = assets_to_stake.begin()->second.get();
 
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(assetSymbol, SYMB::USD));
+    uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(assetSymbol, SYMB::USD));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price!!"),
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -147,7 +148,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    if (!GenerateRegID(account, cw, state, height, index)) {
+    if (!GenerateRegID(context, account)) {
         return false;
     }
 
@@ -183,9 +184,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                             100.0 * partialCollateralRatio / RATIO_BOOST, 100.0 * startingCdpCollateralRatio / RATIO_BOOST),
                             REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
-        CUserCDP cdp(account.regid, GetHash(), height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
+        CUserCDP cdp(account.regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
 
-        if (!cw.cdpCache.NewCDP(height, cdp)) {
+        if (!cw.cdpCache.NewCDP(context.height, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save new cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-new-cdp-failed");
         }
@@ -219,9 +220,9 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
 
         CUserCDP oldCDP = cdp; // copy before modify.
 
-        if (height < cdp.block_height) {
+        if (context.height < cdp.block_height) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.block_height: %d",
-                    height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
+                    context.height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
         uint64_t totalBcoinsToStake   = cdp.total_staked_bcoins + assetAmount;
@@ -234,7 +235,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         uint64_t scoinsInterestToRepay;
-        if (!ComputeCDPInterest(height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+        if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
                              REJECT_INVALID, "compute-interest-error");
         }
@@ -245,7 +246,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
                             free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
         }
 
-        if (!SellInterestForFcoins(CTxCord(height, index), cdp, scoinsInterestToRepay, cw, state))
+        if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state))
             return false;
 
         if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
@@ -254,7 +255,7 @@ bool CCDPStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CV
         }
 
         // settle cdp state & persist
-        cdp.AddStake(height, assetAmount, scoins_to_mint);
+        cdp.AddStake(context.height, assetAmount, scoins_to_mint);
         if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, save changed cdp to db failed"),
                             READ_SYS_PARAM_FAIL, "save-changed-cdp-failed");
@@ -364,7 +365,8 @@ bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     return true;
 }
 
-bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     //0. check preconditions
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -372,7 +374,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(account, cw, state, height, index)) {
+    if (!GenerateRegID(context, account)) {
         return false;
     }
 
@@ -412,7 +414,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
+            cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
             globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
@@ -425,13 +427,13 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     //2. pay interest fees in wusd
-    if (height < cdp.block_height) {
+    if (context.height < cdp.block_height) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, height: %d < cdp.block_height: %d",
-                        height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
+                        context.height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
     }
 
     uint64_t scoinsInterestToRepay = 0;
-    if (!ComputeCDPInterest(height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+    if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCDPInterest error!"),
                          REJECT_INVALID, "compute-cdp-interest-error");
     }
@@ -441,7 +443,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                          REJECT_INVALID, "deduct-interest-error");
     }
 
-    if (!SellInterestForFcoins(CTxCord(height, index), cdp, scoinsInterestToRepay, cw, state)) {
+    if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, SellInterestForFcoins error!"),
                             REJECT_INVALID, "sell-interest-for-fcoins-error");
     }
@@ -470,7 +472,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                          "account-balance-insufficient");
     }
 
-    cdp.Redeem(height, assetAmount, actualScoinsToRepay);
+    cdp.Redeem(context.height, assetAmount, actualScoinsToRepay);
 
     // check and save CDP to db
     if (cdp.IsFinished()) {
@@ -479,7 +481,7 @@ bool CCDPRedeemTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
                             cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
     } else { // partial redeem
         if (assetAmount != 0) {
-            uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+            uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
             if (bcoinMedianPrice == 0) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
                                  REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -630,7 +632,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
   *  when M is 1.16 N and below, there'll be no return to the CDP owner
   *  when M is 1.13 N and below, there'll be no profit for the liquidator, hence requiring force settlement
   */
-bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     //0. check preconditions
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -638,7 +641,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(account, cw, state, height, index)) {
+    if (!GenerateRegID(context, account)) {
         return false;
     }
 
@@ -673,7 +676,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
     }
 
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
+            cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
             globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
@@ -692,7 +695,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+    uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -787,7 +790,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
             }
         }
 
-        if (!ProcessPenaltyFees(CTxCord(height, index), cdp, (uint64_t)totalScoinsToReturnSysFund, cw, state, receipts))
+        if (!ProcessPenaltyFees(CTxCord(context.height, context.index), cdp, (uint64_t)totalScoinsToReturnSysFund, cw, state, receipts))
             return false;
 
         // close CDP
@@ -838,7 +841,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
 
         assert(cdp.total_owed_scoins > scoinsToLiquidate);
         assert(cdp.total_staked_bcoins > bcoinsToLiquidate);
-        cdp.LiquidatePartial(height, bcoinsToLiquidate, scoinsToLiquidate);
+        cdp.LiquidatePartial(context.height, bcoinsToLiquidate, scoinsToLiquidate);
 
         uint64_t bcoinsToStakeAmountMinInScoin;
         if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN, bcoinsToStakeAmountMinInScoin)) {
@@ -853,7 +856,7 @@ bool CCDPLiquidateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw
         }
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
-        if (!ProcessPenaltyFees(CTxCord(height, index), cdp, scoinsToReturnSysFund, cw, state, receipts))
+        if (!ProcessPenaltyFees(CTxCord(context.height, context.index), cdp, scoinsToReturnSysFund, cw, state, receipts))
             return false;
 
         if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {

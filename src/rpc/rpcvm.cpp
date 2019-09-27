@@ -186,7 +186,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        if (!tx.ExecuteTx(newHeight, 1, *spCW, state)) {
+        CTxExecuteContext context(newHeight, 1, spCW.get(), &state);
+        if (!tx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
@@ -221,7 +222,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        if (!contractInvokeTx.ExecuteTx(chainActive.Height() + 1, 2, *spCW, state)) {
+        CTxExecuteContext context(chainActive.Height() + 1, 2, spCW.get(), &state);
+        if (!contractInvokeTx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
         }
     }

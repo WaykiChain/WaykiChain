@@ -1238,7 +1238,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog(pBaseTx->GetHash());
-            if (!pBaseTx->ExecuteTx(pIndex->height, index, cw, state)) {
+            CTxExecuteContext context(pIndex->height, index, &cw, &state);
+            if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
                 cw.DisableTxUndoLog();
@@ -1307,7 +1308,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Execute block reward transaction
     cw.EnableTxUndoLog(block.vptx[0]->GetHash());
-    if (!block.vptx[0]->ExecuteTx(pIndex->height, 0, cw, state)) {
+            CTxExecuteContext context(pIndex->height, 0, &cw, &state);
+    if (!block.vptx[0]->ExecuteTx(context)) {
         pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
                                           state.GetRejectReason());
         cw.DisableTxUndoLog();
@@ -1349,7 +1351,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             }
 
             cw.EnableTxUndoLog(block.vptx[0]->GetHash());
-            if (!matureBlock.vptx[0]->ExecuteTx(pIndex->height, -1, cw, state)) {
+            CTxExecuteContext context(pIndex->height, -1, &cw, &state);
+            if (!matureBlock.vptx[0]->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
                 cw.DisableTxUndoLog();
