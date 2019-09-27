@@ -119,7 +119,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
     auto symbolErr = CAsset::CheckSymbol(asset.symbol);
     if (symbolErr) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", symbolErr),
-            REJECT_INVALID, "invalid-asset-symobl");
+            REJECT_INVALID, "invalid-asset-symbol");
     }
 
     if (asset.name.empty() || asset.name.size() > MAX_ASSET_NAME_LEN) {
@@ -141,9 +141,9 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, read account failed! tx account not exist, txUid=%s",
                      txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
 
-    if (!txAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
+    if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, account unregistered or immature"),
+                         REJECT_INVALID, "account-unregistered-or-immature");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txAccount.owner_pubkey);
 
@@ -178,8 +178,8 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s is not registerd or not mature",
-            asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s account is unregistered or immature",
+            asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
     if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, receipts)) {
@@ -328,7 +328,7 @@ bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
 
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",
-            asset_symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symobl");
+            asset_symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symbol");
     }
 
     switch (update_data.GetType()) {
@@ -364,10 +364,9 @@ bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-    if (!account.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
+    if (!account.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, account unregistered or immature"),
+                         REJECT_INVALID, "account-unregistered-or-immature");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
 
