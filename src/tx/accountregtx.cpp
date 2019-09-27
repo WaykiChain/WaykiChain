@@ -16,7 +16,9 @@
 #include "vm/luavm/luavmrunenv.h"
 #include "miner/miner.h"
 
-bool CAccountRegisterTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))

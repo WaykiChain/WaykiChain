@@ -382,7 +382,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
-    if (!pBaseTx->CheckTx(chainActive.Height(), *spCW, state))
+    CTxExecuteContext context(chainActive.Height(), 0, spCW.get(), &state);
+    if (!pBaseTx->CheckTx(context))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
     CTxMemPoolEntry entry(pBaseTx, GetTime(), chainActive.Height());
@@ -2010,7 +2011,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
-        if (fCheckTx && !block.vptx[i]->CheckTx(block.GetHeight(), cw, state))
+        CTxExecuteContext context(block.GetHeight(), i + 1, &cw, &state);
+        if (fCheckTx && !block.vptx[i]->CheckTx(context))
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
         if (block.GetHeight() != 0 || block.GetHash() != SysCfg().GetGenesisBlockHash()) {

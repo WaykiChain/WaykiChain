@@ -9,7 +9,8 @@
 #include "main.h"
 
 /**################################ Base Coin (WICC) Transfer ########################################**/
-bool CBaseCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -117,7 +118,8 @@ Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
@@ -149,11 +151,11 @@ bool CCoinTransferTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
     }
 
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
+    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
 
     if (llFees < transfers.size() * minFee) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, tx fee too small (height: %d, fee symbol: %s, fee: %llu)",
-                         height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");
+                         context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())

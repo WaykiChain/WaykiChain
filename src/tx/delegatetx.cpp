@@ -15,7 +15,8 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CDelegateVoteTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -34,7 +35,7 @@ bool CDelegateVoteTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
                          REJECT_INVALID, "bad-read-accountdb");
     }
 
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
         CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
         IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
     }
@@ -51,7 +52,7 @@ bool CDelegateVoteTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationStat
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
 
-        if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
+        if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
             if (!candidateAcct.HaveOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");

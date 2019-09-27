@@ -106,7 +106,7 @@ public:
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                  = 0;
+    virtual bool CheckTx(CTxExecuteContext &context)                  = 0;
     virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
@@ -186,7 +186,7 @@ public:
                          "arguments-size-toolarge");
 
 #define IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE                                                        \
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R1)                                                      \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                                      \
         return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__), \
                          REJECT_INVALID, "unsupported-tx-type-pre-stable-coin-release");
 
@@ -197,9 +197,9 @@ public:
      if (!kFeeSymbolSet.count(fee_symbol))                                                             \
         return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
             __FUNCTION__, fee_symbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");     \
-    if (!CheckTxFeeSufficient(fee_symbol, llFees, height)) {                                           \
+    if (!CheckTxFeeSufficient(fee_symbol, llFees, context.height)) {                                           \
         return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)",  \
-            __FUNCTION__, height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
+            __FUNCTION__, context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \
@@ -215,7 +215,7 @@ public:
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                        \
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {                      \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {                      \
         return state.DoS(100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),    \
                          REJECT_INVALID, "txUid-type-error");                                                \
     }                                                                                                        \

@@ -50,7 +50,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache);            // logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 

@@ -14,7 +14,8 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CMulsigTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;

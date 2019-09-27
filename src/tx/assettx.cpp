@@ -110,7 +110,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 ///////////////////////////////////////////////////////////////////////////////
 // class CAssetIssueTx
 
-bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -319,7 +320,8 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());

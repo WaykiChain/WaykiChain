@@ -54,7 +54,7 @@ public:
 
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
@@ -108,7 +108,7 @@ public:
 
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 

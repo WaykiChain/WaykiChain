@@ -76,7 +76,7 @@ public:
     string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
     TokenSymbol coin_symbol;   //!< coin type (wusd) to buy asset
@@ -132,7 +132,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
     TokenSymbol coin_symbol;   //!< coin type (wusd) to sell asset
@@ -185,7 +185,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
     TokenSymbol coin_symbol;   //!< coin type (wusd) to buy asset
@@ -237,7 +237,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
     TokenSymbol coin_symbol;   //!< coin type (wusd) to buy asset
@@ -284,7 +284,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 public:
     uint256  orderId;       //!< id of oder need to be canceled.
@@ -354,7 +354,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache); //logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:

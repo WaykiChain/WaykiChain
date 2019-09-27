@@ -8,9 +8,9 @@
 
 #include "main.h"
 
-bool CCoinRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinRewardTx::CheckTx(CTxExecuteContext &context) {
     // Only used in stable coin genesis.
-    return height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
+    return context.height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
 }
 
 bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {

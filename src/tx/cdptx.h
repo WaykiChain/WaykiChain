@@ -72,7 +72,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:
@@ -134,7 +134,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
     bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
@@ -194,7 +194,7 @@ public:
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:

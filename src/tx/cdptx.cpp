@@ -69,7 +69,8 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
 }
 
 // CDP owner can redeem his or her CDP that are in liquidation list
-bool CCDPStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -343,7 +344,8 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 }
 
 /************************************<< CCDPRedeemTx >>***********************************************/
-bool CCDPRedeemTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -591,7 +593,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
 }
 
  /************************************<< CdpLiquidateTx >>***********************************************/
- bool CCDPLiquidateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+ bool CCDPLiquidateTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());

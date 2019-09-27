@@ -43,7 +43,8 @@ static bool GetFuelLimit(CBaseTx &tx, int32_t height, CCacheWrapper &cw, CValida
 ///////////////////////////////////////////////////////////////////////////////
 // class CLuaContractDeployTx
 
-bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -58,7 +59,7 @@ bool CLuaContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidatio
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
     }
 
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
         double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
         if (feePerKb < CBaseTx::nMinRelayTxFee) {
@@ -150,7 +151,8 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CLuaContractInvokeTx
 
-bool CLuaContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -276,7 +278,8 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CUniversalContractDeployTx
 
-bool CUniversalContractDeployTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -385,7 +388,8 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
 ///////////////////////////////////////////////////////////////////////////////
 // class CUniversalContractInvokeTx
 
-bool CUniversalContractInvokeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;

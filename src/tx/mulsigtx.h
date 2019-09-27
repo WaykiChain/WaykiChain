@@ -111,7 +111,7 @@ public:
     virtual Object ToJson(const CAccountDBCache &accountView) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
     // If the sender has no regid before, geneate a regid for the sender.

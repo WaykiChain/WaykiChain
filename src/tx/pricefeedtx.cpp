@@ -14,7 +14,8 @@
 #include "commons/util.h"
 #include "config/version.h"
 
-bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
