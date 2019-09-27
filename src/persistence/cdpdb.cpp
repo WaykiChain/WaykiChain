@@ -56,7 +56,7 @@ bool CCdpDBCache::GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList) {
 }
 
 bool CCdpDBCache::GetCDP(const uint256 cdpid, CUserCDP &cdp) {
-    return cdpCache.GetData(cdpid, cdp))
+    return cdpCache.GetData(cdpid, cdp);
 }
 
 // Attention: update cdpCache and regId2CDPCache synchronously.
@@ -186,7 +186,7 @@ void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     ratioCDPIdCache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
-bool CCDPDBCache::UndoData() {
+bool CCdpDBCache::UndoData() {
     return globalStakedBcoinsCache.UndoData() && globalOwedScoinsCache.UndoData() && cdpCache.UndoData() &&
            regId2CDPCache.UndoData() && ratioCDPIdCache.UndoData();
 }
