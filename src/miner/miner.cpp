@@ -431,6 +431,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev            = chainActive.Tip();
+        UpdateTime(*pBlock, pIndexPrev);
+        uint32_t blockTime                 = pBlock->GetTime();
         int32_t height                     = pIndexPrev->height + 1;
         int32_t index                      = 0; // 0: block reward tx
         uint32_t fuelRate                  = GetElementForBurn(pIndexPrev);
@@ -469,6 +471,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             }
 
             auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
+            spCW->SetBlockTime(blockTime);
 
             try {
                 CValidationState state;

@@ -865,7 +865,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
 
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
-    if (!cw.UndoDatas(blockUndo)) {
+    if (!cw.UndoData(blockUndo)) {
         return ERRORMSG("DisconnectBlock() : Undo tx datas in block failed");
     }
 
@@ -1113,7 +1113,8 @@ bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, CCacheWr
         CAccount account;
         cw.accountCache.GetAccount(regId, account);
         vector<CReceipt> receipts;
-        if (!account.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, currHeight, cw.accountCache, receipts)) {
+        if (!account.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, currHeight, cw.blockTime,
+                                           cw.accountCache, receipts)) {
             return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate candidate votes failed, regId=%s",
                             regId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-candidate-votes-failed");
         }
@@ -1238,7 +1239,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                     pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
             pBaseTx->nFuelRate = fuelRate;
-            cw.EnableTxUndoLog(pBaseTx->GetHash());
+            cw.EnableTxUndoLog();
             CTxExecuteContext context(pIndex->height, index, &cw, &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
@@ -1308,7 +1309,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     // Execute block reward transaction
-    cw.EnableTxUndoLog(block.vptx[0]->GetHash());
+    cw.EnableTxUndoLog();
             CTxExecuteContext context(pIndex->height, 0, &cw, &state);
     if (!block.vptx[0]->ExecuteTx(context)) {
         pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
@@ -1351,7 +1352,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                  "bad-read-block");
             }
 
-            cw.EnableTxUndoLog(block.vptx[0]->GetHash());
+            cw.EnableTxUndoLog();
             CTxExecuteContext context(pIndex->height, -1, &cw, &state);
             if (!matureBlock.vptx[0]->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
@@ -1436,7 +1437,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     // Set best block to current account cache.
-    assert(cw.blockCache.SetBestBlock(pIndex->GetBlockHash()));
+    cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
+
     return true;
 }
 
@@ -1580,6 +1582,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         CInv inv(MSG_BLOCK, pIndexNew->GetBlockHash());
 
         auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+        spCW->SetBlockTime(block.GetTime());
         if (!ConnectBlock(block, *spCW, pIndexNew, state)) {
             if (state.IsInvalid()) {
                 InvalidBlockFound(pIndexNew, state);
@@ -1951,6 +1954,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             LogPrint("INFO", "ProcessForkedChain() : ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),
                     rIter->GetHash().GetHex());
 
+            spNewForkCW->SetBlockTime(rIter->GetTime());
             if (!ConnectBlock(*rIter, *spNewForkCW, mapBlockIndex[rIter->GetHash()], state, false)) {
                 return ERRORMSG("ProcessForkedChain() : ConnectBlock %s failed", rIter->GetHash().ToString());
             }
@@ -2645,6 +2649,7 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
                 return ERRORMSG("VerifyDB() : *** ReadBlockFromDisk failed at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());
 
+            spCW->SetBlockTime(block.GetTime());
             if (!ConnectBlock(block, *spCW, pIndex, state, false))
                 return ERRORMSG("VerifyDB() : *** found un-connectable block at %d, hash=%s",
                                 pIndex->height, pIndex->GetBlockHash().ToString());

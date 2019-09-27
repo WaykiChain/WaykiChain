@@ -120,6 +120,7 @@ public:
 
     uint64_t received_votes;        //!< votes received
     uint64_t last_vote_height;      //!< account's last vote block height used for computing interest
+    uint64_t last_vote_epoch;       //!< account's last vote epoch used for computing interest
 
     mutable uint256 sigHash;        //!< in-memory only
 
@@ -174,11 +175,12 @@ public:
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessCandidateVotes(const vector<CCandidateVote>& candidateVotesIn,
-                              vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
-                              const CAccountDBCache &accountCache, vector<CReceipt> &receipts);
+                               vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
+                               const uint32_t currBlockTime, const CAccountDBCache& accountCache,
+                               vector<CReceipt>& receipts);
 
     uint64_t ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
-    uint64_t ComputeVoteFcoinInterest(uint64_t lastVotedBcoins, uint32_t currHeight);
+    uint64_t ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currBlockTime);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }

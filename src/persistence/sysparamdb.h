@@ -44,7 +44,7 @@ public:
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { sysParamCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
-    bool UndoDatas() { return sysParamCache.UndoDatas(); }
+    bool UndoData() { return sysParamCache.UndoData(); }
 
 private:
 /*       type               prefixType               key                     value                 variable               */

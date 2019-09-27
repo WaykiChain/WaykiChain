@@ -186,9 +186,9 @@ void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     ratioCDPIdCache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
-bool CCdpDBCache::UndoDatas() {
-    return globalStakedBcoinsCache.UndoDatas() && globalOwedScoinsCache.UndoDatas() && cdpCache.UndoDatas() &&
-           regId2CDPCache.UndoDatas() && ratioCDPIdCache.UndoDatas();
+bool CCDPDBCache::UndoData() {
+    return globalStakedBcoinsCache.UndoData() && globalOwedScoinsCache.UndoData() && cdpCache.UndoData() &&
+           regId2CDPCache.UndoData() && ratioCDPIdCache.UndoData();
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {

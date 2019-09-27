@@ -32,8 +32,7 @@ class CAutoFile;
 class CDataStream;
 class CBaseTx;
 
-static const unsigned int MAX_SIZE = 0x02000000;
-
+static const uint32_t MAX_SIZE           = 0x02000000;
 static const uint32_t MAX_SERIALIZE_SIZE = MAX_BLOCK_SIZE;
 
 // Used to bypass the rule against non-const reference to temporary

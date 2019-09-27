@@ -44,7 +44,7 @@ public:
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
-    bool UndoDatas();
+    bool UndoData();
     uint32_t GetCacheSize() const;
     bool Flush();
 

@@ -85,9 +85,11 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     vector<CReceipt> receipts;
-    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, cw.accountCache, receipts)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s",
-                        txUid.ToString()), OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");
+    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, cw.blockTime, cw.accountCache,
+                                          receipts)) {
+        return state.DoS(
+            100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s", txUid.ToString()),
+            OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");
     }
     if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, write candidate votes failed, txUid=%s", txUid.ToString()),

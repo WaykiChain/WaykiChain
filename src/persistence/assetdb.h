@@ -71,9 +71,9 @@ public:
         assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoDatas() {
-        return assetCache.UndoDatas() &&
-               assetTradingPairCache.UndoDatas();
+    bool UndoData() {
+        return assetCache.UndoData() &&
+               assetTradingPairCache.UndoData();
     }
 
     shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() {

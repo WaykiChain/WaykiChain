@@ -52,7 +52,7 @@ public:
         regId2VoteCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoDatas() { return voteRegIdCache.UndoDatas() && regId2VoteCache.UndoDatas(); }
+    bool UndoData() { return voteRegIdCache.UndoData() && regId2VoteCache.UndoData(); }
 
 private:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */

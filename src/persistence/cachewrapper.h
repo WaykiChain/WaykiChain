@@ -36,6 +36,8 @@ public:
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
 
+    uint32_t            blockTime;
+
     CTxUndo             txUndo;
 public:
     static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
@@ -60,12 +62,14 @@ public:
 
     void CopyFrom(CCacheDBManager* pCdMan);
 
-    void EnableTxUndoLog(const uint256 &txid);
+    void EnableTxUndoLog();
     void DisableTxUndoLog();
 
     const CTxUndo& GetTxUndo() const { return txUndo; }
 
-    bool UndoDatas(CBlockUndo &blockUndo);
+    bool UndoData(CBlockUndo &blockUndo);
+
+    void SetBlockTime(const uint32_t blockTimeIn);
 
     void Flush();
 private:
