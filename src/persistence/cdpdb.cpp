@@ -56,10 +56,7 @@ bool CCDPDBCache::GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList) {
 }
 
 bool CCDPDBCache::GetCDP(const uint256 cdpid, CUserCDP &cdp) {
-    if (!cdpCache.GetData(cdpid, cdp))
-        return false;
-
-    return true;
+    return cdpCache.GetData(cdpid, cdp))
 }
 
 // Attention: update cdpCache and regId2CDPCache synchronously.

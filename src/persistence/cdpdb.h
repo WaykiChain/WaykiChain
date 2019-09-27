@@ -72,4 +72,34 @@ private:
     CCompositeKVCache<      dbk::CDP_RATIO, std::pair<string, uint256>, CUserCDP>            ratioCDPIdCache;
 };
 
+enum CDPCloseType: uint8_t {
+    BY_REDEEM = 0,
+    BY_MAN_LIQUIDATE,
+    BY_FORCE_LIQUIDATE
+};
+
+class CClosedCdpDBCache {
+public:
+    CClosedCdpDBCache() {}
+    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpCache(pDbAccess) {};
+    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpCache(pBaseIn->closedCdpCache) {};
+
+public:
+    bool AddClosedCdp(const string& cdpId, CDPCloseType& closeType) {
+        return closedCdpCache.SetData(cdpId, closeType);
+    }
+
+    bool UndoClosedCdp(const string& cdpId) {
+        return closedCdpCache.EraseData(cdpId);
+    }
+
+    bool GetClosedCdpById(const string& cdpId, CDPCloseType& closeType) {
+        return closedCdpCache.GetData(cdpId, (uint8_t&) closeType);
+    }
+
+private:
+  // ccdp{$cdpid} -> CDPCloseType enum
+    CCompositeKVCache< dbk::CDP_CLOSED, string, uint8_t>  closedCdpCache;
+};
+
 #endif  // PERSIST_CDPDB_H
