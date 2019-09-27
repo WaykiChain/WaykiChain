@@ -969,9 +969,9 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         case CAssetUpdateData::OWNER_UID: {
             const string &valueStr = jsonUpdateValue.get_str();
             auto pNewOwnerUid = CUserID::ParseUserId(valueStr);
-            if (!pNewOwnerUid || pNewOwnerUid->IsEmpty()) {
-                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid updated owner user id=%s",
-                    valueStr.size()));
+            if (!pNewOwnerUid || !pNewOwnerUid->is<CRegID>()) {
+                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new asset owner_uid=%s must be regid",
+                    valueStr));
             }
             updateData.Set(*pNewOwnerUid);
             break;

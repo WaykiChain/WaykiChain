@@ -132,6 +132,11 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
             asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
     }
 
+    if (!asset.owner_uid.is<CRegID>()) {
+        return state.DoS(100, ERRORMSG("%s, asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
+            "owner-uid-type-error");
+    }
+
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
@@ -334,9 +339,10 @@ bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
     switch (update_data.GetType()) {
         case CAssetUpdateData::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (newOwnerUid.IsEmpty())
-                return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, invalid updated owner user id=%s",
-                    newOwnerUid.ToString()), REJECT_INVALID, "invalid-owner-uid");
+            if (!newOwnerUid.is<CRegID>()) {
+                return state.DoS(100, ERRORMSG("%s, the new asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
+                    "owner-uid-type-error");
+            }
             break;
         }
         case CAssetUpdateData::NAME: {
