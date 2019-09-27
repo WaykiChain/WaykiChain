@@ -95,7 +95,7 @@ bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
     return true;
 }
 
-uint64_t CBaseTx::GetFuel(uint32_t fuelRate) {
+uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
     return nRunStep == 0 || fuelRate == 0 ? 0 : ceil(nRunStep / 100.0f) * fuelRate;
 }
 

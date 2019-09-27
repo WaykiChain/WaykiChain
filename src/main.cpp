@@ -1257,10 +1257,10 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             totalRunStep += pBaseTx->nRunStep;
             if (totalRunStep > MAX_BLOCK_RUN_STEP)
-                return state.DoS(100, ERRORMSG("block hash=%s total run steps exceed max run step", block.GetHash().GetHex()),
-                    REJECT_INVALID, "exceed-max-run-step");
+                return state.DoS(100, ERRORMSG("block hash=%s total fuel exceed max fuel", block.GetHash().GetHex()),
+                    REJECT_INVALID, "exceed-max-fuel");
 
-            auto fuel = pBaseTx->GetFuel(block.GetFuelRate());
+            auto fuel = pBaseTx->GetFuel(block.GetHeight(), block.GetFuelRate());
             totalFuel += fuel;
 
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
@@ -1271,14 +1271,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             pos.nTxOffset += ::GetSerializeSize(pBaseTx, SER_DISK, CLIENT_VERSION);
 
-            LogPrint("fuel", "connect block total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
+            LogPrint("fuel", "connect block total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
                      fuel, pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
     }
 
     // Verify total fuel
     if (totalFuel != block.GetFuel())
-        return ERRORMSG("fuel value at block header calculate error(actual fuel:%lld vs block fuel:%lld)", totalFuel,
+        return ERRORMSG("fuel fee value at block header calculate error(actual fuel fee:%lld vs block fuel fee:%lld)", totalFuel,
                         block.GetFuel());
 
     // Verify miner account

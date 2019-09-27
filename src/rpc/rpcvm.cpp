@@ -192,7 +192,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         DeployContractTxObj.push_back(Pair("contract_size", contract_size));
-        DeployContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
+        DeployContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(newHeight, nFuelRate)));
     }
 
     CRegID appId(newHeight, 1); //App RegId
@@ -231,7 +231,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     Object callContractTxObj;
 
     callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.nRunStep));
-    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(contractInvokeTx.nFuelRate)));
+    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(newHeight, contractInvokeTx.nFuelRate)));
 
     Object retObj;
     retObj.push_back(Pair("fuel_rate",              (int32_t)nFuelRate));
