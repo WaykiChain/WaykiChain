@@ -504,7 +504,6 @@ namespace wasm {
             WASM_CAPTURE_AND_RETHROW("Unknown type %s", t.second.c_str())
         }
 
-
         for (const auto &s : structs) {
             try {
                 if (s.second.base != type_name()) {

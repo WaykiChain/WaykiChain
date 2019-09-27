@@ -1,3 +1,9 @@
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#include <boost/test/unit_test.hpp>
+#pragma GCC diagnostic pop
 
 #include <fstream>
 #include <iostream>
@@ -97,7 +103,11 @@ void verify_round_trip_conversion( const abi_serializer &abis, const type_name &
     verify_round_trip_conversion(abis, type, json, hex, json, msg);
 }
 
-void abi_cycle() {
+BOOST_AUTO_TEST_SUITE( test_api )
+
+//void abi_cycle() {
+BOOST_AUTO_TEST_CASE( abi_cycle )
+{
 
     const char *typedef_cycle_abi = R"=====(
      {
@@ -162,7 +172,8 @@ void abi_cycle() {
 }
 
 
-void abi_type_repeat() {
+//void abi_type_repeat() {
+BOOST_AUTO_TEST_CASE( abi_type_repeat ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -229,7 +240,8 @@ void abi_type_repeat() {
                          "abi_type_repeat")
 }
 
-void abi_struct_repeat() {
+//void abi_struct_repeat() {
+BOOST_AUTO_TEST_CASE( abi_struct_repeat ) {
 
     const char *repeat_abi = R"=====(
     {
@@ -294,7 +306,8 @@ void abi_struct_repeat() {
 
 }
 
-void abi_action_repeat() {
+//void abi_action_repeat() {
+BOOST_AUTO_TEST_CASE( abi_action_repeat ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -362,7 +375,8 @@ void abi_action_repeat() {
 
 }
 
-void abi_table_repeat() {
+//void abi_table_repeat() {
+BOOST_AUTO_TEST_CASE( abi_table_repeat ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -432,7 +446,8 @@ void abi_table_repeat() {
                          "abi_table_repeat")
 }
 
-void abi_type_def() {
+//void abi_type_def() {
+BOOST_AUTO_TEST_CASE( abi_type_def ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -496,7 +511,8 @@ void abi_type_def() {
 }
 
 
-void abi_type_redefine() {
+//void abi_type_redefine() {
+BOOST_AUTO_TEST_CASE( abi_type_redefine ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -545,7 +561,8 @@ void abi_type_redefine() {
 
 }
 
-void abi_type_redefine_to_name() {
+//void abi_type_redefine_to_name() {
+BOOST_AUTO_TEST_CASE( abi_type_redefine_to_name ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -575,7 +592,8 @@ void abi_type_redefine_to_name() {
 
 }
 
-void abi_type_nested_in_vector() {
+//void abi_type_nested_in_vector() {
+BOOST_AUTO_TEST_CASE( abi_type_nested_in_vector ) {
 
     const char *repeat_abi = R"=====(
    {
@@ -610,7 +628,8 @@ void abi_type_nested_in_vector() {
 }
 
 
-void abi_large_array() {
+//void abi_large_array() {
+BOOST_AUTO_TEST_CASE( abi_large_array ) {
 
     const char *abi_str = R"=====(
       {
@@ -653,7 +672,8 @@ void abi_large_array() {
 
 }
 
-void abi_is_type_recursion() {
+//void abi_is_type_recursion() {
+BOOST_AUTO_TEST_CASE( abi_is_type_recursion ) {
 
     const char *abi_str = R"=====(
       {
@@ -704,7 +724,8 @@ void abi_is_type_recursion() {
 
 }
 
-void abi_recursive_structs() {
+//void abi_recursive_structs() {
+BOOST_AUTO_TEST_CASE( abi_recursive_structs ) {
 
     const char *abi_str = R"=====(
       {
@@ -777,7 +798,8 @@ void abi_recursive_structs() {
 
 }
 
-void abi_very_deep_structs() {
+//void abi_very_deep_structs() {
+BOOST_AUTO_TEST_CASE( abi_very_deep_structs ) {
 
     bool passed = false;
 
@@ -797,7 +819,8 @@ void abi_very_deep_structs() {
 
 }
 
-void abi_very_deep_structs_1us() {
+//void abi_very_deep_structs_1us() {
+BOOST_AUTO_TEST_CASE( abi_very_deep_structs_1us ) {
 
     bool passed = false;
 
@@ -813,7 +836,8 @@ void abi_very_deep_structs_1us() {
 
 }
 
-void abi_deep_structs_validate() {
+//void abi_deep_structs_validate() {
+BOOST_AUTO_TEST_CASE( abi_deep_structs_validate ) {
 
     bool passed = false;
 
@@ -829,7 +853,8 @@ void abi_deep_structs_validate() {
 
 }
 
-void version() {
+//void version() {
+BOOST_AUTO_TEST_CASE( version ) {
 
     bool passed = false;
 
@@ -863,7 +888,8 @@ void version() {
 
 }
 
-void abi_serialize_incomplete_json_array() {
+//void abi_serialize_incomplete_json_array() {
+BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_array ) {
 
     auto abi = R"({
       "version": "wasm::abi/1.0",
@@ -901,7 +927,8 @@ void abi_serialize_incomplete_json_array() {
 
 }
 
-void abi_serialize_incomplete_json_object() {
+//void abi_serialize_incomplete_json_object() {
+BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_object ) {
 
     auto abi = R"({
       "version": "wasm::abi/1.0",
@@ -940,7 +967,8 @@ void abi_serialize_incomplete_json_object() {
 
 }
 
-void abi_serialize_json_mismatching_type() {
+//void abi_serialize_json_mismatching_type() {
+BOOST_AUTO_TEST_CASE( abi_serialize_json_mismatching_type ) {
 
     auto abi = R"({
       "version": "wasm::abi/1.0",
@@ -974,7 +1002,8 @@ void abi_serialize_json_mismatching_type() {
 }
 
 
-void abi_serialize_json_empty_name() {
+//void abi_serialize_json_empty_name() {
+BOOST_AUTO_TEST_CASE( abi_serialize_json_empty_name ) {
 
     auto abi = R"({
       "version": "wasm::abi/1.0",
@@ -1003,7 +1032,8 @@ void abi_serialize_json_empty_name() {
 }
 
 
-void general() {
+//void general() {
+BOOST_AUTO_TEST_CASE( general ) {
     const char *my_abi = R"=====(
 {
    "version": "wasm::abi/1.0",
@@ -1406,7 +1436,8 @@ void general() {
 }
 
 
-void abi_token() {
+//void abi_token() {
+BOOST_AUTO_TEST_CASE( abi_token ) {
 
     string abiJson;
 
@@ -1473,35 +1504,36 @@ void abi_token() {
 
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 
-int main( int argc, char **argv ) {
+// int main( int argc, char **argv ) {
 
-    general();
-    abi_token();
-    version();
-    abi_cycle();
-    abi_type_repeat();
-    abi_struct_repeat();
-    abi_action_repeat();
-    abi_table_repeat();
-    abi_type_def();
-    abi_type_redefine();
-    abi_type_redefine_to_name();
-    abi_type_nested_in_vector();
-    abi_large_array();
-    abi_is_type_recursion();
-    abi_recursive_structs();
-    abi_very_deep_structs();
-    abi_very_deep_structs_1us();
-    abi_deep_structs_validate();
-    abi_serialize_incomplete_json_array();
-    abi_serialize_incomplete_json_object();
-    abi_serialize_json_mismatching_type();
-    abi_serialize_json_empty_name();
+//     general();
+//     abi_token();
+//     version();
+//     abi_cycle();
+//     abi_type_repeat();
+//     abi_struct_repeat();
+//     abi_action_repeat();
+//     abi_table_repeat();
+//     abi_type_def();
+//     abi_type_redefine();
+//     abi_type_redefine_to_name();
+//     abi_type_nested_in_vector();
+//     abi_large_array();
+//     abi_is_type_recursion();
+//     abi_recursive_structs();
+//     abi_very_deep_structs();
+//     abi_very_deep_structs_1us();
+//     abi_deep_structs_validate();
+//     abi_serialize_incomplete_json_array();
+//     abi_serialize_incomplete_json_object();
+//     abi_serialize_json_mismatching_type();
+//     abi_serialize_json_empty_name();
 
-    return 0;
+//     return 0;
 
-}
+// }
 
 
 

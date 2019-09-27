@@ -1209,9 +1209,7 @@ namespace wasm {
 
     template<typename DataStream, typename... Args>
     DataStream &operator<<( DataStream &ds, const std::tuple<Args...> &t ) {
-
         tuple_write<DataStream, decltype(t), sizeof...(Args)>::write(t, ds);
-
         return ds;
     }
 
@@ -1223,7 +1221,6 @@ namespace wasm {
             ds >> std::get<N - 1>(t);
         }
     };
-
 
     template<typename DataStream, typename Tuple>
     struct tuple_read<DataStream, Tuple, 1> {
