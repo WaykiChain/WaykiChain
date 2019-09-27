@@ -17,11 +17,11 @@
 
 using namespace std;
 
-class CCDPDBCache {
+class CCdpDBCache {
 public:
-    CCDPDBCache() {}
-    CCDPDBCache(CDBAccess *pDbAccess);
-    CCDPDBCache(CCDPDBCache *pBaseIn);
+    CCdpDBCache() {}
+    CCdpDBCache(CDBAccess *pDbAccess);
+    CCdpDBCache(CCdpDBCache *pBaseIn);
 
     bool NewCDP(const int32_t blockHeight, CUserCDP &cdp);
     bool EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp);
@@ -42,7 +42,7 @@ public:
                                                 const uint64_t globalCollateralRatioLimit);
     bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake, const uint64_t globalCollateralCeiling);
 
-    void SetBaseViewPtr(CCDPDBCache *pBaseIn);
+    void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
     bool UndoDatas();
     uint32_t GetCacheSize() const;
