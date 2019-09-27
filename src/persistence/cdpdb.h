@@ -93,14 +93,15 @@ public:
         return closedCdpCache.GetData(cdpId.GetHex(), (uint8_t&) closeType);
     }
 
-    bool UndoData() {
-        return closedCdpCache.UndoData();
-    }
+    uint32_t GetCacheSize() const { return closedCdpCache.GetCacheSize(); }
 
-    bool Flush() {
-        closedCdpCache.Flush();
-        return true;
-    }
+    void SetBaseViewPtr(CClosedCdpDBCache *pBaseIn) { closedCdpCache.SetBase(&pBaseIn->closedCdpCache); }
+
+    void Flush() { closedCdpCache.Flush(); }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { closedCdpCache.SetDbOpLogMap(pDbOpLogMapIn); }
+
+    bool UndoData() { return closedCdpCache.UndoData(); }
 
 private:
   // ccdp{$cdpid} -> CDPCloseType enum

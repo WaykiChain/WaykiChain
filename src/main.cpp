@@ -1453,6 +1453,7 @@ bool static WriteChainState(CValidationState &state) {
         pCdMan->pContractCache->GetCacheSize() +
         pCdMan->pDelegateCache->GetCacheSize() +
         pCdMan->pCdpCache->GetCacheSize() +
+        pCdMan->pClosedCdpCache->GetCacheSize() +
         pCdMan->pDexCache->GetCacheSize() +
         pCdMan->pLogCache->GetCacheSize() +
         pCdMan->pReceiptCache->GetCacheSize();

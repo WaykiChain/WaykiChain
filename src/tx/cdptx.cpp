@@ -485,7 +485,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         } else {
             if (SysCfg().GetArg("-persistclosedcdp", false)) {
                 if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_REDEEM)) {
-                    LogPrint("ERROR", "persistclosedcdp add failed for redeemed cdpid (%s)", oldCDP.cdpid);
+                    LogPrint("ERROR", "persistclosedcdp add failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
             }
         }
@@ -811,7 +811,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         } else if (SysCfg().GetArg("-persistclosedcdp", false)) {
             if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_MAN_LIQUIDATE)) {
-                LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid);
+                LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
             }
         }
 
