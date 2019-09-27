@@ -22,6 +22,7 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CContractDBCache* pContractCacheIn,
                              CDelegateDBCache* pDelegateCacheIn,
                              CCdpDBCache* pCdpCacheIn,
+                             CClosedCdpDBCache* pClosedCdpCacheIn,
                              CDexDBCache* pDexCacheIn,
                              CTxReceiptDBCache* pReceiptCacheIn,
                              CTxMemCache* pTxCacheIn,
@@ -33,6 +34,7 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
     contractCache.SetBaseViewPtr(pContractCacheIn);
     delegateCache.SetBaseViewPtr(pDelegateCacheIn);
     cdpCache.SetBaseViewPtr(pCdpCacheIn);
+    closedCdpCache.SetBaseViewPtr(pClosedCdpCacheIn);
     dexCache.SetBaseViewPtr(pDexCacheIn);
     txReceiptCache.SetBaseViewPtr(pReceiptCacheIn);
 
@@ -48,6 +50,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     contractCache.SetBaseViewPtr(&cwIn->contractCache);
     delegateCache.SetBaseViewPtr(&cwIn->delegateCache);
     cdpCache.SetBaseViewPtr(&cwIn->cdpCache);
+    closedCdpCache.SetBaseViewPtr(&cwIn->closedCdpCache);
     dexCache.SetBaseViewPtr(&cwIn->dexCache);
     txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
 
@@ -63,6 +66,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     contractCache.SetBaseViewPtr(pCdMan->pContractCache);
     delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
     cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+    closedCdpCache.SetBaseViewPtr(pCdMan->pClosedCdpCache);
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
     txReceiptCache.SetBaseViewPtr(pCdMan->pReceiptCache);
 
@@ -78,6 +82,7 @@ void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
     contractCache  = *pCdMan->pContractCache;
     delegateCache  = *pCdMan->pDelegateCache;
     cdpCache       = *pCdMan->pCdpCache;
+    closedCdpCache = *pCdMan->pClosedCdpCache;
     dexCache       = *pCdMan->pDexCache;
     txReceiptCache = *pCdMan->pReceiptCache;
 
@@ -96,6 +101,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->contractCache  = other.contractCache;
     this->delegateCache  = other.delegateCache;
     this->cdpCache       = other.cdpCache;
+    this->closedCdpCache = other.closedCdpCache;
     this->dexCache       = other.dexCache;
     this->txReceiptCache = other.txReceiptCache;
     this->txCache        = other.txCache;
@@ -124,6 +130,7 @@ bool CCacheWrapper::UndoData(CBlockUndo &blockUndo) {
                     contractCache.UndoData() &&
                     delegateCache.UndoData() &&
                     cdpCache.UndoData() &&
+                    closedCdpCache.UndoData() &&
                     dexCache.UndoData() &&
                     txReceiptCache.UndoData();
 
@@ -143,6 +150,7 @@ void CCacheWrapper::Flush() {
     contractCache.Flush();
     delegateCache.Flush();
     cdpCache.Flush();
+    closedCdpCache.Flush();
     dexCache.Flush();
     txReceiptCache.Flush();
 
@@ -160,6 +168,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     contractCache.SetDbOpLogMap(pDbOpLogMap);
     delegateCache.SetDbOpLogMap(pDbOpLogMap);
     cdpCache.SetDbOpLogMap(pDbOpLogMap);
+    closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
 }

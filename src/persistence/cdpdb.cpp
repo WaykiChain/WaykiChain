@@ -30,11 +30,7 @@ bool CCdpDBCache::EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp) {
 
 // Need to delete the old cdp(before updating cdp), then save the new cdp if necessary.
 bool CCdpDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
-    if (newCDP.IsFinished()) {
-        return EraseCDPFromDB(newCDP) && EraseCDPFromRatioDB(oldCDP);
-    } else {
-        return SaveCDPToDB(newCDP) && EraseCDPFromRatioDB(oldCDP) && SaveCDPToRatioDB(newCDP);
-    }
+    return SaveCDPToDB(newCDP) && EraseCDPFromRatioDB(oldCDP) && SaveCDPToRatioDB(newCDP);
 }
 
 bool CCdpDBCache::GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList) {

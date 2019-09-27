@@ -221,6 +221,9 @@ public:
     CDBAccess           *pCdpDb;
     CCdpDBCache         *pCdpCache;
 
+    CDBAccess           *pClosedCdpDb;
+    CClosedCdpDBCache   *pClosedCdpCache;
+
     CDBAccess           *pDexDb;
     CDexDBCache         *pDexCache;
 
@@ -257,6 +260,9 @@ public:
         pCdpDb          = new CDBAccess(DBNameType::CDP, false, fReIndex);
         pCdpCache       = new CCdpDBCache(pCdpDb);
 
+        pClosedCdpDb    = new CDBAccess(DBNameType::CLOSEDCDP, false, fReIndex);
+        pClosedCdpCache = new CClosedCdpDBCache(pClosedCdpDb);
+
         pDexDb          = new CDBAccess(DBNameType::DEX, false, fReIndex);
         pDexCache       = new CDexDBCache(pDexDb);
 
@@ -282,6 +288,7 @@ public:
         delete pContractCache;  pContractCache = nullptr;
         delete pDelegateCache;  pDelegateCache = nullptr;
         delete pCdpCache;       pCdpCache = nullptr;
+        delete pClosedCdpCache; pClosedCdpCache = nullptr;
         delete pDexCache;       pDexCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
         delete pReceiptCache;   pReceiptCache = nullptr;
@@ -294,6 +301,7 @@ public:
         delete pBlockIndexDb;   pBlockIndexDb = nullptr;
         delete pBlockCache;     pBlockCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
+        delete pClosedCdpDb;    pClosedCdpDb = nullptr;
         delete pDexDb;          pDexDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
         delete pReceiptDb;      pReceiptDb = nullptr;
@@ -318,6 +326,8 @@ public:
         if (pDelegateCache) pDelegateCache->Flush();
 
         if (pCdpCache) pCdpCache->Flush();
+
+        if (pClosedCdpCache) pClosedCdpCache->Flush();
 
         if (pDexCache) pDexCache->Flush();
 

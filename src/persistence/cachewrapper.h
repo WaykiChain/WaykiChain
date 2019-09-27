@@ -30,6 +30,7 @@ public:
     CContractDBCache    contractCache;
     CDelegateDBCache    delegateCache;
     CCdpDBCache         cdpCache;
+    CClosedCdpDBCache   closedCdpCache;
     CDexDBCache         dexCache;
     CTxReceiptDBCache   txReceiptCache;
 
@@ -51,6 +52,7 @@ public:
                   CContractDBCache* pContractCacheIn,
                   CDelegateDBCache* pDelegateCacheIn,
                   CCdpDBCache* pCdpCacheIn,
+                  CClosedCdpDBCache* pClosedCdpCacheIn,
                   CDexDBCache* pDexCacheIn,
                   CTxReceiptDBCache* pReceiptCacheIn,
                   CTxMemCache *pTxCacheIn,

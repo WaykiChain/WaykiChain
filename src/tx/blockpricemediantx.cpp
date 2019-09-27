@@ -195,6 +195,11 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             // c) Close the CDP
             const CUserCDP &oldCDP = cdp;
             cw.cdpCache.EraseCDP(oldCDP, cdp);
+            if (SysCfg().GetArg("-persistclosedcdp", false)) {
+                if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_FORCE_LIQUIDATE)) {
+                    LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid);
+                }
+            }
 
             // d) minus scoins from the risk reserve pool to repay CDP scoins
             currRiskReserveScoins -= cdp.total_owed_scoins;

@@ -69,7 +69,7 @@ private:
     // rcdp${CRegID} -> set<cdpid>
     CCompositeKVCache<      dbk::REGID_CDP, string,                     set<uint256>>       regId2CDPCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    CCompositeKVCache<      dbk::CDP_RATIO, std::pair<string, uint256>, CUserCDP>            ratioCDPIdCache;
+    CCompositeKVCache<      dbk::CDP_RATIO, std::pair<string, uint256>, CUserCDP>           ratioCDPIdCache;
 };
 
 enum CDPCloseType: uint8_t {
@@ -85,16 +85,21 @@ public:
     CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpCache(pBaseIn->closedCdpCache) {};
 
 public:
-    bool AddClosedCdp(const string& cdpId, CDPCloseType& closeType) {
-        return closedCdpCache.SetData(cdpId, closeType);
+    bool AddClosedCdp(const uint256& cdpId, CDPCloseType closeType) {
+        return closedCdpCache.SetData(cdpId.GetHex(), closeType);
     }
 
-    bool UndoClosedCdp(const string& cdpId) {
-        return closedCdpCache.EraseData(cdpId);
+    bool GetClosedCdpById(const uint256& cdpId, CDPCloseType& closeType) {
+        return closedCdpCache.GetData(cdpId.GetHex(), (uint8_t&) closeType);
     }
 
-    bool GetClosedCdpById(const string& cdpId, CDPCloseType& closeType) {
-        return closedCdpCache.GetData(cdpId, (uint8_t&) closeType);
+    bool UndoData() {
+        return closedCdpCache.UndoData();
+    }
+
+    bool Flush() {
+        closedCdpCache.Flush();
+        return true;
     }
 
 private:

@@ -478,9 +478,17 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
 
     // check and save CDP to db
     if (cdp.IsFinished()) {
-        if (!cw.cdpCache.EraseCDP(oldCDP, cdp))
+        if (!cw.cdpCache.EraseCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, erase the finished CDP %s failed",
                             cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
+
+        } else {
+            if (SysCfg().GetArg("-persistclosedcdp", false)) {
+                if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_REDEEM)) {
+                    LogPrint("ERROR", "persistclosedcdp add failed for redeemed cdpid (%s)", oldCDP.cdpid);
+                }
+            }
+        }
     } else { // partial redeem
         if (assetAmount != 0) {
             uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
@@ -797,9 +805,15 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
             return false;
 
         // close CDP
-        if (!cw.cdpCache.EraseCDP(oldCDP, cdp))
+        if (!cw.cdpCache.EraseCDP(oldCDP, cdp)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, erase CDP failed! cdpid=%s",
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
+
+        } else if (SysCfg().GetArg("-persistclosedcdp", false)) {
+            if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_MAN_LIQUIDATE)) {
+                LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid);
+            }
+        }
 
         receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, totalScoinsToLiquidate,
                               ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR);
