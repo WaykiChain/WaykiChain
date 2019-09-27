@@ -109,7 +109,10 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             }
         }
 
-        int32_t cdpIndex = 0;
+        int32_t cdpIndex              = 0;
+        uint64_t totalDestoriedScoins = 0;
+        uint64_t totalInflateFcoins   = 0;
+        vector<CReceipt> receipts;
         CAccount fcoinGenesisAccount;
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
@@ -183,6 +186,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                             pFcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
                 }
 
+                totalInflateFcoins += fcoinsToInflate;
+
                 LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                     "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
                     "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
@@ -203,6 +208,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
             // d) minus scoins from the risk reserve pool to repay CDP scoins
             currRiskReserveScoins -= cdp.total_owed_scoins;
+            totalDestoriedScoins += cdp.total_owed_scoins;
         }
 
         // 4. update fcoin genesis account
@@ -213,6 +219,21 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                              UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
         cw.accountCache.SaveAccount(fcoinGenesisAccount);
+
+        if (totalDestoriedScoins > 0) {
+            receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalDestoriedScoins,
+                                  ReceiptCode::CDP_DESTROY_SCOIN_FROM_RESERVE);
+        }
+
+        if (totalInflateFcoins > 0) {
+            receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
+                                  ReceiptCode::CDP_INFLATE_FCOIN_TO_RESERVE);
+        }
+
+        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+
     } while (false);
 
     return true;

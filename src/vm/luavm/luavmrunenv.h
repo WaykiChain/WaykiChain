@@ -63,9 +63,9 @@ private:
 
     vector<CReceipt> receipts;
 
-	vector<CVmOperate> vmOperateOutput;   //保存操作结果
+    vector<CVmOperate> vmOperateOutput;  // save operate output
     uint32_t transfer_count;
-    bool isCheckAccount;  //校验账户平衡开关
+    bool isCheckAccount;  // check account balance
 
     map<vector<uint8_t>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
 private:

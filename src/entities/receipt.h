@@ -39,6 +39,8 @@ static CUserID nullId;
     DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           407, "minted scoins to cdp owner") \
     DEFINE(CDP_REPAID_SCOIN_FROM_OWNER,         408, "real repaid scoins from cdp owner") \
     DEFINE(CDP_REDEEMED_ASSET_TO_OWNER,         409, "redeemed assets to cdp owner") \
+    DEFINE(CDP_DESTROY_SCOIN_FROM_RESERVE,      410, "total destroy scoins from risk reserve") \
+    DEFINE(CDP_INFLATE_FCOIN_TO_RESERVE,        411, "total inflate fcoins to risk reserve") \
     /**** DEX */ \
     DEFINE(DEX_ASSET_FEE_TO_SETTLER,            501, "dex deal asset fee from buyer to settler") \
     DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \
