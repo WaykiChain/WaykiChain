@@ -80,9 +80,12 @@ enum CDPCloseType: uint8_t {
 
 class CClosedCdpDBCache {
 public:
-    CClosedCdpDBCache() {}
-    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpCache(pDbAccess) {};
-    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpCache(pBaseIn->closedCdpCache) {};
+    CClosedCdpDBCache() {};
+
+    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpTxCache(pDbAccess), closedTxCdpCache(pDbAccess) {};
+
+    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpTxCache(pBaseIn->closedCdpCache),
+            closedTxCdpCache(pBaseIn->closedCdpCache){};
 
 public:
     bool AddClosedCdpIndex(const uint256& closedCdpId, const uint256& closedCdpTxId, CDPCloseType closeType) {
@@ -101,15 +104,27 @@ public:
         return closedTxCdpCache.GetData(closedCdpTxId, cdp);
     }
 
-    uint32_t GetCacheSize() const { return closedCdpCache.GetCacheSize(); }
+    uint32_t GetCacheSize() const { return closedCdpTxCache.GetCacheSize() + closedTxCdpCache.GetCacheSize(); }
 
-    void SetBaseViewPtr(CClosedCdpDBCache *pBaseIn) { closedCdpCache.SetBase(&pBaseIn->closedCdpCache); }
+    void SetBaseViewPtr(CClosedCdpDBCache *pBaseIn) {
+        closedCdpTxCache.SetBase(&pBaseIn->closedCdpTxCache);
+        closedTxCdpCache.SetBase(&pBaseIn->closedTxCdpCache);
+    }
 
-    void Flush() { closedCdpCache.Flush(); }
+    void Flush() {
+        closedCdpTxCache.Flush();
+        closedTxCdpCache.Flush();
+    }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { closedCdpCache.SetDbOpLogMap(pDbOpLogMapIn); }
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        closedCdpTxCache.SetDbOpLogMap(pDbOpLogMapIn);
+        closedTxCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
 
-    bool UndoData() { return closedCdpCache.UndoData(); }
+    bool UndoData() {
+        return closedCdpCache.UndoData();
+        closedTxCdpCache.UndoData();
+    }
 
 private:
     // ccdp${closed_cdpid} -> <closedCdpTxId, closeType>
