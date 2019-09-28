@@ -84,23 +84,23 @@ public:
 
     CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpTxCache(pDbAccess), closedTxCdpCache(pDbAccess) {};
 
-    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpTxCache(pBaseIn->closedCdpCache),
-            closedTxCdpCache(pBaseIn->closedCdpCache){};
+    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpTxCache(&pBaseIn->closedCdpTxCache),
+            closedTxCdpCache(&pBaseIn->closedTxCdpCache){};
 
 public:
     bool AddClosedCdpIndex(const uint256& closedCdpId, const uint256& closedCdpTxId, CDPCloseType closeType) {
-        return (closedCdpTxCache.SetData(closedCdpId, Pair(closeCdpTxId, closeType))) {
+        return closedCdpTxCache.SetData(closedCdpId, {closedCdpTxId, (uint8_t)closeType});
     }
 
     bool AddClosedCdpTxIndex(const uint256& closedCdpTxId, const uint256& closedCdpId, CDPCloseType closeType) {
-        return  closedTxCdpCache.SetData(closeCdpTxId, Pair(closedCdpId, closeType));
+        return  closedTxCdpCache.SetData(closedCdpTxId, {closedCdpId, closeType});
     }
 
-    bool GetClosedCdpById(const uint256& closedCdpId, Pair<uint256, uint8_t> cdp) {
+    bool GetClosedCdpById(const uint256& closedCdpId, std::pair<uint256, uint8_t> cdp) {
         return closedCdpTxCache.GetData(closedCdpId, cdp);
     }
 
-    bool GetClosedCdpByTxId(const uint256& closedCdpTxId, Pair<uint256, uint8_t> cdp) {
+    bool GetClosedCdpByTxId(const uint256& closedCdpTxId, std::pair<uint256, uint8_t> cdp) {
         return closedTxCdpCache.GetData(closedCdpTxId, cdp);
     }
 
@@ -122,7 +122,7 @@ public:
     }
 
     bool UndoData() {
-        return closedCdpCache.UndoData();
+        return closedCdpTxCache.UndoData();
         closedTxCdpCache.UndoData();
     }
 
