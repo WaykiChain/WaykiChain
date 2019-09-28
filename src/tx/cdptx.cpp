@@ -974,9 +974,9 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
-                              ReceiptCode::CDP_PENALTY_TO_RISK_RISERVE);
+                              ReceiptCode::CDP_PENALTY_TO_RISERVE);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty,
-                              ReceiptCode::CDP_PENALTY_TO_SYS_ORDER);
+                              ReceiptCode::CDP_PENALTY_BUY_DEFLATE_FCOINS);
     } else {
         // send penalty fees into risk riserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees)) {
@@ -984,7 +984,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
         }
         receipts.emplace_back(nullId, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinPenaltyFees,
-                              ReceiptCode::CDP_PENALTY_TO_RISK_RISERVE);
+                              ReceiptCode::CDP_PENALTY_TO_RISERVE);
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))

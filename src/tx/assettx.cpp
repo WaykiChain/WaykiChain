@@ -65,9 +65,9 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
     if (action == ASSET_ACTION_ISSUE)
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_ISSUED_FEE_TO_RISK_RISERVE);
+        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_ISSUED_FEE_TO_RISERVE);
     else
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_UPDATED_FEE_TO_RISK_RISERVE);
+        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_UPDATED_FEE_TO_RISERVE);
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",

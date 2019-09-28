@@ -23,24 +23,27 @@ static CUserID nullId;
     DEFINE(COIN_BLOCK_REWORD_TO_MINER,          102, "coin block reward to miner") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
     /**** transfer */ \
-    DEFINE(TRANSFER_FEE_TO_RISK_RISERVE,        201, "transferred fee to risk riserve") \
+    DEFINE(TRANSFER_FEE_TO_RISERVE,             201, "transferred fee to risk riserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \
     DEFINE(DELEGATE_VOTE_INTEREST,              303, "delegate vote interest") \
-    /**** CDP */ \
-    DEFINE(CDP_SCOIN_FROM_LIQUIDATOR,           401, "cdp scoins to liquidator") \
-    DEFINE(CDP_ASSET_TO_LIQUIDATOR,             402, "cdp assets to liquidator") \
-    DEFINE(CDP_LIQUIDATED_ASSET_TO_OWNER,       403, "cdp liquidated assets to owner") \
-    DEFINE(CDP_PENALTY_TO_RISK_RISERVE,         404, "half scoin penalty to risk riserve directly") \
-    DEFINE(CDP_PENALTY_TO_SYS_ORDER,            405, "half scoin penalty to sys order") \
-    DEFINE(CDP_STAKED_ASSET_FROM_OWNER,         406, "staked assets from cdp owner") \
-    DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           407, "minted scoins to cdp owner") \
-    DEFINE(CDP_REPAID_SCOIN_FROM_OWNER,         408, "real repaid scoins from cdp owner") \
-    DEFINE(CDP_REDEEMED_ASSET_TO_OWNER,         409, "redeemed assets to cdp owner") \
-    DEFINE(CDP_DESTROY_SCOIN_FROM_RESERVE,      410, "total destroy scoins from risk reserve") \
-    DEFINE(CDP_INFLATE_FCOIN_TO_RESERVE,        411, "total inflate fcoins to risk reserve") \
+    /**** CDP stake*/ \
+    DEFINE(CDP_STAKED_ASSET_FROM_OWNER,         401, "staked assets from cdp owner") \
+    DEFINE(CDP_MINTED_SCOIN_TO_OWNER,           402, "minted scoins to cdp owner") \
+    /**** CDP redeem*/ \
+    DEFINE(CDP_REPAID_SCOIN_FROM_OWNER,         420, "actual repaid scoins from cdp owner") \
+    DEFINE(CDP_REDEEMED_ASSET_TO_OWNER,         421, "redeemed assets to cdp owner") \
+    /**** CDP user liquidate*/ \
+    DEFINE(CDP_SCOIN_FROM_LIQUIDATOR,           440, "cdp scoins from liquidator") \
+    DEFINE(CDP_ASSET_TO_LIQUIDATOR,             441, "cdp assets to liquidator") \
+    DEFINE(CDP_LIQUIDATED_ASSET_TO_OWNER,       442, "cdp liquidated assets to owner") \
+    DEFINE(CDP_PENALTY_TO_RISERVE,              443, "half penalty scoins to risk riserve directly") \
+    DEFINE(CDP_PENALTY_BUY_DEFLATE_FCOINS,      444, "half penalty scoins buy fcoins for deflating") \
+    /**** CDP system liquidate*/ \
+    DEFINE(CDP_DEFLATE_SCOIN_FROM_RESERVE,      460, "total deflate scoins from risk reserve") \
+    DEFINE(CDP_INFLATE_FCOIN_TO_RESERVE,        461, "total inflate fcoins to risk reserve") \
     /**** DEX */ \
     DEFINE(DEX_ASSET_FEE_TO_SETTLER,            501, "dex deal asset fee from buyer to settler") \
     DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \
@@ -56,8 +59,8 @@ static CUserID nullId;
     DEFINE(CONTRACT_ACCOUNT_OPERATE_SUB,        607, "operate sub bcoins of account by contract") \
     DEFINE(CONTRACT_ACCOUNT_TRANSFER_ASSET,     608, "transfer account asset by contract") \
     /**** asset */ \
-    DEFINE(ASSET_ISSUED_FEE_TO_RISK_RISERVE,    701, "asset issued fee to risk riserve") \
-    DEFINE(ASSET_UPDATED_FEE_TO_RISK_RISERVE,   702, "asset updated fee to risk riserve") \
+    DEFINE(ASSET_ISSUED_FEE_TO_RISERVE,         701, "asset issued fee to risk riserve") \
+    DEFINE(ASSET_UPDATED_FEE_TO_RISERVE,        702, "asset updated fee to risk riserve") \
     DEFINE(ASSET_ISSUED_FEE_TO_MINER,           703, "asset issued fee to miner") \
     DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner")
 

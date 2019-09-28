@@ -222,7 +222,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
         if (totalDestoriedScoins > 0) {
             receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalDestoriedScoins,
-                                  ReceiptCode::CDP_DESTROY_SCOIN_FROM_RESERVE);
+                                  ReceiptCode::CDP_DEFLATE_SCOIN_FROM_RESERVE);
         }
 
         if (totalInflateFcoins > 0) {

@@ -227,7 +227,7 @@ bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
                 CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-                receipts.emplace_back(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RISK_RISERVE);
+                receipts.emplace_back(txUid, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RISERVE);
                 receipts.emplace_back(txUid, transfer.to_uid, SYMB::WUSD, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS);
             }
         }
