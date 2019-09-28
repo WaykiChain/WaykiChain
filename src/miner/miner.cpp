@@ -238,7 +238,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
                 return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;
-            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), spCW.get(), &state);
+            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), pBlock->GetTime(), spCW.get(), &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
@@ -283,6 +283,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev = chainActive.Tip();
+        UpdateTime(*pBlock, pIndexPrev);
+        uint32_t blockTime      = pBlock->GetTime();
         int32_t height          = pIndexPrev->height + 1;
         int32_t index           = 0; // block reward tx
         uint32_t fuelRate       = GetElementForBurn(pIndexPrev);
@@ -315,7 +317,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             try {
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
-                CTxExecuteContext context(height, index + 1, fuelRate, spCW.get(), &state);
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, spCW.get(), &state);
                 if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
@@ -471,7 +473,6 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             }
 
             auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
-            spCW->SetBlockTime(blockTime);
 
             try {
                 CValidationState state;
@@ -494,7 +495,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 LogPrint("MINER", "CreateNewBlockStableCoinRelease() : begin to pack transaction: %s\n",
                          pBaseTx->ToString(spCW->accountCache));
 
-                CTxExecuteContext context(height, index + 1, fuelRate, spCW.get(), &state);
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, spCW.get(), &state);
                 if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction: %s\n",
                              pBaseTx->ToString(spCW->accountCache));

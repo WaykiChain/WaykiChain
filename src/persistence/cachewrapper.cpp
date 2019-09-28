@@ -158,8 +158,6 @@ void CCacheWrapper::Flush() {
     ppCache.Flush();
 }
 
-void CCacheWrapper::SetBlockTime(const uint32_t blockTimeIn) { blockTime = blockTimeIn; }
-
 void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     sysParamCache.SetDbOpLogMap(pDbOpLogMap);
     blockCache.SetDbOpLogMap(pDbOpLogMap);
