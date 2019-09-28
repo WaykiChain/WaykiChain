@@ -176,8 +176,9 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.GetCDPList(account.regid, userCdps) && userCdps.size() > 0) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp! regid=%s, old_cdpid=%s",
-                account.regid.ToString(), userCdps.at(0).cdpid.ToString()), REJECT_INVALID, "has-open-cdp");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp! txid=%s, regid=%s, old_cdpid=%s",
+                             GetHash().GetHex(), account.regid.ToString(), userCdps.at(0).cdpid.ToString()),
+                             REJECT_INVALID, "has-open-cdp");
         }
 
         if (partialCollateralRatio < startingCdpCollateralRatio)
@@ -871,7 +872,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
         if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small, "
-                            "txid: %s, cdp: %s, height: %d, price: %llu", cdp.total_staked_bcoins, bcoinsToStakeAmountMin,
+                            "txid=%s, cdp=%s, height=%d, price=%llu", cdp.total_staked_bcoins, bcoinsToStakeAmountMin,
                             GetHash().GetHex(), cdp.ToString(), context.height, bcoinMedianPrice),
                             REJECT_INVALID, "total-staked-bcoins-too-small");
         }
