@@ -148,6 +148,8 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserID
 
+const CUserID CUserID::NULL_ID = {};
+
 string CUserID::ToDebugString() const {
         if (is<CRegID>()) {
             return "R:" + get<CRegID>().ToString();

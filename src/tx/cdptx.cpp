@@ -825,6 +825,8 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol,
                               (uint64_t)totalBcoinsToCdpOwner,
                               ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER);
+        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, cdp.total_owed_scoins,
+                              ReceiptCode::CDP_LIQUIDATED_CLOSEOUT_SCOIN);
 
     } else {    // partial liquidation
         double liquidateRate = (double)scoins_to_liquidate / totalScoinsToLiquidate;  // unboosted on purpose
@@ -856,12 +858,12 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
             }
         }
 
-        uint64_t scoinsToLiquidate = cdp.total_owed_scoins * liquidateRate;
+        uint64_t scoinsToCloseout = cdp.total_owed_scoins * liquidateRate;
         uint64_t bcoinsToLiquidate = totalBcoinsToReturnLiquidator + bcoinsToCDPOwner;
 
-        assert(cdp.total_owed_scoins > scoinsToLiquidate);
+        assert(cdp.total_owed_scoins > scoinsToCloseout);
         assert(cdp.total_staked_bcoins > bcoinsToLiquidate);
-        cdp.LiquidatePartial(context.height, bcoinsToLiquidate, scoinsToLiquidate);
+        cdp.LiquidatePartial(context.height, bcoinsToLiquidate, scoinsToCloseout);
 
         uint64_t bcoinsToStakeAmountMinInScoin;
         if (!cw.sysParamCache.GetParam(CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN, bcoinsToStakeAmountMinInScoin)) {
@@ -886,12 +888,14 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
 
-        receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, scoins_to_liquidate,
+        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, scoins_to_liquidate,
                               ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR);
-        receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
+        receipts.emplace_back(CUserID::NULL_ID, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                               ReceiptCode::CDP_ASSET_TO_LIQUIDATOR);
-        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol, bcoinsToCDPOwner,
+        receipts.emplace_back(CUserID::NULL_ID, cdp.owner_regid, cdp.bcoin_symbol, bcoinsToCDPOwner,
                               ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER);
+        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, scoinsToCloseout,
+                              ReceiptCode::CDP_LIQUIDATED_CLOSEOUT_SCOIN);
     }
 
     if (!cw.accountCache.SetAccount(txUid, account))
