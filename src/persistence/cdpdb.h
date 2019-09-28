@@ -80,12 +80,12 @@ enum CDPCloseType: uint8_t {
 
 class CClosedCdpDBCache {
 public:
-    CClosedCdpDBCache() {};
+    CClosedCdpDBCache() {}
 
-    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpTxCache(pDbAccess), closedTxCdpCache(pDbAccess) {};
+    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpTxCache(pDbAccess), closedTxCdpCache(pDbAccess) {}
 
-    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpTxCache(&pBaseIn->closedCdpTxCache),
-            closedTxCdpCache(&pBaseIn->closedTxCdpCache){};
+    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn)
+        : closedCdpTxCache(&pBaseIn->closedCdpTxCache), closedTxCdpCache(&pBaseIn->closedTxCdpCache) {}
 
 public:
     bool AddClosedCdpIndex(const uint256& closedCdpId, const uint256& closedCdpTxId, CDPCloseType closeType) {
@@ -121,15 +121,13 @@ public:
         closedTxCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() {
-        return closedCdpTxCache.UndoData();
-        closedTxCdpCache.UndoData();
-    }
+    bool UndoData() { return closedCdpTxCache.UndoData() && closedTxCdpCache.UndoData(); }
 
 private:
+    /*  CCompositeKVCache     prefixType     key               value             variable  */
+    /*  ----------------   --------------   ------------   --------------    ----- --------*/
     // ccdp${closed_cdpid} -> <closedCdpTxId, closeType>
     CCompositeKVCache< dbk::CLOSED_CDP_TX, uint256, std::pair<uint256, uint8_t> > closedCdpTxCache;
-
     // ctx${$closed_cdp_txid} -> <closedCdpId, closeType> (no-force-liquidation)
     CCompositeKVCache< dbk::CLOSED_TX_CDP, uint256, std::pair<uint256, uint8_t> > closedTxCdpCache;
 };
