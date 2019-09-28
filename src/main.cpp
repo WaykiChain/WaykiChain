@@ -1783,10 +1783,6 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
 
     // Construct new block index object
     CBlockIndex *pIndexNew = new CBlockIndex(block);
-    if(block.GetHeight() == 0 )
-        pIndexNew->miner = CRegID("0-1");
-    else
-        pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
 
     assert(pIndexNew);
     {
@@ -1802,6 +1798,11 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         pIndexNew->height = pIndexNew->pprev->height + 1;
         pIndexNew->BuildSkip();
     }
+
+    if(block.GetHeight() == 0 )
+        pIndexNew->miner = CRegID("0-1");
+    else
+        pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
     pIndexNew->nTx        = block.vptx.size();
     pIndexNew->nChainWork = pIndexNew->height;
     pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
