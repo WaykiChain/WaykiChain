@@ -85,12 +85,20 @@ public:
     CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpCache(pBaseIn->closedCdpCache) {};
 
 public:
-    bool AddClosedCdp(const uint256& cdpId, CDPCloseType closeType) {
-        return closedCdpCache.SetData(cdpId.GetHex(), closeType);
+    bool AddClosedCdpIndex(const uint256& closedCdpId, const uint256& closedCdpTxId, CDPCloseType closeType) {
+        return (closedCdpTxCache.SetData(closedCdpId, Pair(closeCdpTxId, closeType))) {
     }
 
-    bool GetClosedCdpById(const uint256& cdpId, CDPCloseType& closeType) {
-        return closedCdpCache.GetData(cdpId.GetHex(), (uint8_t&) closeType);
+    bool AddClosedCdpTxIndex(const uint256& closedCdpTxId, const uint256& closedCdpId, CDPCloseType closeType) {
+        return  closedTxCdpCache.SetData(closeCdpTxId, Pair(closedCdpId, closeType));
+    }
+
+    bool GetClosedCdpById(const uint256& closedCdpId, Pair<uint256, uint8_t> cdp) {
+        return closedCdpTxCache.GetData(closedCdpId, cdp);
+    }
+
+    bool GetClosedCdpByTxId(const uint256& closedCdpTxId, Pair<uint256, uint8_t> cdp) {
+        return closedTxCdpCache.GetData(closedCdpTxId, cdp);
     }
 
     uint32_t GetCacheSize() const { return closedCdpCache.GetCacheSize(); }
@@ -104,8 +112,11 @@ public:
     bool UndoData() { return closedCdpCache.UndoData(); }
 
 private:
-  // ccdp{$cdpid} -> CDPCloseType enum
-    CCompositeKVCache< dbk::CDP_CLOSED, string, uint8_t>  closedCdpCache;
+    // ccdp${closed_cdpid} -> <closedCdpTxId, closeType>
+    CCompositeKVCache< dbk::CLOSED_CDP_TX, uint256, std::pair<uint256, uint8_t> > closedCdpTxCache;
+
+    // ctx${$closed_cdp_txid} -> <closedCdpId, closeType> (no-force-liquidation)
+    CCompositeKVCache< dbk::CLOSED_TX_CDP, uint256, std::pair<uint256, uint8_t> > closedTxCdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

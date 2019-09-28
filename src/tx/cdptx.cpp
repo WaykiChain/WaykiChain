@@ -486,8 +486,12 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
 
         } else {
             if (SysCfg().GetArg("-persistclosedcdp", false)) {
-                if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_REDEEM)) {
-                    LogPrint("ERROR", "persistclosedcdp add failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, GetHash(), CDPCloseType::BY_REDEEM)) {
+                    LogPrint("ERROR", "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                }
+
+                if (!cw.closedCdpCache.AddClosedCdpTxIndex(GetHash(), oldCDP.cdpid, CDPCloseType::BY_REDEEM)) {
+                    LogPrint("ERROR", "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
             }
         }
@@ -813,8 +817,12 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "erase-cdp-failed");
 
         } else if (SysCfg().GetArg("-persistclosedcdp", false)) {
-            if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_MAN_LIQUIDATE)) {
-                LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
+            if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, GetHash(), CDPCloseType::BY_MAN_LIQUIDATE)) {
+                LogPrint("ERROR", "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+            }
+
+            if (!cw.closedCdpCache.AddClosedCdpTxIndex(GetHash(), oldCDP.cdpid, CDPCloseType::BY_MAN_LIQUIDATE)) {
+                LogPrint("ERROR", "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
             }
         }
 
