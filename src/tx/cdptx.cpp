@@ -181,9 +181,9 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         if (partialCollateralRatio < startingCdpCollateralRatio)
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (%.2f%%) is smaller than the minimal (%.2f%%)",
-                            100.0 * partialCollateralRatio / RATIO_BOOST, 100.0 * startingCdpCollateralRatio / RATIO_BOOST),
-                            REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, 1st-time CDP creation, collateral ratio (%.2f%%) is "
+                            "smaller than the minimal (%.2f%%)", 100.0 * partialCollateralRatio / RATIO_BOOST,
+                            100.0 * startingCdpCollateralRatio / RATIO_BOOST), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
         CUserCDP cdp(account.regid, GetHash(), context.height, assetSymbol, scoin_symbol, assetAmount, scoins_to_mint);
 
@@ -231,8 +231,9 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t totalCollateralRatio = uint64_t(double(totalBcoinsToStake) * bcoinMedianPrice / PRICE_BOOST / totalScoinsToOwe * RATIO_BOOST);
 
         if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, collateral ratio (partial=%d, total=%d) is smaller than the minimal",
-                        partialCollateralRatio, totalCollateralRatio), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, further staking CDP, collateral ratio (partial=%.2f%%, "
+                            "total=%.2f%%) is smaller than the minimal", 100.0 * partialCollateralRatio / RATIO_BOOST,
+                            100.0 * totalCollateralRatio / RATIO_BOOST), REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
         uint64_t scoinsInterestToRepay;
@@ -743,8 +744,9 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint64_t collateralRatio = cdp.GetCollateralRatio(bcoinMedianPrice);
     if (collateralRatio > startingCdpLiquidateRatio) {  // 1.5++
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%llu) > %llu!",
-                        collateralRatio, startingCdpLiquidateRatio), REJECT_INVALID, "cdp-not-liquidate-ready");
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, cdp collateralRatio(%.2f%%) > %.2f%%!",
+                     100.0 * collateralRatio / RATIO_BOOST, 100.0 * startingCdpLiquidateRatio / RATIO_BOOST),
+                     REJECT_INVALID, "cdp-not-liquidate-ready");
 
     } else if (collateralRatio > nonReturnCdpLiquidateRatio) { // 1.13 ~ 1.5
         totalBcoinsToReturnLiquidator = cdp.total_owed_scoins * (double)nonReturnCdpLiquidateRatio / RATIO_BOOST /
