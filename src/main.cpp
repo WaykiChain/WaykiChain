@@ -1456,6 +1456,7 @@ bool static WriteChainState(CValidationState &state) {
         pCdMan->pClosedCdpCache->GetCacheSize() +
         pCdMan->pDexCache->GetCacheSize() +
         pCdMan->pLogCache->GetCacheSize() +
+        pCdMan->pLogCache->GetCacheSize() +
         pCdMan->pReceiptCache->GetCacheSize();
 
     if (!IsInitialBlockDownload() || cachesize > SysCfg().GetCacheSize() ||
@@ -1950,7 +1951,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     if (!vPreBlocks.empty()) {
-        auto spNewForkCW          = std::make_shared<CCacheWrapper>(spCW.get());
+        auto spNewForkCW = std::make_shared<CCacheWrapper>(spCW.get());
         // Connect all of the forked chain's blocks.
         for (auto rIter = vPreBlocks.rbegin(); rIter != vPreBlocks.rend(); ++rIter) {
             LogPrint("INFO", "ProcessForkedChain() : ConnectBlock block height=%d hash=%s\n", rIter->GetHeight(),

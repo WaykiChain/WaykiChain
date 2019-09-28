@@ -22,7 +22,8 @@ using namespace std;
 // TODO: should erase history log?
 class CLogDBCache {
 public:
-    CLogDBCache(CDBAccess *pDbAccess) : executeFailCache(pDbAccess){};
+    CLogDBCache() {}
+    CLogDBCache(CDBAccess *pDbAccess) : executeFailCache(pDbAccess) {}
 
 public:
     bool SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
@@ -34,6 +35,10 @@ public:
     uint32_t GetCacheSize() const { return executeFailCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CLogDBCache *pBaseIn) { executeFailCache.SetBase(&pBaseIn->executeFailCache); }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { executeFailCache.SetDbOpLogMap(pDbOpLogMapIn); }
+
+    bool UndoData() { return executeFailCache.UndoData(); }
 
 private:
 /*  CCompositeKVCache    prefixType             key                 value                        variable      */
