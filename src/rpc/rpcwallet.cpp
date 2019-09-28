@@ -1,22 +1,22 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "commons/base58.h"
-#include "rpc/core/rpcserver.h"
-#include "rpc/core/rpccommons.h"
-#include "init.h"
-#include "net.h"
-#include "netbase.h"
-#include "commons/util.h"
-#include "miner/miner.h"
-#include "../wallet/wallet.h"
-#include "../wallet/walletdb.h"
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
+#include "commons/util.h"
+#include "init.h"
+#include "miner/miner.h"
+#include "net.h"
+#include "netbase.h"
 #include "persistence/contractdb.h"
+#include "rpc/core/rpccommons.h"
+#include "rpc/core/rpcserver.h"
 #include "vm/luavm/appaccount.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
