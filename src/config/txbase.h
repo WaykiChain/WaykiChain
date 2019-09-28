@@ -99,7 +99,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 
 { ACCOUNT_REGISTER_TX,      std::make_tuple("ACCOUNT_REGISTER_TX",      0,          0.1*COIN,   0.1*COIN,   0.1*COIN    ) }, //deprecated
 { BCOIN_TRANSFER_TX,        std::make_tuple("BCOIN_TRANSFER_TX",        0,          0.1*COIN,   0.1*COIN,   0.1*COIN    ) }, //deprecated
-{ LCONTRACT_DEPLOY_TX,      std::make_tuple("LCONTRACT_DEPLOY_TX",      0,          1*COIN,     1*COIN,     1*COIN      ) },
+{ LCONTRACT_DEPLOY_TX,      std::make_tuple("LCONTRACT_DEPLOY_TX",      1*COIN,     1*COIN,     1*COIN,     1*COIN      ) },
 { LCONTRACT_INVOKE_TX,      std::make_tuple("LCONTRACT_INVOKE_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) }, //min fee
 { DELEGATE_VOTE_TX,         std::make_tuple("DELEGATE_VOTE_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) },
 

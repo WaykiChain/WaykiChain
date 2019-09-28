@@ -15,7 +15,8 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
@@ -34,7 +35,7 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
                          REJECT_INVALID, "bad-read-accountdb");
     }
 
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
         CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
         IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
     }
@@ -51,7 +52,7 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
 
-        if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
+        if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
             if (!candidateAcct.HaveOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
@@ -62,14 +63,15 @@ bool CDelegateVoteTx::CheckTx(int height, CCacheWrapper &cw, CValidationState &s
     return true;
 }
 
-bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValidationState &state) {
+bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, read account info error"), UPDATE_ACCOUNT_FAIL,
                          "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -83,9 +85,11 @@ bool CDelegateVoteTx::ExecuteTx(int height, int index, CCacheWrapper &cw, CValid
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     vector<CReceipt> receipts;
-    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, height, cw.accountCache, receipts)) {
-        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s",
-                        txUid.ToString()), OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");
+    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, cw.blockTime, cw.accountCache,
+                                          receipts)) {
+        return state.DoS(
+            100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s", txUid.ToString()),
+            OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");
     }
     if (!cw.delegateCache.SetCandidateVotes(regId, candidateVotesInOut)) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, write candidate votes failed, txUid=%s", txUid.ToString()),

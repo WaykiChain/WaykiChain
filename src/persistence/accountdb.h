@@ -94,10 +94,10 @@ public:
         nickId2KeyIdCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoDatas() {
-        return accountCache.UndoDatas() &&
-               regId2KeyIdCache.UndoDatas() &&
-               nickId2KeyIdCache.UndoDatas();
+    bool UndoData() {
+        return accountCache.UndoData() &&
+               regId2KeyIdCache.UndoData() &&
+               nickId2KeyIdCache.UndoData();
     }
 private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */

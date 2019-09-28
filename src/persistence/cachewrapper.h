@@ -29,12 +29,15 @@ public:
     CAssetDBCache       assetCache;
     CContractDBCache    contractCache;
     CDelegateDBCache    delegateCache;
-    CCDPDBCache         cdpCache;
+    CCdpDBCache         cdpCache;
+    CClosedCdpDBCache   closedCdpCache;
     CDexDBCache         dexCache;
     CTxReceiptDBCache   txReceiptCache;
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
+
+    uint32_t            blockTime;
 
     CTxUndo             txUndo;
 public:
@@ -48,7 +51,8 @@ public:
                   CAssetDBCache* pAssetCache,
                   CContractDBCache* pContractCacheIn,
                   CDelegateDBCache* pDelegateCacheIn,
-                  CCDPDBCache* pCdpCacheIn,
+                  CCdpDBCache* pCdpCacheIn,
+                  CClosedCdpDBCache* pClosedCdpCacheIn,
                   CDexDBCache* pDexCacheIn,
                   CTxReceiptDBCache* pReceiptCacheIn,
                   CTxMemCache *pTxCacheIn,
@@ -60,12 +64,14 @@ public:
 
     void CopyFrom(CCacheDBManager* pCdMan);
 
-    void EnableTxUndoLog(const uint256 &txid);
+    void EnableTxUndoLog();
     void DisableTxUndoLog();
 
     const CTxUndo& GetTxUndo() const { return txUndo; }
 
-    bool UndoDatas(CBlockUndo &blockUndo);
+    bool UndoData(CBlockUndo &blockUndo);
+
+    void SetBlockTime(const uint32_t blockTimeIn);
 
     void Flush();
 private:

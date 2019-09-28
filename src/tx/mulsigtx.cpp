@@ -14,7 +14,8 @@
 #include "miner/miner.h"
 #include "config/version.h"
 
-bool CMulsigTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -85,7 +86,8 @@ bool CMulsigTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &sta
     return true;
 }
 
-bool CMulsigTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     CAccount desAccount;
 
@@ -94,7 +96,7 @@ bool CMulsigTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CVal
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(srcAccount, cw, state, height, index)) {
+    if (!GenerateRegID(context, srcAccount)) {
         return false;
     }
 
@@ -130,18 +132,17 @@ bool CMulsigTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CVal
     return true;
 }
 
-bool CMulsigTx::GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                              const int32_t index) {
+bool CMulsigTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
     CRegID regId;
-    if (cw.accountCache.GetRegId(CUserID(keyId), regId)) {
+    if (context.pCw->accountCache.GetRegId(CUserID(keyId), regId)) {
         // account has regid already, return
         return true;
     }
 
     // generate a new regid for the account
-    account.regid = CRegID(height, index);
-    if (!cw.accountCache.SaveAccount(account))
-        return state.DoS(100, ERRORMSG("CMulsigTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
+    account.regid = CRegID(context.height, context.index);
+    if (!context.pCw->accountCache.SaveAccount(account))
+        return context.pState->DoS(100, ERRORMSG("CMulsigTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
                          "bad-write-accountdb");
 
     return true;

@@ -8,6 +8,7 @@
 #include "main.h"
 #include "persistence/txdb.h"
 #include "tx/tx.h"
+#include "miner/miner.h"
 
 using namespace std;
 
@@ -108,7 +109,9 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
     if (bExecute) {
-        if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height(), 0, *spCW, state)) {
+        uint32_t fuelRate = GetElementForBurn(chainActive.Tip());
+        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, spCW.get(), &state);
+        if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
             return false;

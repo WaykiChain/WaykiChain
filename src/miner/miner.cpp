@@ -70,7 +70,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex) {
 }
 
 // Sort transactions by priority and fee to decide priority orders to process transactions.
-void GetPriorityTx(set<TxPriority> &txPriorities, const int32_t nFuelRate) {
+void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t nFuelRate) {
     static TokenSymbol feeSymbol;
     static uint64_t fee    = 0;
     static uint32_t txSize = 0;
@@ -83,7 +83,7 @@ void GetPriorityTx(set<TxPriority> &txPriorities, const int32_t nFuelRate) {
             feeSymbol = std::get<0>(mi->second.GetFees());
             fee       = std::get<1>(mi->second.GetFees());
             txSize    = mi->second.GetTxSize();
-            feePerKb  = double(fee - pBaseTx->GetFuel(nFuelRate)) / txSize * 1000.0;
+            feePerKb  = double(fee - pBaseTx->GetFuel(height, nFuelRate)) / txSize * 1000.0;
             priority  = mi->second.GetPriority();
 
             txPriorities.emplace(TxPriority(priority, feePerKb, mi->second.GetTransaction()));
@@ -238,7 +238,8 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
                 return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;
-            if (!pBaseTx->ExecuteTx(pBlock->GetHeight(), i, *spCW, state)) {
+            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), spCW.get(), &state);
+            if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
                 return ERRORMSG("VerifyRewardTx() : failed to execute transaction, txid=%s",
@@ -250,14 +251,14 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
                 return ERRORMSG("VerifyRewardTx() : block total run steps(%lu) exceed max run step(%lu)", totalRunStep,
                                 MAX_BLOCK_RUN_STEP);
 
-            totalFuel += pBaseTx->GetFuel(pBlock->GetFuelRate());
-            LogPrint("fuel", "VerifyRewardTx() : total fuel:%d, tx fuel:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
-                     pBaseTx->GetFuel(pBlock->GetFuelRate()), pBaseTx->nRunStep, pBlock->GetFuelRate(),
-                     pBaseTx->GetHash().GetHex());
+            uint32_t fuelFee = pBaseTx->GetFuel(pBlock->GetHeight(), pBlock->GetFuelRate());
+            totalFuel += fuelFee;
+            LogPrint("fuel", "VerifyRewardTx() : total fuel fee:%d, tx fuel fee:%d runStep:%d fuelRate:%d txid:%s\n", totalFuel,
+                     fuelFee, pBaseTx->nRunStep, pBlock->GetFuelRate(), pBaseTx->GetHash().GetHex());
         }
 
         if (totalFuel != pBlock->GetFuel())
-            return ERRORMSG("VerifyRewardTx() : total fuel(%lu) mismatch what(%u) in block header", totalFuel,
+            return ERRORMSG("VerifyRewardTx() : total fuel fee(%lu) mismatch what(%u) in block header", totalFuel,
                             pBlock->GetFuel());
     }
 
@@ -293,7 +294,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
         // Calculate && sort transactions from memory pool.
         set<TxPriority> txPriorities;
-        GetPriorityTx(txPriorities, fuelRate);
+        GetPriorityTx(height, txPriorities, fuelRate);
 
         LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
@@ -314,7 +315,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             try {
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
-                if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                CTxExecuteContext context(height, index + 1, fuelRate, spCW.get(), &state);
+                if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
 
@@ -336,7 +338,7 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
             spCW->Flush();
 
-            auto fuel        = pBaseTx->GetFuel(fuelRate);
+            auto fuel        = pBaseTx->GetFuel(height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC);
@@ -352,8 +354,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
 
             pBlock->vptx.push_back(itor->baseTx);
 
-            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d, runStep:%d, fuelRate:%d, txid:%s\n", totalFuel,
-                     pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+            LogPrint("fuel", "miner total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n", totalFuel,
+                     pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
         }
 
         nLastBlockTx                   = index + 1;
@@ -429,6 +431,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
         LOCK2(cs_main, mempool.cs);
 
         CBlockIndex *pIndexPrev            = chainActive.Tip();
+        UpdateTime(*pBlock, pIndexPrev);
+        uint32_t blockTime                 = pBlock->GetTime();
         int32_t height                     = pIndexPrev->height + 1;
         int32_t index                      = 0; // 0: block reward tx
         uint32_t fuelRate                  = GetElementForBurn(pIndexPrev);
@@ -440,7 +444,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
         // Calculate && sort transactions from memory pool.
         set<TxPriority> txPriorities;
-        GetPriorityTx(txPriorities, fuelRate);
+        GetPriorityTx(height, txPriorities, fuelRate);
 
         // Push block price median transaction into queue.
         txPriorities.emplace(TxPriority(PRICE_MEDIAN_TRANSACTION_PRIORITY, 0, std::make_shared<CBlockPriceMedianTx>(height)));
@@ -467,6 +471,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
             }
 
             auto spCW = std::make_shared<CCacheWrapper>(&cwIn);
+            spCW->SetBlockTime(blockTime);
 
             try {
                 CValidationState state;
@@ -489,7 +494,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 LogPrint("MINER", "CreateNewBlockStableCoinRelease() : begin to pack transaction: %s\n",
                          pBaseTx->ToString(spCW->accountCache));
 
-                if (!pBaseTx->CheckTx(height, *spCW, state) || !pBaseTx->ExecuteTx(height, index + 1, *spCW, state)) {
+                CTxExecuteContext context(height, index + 1, fuelRate, spCW.get(), &state);
+                if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction: %s\n",
                              pBaseTx->ToString(spCW->accountCache));
 
@@ -512,7 +518,7 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
             spCW->Flush();
 
-            auto fuel        = pBaseTx->GetFuel(fuelRate);
+            auto fuel        = pBaseTx->GetFuel(height, fuelRate);
             auto fees_symbol = std::get<0>(pBaseTx->GetFees());
             auto fees        = std::get<1>(pBaseTx->GetFees());
             assert(fees_symbol == SYMB::WICC || fees_symbol == SYMB::WUSD);
@@ -528,8 +534,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
             pBlock->vptx.push_back(itor->baseTx);
 
-            LogPrint("fuel", "miner total fuel:%d, tx fuel:%d, runStep:%d, fuelRate:%d, txid:%s\n", totalFuel,
-                     pBaseTx->GetFuel(fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
+            LogPrint("fuel", "miner total fuel fee:%d, tx fuel fee:%d, fuel:%d, fuelRate:%d, txid:%s\n", totalFuel,
+                     pBaseTx->GetFuel(height, fuelRate), pBaseTx->nRunStep, fuelRate, pBaseTx->GetHash().GetHex());
 
         }
 

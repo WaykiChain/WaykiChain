@@ -144,17 +144,15 @@ uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, cons
     return interest;
 }
 
-uint64_t CAccount::ComputeVoteFcoinInterest(uint64_t lastVotedBcoins, uint32_t currHeight) {
+uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currBlockTime) {
     if (lastVotedBcoins == 0)
         return 0;
 
-    uint32_t lastHeight = std::min((uint32_t)last_vote_height, (uint32_t)chainActive.Height());
-    currHeight = std::min((uint32_t)currHeight, (uint32_t)chainActive.Height());
-    if (lastHeight >= currHeight)
-        return 0;
+    uint32_t epoch_last_vote = last_vote_epoch;
+    uint32_t epoch_curr_vote = currBlockTime;
 
-    int64_t epoch_last_vote = chainActive[lastHeight]->GetBlockTime();
-    int64_t epoch_curr_vote = chainActive[currHeight]->GetBlockTime();
+    if (epoch_last_vote >= epoch_curr_vote)
+        return 0;
 
     if (SysCfg().NetworkID() == MAIN_NET) {
         if (epoch_curr_vote <= FCOIN_VOTEMINE_EPOCH_FROM ||
@@ -168,8 +166,8 @@ uint64_t CAccount::ComputeVoteFcoinInterest(uint64_t lastVotedBcoins, uint32_t c
             epoch_curr_vote = FCOIN_VOTEMINE_EPOCH_TO;
     }
 
-    uint64_t duration = epoch_curr_vote - epoch_last_vote;
-    if (duration == 0) return 0;
+    assert(epoch_curr_vote > epoch_last_vote);
+    uint32_t duration = epoch_curr_vote - epoch_last_vote;
 
     // interest = (1% * 21 billion) * (lastVotedBcoins/0.21 billion) * (duration / 365*24*3600)
     return (lastVotedBcoins * (duration / 31536000.0));
@@ -282,8 +280,9 @@ bool CAccount::IsFcoinWithinRange(uint64_t nAddMoney) {
 }
 
 bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVotesIn,
-                                    vector<CCandidateReceivedVote> &candidateVotesInOut, const uint32_t currHeight,
-                                    const CAccountDBCache &accountCache, vector<CReceipt> &receipts) {
+                                     vector<CCandidateReceivedVote> &candidateVotesInOut, const uint32_t currHeight,
+                                     const uint32_t currBlockTime, const CAccountDBCache &accountCache,
+                                     vector<CReceipt> &receipts) {
     if (currHeight < last_vote_height) {
         LogPrint("ERROR", "currHeight (%d) < last_vote_height (%d)", currHeight, last_vote_height);
         return false;
@@ -291,7 +290,6 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
     auto featureForkVersion = GetFeatureForkVersion(currHeight);
     uint64_t lastTotalVotes = GetToken(SYMB::WICC).voted_amount;
-    // assert(lastTotalVotes == GetVotedBcoins(candidateVotesInOut, currHeight));
 
     for (const auto &vote : candidateVotesIn) {
         const CUserID &voteId = vote.GetCandidateUid();
@@ -406,25 +404,25 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 return false;
 
             if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate)) {
-                return ERRORMSG("ProcessCandidateVotes() : add bcoins to infalte failed");
+                return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
             }
             receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
 
-            LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %lld\n",
+            LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %llu\n",
                     regid.ToString(), bcoinAmountToInflate);
 
             break;
         }
         case MAJOR_VER_R2: {  // only fcoins will be inflated for voters
-            uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currHeight);
+            uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currBlockTime);
 
             if (fcoinAmountToInflate > 0) {
                 if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate)) {
-                    return ERRORMSG("ProcessCandidateVotes() : add fcoins to infalte failed");
+                    return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
                 }
                 receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
 
-                LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %lld\n",
+                LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %llu\n",
                     regid.ToString(), fcoinAmountToInflate);
             }
             break;
@@ -433,8 +431,9 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
             return false;
     }
 
-    // Attention: update last vote height after computing vote staking interest.
+    // Attention: update last vote height/last vote epoch after computing vote staking interest.
     last_vote_height = currHeight;
+    last_vote_epoch  = currBlockTime;
 
     return true;
 }

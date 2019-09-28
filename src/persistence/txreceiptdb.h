@@ -31,15 +31,13 @@ public:
 
     void Flush();
 
-    uint32_t GetCacheSize() const {
-        return txReceiptCache.GetCacheSize();
-    }
+    uint32_t GetCacheSize() const { return txReceiptCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CTxReceiptDBCache *pBaseIn) { txReceiptCache.SetBase(&pBaseIn->txReceiptCache); }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { txReceiptCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
-    bool UndoDatas() { return txReceiptCache.UndoDatas(); }
+    bool UndoData() { return txReceiptCache.UndoData(); }
 
 private:
 /*       type               prefixType               key                     value                 variable               */

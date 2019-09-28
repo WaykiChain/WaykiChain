@@ -17,11 +17,11 @@
 
 using namespace std;
 
-class CCDPDBCache {
+class CCdpDBCache {
 public:
-    CCDPDBCache() {}
-    CCDPDBCache(CDBAccess *pDbAccess);
-    CCDPDBCache(CCDPDBCache *pBaseIn);
+    CCdpDBCache() {}
+    CCdpDBCache(CDBAccess *pDbAccess);
+    CCdpDBCache(CCdpDBCache *pBaseIn);
 
     bool NewCDP(const int32_t blockHeight, CUserCDP &cdp);
     bool EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp);
@@ -42,9 +42,9 @@ public:
                                                 const uint64_t globalCollateralRatioLimit);
     bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake, const uint64_t globalCollateralCeiling);
 
-    void SetBaseViewPtr(CCDPDBCache *pBaseIn);
+    void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
-    bool UndoDatas();
+    bool UndoData();
     uint32_t GetCacheSize() const;
     bool Flush();
 
@@ -69,7 +69,43 @@ private:
     // rcdp${CRegID} -> set<cdpid>
     CCompositeKVCache<      dbk::REGID_CDP, string,                     set<uint256>>       regId2CDPCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    CCompositeKVCache<      dbk::CDP_RATIO, std::pair<string, uint256>, CUserCDP>            ratioCDPIdCache;
+    CCompositeKVCache<      dbk::CDP_RATIO, std::pair<string, uint256>, CUserCDP>           ratioCDPIdCache;
+};
+
+enum CDPCloseType: uint8_t {
+    BY_REDEEM = 0,
+    BY_MAN_LIQUIDATE,
+    BY_FORCE_LIQUIDATE
+};
+
+class CClosedCdpDBCache {
+public:
+    CClosedCdpDBCache() {}
+    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpCache(pDbAccess) {};
+    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpCache(pBaseIn->closedCdpCache) {};
+
+public:
+    bool AddClosedCdp(const uint256& cdpId, CDPCloseType closeType) {
+        return closedCdpCache.SetData(cdpId.GetHex(), closeType);
+    }
+
+    bool GetClosedCdpById(const uint256& cdpId, CDPCloseType& closeType) {
+        return closedCdpCache.GetData(cdpId.GetHex(), (uint8_t&) closeType);
+    }
+
+    uint32_t GetCacheSize() const { return closedCdpCache.GetCacheSize(); }
+
+    void SetBaseViewPtr(CClosedCdpDBCache *pBaseIn) { closedCdpCache.SetBase(&pBaseIn->closedCdpCache); }
+
+    void Flush() { closedCdpCache.Flush(); }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { closedCdpCache.SetDbOpLogMap(pDbOpLogMapIn); }
+
+    bool UndoData() { return closedCdpCache.UndoData(); }
+
+private:
+  // ccdp{$cdpid} -> CDPCloseType enum
+    CCompositeKVCache< dbk::CDP_CLOSED, string, uint8_t>  closedCdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

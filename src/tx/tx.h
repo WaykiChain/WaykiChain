@@ -35,6 +35,21 @@ typedef uint256 TxID;
 string GetTxType(const TxType txType);
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
+class CTxExecuteContext {
+public:
+    int32_t height;
+    int32_t index;
+    uint32_t fuel_rate;
+    CCacheWrapper *pCw;
+    CValidationState *pState;
+
+    CTxExecuteContext() : height(0), index(0), fuel_rate(0), pCw(nullptr), pState(nullptr) {}
+
+    CTxExecuteContext(int32_t heightIn, int32_t indexIn, uint32_t fuelRateIn, CCacheWrapper *pCwIn,
+                      CValidationState *pStateIn)
+        : height(heightIn), index(indexIn), fuel_rate(fuelRateIn), pCw(pCwIn), pState(pStateIn) {}
+};
+
 class CBaseTx {
 public:
     static uint64_t nMinRelayTxFee;
@@ -80,8 +95,7 @@ public:
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
-    virtual uint64_t GetFuel(uint32_t nFuelRate);
-    uint32_t GetFuelRate(CBlockDBCache &blockCache);
+    virtual uint64_t GetFuel(int32_t height, uint32_t nFuelRate);
     virtual double GetPriority() const {
         return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
@@ -92,14 +106,13 @@ public:
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                  = 0;
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) = 0;
+    virtual bool CheckTx(CTxExecuteContext &context)                  = 0;
+    virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
 
     // If the sender has no regid before, geneate a regid for the sender.
-    bool GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                       const int32_t index);
+    bool GenerateRegID(CTxExecuteContext &context, CAccount &account);
 
     bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
     bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
@@ -173,7 +186,7 @@ public:
                          "arguments-size-toolarge");
 
 #define IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE                                                        \
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R1)                                                      \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                                      \
         return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__), \
                          REJECT_INVALID, "unsupported-tx-type-pre-stable-coin-release");
 
@@ -184,9 +197,9 @@ public:
      if (!kFeeSymbolSet.count(fee_symbol))                                                             \
         return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
             __FUNCTION__, fee_symbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");     \
-    if (!CheckTxFeeSufficient(fee_symbol, llFees, height)) {                                           \
+    if (!CheckTxFeeSufficient(fee_symbol, llFees, context.height)) {                                           \
         return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)",  \
-            __FUNCTION__, height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
+            __FUNCTION__, context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \
@@ -202,7 +215,7 @@ public:
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                        \
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {                      \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {                      \
         return state.DoS(100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),    \
                          REJECT_INVALID, "txUid-type-error");                                                \
     }                                                                                                        \

@@ -556,7 +556,7 @@ public:
         mapData[key] = value;
     }
 
-    bool UndoDatas() {
+    bool UndoData() {
         if (pDbOpLogMap != nullptr){
             const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
             if (pDbOpLogs != nullptr) {
@@ -854,7 +854,7 @@ public:
         dbOpLog.Get(*ptrData);
     }
 
-    bool UndoDatas() {
+    bool UndoData() {
         if (pDbOpLogMap != nullptr){
             const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
             if (pDbOpLogs != nullptr) {

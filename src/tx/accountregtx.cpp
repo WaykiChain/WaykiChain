@@ -16,7 +16,9 @@
 #include "vm/luavm/luavmrunenv.h"
 #include "miner/miner.h"
 
-bool CAccountRegisterTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.type() != typeid(CPubKey))
@@ -36,9 +38,11 @@ bool CAccountRegisterTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationS
     return true;
 }
 
-bool CAccountRegisterTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+
+bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
-    CRegID regId(height, index);
+    CRegID regId(context.height, context.index);
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, read source keyId %s account info error",

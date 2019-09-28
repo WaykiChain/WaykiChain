@@ -131,7 +131,7 @@ public:
 
 public:
     static shared_ptr<CUserID> ParseUserId(const string &idStr);
-
+    static const CUserID NULL_ID;
 public:
     CUserID() : uid(CNullID()) {}
 

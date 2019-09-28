@@ -21,7 +21,8 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CAssetDBCache* pAssetCache,
                              CContractDBCache* pContractCacheIn,
                              CDelegateDBCache* pDelegateCacheIn,
-                             CCDPDBCache* pCdpCacheIn,
+                             CCdpDBCache* pCdpCacheIn,
+                             CClosedCdpDBCache* pClosedCdpCacheIn,
                              CDexDBCache* pDexCacheIn,
                              CTxReceiptDBCache* pReceiptCacheIn,
                              CTxMemCache* pTxCacheIn,
@@ -33,6 +34,7 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
     contractCache.SetBaseViewPtr(pContractCacheIn);
     delegateCache.SetBaseViewPtr(pDelegateCacheIn);
     cdpCache.SetBaseViewPtr(pCdpCacheIn);
+    closedCdpCache.SetBaseViewPtr(pClosedCdpCacheIn);
     dexCache.SetBaseViewPtr(pDexCacheIn);
     txReceiptCache.SetBaseViewPtr(pReceiptCacheIn);
 
@@ -48,6 +50,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     contractCache.SetBaseViewPtr(&cwIn->contractCache);
     delegateCache.SetBaseViewPtr(&cwIn->delegateCache);
     cdpCache.SetBaseViewPtr(&cwIn->cdpCache);
+    closedCdpCache.SetBaseViewPtr(&cwIn->closedCdpCache);
     dexCache.SetBaseViewPtr(&cwIn->dexCache);
     txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
 
@@ -63,6 +66,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     contractCache.SetBaseViewPtr(pCdMan->pContractCache);
     delegateCache.SetBaseViewPtr(pCdMan->pDelegateCache);
     cdpCache.SetBaseViewPtr(pCdMan->pCdpCache);
+    closedCdpCache.SetBaseViewPtr(pCdMan->pClosedCdpCache);
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
     txReceiptCache.SetBaseViewPtr(pCdMan->pReceiptCache);
 
@@ -71,14 +75,15 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
 }
 
 void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
-    sysParamCache = *pCdMan->pSysParamCache;
-    blockCache = *pCdMan->pBlockCache;
-    accountCache = *pCdMan->pAccountCache;
-    assetCache = *pCdMan->pAssetCache;
-    contractCache = *pCdMan->pContractCache;
-    delegateCache = *pCdMan->pDelegateCache;
-    cdpCache = *pCdMan->pCdpCache;
-    dexCache = *pCdMan->pDexCache;
+    sysParamCache  = *pCdMan->pSysParamCache;
+    blockCache     = *pCdMan->pBlockCache;
+    accountCache   = *pCdMan->pAccountCache;
+    assetCache     = *pCdMan->pAssetCache;
+    contractCache  = *pCdMan->pContractCache;
+    delegateCache  = *pCdMan->pDelegateCache;
+    cdpCache       = *pCdMan->pCdpCache;
+    closedCdpCache = *pCdMan->pClosedCdpCache;
+    dexCache       = *pCdMan->pDexCache;
     txReceiptCache = *pCdMan->pReceiptCache;
 
     txCache = *pCdMan->pTxCache;
@@ -96,6 +101,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->contractCache  = other.contractCache;
     this->delegateCache  = other.delegateCache;
     this->cdpCache       = other.cdpCache;
+    this->closedCdpCache = other.closedCdpCache;
     this->dexCache       = other.dexCache;
     this->txReceiptCache = other.txReceiptCache;
     this->txCache        = other.txCache;
@@ -104,7 +110,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     return *this;
 }
 
-void CCacheWrapper::EnableTxUndoLog(const uint256 &txid) {
+void CCacheWrapper::EnableTxUndoLog() {
     txUndo.Clear();
     SetDbOpLogMap(&txUndo.dbOpLogMap);
 }
@@ -113,22 +119,23 @@ void CCacheWrapper::DisableTxUndoLog() {
     SetDbOpLogMap(nullptr);
 }
 
-bool CCacheWrapper::UndoDatas(CBlockUndo &blockUndo) {
+bool CCacheWrapper::UndoData(CBlockUndo &blockUndo) {
     for (auto it = blockUndo.vtxundo.rbegin(); it != blockUndo.vtxundo.rend(); it++) {
         // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
         SetDbOpLogMap(&it->dbOpLogMap);
-        bool ret =  sysParamCache.UndoDatas() &&
-                    blockCache.UndoDatas() &&
-                    accountCache.UndoDatas() &&
-                    assetCache.UndoDatas() &&
-                    contractCache.UndoDatas() &&
-                    delegateCache.UndoDatas() &&
-                    cdpCache.UndoDatas() &&
-                    dexCache.UndoDatas() &&
-                    txReceiptCache.UndoDatas();
+        bool ret =  sysParamCache.UndoData() &&
+                    blockCache.UndoData() &&
+                    accountCache.UndoData() &&
+                    assetCache.UndoData() &&
+                    contractCache.UndoData() &&
+                    delegateCache.UndoData() &&
+                    cdpCache.UndoData() &&
+                    closedCdpCache.UndoData() &&
+                    dexCache.UndoData() &&
+                    txReceiptCache.UndoData();
 
         if (!ret) {
-            return ERRORMSG("CCacheWrapper::UndoDatas() : undo datas of tx failed! txUndo=%s", txUndo.ToString());
+            return ERRORMSG("CCacheWrapper::UndoData() : undo data of tx failed! txUndo=%s", txUndo.ToString());
         }
     }
     return true;
@@ -143,12 +150,15 @@ void CCacheWrapper::Flush() {
     contractCache.Flush();
     delegateCache.Flush();
     cdpCache.Flush();
+    closedCdpCache.Flush();
     dexCache.Flush();
     txReceiptCache.Flush();
 
     txCache.Flush();
     ppCache.Flush();
 }
+
+void CCacheWrapper::SetBlockTime(const uint32_t blockTimeIn) { blockTime = blockTimeIn; }
 
 void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     sysParamCache.SetDbOpLogMap(pDbOpLogMap);
@@ -158,6 +168,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     contractCache.SetDbOpLogMap(pDbOpLogMap);
     delegateCache.SetDbOpLogMap(pDbOpLogMap);
     cdpCache.SetDbOpLogMap(pDbOpLogMap);
+    closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
 }

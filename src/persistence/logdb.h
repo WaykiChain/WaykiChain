@@ -31,9 +31,7 @@ public:
 
     void Flush();
 
-    uint32_t GetCacheSize() const {
-        return executeFailCache.GetCacheSize();
-    }
+    uint32_t GetCacheSize() const { return executeFailCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CLogDBCache *pBaseIn) { executeFailCache.SetBase(&pBaseIn->executeFailCache); }
 

@@ -9,7 +9,8 @@
 #include "config/configuration.h"
 #include "main.h"
 
-bool CCoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -41,13 +42,14 @@ bool CCoinStakeTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
     return true;
 }
 
-bool CCoinStakeTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinStakeTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CCoinStakeTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), UCOIN_STAKE_FAIL, "bad-read-accountdb");
 
-    if (!GenerateRegID(account, cw, state, height, index)) {
+    if (!GenerateRegID(context, account)) {
         return false;
     }
 

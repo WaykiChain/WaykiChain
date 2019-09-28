@@ -65,9 +65,9 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
             action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
     if (action == ASSET_ACTION_ISSUE)
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_ISSUED_FEE_TO_RISK_RISERVE);
+        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_ISSUED_FEE_TO_RISERVE);
     else
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_UPDATED_FEE_TO_RISK_RISERVE);
+        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::ASSET_UPDATED_FEE_TO_RISERVE);
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
@@ -110,7 +110,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 ///////////////////////////////////////////////////////////////////////////////
 // class CAssetIssueTx
 
-bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -118,7 +119,7 @@ bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
     auto symbolErr = CAsset::CheckSymbol(asset.symbol);
     if (symbolErr) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", symbolErr),
-            REJECT_INVALID, "invalid-asset-symobl");
+            REJECT_INVALID, "invalid-asset-symbol");
     }
 
     if (asset.name.empty() || asset.name.size() > MAX_ASSET_NAME_LEN) {
@@ -131,6 +132,11 @@ bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
             asset.total_supply, MAX_ASSET_TOTAL_SUPPLY), REJECT_INVALID, "invalid-total-supply");
     }
 
+    if (!asset.owner_uid.is<CRegID>()) {
+        return state.DoS(100, ERRORMSG("%s, asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
+            "owner-uid-type-error");
+    }
+
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
@@ -140,16 +146,17 @@ bool CAssetIssueTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState 
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, read account failed! tx account not exist, txUid=%s",
                      txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
 
-    if (!txAccount.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
+    if (!txAccount.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, account unregistered or immature"),
+                         REJECT_INVALID, "account-unregistered-or-immature");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(txAccount.owner_pubkey);
 
     return true;
 }
 
-bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
     shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
     if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
@@ -175,9 +182,9 @@ bool CAssetIssueTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
                 "account not exist, owner_uid=%s", asset.owner_uid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
     }
 
-    if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(height)) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s is not registerd or not mature",
-            asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "asset-owner-regid-not-mature");
+    if (pOwnerAccount->regid.IsEmpty() || !pOwnerAccount->regid.IsMature(context.height)) {
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, owner regid=%s account is unregistered or immature",
+            asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
     if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, receipts)) {
@@ -318,22 +325,24 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",
-            asset_symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symobl");
+            asset_symbol.size(), MAX_TOKEN_SYMBOL_LEN), REJECT_INVALID, "invalid-asset-symbol");
     }
 
     switch (update_data.GetType()) {
         case CAssetUpdateData::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
-            if (newOwnerUid.IsEmpty())
-                return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, invalid updated owner user id=%s",
-                    newOwnerUid.ToString()), REJECT_INVALID, "invalid-owner-uid");
+            if (!newOwnerUid.is<CRegID>()) {
+                return state.DoS(100, ERRORMSG("%s, the new asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
+                    "owner-uid-type-error");
+            }
             break;
         }
         case CAssetUpdateData::NAME: {
@@ -361,10 +370,9 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-    if (!account.HaveOwnerPubKey())
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, account unregistered"),
-                         REJECT_INVALID, "bad-account-unregistered");
+    if (!account.IsRegistered() || !txUid.get<CRegID>().IsMature(context.height))
+        return state.DoS(100, ERRORMSG("CAssetUpdateTx::CheckTx, account unregistered or immature"),
+                         REJECT_INVALID, "account-unregistered-or-immature");
 
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
 
@@ -372,7 +380,8 @@ bool CAssetUpdateTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState
 }
 
 
-bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
@@ -408,7 +417,7 @@ bool CAssetUpdateTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw,
             if (!newAccount.IsRegistered())
                 return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner account is not registered! new uid=%s",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "account-not-registered");
-            if (!newAccount.regid.IsMature(height))
+            if (!newAccount.regid.IsMature(context.height))
                 return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the new owner regid is not matured! new uid=%s",
                     newOwnerUid.ToDebugString()), REJECT_INVALID, "account-not-matured");
 
