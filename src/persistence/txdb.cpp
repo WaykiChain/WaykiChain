@@ -40,8 +40,13 @@ bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
 }
 
 bool CTxMemCache::HaveBlock(const uint256 &blockHash) const {
-    if (blockHash == uint256())
+    if (blockHash == uint256()) {
         return false;
+    }
+
+    if (mapBlockTxHashSet.empty()) {
+        return true;
+    }
 
     auto te = mapBlockTxHashSet.find(blockHash);
     if (te != mapBlockTxHashSet.end()) {
