@@ -35,11 +35,6 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "bad-read-accountdb");
     }
 
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
-        CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-        IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
-    }
-
     for (const auto &vote : candidateVotes) {
         // candidate uid should be CPubKey or CRegID
         IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(vote.GetCandidateUid().type());
@@ -60,6 +55,10 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
         }
     }
 
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+        CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+        IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+    }
     return true;
 }
 
