@@ -41,9 +41,9 @@ static CUserID nullId;
     DEFINE(CDP_LIQUIDATED_ASSET_TO_OWNER,       442, "cdp liquidated assets to owner") \
     DEFINE(CDP_PENALTY_TO_RISERVE,              443, "half penalty scoins to risk riserve directly") \
     DEFINE(CDP_PENALTY_BUY_DEFLATE_FCOINS,      444, "half penalty scoins buy fcoins for deflating") \
-    /**** CDP system liquidate*/ \
-    DEFINE(CDP_DEFLATE_SCOIN_FROM_RESERVE,      460, "total deflate scoins from risk reserve") \
-    DEFINE(CDP_INFLATE_FCOIN_TO_RESERVE,        461, "total inflate fcoins to risk reserve") \
+    /**** CDP forced liquidate*/ \
+    DEFINE(CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE, 460, "total closeout scoins from risk reserve in forced-liquidation") \
+    DEFINE(CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE,    461, "total inflate fcoins to risk reserve in forced-liquidation") \
     /**** DEX */ \
     DEFINE(DEX_ASSET_FEE_TO_SETTLER,            501, "dex deal asset fee from buyer to settler") \
     DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \
