@@ -870,8 +870,10 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
         if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
-            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
-                            cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small, "
+                            "txid: %s, cdp: %s, height: %d, price: %llu", cdp.total_staked_bcoins, bcoinsToStakeAmountMin,
+                            GetHash().GetHex(), cdp.ToString(), context.height, bcoinMedianPrice),
+                            REJECT_INVALID, "total-staked-bcoins-too-small");
         }
 
         uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
