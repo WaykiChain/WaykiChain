@@ -3395,6 +3395,10 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
             return std::make_shared<CCoinRewardTx>();
         case UCOIN_BLOCK_REWARD_TX:
             return std::make_shared<CUCoinBlockRewardTx>();
+        case UCONTRACT_DEPLOY_TX:
+            return std::make_shared<CUniversalContractDeployTx>();
+        case UCONTRACT_INVOKE_TX:
+            return std::make_shared<CUniversalContractInvokeTx>();
         case PRICE_FEED_TX:
             return std::make_shared<CPriceFeedTx>();
         case PRICE_MEDIAN_TX:
