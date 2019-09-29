@@ -56,12 +56,10 @@ private:
     static string COIN_NAME; /* basecoin name */
 
     /* initial public key */
-    static vector<string> initPubKey[];
+    static vector<string> initPubKey[3];
 
     /* delegate public key */
-    static vector<string> delegatePubKey_mainNet;
-    static vector<string> delegatePubKey_testNet;
-    static vector<string> delegatePubKey_regtestNet;
+    static vector<string> delegatePubKey[3];
 
     /* delegate signature */
     static string delegateSignature[3];

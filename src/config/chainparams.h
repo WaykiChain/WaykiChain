@@ -279,6 +279,6 @@ extern const CBaseParams& SysParamsTest();
 // write for test code
 extern const CBaseParams& SysParamsReg();
 
-extern string initPubKey[];
+extern string initPubKey[3];
 
 #endif
