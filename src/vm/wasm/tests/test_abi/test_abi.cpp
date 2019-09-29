@@ -1506,34 +1506,6 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
 
 BOOST_AUTO_TEST_SUITE_END()
 
-// int main( int argc, char **argv ) {
-
-//     general();
-//     abi_token();
-//     version();
-//     abi_cycle();
-//     abi_type_repeat();
-//     abi_struct_repeat();
-//     abi_action_repeat();
-//     abi_table_repeat();
-//     abi_type_def();
-//     abi_type_redefine();
-//     abi_type_redefine_to_name();
-//     abi_type_nested_in_vector();
-//     abi_large_array();
-//     abi_is_type_recursion();
-//     abi_recursive_structs();
-//     abi_very_deep_structs();
-//     abi_very_deep_structs_1us();
-//     abi_deep_structs_validate();
-//     abi_serialize_incomplete_json_array();
-//     abi_serialize_incomplete_json_object();
-//     abi_serialize_json_mismatching_type();
-//     abi_serialize_json_empty_name();
-
-//     return 0;
-
-// }
 
 
 

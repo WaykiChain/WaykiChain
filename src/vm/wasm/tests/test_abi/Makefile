@@ -26,7 +26,7 @@ ${WASM_TYPES_DIR}/uint128.cpp
 WASM_UINT128_OBJECT = uint128.o
 
 
-CXXFLAGS = -std=c++17 -I. -lboost_system -pthread -lboost_unit_test_framework -I${WASM_DIR} -I${VM_DIR}  -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR}
+CXXFLAGS = -std=c++17 -I. -lboost_system -pthread -lboost_unit_test_framework -I${WASM_DIR} -I${VM_DIR} -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR}
 JSON_CXXFLAGS = -std=c++17 -I. -pthread -I${WASM_DIR} -I${VM_DIR}  -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR}
 
 test:json_spirit.a test_abi.cpp

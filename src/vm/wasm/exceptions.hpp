@@ -2,41 +2,35 @@
 
 #include <cstdint>
 #include <string>
+#include "commons/tinyformat.h"
 
 using namespace std;
-
-#define WASM_EXCEPTION_BUFFER_LENGTH 1024
-
 #define WASM_ASSERT( expr, exc_type, ... )     \
    if ( !( expr ) ) {                          \
-       char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \
-       sprintf( buf,  __VA_ARGS__ );           \
-       throw exc_type( buf ) ; }
+       string str = tfm::format( __VA_ARGS__ );\
+       throw exc_type( str.c_str() ) ; }
 
 #define WASM_THROW( exc_type, ... )    \
        WASM_ASSERT( false, exc_type,  __VA_ARGS__ )
 
 #define WASM_RETHROW_EXCEPTIONS( exc_type, ... )          \
     catch( wasm::exception& e ) {                         \
-         char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
-         sprintf( buf,  __VA_ARGS__ );                    \
+         string str = tfm::format( __VA_ARGS__ );         \
          std::ostringstream o;                            \
-         o << e.detail() << " , " << buf;                 \
-         e.msg = o.str();          \
-         throw;                  \
+         o << e.detail() << " , " << str;                 \
+         e.msg = o.str();                                 \
+         throw;                                           \
     } catch( ... ) {                                      \
-         char buf[WASM_EXCEPTION_BUFFER_LENGTH];          \
-         sprintf( buf,  __VA_ARGS__ );                    \
-         throw exc_type(buf);                             \
+         string str = tfm::format( __VA_ARGS__ );         \
+         throw exc_type(str.c_str());                     \
     }
 
 #define WASM_CAPTURE_AND_RETHROW( ... )          \
     catch( wasm::exception& e ) {                \
        throw;                                    \
     } catch( ... ) {                             \
-         char buf[WASM_EXCEPTION_BUFFER_LENGTH]; \
-         sprintf( buf,  __VA_ARGS__ );           \
-         throw wasm_assert_exception( buf );     \
+         string str = tfm::format( __VA_ARGS__ );\
+         throw wasm_assert_exception( str.c_str()); \
     }
 
 

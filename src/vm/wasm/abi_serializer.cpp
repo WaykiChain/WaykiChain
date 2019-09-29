@@ -1,5 +1,6 @@
 #include <chrono>
 
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <wasm/exceptions.hpp>
 #include <wasm/abi_serializer.hpp>
 #include <wasm/types/name.hpp>
@@ -123,7 +124,7 @@ namespace wasm {
         wasm::abi_traverse_context ctx(max_serialization_time);
         //wasm::abi_traverse_context ctx(microseconds(60 * 1000 * 1000));
 
-        WASM_ASSERT(boost::starts_with(abi.version, "wasm::abi/1."), unsupport_abi_version_exception,
+        WASM_ASSERT(boost::starts_with(abi.version, "wasm::abi/1."), unsupport_abi_version_exception, "%s",
                     "ABI has an unsupported version");
         typedefs.clear();
         structs.clear();
@@ -156,13 +157,13 @@ namespace wasm {
          *  The ABI vector may contain duplicates which would make it
          *  an invalid ABI
          */
-        WASM_ASSERT(typedefs.size() == abi.types.size(), duplicate_abi_def_exception,
+        WASM_ASSERT(typedefs.size() == abi.types.size(), duplicate_abi_def_exception, "%s",
                     "Duplicate type definition detected");
-        WASM_ASSERT(structs.size() == abi.structs.size(), duplicate_abi_def_exception,
+        WASM_ASSERT(structs.size() == abi.structs.size(), duplicate_abi_def_exception, "%s",
                     "Duplicate struct definition detected");
-        WASM_ASSERT(actions.size() == abi.actions.size(), duplicate_abi_def_exception,
+        WASM_ASSERT(actions.size() == abi.actions.size(), duplicate_abi_def_exception, "%s",
                     "Duplicate action definition detected");
-        WASM_ASSERT(tables.size() == abi.tables.size(), duplicate_abi_def_exception,
+        WASM_ASSERT(tables.size() == abi.tables.size(), duplicate_abi_def_exception, "%s",
                     "Duplicate table definition detected");
 
         validate(ctx);

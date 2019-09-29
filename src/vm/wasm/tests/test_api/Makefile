@@ -8,6 +8,7 @@ PLATFORM_CXXFLAGS = -fno-builtin-memcmp -pthread -DOS_LINUX
 
 WASM_DIR = ../..
 VM_DIR = ../../..
+WAYKI_SRC_DIR = ../../../..
 BERKELEY_SOFTFLOAT = ../../../../external/softfloat
 
 WASM_TYPES = $(WASM_DIR)/types
@@ -349,9 +350,10 @@ CXXFLAGS += -std=gnu++1z -fPIC ${PLATFORM_CXXFLAGS} -I. -I$(EOSVM_INCLUDE_DIR) \
 								                      -I$(BERKELEY_SOFTFLOAT)/build/Linux-x86_64-GCC \
 								                      -I$(BERKELEY_SOFTFLOAT)/source/8086-SSE \
 								                      -I$(WASM_TYPES) \
-								                      -I$(VM_DIR) 
+								                      -I$(VM_DIR) \
+								                      -I$(WAYKI_SRC_DIR)
 
-LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework
+LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system 
 
 WASM_EMPTY = 
 COMPILER_BUILTINS_PATH_SOURCE = $(COMPILER_BUILTINS)/

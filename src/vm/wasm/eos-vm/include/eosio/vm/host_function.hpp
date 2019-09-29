@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
 #include <eosio/vm/wasm_stack.hpp>
 
 #include <cstddef>

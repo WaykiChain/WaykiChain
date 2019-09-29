@@ -22,7 +22,7 @@ namespace wasm {
         void Initialize( vmType type );
         void Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext );
         void validate( vector <uint8_t> code );
-        //void exit();
+        void exit(){};
 
     };
 }

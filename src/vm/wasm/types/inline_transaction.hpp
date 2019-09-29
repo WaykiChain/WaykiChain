@@ -6,7 +6,7 @@
 #include <queue>
 #include <map>
 
-//#include "commons/serialize.h"
+#include "commons/serialize.h"
 
 using namespace std;
 
@@ -16,10 +16,10 @@ namespace wasm {
         uint64_t account;
         uint64_t perm;
         
-        // IMPLEMENT_SERIALIZE (
-        // READWRITE(account );
-        // READWRITE(perm);
-        // )
+        IMPLEMENT_SERIALIZE (
+        READWRITE(account );
+        READWRITE(perm);
+        )
 
     };
 
@@ -30,12 +30,12 @@ namespace wasm {
         std::vector <permission> authorization;
         std::vector<char> data;
 
-        // IMPLEMENT_SERIALIZE (
-        // READWRITE(contract );
-        // READWRITE(action);
-        // READWRITE(authorization);
-        // READWRITE(data);
-        // )
+        IMPLEMENT_SERIALIZE (
+        READWRITE(contract );
+        READWRITE(action);
+        READWRITE(authorization);
+        READWRITE(data);
+        )
 
     };
 

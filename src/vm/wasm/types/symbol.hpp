@@ -38,7 +38,7 @@ namespace wasm {
             uint64_t result = 0;
             for (uint32_t i = 0; i < len; ++i) {
                 // All characters must be upper case alphabets
-                WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "invalid character in symbol name");
+                WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "%s", "invalid character in symbol name");
                 result |= (uint64_t(str[i]) << (8 * (i + 1)));
             }
             result |= uint64_t(precision);
@@ -367,9 +367,9 @@ namespace wasm {
         static symbol from_string( const string &from ) {
             try {
                 string s = trim(from);
-                WASM_ASSERT(!s.empty(), symbol_type_exception, "creating symbol from empty string");
+                WASM_ASSERT(!s.empty(), symbol_type_exception, "%s","creating symbol from empty string");
                 auto comma_pos = s.find(',');
-                WASM_ASSERT(comma_pos != string::npos, symbol_type_exception, "missing comma in symbol");
+                WASM_ASSERT(comma_pos != string::npos, symbol_type_exception,"%s","missing comma in symbol");
                 auto prec_part = s.substr(0, comma_pos);
                 uint8_t p = atoi(prec_part.data());
                 string name_part = s.substr(comma_pos + 1);

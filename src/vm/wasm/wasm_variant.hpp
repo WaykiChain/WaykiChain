@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <chrono>
 
 #include "wasm/types/types.hpp"
@@ -714,7 +714,7 @@ namespace wasm {
             }
         }
 
-        WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "abi parse fail ")
+        WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "%s", "abi parse fail ")
     }
 
 

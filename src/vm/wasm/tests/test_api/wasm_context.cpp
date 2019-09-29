@@ -83,7 +83,7 @@ namespace wasm {
         }
 
         WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
-                    transaction_exception,
+                    transaction_exception, "%s",
                     "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {

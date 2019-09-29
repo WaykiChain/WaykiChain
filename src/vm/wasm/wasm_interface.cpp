@@ -135,7 +135,6 @@ namespace wasm {
             // std::cout << std::string("receiver:") << wasm::name(pWasmContext->Receiver()).to_string()
             //   << std::string(" contract:") << wasm::name(pWasmContext->Contract()).to_string()
             //   << std::string(" action:") << wasm::name(pWasmContext->Action()).to_string()<< std::endl;
-
             system_clock::time_point start = system_clock::now();
             // Execute apply.
             bkend(&ehm, "env", "apply", pWasmContext->Receiver(), pWasmContext->Contract(), pWasmContext->Action());
@@ -147,12 +146,11 @@ namespace wasm {
             return;
 
         } catch (vm::exception &e) {
-            WASM_THROW(wasm_exception, e.detail())
+            WASM_THROW(wasm_exception,"%s", e.detail())
         } catch (wasm::exception &e) {
-            //WASM_THROW(wasm_exception, e.detail())
             throw;
         }
-        WASM_THROW(wasm_exception, "wasm fail")
+        WASM_THROW(wasm_exception,"%s","wasm fail")
 
     }
 
@@ -161,9 +159,9 @@ namespace wasm {
         try {
             backend_t bkend(code);
         } catch (vm::exception &e) {
-            WASM_THROW(wasm_exception, e.detail())
+            WASM_THROW(wasm_exception, "%s", e.detail())
         }
-        WASM_RETHROW_EXCEPTIONS(wasm_exception, "wasm code parse exception")
+        WASM_RETHROW_EXCEPTIONS(wasm_exception, "%s", "wasm code parse exception")
 
     }
 }//wasm

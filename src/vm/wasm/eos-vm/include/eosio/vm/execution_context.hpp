@@ -1,5 +1,6 @@
 #pragma once
-
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wparentheses"
 #include <eosio/vm/host_function.hpp>
 #include <eosio/vm/signals.hpp>
 #include <eosio/vm/types.hpp>

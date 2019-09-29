@@ -22,7 +22,7 @@ namespace wasm {
                     "wasmnativecontract.Setcode, operate account failed ,regId=%s",
                     context.control_trx.txUid.ToString().c_str())
 
-        WASM_ASSERT(context.cache.accountCache.SetAccount(CUserID(sender.keyid), sender), account_operation_exception,
+        WASM_ASSERT(context.cache.accountCache.SetAccount(CUserID(sender.keyid), sender), account_operation_exception, "%s",
                     "wasmnativecontract.Setcode, save account info error")
 
         using SetCode = std::tuple<uint64_t, string, string, string>;
@@ -48,7 +48,7 @@ namespace wasm {
         if (abi.size() > 0) contract.abi = abi;
         if (memo.size() > 0) contract.memo = memo;
 
-        WASM_ASSERT(context.cache.contractCache.SaveContract(contractRegId, contract), account_operation_exception,
+        WASM_ASSERT(context.cache.contractCache.SaveContract(contractRegId, contract), account_operation_exception, "%s",
                     "wasmnativecontract.Setcode, save account info error")
 
         // CUniversalContract contractTest;

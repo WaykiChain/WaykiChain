@@ -124,7 +124,7 @@ namespace wasm {
                 //std::cout << code << std::endl;
                 std::ostringstream o;
                 o << code;
-                WASM_ASSERT(false, wasm_assert_code_exception, o.str().c_str())
+                WASM_ASSERT(false, wasm_assert_code_exception, "%s", o.str().c_str())
             }
         }
 
@@ -177,10 +177,10 @@ namespace wasm {
         //database
         int32_t db_store( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
-            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "key size too big" );
 
-            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "value size too big" );
 
 
@@ -207,7 +207,7 @@ namespace wasm {
 
         int32_t db_remove( const void *key, uint32_t key_len ) {
 
-            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "key size too big" );
 
             //std::cout << "db_remove" << std::endl;
@@ -237,10 +237,10 @@ namespace wasm {
 
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
 
-            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
           "key size too big" );
 
-            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "value size too big" );
 
             //std::cout << "db_get" << std::endl;
@@ -275,10 +275,10 @@ namespace wasm {
         int32_t db_update( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
 
-            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "key size too big" );
 
-            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "value size too big" );
             //std::cout << "db_update" << std::endl;
             string k = string((const char *) key, key_len);
@@ -306,7 +306,7 @@ namespace wasm {
         //memory
         char *memcpy( void *dest, const void *src, int len ) {
             WASM_ASSERT((int)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
-                  overlapping_memory_error, "memcpy can only accept non-aliasing pointers");
+                  overlapping_memory_error, "%s", "memcpy can only accept non-aliasing pointers");
             //std::cout << "memcpy" << std::endl;
             return (char *) std::memcpy(dest, src, len);
         }
@@ -360,7 +360,7 @@ namespace wasm {
         }
 
         void prints( const char *str ) {
-            WASM_ASSERT( strlen(str) < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( strlen(str) < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                   "string size too big" );
             //std::cout << str ;
             if (!print_ignore) {
@@ -372,7 +372,7 @@ namespace wasm {
         }
 
         void prints_l( const char *str, uint32_t str_len ) {
-            WASM_ASSERT( str_len < max_wasm_api_data_size, wasm_api_data_too_big,
+            WASM_ASSERT( str_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                   "string size too big" );
 
             if (!print_ignore) {
@@ -468,7 +468,7 @@ namespace wasm {
         void printhex( char *data, uint32_t data_len ) {
             if (!print_ignore) {
 
-                WASM_ASSERT( data_len < max_wasm_api_data_size, wasm_api_data_too_big,
+                WASM_ASSERT( data_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "wasm api data too big" );
 
                 string str(data, data_len);
@@ -512,7 +512,7 @@ namespace wasm {
 
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
-            WASM_ASSERT( data_len < max_inline_transaction_size, inline_transaction_too_big,
+            WASM_ASSERT( data_len < max_inline_transaction_size, inline_transaction_too_big, "%s",
                       "inline transaction too big" );
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
             pWasmContext->ExecuteInline(trx);

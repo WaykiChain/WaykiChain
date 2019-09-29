@@ -198,14 +198,3 @@ BOOST_FIXTURE_TEST_CASE( require_notice_tests, validating_tester ) {
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-// int main( int argc, char **argv ) {
-
-//     validating_tester tester;
-//     print_tests(tester);
-//     types_tests(tester);
-//     datastream_tests(tester);
-//     action_tests(tester);
-//     require_notice_tests(tester);
-
-// }
