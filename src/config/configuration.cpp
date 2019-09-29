@@ -195,9 +195,9 @@ string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf73
 
 // Gensis Block Hash
 string G_CONFIG_TABLE::genesisBlockHash[3] = {
-    "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",  //mainnet
-    "7d06f69186e0fe39b9c40417d448fd36b43f193a2cee1ccae7f99b181080ee40",  //testnet
-    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"}; //regtest
+    "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",   //mainnet
+    "7d06f69186e0fe39b9c40417d448fd36b43f193a2cee1ccae7f99b181080ee40",     //testnet
+    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"};  //regtest
 
 // Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
@@ -216,9 +216,9 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
     { //mainnet
-    "cc587f5b0280863b09ecfc1e0c9e21615b1775de90aaac51ff02d5dc9a26bbda",
-    "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba",
-    "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"
+    "cc587f5b0280863b09ecfc1e0c9e21615b1775de90aaac51ff02d5dc9a26bbda", //H-1: cdp global account
+    "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba", //H-2: wgrt genesis account
+    "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"  //H-3: dex order-matching account
     },
     { //testnet
     "aafa4d424a032e6d87fd983e5f7ae27eb30d8ca0e9ff61c065125381ae3399cd",
@@ -240,7 +240,7 @@ vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0
 uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108 /*mainnet*/, 100 /*testnet*/, 68 /*regtest*/};
 
 // Network Magic No.
-uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
+uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE] {
     {0xff, 0x42, 0x1d, 0x1a},  //mainnet
     {0xfd, 0x7d, 0x5c, 0xe0},  //testnet
     {0xfe, 0xfa, 0xd3, 0xc6}   //regtest
@@ -274,8 +274,8 @@ uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 // Block height for stable coin genesis
 uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3] {
-    4109388,    // main
-    500,        // test
+    4109388,    // mainnet
+    500,        // testnet
     8};         // regtest
 
 // Block height to enable feature fork version
