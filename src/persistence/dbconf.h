@@ -65,53 +65,54 @@ namespace dbk {
         DEFINE( EMPTY,                "",      DB_NAME_NONE )  /* empty prefix  */ \
         /*                                                                      */ \
         /**** single-value sys_conf db (global parameters)                      */ \
-        DEFINE( SYS_PARAM,            "sysp",  SYSPARAM )       /* conf{$ParamName} --> $ParamValue */ \
+        DEFINE( SYS_PARAM,            "sysp",   SYSPARAM )       /* conf{$ParamName} --> $ParamValue */ \
         /*** Asset Registry DB */ \
-        DEFINE( ASSET,                "asst",  ASSET )          /* asst{$AssetName} --> $Asset */ \
-        DEFINE( ASSET_TRADING_PAIR,   "atdp",  ASSET )          /* asst{$AssetName} --> $Asset */ \
-        /**** block db                                                                         */ \
-        DEFINE( BLOCK_INDEX,          "bidx",  BLOCK )         /* pbfl --> $nFile */ \
-        DEFINE( BLOCKFILE_NUM_INFO,   "bfni",  BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
-        DEFINE( LAST_BLOCKFILE,       "ltbf",  BLOCK )         /* [prefix] --> $LastBlockFile */ \
-        DEFINE( REINDEX,              "ridx",  BLOCK )         /* [prefix] --> $Reindex = 1 | 0 */ \
-        DEFINE( FLAG,                 "flag",  BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
-        DEFINE( BEST_BLOCKHASH,       "bbkh",  BLOCK )         /* [prefix] --> $BestBlockHash */ \
-        DEFINE( TXID_DISKINDEX,       "tidx",  BLOCK )      /* tidx{$txid} --> $DiskTxPos */ \
-        /**** account db                                                                     */ \
-        DEFINE( REGID_KEYID,          "rkey",  ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
-        DEFINE( NICKID_KEYID,         "nkey",  ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
-        DEFINE( KEYID_ACCOUNT,        "idac",  ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
-        DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",  ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_amount, $frozen_amount */ \
-        /**** contract db                                                                     */ \
-        DEFINE( CONTRACT_DEF,         "cdef",  CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
-        DEFINE( CONTRACT_DATA,        "cdat",  CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
-        DEFINE( CONTRACT_ITEM_NUM,    "citn",  CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
-        DEFINE( CONTRACT_ACCOUNT,     "cacc",  CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
-        /**** delegate db                                                                     */ \
-        DEFINE( VOTE,                 "vote",  DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1 */ \
-        DEFINE( REGID_VOTE,           "ridv",  DELEGATE )      /* "ridv --> $votes" */ \
+        DEFINE( ASSET,                "asst",   ASSET )          /* asst{$AssetName} --> $Asset */ \
+        DEFINE( ASSET_TRADING_PAIR,   "atdp",   ASSET )          /* asst{$AssetName} --> $Asset */ \
+        /**** block db                                                                          */ \
+        DEFINE( BLOCK_INDEX,          "bidx",   BLOCK )         /* pbfl --> $nFile */ \
+        DEFINE( BLOCKFILE_NUM_INFO,   "bfni",   BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
+        DEFINE( LAST_BLOCKFILE,       "ltbf",   BLOCK )         /* [prefix] --> $LastBlockFile */ \
+        DEFINE( REINDEX,              "ridx",   BLOCK )         /* [prefix] --> $Reindex = 1 | 0 */ \
+        DEFINE( FLAG,                 "flag",   BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
+        DEFINE( BEST_BLOCKHASH,       "bbkh",   BLOCK )         /* [prefix] --> $BestBlockHash */ \
+        DEFINE( TXID_DISKINDEX,       "tidx",   BLOCK )      /* tidx{$txid} --> $DiskTxPos */ \
+        /**** account db                                                                      */ \
+        DEFINE( REGID_KEYID,          "rkey",   ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
+        DEFINE( NICKID_KEYID,         "nkey",   ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
+        DEFINE( KEYID_ACCOUNT,        "idac",   ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
+        DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",   ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_amount, $frozen_amount */ \
+        /**** contract db                                                                      */ \
+        DEFINE( CONTRACT_DEF,         "cdef",   CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
+        DEFINE( CONTRACT_DATA,        "cdat",   CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
+        DEFINE( CONTRACT_ITEM_NUM,    "citn",   CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
+        DEFINE( CONTRACT_ACCOUNT,     "cacc",   CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
+        /**** delegate db                                                                      */ \
+        DEFINE( VOTE,                 "vote",   DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1 */ \
+        DEFINE( REGID_VOTE,           "ridv",   DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
-        DEFINE( STAKE_FCOIN,          "fcoin", CDP )           /* fcoin{(uint64t)MAX - staked_fcoins}_{RegId} --> 1 */ \
-        DEFINE( CDP,                  "cid",   CDP )           /* cid{$cdpid} --> CUserCDP */ \
-        DEFINE( REGID_CDP,            "rcdp",  CDP )           /* rcdp{$RegID} --> {set<cdpid>} */ \
-        DEFINE( CDP_RATIO,            "cdpr",  CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
-        DEFINE( CDP_GLOBAL_STAKED_BCOINS,   "cgsb", CDP )      /* cgsb -> $amount */ \
-        DEFINE( CDP_GLOBAL_OWED_SCOINS,     "cgos", CDP )      /* cgos -> $amount */ \
-        DEFINE( CDP_GLOBAL_HALT,      "cgh",   CDP )           /* cgh -> 0 | 1 */ \
-        DEFINE( CDP_IR_PARAM_A,       "ira",   CDP )           /* [prefix] --> param_a */ \
-        DEFINE( CDP_IR_PARAM_B,       "irb",   CDP )           /* [prefix] --> param_b */ \
+        DEFINE( STAKE_FCOIN,          "fcoin",  CDP )           /* fcoin{(uint64t)MAX - staked_fcoins}_{RegId} --> 1 */ \
+        DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
+        DEFINE( REGID_CDP,            "rcdp",   CDP )           /* rcdp{$RegID} --> {set<cdpid>} */ \
+        DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
+        DEFINE( CDP_GLOBAL_STAKED_BCOINS,   "cgsb", CDP )       /* cgsb -> $amount */ \
+        DEFINE( CDP_GLOBAL_OWED_SCOINS,     "cgos", CDP )       /* cgos -> $amount */ \
+        DEFINE( CDP_GLOBAL_HALT,      "cgh",    CDP )           /* cgh -> 0 | 1 */ \
+        DEFINE( CDP_IR_PARAM_A,       "ira",    CDP )           /* [prefix] --> param_a */ \
+        DEFINE( CDP_IR_PARAM_B,       "irb",    CDP )           /* [prefix] --> param_b */ \
         /**** cdp closed by redeem/forced or manned liquidate ***/  \
-        DEFINE( CDP_CLOSED,           "ccdp",  CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
+        DEFINE( CLOSED_CDP_TX,        "ctx",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
+        DEFINE( CLOSED_TX_CDP,        "txc",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
         /**** dex db                                                                    */ \
-        DEFINE( DEX_ACTIVE_ORDER,     "dato",  DEX )           /* [prefix]{txid} --> active order */ \
-        DEFINE( DEX_BLOCK_ORDERS,     "dbos",  DEX )           /* [prefix]{height, generate_type, txid} --> active order */ \
-        /**** log db                                                                   */ \
-        DEFINE( TX_EXECUTE_FAIL,      "txef",  LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
-        /**** tx receipt db                                                                   */ \
-        DEFINE( TX_RECEIPT,           "txrc",  RECEIPT )       /* [prefix]{txid} --> {receipts} */ \
+        DEFINE( DEX_ACTIVE_ORDER,     "dato",   DEX )           /* [prefix]{txid} --> active order */ \
+        DEFINE( DEX_BLOCK_ORDERS,     "dbos",   DEX )           /* [prefix]{height, generate_type, txid} --> active order */ \
+        /**** log db                                                                    */ \
+        DEFINE( TX_EXECUTE_FAIL,      "txef",   LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
+        /**** tx receipt db                                                                    */ \
+        DEFINE( TX_RECEIPT,           "txrc",   RECEIPT )       /* [prefix]{txid} --> {receipts} */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
-        DEFINE( PREFIX_COUNT,         "",      DB_NAME_NONE)   /* enum count, must be the last one */
+        DEFINE( PREFIX_COUNT,         "",       DB_NAME_NONE)   /* enum count, must be the last one */
 
 
     #define DEF_DB_PREFIX_ENUM(enumType, enumName, dbName) enumType,

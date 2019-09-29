@@ -140,6 +140,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     }
 
     uint32_t nFuelRate = GetElementForBurn(chainActive.Tip());
+    uint32_t blockTime = chainActive.Height();
 
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     CKeyID srcKeyId;
@@ -186,7 +187,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(newHeight, 1, nFuelRate, spCW.get(), &state);
+        CTxExecuteContext context(newHeight, 1, nFuelRate, blockTime, spCW.get(), &state);
         if (!tx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
@@ -222,7 +223,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(chainActive.Height() + 1, 2, nFuelRate, spCW.get(), &state);
+        CTxExecuteContext context(chainActive.Height() + 1, 2, nFuelRate, blockTime, spCW.get(), &state);
         if (!contractInvokeTx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
         }

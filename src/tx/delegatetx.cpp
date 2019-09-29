@@ -35,11 +35,6 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "bad-read-accountdb");
     }
 
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
-        CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
-        IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
-    }
-
     for (const auto &vote : candidateVotes) {
         // candidate uid should be CPubKey or CRegID
         IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(vote.GetCandidateUid().type());
@@ -60,6 +55,10 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
         }
     }
 
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+        CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+        IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+    }
     return true;
 }
 
@@ -85,8 +84,8 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
     cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
 
     vector<CReceipt> receipts;
-    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, cw.blockTime, cw.accountCache,
-                                          receipts)) {
+    if (!srcAccount.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, context.height, context.block_time,
+                                          cw.accountCache, receipts)) {
         return state.DoS(
             100, ERRORMSG("CDelegateVoteTx::ExecuteTx, operate candidate votes failed, txUid=%s", txUid.ToString()),
             OPERATE_CANDIDATE_VOTES_FAIL, "operate-candidate-votes-failed");

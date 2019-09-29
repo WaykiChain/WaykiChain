@@ -28,8 +28,8 @@ private:
 
 public:
     CKeyCombi();
-    CKeyCombi(CKey const &inkey, CKey const &minerKey, int32_t nVersion);
-    CKeyCombi(CKey const &inkey, int32_t nVersion);
+    CKeyCombi(CKey const &key, CKey const &minerKey, int32_t nVersion);
+    CKeyCombi(CKey const &key, int32_t nVersion);
 
     string ToString() const;
 

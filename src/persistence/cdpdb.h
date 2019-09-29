@@ -81,31 +81,55 @@ enum CDPCloseType: uint8_t {
 class CClosedCdpDBCache {
 public:
     CClosedCdpDBCache() {}
-    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpCache(pDbAccess) {};
-    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn) : closedCdpCache(pBaseIn->closedCdpCache) {};
+
+    CClosedCdpDBCache(CDBAccess *pDbAccess) : closedCdpTxCache(pDbAccess), closedTxCdpCache(pDbAccess) {}
+
+    CClosedCdpDBCache(CClosedCdpDBCache *pBaseIn)
+        : closedCdpTxCache(&pBaseIn->closedCdpTxCache), closedTxCdpCache(&pBaseIn->closedTxCdpCache) {}
 
 public:
-    bool AddClosedCdp(const uint256& cdpId, CDPCloseType closeType) {
-        return closedCdpCache.SetData(cdpId.GetHex(), closeType);
+    bool AddClosedCdpIndex(const uint256& closedCdpId, const uint256& closedCdpTxId, CDPCloseType closeType) {
+        return closedCdpTxCache.SetData(closedCdpId, {closedCdpTxId, (uint8_t)closeType});
     }
 
-    bool GetClosedCdpById(const uint256& cdpId, CDPCloseType& closeType) {
-        return closedCdpCache.GetData(cdpId.GetHex(), (uint8_t&) closeType);
+    bool AddClosedCdpTxIndex(const uint256& closedCdpTxId, const uint256& closedCdpId, CDPCloseType closeType) {
+        return  closedTxCdpCache.SetData(closedCdpTxId, {closedCdpId, closeType});
     }
 
-    uint32_t GetCacheSize() const { return closedCdpCache.GetCacheSize(); }
+    bool GetClosedCdpById(const uint256& closedCdpId, std::pair<uint256, uint8_t> cdp) {
+        return closedCdpTxCache.GetData(closedCdpId, cdp);
+    }
 
-    void SetBaseViewPtr(CClosedCdpDBCache *pBaseIn) { closedCdpCache.SetBase(&pBaseIn->closedCdpCache); }
+    bool GetClosedCdpByTxId(const uint256& closedCdpTxId, std::pair<uint256, uint8_t> cdp) {
+        return closedTxCdpCache.GetData(closedCdpTxId, cdp);
+    }
 
-    void Flush() { closedCdpCache.Flush(); }
+    uint32_t GetCacheSize() const { return closedCdpTxCache.GetCacheSize() + closedTxCdpCache.GetCacheSize(); }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { closedCdpCache.SetDbOpLogMap(pDbOpLogMapIn); }
+    void SetBaseViewPtr(CClosedCdpDBCache *pBaseIn) {
+        closedCdpTxCache.SetBase(&pBaseIn->closedCdpTxCache);
+        closedTxCdpCache.SetBase(&pBaseIn->closedTxCdpCache);
+    }
 
-    bool UndoData() { return closedCdpCache.UndoData(); }
+    void Flush() {
+        closedCdpTxCache.Flush();
+        closedTxCdpCache.Flush();
+    }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        closedCdpTxCache.SetDbOpLogMap(pDbOpLogMapIn);
+        closedTxCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    bool UndoData() { return closedCdpTxCache.UndoData() && closedTxCdpCache.UndoData(); }
 
 private:
-  // ccdp{$cdpid} -> CDPCloseType enum
-    CCompositeKVCache< dbk::CDP_CLOSED, string, uint8_t>  closedCdpCache;
+    /*  CCompositeKVCache     prefixType     key               value             variable  */
+    /*  ----------------   --------------   ------------   --------------    ----- --------*/
+    // ccdp${closed_cdpid} -> <closedCdpTxId, closeType>
+    CCompositeKVCache< dbk::CLOSED_CDP_TX, uint256, std::pair<uint256, uint8_t> > closedCdpTxCache;
+    // ctx${$closed_cdp_txid} -> <closedCdpId, closeType> (no-force-liquidation)
+    CCompositeKVCache< dbk::CLOSED_TX_CDP, uint256, std::pair<uint256, uint8_t> > closedTxCdpCache;
 };
 
 #endif  // PERSIST_CDPDB_H

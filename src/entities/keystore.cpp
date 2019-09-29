@@ -68,21 +68,21 @@ bool CKeyCombi::CleanAll() {
 
 bool CKeyCombi::CleanMainKey() { return mMainCkey.Clear(); }
 
-CKeyCombi::CKeyCombi(const CKey& inkey, int32_t nVersion) {
-    assert(inkey.IsValid());
+CKeyCombi::CKeyCombi(const CKey& key, int32_t nVersion) {
+    assert(key.IsValid());
     CleanAll();
-    mMainCkey = inkey;
+    mMainCkey = key;
     if (FEATURE_BASE == nVersion)
         mMainPKey = mMainCkey.GetPubKey();
     nCreationTime = GetTime();
 }
 
-CKeyCombi::CKeyCombi(const CKey& inkey, const CKey& minerKey, int32_t nVersion) {
-    assert(inkey.IsValid());
+CKeyCombi::CKeyCombi(const CKey& key, const CKey& minerKey, int32_t nVersion) {
+    assert(key.IsValid());
     assert(minerKey.IsValid());
     CleanAll();
     mMinerCkey = minerKey;
-    mMainCkey  = inkey;
+    mMainCkey  = key;
     if (FEATURE_BASE == nVersion) {
         mMainPKey  = mMainCkey.GetPubKey();
         mMinerPKey = mMinerCkey.GetPubKey();

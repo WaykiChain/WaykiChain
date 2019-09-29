@@ -201,7 +201,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             const CUserCDP &oldCDP = cdp;
             cw.cdpCache.EraseCDP(oldCDP, cdp);
             if (SysCfg().GetArg("-persistclosedcdp", false)) {
-                if (!cw.closedCdpCache.AddClosedCdp(oldCDP.cdpid, CDPCloseType::BY_FORCE_LIQUIDATE)) {
+                if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, uint256(), CDPCloseType::BY_FORCE_LIQUIDATE)) {
                     LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
             }

@@ -799,16 +799,24 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {
             uint64_t limitCoinAmount = buyOrder.coin_amount;
             if (limitCoinAmount < buyOrder.total_deal_coin_amount) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal coin amount exceed the limit coin amount of buy order"),
-                                REJECT_INVALID, "deal-coin-amount-exceeded");
+                return state.DoS(
+                    100,
+                    ERRORMSG("CDEXSettleTx::ExecuteTx, the total_deal_coin_amount=%llu exceed the "
+                             "coin_amount=%llu of buy order",
+                             limitCoinAmount, buyOrder.total_deal_asset_amount),
+                    REJECT_INVALID, "buy-deal-coin-amount-exceeded");
             }
 
             buyResidualAmount = limitCoinAmount - buyOrder.total_deal_coin_amount;
         } else {
             uint64_t limitAssetAmount = buyOrder.asset_amount;
             if (limitAssetAmount < buyOrder.total_deal_asset_amount) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal asset amount exceed the limit asset amount of buy order"),
-                                REJECT_INVALID, "deal-amount-exceeded");
+                return state.DoS(
+                    100,
+                    ERRORMSG("CDEXSettleTx::ExecuteTx, the total_deal_asset_amount=%llu exceed the "
+                             "asset_amount=%llu of buy order",
+                             buyOrder.total_deal_asset_amount),
+                    REJECT_INVALID, "buy-deal-amount-exceeded");
             }
             buyResidualAmount = limitAssetAmount - buyOrder.total_deal_asset_amount;
         }
@@ -817,8 +825,12 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             // get and check sell order residualAmount
             uint64_t limitAssetAmount = sellOrder.asset_amount;
             if (limitAssetAmount < sellOrder.total_deal_asset_amount) {
-                return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, the deal asset amount exceed the limit asset amount of buy order"),
-                                REJECT_INVALID, "exceeded-deal-amount");
+                return state.DoS(
+                    100,
+                    ERRORMSG("CDEXSettleTx::ExecuteTx, the total_deal_asset_amount=%llu exceed the "
+                             "asset_amount=%llu of sell order",
+                             sellResidualAmount, sellOrder.total_deal_asset_amount),
+                    REJECT_INVALID, "sell-deal-amount-exceeded");
             }
             sellResidualAmount = limitAssetAmount - sellOrder.total_deal_asset_amount;
         }
