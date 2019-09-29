@@ -70,8 +70,7 @@ private:
     static string genesisBlockHash[3];
 
     /* alert public key */
-    static string AlertPK_MainNet;
-    static string AlertPK_TestNet;
+    static string AlertPubKey[2];
 
     /* merkle root hash */
     static string MerkleRootHash;

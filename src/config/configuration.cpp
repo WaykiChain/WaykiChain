@@ -40,13 +40,8 @@ uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
 }
 
 const string G_CONFIG_TABLE::GetAlertPkey(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return AlertPK_MainNet;
-        case TEST_NET: return AlertPK_TestNet;
-        default: assert(0);
-    }
-
-    return "";
+    assert(type >= 0 && type < 2);
+    return AlertPubKey[type];
 }
 
 const vector<string> G_CONFIG_TABLE::GetInitPubKey(const NET_TYPE type) const {
@@ -190,8 +185,9 @@ string G_CONFIG_TABLE::delegateSignature[3] = {
     "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1"};  //regtest
 
 // Pubkey
-string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb";
-string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
+string G_CONFIG_TABLE::AlertPubKey[2] {
+    "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb",   //mainnet
+    "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46"};  //testnet
 
 // Gensis Block Hash
 string G_CONFIG_TABLE::genesisBlockHash[3] = {
