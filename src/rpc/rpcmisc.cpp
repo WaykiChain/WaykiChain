@@ -64,8 +64,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "Returns an object containing various state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"version\": xxxxx,              (numeric) the node program version\n"
-            "  \"full_version\": \"xxxxx\",     (string) the node program fullversion\n"
+            "  \"version\": \"xxxxx\",          (string) the node program fullversion\n"
             "  \"protocol_version\": xxxxx,     (numeric) the protocol version\n"
             "  \"net_type\": \"xxxxx\",         (string) the blockchain network type (MAIN_NET|TEST_NET|REGTEST_NET)\n"
             "  \"proxy\": \"host:port\",        (string) the proxy server used by the node program\n"
@@ -78,7 +77,6 @@ Value getinfo(const Array& params, bool fHelp) {
             "false\n"
             "  \"time_offset\": xxxxx,          (numeric) the time offset\n"
 
-            "  \"wallet_version\": xxxxx,       (numeric) the wallet version\n"
             "  \"wallet_balance\": xxxxx,       (numeric) the total coin balance of the wallet\n"
             "  \"wallet_unlock_time\": xxxxx,   (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 "
             "GMT) that the wallet is unlocked for transfers, or 0 if the wallet is being locked\n"
@@ -102,8 +100,7 @@ Value getinfo(const Array& params, bool fHelp) {
     static const string fullVersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
 
     Object obj;
-    obj.push_back(Pair("version",               CLIENT_VERSION));
-    obj.push_back(Pair("full_version",          fullVersion));
+    obj.push_back(Pair("version",               fullVersion));
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
     obj.push_back(Pair("net_type",              NetTypeNames[SysCfg().NetworkID()]));
     obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
@@ -115,7 +112,6 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {
-        obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));
         obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBcoins())));
         if (pWalletMain->IsEncrypted())
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));

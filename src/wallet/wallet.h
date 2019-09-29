@@ -29,12 +29,9 @@
 #include "tx/delegatetx.h"
 #include "tx/accountregtx.h"
 
-
-enum WalletFeature
-{
-    FEATURE_BASE = 0, // initialize version
-
-    FEATURE_WALLETCRYPT = 10000, // wallet encryption
+enum WalletFeature {
+    FEATURE_BASE        = 0,      // initialize version
+    FEATURE_WALLETCRYPT = 10000,  // wallet encryption
 };
 
 // -paytxfee will warn if called with a higher fee than this amount (in satoshis) per KB
