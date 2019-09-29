@@ -1911,6 +1911,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }  // Rollback the active chain to the forked point.
 
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
+        forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
+        forkChainTipFound     = true;
         LogPrint("INFO", "ProcessForkedChain() : add [%d]: %s to cache\n", pPreBlockIndex->height,
                  pPreBlockIndex->GetBlockHash().GetHex());
 
