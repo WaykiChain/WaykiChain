@@ -5,29 +5,29 @@
 
 #include "alert.h"
 
-#include "entities/key.h"
-#include "net.h"
 #include "commons/util.h"
+#include "entities/key.h"
+#include "main.h"
+#include "net.h"
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #include <stdint.h>
 #include <algorithm>
 #include <map>
-
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 using namespace std;
 
 map<uint256, CAlert> mapAlerts;
 CCriticalSection cs_mapAlerts;
 
-void CUnsignedAlert::SetNull()
-{
-    nVersion = 1;
+void CUnsignedAlert::SetNull() {
+    nVersion    = 1;
     nRelayUntil = 0;
     nExpiration = 0;
-    nID = 0;
-    nCancel = 0;
+    nID         = 0;
+    nCancel     = 0;
     setCancel.clear();
     nMinVer = 0;
     nMaxVer = 0;
@@ -39,8 +39,7 @@ void CUnsignedAlert::SetNull()
     strReserved.clear();
 }
 
-string CUnsignedAlert::ToString() const
-{
+string CUnsignedAlert::ToString() const {
     string strSetCancel;
     for(auto n:setCancel)
         strSetCancel += strprintf("%d ", n);
@@ -78,55 +77,38 @@ string CUnsignedAlert::ToString() const
         strStatusBar);
 }
 
-void CUnsignedAlert::Print() const
-{
-    LogPrint("INFO","%s", ToString());
-}
+void CUnsignedAlert::Print() const { LogPrint("INFO", "%s", ToString()); }
 
-void CAlert::SetNull()
-{
+void CAlert::SetNull() {
     CUnsignedAlert::SetNull();
     vchMsg.clear();
     vchSig.clear();
 }
 
-bool CAlert::IsNull() const
-{
-    return (nExpiration == 0);
-}
+bool CAlert::IsNull() const { return (nExpiration == 0); }
 
-uint256 CAlert::GetHash() const
-{
-    return Hash(this->vchMsg.begin(), this->vchMsg.end());
-}
+uint256 CAlert::GetHash() const { return Hash(this->vchMsg.begin(), this->vchMsg.end()); }
 
-bool CAlert::IsInEffect() const
-{
-    return (GetAdjustedTime() < nExpiration);
-}
+bool CAlert::IsInEffect() const { return (GetAdjustedTime() < nExpiration); }
 
-bool CAlert::Cancels(const CAlert& alert) const
-{
+bool CAlert::Cancels(const CAlert& alert) const {
     if (!IsInEffect())
         return false; // this was a no-op before 31403
     return (alert.nID <= nCancel || setCancel.count(alert.nID));
 }
 
-bool CAlert::AppliesTo(int nVersion, string strSubVerIn) const
-{
+bool CAlert::AppliesTo(int nVersion, string strSubVerIn) const {
     // TODO: rework for client-version-embedded-in-strSubVer ?
     return (IsInEffect() &&
             nMinVer <= nVersion && nVersion <= nMaxVer &&
             (setSubVer.empty() || setSubVer.count(strSubVerIn)));
 }
 
-bool CAlert::AppliesToMe() const
-{
+bool CAlert::AppliesToMe() const {
     return AppliesTo(PROTOCOL_VERSION, FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, vector<string>()));
 }
 
-bool CAlert::RelayTo(CNode* pNode) const
-{
+bool CAlert::RelayTo(CNode* pNode) const {
     if (!IsInEffect())
         return false;
     // returns true if wasn't already contained in the set
@@ -141,8 +123,7 @@ bool CAlert::RelayTo(CNode* pNode) const
     return false;
 }
 
-bool CAlert::CheckSignature() const
-{
+bool CAlert::CheckSignature() const {
     CPubKey key(SysCfg().AlertKey());
     if (!key.Verify(Hash(vchMsg.begin(), vchMsg.end()), vchSig))
         return ERRORMSG("CAlert::CheckSignature() : verify signature failed");
@@ -153,8 +134,7 @@ bool CAlert::CheckSignature() const
     return true;
 }
 
-CAlert CAlert::getAlertByHash(const uint256 &hash)
-{
+CAlert CAlert::getAlertByHash(const uint256 &hash) {
     CAlert retval;
     {
         LOCK(cs_mapAlerts);
@@ -165,8 +145,7 @@ CAlert CAlert::getAlertByHash(const uint256 &hash)
     return retval;
 }
 
-bool CAlert::ProcessAlert(bool fThread)
-{
+bool CAlert::ProcessAlert(bool fThread) {
     if (!CheckSignature())
         return false;
     if (!IsInEffect())
@@ -180,8 +159,7 @@ bool CAlert::ProcessAlert(bool fThread)
     // send an "everything is OK, don't panic" version that
     // cannot be overridden):
     int maxInt = numeric_limits<int>::max();
-    if (nID == maxInt)
-    {
+    if (nID == maxInt) {
         if (!(
                 nExpiration == maxInt &&
                 nCancel == (maxInt-1) &&

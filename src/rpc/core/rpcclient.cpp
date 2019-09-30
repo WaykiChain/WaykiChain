@@ -3,16 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
-#include "config/configuration.h"
 #include "rpcclient.h"
 
-#include "rpcprotocol.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "commons/util.h"
-#include "config/chainparams.h" // for Params().RPCPort()
+#include "config/chainparams.h"  // for Params().RPCPort()
+#include "config/configuration.h"
+#include "main.h"
+#include "rpcprotocol.h"
 #include "tx/tx.h"
-
-#include <stdint.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
@@ -21,7 +20,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
-#include "commons/json/json_spirit_writer_template.h"
 
 using namespace std;
 using namespace boost;
@@ -135,7 +133,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "signtxraw"              && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "getchaininfo"          && n > 0) ConvertTo<int32_t>(params[0]);
+    if (strMethod == "getchaininfo"           && n > 0) ConvertTo<int32_t>(params[0]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
@@ -162,7 +160,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int32_t>(params[0]);
 
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
-    if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int32_t>(params[0]);}
+    if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
 
     /****** generate a digitally signed raw transaction for network submission via submittxraw  **********/
     if (strMethod == "genmulsigtx"            && n > 2) ConvertTo<int64_t>(params[2]);
