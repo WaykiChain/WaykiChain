@@ -6,9 +6,6 @@
 #ifndef ENTITIES_KEY_H
 #define ENTITIES_KEY_H
 
-#include <boost/variant.hpp>
-#include <stdexcept>
-#include <vector>
 #include "commons/allocators.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
@@ -17,6 +14,12 @@
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
+#include <boost/variant.hpp>
+
+#include <stdexcept>
+#include <vector>
+
+using namespace std;
 
 class CRegID;
 

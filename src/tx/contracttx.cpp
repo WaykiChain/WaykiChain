@@ -26,9 +26,9 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
     if (!GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, minFee))
         return context.pState->DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
 
-    if (tx.llFees < minFee) {
+    if (tx.llFees <= minFee) {
         return context.pState->DoS(
-            100, ERRORMSG("GetFuelLimit, fees is too small(%llu vs %llu) to invoke contract", tx.llFees, minFee),
+            100, ERRORMSG("GetFuelLimit, fees(%llu) should larger than %llu to invoke contract", tx.llFees, minFee),
             REJECT_INVALID, "bad-tx-fee-toosmall");
     }
 
@@ -36,6 +36,11 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
     uint64_t reservedFeesForGas   = tx.llFees - reservedFeesForMiner;
 
     fuelLimit = std::min<uint64_t>((reservedFeesForGas / fuelRate) * 100, MAX_BLOCK_RUN_STEP);
+
+    if (fuelLimit == 0) {
+        return context.pState->DoS(100, ERRORMSG("GetFuelLimit, fuelLimit == 0"), REJECT_INVALID,
+                                   "fuel-limit-equals-zero");
+    }
 
     return true;
 }

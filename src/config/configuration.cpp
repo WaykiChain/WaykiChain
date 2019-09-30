@@ -40,13 +40,8 @@ uint256 G_CONFIG_TABLE::GetGenesisBlockHash(const NET_TYPE type) const {
 }
 
 const string G_CONFIG_TABLE::GetAlertPkey(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET: return AlertPK_MainNet;
-        case TEST_NET: return AlertPK_TestNet;
-        default: assert(0);
-    }
-
-    return "";
+    assert(type >= 0 && type < 2);
+    return AlertPubKey[type];
 }
 
 const vector<string> G_CONFIG_TABLE::GetInitPubKey(const NET_TYPE type) const {
@@ -55,14 +50,8 @@ const vector<string> G_CONFIG_TABLE::GetInitPubKey(const NET_TYPE type) const {
 }
 
 const vector<string> G_CONFIG_TABLE::GetDelegatePubKey(const NET_TYPE type) const {
-    switch (type) {
-        case MAIN_NET:      return delegatePubKey_mainNet;
-        case TEST_NET:      return delegatePubKey_testNet;
-        case REGTEST_NET:   return delegatePubKey_regtestNet;
-        default: assert(0);
-    }
-
-    return vector<string>();
+    assert(type >= 0 && type < 3);
+    return delegatePubKey[type];
 }
 
 const uint256 G_CONFIG_TABLE::GetMerkleRootHash() const { return (uint256S((MerkleRootHash))); }
@@ -143,45 +132,46 @@ vector<string> G_CONFIG_TABLE::initPubKey[3] = {
     }
 };
 
-// Initial delegates' public keys for mainnet
-vector<string> G_CONFIG_TABLE::delegatePubKey_mainNet = {
-    "02d5b0c28802250ff0e48ba1961b79337b1ed4c2a7e695f5b0b41c6777b1bd2bcf",
-    "02e829790a0bcfc5b62547a38ef2880dd653df61d52d1523d22e0d5431fc0bae3b",
-    "03145134d18bbcb1da64adb201d1234f57b3daee8bb7d0bcbe7c27b53edadcab59",
-    "033425e0f00180897f7e7a1756f74257d3214b36f960cb087861068735c485d403",
-    "021a8f295c89311c2b9f949cca49d12d83321e373f74c8d7d8bf011f5e2adc1668",
-    "026e75eecd92704426391312c52748c4b643d5ac34b49e9381d4878a0217f6d18a",
-    "02bf65df9f193ac3e9f2353ea03b51b499156c228d4d285bb7e91bca28e7108554",
-    "0295b340f643042e6d41cf248e6bc3135f83a69426a094d80bc7c9a96178d08550",
-    "036ca3212b053f168c98e96456b1bce42ade96af674a3e3faa4e8cfd18c422a65a",
-    "024000ff8aee862f3a5768065c06f3d0d87229099cde8abdb89c391fcf0bae8f83",
-    "0260b67e343d21a039d2f46eb1c51e6ad46bd83c58af962ab06af06e5487e4d005"};
-// Initial delegates' public keys for testnet
-vector<string> G_CONFIG_TABLE::delegatePubKey_testNet = {
-    "0389e1bdfeab629107631fdc27f75c2d0bd47d2a09930d9c95935fe7b15a14506c",
-    "0393f920474be2babf0a4679e3e1341c4eb8e31b22e19fc341ef5c0a74102b1b62",
-    "03c2511372f6d68b1b7f46e2d5426efdb1c32eb7826f23f012acfee6176e072f0d",
-    "021de59471052acba560185e9e8f0d8029fe0214180afe8a750204c44e5c385da1",
-    "0267a77cfab55a3cedf0576393b90d307da1c6745970f286d40c356853443df9e6",
-    "035eaee0cce88f4d3b8af6e71797f36750608b9425607e02ce03e8f08cad5b19ae",
-    "036c670e382df168387083152e257f528bb7a7136900ea684550843a5347d89a04",
-    "02f06edeb3d0a0cd01c44999ccbdc2126f65c1e0dcb09742e03336cfae2175d8bd",
-    "0236f8aae8a5e4d4daab49e0b48723258a74dade6380c104a7759ec5d4a45aa186",
-    "022a55aac2432590f1111f151cbb27c7a4417d0d85e5e4c24805943b90842b8710",
-    "02e45a86ca60b7d0a53e9612228d5d9bee83056b6b57c1d58f7216a5060e6a3752"};
-// Initial delegates' public keys for regtest
-vector<string> G_CONFIG_TABLE::delegatePubKey_regtestNet = {
-    "0376de6a21f63c35a053c849a339598016a0261d6bdc5567adeda0af78b750c4cc",
-    "025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e",
-    "03f52925f191c77bb1d16b19387bcfcb83380f1622d643a11038cf4867c4578696",
-    "0378f1d7ce11bace8bbf28e124cd15f1bc82d7e8a25f62713f812201e1cf8060d8",
-    "03fb1fe453bf830843fd90f0d2ae1b67011c168a0a5f2160e41f1d86a64c86c25c",
-    "0282464694b94780b88c5e88ff64a7e24800590d4061b90f334067d15643604057",
-    "02361884b20bdb2f751c56783a5fdc01ec64e25d77b7bf5a30409aef4b5b3b44ce",
-    "029699e9b4d679d04d8961bf64ffc0b5ec6f9d46e88bbdcbc6d0a02ce1e4991c0c",
-    "024af74c1cc6b1d729b038427ce9011627f6b816e77699421a85265c4ae0b74b5b",
-    "03e44dcf2df8ec33a17c63a894f3697ed863b2d1fcc7b5fd37cc4fc2edf8e7ed71",
-    "03ff9fb0c58b6097bc944592faee68fbdb2d1c5cd901f6eae9198bd8b31a1e6f5e"};
+// Initial batch of delegates' public keys
+vector<string> G_CONFIG_TABLE::delegatePubKey[3] {
+    {   //mainnet
+        "02d5b0c28802250ff0e48ba1961b79337b1ed4c2a7e695f5b0b41c6777b1bd2bcf",
+        "02e829790a0bcfc5b62547a38ef2880dd653df61d52d1523d22e0d5431fc0bae3b",
+        "03145134d18bbcb1da64adb201d1234f57b3daee8bb7d0bcbe7c27b53edadcab59",
+        "033425e0f00180897f7e7a1756f74257d3214b36f960cb087861068735c485d403",
+        "021a8f295c89311c2b9f949cca49d12d83321e373f74c8d7d8bf011f5e2adc1668",
+        "026e75eecd92704426391312c52748c4b643d5ac34b49e9381d4878a0217f6d18a",
+        "02bf65df9f193ac3e9f2353ea03b51b499156c228d4d285bb7e91bca28e7108554",
+        "0295b340f643042e6d41cf248e6bc3135f83a69426a094d80bc7c9a96178d08550",
+        "036ca3212b053f168c98e96456b1bce42ade96af674a3e3faa4e8cfd18c422a65a",
+        "024000ff8aee862f3a5768065c06f3d0d87229099cde8abdb89c391fcf0bae8f83",
+        "0260b67e343d21a039d2f46eb1c51e6ad46bd83c58af962ab06af06e5487e4d005"
+    }, { //testnet
+        "0389e1bdfeab629107631fdc27f75c2d0bd47d2a09930d9c95935fe7b15a14506c",
+        "0393f920474be2babf0a4679e3e1341c4eb8e31b22e19fc341ef5c0a74102b1b62",
+        "03c2511372f6d68b1b7f46e2d5426efdb1c32eb7826f23f012acfee6176e072f0d",
+        "021de59471052acba560185e9e8f0d8029fe0214180afe8a750204c44e5c385da1",
+        "0267a77cfab55a3cedf0576393b90d307da1c6745970f286d40c356853443df9e6",
+        "035eaee0cce88f4d3b8af6e71797f36750608b9425607e02ce03e8f08cad5b19ae",
+        "036c670e382df168387083152e257f528bb7a7136900ea684550843a5347d89a04",
+        "02f06edeb3d0a0cd01c44999ccbdc2126f65c1e0dcb09742e03336cfae2175d8bd",
+        "0236f8aae8a5e4d4daab49e0b48723258a74dade6380c104a7759ec5d4a45aa186",
+        "022a55aac2432590f1111f151cbb27c7a4417d0d85e5e4c24805943b90842b8710",
+        "02e45a86ca60b7d0a53e9612228d5d9bee83056b6b57c1d58f7216a5060e6a3752"
+    }, { //regtest
+        "0376de6a21f63c35a053c849a339598016a0261d6bdc5567adeda0af78b750c4cc",
+        "025a37cb6ec9f63bb17e562865e006f0bafa9afbd8a846bd87fc8ff9e35db1252e",
+        "03f52925f191c77bb1d16b19387bcfcb83380f1622d643a11038cf4867c4578696",
+        "0378f1d7ce11bace8bbf28e124cd15f1bc82d7e8a25f62713f812201e1cf8060d8",
+        "03fb1fe453bf830843fd90f0d2ae1b67011c168a0a5f2160e41f1d86a64c86c25c",
+        "0282464694b94780b88c5e88ff64a7e24800590d4061b90f334067d15643604057",
+        "02361884b20bdb2f751c56783a5fdc01ec64e25d77b7bf5a30409aef4b5b3b44ce",
+        "029699e9b4d679d04d8961bf64ffc0b5ec6f9d46e88bbdcbc6d0a02ce1e4991c0c",
+        "024af74c1cc6b1d729b038427ce9011627f6b816e77699421a85265c4ae0b74b5b",
+        "03e44dcf2df8ec33a17c63a894f3697ed863b2d1fcc7b5fd37cc4fc2edf8e7ed71",
+        "03ff9fb0c58b6097bc944592faee68fbdb2d1c5cd901f6eae9198bd8b31a1e6f5e"
+    }
+};
 
 // Signature in genesis block
 string G_CONFIG_TABLE::delegateSignature[3] = {
@@ -190,14 +180,15 @@ string G_CONFIG_TABLE::delegateSignature[3] = {
     "025e1310343d57f20740eeb32820a105a9372fb489028fea5471fa512168e75ce1"};  //regtest
 
 // Pubkey
-string G_CONFIG_TABLE::AlertPK_MainNet = "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb";
-string G_CONFIG_TABLE::AlertPK_TestNet = "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46";
+string G_CONFIG_TABLE::AlertPubKey[2] {
+    "029e85b9822bb140d6934fe7e8cd82fb7fde49da8c96141d69884c7e53a57628cb",   //mainnet
+    "0264afea20ebe6fe4c753f9c99bdce8293cf739efbc7543784873eb12f39469d46"};  //testnet
 
 // Gensis Block Hash
 string G_CONFIG_TABLE::genesisBlockHash[3] = {
-    "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",  //mainnet
-    "7d06f69186e0fe39b9c40417d448fd36b43f193a2cee1ccae7f99b181080ee40",  //testnet
-    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"}; //regtest
+    "0xa00d5d179450975237482f20f5cd688cac689eb83bc2151d561bfe720185dc13",   //mainnet
+    "7d06f69186e0fe39b9c40417d448fd36b43f193a2cee1ccae7f99b181080ee40",     //testnet
+    "0xab8d8b1d11784098108df399b247a0b80049de26af1b9c775d550228351c768d"};  //regtest
 
 // Merkle Root Hash
 string G_CONFIG_TABLE::MerkleRootHash = "0x16b211137976871bb062e211f08b2f70a60fa8651b609823f298d1a3d3f3e05d";
@@ -215,20 +206,18 @@ string G_CONFIG_TABLE::dexMatchPubKey[3] = {
     "033f51c7ef38ee34d1fe436dbf6329821d1863f22cee69c281c58374dcb9c35569"};  //regtest
 
 vector<string> G_CONFIG_TABLE::stableCoinGenesisTxid[3] = {
-    { //mainnet
-    "cc587f5b0280863b09ecfc1e0c9e21615b1775de90aaac51ff02d5dc9a26bbda",
-    "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba",
-    "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"
-    },
-    { //testnet
-    "aafa4d424a032e6d87fd983e5f7ae27eb30d8ca0e9ff61c065125381ae3399cd",
-    "5feb49f2f2af2858809dd235e7b4e3a633086f311ab1fca8a4a5180ab1a0fe10",
-    "751cc6d03b7e17200056f788623d9ab349f297b008a02046f6993f135d38fd1d"
-    },
-    { //regtest
-    "bab7f09fae61d74275ac4434780e4698222c8229a7454fd475270e4b18a97777",
-    "dfd6fe595c49653f7b8dd6513d7df77b8f7d8fa1e6b79d8cbff71cff650faea5",
-    "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
+    {   //mainnet
+        "cc587f5b0280863b09ecfc1e0c9e21615b1775de90aaac51ff02d5dc9a26bbda", //H-1: cdp global account
+        "7bfcfa18384ed6af2e10b8abdd78977c232db970a9776e332f8cde21b30eb2ba", //H-2: wgrt genesis account
+        "61c85164f428b3fbfd65e04a8b8528311808fee5d8e5ecc12a0c066ef2863812"  //H-3: dex order-matching account
+    }, { //testnet
+        "aafa4d424a032e6d87fd983e5f7ae27eb30d8ca0e9ff61c065125381ae3399cd",
+        "5feb49f2f2af2858809dd235e7b4e3a633086f311ab1fca8a4a5180ab1a0fe10",
+        "751cc6d03b7e17200056f788623d9ab349f297b008a02046f6993f135d38fd1d"
+    }, { //regtest
+        "bab7f09fae61d74275ac4434780e4698222c8229a7454fd475270e4b18a97777",
+        "dfd6fe595c49653f7b8dd6513d7df77b8f7d8fa1e6b79d8cbff71cff650faea5",
+        "88a9a2db20569d2253f6c079346288b6efd87714332780b6de491b9eeacaf0aa"
     }
 };
 
@@ -240,7 +229,7 @@ vector<uint32_t> G_CONFIG_TABLE::pnSeed = {0xF6CF612F, 0xA4D80E6A, 0x35DD70C1, 0
 uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108 /*mainnet*/, 100 /*testnet*/, 68 /*regtest*/};
 
 // Network Magic No.
-uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE]  {
+uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE] {
     {0xff, 0x42, 0x1d, 0x1a},  //mainnet
     {0xfd, 0x7d, 0x5c, 0xe0},  //testnet
     {0xfe, 0xfa, 0xd3, 0xc6}   //regtest
@@ -274,8 +263,8 @@ uint32_t G_CONFIG_TABLE::MaxVoteCandidateNum = 22;
 
 // Block height for stable coin genesis
 uint32_t G_CONFIG_TABLE::nStableScoinGenesisHeight[3] {
-    4109388,    // main
-    500,        // test
+    4109388,    // mainnet
+    500,        // testnet
     8};         // regtest
 
 // Block height to enable feature fork version

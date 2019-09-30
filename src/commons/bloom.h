@@ -1,5 +1,5 @@
-// Copyright (c) 2014-2015 The WaykiChain Core Developers
-// Copyright (c) 2014-2015 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -8,23 +8,27 @@
 
 #include "commons/serialize.h"
 #include "tx/tx.h"
+
+#include <cmath>
+#include <cstdlib>
 #include <vector>
+
+using namespace std;
 
 class uint256;
 
 // 20,000 items with fp rate < 0.1% or 10,000 items and <0.0001%
-static const unsigned int MAX_BLOOM_FILTER_SIZE = 36000; // bytes
-static const unsigned int MAX_HASH_FUNCS = 50;
+static const uint32_t MAX_BLOOM_FILTER_SIZE = 36000;  // bytes
+static const uint32_t MAX_HASH_FUNCS        = 50;
 
 // First two bits of nFlags control how much IsRelevantAndUpdate actually updates
 // The remaining bits are reserved
-enum bloomflags
-{
+enum bloomflags {
     BLOOM_UPDATE_NONE = 0,
-    BLOOM_UPDATE_ALL = 1,
+    BLOOM_UPDATE_ALL  = 1,
     // Only adds outpoints to the filter if the output is a pay-to-pubkey/pay-to-multisig script
     BLOOM_UPDATE_P2PUBKEY_ONLY = 2,
-    BLOOM_UPDATE_MASK = 3,
+    BLOOM_UPDATE_MASK          = 3,
 };
 
 /**
@@ -38,17 +42,16 @@ enum bloomflags
  * allowing clients to trade more bandwidth for more privacy by obfuscating which
  * keys are owned by them.
  */
-class CBloomFilter
-{
+class CBloomFilter {
 private:
-    vector<unsigned char> vData;
+    vector<uint8_t> vData;
     bool isFull;
     bool isEmpty;
-    unsigned int nHashFuncs;
-    unsigned int nTweak;
-    unsigned char nFlags;
+    uint32_t nHashFuncs;
+    uint32_t nTweak;
+    uint8_t nFlags;
 
-    unsigned int Hash(unsigned int nHashNum, const vector<unsigned char>& vDataToHash) const;
+    uint32_t Hash(uint32_t nHashNum, const vector<uint8_t>& vDataToHash) const;
 
 public:
     // Creates a new bloom filter which will provide the given fp rate when filled with the given number of elements
@@ -58,22 +61,16 @@ public:
     // nTweak is a constant which is added to the seed value passed to the hash function
     // It should generally always be a random value (and is largely only exposed for unit testing)
     // nFlags should be one of the BLOOM_UPDATE_* enums (not _MASK)
-    CBloomFilter(unsigned int nElements, double nFPRate, unsigned int nTweak, unsigned char nFlagsIn);
+    CBloomFilter(uint32_t nElements, double nFPRate, uint32_t nTweak, uint8_t nFlagsIn);
     CBloomFilter() : isFull(true) {}
 
-    IMPLEMENT_SERIALIZE
-    (
-        READWRITE(vData);
-        READWRITE(nHashFuncs);
-        READWRITE(nTweak);
-        READWRITE(nFlags);
-    )
+    IMPLEMENT_SERIALIZE(READWRITE(vData); READWRITE(nHashFuncs); READWRITE(nTweak); READWRITE(nFlags);)
 
-    void insert(const vector<unsigned char>& vKey);
+    void insert(const vector<uint8_t>& vKey);
 
     void insert(const uint256& hash);
 
-    bool contains(const vector<unsigned char>& vKey) const;
+    bool contains(const vector<uint8_t>& vKey) const;
     bool contains(const uint256& hash) const;
 
     // True if the size is <= MAX_BLOOM_FILTER_SIZE and the number of hash functions is <= MAX_HASH_FUNCS
@@ -81,7 +78,7 @@ public:
     bool IsWithinSizeConstraints() const;
 
     // Also adds any outputs which match the filter to the filter (to match their spending txes)
-    bool IsRelevantAndUpdate(CBaseTx *pBaseTx, const uint256& hash);
+    bool IsRelevantAndUpdate(CBaseTx* pBaseTx, const uint256& hash);
 
     // Checks for empty and full filters to avoid wasting cpu
     void UpdateEmptyFull();

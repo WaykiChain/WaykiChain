@@ -874,6 +874,10 @@ int32_t ExGetTxContractFunc(lua_State *L) {
             CLuaContractInvokeTx *tx = static_cast<CLuaContractInvokeTx *>(pBaseTx.get());
             LUA_BurnFuncData(L, FUEL_CALL_GetTxContract, tx->arguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
             len = RetRstToLua(L, tx->arguments, false);
+        } else if (pBaseTx->nTxType == UCONTRACT_INVOKE_TX) {
+            CUniversalContractInvokeTx *tx = static_cast<CUniversalContractInvokeTx *>(pBaseTx.get());
+            LUA_BurnFuncData(L, FUEL_CALL_GetTxContract, tx->arguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
+            len = RetRstToLua(L, tx->arguments, false);
         } else {
             LUA_BurnFuncCall(L, FUEL_CALL_GetTxContract, BURN_VER_R2);
             return RetFalse("ExGetTxContractFunc, tx type error");

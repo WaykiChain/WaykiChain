@@ -1191,10 +1191,10 @@ public:
 
     CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn)
     {
-        file = filenew;
-        nType = nTypeIn;
-        nVersion = nVersionIn;
-        state = 0;
+        file       = filenew;
+        nType      = nTypeIn;
+        nVersion   = nVersionIn;
+        state      = 0;
         exceptmask = ios::badbit | ios::failbit;
     }
 
