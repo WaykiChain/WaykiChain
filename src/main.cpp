@@ -2238,7 +2238,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
         LogPrint("net", "filter the same GetLocator\n");
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
         static uint32_t count = 0;
-        string key                = to_string(pNode->id) + ":" + to_string((GetTime() / 2));
+        string key            = to_string(pNode->id) + ":" + to_string((GetTime() / 2));
         if (!filter.contains(vector<uint8_t>(key.begin(), key.end()))) {
             filter.insert(vector<uint8_t>(key.begin(), key.end()));
             ++count;
