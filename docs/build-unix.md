@@ -14,7 +14,7 @@ $ sudo curl https://raw.githubusercontent.com/WaykiChain/WaykiChain/master/linux
 
 ```code
 $ cd WaykiChain
-$ sh ./linux_shell/linux.sh
+$ sh ./distros/linuxshell/linux.sh
 $ sh ./autogen-coin-man.sh coin
 $ make
 ```
