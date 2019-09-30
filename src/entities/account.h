@@ -139,12 +139,13 @@ public:
         this->tokens           = other.tokens;
         this->received_votes   = other.received_votes;
         this->last_vote_height = other.last_vote_height;
+        this->last_vote_epoch  = other.last_vote_epoch;
 
         return *this;
     }
-    CAccount(const CKeyID& keyIdIn): keyid(keyIdIn), regid(), nickid(), received_votes(0), last_vote_height(0) {}
+    CAccount(const CKeyID& keyIdIn): keyid(keyIdIn), regid(), nickid(), received_votes(0), last_vote_height(0), last_vote_epoch(0) {}
     CAccount(const CKeyID& keyidIn, const CNickID& nickidIn, const CPubKey& ownerPubkeyIn)
-        : keyid(keyidIn), nickid(nickidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0) {
+        : keyid(keyidIn), nickid(nickidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0), last_vote_epoch(0) {
         miner_pubkey = CPubKey();
         tokens.clear();
         regid.Clear();
@@ -163,6 +164,7 @@ public:
         READWRITE(tokens);
         READWRITE(VARINT(received_votes));
         READWRITE(VARINT(last_vote_height));
+        READWRITE(VARINT(last_vote_epoch));
     )
 
     CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;

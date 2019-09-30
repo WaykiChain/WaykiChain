@@ -170,7 +170,14 @@ uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, cons
     uint32_t duration = epoch_curr_vote - epoch_last_vote;
 
     // interest = (1% * 21 billion) * (lastVotedBcoins/0.21 billion) * (duration / 365*24*3600)
-    return (lastVotedBcoins * (duration / 31536000.0));
+    uint64_t interest = lastVotedBcoins * (duration / 31536000.0);
+    LogPrint("profits",
+             "compute inflate interest to voter: %s, current time: %u\n"
+             "interest = last_voted_bcoins * (epoch_last_vote - epoch_curr_vote) / yearTime\n"
+             "formula: %llu = 1.0 * %llu * (%u - %u) / (365 * 24 * 3600)\n",
+             regid.ToString(), currBlockTime, interest, lastVotedBcoins, epoch_last_vote, epoch_curr_vote);
+
+    return interest;
 }
 
 uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const {
@@ -384,7 +391,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
                 newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
-        receipts.emplace_back(regid, nullId, SYMB::WICC, addedVotes, ReceiptCode::DELEGATE_SUB_VOTE);
+        receipts.emplace_back(regid, nullId, SYMB::WICC, addedVotes, ReceiptCode::DELEGATE_ADD_VOTE);
     } else if (newTotalVotes < lastTotalVotes) {
         uint64_t subVotes = lastTotalVotes - newTotalVotes;
         if (!OperateBalance(SYMB::WICC, BalanceOpType::UNVOTE, subVotes)) {
@@ -393,7 +400,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                 "newTotalVotes=%llu, lastTotalVotes=%llu, freeAmount=%llu",
                 newTotalVotes, lastTotalVotes, GetToken(SYMB::WICC).free_amount);
         }
-        receipts.emplace_back(nullId, regid, SYMB::WICC, subVotes, ReceiptCode::DELEGATE_ADD_VOTE);
+        receipts.emplace_back(nullId, regid, SYMB::WICC, subVotes, ReceiptCode::DELEGATE_SUB_VOTE);
     } // else newTotalVotes == lastTotalVotes // do nothing
 
     // collect inflated bcoins or fcoins
@@ -421,10 +428,11 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                     return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
                 }
                 receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
-
-                LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %llu\n",
-                    regid.ToString(), fcoinAmountToInflate);
             }
+
+            LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %llu\n", regid.ToString(),
+                     fcoinAmountToInflate);
+
             break;
         }
         default:
