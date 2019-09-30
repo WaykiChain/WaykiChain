@@ -4,7 +4,7 @@
 
 1. Ubuntu 14.x/16.x/18.x/CentOS 7.x
 ```
-$ sudo curl https://raw.githubusercontent.com/WaykiChain/WaykiChain/master/linuxshell/prepare_prerequisites.sh|bash
+$ sudo curl https://raw.githubusercontent.com/WaykiChain/WaykiChain/master/distros/linuxshell/prepare_prerequisites.sh|bash
 ```
 
 ### Build steps
