@@ -3455,12 +3455,13 @@ FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly)
     if (!file && !fReadOnly)
         file = fopen(path.string().c_str(), "wb+");
     if (!file) {
-        LogPrint("INFO", "Unable to open file %s\n", path.string());
+        LogPrint("ERROR", "Unable to open file %s\n", path.string());
         return nullptr;
     }
+
     if (pos.nPos) {
         if (fseek(file, pos.nPos, SEEK_SET)) {
-            LogPrint("INFO", "Unable to seek to position %u of %s\n", pos.nPos, path.string());
+            LogPrint("ERROR", "Unable to seek to position %u of %s\n", pos.nPos, path.string());
             fclose(file);
             return nullptr;
         }
