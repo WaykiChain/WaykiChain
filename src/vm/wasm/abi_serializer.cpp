@@ -1,6 +1,7 @@
 #include <chrono>
 
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+
 #include <wasm/exceptions.hpp>
 #include <wasm/abi_serializer.hpp>
 #include <wasm/types/name.hpp>
@@ -59,7 +60,7 @@ namespace wasm {
                         T t;
                         wasm::from_variant(var, t);
 
-                        
+
                         ds << t;
                     }
                 }
@@ -71,9 +72,9 @@ namespace wasm {
         set_abi(abi, max_serialization_time);
     }
 
-    void abi_serializer::add_specialized_unpack_pack( const string& name,
-                                                      std::pair<abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack ) {
-       built_in_types[name] = std::move( unpack_pack );
+    void abi_serializer::add_specialized_unpack_pack( const string &name,
+                                                      std::pair <abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack ) {
+        built_in_types[name] = std::move(unpack_pack);
     }
 
     void abi_serializer::configure_built_in_types() {
@@ -97,7 +98,7 @@ namespace wasm {
         built_in_types.emplace("float64", pack_unpack<double>());
         // built_in_types.emplace("float128",                  pack_unpack<uint128_t>());
 
-        built_in_types.emplace("time_point",                pack_unpack<system_clock::time_point>());
+        built_in_types.emplace("time_point", pack_unpack<system_clock::time_point>());
         //built_in_types.emplace("time_point_sec",            pack_unpack<std::time_point_sec>());
         //built_in_types.emplace("block_timestamp_type",      pack_unpack<block_timestamp_type>());
 
@@ -108,9 +109,9 @@ namespace wasm {
         built_in_types.emplace("bytes", pack_unpack<bytes>());
         built_in_types.emplace("string", pack_unpack<string>());
 
-        built_in_types.emplace("checksum160",               pack_unpack<checksum160_type>());
-        built_in_types.emplace("checksum256",               pack_unpack<checksum256_type>());
-        built_in_types.emplace("checksum512",               pack_unpack<checksum512_type>());
+        built_in_types.emplace("checksum160", pack_unpack<checksum160_type>());
+        built_in_types.emplace("checksum256", pack_unpack<checksum256_type>());
+        built_in_types.emplace("checksum512", pack_unpack<checksum512_type>());
 
         // built_in_types.emplace("public_key",                pack_unpack<public_key_type>());
         // built_in_types.emplace("signature",                 pack_unpack<signature_type>());
@@ -370,7 +371,8 @@ namespace wasm {
         }
 
 
-        WASM_THROW(pack_exception, "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
+        WASM_THROW(pack_exception,
+                   "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
         json_spirit::Value var;
         return var;
 
@@ -529,7 +531,8 @@ namespace wasm {
                         WASM_ASSERT(_is_type(_remove_bin_extension(field.type), ctx), invalid_type_inside_abi,
                                     "Invalid type inside abi in type '%s'", field.type.c_str());
                     }
-                    WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s' field '%s'", s.first.c_str(), field.type.c_str())
+                    WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s' field '%s'", s.first.c_str(),
+                                             field.type.c_str())
                 }
 
             }

@@ -11,7 +11,7 @@ using std::chrono::system_clock;
 
 namespace wasm {
 
-    static bool has_wasm_interface_initialized;
+    bool has_wasm_interface_initialized = false;
 
     static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
         if (!trace.console.empty()) {
@@ -32,7 +32,7 @@ namespace wasm {
 
     void CWasmContext::reset_console() {
         _pending_console_output = std::ostringstream();
-        _pending_console_output.setf(std::ios::scientific, std::ios::floatfield);
+        //_pending_console_output.setf(std::ios::scientific, std::ios::floatfield);
     }
 
 
@@ -61,12 +61,13 @@ namespace wasm {
 
     void CWasmContext::Initialize() {
 
-        if(!has_wasm_interface_initialized) {
+        if (!has_wasm_interface_initialized) {
             has_wasm_interface_initialized = true;
             wasmInterface.Initialize(wasm::vmType::eosvm);
-            RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
-            RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
         }
+
+        RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
+        RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
     }
 
     void CWasmContext::Execute( inline_transaction_trace &trace ) {
@@ -113,11 +114,23 @@ namespace wasm {
                     wasmInterface.Execute(code, this);
                 }
             }
+        } catch (wasm::exception &e) {
+            std::ostringstream o;
+            o << e.detail();
+
+            if (_pending_console_output.str().size() > 0) o << " , " << tfm::format("pending console output: %s",
+                                                                                    _pending_console_output.str().c_str());
+            e.msg = o.str();
+            throw;
+        } catch (...) {
+            if (_pending_console_output.str().size() > 0)
+                throw wasm_exception(tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
+            else
+                throw wasm_exception("wasm exception");
         }
-        WASM_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str().c_str() )
 
         trace.trx_id = control_trx.GetHash();
-        trace.elapsed =  std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
+        trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
         trace.console = _pending_console_output.str();
 
         // trace.block_height =

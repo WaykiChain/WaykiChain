@@ -21,7 +21,7 @@
 
 namespace wasm {
 
-     using std::chrono::system_clock;
+    using std::chrono::system_clock;
 
 /**
  *  A data stream for reading and writing data in the form of bytes
@@ -1698,8 +1698,6 @@ namespace wasm {
         ds << value;
         return result;
     }
-
-
 
 
 }

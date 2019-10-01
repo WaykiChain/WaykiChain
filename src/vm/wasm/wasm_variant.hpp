@@ -1,5 +1,6 @@
 #pragma once
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+
 #include <chrono>
 
 #include "wasm/types/types.hpp"
@@ -76,30 +77,31 @@ namespace wasm {
 
     }
 
-    static inline string FromTime(const std::time_t &t){
+    static inline string FromTime( const std::time_t &t ) {
 
         char szTime[128];
         std::tm *p;
         p = localtime(&t);
-        sprintf( szTime, "%4d-%2d-%2dT%2d:%2d:%2d",p->tm_year+1900, p->tm_mon+1, p->tm_mday,p->tm_hour, p->tm_min, p->tm_sec); 
+        sprintf(szTime, "%4d-%2d-%2dT%2d:%2d:%2d", p->tm_year + 1900, p->tm_mon + 1, p->tm_mday, p->tm_hour, p->tm_min,
+                p->tm_sec);
 
         return string(szTime);
     }
 
-    static inline std::time_t ToTime(const std::string &t){
-                                   
+    static inline std::time_t ToTime( const std::string &t ) {
+
         int year, month, day, hour, minute, second;
-        sscanf((char*)t.data(), "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+        sscanf((char *) t.data(), "%d-%d-%dT%d:%d:%d", &year, &month, &day, &hour, &minute, &second);
         std::tm time = {};
-        time.tm_year = year - 1900;                 
-        time.tm_mon = month - 1;                    
-        time.tm_mday = day;                         
-        time.tm_hour = hour;                        
-        time.tm_min = minute;                       
-        time.tm_sec = second;                       
-        time.tm_isdst = 0;                        
-        time_t t_ = mktime(&time);   
-     
+        time.tm_year = year - 1900;
+        time.tm_mon = month - 1;
+        time.tm_mday = day;
+        time.tm_hour = hour;
+        time.tm_min = minute;
+        time.tm_sec = second;
+        time.tm_isdst = 0;
+        time_t t_ = mktime(&time);
+
         return t_;
     }
 
@@ -118,27 +120,27 @@ namespace wasm {
 
     static inline void to_variant( const int128_t &t, wasm::variant &v ) {
 
-        bool is_negative = ( t < 0);
+        bool is_negative = (t < 0);
         uint128_t val_magnitude;
         if (is_negative)
             val_magnitude = static_cast<uint128_t>(-t); // Works even if val is at the lowest possible value of a int128_t
         else
-            val_magnitude = static_cast<uint128_t>(t);  
+            val_magnitude = static_cast<uint128_t>(t);
 
         uint128 u(val_magnitude);
 
-        if(! is_negative){
-            if(u.hi == 0){
+        if (!is_negative) {
+            if (u.hi == 0) {
                 v = wasm::variant(u.lo);
-                return;           
+                return;
             }
             v = wasm::variant(string(u));
             return;
         } else {
-            if(u.hi == 0){
+            if (u.hi == 0) {
                 int64_t lo = u.lo;
                 v = wasm::variant(-lo);
-                return;           
+                return;
             }
             v = wasm::variant("-" + string(u));
             return;
@@ -149,9 +151,9 @@ namespace wasm {
     static inline void to_variant( const uint128_t &t, wasm::variant &v ) {
         uint128 u(t);
 
-        if(u.hi == 0){
-           v = wasm::variant(u.lo);
-           return;
+        if (u.hi == 0) {
+            v = wasm::variant(u.lo);
+            return;
         }
 
         v = wasm::variant(string(u));
@@ -182,10 +184,10 @@ namespace wasm {
 
     static inline void to_variant( const system_clock::time_point &t, wasm::variant &v ) {
 
-          std::time_t time = std::chrono::system_clock::to_time_t(t);
-          v = wasm::variant(FromTime(time));
+        std::time_t time = std::chrono::system_clock::to_time_t(t);
+        v = wasm::variant(FromTime(time));
 
-          //WASM_TRACE("%s", FromTime(time).c_str());
+        //WASM_TRACE("%s", FromTime(time).c_str());
     }
 
 
@@ -220,29 +222,29 @@ namespace wasm {
 
     static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
-        string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
-        v = wasm::variant(ToHex(str,""));
+        string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
+        v = wasm::variant(ToHex(str, ""));
 
 
     }
 
     static inline void to_variant( const wasm::checksum256_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
-        string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
         //WASM_TRACE("%s", ToHex(str,"").c_str())
-        v = wasm::variant(ToHex(str,""));
+        v = wasm::variant(ToHex(str, ""));
 
     }
 
     static inline void to_variant( const wasm::checksum512_type &t, wasm::variant &v ) {
-        string str(&t.hash[0], &t.hash[sizeof(t.hash)/sizeof(t.hash[0])]);
+        string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
 
-        v = wasm::variant(ToHex(str,""));
+        v = wasm::variant(ToHex(str, ""));
     }
 
 
     static inline void to_variant( const wasm::symbol_code &t, wasm::variant &v ) {
-         v = wasm::variant(t.to_string());
+        v = wasm::variant(t.to_string());
     }
 
     static inline void to_variant( const wasm::symbol &t, wasm::variant &v ) {
@@ -280,12 +282,12 @@ namespace wasm {
 
         if (v.type() == json_spirit::str_type) {
             string str = v.get_str();
-            
-            bool is_negative = (str[0] == '-') ? true:false;
+
+            bool is_negative = (str[0] == '-') ? true : false;
             if (is_negative)
-                str.substr(1, str.size()-1);
+                str.substr(1, str.size() - 1);
             uint128 u(str);
-            t = is_negative? (-wasm::uint128_t(u)) : wasm::uint128_t(u);
+            t = is_negative ? (-wasm::uint128_t(u)) : wasm::uint128_t(u);
 
         } else if (v.type() == json_spirit::int_type) {
             t = static_cast< wasm::int128_t >(v.get_int64());
@@ -304,7 +306,7 @@ namespace wasm {
         }
 
     }
-    
+
 
     static inline void from_variant( const wasm::variant &v, wasm::signed_int &t ) {
         if (v.type() == json_spirit::int_type) {
@@ -388,21 +390,21 @@ namespace wasm {
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum160_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            FromHex(v.get_str()).copy((char *)&t, sizeof(t));
+            FromHex(v.get_str()).copy((char *) &t, sizeof(t));
         }
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum256_type &t ) {
         if (v.type() == json_spirit::str_type) {
             //WASM_TRACE("%s", v.get_str().c_str())
-            FromHex(v.get_str()).copy((char *)&t, sizeof(t));
+            FromHex(v.get_str()).copy((char *) &t, sizeof(t));
         }
     }
 
 
     static inline void from_variant( const wasm::variant &v, checksum512_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            FromHex(v.get_str()).copy((char *)&t, sizeof(t));
+            FromHex(v.get_str()).copy((char *) &t, sizeof(t));
         }
     }
 
@@ -516,7 +518,7 @@ namespace wasm {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), s.name);
                         //std::cout << s.name <<std::endl ;
-                         //WASM_TRACE("%s", s.name.c_str())
+                        //WASM_TRACE("%s", s.name.c_str())
                         break;
                     }
                     case ID_Base : {

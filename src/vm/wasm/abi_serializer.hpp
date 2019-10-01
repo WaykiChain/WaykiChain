@@ -63,8 +63,8 @@ namespace wasm {
                                 microseconds max_serialization_time ) const;
         typedef std::function<json_spirit::Value(wasm::datastream<const char *> & , bool, bool)> unpack_function;
         typedef std::function<void( const json_spirit::Value &, wasm::datastream<char *> &, bool, bool )> pack_function;
-        void add_specialized_unpack_pack( const string& name,
-                                          std::pair<abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack );
+        void add_specialized_unpack_pack( const string &name,
+                                          std::pair <abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack );
 
         static std::vector<char>
         pack( const string &abi, const string &action, const string &params, microseconds max_serialization_time ) {

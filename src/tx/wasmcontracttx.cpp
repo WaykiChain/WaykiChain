@@ -79,14 +79,14 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
     to_variant(t.trx_id.ToString(), val);
     json_spirit::Config::add(obj, "trx_id", val);
 
+    to_variant(t.elapsed.count(), val);
+    json_spirit::Config::add(obj, "elapsed", val);
+
     to_variant(wasm::name(t.receiver), val);
     json_spirit::Config::add(obj, "receiver", val);
 
     to_variant(t.trx, val);
     json_spirit::Config::add(obj, "trx", val);
-
-    to_variant(t.elapsed.count(), val);
-    json_spirit::Config::add(obj, "elapsed", val);
 
     to_variant(t.console, val);
     json_spirit::Config::add(obj, "console", val);
