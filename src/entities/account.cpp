@@ -24,6 +24,7 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
             case FREE_VALUE:    value = accountToken.free_amount;   return true;
             case STAKED_VALUE:  value = accountToken.staked_amount; return true;
             case FROZEN_VALUE:  value = accountToken.frozen_amount; return true;
+            case VOTED_VALUE:   value = accountToken.voted_amount;  return true;
             default: return false;
         }
     }

@@ -30,7 +30,8 @@ enum BalanceType : uint8_t {
     NULL_TYPE    = 0,  //!< invalid type
     FREE_VALUE   = 1,
     STAKED_VALUE = 2,
-    FROZEN_VALUE = 3
+    FROZEN_VALUE = 3,
+    VOTED_VALUE  = 4
 };
 
 enum BalanceOpType : uint8_t {
