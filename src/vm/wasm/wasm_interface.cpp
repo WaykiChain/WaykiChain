@@ -75,7 +75,7 @@ namespace wasm {
 
             system_clock::time_point start = system_clock::now();
             // Execute apply.
-            watchdog wd{std::chrono::seconds(1)};
+            watchdog wd{std::chrono::seconds(max_wasm_execute_time)};
             bkend->apply(wd, &ehm, "env", "apply", pWasmContext->Receiver(), pWasmContext->Contract(),
                          pWasmContext->Action());
 

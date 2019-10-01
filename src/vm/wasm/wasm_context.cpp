@@ -10,8 +10,25 @@ using std::chrono::microseconds;
 using std::chrono::system_clock;
 
 namespace wasm {
-
+    using nativeHandler = std::function<void( CWasmContext & )>;
     bool has_wasm_interface_initialized = false;
+    map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
+
+    inline void RegisterNativeHandler( uint64_t receiver, uint64_t action, nativeHandler v ) {
+        wasm_native_handlers[std::pair(receiver, action)] = v;
+    }
+
+    inline nativeHandler* FindNativeHandle( uint64_t receiver, uint64_t action ) {
+
+        auto handler = wasm_native_handlers.find(std::pair(receiver, action));
+        if (handler != wasm_native_handlers.end()) {
+            return &handler->second;
+        }
+
+        return nullptr;
+
+    }
+
 
     static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
         if (!trace.console.empty()) {
@@ -64,10 +81,9 @@ namespace wasm {
         if (!has_wasm_interface_initialized) {
             has_wasm_interface_initialized = true;
             wasmInterface.Initialize(wasm::vmType::eosvm);
+            RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
+            RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
         }
-
-        RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
-        RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
     }
 
     void CWasmContext::Execute( inline_transaction_trace &trace ) {
@@ -156,21 +172,6 @@ namespace wasm {
         if (!HasRecipient(recipient)) {
             notified.push_back(recipient);
         }
-
-    }
-
-    void CWasmContext::RegisterNativeHandler( uint64_t receiver, uint64_t action, nativeHandler v ) {
-        native_handlers[std::pair(receiver, action)] = v;
-    }
-
-    nativeHandler *CWasmContext::FindNativeHandle( uint64_t receiver, uint64_t action ) {
-
-        auto handler = native_handlers.find(std::pair(receiver, action));
-        if (handler != native_handlers.end()) {
-            return &handler->second;
-        }
-
-        return nullptr;
 
     }
 
