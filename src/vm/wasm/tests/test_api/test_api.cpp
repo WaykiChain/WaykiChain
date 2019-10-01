@@ -166,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
   CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes );
 
   raw_bytes.resize((1<<16)+1);
-  //CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes), passed, wasm_exception,"wasm memory out-of-bounds")
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes), passed, wasm_exception,"access violation")
 
   // test read_action_to_64k
   raw_bytes.resize(1);
@@ -174,7 +174,7 @@ BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
 
   //test read_action_to_64k
   raw_bytes.resize(3);
-  //CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"wasm memory out-of-bounds")
+  CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"access violation")
 
     // test require_notice
    auto test_require_notice = [](auto& test, std::vector<char>& data){
