@@ -81,7 +81,7 @@ namespace wasm {
         bool EraseData( uint64_t contract, string k ) {
             return cache.contractCache.EraseContractData(Name2RegID(contract), k);
         }
-        bool contracts_console() { return true; } //should be set by console
+        bool contracts_console() { return false; } //should be set by console
         void console_append( string val ) {
             _pending_console_output << val;
         }
@@ -91,6 +91,9 @@ namespace wasm {
         void require_auth2( uint64_t account, uint64_t permission ) {}
         bool has_authorization( uint64_t account ) const {return true;}
         uint64_t block_time() { return 0; }
+
+    public:
+         //static bool has_initialized;
 
     public:
         uint64_t receiver;

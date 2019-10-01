@@ -11,6 +11,8 @@ using std::chrono::system_clock;
 
 namespace wasm {
 
+    static bool has_wasm_interface_initialized;
+
     static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
         if (!trace.console.empty()) {
 
@@ -59,9 +61,12 @@ namespace wasm {
 
     void CWasmContext::Initialize() {
 
-        wasmInterface.Initialize(wasm::vmType::eosvm);
-        RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
-        RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
+        if(!has_wasm_interface_initialized) {
+            has_wasm_interface_initialized = true;
+            wasmInterface.Initialize(wasm::vmType::eosvm);
+            RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
+            RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
+        }
     }
 
     void CWasmContext::Execute( inline_transaction_trace &trace ) {

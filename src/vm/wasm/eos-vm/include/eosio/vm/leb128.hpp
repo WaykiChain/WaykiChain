@@ -33,7 +33,8 @@ namespace eosio { namespace vm {
          }
          inline constexpr void from(uint32_t v) {
 	    bytes_used = 0;
-            #pragma unroll
+            //xiaoyu 20191001
+             #pragma unroll
             for (; bytes_used < bytes_needed<N>(); bytes_used++) {
                storage[bytes_used] = v & 0x7f;
                v >>= 7;

@@ -11,7 +11,7 @@
 #include "wasm_context_interface.hpp"
 #include "datastream.hpp"
 #include "softfloat.hpp"
-#include "compiler_builtins.hpp"
+#include "compiler_builtins/compiler_builtins.hpp"
 #include "types/uint128.hpp"
 #include "exceptions.hpp"
 #include "wasm_log.hpp"
@@ -183,9 +183,7 @@ namespace wasm {
             WASM_ASSERT( val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "value size too big" );
 
-
-            //const uint64_t payer = wasmContext.receiver;
-            const uint64_t payer = pWasmContext->Receiver();
+            //const uint64_t payer = pWasmContext->Receiver();
 
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
@@ -210,9 +208,7 @@ namespace wasm {
             WASM_ASSERT( key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                       "key size too big" );
 
-            //std::cout << "db_remove" << std::endl;
-            //const uint64_t payer = wasmContext.receiver;
-            const uint64_t payer = pWasmContext->Receiver();
+            //const uint64_t payer = pWasmContext->Receiver();
 
             string k = string((const char *) key, key_len);
 
@@ -284,14 +280,9 @@ namespace wasm {
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
-            // std::stringstream ss;
-            // ss << pWasmContext->Receiver();
-            // ss << k;
-            // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
-            //const uint64_t payer = wasmContext.receiver;
-            const uint64_t payer = pWasmContext->Receiver();
+            //const uint64_t payer = pWasmContext->Receiver();
 
             //std::cout << "db_update key: "<<ToHex(k,"")<<" key_len:"<<key_len << " value: "<<ToHex(v,"")<<" value_len:"<<value_len <<std::endl;
 
@@ -305,8 +296,8 @@ namespace wasm {
 
         //memory
         char *memcpy( void *dest, const void *src, int len ) {
-            WASM_ASSERT((int)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
-                  overlapping_memory_error, "%s", "memcpy can only accept non-aliasing pointers");
+            // WASM_ASSERT((int)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
+            //       overlapping_memory_error, "%s", "memcpy can only accept non-aliasing pointers");
             //std::cout << "memcpy" << std::endl;
             return (char *) std::memcpy(dest, src, len);
         }

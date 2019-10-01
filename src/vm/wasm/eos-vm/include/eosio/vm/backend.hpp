@@ -23,6 +23,49 @@ namespace eosio { namespace vm {
       backend(wasm_code& code) : _ctx(binary_parser{ _mod.allocator }.parse_module(code, _mod)) {}
       backend(wasm_code_ptr& ptr, size_t sz) : _ctx(binary_parser{ _mod.allocator }.parse_module2(ptr, sz, _mod)) {}
 
+      //xiaoyu 20190930
+      template <typename Watchdog, typename... Args>
+      inline bool apply( Watchdog&& wd, Host* host, const std::string_view& mod, const std::string_view& func, Args... args) {
+         return call(wd, host, mod, func, args...);
+      }
+
+      //xiaoyu 20190930
+      inline void clean() { 
+         _walloc->free(); 
+      }
+      //xiaoyu 20190930
+      template <typename Watchdog, typename... Args>
+      inline bool call(Watchdog&& wd, Host* host, const std::string_view& mod, const std::string_view& func, Args... args) {
+         auto wd_guard = wd.scoped_run([this]() {
+            _timed_out = true;
+            mprotect(_mod.allocator._base, _mod.allocator._size, PROT_NONE);
+         });
+
+         try {
+            if constexpr (eos_vm_debug) {
+               _ctx.execute(host, debug_visitor(_ctx), func, args...);
+            } else {
+               _ctx.execute(host, interpret_visitor(_ctx), func, args...);
+            }
+            clean();
+            return true;
+         } catch(wasm_memory_exception&) {
+            clean();
+            if (_timed_out) {
+               mprotect(_mod.allocator._base, _mod.allocator._size, PROT_READ | PROT_WRITE);
+               //clean();
+               throw timeout_exception{ "execution timed out" };
+            } else {
+               //clean();
+               throw;
+            }
+         } catch (...) {
+            clean();
+            throw;
+         }
+      }
+
+
       template <typename... Args>
       inline bool operator()(Host* host, const std::string_view& mod, const std::string_view& func, Args... args) {
          return call(host, mod, func, args...);
@@ -67,6 +110,8 @@ namespace eosio { namespace vm {
 
       template <typename... Args>
       inline bool call(Host* host, const std::string_view& mod, const std::string_view& func, Args... args) {
+
+
          try {
             if constexpr (eos_vm_debug) {
                _ctx.execute(host, debug_visitor(_ctx), func, args...);

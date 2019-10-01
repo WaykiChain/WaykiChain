@@ -25,11 +25,11 @@ using namespace std;
          throw exc_type(str.c_str());                     \
     }
 
-#define WASM_CAPTURE_AND_RETHROW( ... )          \
-    catch( wasm::exception& e ) {                \
-       throw;                                    \
-    } catch( ... ) {                             \
-         string str = tfm::format( __VA_ARGS__ );\
+#define WASM_CAPTURE_AND_RETHROW( ... )             \
+    catch( wasm::exception& e ) {                   \
+       throw;                                       \
+    } catch( ... ) {                                \
+         string str = tfm::format( __VA_ARGS__ );   \
          throw wasm_assert_exception( str.c_str()); \
     }
 
@@ -46,7 +46,7 @@ namespace wasm {
 
 #define WASM_DECLARE_EXCEPTION( name, _code, _what )                              \
    struct name : public wasm::exception {                                         \
-      name(const char* m) { msg = string(m); }                                     \
+      name(const char* m) { msg = string(m); }                                    \
       virtual const char* what()const throw() { return _what; }                   \
       virtual const char* detail()const throw() { return msg.c_str(); }           \
       virtual uint32_t code()const throw() { return _code; }                      \
