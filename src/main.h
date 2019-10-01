@@ -331,8 +331,6 @@ public:
 
         if (pDexCache) pDexCache->Flush();
 
-        if (pBlockCache) pBlockCache->Flush();
-
         if (pLogCache) pLogCache->Flush();
 
         if (pReceiptCache) pReceiptCache->Flush();
