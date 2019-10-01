@@ -53,10 +53,8 @@ namespace eosio { namespace vm {
             clean();
             if (_timed_out) {
                mprotect(_mod.allocator._base, _mod.allocator._size, PROT_READ | PROT_WRITE);
-               //clean();
                throw timeout_exception{ "execution timed out" };
             } else {
-               //clean();
                throw;
             }
          } catch (...) {

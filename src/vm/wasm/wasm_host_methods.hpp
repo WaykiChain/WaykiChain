@@ -113,6 +113,9 @@ namespace wasm {
 
         void wasm_assert( uint32_t test, const char *msg ) {
             //std::cout << "wasm_assert:" << msg << std::endl;
+
+            //WASM_TRACE("%s", msg)
+
             if (!test) {
                 //std::cout << msg << std::endl;
                 WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg)
@@ -213,10 +216,6 @@ namespace wasm {
 
             string k = string((const char *) key, key_len);
 
-            // std::stringstream ss;
-            // ss << pWasmContext->Receiver();
-            // ss << k;
-            // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
             //std::cout << "db_remove key: "<< ToHex(k)<<" key_len: "<<key_len << std::endl;
 
@@ -243,10 +242,6 @@ namespace wasm {
             //std::cout << "db_get" << std::endl;
             string k = string((const char *) key, key_len);
 
-            // std::stringstream ss;
-            // ss << pWasmContext->Receiver();
-            // ss << k;
-            // k = ss.str();
             AddPrefix(pWasmContext->Receiver(), k);
 
             //std::cout << "db_get" << " key: "<<ToHex(k,"")<<" key_len: "<<key_len << std::endl;
@@ -297,9 +292,9 @@ namespace wasm {
 
         //memory
         char *memcpy( void *dest, const void *src, int len ) {
-            // WASM_ASSERT((int)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
-            //       overlapping_memory_error, "%s", "memcpy can only accept non-aliasing pointers");
-            //std::cout << "memcpy" << std::endl;
+            WASM_ASSERT((size_t)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
+                  overlapping_memory_error, "%s", "memcpy can only accept non-aliasing pointers");
+
             return (char *) std::memcpy(dest, src, len);
         }
 
