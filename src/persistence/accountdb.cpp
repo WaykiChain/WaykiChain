@@ -232,9 +232,16 @@ uint32_t CAccountDBCache::GetCacheSize() const {
 }
 
 std::tuple<uint64_t, uint64_t> CAccountDBCache::TraverseAccount() {
-    // TODO: GetTotalCoins
-    //return pBase->TraverseAccount();
-    return make_tuple<uint64_t, uint64_t>(0, 0);
+    map<CKeyID, CAccount> items;
+
+    accountCache.GetAllElements(items);
+    uint64_t i = 0;
+    uint64_t amnt = 0;
+    for (auto& item : items) {
+        i++;
+        amnt += item.second.GetToken(SYMB::WICC).free_amount;
+    }
+    return std::tie(i, amnt);
 }
 
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {
