@@ -28,7 +28,7 @@ Run waykichain coind inside a docker container!
 1. copy the entire Docker/bin dir from WaykiChain repository:
    * ``` sudo cp -r ${your_path_of_WaykiChain}/Docker/bin ./ ```
 1. copy WaykiCoind.conf into ```conf``` dir from WaykiChain repository:
-   * ``` sudo cp -r ${your_path_of_WaykiChain}/Docker/WaykiChain.conf ./dir/ ```
+   * ``` sudo cp -r ${your_path_of_WaykiChain}/Docker/WaykiChain.conf ./conf/ ```
 1. modify content of ```WaykiCoind.conf``` accordingly
    * For mainnet, please make sure ```nettype=main``` is set
    * For testnet, please make sure only ```nettype=test``` is set
