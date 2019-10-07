@@ -417,8 +417,8 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
-    uint32_t fuelRate = GetElementForBurn(chainActive.Tip());
-    uint32_t blockTime = chainActive.Height();
+    uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
+    uint32_t blockTime = chainActive.Tip()->GetBlockTime();
 
     CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, spCW.get(), &state);
     if (!pBaseTx->CheckTx(context))

@@ -491,9 +491,9 @@ if (fHelp || params.size() > 2) {
     int32_t nCount = 0;
     map<int32_t, uint256, std::greater<int32_t> > blockInfoMap;
     for (auto const &wtx : pWalletMain->mapInBlockTx) {
-        CBlockIndex *pIndex = mapBlockIndex[wtx.first];
-        if (pIndex != nullptr)
-            blockInfoMap.insert(make_pair(pIndex->height, wtx.first));
+        auto it = mapBlockIndex.find(wtx.first);
+        if (it != mapBlockIndex.end())
+            blockInfoMap.insert(make_pair(it->second->height, wtx.first));
     }
     bool bUpLimited = false;
     for (auto const &blockInfo : blockInfoMap) {

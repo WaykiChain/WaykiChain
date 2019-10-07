@@ -23,9 +23,9 @@ namespace db_util {
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
-    // int
-    inline bool IsEmpty(const int val) { return val == false; }
-    inline void SetEmpty(int &val) { val = false; }
+    // int32_t
+    inline bool IsEmpty(const int32_t val) { return val == false; }
+    inline void SetEmpty(int32_t &val) { val = false; }
 
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val == 0; }
@@ -178,22 +178,29 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (keys.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                auto ret = keys.emplace(key);
-                if (!ret.second) throw runtime_error("alloc new cache item failed");
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
 
-                ++count;
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (keys.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    auto ret = keys.emplace(key);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
+                    ++count;
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -212,17 +219,24 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            // Got an valid element.
-            leveldb::Slice slValue = pCursor->value();
-            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-            ds >> value;
-            auto ret = elements.emplace(key, value);
-            if (!ret.second) throw runtime_error("alloc new cache item failed");
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
+
+                // Got an valid element.
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ds >> value;
+                auto ret = elements.emplace(key, value);
+                if (!ret.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
+            }
         }
 
         return true;
@@ -243,24 +257,30 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (elements.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                if (!ret.second)
-                    throw runtime_error("alloc new cache item failed");
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
+                    break;
+                }
+
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (elements.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    leveldb::Slice slValue = pCursor->value();
+                    CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                    ds >> value;
+                    auto ret = elements.emplace(key, value);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -282,27 +302,33 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) > prefix) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            }
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) > prefix) {
+                    break;
+                }
 
-            leveldb::Slice slValue = pCursor->value();
-            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-            ds >> value;
+                if (expiredKeys.count(key)) {
+                    continue;
+                }
 
-            if (elements.count(value)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                auto ret = elements.emplace(value);
-                if (!ret.second)
-                    throw runtime_error("alloc new cache item failed");
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ds >> value;
+
+                if (elements.count(value)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    auto ret = elements.emplace(value);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -321,24 +347,30 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (elements.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                if (!ret.second)
-                    throw runtime_error("alloc new cache item failed");
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
+
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (elements.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    leveldb::Slice slValue = pCursor->value();
+                    CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                    ds >> value;
+                    auto ret = elements.emplace(key, value);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -387,7 +419,7 @@ private:
     mutable CLevelDBWrapper db; // // TODO: remove the mutable declare
 };
 
-template<int PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
+template<int32_t PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
 class CCompositeKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
@@ -502,7 +534,9 @@ public:
         if (it == mapData.end()) {
             auto emptyValue = db_util::MakeEmptyValue<ValueType>();
             auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            if (!newRet.second) throw runtime_error("alloc new cache item failed");
+            if (!newRet.second)
+                throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
             it = newRet.first;
         }
         AddOpLog(key, it->second);
@@ -590,13 +624,15 @@ private:
         Iterator it = mapData.find(key);
         if (it != mapData.end()) {
             return it;
-        } else if (pBase != nullptr){
+        } else if (pBase != nullptr) {
             // find key-value at base cache
             auto baseIt = pBase->GetDataIt(key);
             if (baseIt != pBase->mapData.end()) {
                 // the found key-value add to current mapData
                 auto newRet = mapData.emplace(key, baseIt->second);
-                if (!newRet.second) throw runtime_error("alloc new cache item failed");
+                if (!newRet.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
                 return newRet.first;
             }
         } else if (pDbAccess != NULL) {
@@ -604,7 +640,9 @@ private:
             auto pDbValue = db_util::MakeEmptyValue<ValueType>();
             if (pDbAccess->GetData(PREFIX_TYPE, key, *pDbValue)) {
                 auto newRet = mapData.emplace(key, *pDbValue);
-                if (!newRet.second) throw runtime_error("alloc new cache item failed");
+                if (!newRet.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
                 return newRet.first;
             }
         }
@@ -742,7 +780,7 @@ private:
 };
 
 
-template<int PREFIX_TYPE_VALUE, typename ValueType>
+template<int32_t PREFIX_TYPE_VALUE, typename ValueType>
 class CSimpleKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
