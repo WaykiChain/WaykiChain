@@ -19,7 +19,6 @@
 #include <stdint.h>
 #include <memory>
 
-typedef uint256 TxID;
 class CBlockDBCache;
 class CDiskBlockPos;
 class CNode;

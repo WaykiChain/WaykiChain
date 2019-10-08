@@ -14,6 +14,8 @@
 #include <unordered_set>
 #include <vector>
 
+using namespace std;
+
 extern const signed char p_util_hexdigit[256];  // defined in util.cpp
 
 inline signed char HexDigit(char c) { return p_util_hexdigit[(unsigned char)c]; }
@@ -169,5 +171,7 @@ public:
 };
 
 typedef std::unordered_set<uint256, CUint256Hasher> UnorderedHashSet;
+
+typedef uint256 TxID;
 
 #endif  // COIN_UINT256_H

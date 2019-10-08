@@ -69,6 +69,8 @@ public:
 
     CTxUndo(const uint256 &txidIn): txid(txidIn) {}
 
+    void SetTxID(const TxID &txidIn) { txid = txidIn; }
+
     void Clear() {
         txid = uint256();
         dbOpLogMap.Clear();
