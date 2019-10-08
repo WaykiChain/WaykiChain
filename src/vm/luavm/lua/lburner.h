@@ -12,6 +12,7 @@
 typedef void (*lua_burner_trace_cb) (lua_State *L, const char* caption, const char* format, ...);
 
 struct lua_burner_state {
+    void*               pContext;           /** context pointer */
     int                 isStarted;          /** 0 is stoped, otherwise is started */
     int                 error;              /** 0 is ok, otherwise has error */
     int                 version;            /** burner version */
@@ -36,7 +37,7 @@ typedef struct lua_burner_state lua_burner_state;
  * fuelLimit      the max step for burning
  * version      the burner version
  */
-int lua_StartBurner(lua_State *L, unsigned long long  fuelLimit, int version);
+int lua_StartBurner(lua_State *L, void* pContext, unsigned long long  fuelLimit, int version);
 
 lua_burner_state* lua_GetBurnerState(lua_State *L);
 

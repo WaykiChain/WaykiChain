@@ -253,7 +253,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     lua_State *lua_state = lua_state_ptr.get();
 
     //TODO: should get burner version from the block height
-    if (!lua_StartBurner(lua_state, fuelLimit, pVmRunEnv->GetBurnVersion())) {
+    if (!lua_StartBurner(lua_state, pVmRunEnv, fuelLimit, pVmRunEnv->GetBurnVersion())) {
         LogPrint("vm", "CLuaVM::Run lua_StartBurner() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run lua_StartBurner() failed\n"));
     }
