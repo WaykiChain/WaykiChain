@@ -62,7 +62,7 @@ public:
 struct SingleTransfer {
     CUserID to_uid;
     TokenSymbol coin_symbol = SYMB::WICC;
-    uint64_t coin_amount = 0;
+    uint64_t coin_amount    = 0;
 
     SingleTransfer() {}
 
@@ -74,7 +74,7 @@ struct SingleTransfer {
         READWRITE(coin_symbol);
         READWRITE(VARINT(coin_amount));
     )
-    string ToString(const CAccountDBCache &accountCache) const ;
+    string ToString(const CAccountDBCache &accountCache) const;
 
     Object ToJson(const CAccountDBCache &accountCache) const;
 };

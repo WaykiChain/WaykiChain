@@ -235,6 +235,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     CLuaVMContext luaContext;
     luaContext.p_cw              = &cw;
     luaContext.height            = context.height;
+    luaContext.block_time        = context.block_time;
     luaContext.p_base_tx         = this;
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = SYMB::WICC;
@@ -484,6 +485,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     CLuaVMContext luaContext;
     luaContext.p_cw              = &cw;
     luaContext.height            = context.height;
+    luaContext.block_time        = context.block_time;
     luaContext.p_base_tx         = this;
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = coin_symbol;

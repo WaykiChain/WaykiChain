@@ -478,7 +478,7 @@ typedef struct {
 /*
 ** Traverses all arguments from 'argv', returning a mask with those
 ** needed before running any Lua code (or an error code if it finds
-** any invalid argument). 'first' returns the first not-handled argument 
+** any invalid argument). 'first' returns the first not-handled argument
 ** (either the script name or a bad argument in case of error).
 */
 static int collectargs (char **argv, int *first, lua_args_t *lua_args) {
@@ -502,7 +502,7 @@ static int collectargs (char **argv, int *first, lua_args_t *lua_args) {
         args |= has_E;
         break;
       case 'i':
-        args |= has_i;  /* (-i implies -v) *//* FALLTHROUGH */ 
+        args |= has_i;  /* (-i implies -v) *//* FALLTHROUGH */
       case 'v':
         if (argv[i][2] != '\0')  /* extra characters after 1st? */
           return has_error;  /* invalid option */
@@ -524,7 +524,7 @@ static int collectargs (char **argv, int *first, lua_args_t *lua_args) {
         i++;  /* try next 'argv' */
         if (argv[i] == NULL || argv[i][0] == '-')
           return has_error;  /* no next argument or it is another option */
-        lua_args->fuelLimit = strtoull(argv[i], NULL, 10);        
+        lua_args->fuelLimit = strtoull(argv[i], NULL, 10);
         break;
 
       case 'V':
@@ -534,7 +534,7 @@ static int collectargs (char **argv, int *first, lua_args_t *lua_args) {
         i++;  /* try next 'argv' */
         if (argv[i] == NULL || argv[i][0] == '-')
           return has_error;  /* no next argument or it is another option */
-        lua_args->burnVersion = strtoull(argv[i], NULL, 10);        
+        lua_args->burnVersion = strtoull(argv[i], NULL, 10);
         break;
       case 't':
         if (argv[i][2] != '\0')  /* extra characters after 1st? */
@@ -657,9 +657,9 @@ static int pmain (lua_State *L) {
   }
   luaL_openlibs(L);  /* open standard libraries */
   createargtable(L, argv, argc, script);  /* create table 'arg' */
-  
+
   if (lua_args.fuelLimit > 0) {
-    if (!lua_StartBurner(L, lua_args.fuelLimit, lua_args.burnVersion)) {
+    if (!lua_StartBurner(L, NULL, lua_args.fuelLimit, lua_args.burnVersion)) {
       l_message(argv[0], "start burner failed!");
       return 0;
     }
@@ -669,13 +669,13 @@ static int pmain (lua_State *L) {
   }
   int status = 0;
   if (!(args & has_E)) {  /* no option '-E'? */
-    status = handle_luainit(L); 
+    status = handle_luainit(L);
 
   }
   if (status == LUA_OK) {
     status = runargs(L, argv, script);
   }
-  
+
   if (status != LUA_OK && script < argc) {  /* execute main script (if there is one) */
     status = handle_script(L, argv + script);
   }

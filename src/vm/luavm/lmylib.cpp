@@ -100,6 +100,12 @@ static CLuaVMRunEnv *GetVmRunEnv(lua_State *L) {
     return pVmRunEnv;
 }
 
+static CLuaVMRunEnv* GetVmRunEnvByContext(lua_State *L) {
+    lua_burner_state *pState = lua_GetBurnerState(L);
+    assert(pState != nullptr && pState->pContext != nullptr);
+    return (CLuaVMRunEnv*)pState->pContext;
+}
+
 static bool GetKeyId(const CAccountDBCache &accountView, vector<uint8_t> &ret, CKeyID &keyId) {
     if (ret.size() == 6) {
         CRegID reg(ret);
@@ -2110,23 +2116,40 @@ int32_t ExTransferSomeAsset(lua_State *L) {
 }
 
 int32_t ExGetBlockTimestamp(lua_State *L) {
+    CLuaVMRunEnv* pLuaVMRunEnv = GetVmRunEnvByContext(L);
     int32_t height = 0;
     if (!GetDataInt(L,height))
         return RetFalse("ExGetBlockTimestamp para err1");
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBlockTimestamp, BURN_VER_R2);
-    if (height <= 0) {
-        height = chainActive.Height() + height;
-        if(height < 0)
-            return RetFalse("ExGetBlockTimestamp para err2");
+    int32_t curBlockHeight = pLuaVMRunEnv->GetContext().height;
+    if(height > curBlockHeight) {
+        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d too large! curBlockHeight=%d\n",
+            height, curBlockHeight);
+        return 0;
     }
 
-    CBlockIndex *pIndex = chainActive[height];
-    if (!pIndex)
-        return RetFalse("ExGetBlockTimestamp get time stamp error");
+    if (height <= 0) {
+        height = curBlockHeight + height;
+        if (height < 0) {
+            LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d is too small! curBlockHeight=%d\n",
+                height, curBlockHeight);
+            return 0;
+        }
+    }
+    lua_Integer blockTime = 0;
+    if (height == curBlockHeight) {
+        blockTime = pLuaVMRunEnv->GetContext().block_time;
+    } else if (height <= chainActive.Height()){
+        blockTime = chainActive[height]->nTime;
+    } else {
+        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), cur block is invalid! input_height=%d, curBlockHeight=%d, active_chain_height=%d\n",
+            height, curBlockHeight, chainActive.Height());
+        return 0;
+    }
 
     if (lua_checkstack(L, sizeof(lua_Integer))) {
-        lua_pushinteger(L, (lua_Integer) pIndex->nTime);
+        lua_pushinteger(L, blockTime);
         return 1;
     }
 
