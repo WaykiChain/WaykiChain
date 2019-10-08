@@ -899,7 +899,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                             REJECT_INVALID, "total-staked-bcoins-too-small");
         }
 
-        uint64_t scoinsToReturnSysFund = totalScoinsToReturnSysFund * liquidateRate;
+        uint64_t scoinsToReturnSysFund = scoins_to_liquidate -  scoinsToCloseout;
         if (!ProcessPenaltyFees(CTxCord(context.height, context.index), cdp, scoinsToReturnSysFund, cw, state, receipts))
             return false;
 
