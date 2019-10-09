@@ -23,8 +23,8 @@ namespace wasm {
     using std::chrono::system_clock;
 
     using variant = json_spirit::Value;
-    using Object = json_spirit::Object;
-    using Array = json_spirit::Array;
+    using object = json_spirit::Object;
+    using array = json_spirit::Array;
 
     typedef Config::Value_type::Config_type Config_type;
 
@@ -194,7 +194,7 @@ namespace wasm {
     template<typename T>
     static inline void to_variant( const std::vector <T> &ts, wasm::variant &v ) {
 
-        wasm::Array var;
+        wasm::array var;
         for (const T &t: ts) {
             wasm::variant tmp;
             to_variant(t, tmp);
@@ -254,6 +254,113 @@ namespace wasm {
 
     static inline void to_variant( const wasm::asset &t, wasm::variant &v ) {
         v = wasm::variant(t.to_string());
+
+    }
+
+    static inline void to_variant( const wasm::type_def &t, wasm::variant &v ) {
+
+        wasm::object obj;
+
+        obj.push_back(Pair("new_type_name", wasm::variant(t.new_type_name)));
+        obj.push_back(Pair("type", wasm::variant(t.type)));
+
+        v = obj;
+    }  
+
+
+    static inline void to_variant( const wasm::field_def &t, wasm::variant &v ) {
+        wasm::object obj;
+
+        obj.push_back(Pair("name", wasm::variant(t.name)));
+        obj.push_back(Pair("type", wasm::variant(t.type)));
+
+        v = obj;
+    }  
+
+    static inline void to_variant( const wasm::struct_def &t, wasm::variant &v ) {
+
+        wasm::object obj;
+
+        obj.push_back(Pair("name", wasm::variant(t.name)));
+        obj.push_back(Pair("base", wasm::variant(t.base)));
+
+        wasm::variant fields;
+        to_variant(t.fields, fields);
+        obj.push_back(Pair("fields", fields));
+
+        v = obj;
+    }
+
+    static inline void to_variant( const wasm::action_def &t, wasm::variant &v ) {
+        wasm::object obj;
+
+        obj.push_back(Pair("name", wasm::variant(t.name)));
+        obj.push_back(Pair("type", wasm::variant(t.type)));
+        obj.push_back(Pair("ricardian_contract", wasm::variant(t.ricardian_contract)));
+
+        v = obj;
+    }
+
+    static inline void to_variant( const wasm::table_def &t, wasm::variant &v ) {
+
+        wasm::object obj;
+
+        obj.push_back(Pair("name", wasm::variant(t.name)));
+        obj.push_back(Pair("index_type", wasm::variant(t.index_type)));
+
+        wasm::variant key_names;
+        to_variant(t.key_names, key_names);
+        obj.push_back(Pair("key_names", key_names));
+
+        wasm::variant key_types;
+        to_variant(t.key_types, key_types);
+        obj.push_back(Pair("key_types", key_types));
+
+        obj.push_back(Pair("type", wasm::variant(t.type)));
+
+        v = obj;
+    }
+
+
+    static inline void to_variant( const wasm::clause_pair &t, wasm::variant &v ) {
+
+        wasm::object obj;
+
+        obj.push_back(Pair("id", wasm::variant(t.id)));
+        obj.push_back(Pair("body", wasm::variant(t.body)));
+
+        v = obj;
+
+    }
+
+
+    static inline void to_variant( const wasm::abi_def &t, wasm::variant &v ) {
+
+        wasm::object obj;
+
+        obj.push_back(Pair("version", wasm::variant(t.version)));
+
+        wasm::variant types;
+        to_variant(t.types, types);
+        obj.push_back(Pair("types", types));
+
+        wasm::variant structs;
+        to_variant(t.structs, structs);
+        obj.push_back(Pair("structs", structs));
+
+        wasm::variant actions;
+        to_variant(t.actions, actions);
+        obj.push_back(Pair("actions", actions));
+
+        wasm::variant tables;
+        to_variant(t.tables, tables);
+        obj.push_back(Pair("tables", tables));
+
+        wasm::variant ricardian_clauses;
+        to_variant(t.ricardian_clauses, ricardian_clauses);
+        obj.push_back(Pair("ricardian_clauses", ricardian_clauses));
+
+        v = obj;
 
     }
 
@@ -360,7 +467,7 @@ namespace wasm {
         if (v.type() == json_spirit::array_type) {
 
             auto a = v.get_array();
-            for (wasm::Array::const_iterator i = a.begin(); i != a.end(); ++i) {
+            for (wasm::array::const_iterator i = a.begin(); i != a.end(); ++i) {
                 T t;
                 from_variant(*i, t);
                 ts.push_back(t);

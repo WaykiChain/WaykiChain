@@ -199,8 +199,6 @@ extern json_spirit::Value abijsontobinwasmcontracttx(const json_spirit::Array& p
 extern json_spirit::Value abibintojsonwasmcontracttx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getcodewasmcontracttx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getabiwasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getrawcodewasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getrawabiwasmcontracttx(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

@@ -623,89 +623,44 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() != 1 ) {
         throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
+                "getcodewasmcontracttx \"contract\" \n"
                 "1.\"contract\": (string, required) contract name\n"
-                "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, optional) numbers\n"
-                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
                 "\nResult:\n"
-                "\"rows\":        (string)\n"
-                "\"more\":        (bool)\n"
+                "\"code\":        (string)\n"
                 "\nExamples:\n" +
-                HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"stat\" 10") +
+                HelpExampleCli("getcodewasmcontracttx",
+                               " \"411994-1\" ") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"stat\", 10"));
+                HelpExampleRpc("getcodewasmcontracttx",
+                               "\"411994-1\""));
         // 1.contract(id)
-        // 2.table
-        // 3.number
-        // 4.begin_key
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type));
 
-    json_spirit::Object object;
-    return object;  
-
-}
-
-Value getrawcodewasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
-        throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
-                "1.\"contract\": (string, required) contract name\n"
-                "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, optional) numbers\n"
-                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
-                "\nResult:\n"
-                "\"rows\":        (string)\n"
-                "\"more\":        (bool)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"stat\" 10") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"stat\", 10"));
-        // 1.contract(id)
-        // 2.table
-        // 3.number
-        // 4.begin_key
+    CRegID contractRegID(params[0].get_str());
+    if (contractRegID.IsEmpty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
+    CUniversalContract contractCode;
+    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+
+    if (contractCode.code.size() == 0)
+        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set code");
+
     json_spirit::Object object;
-    return object;  
 
-}
 
-Value getrawabiwasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
-        throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
-                "1.\"contract\": (string, required) contract name\n"
-                "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, optional) numbers\n"
-                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
-                "\nResult:\n"
-                "\"rows\":        (string)\n"
-                "\"more\":        (bool)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"stat\" 10") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"stat\", 10"));
-        // 1.contract(id)
-        // 2.table
-        // 3.number
-        // 4.begin_key
-    }
+    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
+    abi_def abi_d = wasm::unpack<wasm::abi_def>(abi);
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
-    json_spirit::Object object;
-    return object;  
+    json_spirit::variant v;
+    wasm::to_variant(abi_d, v);
+    object.push_back(Pair("abi", v));
+
+    return object; 
 
 }

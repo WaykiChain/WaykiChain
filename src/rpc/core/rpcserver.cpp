@@ -344,9 +344,7 @@ static const CRPCCommand vRPCCommands[] =
     { "abijsontobinwasmcontracttx", &abijsontobinwasmcontracttx,  true,      false,      true },  
     { "abibintojsonwasmcontracttx", &abibintojsonwasmcontracttx,  true,      false,      true }, 
     { "getcodewasmcontracttx",      &getcodewasmcontracttx,       true,      false,      true },  
-    { "getabiwasmcontracttx",       &getabiwasmcontracttx,        true,      false,      true },  
-    { "getrawcodewasmcontracttx",   &getrawcodewasmcontracttx,    true,      false,      true }, 
-    { "getrawabiwasmcontracttx",   &getrawabiwasmcontracttx,    true,      false,      true },  
+    { "getabiwasmcontracttx",       &getabiwasmcontracttx,        true,      false,      true },   
 
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

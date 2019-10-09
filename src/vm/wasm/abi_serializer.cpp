@@ -59,8 +59,6 @@ namespace wasm {
                     } else {
                         T t;
                         wasm::from_variant(var, t);
-
-
                         ds << t;
                     }
                 }
