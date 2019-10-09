@@ -179,7 +179,7 @@ namespace eosio { namespace vm {
    constexpr auto get_value(WAlloc* alloc, T&& val)
          -> std::enable_if_t<std::is_same_v<i32_const_t, T> && std::is_pointer_v<S>, S> {
       //xiaoyu 20191001
-      EOS_WB_ASSERT(alloc->is_in_region(alloc->template get_base_ptr<char>() + val.data.ui), wasm_memory_exception, "access violation")
+      EOS_WB_ASSERT(alloc->is_in_memory_range(alloc->template get_base_ptr<char>() + val.data.ui), wasm_memory_exception, "access violation")
       return (std::remove_const_t<S>)(alloc->template get_base_ptr<char>() + val.data.ui);
    }
 
@@ -187,7 +187,7 @@ namespace eosio { namespace vm {
    constexpr auto get_value(WAlloc* alloc, T&& val)
          -> std::enable_if_t<std::is_same_v<i32_const_t, T> && std::is_lvalue_reference_v<S>, S> {
       //xiaoyu 20191001
-      EOS_WB_ASSERT(alloc->is_in_region(alloc->template get_base_ptr<char>() + val.data.ui), wasm_memory_exception, "access violation")
+      EOS_WB_ASSERT(alloc->is_in_memory_range(alloc->template get_base_ptr<char>() + val.data.ui), wasm_memory_exception, "access violation")
       return *(std::remove_const_t<std::remove_reference_t<S>>*)(alloc->template get_base_ptr<uint8_t>() + val.data.ui);
    }
 

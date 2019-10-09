@@ -2,6 +2,7 @@
 #include "wasm/wasm_native_contract.hpp"
 #include "wasm/exceptions.hpp"
 #include "wasm/datastream.hpp"
+#include "wasm/types/asset.hpp"
 #include "persistence/cachewrapper.h"
 
 using namespace std;
@@ -9,7 +10,7 @@ using namespace wasm;
 
 namespace wasm {
 
-    void WasmNativeSetcode( CWasmContext &context ) {
+    void wasm_native_setcode( CWasmContext &context ) {
 
         CAccount sender;
         WASM_ASSERT(context.cache.accountCache.GetAccount(context.control_trx.txUid, sender),
@@ -68,7 +69,37 @@ namespace wasm {
     }
 
 
-    void WasmNativeTransfer( CWasmContext &context ) {
+    void wasm_native_transfer( CWasmContext &context ) {
+
+        using Transfer = std::tuple<uint64_t, uint64_t, wasm::asset, string>;
+        Transfer transfer = wasm::unpack<Transfer>(context.trx.data);
+
+        auto from = std::get<0>(transfer);
+        auto to = std::get<1>(transfer);
+        auto quantity = std::get<2>(transfer);
+        auto memo = std::get<3>(transfer);
+
+        WASM_ASSERT( from != to, wasm_assert_exception, "%s", "cannot transfer to self" );
+        context.require_auth( from );
+        WASM_ASSERT( context.is_account( to ), wasm_assert_exception, "%s", "to account does not exist");
+        auto sym = quantity.sym.code();
+
+        // currency_stats st;
+        // stats statstable( _self, sym.raw() );
+        // statstable.get( st, sym.raw() );
+
+        context.require_recipient( from );
+        context.require_recipient( to );
+
+        WASM_ASSERT( quantity.is_valid(), wasm_assert_exception, "%s", "invalid quantity" );
+        WASM_ASSERT( quantity.amount > 0, wasm_assert_exception, "%s", "must transfer positive quantity" );
+        //check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
+        WASM_ASSERT( memo.size() <= 256, wasm_assert_exception, "%s", "memo has more than 256 bytes" );
+
+        auto payer = context.has_authorization( to ) ? to : from;
+
+        // sub_balance( from, quantity );
+        // add_balance( to, quantity, payer );
 
     }
 

@@ -3,6 +3,7 @@
 #include <eosio/vm/host_function.hpp>
 #include <eosio/vm/watchdog.hpp>
 
+#include "wasm_host_methods.hpp"
 #include "wasm_interface.hpp"
 #include "types/name.hpp"
 #include "exceptions.hpp"
@@ -21,14 +22,7 @@ namespace wasm {
     using backend_t = eosio::vm::backend<WasmHostMethods>;
     using rhf_t     = eosio::vm::registered_host_functions<WasmHostMethods>;
     using code_version = uint256;
-
     std::map <code_version, std::shared_ptr<backend_t>> wasm_backend_cache;
-    //std::unique_ptr<backend_t>& get_instantiated_backend(const vector <uint8_t>& code);
-    // static std::map<code_version, std::unique_ptr<backend_t>> get_backend_cache(){
-    //     static std::map<code_version, std::unique_ptr<backend_t>> _backend_cache;
-    //     return _backend_cache;
-    // }
-
 
     CWasmInterface::CWasmInterface() {}
 

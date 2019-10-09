@@ -353,7 +353,7 @@ CXXFLAGS += -std=gnu++1z -fPIC ${PLATFORM_CXXFLAGS} -I. -I$(EOSVM_INCLUDE_DIR) \
 								                      -I$(VM_DIR) \
 								                      -I$(WAYKI_SRC_DIR)
 
-LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system 
+LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system -lssl -lcrypto
 
 WASM_EMPTY = 
 COMPILER_BUILTINS_PATH_SOURCE = $(COMPILER_BUILTINS)/

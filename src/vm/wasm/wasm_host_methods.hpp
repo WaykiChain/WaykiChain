@@ -487,7 +487,7 @@ namespace wasm {
             //context.require_recipient( recipient );
             //std::cout << "require_recipient:" << recipient << std::endl;
             //wasmContext.RequireRecipient(recipient);
-            pWasmContext->RequireRecipient(recipient);
+            pWasmContext->require_recipient(recipient);
 
         }
 

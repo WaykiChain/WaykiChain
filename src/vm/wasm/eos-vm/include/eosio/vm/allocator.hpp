@@ -128,6 +128,6 @@ namespace eosio { namespace vm {
       }
       inline int32_t get_current_page() const { return page; }
       bool is_in_region(char* p) { return p >= raw && p < raw + max_memory; }
-      //bool is_in_memory_band(char* p) { return p >= raw && p < raw + page * page_size; }
+      bool is_in_memory_range(char* p) { return p >= raw && p < raw + page * page_size; }
    };
 }} // namespace eosio::vm

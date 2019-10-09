@@ -8,7 +8,7 @@ using namespace wasm;
 namespace wasm {
     //class CWasmContext;
 
-    void WasmNativeSetcode( CWasmContext & );
-    void WasmNativeTransfer( CWasmContext & );
+    void wasm_native_setcode( CWasmContext & );
+    void wasm_native_transfer( CWasmContext & );
 
 };

@@ -59,7 +59,7 @@ namespace wasm {
     public:
         void ExecuteInline( inline_transaction t );
         bool HasRecipient( uint64_t account ) const;
-        void RequireRecipient( uint64_t recipient );
+        void require_recipient( uint64_t recipient );
         uint64_t Receiver() { return receiver; }
         uint64_t Contract() { return trx.contract; }
         uint64_t Action() { return trx.action; }

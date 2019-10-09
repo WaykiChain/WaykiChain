@@ -59,8 +59,10 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     CUniversalContract contract;
     pCdMan->pContractCache->GetContract(wasm::Name2RegID(t.contract), contract);
 
+    std::vector<char> abi(contract.abi.begin(), contract.abi.end());
+
     if (contract.abi.size() > 0) {
-        val = wasm::abi_serializer::unpack(contract.abi, wasm::name(t.action).to_string(), t.data,
+        val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
                                            max_serialization_time);
     } else
         to_variant(ToHex(t.data,""), val);

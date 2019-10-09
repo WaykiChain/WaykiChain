@@ -81,8 +81,8 @@ namespace wasm {
         if (!has_wasm_interface_initialized) {
             has_wasm_interface_initialized = true;
             wasmInterface.Initialize(wasm::vmType::eosvm);
-            RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
-            RegisterNativeHandler(wasmio_bank, N(transfer), WasmNativeTransfer);
+            RegisterNativeHandler(wasmio, N(setcode), wasm_native_setcode);
+            RegisterNativeHandler(wasmio_bank, N(transfer), wasm_native_transfer);
         }
     }
 
@@ -167,7 +167,7 @@ namespace wasm {
         return false;
     }
 
-    void CWasmContext::RequireRecipient( uint64_t recipient ) {
+    void CWasmContext::require_recipient( uint64_t recipient ) {
 
         if (!HasRecipient(recipient)) {
             notified.push_back(recipient);

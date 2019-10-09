@@ -137,6 +137,11 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         abi_def abi_d;
         from_variant(abiJson, abi_d);
         wasm::abi_serializer abis(abi_d, max_serialization_time);
+        
+        //abi in vector
+        std::vector<char> abi_v = wasm::pack<wasm::abi_def>(abi_d);
+        abi = string(abi_v.begin(), abi_v.end());
+
     } catch (wasm::exception &e) {
         throw JSONRPCError(e.code(), e.detail());
     }
@@ -293,7 +298,9 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     std::vector<char> data;
     if (contractCode.abi.size() > 0)
         try {
-            data = wasm::abi_serializer::pack(contractCode.abi, wasm::name(action).to_string(), arguments,
+
+            std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
+            data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), arguments,
                                               max_serialization_time);
         } catch (wasm::exception &e) {
             throw JSONRPCError(e.code(), e.detail());
@@ -402,7 +409,8 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     if (!pCdMan->pContractCache->GetContract(contractRegID, contractCode))
         throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
 
-    string abi = contractCode.abi;
+    //string abi = contractCode.abi;
+    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
     if (abi.size() == 0)
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
 
@@ -436,8 +444,8 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
             last_key = pGetter->GetKey(item);
             const string &value = pGetter->GetValue(item);
 
-            std::vector<char> row;
-            row.insert(row.end(), value.begin(), value.end());
+            std::vector<char> row(value.begin(), value.end());
+            //row.insert(row.end(), value.begin(), value.end());
             json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
 
             json_spirit::Object &obj = v.get_obj();
