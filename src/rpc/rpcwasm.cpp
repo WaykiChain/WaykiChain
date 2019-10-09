@@ -450,7 +450,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
             json_spirit::Object &obj = v.get_obj();
             obj.push_back(Pair("key", ToHex(last_key, "")));
-            obj.push_back(Pair("value", ToHex(last_key, "")));
+            obj.push_back(Pair("value", ToHex(value, "")));
 
             vars.push_back(v);
         }
@@ -478,10 +478,10 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
                 "\"data\":        (string)\n"
                 "\nExamples:\n" +
                 HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"transfer\" ") +
+                               " \"411994-1\" \"transfer\" \'[\"walk\",\"mark\",\"1000.0000 EOS\",\"transfer to mark\"]\' ") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"transfer\" "));
+                               "\"411994-1\", \"transfer\", \'[\"walk\",\"mark\",\"1000.0000 EOS\",\"transfer to mark\"]\' "));
         // 1.contract(id)
         // 2.action
         // 3.data
@@ -505,19 +505,18 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
     CUniversalContract contractCode;
     pCdMan->pContractCache->GetContract(contractRegID, contractCode);
 
-    std::vector<char> data;
-    if (contractCode.abi.size() > 0){
-        try {
+    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
+    if (abi.size() == 0)
+        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
 
-            std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
-            data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), arguments,
-                                              max_serialization_time);
-        } catch (wasm::exception &e) {
-            throw JSONRPCError(e.code(), e.detail());
-        }
-    } else {
-        throw JSONRPCError(READ_SCRIPT_FAIL, "Can not find contract abi");
+    std::vector<char> data;
+    try {
+        data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), arguments,
+                                          max_serialization_time);
+    } catch (wasm::exception &e) {
+        throw JSONRPCError(e.code(), e.detail());
     }
+
 
     json_spirit::Object object;
     object.push_back(Pair("data", wasm::ToHex(data,"")));
@@ -529,28 +528,59 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
 Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 2 || params.size() > 4) {
         throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
+                "gettablewasmcontracttx \"contract\" \"action\" \"data\" \n"
                 "1.\"contract\": (string, required) contract name\n"
-                "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, optional) numbers\n"
-                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
+                "2.\"action\":   (string, required) action name\n"
+                "3.\"data\":   (binary hex string, required) action data\n"
                 "\nResult:\n"
-                "\"rows\":        (string)\n"
-                "\"more\":        (bool)\n"
+                "\"data\":        (string)\n"
                 "\nExamples:\n" +
                 HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"stat\" 10") +
+                               " \"411994-1\" \"transfer\"  \"000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b\" ") +
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"stat\", 10"));
+                               "\"411994-1\", \"transfer\", \"000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b\" "));
         // 1.contract(id)
-        // 2.table
-        // 3.number
-        // 4.begin_key
+        // 2.action
+        // 3.data
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
+
+    CRegID contractRegID(params[0].get_str());
+    if (contractRegID.IsEmpty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    }
+   
+    //uint64_t contract = wasm::RegID2Name(contractRegID);
+    uint64_t action = wasm::NAME(params[1].get_str().c_str());
+
+    string arguments = params[2].get_str();
+    if (arguments.empty() || arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments empty or the size out of range");
+    }
+
+    CUniversalContract contractCode;
+    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+
+    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
+    if (abi.size() == 0)
+        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
+
     json_spirit::Object object;
+    try {
+        string binary = FromHex(arguments);
+        std::vector<char> data(binary.begin(), binary.end());
+
+        json_spirit::Value v = wasm::abi_serializer::unpack(abi, wasm::name(action).to_string(), data, max_serialization_time);
+
+        object.push_back(Pair("data", v));
+
+    } catch (wasm::exception &e) {
+        throw JSONRPCError(e.code(), e.detail());
+    }
+
+
     return object;  
 
 }
