@@ -338,9 +338,15 @@ static const CRPCCommand vRPCCommands[] =
     { "getassets",                  &getassets,                  true,     false,      false },
 
     /* for wasm */
-    { "setcodewasmcontracttx",     &setcodewasmcontracttx,       true,      false,      true },  
-    { "callwasmcontracttx",        &callwasmcontracttx,          true,      false,      true }, 
-    { "gettablewasmcontracttx",    &gettablewasmcontracttx,   true,      false,      true },  
+    { "setcodewasmcontracttx",      &setcodewasmcontracttx,       true,      false,      true },  
+    { "callwasmcontracttx",         &callwasmcontracttx,          true,      false,      true }, 
+    { "gettablewasmcontracttx",     &gettablewasmcontracttx,      true,      false,      true },  
+    { "abijsontobinwasmcontracttx", &abijsontobinwasmcontracttx,  true,      false,      true },  
+    { "abibintojsonwasmcontracttx", &abibintojsonwasmcontracttx,  true,      false,      true }, 
+    { "getcodewasmcontracttx",      &getcodewasmcontracttx,       true,      false,      true },  
+    { "getabiwasmcontracttx",       &getabiwasmcontracttx,        true,      false,      true },  
+    { "getrawcodewasmcontracttx",   &getrawcodewasmcontracttx,    true,      false,      true }, 
+    { "getrawabiwasmcontracttx",   &getrawabiwasmcontracttx,    true,      false,      true },  
 
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

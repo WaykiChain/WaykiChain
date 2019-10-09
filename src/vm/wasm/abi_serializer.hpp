@@ -88,29 +88,29 @@ namespace wasm {
         }
 
 
-        static std::vector<char>
-        pack( const string &abi, const string &action, const string &params, microseconds max_serialization_time ) {
+        // static std::vector<char>
+        // pack( const string &abi, const string &action, const string &params, microseconds max_serialization_time ) {
 
-            vector<char> data;
-            try {
-                json_spirit::Value abi_v;
-                json_spirit::read_string(abi, abi_v);
+        //     vector<char> data;
+        //     try {
+        //         json_spirit::Value abi_v;
+        //         json_spirit::read_string(abi, abi_v);
 
-                wasm::abi_def def;
-                wasm::from_variant(abi_v, def);
-                wasm::abi_serializer abis(def, max_serialization_time);
+        //         wasm::abi_def def;
+        //         wasm::from_variant(abi_v, def);
+        //         wasm::abi_serializer abis(def, max_serialization_time);
 
-                json_spirit::Value data_v;
-                json_spirit::read_string(params, data_v);
-                //std::cout << json_spirit::write(data_v) << std::endl;
-                data = abis.variant_to_binary(action, data_v, max_serialization_time);
+        //         json_spirit::Value data_v;
+        //         json_spirit::read_string(params, data_v);
+        //         //std::cout << json_spirit::write(data_v) << std::endl;
+        //         data = abis.variant_to_binary(action, data_v, max_serialization_time);
 
-            }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params.c_str())
+        //     }
+        //     WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params.c_str())
 
-            return data;
+        //     return data;
 
-        }
+        // }
 
         static json_spirit::Value
         unpack( const std::vector<char>  &abi, const string &name, const bytes &data, microseconds max_serialization_time ) {
@@ -129,25 +129,25 @@ namespace wasm {
         }
 
 
-        static json_spirit::Value
-        unpack( const string &abi, const string &name, const bytes &data, microseconds max_serialization_time ) {
+        // static json_spirit::Value
+        // unpack( const string &abi, const string &name, const bytes &data, microseconds max_serialization_time ) {
 
-            json_spirit::Value data_v;
-            try {
-                json_spirit::Value abi_v;
-                json_spirit::read_string(abi, abi_v);
+        //     json_spirit::Value data_v;
+        //     try {
+        //         json_spirit::Value abi_v;
+        //         json_spirit::read_string(abi, abi_v);
 
-                wasm::abi_def def;
-                wasm::from_variant(abi_v, def);
-                wasm::abi_serializer abis(def, max_serialization_time);
+        //         wasm::abi_def def;
+        //         wasm::from_variant(abi_v, def);
+        //         wasm::abi_serializer abis(def, max_serialization_time);
 
-                data_v = abis.binary_to_variant(name, data, max_serialization_time);
+        //         data_v = abis.binary_to_variant(name, data, max_serialization_time);
 
-            }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", name.c_str())
+        //     }
+        //     WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", name.c_str())
 
-            return data_v;
-        }
+        //     return data_v;
+        // }
 
         static json_spirit::Value
         unpack( const std::vector<char> &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time ) {
@@ -175,33 +175,33 @@ namespace wasm {
         }
 
 
-        static json_spirit::Value
-        unpack( const string &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time ) {
+        // static json_spirit::Value
+        // unpack( const string &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time ) {
 
-            //std::cout << "unpack " << " table:" << table << std::endl;
-            json_spirit::Value data_v;
-            type_name name;
-            try {
-                json_spirit::Value abi_v;
-                json_spirit::read_string(abi, abi_v);
+        //     //std::cout << "unpack " << " table:" << table << std::endl;
+        //     json_spirit::Value data_v;
+        //     type_name name;
+        //     try {
+        //         json_spirit::Value abi_v;
+        //         json_spirit::read_string(abi, abi_v);
 
-                wasm::abi_def def;
-                wasm::from_variant(abi_v, def);
-                wasm::abi_serializer abis(def, max_serialization_time);
+        //         wasm::abi_def def;
+        //         wasm::from_variant(abi_v, def);
+        //         wasm::abi_serializer abis(def, max_serialization_time);
 
-                string t = wasm::name(table).to_string();
-                name = abis.get_table_type(t);
+        //         string t = wasm::name(table).to_string();
+        //         name = abis.get_table_type(t);
 
-                // std::cout << "unpack " << " name:" << name << std::endl;
-                WASM_ASSERT(name.size() > 0, abi_parse_exception, "can not get table %s's type from abi",
-                            t.data());
+        //         // std::cout << "unpack " << " name:" << name << std::endl;
+        //         WASM_ASSERT(name.size() > 0, abi_parse_exception, "can not get table %s's type from abi",
+        //                     t.data());
 
-                data_v = abis.binary_to_variant(name, data, max_serialization_time);
-            }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name.c_str())
+        //         data_v = abis.binary_to_variant(name, data, max_serialization_time);
+        //     }
+        //     WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name.c_str())
 
-            return data_v;
-        }
+        //     return data_v;
+        // }
 
     private:
 
