@@ -891,7 +891,8 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
     } else {
         path = GetDefaultDataDir();
     }
-    if (fNetSpecific) path /= SysCfg().DataDir();
+    if (fNetSpecific)
+        path /= SysCfg().DataDir();
 
     fs::create_directories(path);
 
