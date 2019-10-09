@@ -53,7 +53,7 @@ namespace wasm {
     }
 
 
-    void CWasmContext::ExecuteInline( inline_transaction t ) {
+    void CWasmContext::execute_inline( inline_transaction t ) {
         inline_transactions.push_back(t);
     }
 
@@ -90,11 +90,11 @@ namespace wasm {
 
         Initialize();
 
-        notified.push_back(receiver);
+        notified.push_back(_receiver);
         ExecuteOne(trace);
 
         for (uint32_t i = 1; i < notified.size(); ++i) {
-            receiver = notified[i];
+            _receiver = notified[i];
 
             trace.inline_traces.emplace_back();
             ExecuteOne(trace.inline_traces.back());
@@ -117,15 +117,15 @@ namespace wasm {
         auto start = system_clock::now();
 
         trace.trx = trx;
-        trace.receiver = receiver;
+        trace.receiver = _receiver;
 
-        auto native = FindNativeHandle(receiver, trx.action);
+        auto native = FindNativeHandle(_receiver, trx.action);
 
         try {
             if (native) {
                 (*native)(*this);
             } else {
-                vector <uint8_t> code = GetCode(receiver);
+                vector <uint8_t> code = GetCode(_receiver);
                 if (code.size() > 0) {
                     wasmInterface.Execute(code, this);
                 }
@@ -155,12 +155,12 @@ namespace wasm {
         reset_console();
 
         if (contracts_console()) {
-            print_debug(receiver, trace);
+            print_debug(_receiver, trace);
         }
 
     }
 
-    bool CWasmContext::HasRecipient( uint64_t account ) const {
+    bool CWasmContext::has_recipient( uint64_t account ) const {
         for (auto a : notified)
             if (a == account)
                 return true;
@@ -169,7 +169,7 @@ namespace wasm {
 
     void CWasmContext::require_recipient( uint64_t recipient ) {
 
-        if (!HasRecipient(recipient)) {
+        if (!has_recipient(recipient)) {
             notified.push_back(recipient);
         }
 

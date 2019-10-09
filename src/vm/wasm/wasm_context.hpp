@@ -57,21 +57,21 @@ namespace wasm {
 
 //virtual
     public:
-        void ExecuteInline( inline_transaction t );
-        bool HasRecipient( uint64_t account ) const;
+        void execute_inline( inline_transaction t );
+        bool has_recipient( uint64_t account ) const;
         void require_recipient( uint64_t recipient );
-        uint64_t Receiver() { return receiver; }
-        uint64_t Contract() { return trx.contract; }
-        uint64_t Action() { return trx.action; }
-        const char *GetActionData() { return trx.data.data(); }
-        uint32_t GetActionDataSize() { return trx.data.size(); }
-        bool SetData( uint64_t contract, string k, string v ) {
+        uint64_t receiver() { return _receiver; }
+        uint64_t contract() { return trx.contract; }
+        uint64_t action() { return trx.action; }
+        const char *get_action_data() { return trx.data.data(); }
+        uint32_t get_action_data_size() { return trx.data.size(); }
+        bool set_data( uint64_t contract, string k, string v ) {
             return cache.contractCache.SetContractData(Name2RegID(contract), k, v);
         }
-        bool GetData( uint64_t contract, string k, string &v ) {
+        bool get_data( uint64_t contract, string k, string &v ) {
             return cache.contractCache.GetContractData(Name2RegID(contract), k, v);
         }
-        bool EraseData( uint64_t contract, string k ) {
+        bool erase_data( uint64_t contract, string k ) {
             return cache.contractCache.EraseContractData(Name2RegID(contract), k);
         }
         bool contracts_console() { return true; } //should be set by console
@@ -86,7 +86,7 @@ namespace wasm {
         uint64_t block_time() { return 0; }
 
     public:
-        uint64_t receiver;
+        uint64_t _receiver;
 
         inline_transaction &trx;
         CWasmContractTx &control_trx;

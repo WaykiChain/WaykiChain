@@ -143,12 +143,12 @@ namespace wasm {
         //action
         uint32_t read_action_data( void *memory, uint32_t buffer_size ) {
 
-            uint32_t s = pWasmContext->GetActionDataSize();
+            uint32_t s = pWasmContext->get_action_data_size();
             if (buffer_size == 0) return s;
 
             uint32_t copy_size = std::min(buffer_size, s);
 
-            std::memcpy(memory, pWasmContext->GetActionData(), copy_size);
+            std::memcpy(memory, pWasmContext->get_action_data(), copy_size);
 
             //std::string data(pWasmContext->GetActionData(),copy_size);
             //std::cout << "read_action_data:" << ToHex(data) << " copy_size:"<< copy_size <<std::endl;
@@ -158,7 +158,7 @@ namespace wasm {
         uint32_t action_data_size() {
 
             //auto size = wasmContext.trx.data.size();
-            auto size = pWasmContext->GetActionDataSize();
+            auto size = pWasmContext->get_action_data_size();
             //std::cout << "action_data_size size:"<< size << std::endl;
             //WASM_TRACE("%d",size)
             return size;
@@ -166,7 +166,7 @@ namespace wasm {
 
         uint64_t current_receiver() {
             //return wasmContext.receiver;
-            return pWasmContext->Receiver();
+            return pWasmContext->receiver();
         }
 
         void sha256( const void *data, uint32_t data_len, void *hash_val ) {
@@ -192,16 +192,16 @@ namespace wasm {
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
-            AddPrefix(pWasmContext->Receiver(), k);
+            AddPrefix(pWasmContext->receiver(), k);
 
             // WASM_TRACE("key:%s key_len:%d val:%s val_len:%d",
             //            ToHex(k).c_str(), key_len, ToHex(v).c_str(), val_len)
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;
-            const uint64_t contract = pWasmContext->Receiver();
+            const uint64_t contract = pWasmContext->receiver();
 
-            wasm_assert(pWasmContext->SetData(contract, k, v), ("wasm db_store SetContractData failed, key:" +
+            wasm_assert(pWasmContext->set_data(contract, k, v), ("wasm db_store SetContractData failed, key:" +
                                                                 ToHex(k)).c_str());      //wasmContext.AppendUndo(contract, k, oldValue);
 
             return 1;
@@ -216,14 +216,14 @@ namespace wasm {
 
             string k = string((const char *) key, key_len);
 
-            AddPrefix(pWasmContext->Receiver(), k);
+            AddPrefix(pWasmContext->receiver(), k);
             //std::cout << "db_remove key: "<< ToHex(k)<<" key_len: "<<key_len << std::endl;
 
             //string oldValue;
             //const uint64_t contract = wasmContext.receiver;
-            const uint64_t contract = pWasmContext->Receiver();
+            const uint64_t contract = pWasmContext->receiver();
 
-            wasm_assert(pWasmContext->EraseData(contract, k),
+            wasm_assert(pWasmContext->erase_data(contract, k),
                         ("wasm db_remove EraseContractData failed, key:" + ToHex(k, " ")).c_str());
 
             //wasmContext.AppendUndo(contract, k, oldValue);
@@ -242,16 +242,16 @@ namespace wasm {
             //std::cout << "db_get" << std::endl;
             string k = string((const char *) key, key_len);
 
-            AddPrefix(pWasmContext->Receiver(), k);
+            AddPrefix(pWasmContext->receiver(), k);
 
             //std::cout << "db_get" << " key: "<<ToHex(k,"")<<" key_len: "<<key_len << std::endl;
             string v;
             //const uint64_t contract = wasmContext.receiver;
-            const uint64_t contract = pWasmContext->Receiver();
+            const uint64_t contract = pWasmContext->receiver();
             // if(! wasmContext.cache.GetContractData(contract, k, v))
             //   return 0;
 
-            if (!pWasmContext->GetData(contract, k, v))
+            if (!pWasmContext->get_data(contract, k, v))
                 return 0;
 
             auto size = v.size();
@@ -276,14 +276,14 @@ namespace wasm {
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
-            AddPrefix(pWasmContext->Receiver(), k);
+            AddPrefix(pWasmContext->receiver(), k);
 
             //const uint64_t payer = pWasmContext->Receiver();
 
             //std::cout << "db_update key: "<<ToHex(k,"")<<" key_len:"<<key_len << " value: "<<ToHex(v,"")<<" value_len:"<<value_len <<std::endl;
 
-            const uint64_t contract = pWasmContext->Receiver();
-            wasm_assert(pWasmContext->SetData(contract, k, v),
+            const uint64_t contract = pWasmContext->receiver();
+            wasm_assert(pWasmContext->set_data(contract, k, v),
                         ("wasm db_update SetContractData key fail, key:" + ToHex(k, "")).c_str());
 
             return 1;
@@ -503,7 +503,7 @@ namespace wasm {
             WASM_ASSERT(data_len < max_inline_transaction_size, inline_transaction_too_big, "%s",
                         "inline transaction too big");
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
-            pWasmContext->ExecuteInline(trx);
+            pWasmContext->execute_inline(trx);
 
         }
 

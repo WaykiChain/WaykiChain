@@ -70,8 +70,8 @@ namespace wasm {
             system_clock::time_point start = system_clock::now();
             // Execute apply.
             watchdog wd{std::chrono::seconds(max_wasm_execute_time)};
-            bkend->apply(wd, &ehm, "env", "apply", pWasmContext->Receiver(), pWasmContext->Contract(),
-                         pWasmContext->Action());
+            bkend->apply(wd, &ehm, "env", "apply", pWasmContext->receiver(), pWasmContext->contract(),
+                         pWasmContext->action());
 
             system_clock::time_point end = system_clock::now();
             std::cerr << std::string("wasm duration:")
@@ -98,58 +98,6 @@ namespace wasm {
         WASM_RETHROW_EXCEPTIONS(wasm_exception, "%s", "wasm code parse exception")
 
     }
-
-    // void CWasmInterface::Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext ) {
-
-    //     // Thread specific `allocator` used for wasm linear memory.
-    //     wasm_allocator wa;
-    //     watchdog wd{std::chrono::seconds(1)};
-    //     try {
-    //         // Instaniate a new backend using the wasm provided.
-    //         // system_clock::time_point start = system_clock::now();
-    //         //auto bkend = get_instantiated_backend.find(code);
-
-    //         backend_t bkend(code);
-    //         // system_clock::time_point end = system_clock::now();
-    //         // std::cerr << std::string("parse duration:")
-    //         //           << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;           
-    //         //wd.set_callback([&]() { bkend.get_context().exit(); });
-
-
-    //         //start = system_clock::now();
-    //         // Point the backend to the allocator you want it to use.
-    //         bkend.set_wasm_allocator(&wa);
-    //         bkend.initialize();
-
-    //         // Resolve the host functions indices.
-    //         rhf_t::resolve(bkend.get_module());
-
-    //         // Instaniate a "host"
-    //         WasmHostMethods ehm(pWasmContext);
-    //         // end = system_clock::now();
-    //         // std::cerr << std::string("initialize duration:")
-    //         //           << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-
-
-    //         system_clock::time_point start = system_clock::now();
-    //         // Execute apply.
-    //         bkend(&ehm, "env", "apply", pWasmContext->Receiver(), pWasmContext->Contract(), pWasmContext->Action());
-
-    //         system_clock::time_point end = system_clock::now();
-    //         //end = system_clock::now();
-    //         std::cerr << std::string("wasm duration:")
-    //                   << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-
-    //         return;
-
-    //     } catch (vm::exception &e) {
-    //         WASM_THROW(wasm_exception,"%s", e.detail())
-    //     } catch (wasm::exception &e) {
-    //         throw;
-    //     }
-    //     WASM_THROW(wasm_exception,"%s","wasm fail")
-
-    // }
 
     void CWasmInterface::Initialize( vmType type ) {
         rhf_t::add<WasmHostMethods, &WasmHostMethods::abort, wasm_allocator>("env", "abort");

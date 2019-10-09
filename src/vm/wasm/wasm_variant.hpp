@@ -321,7 +321,6 @@ namespace wasm {
         v = obj;
     }
 
-
     static inline void to_variant( const wasm::clause_pair &t, wasm::variant &v ) {
 
         wasm::object obj;
@@ -332,7 +331,6 @@ namespace wasm {
         v = obj;
 
     }
-
 
     static inline void to_variant( const wasm::abi_def &t, wasm::variant &v ) {
 

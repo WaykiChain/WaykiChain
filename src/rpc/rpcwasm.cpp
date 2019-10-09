@@ -657,7 +657,7 @@ Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
     std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
     abi_def abi_d = wasm::unpack<wasm::abi_def>(abi);
 
-    json_spirit::variant v;
+    json_spirit::Value v;
     wasm::to_variant(abi_d, v);
     object.push_back(Pair("abi", v));
 
