@@ -2121,40 +2121,40 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
     if (!GetDataInt(L,height))
         return RetFalse("ExGetBlockTimestamp para err1");
 
+    // only support to get current block time
+    if (height != 0) {
+        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d must be 0\n", height);
+        return 0;
+    }
+
     LUA_BurnFuncCall(L, FUEL_CALL_GetBlockTimestamp, BURN_VER_R2);
+
     int32_t curBlockHeight = pLuaVMRunEnv->GetContext().height;
-    if(height > curBlockHeight) {
-        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d too large! curBlockHeight=%d\n",
+
+    auto featureForkVersion = GetFeatureForkVersion(curBlockHeight);
+
+    lua_Integer blockTime = 0;
+    if (featureForkVersion == MAJOR_VER_R1) {
+        // compact with old data
+        CBlockIndex *pTipIndex = chainActive.Tip();
+        if (!pTipIndex) {
+            LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), invalid active chain! input_height=%d, curBlockHeight=%d\n",
+                height, curBlockHeight);
+            return 0;
+        }
+        blockTime = chainActive.Tip()->nTime;
+    } else {
+        blockTime = pLuaVMRunEnv->GetContext().block_time;
+    }
+
+    if (!lua_checkstack(L, sizeof(lua_Integer))) {
+        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), lua stack overflow! input_height=%d, curBlockHeight=%d\n",
             height, curBlockHeight);
         return 0;
     }
 
-    if (height <= 0) {
-        height = curBlockHeight + height;
-        if (height < 0) {
-            LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d is too small! curBlockHeight=%d\n",
-                height, curBlockHeight);
-            return 0;
-        }
-    }
-    lua_Integer blockTime = 0;
-    if (height == curBlockHeight) {
-        blockTime = pLuaVMRunEnv->GetContext().block_time;
-    } else if (height <= chainActive.Height()){
-        blockTime = chainActive[height]->nTime;
-    } else {
-        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), cur block is invalid! input_height=%d, curBlockHeight=%d, active_chain_height=%d\n",
-            height, curBlockHeight, chainActive.Height());
-        return 0;
-    }
-
-    if (lua_checkstack(L, sizeof(lua_Integer))) {
-        lua_pushinteger(L, blockTime);
-        return 1;
-    }
-
-    LogPrint("vm", "%s\n", "ExGetBlockTimestamp stack overflow");
-    return 0;
+    lua_pushinteger(L, blockTime);
+    return 1;
 }
 
 
