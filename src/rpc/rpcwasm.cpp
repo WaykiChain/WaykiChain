@@ -586,30 +586,38 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() != 1 ) {
         throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
+                "getcodewasmcontracttx \"contract\" \n"
                 "1.\"contract\": (string, required) contract name\n"
-                "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, optional) numbers\n"
-                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
                 "\nResult:\n"
-                "\"rows\":        (string)\n"
-                "\"more\":        (bool)\n"
+                "\"code\":        (string)\n"
                 "\nExamples:\n" +
-                HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"stat\" 10") +
+                HelpExampleCli("getcodewasmcontracttx",
+                               " \"411994-1\" ") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"stat\", 10"));
+                HelpExampleRpc("getcodewasmcontracttx",
+                               "\"411994-1\""));
         // 1.contract(id)
-        // 2.table
-        // 3.number
-        // 4.begin_key
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type));
+
+    CRegID contractRegID(params[0].get_str());
+    if (contractRegID.IsEmpty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    }
+
+    CUniversalContract contractCode;
+    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+
+    if (contractCode.code.size() == 0)
+        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set code");
+
     json_spirit::Object object;
+
+    object.push_back(Pair("code", wasm::ToHex(contractCode.code,"")));
+
     return object;  
 
 }
