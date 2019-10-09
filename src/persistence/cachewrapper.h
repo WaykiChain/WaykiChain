@@ -7,8 +7,10 @@
 #define PERSIST_CACHEWRAPPER_H
 
 #include "accountdb.h"
+#include "assetdb.h"
 #include "blockdb.h"
 #include "cdpdb.h"
+#include "commons/uint256.h"
 #include "contractdb.h"
 #include "delegatedb.h"
 #include "dexdb.h"
@@ -16,11 +18,9 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
-#include "assetdb.h"
 
 class CCacheDBManager;
 class CBlockUndo;
-
 class CCacheWrapper {
 public:
     CSysParamDBCache    sysParamCache;
@@ -62,7 +62,7 @@ public:
 
     void CopyFrom(CCacheDBManager* pCdMan);
 
-    void EnableTxUndoLog();
+    void EnableTxUndoLog(const TxID& txidIn);
     void DisableTxUndoLog();
     const CTxUndo& GetTxUndo() const { return txUndo; }
     bool UndoData(CBlockUndo &blockUndo);

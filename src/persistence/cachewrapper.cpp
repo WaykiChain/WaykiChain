@@ -110,8 +110,10 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     return *this;
 }
 
-void CCacheWrapper::EnableTxUndoLog() {
+void CCacheWrapper::EnableTxUndoLog(const TxID& txid) {
     txUndo.Clear();
+
+    txUndo.SetTxID(txid);
     SetDbOpLogMap(&txUndo.dbOpLogMap);
 }
 

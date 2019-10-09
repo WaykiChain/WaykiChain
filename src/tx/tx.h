@@ -30,8 +30,6 @@ using namespace std;
 class CCacheWrapper;
 class CValidationState;
 
-typedef uint256 TxID;
-
 string GetTxType(const TxType txType);
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 

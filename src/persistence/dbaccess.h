@@ -11,8 +11,10 @@
 #include "leveldbwrapper.h"
 
 #include <string>
-#include <vector>
 #include <tuple>
+#include <vector>
+
+using namespace std;
 
 /**
  * Empty functions

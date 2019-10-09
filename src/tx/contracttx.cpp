@@ -26,11 +26,7 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
     if (!GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, minFee))
         return context.pState->DoS(100, ERRORMSG("GetFuelLimit, get minFee failed"), REJECT_INVALID, "get-min-fee-failed");
 
-    if (tx.llFees <= minFee) {
-        return context.pState->DoS(
-            100, ERRORMSG("GetFuelLimit, fees(%llu) should larger than %llu to invoke contract", tx.llFees, minFee),
-            REJECT_INVALID, "bad-tx-fee-toosmall");
-    }
+    assert(tx.llFees >= minFee);
 
     uint64_t reservedFeesForMiner = minFee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t reservedFeesForGas   = tx.llFees - reservedFeesForMiner;
@@ -239,6 +235,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     CLuaVMContext luaContext;
     luaContext.p_cw              = &cw;
     luaContext.height            = context.height;
+    luaContext.block_time        = context.block_time;
     luaContext.p_base_tx         = this;
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = SYMB::WICC;
@@ -488,6 +485,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
     CLuaVMContext luaContext;
     luaContext.p_cw              = &cw;
     luaContext.height            = context.height;
+    luaContext.block_time        = context.block_time;
     luaContext.p_base_tx         = this;
     luaContext.fuel_limit        = fuelLimit;
     luaContext.transfer_symbol   = coin_symbol;

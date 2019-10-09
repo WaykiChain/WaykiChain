@@ -17,8 +17,6 @@
 
 using namespace std;
 
-typedef uint256 TxID;
-
 class CTxReceiptDBCache {
 public:
     CTxReceiptDBCache() {}

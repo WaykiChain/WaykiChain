@@ -231,7 +231,7 @@ uint8_t G_CONFIG_TABLE::GenesisBlockNonce[3] {108 /*mainnet*/, 100 /*testnet*/, 
 // Network Magic No.
 uint8_t G_CONFIG_TABLE::MessageMagicNumber[3][MESSAGE_START_SIZE] {
     {0xff, 0x42, 0x1d, 0x1a},  //mainnet
-    {0xfd, 0x7d, 0x5c, 0xe0},  //testnet
+    {0xfd, 0x7d, 0x5c, 0xe1},  //testnet
     {0xfe, 0xfa, 0xd3, 0xc6}   //regtest
 };
 

@@ -313,6 +313,7 @@ public:
         delete pCdpDb;          pCdpDb = nullptr;
         delete pClosedCdpDb;    pClosedCdpDb = nullptr;
         delete pDexDb;          pDexDb = nullptr;
+        delete pBlockDb;        pBlockDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
         delete pReceiptDb;      pReceiptDb = nullptr;
 

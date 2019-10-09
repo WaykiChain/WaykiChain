@@ -136,9 +136,10 @@ static int CheckBurnedOk(lua_State *L, const char *errMsg, ...) {
 }
 
 
-LUA_API int lua_StartBurner(lua_State *L, unsigned long long fuelLimit, int version) {
+LUA_API int lua_StartBurner(lua_State *L, void* pContext, unsigned long long fuelLimit, int version) {
     assert(L->burnerState.isStarted == 0 && "burner has been started");
 
+    L->burnerState.pContext         = pContext;
     L->burnerState.isStarted        = 1;
     L->burnerState.error            = 0;
     L->burnerState.fuelLimit        = fuelLimit;
