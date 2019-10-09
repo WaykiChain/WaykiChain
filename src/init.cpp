@@ -298,7 +298,7 @@ string HelpMessage() {
         strUsage += "                         " + _("In this mode -genblocklimit controls how many blocks are generated immediately.") + "\n";
     }
     strUsage += "  -shrinkdebugfile       " + _("Shrink debug.log file on client startup (default: 1 when no -debug)") + "\n";
-    strUsage += "  -testnet               " + _("Use the test network") + "\n";
+    strUsage += "  -nettype=<network>     " + _("Specify network type: main/test/regtest (default: main)") + "\n";
 
     strUsage += "\n" + _("Block creation options:") + "\n";
     strUsage += "  -blockmaxsize=<n>      " + strprintf(_("Set maximum block size in bytes (default: %d)"), DEFAULT_BLOCK_MAX_SIZE) + "\n";
