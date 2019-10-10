@@ -434,6 +434,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     tx.llFees         = fee;
     tx.required       = required;
     tx.valid_height   = height;
+    tx.memo           = "";
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();

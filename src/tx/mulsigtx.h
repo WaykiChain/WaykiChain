@@ -41,7 +41,7 @@ public:
     mutable CUserID desUserId;              //!< keyid or regid
     uint64_t bcoins;                        //!< transfer amount
     uint8_t required;                       //!< number of required keys
-    UnsignedCharArray memo;                 //!< memo
+    string memo;                            //!< memo
     vector<CSignaturePair> signaturePairs;  //!< signature pair
 
     CKeyID keyId;  //!< only in memory
@@ -51,7 +51,7 @@ public:
 
     CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
                 uint64_t feesIn, const uint64_t valueIn, const int32_t validHeightIn,
-                const uint8_t requiredIn, const UnsignedCharArray &memoIn)
+                const uint8_t requiredIn, const string &memoIn)
         : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
         if (desUserIdIn.type() == typeid(CRegID))
             assert(!desUserIdIn.get<CRegID>().IsEmpty());
@@ -61,19 +61,6 @@ public:
         bcoins         = valueIn;
         required       = requiredIn;
         memo           = memoIn;
-    }
-
-    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feesIn, const uint64_t valueIn, const int32_t validHeightIn,
-                const uint8_t requiredIn)
-        : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
-
-        signaturePairs = signaturePairsIn;
-        desUserId      = desUserIdIn;
-        bcoins         = valueIn;
-        required       = requiredIn;
     }
 
     ~CMulsigTx() {}
