@@ -415,8 +415,8 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script content");
     }
 
-    int8_t required = (int8_t)script.GetRequired();
-    std::set<CPubKey> pubKeys = script.GetPubKeys();
+    int8_t required      = (int8_t)script.GetRequired();
+    set<CPubKey> pubKeys = script.GetPubKeys();
     vector<CSignaturePair> signaturePairs;
     CRegID regId;
     for (const auto& pubKey : pubKeys) {
@@ -429,7 +429,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
 
     CMulsigTx tx;
     tx.signaturePairs = signaturePairs;
-    tx.desUserId      = recvUserId;
+    tx.to_uid         = recvUserId;
     tx.bcoins         = amount;
     tx.llFees         = fee;
     tx.required       = required;
@@ -439,6 +439,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
     ds << pBaseTx;
+
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
     return obj;

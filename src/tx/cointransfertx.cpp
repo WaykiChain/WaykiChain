@@ -83,7 +83,7 @@ string CBaseCoinTransferTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, toUid=%s, coin_amount=%llu, llFees=%llu, memo=%s, valid_height=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toUid.ToString(), coin_amount, llFees,
-        memo, valid_height);
+        HexStr(memo), valid_height);
 }
 
 Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -101,8 +101,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
 /**################################ Universal Coin Transfer ########################################**/
 
 string SingleTransfer::ToString(const CAccountDBCache &accountCache) const {
-    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu",
-        to_uid.ToDebugString(), coin_symbol, coin_amount);
+    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu", to_uid.ToDebugString(), coin_symbol, coin_amount);
 }
 
 Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
