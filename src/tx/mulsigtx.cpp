@@ -223,7 +223,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
     result.push_back(Pair("money",          bcoins));
     result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("memo",           HexStr(memo)));
+    result.push_back(Pair("memo",           memo));
     result.push_back(Pair("valid_height",   valid_height));
 
     return result;

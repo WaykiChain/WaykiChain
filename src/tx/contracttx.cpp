@@ -392,7 +392,7 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
     result.push_back(Pair("vm_type",    contract.vm_type));
     result.push_back(Pair("upgradable", contract.upgradable));
     result.push_back(Pair("code",       HexStr(contract.code)));
-    result.push_back(Pair("memo",       HexStr(contract.memo)));
+    result.push_back(Pair("memo",       contract.memo));
     result.push_back(Pair("abi",        contract.abi));
 
     return result;

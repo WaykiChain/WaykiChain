@@ -694,7 +694,7 @@ Value listcontracts(const Array& params, bool fHelp) {
         const CUniversalContract &contract = item.second;
         CRegID regid(item.first);
         contractObject.push_back(Pair("contract_regid", regid.ToString()));
-        contractObject.push_back(Pair("memo",           HexStr(contract.memo)));
+        contractObject.push_back(Pair("memo",           contract.memo));
 
         if (showDetail) {
             contractObject.push_back(Pair("vm_type",    contract.vm_type));
@@ -739,7 +739,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("vm_type",           contract.vm_type));
     obj.push_back(Pair("upgradable",        contract.upgradable));
     obj.push_back(Pair("code",              HexStr(contract.code)));
-    obj.push_back(Pair("memo",              HexStr(contract.memo)));
+    obj.push_back(Pair("memo",              contract.memo));
     obj.push_back(Pair("abi",               contract.abi));
 
     return obj;
