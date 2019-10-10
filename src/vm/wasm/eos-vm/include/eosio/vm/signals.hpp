@@ -1,5 +1,5 @@
 #pragma once
-
+#pragma GCC diagnostic ignored "-Wunused-variable"
 #include <eosio/vm/exceptions.hpp>
 
 #include <atomic>

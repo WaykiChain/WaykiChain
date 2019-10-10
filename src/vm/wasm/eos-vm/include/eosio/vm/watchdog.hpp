@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #include <eosio/vm/error_codes_def.hpp>
 
 #include <chrono>

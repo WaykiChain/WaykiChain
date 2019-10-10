@@ -87,7 +87,6 @@ namespace wasm {
 
         }
 
-
         // static std::vector<char>
         // pack( const string &abi, const string &action, const string &params, microseconds max_serialization_time ) {
 
@@ -127,7 +126,6 @@ namespace wasm {
 
             return data_v;
         }
-
 
         // static json_spirit::Value
         // unpack( const string &abi, const string &name, const bytes &data, microseconds max_serialization_time ) {
@@ -174,7 +172,6 @@ namespace wasm {
             return data_v;
         }
 
-
         // static json_spirit::Value
         // unpack( const string &abi, const uint64_t &table, const bytes &data, microseconds max_serialization_time ) {
 
@@ -210,7 +207,6 @@ namespace wasm {
         map <type_name, type_name> actions;
         map <type_name, type_name> tables;
         map <uint64_t, string> error_messages;
-
         map <type_name, pair<unpack_function, pack_function>> built_in_types;
 
 

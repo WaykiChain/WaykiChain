@@ -78,7 +78,7 @@ namespace wasm {
 
             //str.trim_right([]( char c ){ return c == '.'; });
             uint32_t length = str.size();
-            for (uint32_t i = length - 1; i >= 0; --i) {
+            for (int32_t i = length - 1; i >= 0; --i) {
                 if (str[i] != '.') {
                     return str.substr(0, i + 1);//string(str, str + i + 1);
                 }
@@ -172,7 +172,6 @@ namespace wasm {
         void sha256( const void *data, uint32_t data_len, void *hash_val ) {
 
             // string k = string((const char *) data, data_len);
-
             // SHA256(k.data(), k.size(), hash_val.begin());
 
         }

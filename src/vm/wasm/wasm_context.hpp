@@ -43,11 +43,11 @@ namespace wasm {
         ~CWasmContext() {};
 
     public:
-        std::vector <uint8_t> GetCode( uint64_t account );
-        std::string GetAbi( uint64_t account );
-        void ExecuteOne( inline_transaction_trace &trace );
-        void Initialize();
-        void Execute( inline_transaction_trace &trace );
+        std::vector <uint8_t> get_code( uint64_t account );
+        std::string get_abi( uint64_t account );
+        void execute_one( inline_transaction_trace &trace );
+        void initialize();
+        void execute( inline_transaction_trace &trace );
 
 // Console methods:
     public:

@@ -52,7 +52,7 @@ namespace wasm {
 
     }
 
-    void CWasmInterface::Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext ) {
+    void CWasmInterface::execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext ) {
 
         // Thread specific `allocator` used for wasm linear memory.
         try {
@@ -99,7 +99,7 @@ namespace wasm {
 
     }
 
-    void CWasmInterface::Initialize( vmType type ) {
+    void CWasmInterface::initialize( vmType type ) {
         rhf_t::add<WasmHostMethods, &WasmHostMethods::abort, wasm_allocator>("env", "abort");
         rhf_t::add<WasmHostMethods, &WasmHostMethods::wasm_assert, wasm_allocator>("env", "wasm_assert");
         rhf_t::add<WasmHostMethods, &WasmHostMethods::wasm_assert_code, wasm_allocator>("env", "wasm_assert_code");

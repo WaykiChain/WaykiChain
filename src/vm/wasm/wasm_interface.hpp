@@ -20,8 +20,8 @@ namespace wasm {
         ~CWasmInterface();
 
     public:
-        void Initialize( vmType type );
-        void Execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext );
+        void initialize( vmType type );
+        void execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext );
         void validate( vector <uint8_t> code );
         void exit() {};
 

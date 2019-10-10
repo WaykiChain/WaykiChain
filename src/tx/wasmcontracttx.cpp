@@ -219,7 +219,7 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace 
 
     CWasmContext wasmContext(*this, trx, cache, state, recurse_depth);
     wasmContext._receiver = receiver;
-    wasmContext.Execute(trace);
+    wasmContext.execute(trace);
 
 }
 

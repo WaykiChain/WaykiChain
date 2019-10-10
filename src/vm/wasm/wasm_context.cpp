@@ -14,21 +14,18 @@ namespace wasm {
     bool has_wasm_interface_initialized = false;
     map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
 
-    inline void RegisterNativeHandler( uint64_t receiver, uint64_t action, nativeHandler v ) {
+    inline void register_native_handler( uint64_t receiver, uint64_t action, nativeHandler v ) {
         wasm_native_handlers[std::pair(receiver, action)] = v;
     }
 
-    inline nativeHandler* FindNativeHandle( uint64_t receiver, uint64_t action ) {
-
+    inline nativeHandler* find_native_handle( uint64_t receiver, uint64_t action ) {
         auto handler = wasm_native_handlers.find(std::pair(receiver, action));
         if (handler != wasm_native_handlers.end()) {
             return &handler->second;
         }
 
         return nullptr;
-
     }
-
 
     static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
         if (!trace.console.empty()) {
@@ -49,7 +46,6 @@ namespace wasm {
 
     void CWasmContext::reset_console() {
         _pending_console_output = std::ostringstream();
-        //_pending_console_output.setf(std::ios::scientific, std::ios::floatfield);
     }
 
 
@@ -57,7 +53,7 @@ namespace wasm {
         inline_transactions.push_back(t);
     }
 
-    std::vector <uint8_t> CWasmContext::GetCode( uint64_t account ) {
+    std::vector <uint8_t> CWasmContext::get_code( uint64_t account ) {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
@@ -68,7 +64,7 @@ namespace wasm {
         return code;
     }
 
-    std::string CWasmContext::GetAbi( uint64_t account ) {
+    std::string CWasmContext::get_abi( uint64_t account ) {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
@@ -76,28 +72,28 @@ namespace wasm {
         return contract.abi;
     }
 
-    void CWasmContext::Initialize() {
+    void CWasmContext::initialize() {
 
         if (!has_wasm_interface_initialized) {
             has_wasm_interface_initialized = true;
-            wasmInterface.Initialize(wasm::vmType::eosvm);
-            RegisterNativeHandler(wasmio, N(setcode), wasm_native_setcode);
-            RegisterNativeHandler(wasmio_bank, N(transfer), wasm_native_transfer);
+            wasmInterface.initialize(wasm::vmType::eosvm);
+            register_native_handler(wasmio, N(setcode), wasm_native_setcode);
+            register_native_handler(wasmio_bank, N(transfer), wasm_native_transfer);
         }
     }
 
-    void CWasmContext::Execute( inline_transaction_trace &trace ) {
+    void CWasmContext::execute( inline_transaction_trace &trace ) {
 
-        Initialize();
+        initialize();
 
         notified.push_back(_receiver);
-        ExecuteOne(trace);
+        execute_one(trace);
 
         for (uint32_t i = 1; i < notified.size(); ++i) {
             _receiver = notified[i];
 
             trace.inline_traces.emplace_back();
-            ExecuteOne(trace.inline_traces.back());
+            execute_one(trace.inline_traces.back());
         }
 
         WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
@@ -112,28 +108,27 @@ namespace wasm {
 
     }
 
-    void CWasmContext::ExecuteOne( inline_transaction_trace &trace ) {
+    void CWasmContext::execute_one( inline_transaction_trace &trace ) {
 
         auto start = system_clock::now();
 
         trace.trx = trx;
         trace.receiver = _receiver;
 
-        auto native = FindNativeHandle(_receiver, trx.action);
+        auto native = find_native_handle(_receiver, trx.action);
 
         try {
             if (native) {
                 (*native)(*this);
             } else {
-                vector <uint8_t> code = GetCode(_receiver);
+                vector <uint8_t> code = get_code(_receiver);
                 if (code.size() > 0) {
-                    wasmInterface.Execute(code, this);
+                    wasmInterface.execute(code, this);
                 }
             }
         } catch (wasm::exception &e) {
             std::ostringstream o;
             o << e.detail();
-
             if (_pending_console_output.str().size() > 0) o << " , " << tfm::format("pending console output: %s",
                                                                                     _pending_console_output.str().c_str());
             e.msg = o.str();
@@ -151,7 +146,6 @@ namespace wasm {
 
         // trace.block_height =
         // trace.block_time =
-
         reset_console();
 
         if (contracts_console()) {
