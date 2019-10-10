@@ -607,48 +607,49 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
             }
         }();
 
-        vector<CRegID> delegateList;
-        if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
-            LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
-            return false;
-        }
-
-        uint16_t index = 0;
-        for (auto &delegate : delegateList)
-            LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
-
-        ShuffleDelegates(pBlock->GetHeight(), delegateList);
-
-        index = 0;
-        for (auto &delegate : delegateList)
-            LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
-
-        int64_t currentTime = GetTime();
-        CRegID regId;
-        GetCurrentDelegate(currentTime, pBlock->GetHeight(), delegateList, regId);
-        CAccount minerAcct;
-        if (!cw.accountCache.GetAccount(regId, minerAcct)) {
-            LogPrint("MINER", "MineBlock() : failed to get miner's account: %s\n", regId.ToString());
-            return false;
-        }
-
         bool success = false;
         int64_t lastTime;
+
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
+
+            vector<CRegID> delegateList;
+            if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
+                LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
+                return false;
+            }
+
+            uint16_t index = 0;
+            for (auto &delegate : delegateList)
+                LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
+
+            ShuffleDelegates(pBlock->GetHeight(), delegateList);
+
+            index = 0;
+            for (auto &delegate : delegateList)
+                LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
+
+            int64_t currentTime = GetTime();
+            CRegID regId;
+            GetCurrentDelegate(currentTime, pBlock->GetHeight(), delegateList, regId);
+            CAccount minerAcct;
+            if (!cw.accountCache.GetAccount(regId, minerAcct)) {
+                LogPrint("MINER", "MineBlock() : failed to get miner's account: %s\n", regId.ToString());
+                return false;
+            }
+
             if (uint32_t(chainActive.Height() + 1) != pBlock->GetHeight())
                 return false;
 
             CKey acctKey;
             if (pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey)) {
-                lastTime = GetTimeMillis();
-                mining = true;
+                lastTime   = GetTimeMillis();
+                mining     = true;
                 minerKeyId = minerAcct.keyid;
-                success   = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
+                success    = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
                 LogPrint("MINER", "MineBlock() : %s to create block reward transaction, used %d ms, miner address %s\n",
-                         success ? "succeed" : "failed", GetTimeMillis() - lastTime,
-                         minerAcct.keyid.ToAddress());
+                         success ? "succeed" : "failed", GetTimeMillis() - lastTime, minerAcct.keyid.ToAddress());
             } else {
                 mining = false;
             }

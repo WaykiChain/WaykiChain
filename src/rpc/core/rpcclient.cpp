@@ -298,9 +298,7 @@ string HelpMessageCli(bool mainProgram)
         strUsage += "  -?                     " + _("This help message") + "\n";
         strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ") + IniCfg().GetCoinName() + ".conf)" + "\n";
         strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
-        strUsage += "  -testnet               " + _("Use the test network") + "\n";
-        strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be "
-                                                    "solved instantly. This is intended for regression testing tools and app development.") + "\n";
+        strUsage += "  -nettype=<network>     " + _("Specify network type: main/test/regtest (default: main)") + "\n";
     } else {
         strUsage += _("RPC client options:") + "\n";
     }

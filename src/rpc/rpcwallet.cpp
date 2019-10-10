@@ -331,7 +331,11 @@ Value submitsendtx(const Array& params, bool fHelp) {
     if (GetFeatureForkVersion(height) == MAJOR_VER_R1) {
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
-                "height=%u! current height=%u", SysCfg().GetFeatureForkHeight(), height));
+                "height=%u! current height=%d", SysCfg().GetFeatureForkHeight(), height));
+
+        if (sendUserId.is<CKeyID>())
+            throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",
+                                                         sendUserId.get<CKeyID>().ToAddress()));
 
         pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetSawiAmount(),
             cmFee.GetSawiAmount(), memo);
