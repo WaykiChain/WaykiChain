@@ -213,7 +213,7 @@ Value stop(const Array& params, bool fHelp) {
             "\nStop coin server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "coin server stopping";
+    return "coin daemon being stopped...";
 }
 
 //
