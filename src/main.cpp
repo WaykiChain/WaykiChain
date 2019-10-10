@@ -2298,9 +2298,11 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
             }
 
             // Ask this guy to fill in what we're missing
-            LogPrint("net", "receive an orphan block height=%d hash=%s, %s it, leading to getblocks (current height=%d & orphan blocks=%d)\n",
-                    pBlock->GetHeight(), pBlock->GetHash().GetHex(), success ? "keep" : "abandon",
-                    chainActive.Height(), mapOrphanBlocksByPrev.size());
+            LogPrint("net",
+                     "receive an orphan block height=%d hash=%s, %s it, leading to getblocks (current block height=%d, "
+                     "current block hash=%s, orphan blocks=%d)\n",
+                     pBlock->GetHeight(), pBlock->GetHash().GetHex(), success ? "keep" : "abandon",
+                     chainActive.Height(), chainActive.Tip()->GetBlockHash().GetHex(), mapOrphanBlocksByPrev.size());
 
             PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(blockHash));
         }
