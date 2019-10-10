@@ -313,20 +313,6 @@ CBlockIndex *CChain::FindFork(const CBlockLocator &locator) const {
     return Genesis();
 }
 
-uint32_t LimitOrphanTxSize(uint32_t nMaxOrphans) {
-    uint32_t nEvicted = 0;
-    while (mapOrphanTransactions.size() > nMaxOrphans) {
-        // Evict a random orphan:
-        uint256 randomhash                                   = GetRandHash();
-        map<uint256, std::shared_ptr<CBaseTx> >::iterator it = mapOrphanTransactions.lower_bound(randomhash);
-        if (it == mapOrphanTransactions.end())
-            it = mapOrphanTransactions.begin();
-        mapOrphanTransactions.erase(it->first);
-        ++nEvicted;
-    }
-    return nEvicted;
-}
-
 bool IsStandardTx(CBaseTx *pBaseTx, string &reason) {
     AssertLockHeld(cs_main);
     if (pBaseTx->nVersion > CBaseTx::CURRENT_VERSION || pBaseTx->nVersion < 1) {
@@ -3342,9 +3328,11 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             }
             pTo->mapAskFor.erase(pTo->mapAskFor.begin());
         }
+
         if (!vGetData.empty())
             pTo->PushMessage("getdata", vGetData);
     }
+
     return true;
 }
 
@@ -3365,9 +3353,6 @@ class CMainCleanup {
         mapOrphanBlocks.clear();
         mapOrphanBlocksByPrev.clear();
         setOrphanBlock.clear();
-
-        // orphan transactions
-        mapOrphanTransactions.clear();
     }
 } instance_of_cmaincleanup;
 

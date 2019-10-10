@@ -19,10 +19,6 @@
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
-// Tests this internal-to-main.cpp method:
-extern unsigned int LimitOrphanTxSize(unsigned int nMaxOrphans);
-extern std::map<uint256, CBaseCoinTransferTx> mapOrphanTransactions;
-
 CService ip(uint32_t i) {
     struct in_addr s;
     s.s_addr = i;
@@ -100,15 +96,6 @@ BOOST_AUTO_TEST_CASE(DoS_bantime)
 
     SetMockTime(nStartTime+60*60*24+1);
     BOOST_CHECK(!CNode::IsBanned(addr));
-}
-
-CBaseCoinTransferTx RandomOrphan()
-{
-    std::map<uint256, CBaseCoinTransferTx>::iterator it;
-    it = mapOrphanTransactions.lower_bound(GetRandHash());
-    if (it == mapOrphanTransactions.end())
-    it = mapOrphanTransactions.begin();
-    return it->second;
 }
 
 //BOOST_AUTO_TEST_CASE(DoS_checkSig)
