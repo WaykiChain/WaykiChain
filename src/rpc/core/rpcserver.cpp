@@ -213,7 +213,7 @@ Value stop(const Array& params, bool fHelp) {
             "\nStop coin server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "coin server stopping";
+    return "coin daemon being stopped...";
 }
 
 //
@@ -307,8 +307,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
     { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
     { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
-    { "submituniversalcontractdeploytx", &submituniversalcontractdeploytx, false,     false,      true },
-    { "submituniversalcontractcalltx",   &submituniversalcontractcalltx,   false,     false,      true },
+    { "submitucontractdeploytx", &submitucontractdeploytx, false,     false,      true },
+    { "submitucontractcalltx",   &submitucontractcalltx,   false,     false,      true },
 
     /* for CDP */
     { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },

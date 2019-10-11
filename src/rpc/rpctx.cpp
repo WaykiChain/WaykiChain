@@ -287,9 +287,9 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, delegateVoteTx);
 }
 
-Value submituniversalcontractdeploytx(const Array& params, bool fHelp) {
+Value submitucontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submituniversalcontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
+        throw runtime_error("submitucontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
             "\ncreate a transaction of registering a universal contract\n"
             "\nArguments:\n"
             "1.\"addr\":            (string, required) contract owner address from this wallet\n"
@@ -300,10 +300,10 @@ Value submituniversalcontractdeploytx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":              (string)\n"
             "\nExamples:\n"
-            + HelpExampleCli("submituniversalcontractdeploytx",
+            + HelpExampleCli("submitucontractdeploytx",
                 "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" \"WICC:100000000:sawi\" 10000 \"Hello, WaykiChain!\"") +
                 "\nAs json rpc call\n"
-            + HelpExampleRpc("submituniversalcontractdeploytx",
+            + HelpExampleRpc("submitucontractdeploytx",
                 "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", \"WICC:100000000:sawi\", 10000, \"Hello, WaykiChain!\""));
     }
 
@@ -337,10 +337,10 @@ Value submituniversalcontractdeploytx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-Value submituniversalcontractcalltx(const Array& params, bool fHelp) {
+Value submitucontractcalltx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submituniversalcontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" "
+            "submitucontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" "
             "[\"height\"]\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
@@ -353,11 +353,11 @@ Value submituniversalcontractcalltx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\":              (string)\n"
             "\nExamples:\n" +
-            HelpExampleCli("submituniversalcontractcalltx",
+            HelpExampleCli("submitucontractcalltx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"100-1\" \"01020304\" \"WICC:10000:sawi\" "
                            "\"WICC:10000:sawi\" 100") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("submituniversalcontractcalltx",
+            HelpExampleRpc("submitucontractcalltx",
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"100-1\", \"01020304\", \"WICC:10000:sawi\", "
                            "\"WICC:10000:sawi\", 100"));
     }
@@ -694,7 +694,7 @@ Value listcontracts(const Array& params, bool fHelp) {
         const CUniversalContract &contract = item.second;
         CRegID regid(item.first);
         contractObject.push_back(Pair("contract_regid", regid.ToString()));
-        contractObject.push_back(Pair("memo",           HexStr(contract.memo)));
+        contractObject.push_back(Pair("memo",           contract.memo));
 
         if (showDetail) {
             contractObject.push_back(Pair("vm_type",    contract.vm_type));
@@ -739,7 +739,7 @@ Value getcontractinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("vm_type",           contract.vm_type));
     obj.push_back(Pair("upgradable",        contract.upgradable));
     obj.push_back(Pair("code",              HexStr(contract.code)));
-    obj.push_back(Pair("memo",              HexStr(contract.memo)));
+    obj.push_back(Pair("memo",              contract.memo));
     obj.push_back(Pair("abi",               contract.abi));
 
     return obj;

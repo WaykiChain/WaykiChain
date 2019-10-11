@@ -150,8 +150,7 @@ public:
     CoinPricePair GetCoinPricePair() const { return coin_price_pair; }
 
     string ToString() {
-        return strprintf("coin_price_pair:%s:%s, price:%lld",
-                        coin_price_pair.first, coin_price_pair.second, price);
+        return strprintf("coin_price_pair:%s:%s, price:%lld", coin_price_pair.first, coin_price_pair.second, price);
     }
 
     json_spirit::Object ToJson() const {

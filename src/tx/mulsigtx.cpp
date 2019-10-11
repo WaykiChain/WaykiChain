@@ -3,7 +3,6 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
 #include "mulsigtx.h"
 
 #include "commons/serialize.h"
@@ -30,7 +29,7 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "signature-number-out-of-range");
     }
 
-    if ((desUserId.type() != typeid(CRegID)) && (desUserId.type() != typeid(CKeyID)))
+    if ((to_uid.type() != typeid(CRegID)) && (to_uid.type() != typeid(CKeyID)))
         return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, desaddr type error"), REJECT_INVALID,
                          "desaddr-type-error");
 
@@ -87,7 +86,9 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount srcAccount;
     CAccount desAccount;
 
@@ -111,9 +112,9 @@ bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
                          "bad-write-accountdb");
 
     uint64_t addValue = bcoins;
-    if (!cw.accountCache.GetAccount(desUserId, desAccount)) {
-        if (desUserId.type() == typeid(CKeyID)) {  // first involved in transaction
-            desAccount.keyid = desUserId.get<CKeyID>();
+    if (!cw.accountCache.GetAccount(to_uid, desAccount)) {
+        if (to_uid.type() == typeid(CKeyID)) {  // first involved in transaction
+            desAccount.keyid = to_uid.get<CKeyID>();
         } else {
             return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
@@ -125,7 +126,7 @@ bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(desUserId, desAccount))
+    if (!cw.accountCache.SetAccount(to_uid, desAccount))
         return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, save account error, kyeId=%s",
                          desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
@@ -149,53 +150,35 @@ bool CMulsigTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
 }
 
 string CSignaturePair::ToString() const {
-    string str = strprintf("regId=%s, signature=%s", regid.ToString(),
-                           HexStr(signature.begin(), signature.end()));
-    return str;
+    return strprintf("regId=%s, signature=%s", regid.ToString(), HexStr(signature.begin(), signature.end()));
 }
 
 Object CSignaturePair::ToJson() const {
     Object obj;
-    obj.push_back(Pair("regid", regid.ToString()));
+    obj.push_back(Pair("regid",     regid.ToString()));
     obj.push_back(Pair("signature", HexStr(signature.begin(), signature.end())));
 
     return obj;
 }
 
 string CMulsigTx::ToString(CAccountDBCache &accountCache) {
-    string desId;
-    if (desUserId.type() == typeid(CKeyID)) {
-        desId = desUserId.get<CKeyID>().ToString();
-    } else if (desUserId.type() == typeid(CRegID)) {
-        desId = desUserId.get<CRegID>().ToString();
-    }
-
     string signatures;
     signatures += "signatures: ";
     for (const auto &item : signaturePairs) {
         signatures += strprintf("%s, ", item.ToString());
     }
 
-    string str = strprintf(
+    return strprintf(
         "txType=%s, hash=%s, ver=%d, required=%d, %s, desId=%s, bcoins=%ld, llFees=%llu, memo=%s,  valid_height=%d",
-        GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, desId, bcoins, llFees, HexStr(memo),
-        valid_height);
-
-    return str;
+        GetTxType(nTxType), GetHash().ToString(), nVersion, required, signatures, to_uid.ToString(), bcoins, llFees,
+        HexStr(memo), valid_height);
 }
 
-Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
+Object CMulsigTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
 
-    auto GetRegIdString = [&](CUserID const &userId) {
-        if (userId.type() == typeid(CRegID)) {
-            return userId.get<CRegID>().ToString();
-        }
-        return string("");
-    };
-
     CKeyID desKeyId;
-    accountView.GetKeyId(desUserId, desKeyId);
+    accountCache.GetKeyId(to_uid, desKeyId);
 
     result.push_back(Pair("txid",           GetHash().GetHex()));
     result.push_back(Pair("tx_type",        GetTxType(nTxType)));
@@ -206,7 +189,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
     std::set<CPubKey> pubKeys;
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
-        if (!accountView.GetAccount(item.regid, account)) {
+        if (!accountCache.GetAccount(item.regid, account)) {
             LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n",
                      item.regid.ToString());
             continue;
@@ -219,11 +202,11 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountView) const {
 
     result.push_back(Pair("addr",           scriptId.ToAddress()));
     result.push_back(Pair("signatures",     signatureArray));
-    result.push_back(Pair("dest_regid",     GetRegIdString(desUserId)));
-    result.push_back(Pair("dest_addr",      desKeyId.ToAddress()));
+    result.push_back(Pair("to_uid",         to_uid.ToString()));
+    result.push_back(Pair("to_addr",        desKeyId.ToAddress()));
     result.push_back(Pair("money",          bcoins));
     result.push_back(Pair("fees",           llFees));
-    result.push_back(Pair("memo",           HexStr(memo)));
+    result.push_back(Pair("memo",           memo));
     result.push_back(Pair("valid_height",   valid_height));
 
     return result;

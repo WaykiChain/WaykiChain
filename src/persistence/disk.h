@@ -11,8 +11,9 @@ struct CDiskBlockPos {
     uint32_t nPos;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nFile));
-        READWRITE(VARINT(nPos));)
+        READWRITE(nFile); /* TODO: write with var signed int format */
+        READWRITE(VARINT(nPos));
+    )
 
     CDiskBlockPos() {
         SetNull();

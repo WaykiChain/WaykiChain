@@ -1,9 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2016 The Coin developers
-// Copyright (c) 2014-2019 The WaykiChain developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
-
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef COIN_MULSIGTX_H
 #define COIN_MULSIGTX_H
@@ -12,8 +10,8 @@
 
 class CSignaturePair {
 public:
-    CRegID regid;  //!< regid only
-    UnsignedCharArray signature;
+    CRegID regid;                 //!< regid only
+    UnsignedCharArray signature;  //!< signature
 
     IMPLEMENT_SERIALIZE(
         READWRITE(regid);
@@ -38,10 +36,10 @@ public:
 
 class CMulsigTx : public CBaseTx {
 public:
-    mutable CUserID desUserId;              //!< keyid or regid
+    mutable CUserID to_uid;              //!< keyid or regid
     uint64_t bcoins;                        //!< transfer amount
     uint8_t required;                       //!< number of required keys
-    UnsignedCharArray memo;                 //!< memo
+    string memo;                            //!< memo
     vector<CSignaturePair> signaturePairs;  //!< signature pair
 
     CKeyID keyId;  //!< only in memory
@@ -49,31 +47,14 @@ public:
 public:
     CMulsigTx() : CBaseTx(BCOIN_TRANSFER_MTX) {}
 
-    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feesIn, const uint64_t valueIn, const int32_t validHeightIn,
-                const uint8_t requiredIn, const UnsignedCharArray &memoIn)
+    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &toUidIn, uint64_t feesIn,
+              const uint64_t valueIn, const int32_t validHeightIn, const uint8_t requiredIn, const string &memoIn)
         : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
-
         signaturePairs = signaturePairsIn;
-        desUserId      = desUserIdIn;
+        to_uid         = toUidIn;
         bcoins         = valueIn;
         required       = requiredIn;
         memo           = memoIn;
-    }
-
-    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &desUserIdIn,
-                uint64_t feesIn, const uint64_t valueIn, const int32_t validHeightIn,
-                const uint8_t requiredIn)
-        : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
-        if (desUserIdIn.type() == typeid(CRegID))
-            assert(!desUserIdIn.get<CRegID>().IsEmpty());
-
-        signaturePairs = signaturePairsIn;
-        desUserId      = desUserIdIn;
-        bcoins         = valueIn;
-        required       = requiredIn;
     }
 
     ~CMulsigTx() {}
@@ -83,7 +64,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(signaturePairs);
-        READWRITE(desUserId);
+        READWRITE(to_uid);
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
         READWRITE(VARINT(bcoins));
@@ -99,7 +80,7 @@ public:
             for (const auto &item : signaturePairs) {
                 ss << item.regid;
             }
-            ss << desUserId << fee_symbol << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
+            ss << to_uid << fee_symbol << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
             sigHash = ss.GetHash();
         }
         return sigHash;
@@ -107,8 +88,8 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CMulsigTx>(*this); }
-    virtual string ToString(CAccountDBCache &accountView);
-    virtual Object ToJson(const CAccountDBCache &accountView) const;
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
     virtual bool CheckTx(CTxExecuteContext &context);

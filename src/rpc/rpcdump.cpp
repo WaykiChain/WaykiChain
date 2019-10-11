@@ -76,7 +76,7 @@ Value dumpwallet(const Array& params, bool fHelp) {
 	file.close();
 
 	Object reply2;
-	reply2.push_back(Pair("info",   "succeed to dump wallet"));
+	reply2.push_back(Pair("info",   "successfully dumped wallet"));
 	reply2.push_back(Pair("count",  (int32_t)setKeyIds.size()));
 	return reply2;
 }
@@ -108,7 +108,7 @@ Value importwallet(const Array& params, bool fHelp) {
     if (file.good()) {
     	Value reply;
     	json_spirit::read(file, reply);
-    	const Value & keyObj = find_value(reply.get_obj(),"key");
+        const Value& keyObj   = find_value(reply.get_obj(), "key");
         const Array& keyArray = keyObj.get_array();
         for (auto const& keyItem : keyArray) {
             CKeyCombi keyCombi;
@@ -129,7 +129,7 @@ Value importwallet(const Array& params, bool fHelp) {
     file.close();
 
     Object reply2;
-    reply2.push_back(Pair("info",   "succeed to import wallet"));
+    reply2.push_back(Pair("info",   "successfully imported wallet"));
     reply2.push_back(Pair("count",  importedKeySize));
     return reply2;
 }

@@ -152,9 +152,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitcontractcalltx"         && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "submitcontractcalltx"         && n > 5) ConvertTo<int32_t>(params[5]);
 
-    if (strMethod == "submituniversalcontractdeploytx"  && n > 3) ConvertTo<int32_t>(params[3]);
+    if (strMethod == "submitucontractdeploytx"  && n > 3) ConvertTo<int32_t>(params[3]);
 
-    if (strMethod == "submituniversalcontractcalltx"    && n > 5) ConvertTo<int32_t>(params[5]);
+    if (strMethod == "submitucontractcalltx"    && n > 5) ConvertTo<int32_t>(params[5]);
 
     if (strMethod == "listaddr"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int32_t>(params[0]);

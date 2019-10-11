@@ -24,11 +24,7 @@ class COrphanBlock ;
 
 extern CChain chainActive ;
 extern uint256 GetOrphanRoot(const uint256 &hash);
-
-
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
-extern map<uint256, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
-
 
 // Blocks that are in flight, and that are in the queue to be downloaded.
 // Protected by cs_main.
@@ -241,14 +237,14 @@ inline void ProcessGetData(CNode *pFrom) {
 bool AlreadyHave(const CInv &inv) {
     switch (inv.type) {
         case MSG_TX: {
-            bool txInMap = false;
-            txInMap      = mempool.Exists(inv.hash);
-            return txInMap || mapOrphanTransactions.count(inv.hash);
+            return mempool.Exists(inv.hash);
         }
-        case MSG_BLOCK:
-            return mapBlockIndex.count(inv.hash) ||
-                   mapOrphanBlocks.count(inv.hash);
+
+        case MSG_BLOCK: {
+            return mapBlockIndex.count(inv.hash) || mapOrphanBlocks.count(inv.hash);
+        }
     }
+
     // Don't know what it is, just say we already got one
     return true;
 }

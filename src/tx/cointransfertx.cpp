@@ -93,7 +93,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("transfers",   transferArray));
-    result.push_back(Pair("memo",        HexStr(memo)));
+    result.push_back(Pair("memo",        memo));
 
     return result;
 }
@@ -101,8 +101,7 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
 /**################################ Universal Coin Transfer ########################################**/
 
 string SingleTransfer::ToString(const CAccountDBCache &accountCache) const {
-    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu",
-        to_uid.ToDebugString(), coin_symbol, coin_amount);
+    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu", to_uid.ToDebugString(), coin_symbol, coin_amount);
 }
 
 Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
@@ -293,7 +292,7 @@ Object CCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     }
 
     result.push_back(Pair("transfers",   transferArray));
-    result.push_back(Pair("memo",        HexStr(memo)));
+    result.push_back(Pair("memo",        memo));
 
     return result;
 }
