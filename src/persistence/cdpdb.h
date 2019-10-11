@@ -74,7 +74,7 @@ private:
 
 enum CDPCloseType: uint8_t {
     BY_REDEEM = 0,
-    BY_MAN_LIQUIDATE,
+    BY_MANUAL_LIQUIDATE,
     BY_FORCE_LIQUIDATE
 };
 
