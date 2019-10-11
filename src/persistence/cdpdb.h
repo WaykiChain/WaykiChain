@@ -78,6 +78,8 @@ enum CDPCloseType: uint8_t {
     BY_FORCE_LIQUIDATE
 };
 
+string GetCdpCloseTypeName(CDPCloseType type);
+
 class CClosedCdpDBCache {
 public:
     CClosedCdpDBCache() {}
