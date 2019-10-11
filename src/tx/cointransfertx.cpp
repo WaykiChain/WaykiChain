@@ -10,7 +10,9 @@
 
 /**################################ Base Coin (WICC) Transfer ########################################**/
 bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -36,7 +38,9 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CBaseCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, read source addr account info error"),
@@ -98,39 +102,21 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-/**################################ Universal Coin Transfer ########################################**/
-
-string SingleTransfer::ToString(const CAccountDBCache &accountCache) const {
-    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu", to_uid.ToDebugString(), coin_symbol, coin_amount);
-}
-
-Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
-    Object result;
-
-    CKeyID desKeyId;
-    accountCache.GetKeyId(to_uid, desKeyId);
-    result.push_back(Pair("to_uid",      to_uid.ToString()));
-    result.push_back(Pair("to_addr",     desKeyId.ToAddress()));
-    result.push_back(Pair("coin_symbol", coin_symbol));
-    result.push_back(Pair("coin_amount", coin_amount));
-
-    return result;
-}
-
 bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-
-    static const uint32_t MAX_TRANSFER_SIZE = 100;
 
     if (transfers.empty() || transfers.size() > MAX_TRANSFER_SIZE) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers is empty or too large count=%d than %d",
             transfers.size(), MAX_TRANSFER_SIZE),
                         REJECT_INVALID, "invalid-transfers");
     }
+
     for (size_t i = 0; i < transfers.size(); i++) {
         IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid.type());
         auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(transfers[i].coin_symbol);
@@ -173,11 +159,13 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CCoinTransferTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferTx::ExecuteTx, read txUid %s account info error",
-                        txUid.ToString()), UCOIN_STAKE_FAIL, "bad-read-accountdb");
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     if (!GenerateRegID(context, srcAccount)) {
         return false;

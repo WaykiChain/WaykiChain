@@ -141,7 +141,7 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
     CKeyID keyId;
     CPubKey pubKey;
     set<CPubKey> pubKeys;
-    for (unsigned int i = 0; i < keys.size(); i++) {
+    for (uint32_t i = 0; i < keys.size(); i++) {
         if (!GetKeyId(keys[i].get_str(), keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
         }
@@ -215,7 +215,7 @@ Value createmulsig(const Array& params, bool fHelp) {
     CKeyID keyId;
     CPubKey pubKey;
     set<CPubKey> pubKeys;
-    for (unsigned int i = 0; i < keys.size(); i++) {
+    for (uint32_t i = 0; i < keys.size(); i++) {
         if (!GetKeyId(keys[i].get_str(), keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
         }
@@ -276,7 +276,7 @@ Value signmessage(const Array& params, bool fHelp) {
     ss << strMessageMagic;
     ss << strMessage;
 
-    vector<unsigned char> vchSig;
+    vector<uint8_t> vchSig;
     if (!key.SignCompact(ss.GetHash(), vchSig))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
 
@@ -290,8 +290,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
             "\nSend coins to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"from\":                (string, required) The address where coins are sent from.\n"
-            "2.\"to\":                  (string, required) The address where coins are received.\n"
+            "1.\"from\":                (string, required) The address where coins are sent from\n"
+            "2.\"to\":                  (string, required) The address where coins are received\n"
             "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
             "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
             "5.\"memo\":                (string, optional)\n"
@@ -348,63 +348,40 @@ Value submitsendtx(const Array& params, bool fHelp) {
 }
 
 Value genmulsigtx(const Array& params, bool fHelp) {
-    int size = params.size();
-    if (fHelp || size < 4 || size > 5) {
+    if (fHelp || (params.size() != 4 && params.size() != 5))
         throw runtime_error(
             "genmulsigtx \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
             "\n create multisig transaction by multisigscript, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"multisigscript\":  (string, required) The Coin address to send to.\n"
-            "2.\"recvaddress\":     (string, required) The Coin address to receive.\n"
-            "3.\"amount\":          (numeric, required)\n"
-            "4.\"fee\":             (numeric, required)\n"
-            "5.\"height\":          (numeric, optional)\n"
+            "1.\"multisigscript\":      (string, required) The address where coins are sent from\n"
+            "2.\"to\":                  (string, required) The address where coins are received\n"
+            "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
+            "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
+            "5.\"memo\":                (string, optional)\n"
             "\nResult:\n"
-            "\"txid\"               (string) The transaction id.\n"
+            "\"rawtx\"                  (string) The raw transaction without any signatures\n"
             "\nExamples:\n" +
             HelpExampleCli("genmulsigtx",
                            "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
                            "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
                            "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
-                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
+                           "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, "
+                           "WaykiChain!\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc(
                 "genmulsigtx",
                 "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571e9521031f3d"
                 "66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd521034819476f12ac0e53bd"
                 "82bc3205c91c40e9c569b08af8db04503afdebceb7134c\", "
-                "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\", 10000, 10000, 100"));
-    }
+                "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", \"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, "
+                "WaykiChain!\""));
 
     EnsureWalletIsUnlocked();
 
-    vector<unsigned char> multiScript = ParseHex(params[0].get_str());
+    vector<uint8_t> multiScript = ParseHex(params[0].get_str());
     if (multiScript.empty() || multiScript.size() > MAX_MULSIG_SCRIPT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
-    }
-
-    CKeyID recvKeyId;
-    CUserID recvUserId;
-    CRegID recvRegId;
-    int32_t height = chainActive.Height();
-
-    if (!GetKeyId(params[1].get_str(), recvKeyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-    }
-
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && recvRegId.IsMature(chainActive.Height()))
-                     ? CUserID(recvRegId)
-                     : CUserID(recvKeyId);
-
-    int64_t amount = AmountToRawValue(params[2]);
-    int64_t fee    = AmountToRawValue(params[3]);
-    if (amount == 0) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send 0 amount disallowed!");
-    }
-
-    if (params.size() > 4) {
-        height = params[4].get_int();
     }
 
     CDataStream scriptDataStream(multiScript, SER_DISK, CLIENT_VERSION);
@@ -427,17 +404,25 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         }
     }
 
-    CMulsigTx tx;
-    tx.signaturePairs = signaturePairs;
-    tx.to_uid         = recvUserId;
-    tx.bcoins         = amount;
-    tx.llFees         = fee;
-    tx.required       = required;
-    tx.valid_height   = height;
-    tx.memo           = "";
+    CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
+    ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_MTX);
+
+    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(cmCoin.symbol);
+    if (pSymbolErr)
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
+
+    if (cmCoin.amount == 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
+
+    string memo    = params.size() == 5 ? params[4].get_str() : "";
+    int32_t height = chainActive.Height();
+
+    std::shared_ptr<CBaseTx> pBaseTx;
+    pBaseTx = std::make_shared<CMulsigTx>(recvUserId, height, cmCoin.symbol, cmCoin.GetSawiAmount(), cmFee.symbol,
+                                          cmFee.GetSawiAmount(), memo, required, signaturePairs);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
     ds << pBaseTx;
 
     Object obj;
@@ -790,7 +775,7 @@ Value getsignature(const Array& params, bool fHelp) {
         if (!key.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
 
-        vector<unsigned char> signature;
+        vector<uint8_t> signature;
         uint256 hash;
         hash.SetHex(params[1].get_str());
         if(key.Sign(hash, signature))

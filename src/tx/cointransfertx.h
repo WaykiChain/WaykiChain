@@ -57,29 +57,6 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-/**################################ Universal Coin Transfer ########################################**/
-
-struct SingleTransfer {
-    CUserID to_uid;
-    TokenSymbol coin_symbol = SYMB::WICC;
-    uint64_t coin_amount    = 0;
-
-    SingleTransfer() {}
-
-    SingleTransfer(const CUserID &toUidIn, const TokenSymbol &coinSymbol, const uint64_t coinAmount)
-        : to_uid(toUidIn), coin_symbol(coinSymbol), coin_amount(coinAmount) {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(to_uid);
-        READWRITE(coin_symbol);
-        READWRITE(VARINT(coin_amount));
-    )
-    string ToString(const CAccountDBCache &accountCache) const;
-
-    Object ToJson(const CAccountDBCache &accountCache) const;
-};
-
-
 /**
  * Universal Coin Transfer Tx
  *

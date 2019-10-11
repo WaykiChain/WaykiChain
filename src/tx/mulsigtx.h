@@ -36,26 +36,24 @@ public:
 
 class CMulsigTx : public CBaseTx {
 public:
-    mutable CUserID to_uid;              //!< keyid or regid
-    uint64_t bcoins;                        //!< transfer amount
-    uint8_t required;                       //!< number of required keys
+    vector<SingleTransfer> transfers;       //!< transfer pair
     string memo;                            //!< memo
+    uint8_t required;                       //!< number of required keys
     vector<CSignaturePair> signaturePairs;  //!< signature pair
 
     CKeyID keyId;  //!< only in memory
 
 public:
-    CMulsigTx() : CBaseTx(BCOIN_TRANSFER_MTX) {}
+    CMulsigTx() : CBaseTx(UCOIN_TRANSFER_MTX) {}
 
-    CMulsigTx(const vector<CSignaturePair> &signaturePairsIn, const CUserID &toUidIn, uint64_t feesIn,
-              const uint64_t valueIn, const int32_t validHeightIn, const uint8_t requiredIn, const string &memoIn)
-        : CBaseTx(BCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feesIn) {
-        signaturePairs = signaturePairsIn;
-        to_uid         = toUidIn;
-        bcoins         = valueIn;
-        required       = requiredIn;
-        memo           = memoIn;
-    }
+    CMulsigTx(const CUserID &toUidIn, const int32_t validHeightIn, const TokenSymbol &coinSymbolIn,
+              const uint64_t coinAmountIn, const TokenSymbol &feeSymbolIn, const uint64_t feesIn, const string &memoIn,
+              const uint8_t requiredIn, const vector<CSignaturePair> &signaturePairsIn)
+        : CBaseTx(UCOIN_TRANSFER_MTX, CNullID(), validHeightIn, feeSymbolIn, feesIn),
+          transfers({{toUidIn, coinSymbolIn, coinAmountIn}}),
+          memo(memoIn),
+          required(requiredIn),
+          signaturePairs(signaturePairsIn) {}
 
     ~CMulsigTx() {}
 
@@ -63,24 +61,25 @@ public:
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
-        READWRITE(signaturePairs);
-        READWRITE(to_uid);
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
-        READWRITE(VARINT(bcoins));
-        READWRITE(VARINT(required));
+        READWRITE(transfers);
         READWRITE(memo);
+        READWRITE(VARINT(required));
+        READWRITE(signaturePairs);
     )
 
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << fee_symbol << VARINT(llFees)
+               << transfers << memo << VARINT(required);
+
             // Do NOT add item.signature.
             for (const auto &item : signaturePairs) {
                 ss << item.regid;
             }
-            ss << to_uid << fee_symbol << VARINT(llFees) << VARINT(bcoins) << VARINT(required) << memo;
+
             sigHash = ss.GetHash();
         }
         return sigHash;

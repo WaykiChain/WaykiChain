@@ -3364,7 +3364,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
         case LCONTRACT_DEPLOY_TX:   return std::make_shared<CLuaContractDeployTx>();
         case DELEGATE_VOTE_TX:      return std::make_shared<CDelegateVoteTx>();
 
-        case BCOIN_TRANSFER_MTX:    return std::make_shared<CMulsigTx>();
+        case UCOIN_TRANSFER_MTX:    return std::make_shared<CMulsigTx>();
         case UCOIN_STAKE_TX:        return std::make_shared<CCoinStakeTx>();
 
         case ASSET_ISSUE_TX:        return std::make_shared<CAssetIssueTx>();

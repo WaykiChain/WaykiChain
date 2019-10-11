@@ -162,3 +162,23 @@ bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) co
         return amount >= 0;
     }
 }
+
+
+/**################################ Universal Coin Transfer ########################################**/
+
+string SingleTransfer::ToString(const CAccountDBCache &accountCache) const {
+    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu", to_uid.ToDebugString(), coin_symbol, coin_amount);
+}
+
+Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+
+    CKeyID desKeyId;
+    accountCache.GetKeyId(to_uid, desKeyId);
+    result.push_back(Pair("to_uid",      to_uid.ToString()));
+    result.push_back(Pair("to_addr",     desKeyId.ToAddress()));
+    result.push_back(Pair("coin_symbol", coin_symbol));
+    result.push_back(Pair("coin_amount", coin_amount));
+
+    return result;
+}
