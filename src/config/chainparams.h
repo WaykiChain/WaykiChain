@@ -71,7 +71,6 @@ protected:
     mutable bool fLogFailures;
     mutable bool fGenReceipt;
     mutable int64_t nTimeBestReceived;
-    mutable uint64_t payTxFee;
     mutable uint32_t nCacheSize;
     mutable int32_t nTxCacheHeight;
     mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
@@ -91,10 +90,6 @@ public:
             fLogTimestamps     = GetBoolArg("-logtimestamps", true);
             fPrintLogToFile    = GetBoolArg("-logprinttofile", false);
             fLogPrintFileLine  = GetBoolArg("-logprintfileline", false);
-        }
-        int64_t nTransactionFee ;
-        if (ParseMoney(GetArg("-paytxfee", ""), nTransactionFee) && nTransactionFee > 0) {
-            payTxFee = nTransactionFee;
         }
 
         nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
@@ -126,7 +121,6 @@ public:
         te += strprintf("fTxIndex:%d\n",                            fTxIndex);
         te += strprintf("fLogFailures:%d\n",                        fLogFailures);
         te += strprintf("nTimeBestReceived:%llu\n",                 nTimeBestReceived);
-        te += strprintf("paytxfee:%llu\n",                          payTxFee);
         te += strprintf("nBlockIntervalPreStableCoinRelease:%u\n",  nBlockIntervalPreStableCoinRelease);
         te += strprintf("nBlockIntervalStableCoinRelease:%u\n",     nBlockIntervalStableCoinRelease);
         te += strprintf("nCacheSize:%u\n",                          nCacheSize);
@@ -139,7 +133,6 @@ public:
 
     virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     int64_t GetTxFee() const;
-    int64_t SetDefaultTxFee(int64_t fee) const;
     virtual string GetDefaultTestDataPath() const {
         char findchar;
         #ifdef WIN32

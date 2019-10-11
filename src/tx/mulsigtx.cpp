@@ -35,9 +35,9 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
                 i, transfers[i].coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
         }
 
-        if (transfers[i].coin_amount < CBaseTx::nDustAmountThreshold)
+        if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
             return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
-                i, transfers[i].coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "invalid-coin-amount");
+                i, transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
 
         if (!CheckBaseCoinRange(transfers[i].coin_amount))

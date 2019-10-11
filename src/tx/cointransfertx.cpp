@@ -18,9 +18,9 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
 
-    if (coin_amount < CBaseTx::nDustAmountThreshold)
+    if (coin_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", coin_amount,
-                         CBaseTx::nDustAmountThreshold), REJECT_DUST, "invalid-coin-amount");
+                         DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
@@ -125,9 +125,9 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
                 i, transfers[i].coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
         }
 
-        if (transfers[i].coin_amount < CBaseTx::nDustAmountThreshold)
+        if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
             return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
-                i, transfers[i].coin_amount, CBaseTx::nDustAmountThreshold), REJECT_DUST, "invalid-coin-amount");
+                i, transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
 
         if (!CheckBaseCoinRange(transfers[i].coin_amount))

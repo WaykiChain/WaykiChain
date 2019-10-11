@@ -411,12 +411,6 @@ bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
     return true;
 }
 
-int64_t CBaseParams::GetTxFee() const { return payTxFee; }
-int64_t CBaseParams::SetDefaultTxFee(int64_t fee) const {
-    payTxFee = fee;
-    return fee;
-}
-
 CBaseParams::CBaseParams() {
     fImporting              = false;
     fReindex                = false;
@@ -427,7 +421,6 @@ CBaseParams::CBaseParams() {
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nCacheSize              = 300 << 10;  // 300K bytes
-    payTxFee                = 10000;
     nDefaultPort            = 0;
     fPrintLogToConsole      = 0;
     fPrintLogToFile         = 0;
