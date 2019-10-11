@@ -1279,7 +1279,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     uint64_t totalRegIds(0);
     std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
     // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
-    obj.push_back(Pair("total_coins", ValueFromAmount(totalCoins)));
+    obj.push_back(Pair("total_coins",  ValueFromAmount(totalCoins)));
     obj.push_back(Pair("total_regids", totalRegIds));
 
     return obj;
