@@ -65,7 +65,7 @@ public:
         READWRITE(VARINT(llFees));
         READWRITE(transfers);
         READWRITE(memo);
-        READWRITE(VARINT(required));
+        READWRITE((uint8_t&)required);
         READWRITE(signaturePairs);
     )
 
@@ -73,7 +73,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << fee_symbol << VARINT(llFees)
-               << transfers << memo << VARINT(required);
+               << transfers << memo << uint8_t(required);
 
             // Do NOT add item.signature.
             for (const auto &item : signaturePairs) {
