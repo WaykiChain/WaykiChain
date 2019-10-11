@@ -182,11 +182,6 @@ bool static InitError(const string &str) {
     return false;
 }
 
-bool static InitWarning(const string &str) {
-    LogPrint("ERROR", "%s\n", str);
-    return true;
-}
-
 bool static Bind(const CService &addr, uint32_t flags) {
     if (!(flags & BF_EXPLICIT) && IsLimited(addr))
         return false;
