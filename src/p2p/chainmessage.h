@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -157,8 +157,8 @@ inline void ProcessGetData(CNode *pFrom) {
                     else  // MSG_FILTERED_BLOCK)
                     {
                         LOCK(pFrom->cs_filter);
-                        if (pFrom->pfilter) {
-                            CMerkleBlock merkleBlock(block, *pFrom->pfilter);
+                        if (pFrom->pFilter) {
+                            CMerkleBlock merkleBlock(block, *pFrom->pFilter);
                             pFrom->PushMessage("merkleblock", merkleBlock);
                             // CMerkleBlock just contains hashes, so also push any transactions in the block the client did not see
                             // This avoids hurting performance by pointlessly requiring a round-trip
@@ -645,8 +645,8 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
             }
         } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
             COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
-            LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current height=%d\n",
-                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Height());
+            LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current block height=%d, current block hash=%s\n",
+                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Height(), chainActive.Tip()->GetBlockHash().GetHex());
             PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
         }
 
@@ -708,8 +708,8 @@ inline void ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv){
         if (pBaseTx.get())
             continue;  // another thread removed since queryHashes, maybe...
 
-        if ((pFrom->pfilter && pFrom->pfilter->contains(hash)) ||  //other type transaction
-            (!pFrom->pfilter))
+        if ((pFrom->pFilter && pFrom->pFilter->contains(hash)) ||  //other type transaction
+            (!pFrom->pFilter))
             vInv.push_back(inv);
 
         if (vInv.size() == MAX_INV_SZ) {
@@ -758,9 +758,9 @@ inline void ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv){
         Misbehaving(pFrom->GetId(), 100);
     } else {
         LOCK(pFrom->cs_filter);
-        delete pFrom->pfilter;
-        pFrom->pfilter = new CBloomFilter(filter);
-        pFrom->pfilter->UpdateEmptyFull();
+        delete pFrom->pFilter;
+        pFrom->pFilter = new CBloomFilter(filter);
+        pFrom->pFilter->UpdateEmptyFull();
     }
     pFrom->fRelayTxes = true;
 }
@@ -777,8 +777,8 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv){
         Misbehaving(pFrom->GetId(), 100);
     } else {
         LOCK(pFrom->cs_filter);
-        if (pFrom->pfilter)
-            pFrom->pfilter->insert(vData);
+        if (pFrom->pFilter)
+            pFrom->pFilter->insert(vData);
         else {
             LogPrint("INFO", "Misbehaving: filter error, Misbehavior add 100");
             Misbehaving(pFrom->GetId(), 100);

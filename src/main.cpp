@@ -2198,26 +2198,26 @@ void CBlockIndex::BuildSkip() {
         pskip = pprev->GetAncestor(GetSkipHeight(height));
 }
 
-void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocks(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
-    if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
+    if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         return;
     }
-    pNode->pindexLastGetBlocksBegin = pindexBegin;
+    pNode->pIndexLastGetBlocksBegin = pIndexBegin;
     pNode->hashLastGetBlocksEnd     = hashEnd;
-    CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
+    CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
     pNode->PushMessage("getblocks", blockLocator, hashEnd);
     LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
 }
 
-void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
-    if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
+    if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
         static uint32_t count = 0;
@@ -2225,9 +2225,9 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
         if (!filter.contains(vector<uint8_t>(key.begin(), key.end()))) {
             filter.insert(vector<uint8_t>(key.begin(), key.end()));
             ++count;
-            pNode->pindexLastGetBlocksBegin = pindexBegin;
+            pNode->pIndexLastGetBlocksBegin = pIndexBegin;
             pNode->hashLastGetBlocksEnd     = hashEnd;
-            CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
+            CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
             pNode->PushMessage("getblocks", blockLocator, hashEnd);
             LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
         } else {
@@ -2237,9 +2237,9 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
             }
         }
     } else {
-        pNode->pindexLastGetBlocksBegin = pindexBegin;
+        pNode->pIndexLastGetBlocksBegin = pIndexBegin;
         pNode->hashLastGetBlocksEnd     = hashEnd;
-        CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
+        CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
         pNode->PushMessage("getblocks", blockLocator, hashEnd);
         LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
     }
@@ -2995,8 +2995,8 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 
     else if (strCommand == "filterclear") {
         LOCK(pFrom->cs_filter);
-        delete pFrom->pfilter;
-        pFrom->pfilter    = new CBloomFilter();
+        delete pFrom->pFilter;
+        pFrom->pFilter    = new CBloomFilter();
         pFrom->fRelayTxes = true;
     }
 
