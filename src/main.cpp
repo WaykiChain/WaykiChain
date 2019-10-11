@@ -837,7 +837,7 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev) {
 }
 
 bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean) {
-    assert(pIndex->GetBlockHash() == cw.blockCache.GetBestBlock());
+    assert(pIndex->GetBlockHash() == cw.blockCache.GetBestBlockHash());
 
     if (pfClean)
         *pfClean = false;
@@ -1164,11 +1164,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (!fJustCheck) {
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
-        if (hashPrevBlock != cw.blockCache.GetBestBlock()) {
+        if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
-                     cw.blockCache.GetBestBlock().GetHex());
+                     cw.blockCache.GetBestBlockHash().GetHex());
 
-            assert(hashPrevBlock == cw.blockCache.GetBestBlock());
+            assert(hashPrevBlock == cw.blockCache.GetBestBlockHash());
         }
     }
 
@@ -1212,8 +1212,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
-        assert(mapBlockIndex.count(cw.blockCache.GetBestBlock()));
-        int32_t curHeight     = mapBlockIndex[cw.blockCache.GetBestBlock()]->height;
+        assert(mapBlockIndex.count(cw.blockCache.GetBestBlockHash()));
+        int32_t curHeight     = mapBlockIndex[cw.blockCache.GetBestBlockHash()]->height;
         int32_t validHeight   = SysCfg().GetTxCacheHeight();
         uint32_t fuelRate     = block.GetFuelRate();
         uint64_t totalRunStep = 0;
@@ -1587,8 +1587,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegateList();
 
-        uint256 uBestblockHash = pCdMan->pBlockCache->GetBestBlock();
-        LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
+        uint256 uBestblockHash = pCdMan->pBlockCache->GetBestBlockHash();
+        LogPrint("INFO", "uBestBlockHash[%d]: %s\n", uBestblockHash., uBestblockHash.GetHex());
     }
 
     if (SysCfg().IsBenchmark())
@@ -1906,7 +1906,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
 
-    uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlock();
+    uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlockHash();
     int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
     LogPrint("INFO", "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
@@ -2550,7 +2550,7 @@ bool static LoadBlockIndexDB() {
     LogPrint("INFO", "LoadBlockIndexDB(): transaction index %s\n", bTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain
-    uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlock();
+    uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlockHash();
     const auto &it = mapBlockIndex.find(bestBlockHash);
     if (it == mapBlockIndex.end()) {
         return true;

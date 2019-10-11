@@ -121,7 +121,7 @@ bool CBlockDBCache::Flush() {
     return true;
 }
 
-uint256 CBlockDBCache::GetBestBlock() const {
+uint256 CBlockDBCache::GetBestBlockHash() const {
     uint256 blockHash;
     bestBlockHashCache.GetData(blockHash);
     return blockHash;

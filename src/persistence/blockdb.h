@@ -104,7 +104,7 @@ public:
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
 
-    uint256 GetBestBlock() const;
+    uint256 GetBestBlockHash() const;
     bool SetBestBlock(const uint256 &blockHash);
 
 private:
