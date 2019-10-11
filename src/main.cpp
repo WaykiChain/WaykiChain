@@ -1482,7 +1482,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
-    LogPrint("INFO", "UpdateTip: block=%s height=%d chainTxCnt=%lu ts=%s txCnt=%d fuelRate=%d)\n",
+    LogPrint("INFO", "UpdateTip: block=%s height=%d chainTxCnt=%lu ts=%s txCnt=%d fuelRate=%d\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), chainActive.Tip()->nChainTx,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
              block.vptx.size(), chainActive.Tip()->nFuelRate);
@@ -1586,9 +1586,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->Flush();
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegateList();
-
-        uint256 uBestblockHash = pCdMan->pBlockCache->GetBestBlockHash();
-        LogPrint("INFO", "uBestBlockHash[%d]: %s\n", uBestblockHash., uBestblockHash.GetHex());
     }
 
     if (SysCfg().IsBenchmark())
