@@ -6,9 +6,9 @@
 #include <utility>
 #include <chrono>
 
-#include "json/json_spirit.h"
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_writer.h"
+#include "commons/json/json_spirit.h"
+#include "commons/json/json_spirit_reader_template.h"
+#include "commons/json/json_spirit_writer.h"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_variant.hpp"
 #include "wasm/datastream.hpp"

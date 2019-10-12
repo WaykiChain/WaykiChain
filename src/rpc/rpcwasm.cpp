@@ -23,10 +23,10 @@
 #include "entities/contract.h"
 
 #include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_reader.h"
-#include "json/json_spirit_writer.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_reader.h"
+#include "commons/json/json_spirit_writer.h"
 
 #include "datastream.hpp"
 #include "abi_serializer.hpp"
@@ -137,7 +137,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         abi_def abi_d;
         from_variant(abiJson, abi_d);
         wasm::abi_serializer abis(abi_d, max_serialization_time);
-        
+
         //abi in vector
         std::vector<char> abi_v = wasm::pack<wasm::abi_def>(abi_d);
         abi = string(abi_v.begin(), abi_v.end());
@@ -192,8 +192,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         tx.llFees = fee.GetSawiAmount();
 
 
-        tx.inlinetransactions.push_back({wasmio, 
-                                         wasm::N(setcode), 
+        tx.inlinetransactions.push_back({wasmio,
+                                         wasm::N(setcode),
                                          std::vector<permission>{{wasmio, wasmio_owner}},
                                          wasm::pack(std::tuple(contract, code, abi, memo))});
 
@@ -338,9 +338,9 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     tx.llFees = fee.GetSawiAmount();
 
 
-    tx.inlinetransactions.push_back({contract, 
-                                     action, 
-                                     std::vector<permission>{{wasm::N(sender), wasmio_owner}}, 
+    tx.inlinetransactions.push_back({contract,
+                                     action,
+                                     std::vector<permission>{{wasm::N(sender), wasmio_owner}},
                                      data});
 
     // tx.symbol = amount.symbol;
@@ -493,7 +493,7 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
     if (contractRegID.IsEmpty()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
     }
-   
+
     //uint64_t contract = wasm::RegID2Name(contractRegID);
     uint64_t action = wasm::NAME(params[1].get_str().c_str());
 
@@ -521,7 +521,7 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
     json_spirit::Object object;
     object.push_back(Pair("data", wasm::ToHex(data,"")));
 
-    return object;    
+    return object;
 }
 
 
@@ -551,7 +551,7 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
     if (contractRegID.IsEmpty()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
     }
-   
+
     //uint64_t contract = wasm::RegID2Name(contractRegID);
     uint64_t action = wasm::NAME(params[1].get_str().c_str());
 
@@ -581,7 +581,7 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
     }
 
 
-    return object;  
+    return object;
 
 }
 
@@ -618,7 +618,7 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 
     object.push_back(Pair("code", wasm::ToHex(contractCode.code,"")));
 
-    return object;  
+    return object;
 
 }
 
@@ -661,6 +661,6 @@ Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
     wasm::to_variant(abi_d, v);
     object.push_back(Pair("abi", v));
 
-    return object; 
+    return object;
 
 }

@@ -35,7 +35,7 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
     v = obj;
 }
 
-    
+
 static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v ) {
 
     json_spirit::Object obj;
@@ -136,7 +136,7 @@ static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Va
 }
 
 
-bool CWasmContractTx::CheckTx( int nHeight, CCacheWrapper &cw, CValidationState &state ) {
+bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
     // IMPLEMENT_CHECK_TX_FEE;
     // IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -179,12 +179,12 @@ bool CWasmContractTx::CheckTx( int nHeight, CCacheWrapper &cw, CValidationState 
     return true;
 }
 
-bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, CValidationState &state ) {
-    
+bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
+
     try {
 
         auto start = system_clock::now();
-        
+
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
         //trx_trace.block_height = nHeight;
@@ -193,17 +193,17 @@ bool CWasmContractTx::ExecuteTx( int nHeight, int nIndex, CCacheWrapper &cache, 
         for (auto trx: inlinetransactions) {
 
             trx_trace.traces.emplace_back();
-            DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
+            DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, *context.pCw, *context.pState, 0);
         }
 
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
         json_spirit::Value v;
         to_variant(trx_trace, v);
-        state.SetReturn(json_spirit::write(v));
+        context.pState->SetReturn(json_spirit::write(v));
 
     } catch (wasm::exception &e) {
-        return state.DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
+        return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
     }
 
     //cache.save(trace)

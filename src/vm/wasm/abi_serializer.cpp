@@ -13,7 +13,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "json/json_spirit_writer.h"
+#include "commons/json/json_spirit_writer.h"
 
 using namespace boost;
 using namespace wasm;

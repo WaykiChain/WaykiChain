@@ -9,8 +9,8 @@
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
 // #include "wasm/types/inline_transaction.hpp"
-#include "json/json_spirit.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit.h"
+#include "commons/json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"
@@ -265,7 +265,7 @@ namespace wasm {
         obj.push_back(Pair("type", wasm::variant(t.type)));
 
         v = obj;
-    }  
+    }
 
 
     static inline void to_variant( const wasm::field_def &t, wasm::variant &v ) {
@@ -275,7 +275,7 @@ namespace wasm {
         obj.push_back(Pair("type", wasm::variant(t.type)));
 
         v = obj;
-    }  
+    }
 
     static inline void to_variant( const wasm::struct_def &t, wasm::variant &v ) {
 

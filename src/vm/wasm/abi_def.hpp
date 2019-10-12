@@ -5,8 +5,8 @@
 #include "wasm/types/varint.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
-#include "json/json_spirit.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit.h"
+#include "commons/json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/datastream.hpp"
@@ -15,7 +15,7 @@ namespace wasm {
     using namespace json_spirit;
     using namespace wasm;
 
-// 
+//
     typedef Config::Value_type::Config_type Config_type;
 
 
