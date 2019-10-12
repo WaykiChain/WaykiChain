@@ -58,12 +58,6 @@ bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
 
-/** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
-uint64_t CBaseTx::nMinRelayTxFee = 1000;
-/** Amount smaller than this (in sawi) is considered dust amount */
-uint64_t CBaseTx::nDustAmountThreshold = 10000;
-/** Amount of blocks that other nodes claim to have */
-
 map<uint256, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256, COrphanBlock *> mapOrphanBlocksByPrev;
 
@@ -381,7 +375,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     // Continuously rate-limit free transactions
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
     // be annoying or make others' transactions take longer to confirm.
-    if (fLimitFree && nFees < CBaseTx::nMinRelayTxFee) {
+    if (fLimitFree && nFees < MIN_RELAY_TX_FEE) {
         static CCriticalSection csFreeLimiter;
         static double dFreeCount;
         static int64_t nLastTime;

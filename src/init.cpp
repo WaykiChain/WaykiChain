@@ -182,11 +182,6 @@ bool static InitError(const string &str) {
     return false;
 }
 
-bool static InitWarning(const string &str) {
-    LogPrint("ERROR", "%s\n", str);
-    return true;
-}
-
 bool static Bind(const CService &addr, uint32_t flags) {
     if (!(flags & BF_EXPLICIT) && IsLimited(addr))
         return false;
@@ -286,7 +281,6 @@ string HelpMessage() {
         strUsage += "  -limitfreerelay=<n>    " + _("Continuously rate-limit free transactions to <n>*1000 bytes per minute (default:15)") + "\n";
         strUsage += "  -maxsigcachesize=<n>   " + _("Limit size of signature cache to <n> entries (default: 50000)") + "\n";
     }
-    strUsage += "  -minrelaytxfee=<amt>   " + _("Fees smaller than this are considered zero fee (for relaying) (default:") + " " + FormatMoney(CBaseTx::nMinRelayTxFee) + ")" + "\n";
     strUsage += "  -logprinttoconsole     " + _("Send trace/debug info to console instead of debug.log file") + "\n";
     if (SysCfg().GetBoolArg("-help-debug", false)) {
         strUsage += "  -printblock=<hash>     " + _("Print block on startup, if found in block index") + "\n";
@@ -506,25 +500,6 @@ bool AppInit(boost::thread_group &threadGroup) {
     mempool.SetSanityCheck(SysCfg().GetBoolArg("-checkmempool", RegTest()));
 
     setvbuf(stdout, nullptr, _IOLBF, 0);
-
-    // Fee-per-kilobyte amount considered the same as "free"
-    // If you are mining, be careful setting this:
-    // if you set it to zero then
-    // a transaction spammer can cheaply fill blocks using
-    // 1-satoshi-fee transactions. It should be set above the real
-    // cost to you of processing a transaction.
-    if (SysCfg().IsArgCount("-minrelaytxfee")) {
-        int64_t n = 0;
-        if (ParseMoney(SysCfg().GetArg("-minrelaytxfee", ""), n) && n > 0) {
-            CBaseTx::nMinRelayTxFee = n;
-        } else {
-            return InitError(strprintf(_("Invalid amount for -minrelaytxfee=<amount>: '%s'"), SysCfg().GetArg("-minrelaytxfee", "")));
-        }
-    }
-
-    if (SysCfg().GetTxFee() > nHighTransactionFeeWarning) {
-        InitWarning(_("Warning: -paytxfee is set very high! This is the transaction fee you will pay if you send a transaction."));
-    }
 
     string strDataDir = GetDataDir().string();
 

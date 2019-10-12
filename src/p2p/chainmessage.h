@@ -30,12 +30,12 @@ extern map<uint256, COrphanBlock *> mapOrphanBlocks;
 // Protected by cs_main.
 struct QueuedBlock {
     uint256 hash;
-    int64_t nTime;      // Time of "getdata" request in microseconds.
+    int64_t nTime;          // Time of "getdata" request in microseconds.
     int32_t nQueuedBefore;  // Number of blocks in flight at the time of request.
 };
 namespace {
-    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
-    map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;  //存放待下载到的块，下载后执行erase
+    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight; // downloading blocks
+    map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;   // blocks to be downloaded
 
     // Sources of received blocks, to be able to send them reject messages or ban
     // them, if processing happens afterwards. Protected by cs_main.
@@ -62,11 +62,11 @@ namespace {
         // List of asynchronously-determined block rejections to notify this peer about.
         vector<CBlockReject> rejects;
         list<QueuedBlock> vBlocksInFlight;
-        int32_t nBlocksInFlight;              //每个节点,单独能下载的最大块数量   MAX_BLOCKS_IN_TRANSIT_PER_PEER
-        list<uint256> vBlocksToDownload;  //待下载的块
-        int32_t nBlocksToDownload;            //待下载的块个数
-        int64_t nLastBlockReceive;        //上一次收到块的时间
-        int64_t nLastBlockProcess;        //收到块，处理消息时的时间
+        int32_t nBlocksInFlight;          // maximun blocks downloading at the same time
+        list<uint256> vBlocksToDownload;  // blocks to be downloaded
+        int32_t nBlocksToDownload;        // blocks number to be downloaded
+        int64_t nLastBlockReceive;        // the latest receiving blocks time
+        int64_t nLastBlockProcess;        // the latest processing blocks time
 
         CNodeState() {
             nMisbehavior      = 0;
@@ -251,8 +251,8 @@ bool AlreadyHave(const CInv &inv) {
 
 // Requires cs_main.
 inline bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
-
     if (mapBlocksToDownload.count(hash) || mapBlocksInFlight.count(hash)) {
+        LogPrint("net", "block: %s is ready to download, ignore")
         return false;
     }
 
