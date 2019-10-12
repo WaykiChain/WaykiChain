@@ -19,7 +19,6 @@
 #include "tx/dextx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/assettx.h"
-#include "persistence/cdpdb.h"
 
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {
@@ -448,14 +447,13 @@ Value getcdp(const Array& params, bool fHelp){
     return obj;
 }
 
-Value getclosedcdp(const Array& params, bool fHelp){
+Value getclosedcdp(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 1){
         throw  runtime_error(
                 "getclosedcdp \"[cdp_id | close_txid]\"\n"
                 "\nget closed CDP by its CDP_ID or CDP_CLOSE_TXID, you must provide one of CDP_ID and CDP_CLOSE_TXID \n"
                 "\nArguments:\n"
-                "1.\"cdp_id\": (string, optional) cdp_id\n"
-                "2.\"cdp_close_txid\": (string, optional) cdp_close_txid\n"
+                "1.\"cdp_id or cdp_close_txid\": (string, required) the closed cdp's or the txid that close the cdp\n"
                 "\nResult:\n"
                 "\n1 cdp_id: the id of closed cdp\n"
                 "\n2 cdp_close_txid: the txid that closed this cdp\n"
@@ -477,7 +475,7 @@ Value getclosedcdp(const Array& params, bool fHelp){
         return obj ;
     }
 
-    if( pCdMan->pClosedCdpCache->GetClosedCdpById(id,cdp)){
+    if( pCdMan->pClosedCdpCache->GetClosedCdpByTxId(id,cdp)){
         obj.push_back(Pair("cdp_id", std::get<0>(cdp).GetHex())) ;
         obj.push_back(Pair("cdp_close_txid", params[0].get_str())) ;
         obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp)))) ;
