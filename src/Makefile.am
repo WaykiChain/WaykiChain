@@ -55,11 +55,11 @@ WASM_PATH = $(VM_PATH)/wasm
 
 WASM_VM_INCLUDE = $(WASM_PATH)/eos-vm/include
 WASM_COMPILER_BUILTINS = $(WASM_PATH)/eos-vm/external/compiler_builtins
-WASM_BERKELEY_SOFTFLOAT = $(WASM_PATH)/eos-vm/external/softfloat/source/include
+WASM_BERKELEY_SOFTFLOAT = $(srcdir)/external/softfloat/source/include
 
-WASM_OUTCOME_DIR = $(WASM_PATH)/eos-vm/external/outcome/single-header
+WASM_OUTCOME_DIR = $(srcdir)/external/outcome/single-header
 
-WASM_CPPFLAGS = -std=c++17 -I$(VM_PATH) \
+WASM_CPPFLAGS = -std=gnu++1z -I$(VM_PATH) \
                            -I$(WASM_PATH) \
                            -I$(WASM_VM_INCLUDE) \
                            -I$(WASM_OUTCOME_DIR) \

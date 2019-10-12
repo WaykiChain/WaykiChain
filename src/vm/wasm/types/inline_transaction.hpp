@@ -17,8 +17,8 @@ namespace wasm {
         uint64_t perm;
         
         IMPLEMENT_SERIALIZE (
-        READWRITE(account );
-        READWRITE(perm);
+        READWRITE(VARINT(account) );
+        READWRITE(VARINT(perm));
         )
 
     };
@@ -31,8 +31,8 @@ namespace wasm {
         std::vector<char> data;
 
         IMPLEMENT_SERIALIZE (
-        READWRITE(contract );
-        READWRITE(action);
+        READWRITE(VARINT(contract ));
+        READWRITE(VARINT(action ));
         READWRITE(authorization);
         READWRITE(data);
         )

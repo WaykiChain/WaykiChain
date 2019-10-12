@@ -86,7 +86,7 @@ libcompilerbuildin_a_SOURCES = \
 #                     -I$(COMPILER_BUILTINS) \
 #                     -I$(WASM_TYPES_DIR)
 
-libwasm_a_CXXFLAGS = -std=c++17 -DEOS_VM_SOFTFLOAT $(SOFTFLOAT_PATH_INCLUDE) \
+libwasm_a_CXXFLAGS = -std=gnu++1z -Wno-unknown-pragmas -DEOS_VM_SOFTFLOAT $(SOFTFLOAT_PATH_INCLUDE) \
                     -I$(EOSVM_INCLUDE_DIR) \
                     -I$(EOSVM_OUTCOME_DIR) \
                     -I$(COMPILER_BUILTINS) \
