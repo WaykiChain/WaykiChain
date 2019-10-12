@@ -58,12 +58,6 @@ bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
 
-/** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
-uint64_t CBaseTx::nMinRelayTxFee = 1000;
-/** Amount smaller than this (in sawi) is considered dust amount */
-uint64_t CBaseTx::nDustAmountThreshold = 10000;
-/** Amount of blocks that other nodes claim to have */
-
 map<uint256, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256, COrphanBlock *> mapOrphanBlocksByPrev;
 
@@ -416,7 +410,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
     // Continuously rate-limit free transactions
     // This mitigates 'penny-flooding' -- sending thousands of free transactions just to
     // be annoying or make others' transactions take longer to confirm.
-    if (fLimitFree && nFees < CBaseTx::nMinRelayTxFee) {
+    if (fLimitFree && nFees < MIN_RELAY_TX_FEE) {
         static CCriticalSection csFreeLimiter;
         static double dFreeCount;
         static int64_t nLastTime;
@@ -872,7 +866,7 @@ void UpdateTime(CBlockHeader &block, const CBlockIndex *pIndexPrev) {
 }
 
 bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state, bool *pfClean) {
-    assert(pIndex->GetBlockHash() == cw.blockCache.GetBestBlock());
+    assert(pIndex->GetBlockHash() == cw.blockCache.GetBestBlockHash());
 
     if (pfClean)
         *pfClean = false;
@@ -1199,11 +1193,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     if (!fJustCheck) {
         // Verify that the view's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
-        if (hashPrevBlock != cw.blockCache.GetBestBlock()) {
+        if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
-                     cw.blockCache.GetBestBlock().GetHex());
+                     cw.blockCache.GetBestBlockHash().GetHex());
 
-            assert(hashPrevBlock == cw.blockCache.GetBestBlock());
+            assert(hashPrevBlock == cw.blockCache.GetBestBlockHash());
         }
     }
 
@@ -1247,8 +1241,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     map<TokenSymbol, uint64_t> rewards = {{SYMB::WICC, 0}, {SYMB::WUSD, 0}};  // Only allow WICC/WUSD as fees type.
 
     if (block.vptx.size() > 1) {
-        assert(mapBlockIndex.count(cw.blockCache.GetBestBlock()));
-        int32_t curHeight     = mapBlockIndex[cw.blockCache.GetBestBlock()]->height;
+        assert(mapBlockIndex.count(cw.blockCache.GetBestBlockHash()));
+        int32_t curHeight     = mapBlockIndex[cw.blockCache.GetBestBlockHash()]->height;
         int32_t validHeight   = SysCfg().GetTxCacheHeight();
         uint32_t fuelRate     = block.GetFuelRate();
         uint64_t totalRunStep = 0;
@@ -1517,7 +1511,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
-    LogPrint("INFO", "UpdateTip: new best=%s  height=%d  tx=%lu  date=%s txnumber=%d nFuelRate=%d\n",
+    LogPrint("INFO", "UpdateTip: block=%s height=%d chainTxCnt=%lu ts=%s txCnt=%d fuelRate=%d\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), chainActive.Tip()->nChainTx,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
              block.vptx.size(), chainActive.Tip()->nFuelRate);
@@ -1621,9 +1615,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
         spCW->Flush();
         // Attention: need to reload top N delegates.
         pCdMan->pDelegateCache->LoadTopDelegateList();
-
-        uint256 uBestblockHash = pCdMan->pBlockCache->GetBestBlock();
-        LogPrint("INFO", "uBestBlockHash[%d]: %s\n", nSyncTipHeight, uBestblockHash.GetHex());
     }
 
     if (SysCfg().IsBenchmark())
@@ -1968,7 +1959,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
 
-    uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlock();
+    uint256 forkChainBestBlockHash   = spCW->blockCache.GetBestBlockHash();
     int32_t forkChainBestBlockHeight = mapBlockIndex[forkChainBestBlockHash]->height;
     LogPrint("INFO", "ProcessForkedChain() : fork chain's best block [%d]: %s\n", forkChainBestBlockHeight,
              forkChainBestBlockHash.GetHex());
@@ -2263,26 +2254,26 @@ void CBlockIndex::BuildSkip() {
         pskip = pprev->GetAncestor(GetSkipHeight(height));
 }
 
-void PushGetBlocks(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocks(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
-    if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
+    if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         return;
     }
-    pNode->pindexLastGetBlocksBegin = pindexBegin;
+    pNode->pIndexLastGetBlocksBegin = pIndexBegin;
     pNode->hashLastGetBlocksEnd     = hashEnd;
-    CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
+    CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
     pNode->PushMessage("getblocks", blockLocator, hashEnd);
     LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
 }
 
-void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 hashEnd) {
+void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     // Ask this guy to fill in what we're missing
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
-    if (pindexBegin == pNode->pindexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
+    if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
         LogPrint("net", "filter the same GetLocator\n");
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
         static uint32_t count = 0;
@@ -2290,9 +2281,9 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
         if (!filter.contains(vector<uint8_t>(key.begin(), key.end()))) {
             filter.insert(vector<uint8_t>(key.begin(), key.end()));
             ++count;
-            pNode->pindexLastGetBlocksBegin = pindexBegin;
+            pNode->pIndexLastGetBlocksBegin = pIndexBegin;
             pNode->hashLastGetBlocksEnd     = hashEnd;
-            CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
+            CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
             pNode->PushMessage("getblocks", blockLocator, hashEnd);
             LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
         } else {
@@ -2302,9 +2293,9 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pindexBegin, uint256 ha
             }
         }
     } else {
-        pNode->pindexLastGetBlocksBegin = pindexBegin;
+        pNode->pIndexLastGetBlocksBegin = pIndexBegin;
         pNode->hashLastGetBlocksEnd     = hashEnd;
-        CBlockLocator blockLocator      = chainActive.GetLocator(pindexBegin);
+        CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
         pNode->PushMessage("getblocks", blockLocator, hashEnd);
         LogPrint("net", "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
     }
@@ -2617,7 +2608,7 @@ bool static LoadBlockIndexDB() {
     LogPrint("INFO", "LoadBlockIndexDB(): transaction index %s\n", bTxIndex ? "enabled" : "disabled");
 
     // Load pointer to end of best chain
-    uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlock();
+    uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlockHash();
     const auto &it = mapBlockIndex.find(bestBlockHash);
     if (it == mapBlockIndex.end()) {
         return true;
@@ -3064,8 +3055,8 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 
     else if (strCommand == "filterclear") {
         LOCK(pFrom->cs_filter);
-        delete pFrom->pfilter;
-        pFrom->pfilter    = new CBloomFilter();
+        delete pFrom->pFilter;
+        pFrom->pFilter    = new CBloomFilter();
         pFrom->fRelayTxes = true;
     }
 
@@ -3433,7 +3424,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
         case LCONTRACT_DEPLOY_TX:   return std::make_shared<CLuaContractDeployTx>();
         case DELEGATE_VOTE_TX:      return std::make_shared<CDelegateVoteTx>();
 
-        case BCOIN_TRANSFER_MTX:    return std::make_shared<CMulsigTx>();
+        case UCOIN_TRANSFER_MTX:    return std::make_shared<CMulsigTx>();
         case UCOIN_STAKE_TX:        return std::make_shared<CCoinStakeTx>();
 
         case ASSET_ISSUE_TX:        return std::make_shared<CAssetIssueTx>();

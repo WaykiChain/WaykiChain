@@ -964,7 +964,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     }
 
     const Array& addresses = params[1].get_array();
-    if (pBaseTx.get()->nTxType != BCOIN_TRANSFER_MTX && addresses.size() != 1) {
+    if (pBaseTx.get()->nTxType != UCOIN_TRANSFER_MTX && addresses.size() != 1) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
@@ -989,7 +989,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         case UCOIN_BLOCK_REWARD_TX: {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Reward transation is forbidden");
         }
-        case BCOIN_TRANSFER_MTX: {
+        case UCOIN_TRANSFER_MTX: {
             CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
 
             vector<CSignaturePair>& signaturePairs = pTx->signaturePairs;
@@ -1279,7 +1279,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     uint64_t totalRegIds(0);
     std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
     // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
-    obj.push_back(Pair("total_coins", ValueFromAmount(totalCoins)));
+    obj.push_back(Pair("total_coins",  ValueFromAmount(totalCoins)));
     obj.push_back(Pair("total_regids", totalRegIds));
 
     return obj;

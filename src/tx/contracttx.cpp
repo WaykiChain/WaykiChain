@@ -63,8 +63,8 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
     if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
         double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
-        if (feePerKb < CBaseTx::nMinRelayTxFee) {
-            uint64_t minFee = ceil(double(CBaseTx::nMinRelayTxFee) * txSize / 1000.0 + llFuel);
+        if (feePerKb < MIN_RELAY_TX_FEE) {
+            uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + llFuel);
             return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, fee too small in fee/kb: %llu < %llu",
                             llFees, minFee), REJECT_INVALID,
                             strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));
@@ -305,8 +305,8 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
 
     int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
     double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
-    if (feePerKb < CBaseTx::nMinRelayTxFee) {
-        uint64_t minFee = ceil(double(CBaseTx::nMinRelayTxFee) * txSize / 1000.0 + llFuel);
+    if (feePerKb < MIN_RELAY_TX_FEE) {
+        uint64_t minFee = ceil(double(MIN_RELAY_TX_FEE) * txSize / 1000.0 + llFuel);
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, fee too small in fee/kb: %llu < %llu",
                         llFees, minFee), REJECT_INVALID,
                         strprintf("fee-too-small-in-fee/kb: %llu < %llu", llFees, minFee));

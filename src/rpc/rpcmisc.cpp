@@ -117,8 +117,7 @@ Value getinfo(const Array& params, bool fHelp) {
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("miner_fee_perkb",       ValueFromAmount(SysCfg().GetTxFee())));
-    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(CBaseTx::nMinRelayTxFee)));
+    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(MIN_RELAY_TX_FEE)));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));

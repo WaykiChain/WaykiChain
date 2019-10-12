@@ -56,8 +56,6 @@ public:
 
 class CBaseTx {
 public:
-    static uint64_t nMinRelayTxFee;
-    static uint64_t nDustAmountThreshold;
     static const int32_t CURRENT_VERSION = INIT_TX_VERSION;
 
     int32_t nVersion;
@@ -128,6 +126,28 @@ protected:
     bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
+};
+
+/**################################ Universal Coin Transfer ########################################**/
+
+struct SingleTransfer {
+    CUserID to_uid;
+    TokenSymbol coin_symbol = SYMB::WICC;
+    uint64_t coin_amount    = 0;
+
+    SingleTransfer() {}
+
+    SingleTransfer(const CUserID &toUidIn, const TokenSymbol &coinSymbol, const uint64_t coinAmount)
+        : to_uid(toUidIn), coin_symbol(coinSymbol), coin_amount(coinAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(to_uid);
+        READWRITE(coin_symbol);
+        READWRITE(VARINT(coin_amount));
+    )
+    string ToString(const CAccountDBCache &accountCache) const;
+
+    Object ToJson(const CAccountDBCache &accountCache) const;
 };
 
 class CPricePoint {

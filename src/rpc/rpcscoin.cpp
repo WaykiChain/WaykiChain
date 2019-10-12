@@ -20,6 +20,7 @@
 #include "tx/pricefeedtx.h"
 #include "tx/assettx.h"
 
+
 Value submitpricefeedtx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2 || params.size() > 3) {
         throw runtime_error(
@@ -444,6 +445,46 @@ Value getcdp(const Array& params, bool fHelp){
     Object obj;
     obj.push_back(Pair("cdp", cdp.ToJson(bcoinMedianPrice)));
     return obj;
+}
+
+Value getclosedcdp(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 1){
+        throw  runtime_error(
+                "getclosedcdp \"[cdp_id | close_txid]\"\n"
+                "\nget closed CDP by its CDP_ID or CDP_CLOSE_TXID, you must provide one of CDP_ID and CDP_CLOSE_TXID \n"
+                "\nArguments:\n"
+                "1.\"cdp_id or cdp_close_txid\": (string, required) the closed cdp's or the txid that close the cdp\n"
+                "\nResult:\n"
+                "\n1 cdp_id: the id of closed cdp\n"
+                "\n2 cdp_close_txid: the txid that closed this cdp\n"
+                "\n3 cdp_close_type: the reason of closing cdp\n"
+                "\nExamples:\n"
+                + HelpExampleCli("getclosedcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("getclosedcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+                ) ;
+    }
+
+    uint256 id = uint256S(params[0].get_str()) ;
+    std::pair<uint256, uint8_t> cdp ;
+    Object obj ;
+    if( pCdMan->pClosedCdpCache->GetClosedCdpById(id,cdp)){
+        obj.push_back(Pair("cdp_id", params[0].get_str())) ;
+        obj.push_back(Pair("cdp_close_txid", std::get<0>(cdp).GetHex()));
+        obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp))));
+        return obj ;
+    }
+
+    if( pCdMan->pClosedCdpCache->GetClosedCdpByTxId(id,cdp)){
+        obj.push_back(Pair("cdp_id", std::get<0>(cdp).GetHex())) ;
+        obj.push_back(Pair("cdp_close_txid", params[0].get_str())) ;
+        obj.push_back(Pair("cdp_close_type", GetCdpCloseTypeName((CDPCloseType)std::get<1>(cdp)))) ;
+        return obj ;
+    }
+
+    throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Closed CDP (%s) does not exist!", params[0].get_str()));
+
+
 }
 
 /*************************************************<< DEX >>**************************************************/

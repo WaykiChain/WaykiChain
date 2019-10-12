@@ -201,3 +201,15 @@ bool CCdpDBCache::Flush() {
 
     return true;
 }
+
+string GetCdpCloseTypeName(const CDPCloseType type) {
+    switch (type) {
+        case CDPCloseType:: BY_REDEEM:
+            return "redeem" ;
+        case CDPCloseType:: BY_FORCE_LIQUIDATE :
+            return "force_liquidate" ;
+        case CDPCloseType ::BY_MANUAL_LIQUIDATE:
+            return "manual_liquidate" ;
+    }
+    return "undefined" ;
+}

@@ -725,7 +725,7 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
         case DELEGATE_VOTE_TX:
             Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion); break;
 
-        case BCOIN_TRANSFER_MTX:
+        case UCOIN_TRANSFER_MTX:
             Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
         case UCOIN_STAKE_TX:
             Serialize(os, *((CCoinStakeTx *)(pa.get())), nType, nVersion); break;
@@ -813,7 +813,7 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
             break;
         }
 
-        case BCOIN_TRANSFER_MTX: {
+        case UCOIN_TRANSFER_MTX: {
             pa = std::make_shared<CMulsigTx>();
             Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
             break;

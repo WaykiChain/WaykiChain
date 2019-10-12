@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -30,12 +30,12 @@ extern map<uint256, COrphanBlock *> mapOrphanBlocks;
 // Protected by cs_main.
 struct QueuedBlock {
     uint256 hash;
-    int64_t nTime;      // Time of "getdata" request in microseconds.
+    int64_t nTime;          // Time of "getdata" request in microseconds.
     int32_t nQueuedBefore;  // Number of blocks in flight at the time of request.
 };
 namespace {
-    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight;
-    map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;  //存放待下载到的块，下载后执行erase
+    map<uint256, pair<NodeId, list<QueuedBlock>::iterator> > mapBlocksInFlight; // downloading blocks
+    map<uint256, pair<NodeId, list<uint256>::iterator> > mapBlocksToDownload;   // blocks to be downloaded
 
     // Sources of received blocks, to be able to send them reject messages or ban
     // them, if processing happens afterwards. Protected by cs_main.
@@ -62,11 +62,11 @@ namespace {
         // List of asynchronously-determined block rejections to notify this peer about.
         vector<CBlockReject> rejects;
         list<QueuedBlock> vBlocksInFlight;
-        int32_t nBlocksInFlight;              //每个节点,单独能下载的最大块数量   MAX_BLOCKS_IN_TRANSIT_PER_PEER
-        list<uint256> vBlocksToDownload;  //待下载的块
-        int32_t nBlocksToDownload;            //待下载的块个数
-        int64_t nLastBlockReceive;        //上一次收到块的时间
-        int64_t nLastBlockProcess;        //收到块，处理消息时的时间
+        int32_t nBlocksInFlight;          // maximun blocks downloading at the same time
+        list<uint256> vBlocksToDownload;  // blocks to be downloaded
+        int32_t nBlocksToDownload;        // blocks number to be downloaded
+        int64_t nLastBlockReceive;        // the latest receiving blocks time
+        int64_t nLastBlockProcess;        // the latest processing blocks time
 
         CNodeState() {
             nMisbehavior      = 0;
@@ -157,8 +157,8 @@ inline void ProcessGetData(CNode *pFrom) {
                     else  // MSG_FILTERED_BLOCK)
                     {
                         LOCK(pFrom->cs_filter);
-                        if (pFrom->pfilter) {
-                            CMerkleBlock merkleBlock(block, *pFrom->pfilter);
+                        if (pFrom->pFilter) {
+                            CMerkleBlock merkleBlock(block, *pFrom->pFilter);
                             pFrom->PushMessage("merkleblock", merkleBlock);
                             // CMerkleBlock just contains hashes, so also push any transactions in the block the client did not see
                             // This avoids hurting performance by pointlessly requiring a round-trip
@@ -251,8 +251,8 @@ bool AlreadyHave(const CInv &inv) {
 
 // Requires cs_main.
 inline bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
-
     if (mapBlocksToDownload.count(hash) || mapBlocksInFlight.count(hash)) {
+        LogPrint("net", "block: %s is ready to download, ignore")
         return false;
     }
 
@@ -645,8 +645,8 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
             }
         } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
             COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
-            LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current height=%d\n",
-                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Height());
+            LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current block height=%d, current block hash=%s\n",
+                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Height(), chainActive.Tip()->GetBlockHash().GetHex());
             PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
         }
 
@@ -708,8 +708,8 @@ inline void ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv){
         if (pBaseTx.get())
             continue;  // another thread removed since queryHashes, maybe...
 
-        if ((pFrom->pfilter && pFrom->pfilter->contains(hash)) ||  //other type transaction
-            (!pFrom->pfilter))
+        if ((pFrom->pFilter && pFrom->pFilter->contains(hash)) ||  //other type transaction
+            (!pFrom->pFilter))
             vInv.push_back(inv);
 
         if (vInv.size() == MAX_INV_SZ) {
@@ -758,9 +758,9 @@ inline void ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv){
         Misbehaving(pFrom->GetId(), 100);
     } else {
         LOCK(pFrom->cs_filter);
-        delete pFrom->pfilter;
-        pFrom->pfilter = new CBloomFilter(filter);
-        pFrom->pfilter->UpdateEmptyFull();
+        delete pFrom->pFilter;
+        pFrom->pFilter = new CBloomFilter(filter);
+        pFrom->pFilter->UpdateEmptyFull();
     }
     pFrom->fRelayTxes = true;
 }
@@ -777,8 +777,8 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv){
         Misbehaving(pFrom->GetId(), 100);
     } else {
         LOCK(pFrom->cs_filter);
-        if (pFrom->pfilter)
-            pFrom->pfilter->insert(vData);
+        if (pFrom->pFilter)
+            pFrom->pFilter->insert(vData);
         else {
             LogPrint("INFO", "Misbehaving: filter error, Misbehavior add 100");
             Misbehaving(pFrom->GetId(), 100);

@@ -80,6 +80,11 @@ static const uint64_t MAX_BLOCK_RUN_STEP      = 12000000;
 static const int64_t INIT_FUEL_RATES          = 100;  // 100 unit / 100 step
 static const int64_t MIN_FUEL_RATES           = 1;    // 1 unit / 100 step
 
+/** Fees smaller than this (in sawi) are considered zero fee (for relaying and mining) */
+static const uint64_t MIN_RELAY_TX_FEE = 1000;
+/** Amount smaller than this (in sawi) is considered dust amount */
+static const uint64_t DUST_AMOUNT_THRESHOLD = 10000;
+
 /** The maximum allowed size for a serialized block, in bytes (network rule) */
 static const uint32_t MAX_BLOCK_SIZE = 4000000;
 /** Default for -blockmaxsize which control the range of sizes the mining code will create **/
@@ -122,9 +127,10 @@ static const uint32_t MAX_CONTRACT_CODE_SIZE     = 65536;      // 64 KB max for 
 static const uint32_t MAX_CONTRACT_ARGUMENT_SIZE = 4096;       // 4 KB max for contract argument size
 static const uint32_t MAX_COMMON_TX_MEMO_SIZE    = 100;        // 100 bytes max for memo size
 static const uint32_t MAX_CONTRACT_MEMO_SIZE     = 100;        // 100 bytes max for memo size
-static const uint32_t MAX_CONTRACT_KEY_SIZE      = 512;         // 100 bytes max for memo size
+static const uint32_t MAX_CONTRACT_KEY_SIZE      = 512;        // 512 bytes max for contract key size
 static const int32_t MAX_MULSIG_NUMBER           = 15;         // m-n multisig, refer to n
 static const int32_t MAX_MULSIG_SCRIPT_SIZE      = 1000;       // multisig script max size
+static const uint32_t MAX_TRANSFER_SIZE          = 100;        // maximun transfer pair size
 
 static const string LUA_CONTRACT_LOCATION_PREFIX = "/tmp/lua/";  // prefix of lua contract file location
 static const string LUA_CONTRACT_HEADLINE        = "mylib = require";

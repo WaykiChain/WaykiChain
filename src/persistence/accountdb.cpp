@@ -231,17 +231,18 @@ uint32_t CAccountDBCache::GetCacheSize() const {
         nickId2KeyIdCache.GetCacheSize();
 }
 
-std::tuple<uint64_t, uint64_t> CAccountDBCache::TraverseAccount() {
+std::tuple<uint64_t /* total coins */, uint64_t /* total regids */> CAccountDBCache::TraverseAccount() {
     map<CKeyID, CAccount> items;
 
     accountCache.GetAllElements(items);
-    uint64_t i = 0;
-    uint64_t amnt = 0;
-    for (auto& item : items) {
-        i++;
-        amnt += item.second.GetToken(SYMB::WICC).free_amount;
+
+    uint64_t totalCoins  = 0;
+    uint64_t totalRegIds = 0;
+    for (auto &item : items) {
+        totalRegIds++;
+        totalCoins += item.second.GetToken(SYMB::WICC).free_amount;
     }
-    return std::tie(i, amnt);
+    return std::tie(totalCoins, totalRegIds);
 }
 
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {

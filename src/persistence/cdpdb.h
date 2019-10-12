@@ -74,9 +74,11 @@ private:
 
 enum CDPCloseType: uint8_t {
     BY_REDEEM = 0,
-    BY_MAN_LIQUIDATE,
+    BY_MANUAL_LIQUIDATE,
     BY_FORCE_LIQUIDATE
 };
+
+string GetCdpCloseTypeName(const CDPCloseType type);
 
 class CClosedCdpDBCache {
 public:
@@ -96,11 +98,11 @@ public:
         return  closedTxCdpCache.SetData(closedCdpTxId, {closedCdpId, closeType});
     }
 
-    bool GetClosedCdpById(const uint256& closedCdpId, std::pair<uint256, uint8_t> cdp) {
+    bool GetClosedCdpById(const uint256& closedCdpId, std::pair<uint256, uint8_t>& cdp) {
         return closedCdpTxCache.GetData(closedCdpId, cdp);
     }
 
-    bool GetClosedCdpByTxId(const uint256& closedCdpTxId, std::pair<uint256, uint8_t> cdp) {
+    bool GetClosedCdpByTxId(const uint256& closedCdpTxId, std::pair<uint256, uint8_t>& cdp) {
         return closedTxCdpCache.GetData(closedCdpTxId, cdp);
     }
 
