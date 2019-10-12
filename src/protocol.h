@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -29,7 +28,7 @@ class CMessageHeader
 {
     public:
         CMessageHeader();
-        CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn);
+        CMessageHeader(const char* pszCommand, uint32_t nMessageSizeIn);
 
         std::string GetCommand() const;
         bool IsValid() const;
@@ -46,8 +45,8 @@ class CMessageHeader
     public:
         enum {
             COMMAND_SIZE=12,
-            MESSAGE_SIZE_SIZE=sizeof(int),
-            CHECKSUM_SIZE=sizeof(int),
+            MESSAGE_SIZE_SIZE=sizeof(int32_t),
+            CHECKSUM_SIZE=sizeof(int32_t),
 
             MESSAGE_SIZE_OFFSET=MESSAGE_START_SIZE+COMMAND_SIZE,
             CHECKSUM_OFFSET=MESSAGE_SIZE_OFFSET+MESSAGE_SIZE_SIZE,
@@ -55,8 +54,8 @@ class CMessageHeader
         };
         char pchMessageStart[MESSAGE_START_SIZE];
         char pchCommand[COMMAND_SIZE];
-        unsigned int nMessageSize;
-        unsigned int nChecksum;
+        uint32_t nMessageSize;
+        uint32_t nChecksum;
 };
 
 /** nServices flags */
@@ -95,7 +94,7 @@ class CAddress : public CService
         uint64_t nServices;
 
         // disk and network only
-        unsigned int nTime;
+        uint32_t nTime;
 
         // memory only
         int64_t nLastTry;
@@ -106,7 +105,7 @@ class CInv
 {
     public:
         CInv();
-        CInv(int typeIn, const uint256& hashIn);
+        CInv(int32_t typeIn, const uint256& hashIn);
         CInv(const std::string& strType, const uint256& hashIn);
 
         IMPLEMENT_SERIALIZE
@@ -124,7 +123,7 @@ class CInv
 
     // TODO: make private (improves encapsulation)
     public:
-        int type;
+        int32_t type;
         uint256 hash;
 };
 

@@ -1,22 +1,22 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2014 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "commons/base58.h"
-#include "rpc/core/rpcserver.h"
-#include "rpc/core/rpccommons.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/util.h"
 #include "init.h"
+#include "miner/miner.h"
 #include "net.h"
 #include "netbase.h"
-#include "commons/util.h"
-#include "miner/miner.h"
-#include "../wallet/wallet.h"
-#include "../wallet/walletdb.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
 #include "persistence/contractdb.h"
+#include "rpc/core/rpccommons.h"
+#include "rpc/core/rpcserver.h"
 #include "vm/luavm/appaccount.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>
@@ -39,9 +39,7 @@ string HelpRequiringPassphrase() {
 
 void EnsureWalletIsUnlocked() {
     if (pWalletMain->IsLocked())
-        throw JSONRPCError(
-            RPC_WALLET_UNLOCK_NEEDED,
-            "Error: Please enter the wallet passphrase with walletpassphrase first.");
+        throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Please enter the wallet passphrase with walletpassphrase first.");
 }
 
 Value getnewaddr(const Array& params, bool fHelp) {
@@ -143,7 +141,7 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
     CKeyID keyId;
     CPubKey pubKey;
     set<CPubKey> pubKeys;
-    for (unsigned int i = 0; i < keys.size(); i++) {
+    for (uint32_t i = 0; i < keys.size(); i++) {
         if (!GetKeyId(keys[i].get_str(), keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
         }
@@ -217,7 +215,7 @@ Value createmulsig(const Array& params, bool fHelp) {
     CKeyID keyId;
     CPubKey pubKey;
     set<CPubKey> pubKeys;
-    for (unsigned int i = 0; i < keys.size(); i++) {
+    for (uint32_t i = 0; i < keys.size(); i++) {
         if (!GetKeyId(keys[i].get_str(), keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
         }
@@ -278,7 +276,7 @@ Value signmessage(const Array& params, bool fHelp) {
     ss << strMessageMagic;
     ss << strMessage;
 
-    vector<unsigned char> vchSig;
+    vector<uint8_t> vchSig;
     if (!key.SignCompact(ss.GetHash(), vchSig))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sign failed");
 
@@ -292,8 +290,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
             "\nSend coins to a given address.\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"from\":                (string, required) The address where coins are sent from.\n"
-            "2.\"to\":                  (string, required) The address where coins are received.\n"
+            "1.\"from\":                (string, required) The address where coins are sent from\n"
+            "2.\"to\":                  (string, required) The address where coins are received\n"
             "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
             "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
             "5.\"memo\":                (string, optional)\n"
@@ -308,166 +306,82 @@ Value submitsendtx(const Array& params, bool fHelp) {
                            "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                            "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, WaykiChain!\""));
 
-    CKeyID sendKeyId, recvKeyId;
-    if (!GetKeyId(params[0].get_str(), sendKeyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+    EnsureWalletIsUnlocked();
 
-    if (!GetKeyId(params[1].get_str(), recvKeyId))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
+    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
+    CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
+    ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
 
-    CAccount account;
-    if (!pCdMan->pAccountCache->GetAccount(sendKeyId, account)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sender account not exist");
-    }
-
-    CPubKey sendPubKey;
-    if (!pWalletMain->GetPubKey(sendKeyId, sendPubKey))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sender account not found in wallet");
-
-    /**
-     * We need to choose the proper field as the sender/receiver's account according to
-     * the two factor: whether the sender's account is registered or not, whether the
-     * RegID is mature or not.
-     *
-     * |-------------------------------|-------------------|-------------------|
-     * |                               |      SENDER       |      RECEIVER     |
-     * |-------------------------------|-------------------|-------------------|
-     * | NOT registered                |     Public Key    |      Key ID       |
-     * |-------------------------------|-------------------|-------------------|
-     * | registered BUT immature       |     Public Key    |      Key ID       |
-     * |-------------------------------|-------------------|-------------------|
-     * | registered AND mature         |     Reg ID        |      Reg ID       |
-     * |-------------------------------|-------------------|-------------------|
-     */
-    CUserID sendUserId, recvUserId;
-    CRegID sendRegId, recvRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sendKeyId), sendRegId) && sendRegId.IsMature(chainActive.Height()))
-                     ? CUserID(sendRegId)
-                     : CUserID(sendPubKey);
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && recvRegId.IsMature(chainActive.Height()))
-                     ? CUserID(recvRegId)
-                     : CUserID(recvKeyId);
-
-    ComboMoney cmCoin;
-    if (!ParseRpcInputMoney(params[2].get_str(), cmCoin, SYMB::WICC))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coin ComboMoney format error");
+    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(cmCoin.symbol);
+    if (pSymbolErr)
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
 
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
-    ComboMoney cmFee = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
+    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
-    TokenSymbol coinSymbol = cmCoin.symbol;
-    uint64_t coinAmount    = cmCoin.amount * CoinUnitTypeTable.at(cmCoin.unit);
-    TokenSymbol feeSymbol  = cmFee.symbol;
-    uint64_t fee           = cmFee.amount * CoinUnitTypeTable.at(cmFee.unit);
-    uint64_t totalAmount = coinAmount;
-    if (coinSymbol == feeSymbol) {
-        totalAmount += fee;
+    string memo    = params.size() == 5 ? params[4].get_str() : "";
+    int32_t height = chainActive.Height();
+    std::shared_ptr<CBaseTx> pBaseTx;
+
+    if (GetFeatureForkVersion(height) == MAJOR_VER_R1) {
+        if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
+            throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
+                "height=%u! current height=%d", SysCfg().GetFeatureForkHeight(), height));
+
+        if (sendUserId.is<CKeyID>())
+            throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",
+                                                         sendUserId.get<CKeyID>().ToAddress()));
+
+        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetSawiAmount(),
+            cmFee.GetSawiAmount(), memo);
+    } else {  // MAJOR_VER_R2
+        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
+            cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
     }
 
-    if (coinSymbol == SYMB::WICC) {
-        if (account.GetToken(SYMB::WICC).free_amount < totalAmount)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
-    } else if (coinSymbol == SYMB::WUSD) {
-        if (account.GetToken(SYMB::WUSD).free_amount < totalAmount)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
-    } else if (coinSymbol == SYMB::WGRT) {
-        if (account.GetToken(SYMB::WGRT).free_amount < totalAmount)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough coins");
-    } else {
-        throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
-    }
-
-    if (feeSymbol == SYMB::WICC) {
-        if (account.GetToken(SYMB::WICC).free_amount < fee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough bcoins");
-    } else if (feeSymbol == SYMB::WUSD) {
-        if (account.GetToken(SYMB::WUSD).free_amount < fee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough scoins");
-    } else if (feeSymbol == SYMB::WGRT) {
-        if (account.GetToken(SYMB::WGRT).free_amount < fee)
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Sendaddress does not have enough fcoins");
-    } else {
-        throw JSONRPCError(RPC_PARSE_ERROR, "This currency is not currently supported.");
-    }
-
-    string memo = params.size() == 5 ? params[4].get_str() : "";
-
-    CCoinTransferTx tx(sendUserId, recvUserId, chainActive.Height(), coinSymbol, coinAmount, feeSymbol, fee, memo);
-
-    if (!pWalletMain->Sign(sendKeyId, tx.ComputeSignatureHash(), tx.signature))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    obj.push_back(Pair("txid", std::get<1>(ret)));
-
-    return obj;
+    return SubmitTx(account.keyid, *pBaseTx);
 }
 
 Value genmulsigtx(const Array& params, bool fHelp) {
-    int size = params.size();
-    if (fHelp || size < 4 || size > 5) {
+    if (fHelp || (params.size() != 4 && params.size() != 5))
         throw runtime_error(
             "genmulsigtx \"multisigscript\" \"recvaddress\" \"amount\" \"fee\" \"height\"\n"
             "\n create multisig transaction by multisigscript, recvaddress, amount, fee, height\n" +
             HelpRequiringPassphrase() +
             "\nArguments:\n"
-            "1.\"multisigscript\"  (string, required) The Coin address to send to.\n"
-            "2.\"recvaddress\"  (string, required) The Coin address to receive.\n"
-            "3.\"amount\"  (numeric, required)\n"
-            "4.\"fee\"     (numeric, required)\n"
-            "5.\"height\"  (int, optional)\n"
+            "1.\"multisigscript\":      (string, required) The address where coins are sent from\n"
+            "2.\"to\":                  (string, required) The address where coins are received\n"
+            "3.\"symbol:coin:unit\":    (symbol:amount:unit, required) transferred coins\n"
+            "4.\"symbol:fee:unit\":     (symbol:amount:unit, required) fee paid to miner, default is WICC:10000:sawi\n"
+            "5.\"memo\":                (string, optional)\n"
             "\nResult:\n"
-            "\"txid\"  (string) The transaction id.\n"
+            "\"rawtx\"                  (string) The raw transaction without any signatures\n"
             "\nExamples:\n" +
             HelpExampleCli("genmulsigtx",
                            "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
                            "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
                            "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
-                           "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\" 10000 10000 100") +
+                           "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, "
+                           "WaykiChain!\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc(
                 "genmulsigtx",
                 "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571e9521031f3d"
                 "66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd521034819476f12ac0e53bd"
                 "82bc3205c91c40e9c569b08af8db04503afdebceb7134c\", "
-                "\"Wef9QkwAwBhtZaT3ASmMJzC7dt1kzo1xob\", 10000, 10000, 100"));
-    }
+                "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", \"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"Hello, "
+                "WaykiChain!\""));
 
     EnsureWalletIsUnlocked();
 
-    vector<unsigned char> multiScript = ParseHex(params[0].get_str());
+    vector<uint8_t> multiScript = ParseHex(params[0].get_str());
     if (multiScript.empty() || multiScript.size() > MAX_MULSIG_SCRIPT_SIZE) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script size");
-    }
-
-    CKeyID recvKeyId;
-    CUserID recvUserId;
-    CRegID recvRegId;
-    int height = chainActive.Height();
-
-    if (!GetKeyId(params[1].get_str(), recvKeyId)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid recvaddress");
-    }
-
-    recvUserId = (pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId) && recvRegId.IsMature(chainActive.Height()))
-                     ? CUserID(recvRegId)
-                     : CUserID(recvKeyId);
-
-    int64_t amount = AmountToRawValue(params[2]);
-    int64_t fee    = AmountToRawValue(params[3]);
-    if (amount == 0) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Send 0 amount disallowed!");
-    }
-
-    if (params.size() > 4) {
-        height = params[4].get_int();
     }
 
     CDataStream scriptDataStream(multiScript, SER_DISK, CLIENT_VERSION);
@@ -478,8 +392,8 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid script content");
     }
 
-    int8_t required = (int8_t)script.GetRequired();
-    std::set<CPubKey> pubKeys = script.GetPubKeys();
+    int8_t required      = (int8_t)script.GetRequired();
+    set<CPubKey> pubKeys = script.GetPubKeys();
     vector<CSignaturePair> signaturePairs;
     CRegID regId;
     for (const auto& pubKey : pubKeys) {
@@ -490,17 +404,27 @@ Value genmulsigtx(const Array& params, bool fHelp) {
         }
     }
 
-    CMulsigTx tx;
-    tx.signaturePairs = signaturePairs;
-    tx.desUserId      = recvUserId;
-    tx.bcoins         = amount;
-    tx.llFees         = fee;
-    tx.required       = required;
-    tx.valid_height   = height;
+    CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
+    ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_MTX);
+
+    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(cmCoin.symbol);
+    if (pSymbolErr)
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
+
+    if (cmCoin.amount == 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
+
+    string memo    = params.size() == 5 ? params[4].get_str() : "";
+    int32_t height = chainActive.Height();
+
+    std::shared_ptr<CBaseTx> pBaseTx;
+    pBaseTx = std::make_shared<CMulsigTx>(recvUserId, height, cmCoin.symbol, cmCoin.GetSawiAmount(), cmFee.symbol,
+                                          cmFee.GetSawiAmount(), memo, required, signaturePairs);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
-    std::shared_ptr<CBaseTx> pBaseTx = tx.GetNewInstance();
     ds << pBaseTx;
+
     Object obj;
     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
     return obj;
@@ -851,7 +775,7 @@ Value getsignature(const Array& params, bool fHelp) {
         if (!key.IsValid())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Private key invalid");
 
-        vector<unsigned char> signature;
+        vector<uint8_t> signature;
         uint256 hash;
         hash.SetHex(params[1].get_str());
         if(key.Sign(hash, signature))

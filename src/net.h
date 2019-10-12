@@ -11,12 +11,12 @@
 #include "commons/mruset.h"
 #include "commons/random.h"
 #include "commons/uint256.h"
-#include "compat/compat.h"
+#include "commons/util.h"
+#include "commons/compat/compat.h"
 #include "crypto/hash.h"
 #include "netbase.h"
 #include "protocol.h"
 #include "sync.h"
-#include "commons/util.h"
 
 #include <stdint.h>
 #include <deque>
@@ -35,14 +35,14 @@ class CNode;
 
 
 /** The maximum number of entries in an 'inv' protocol message */
-static const unsigned int MAX_INV_SZ = 50000;
+static const uint32_t MAX_INV_SZ = 50000;
 /** The maximum number of entries in mapAskFor */
 static const size_t MAPASKFOR_MAX_SZ = MAX_INV_SZ;
 /** The maximum number of new addresses to accumulate before announcing. */
-static const unsigned int MAX_ADDR_TO_SEND = 1000;
+static const uint32_t MAX_ADDR_TO_SEND = 1000;
 
-inline unsigned int ReceiveFloodSize() { return 1000 * SysCfg().GetArg("-maxreceivebuffer", 5 * 1000); }
-inline unsigned int SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
+inline uint32_t ReceiveFloodSize() { return 1000 * SysCfg().GetArg("-maxreceivebuffer", 5 * 1000); }
+inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
 
 void AddOneShot(string strDest);
 bool RecvLine(SOCKET hSocket, string& strLine);
@@ -52,17 +52,17 @@ CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const CService& ip);
 CNode* ConnectNode(CAddress addrConnect, const char* strDest = nullptr);
 void MapPort(bool fUseUPnP);
-unsigned short GetListenPort();
+uint16_t GetListenPort();
 bool BindListenPort(const CService& bindAddr, string& strError = REF(string()));
 void StartNode(boost::thread_group& threadGroup);
 bool StopNode();
 void SocketSendData(CNode* pNode);
 
-typedef int NodeId;
+typedef int32_t NodeId;
 
 // Signals for message handling
 struct CNodeSignals {
-    boost::signals2::signal<int()> GetHeight;
+    boost::signals2::signal<int32_t()> GetHeight;
     boost::signals2::signal<bool(CNode*)> ProcessMessages;
     boost::signals2::signal<bool(CNode*, bool)> SendMessages;
     boost::signals2::signal<void(NodeId, const CNode*)> InitializeNode;
@@ -85,8 +85,8 @@ enum {
 void SetLimited(enum Network net, bool fLimited = true);
 bool IsLimited(enum Network net);
 bool IsLimited(const CNetAddr& addr);
-bool AddLocal(const CService& addr, int nScore = LOCAL_NONE);
-bool AddLocal(const CNetAddr& addr, int nScore = LOCAL_NONE);
+bool AddLocal(const CService& addr, int32_t nScore = LOCAL_NONE);
+bool AddLocal(const CNetAddr& addr, int32_t nScore = LOCAL_NONE);
 bool SeenLocal(const CService& addr);
 bool IsLocal(const CService& addr);
 bool GetLocal(CService& addr, const CNetAddr* paddrPeer = nullptr);
@@ -98,7 +98,7 @@ extern bool fDiscover;
 extern uint64_t nLocalServices;
 extern uint64_t nLocalHostNonce;
 extern CAddrMan addrman;
-extern int nMaxConnections;
+extern int32_t nMaxConnections;
 
 extern vector<CNode*> vNodes;
 extern CCriticalSection cs_vNodes;
@@ -114,8 +114,8 @@ extern NodeId nLastNodeId;
 extern CCriticalSection cs_nLastNodeId;
 
 struct LocalServiceInfo {
-    int nScore;
-    int nPort;
+    int32_t nScore;
+    int32_t nPort;
 };
 
 extern CCriticalSection cs_mapLocalHost;
@@ -129,10 +129,10 @@ public:
     int64_t nLastRecv;
     int64_t nTimeConnected;
     string addrName;
-    int nVersion;
+    int32_t nVersion;
     string cleanSubVer;
     bool fInbound;
-    int nStartingHeight;
+    int32_t nStartingHeight;
     uint64_t nSendBytes;
     uint64_t nRecvBytes;
     bool fSyncNode;
@@ -147,12 +147,12 @@ public:
 
     CDataStream hdrbuf;  // partially received header
     CMessageHeader hdr;  // complete header
-    unsigned int nHdrPos;
+    uint32_t nHdrPos;
 
     CDataStream vRecv;  // received message data
-    unsigned int nDataPos;
+    uint32_t nDataPos;
 
-    CNetMessage(int nTypeIn, int nVersionIn) : hdrbuf(nTypeIn, nVersionIn), vRecv(nTypeIn, nVersionIn) {
+    CNetMessage(int32_t nTypeIn, int32_t nVersionIn) : hdrbuf(nTypeIn, nVersionIn), vRecv(nTypeIn, nVersionIn) {
         hdrbuf.resize(24);
         in_data  = false;
         nHdrPos  = 0;
@@ -165,13 +165,13 @@ public:
         return (hdr.nMessageSize == nDataPos);
     }
 
-    void SetVersion(int nVersionIn) {
+    void SetVersion(int32_t nVersionIn) {
         hdrbuf.SetVersion(nVersionIn);
         vRecv.SetVersion(nVersionIn);
     }
 
-    int readHeader(const char* pch, unsigned int nBytes);
-    int readData(const char* pch, unsigned int nBytes);
+    int32_t readHeader(const char* pch, uint32_t nBytes);
+    int32_t readData(const char* pch, uint32_t nBytes);
 };
 
 /** Information about a peer */
@@ -191,7 +191,7 @@ public:
     deque<CNetMessage> vRecvMsg;
     CCriticalSection cs_vRecvMsg;
     uint64_t nRecvBytes;
-    int nRecvVersion;
+    int32_t nRecvVersion;
 
     int64_t nLastSend;
     int64_t nLastRecv;
@@ -200,7 +200,7 @@ public:
     CAddress addr;
     string addrName;
     CService addrLocal;
-    int nVersion;
+    int32_t nVersion;
     // strSubVer is whatever byte array we read from the wire. However, this field is intended
     // to be printed out, displayed to humans in various forms and so on. So we sanitize it and
     // store the sanitized version in cleanSubVer. The original should be used when dealing with
@@ -219,8 +219,8 @@ public:
     bool fRelayTxes;
     CSemaphoreGrant grantOutbound;
     CCriticalSection cs_filter;
-    CBloomFilter* pfilter;
-    int nRefCount;
+    CBloomFilter* pFilter;
+    int32_t nRefCount;
     NodeId id;
 
 protected:
@@ -230,13 +230,13 @@ protected:
     static CCriticalSection cs_setBanned;
 
     // Basic fuzz-testing
-    void Fuzz(int nChance);  // modifies ssSend
+    void Fuzz(int32_t nChance);  // modifies ssSend
 
 public:
     uint256 hashContinue;                   // getblocks the next batch of inventory下一次 盘点的块
-    CBlockIndex* pindexLastGetBlocksBegin;  //上次开始的块  本地节点有的块chainActive.Tip()
+    CBlockIndex* pIndexLastGetBlocksBegin;  //上次开始的块  本地节点有的块chainActive.Tip()
     uint256 hashLastGetBlocksEnd;           // 本地节点保存的孤儿块的根块 hash GetOrphanRoot(hash)
-    int nStartingHeight;                    //  Start block sync,currHegiht
+    int32_t nStartingHeight;                    // Start block sync,currHegiht
     bool fStartSync;
 
     // flood relay
@@ -282,14 +282,14 @@ public:
         nSendSize                = 0;
         nSendOffset              = 0;
         hashContinue             = uint256();
-        pindexLastGetBlocksBegin = 0;
+        pIndexLastGetBlocksBegin = 0;
         hashLastGetBlocksEnd     = uint256();
         nStartingHeight          = -1;
         fStartSync               = false;
         fGetAddr                 = false;
         fRelayTxes               = false;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
-        pfilter        = new CBloomFilter();
+        pFilter        = new CBloomFilter();
         nPingNonceSent = 0;
         nPingUsecStart = 0;
         nPingUsecTime  = 0;
@@ -312,8 +312,8 @@ public:
             closesocket(hSocket);
             hSocket = INVALID_SOCKET;
         }
-        if (pfilter)
-            delete pfilter;
+        if (pFilter)
+            delete pFilter;
         GetNodeSignals().FinalizeNode(GetId());
     }
 
@@ -330,24 +330,24 @@ private:
 public:
     NodeId GetId() const { return id; }
 
-    int GetRefCount() {
+    int32_t GetRefCount() {
         assert(nRefCount >= 0);
         return nRefCount;
     }
 
     // requires LOCK(cs_vRecvMsg)
-    unsigned int GetTotalRecvSize() {
-        unsigned int total = 0;
+    uint32_t GetTotalRecvSize() {
+        uint32_t total = 0;
         for (const auto& msg : vRecvMsg)
             total += msg.vRecv.size() + 24;
         return total;
     }
 
     // requires LOCK(cs_vRecvMsg)
-    bool ReceiveMsgBytes(const char* pch, unsigned int nBytes);
+    bool ReceiveMsgBytes(const char* pch, uint32_t nBytes);
 
     // requires LOCK(cs_vRecvMsg)
-    void SetRecvVersion(int nVersionIn) {
+    void SetRecvVersion(int32_t nVersionIn) {
         nRecvVersion = nVersionIn;
         for (auto& msg : vRecvMsg)
             msg.SetVersion(nVersionIn);
@@ -456,12 +456,12 @@ public:
             return;
 
         // Set the size
-        unsigned int nSize = ssSend.size() - CMessageHeader::HEADER_SIZE;
+        uint32_t nSize = ssSend.size() - CMessageHeader::HEADER_SIZE;
         memcpy((char*)&ssSend[CMessageHeader::MESSAGE_SIZE_OFFSET], &nSize, sizeof(nSize));
 
         // Set the checksum
         uint256 hash           = Hash(ssSend.begin() + CMessageHeader::HEADER_SIZE, ssSend.end());
-        unsigned int nChecksum = 0;
+        uint32_t nChecksum = 0;
         memcpy(&nChecksum, &hash, sizeof(nChecksum));
         assert(ssSend.size() >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
         memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
@@ -603,9 +603,9 @@ public:
         }
     }
 
-    bool IsSubscribed(unsigned int nChannel);
-    void Subscribe(unsigned int nChannel, unsigned int nHops = 0);
-    void CancelSubscribe(unsigned int nChannel);
+    bool IsSubscribed(uint32_t nChannel);
+    void Subscribe(uint32_t nChannel, uint32_t nHops = 0);
+    void CancelSubscribe(uint32_t nChannel);
     void CloseSocketDisconnect();
     void Cleanup();
 

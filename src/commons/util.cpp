@@ -484,18 +484,6 @@ string ParseHexStr(const string& str) {
     return string(ret.begin(), ret.end());
 }
 
-static void InterpretNegativeSetting(string name, map<string, string>& mapSettingsRet) {
-    // interpret -nofoo as -foo=0 (and -nofoo=0 as -foo=1) as long as -foo not set
-    if (name.find("-no") == 0) {
-        string positive("-");
-        positive.append(name.begin() + 3, name.end());
-        if (mapSettingsRet.count(positive) == 0) {
-            bool value               = !SysCfg().GetBoolArg(name, false);
-            mapSettingsRet[positive] = (value ? "1" : "0");
-        }
-    }
-}
-
 string EncodeBase64(const unsigned char* pch, size_t len) {
     static const char* pbase64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -872,7 +860,7 @@ boost::filesystem::path GetDefaultDataDir() {
 #endif
 }
 
-static boost::filesystem::path pathCached[MAX_NETWORK_TYPES + 1];
+static boost::filesystem::path pathCached[NULL_NETWORK_TYPE + 1];
 static CCriticalSection csPathCached;
 
 const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
@@ -880,7 +868,7 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 
     LOCK(csPathCached);
 
-    int nNet = MAX_NETWORK_TYPES;
+    int nNet = NULL_NETWORK_TYPE;
     if (fNetSpecific)
         nNet = SysCfg().NetworkID();
 
@@ -903,7 +891,8 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
     } else {
         path = GetDefaultDataDir();
     }
-    if (fNetSpecific) path /= SysCfg().DataDir();
+    if (fNetSpecific)
+        path /= SysCfg().DataDir();
 
     fs::create_directories(path);
 
@@ -911,7 +900,7 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 }
 
 void ClearDatadirCache() {
-    fill(&pathCached[0], &pathCached[MAX_NETWORK_TYPES + 1], boost::filesystem::path());
+    fill(&pathCached[0], &pathCached[NULL_NETWORK_TYPE + 1], boost::filesystem::path());
 }
 
 boost::filesystem::path GetConfigFile() {
@@ -943,9 +932,6 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
         string strKey = string("-") + it->string_key;
         if (mapSettingsRet.count(strKey) == 0) {
             mapSettingsRet[strKey] = it->value[0];
-
-            // interpret nofoo=1 as foo=0 (and nofoo=0 as foo=1) as long as foo not set)
-            InterpretNegativeSetting(strKey, mapSettingsRet);
         }
         mapMultiSettingsRet[strKey].push_back(it->value[0]);
     }
@@ -1132,7 +1118,8 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     LOCK(cs_nTimeOffset);
     // Ignore duplicates
     static set<CNetAddr> setKnown;
-    if (!setKnown.insert(ip).second) return;
+    if (!setKnown.insert(ip).second)
+        return;
 
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200, 0);
@@ -1143,35 +1130,29 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1) {
         int64_t nMedian         = vTimeOffsets.median();
         vector<int64_t> vSorted = vTimeOffsets.sorted();
-        // Only let other nodes change our time by so much
-        if (abs64(nMedian) < 70) {
-            nTimeOffset = nMedian;
-        } else {
-            nTimeOffset = 0;
 
+        // As block interval is so short, i.e., 10 seconds or 3 seconds. It's not necessary to adjust
+        // out timestamp depending on other peers.
+        // Every block producer should make sure it's timestamp is exactly precise. Of course, if nobody
+        // has a time different than ours but within 1 seconds of ours, give a warning.
+
+        if (abs64(nMedian) > 1) {
             static bool fDone;
             if (!fDone) {
-                // If nobody has a time different than ours but within 5 seconds of ours, give a
-                // warning
                 bool fMatch = false;
                 for (int64_t nOffset : vSorted)
-                    if (nOffset != 0 && abs64(nOffset) < 5) fMatch = true;
+                    if (abs64(nOffset) <= 1)
+                        fMatch = true;
 
                 if (!fMatch) {
                     fDone = true;
                     string strMessage =
                         _("Warning: Please check that your computer's date and time "
-                          "are correct! If your clock is wrong Coin will not work properly.");
+                        "are correct! If your clock is wrong Coin will not work properly.");
                     strMiscWarning = strMessage;
                     LogPrint("INFO", "*** %s\n", strMessage);
                 }
             }
-        }
-
-        if (SysCfg().IsDebug()) {
-            for (int64_t n : vSorted) LogPrint("DEBUG", "%+d  ", n);
-
-            LogPrint("DEBUG", "|  ");
         }
 
         LogPrint("INFO", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);

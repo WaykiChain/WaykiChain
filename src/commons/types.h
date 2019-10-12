@@ -23,14 +23,14 @@ struct UnorderedPairHash {
 template <class T1, class T2, class _Hash = UnorderedPairHash<T1, T2>>
 using UnorderedPairSet = std::unordered_set<std::pair<T1, T2>, _Hash>;
 
-template <typename T>
+template <typename T, typename HashType = int32_t>
 struct EnumTypeHash {
-    size_t operator()(const T& type) const noexcept { return std::hash<int>{}(type); }
+    size_t operator()(const T& type) const noexcept { return std::hash<HashType>{}((HashType)type); }
 };
 
 
-template <typename EnumType, typename ValueType>
-using EnumTypeMap = std::unordered_map<EnumType, ValueType, EnumTypeHash<EnumType>>;
+template <typename EnumType, typename ValueType, typename HashType = int32_t>
+using EnumTypeMap = std::unordered_map<EnumType, ValueType, EnumTypeHash<EnumType, HashType>>;
 
 namespace container {
     template<typename Container>

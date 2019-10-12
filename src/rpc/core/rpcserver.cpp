@@ -14,7 +14,7 @@
 #include <boost/algorithm/string.hpp>
 #include <memory>
 #include "wallet/wallet.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "httpserver.h"
 #include "rpc/rpcvm.h"
 
@@ -213,7 +213,7 @@ Value stop(const Array& params, bool fHelp) {
             "\nStop coin server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "coin server stopping";
+    return "coin daemon being stopped...";
 }
 
 //
@@ -238,16 +238,16 @@ static const CRPCCommand vRPCCommands[] =
     { "getnettotals",           &getnettotals,           true,      true,       false },
     { "getpeerinfo",            &getpeerinfo,            true,      false,      false },
     { "ping",                   &ping,                   true,      false,      false },
-    { "getchainstate",          &getchainstate,          false,     false,      false },
+    { "getchaininfo",           &getchaininfo,           false,     false,      false },
 
     /* Block chain and UTXO */
+    { "getfcoingenesistxinfo",  &getfcoingenesistxinfo,  true,      true,       false },
     { "getblockcount",          &getblockcount,          true,      true,       false },
     { "getblock",               &getblock,               false,     false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
 
     { "gettotalcoins",          &gettotalcoins,          false,     false,      false },
-    { "gettotalassets",         &gettotalassets,         false,     false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
     { "reconsiderblock",        &reconsiderblock,        true,      true,       false },
 
@@ -268,7 +268,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getaccountinfo",         &getaccountinfo,         true,      false,      true },
     { "getnewaddr",             &getnewaddr,             true,      false,      true },
     { "gettxdetail",            &gettxdetail,            true,      false,      true },
-    { "listunconfirmedtx",      &listunconfirmedtx,      true,      false,      true },
+    { "getclosedcdp",           &getclosedcdp,           true,      false,      true },
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
     { "dropminerkeys",          &dropminerkeys,          false,     false,      true },
@@ -288,7 +288,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
     { "verifymessage",          &verifymessage,          false,     false,      false },
-    { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false},
+    { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false },
     { "getcontractassets",      &getcontractassets,      false,     false,      true },
     { "listcontractassets",     &listcontractassets,     false,     false,      true },
 
@@ -296,11 +296,11 @@ static const CRPCCommand vRPCCommands[] =
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
-    { "decodetxraw",            &decodetxraw,            false,     false,      false},
+    { "decodetxraw",            &decodetxraw,            false,     false,      false },
     { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
 
     /* submit raw tx */
-    { "submittxraw",            &submittxraw,              true,      false,    false},
+    { "submittxraw",            &submittxraw,            true,      false,    false},
 
     /* basic tx */
     { "submitsendtx",           &submitsendtx,           false,     false,      true },
@@ -308,10 +308,12 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
     { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
     { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
+    { "submitucontractdeploytx", &submitucontractdeploytx, false,     false,      true },
+    { "submitucontractcalltx",   &submitucontractcalltx,   false,     false,      true },
 
     /* for CDP */
     { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },
-    { "submitfcoinstaketx",     &submitfcoinstaketx,     true,      false,      true },
+    { "submitcoinstaketx",      &submitcoinstaketx,      true,      false,      true },
     { "submitcdpstaketx",       &submitcdpstaketx,       true,      false,      true },
     { "submitcdpredeemtx",      &submitcdpredeemtx,      true,      false,      true },
     { "submitcdpliquidatetx",   &submitcdpliquidatetx,   true,      false,      true },
@@ -335,6 +337,7 @@ static const CRPCCommand vRPCCommands[] =
     /* for asset */
     { "submitassetissuetx",         &submitassetissuetx,         true,     false,      false },
     { "submitassetupdatetx",        &submitassetupdatetx,        true,     false,      false },
+    { "getasset",                   &getasset,                   true,     false,      false },
     { "getassets",                  &getassets,                  true,     false,      false },
 
     /* for wasm */
@@ -349,15 +352,15 @@ static const CRPCCommand vRPCCommands[] =
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },
     { "reloadtxcache",          &reloadtxcache,          true,      false,      true },
-    { "getcontractregid",       &getcontractregid,       true,      false,      false},
+    { "getcontractregid",       &getcontractregid,       true,      false,      false },
     { "saveblocktofile",        &saveblocktofile,        true,      false,      true },
     { "gethash",                &gethash,                true,      false,      true },
-    { "startcommontpstest",     &startcommontpstest,     true,      true,       false},
-    { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false},
-    { "getblockfailures",       &getblockfailures,       false,     false,      false},
+    { "startcommontpstest",     &startcommontpstest,     true,      true,       false },
+    { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false },
+    { "getblockfailures",       &getblockfailures,       false,     false,      false },
 
     /* vm functions work in vm simulator */
-    { "vmexecutescript",        &vmexecutescript,        true,      true,       true},
+    { "vmexecutescript",        &vmexecutescript,        true,      true,       true },
 };
 
 CRPCTable::CRPCTable() {

@@ -382,7 +382,9 @@ bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) {
 };
 
 bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
-    assert(!activeOrderCache.HaveData(orderId));
+    if(activeOrderCache.HaveData(orderId)) {
+        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", activeOrder.ToString());
+    }
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
 }

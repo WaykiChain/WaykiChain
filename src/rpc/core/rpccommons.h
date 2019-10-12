@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "entities/id.h"
-#include "json/json_spirit.h"
+#include "commons/json/json_spirit.h"
 #include "entities/asset.h"
 #include "entities/account.h"
 #include "tx/tx.h"
@@ -24,26 +24,30 @@ bool GetKeyId(const string &addr, CKeyID &keyId);
 Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 
-Object SubmitTx(const CUserID &userId, CBaseTx &tx);
-
+Object SubmitTx(const CKeyID &keyid, CBaseTx &tx);
 
 namespace JSON {
     const Value& GetObjectFieldValue(const Value &jsonObj, const string &fieldName);
     const char* GetValueTypeName(const Value_type &valueType);
+
+    Object ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt);
+    Array ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &receipts);
 }
 
 namespace RPC_PARAM {
 
     ComboMoney GetComboMoney(const Value &jsonValue, const TokenSymbol &defaultSymbol = SYMB::WICC);
 
-    ComboMoney GetFee(const Array& params, size_t index, TxType txType);
-    uint64_t GetWiccFee(const Array& params, size_t index, TxType txType);
+    ComboMoney GetFee(const Array& params, const size_t index, const TxType txType);
+    uint64_t GetWiccFee(const Array& params, const size_t index, const TxType txType);
 
-    CUserID GetUserId(const Value &jsonValue);
+    CUserID GetUserId(const Value &jsonValue, const bool senderUid = false);
+
+    string GetLuaContractScript(const Value &jsonValue);
 
     uint64_t GetPrice(const Value &jsonValue);
 
-    uint256 GetTxid(const Value &jsonValue, const string &paramName, bool canBeEmpty = false);
+    uint256 GetTxid(const Value &jsonValue, const string &paramName, const bool canBeEmpty = false);
 
     CAccount GetUserAccount(CAccountDBCache &accountCache, const CUserID &userId);
 
@@ -56,11 +60,13 @@ namespace RPC_PARAM {
 
     string GetBinStrFromHex(const Value &jsonValue, const string &paramName);
 
-    void CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol,
-                            const BalanceOpType opType, const uint64_t &value);
+    void CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
+                             const uint64_t value);
 
     void CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid);
 
+    void CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
+                           const TokenSymbol &assetSymbol);
     // parse hex str
     bool ParseHex(const string &hexStr, string &binStrOut, string &errStrOut);
 }

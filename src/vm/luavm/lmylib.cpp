@@ -6,16 +6,19 @@
 #include <openssl/des.h>
 #include <vector>
 
+#include "lmylib.h"
 #include "lua/lua.hpp"
 #include "luavmrunenv.h"
 #include "commons/SafeInt3.hpp"
 
 #define LUA_C_BUFFER_SIZE  500  //传递值，最大字节防止栈溢出
 
+///////////////////////////////////////////////////////////////////////////////
+// local static functions
+
 /*
  *  //3.往函数私有栈里存运算后的结果*/
-static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultData,
-                              bool needToTruncate = true) {
+static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultData, bool needToTruncate = true) {
     int32_t len = resultData.size();
     // truncate data by default
     if (needToTruncate) {
@@ -26,7 +29,7 @@ static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultDat
         // check stack to avoid stack overflow
         if (lua_checkstack(L, len)) {
             // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
-            for (int i = 0; i < len; i++) {
+            for (int32_t i = 0; i < len; i++) {
                 lua_pushinteger(L, (lua_Integer)resultData[i]);
             }
             return len;
@@ -39,8 +42,7 @@ static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultDat
     return 0;
 }
 
-static inline int32_t RetRstToLua(lua_State *L, const string &resultData,
-                              bool needToTruncate = true) {
+static inline int32_t RetRstToLua(lua_State *L, const string &resultData, bool needToTruncate = true) {
     int32_t len = resultData.size();
     // truncate data by default
     if (needToTruncate) {
@@ -51,7 +53,7 @@ static inline int32_t RetRstToLua(lua_State *L, const string &resultData,
         // check stack to avoid stack overflow
         if (lua_checkstack(L, len)) {
             // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
-            for (int i = 0; i < len; i++) {
+            for (int32_t i = 0; i < len; i++) {
                 lua_pushinteger(L, (lua_Integer)uint8_t(resultData[i]));
             }
             return len;
@@ -68,35 +70,40 @@ static inline int32_t RetRstToLua(lua_State *L, const string &resultData,
  *  //3.往函数私有栈里存布尔类型返回值*/
 static inline int32_t RetRstBooleanToLua(lua_State *L, bool flag) {
     //检测栈空间是否够
-   if (lua_checkstack(L,sizeof(int))) {
-//      LogPrint("vm", "RetRstBooleanToLua value:%d\n",flag);
-        lua_pushboolean(L,(int)flag);
-        return 1 ;
-   } else {
-        LogPrint("vm","%s\n", "RetRstBooleanToLua stack overflow");
-            return 0;
-   }
+    if (lua_checkstack(L, sizeof(int32_t))) {
+        // LogPrint("vm", "RetRstBooleanToLua value:%d\n", flag);
+        lua_pushboolean(L, (int32_t)flag);
+        return 1;
+    } else {
+        LogPrint("vm", "%s\n", "RetRstBooleanToLua stack overflow");
+        return 0;
+    }
 }
 
-static inline int32_t RetFalse(const string reason)
-{
-     LogPrint("vm","%s\n", reason.c_str());
-     return 0;
+static inline int32_t RetFalse(const string reason) {
+    LogPrint("vm", "%s\n", reason.c_str());
+    return 0;
 }
-static CLuaVMRunEnv* GetVmRunEnv(lua_State *L)
-{
-    CLuaVMRunEnv* pVmRunEnv = nullptr;
-    int32_t res = lua_getglobal(L, "VmScriptRun");
-    //LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
+
+static CLuaVMRunEnv *GetVmRunEnv(lua_State *L) {
+    CLuaVMRunEnv *pVmRunEnv = nullptr;
+    int32_t res             = lua_getglobal(L, "VmScriptRun");
+    // LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
 
     if (LUA_TLIGHTUSERDATA == res) {
-        if (lua_islightuserdata(L,-1)) {
-            pVmRunEnv = (CLuaVMRunEnv*)lua_topointer(L,-1);
-            //LogPrint("vm", "GetVmRunEnv lua_topointer:%p\n", pVmRunEnv);
+        if (lua_islightuserdata(L, -1)) {
+            pVmRunEnv = (CLuaVMRunEnv *)lua_topointer(L, -1);
+            // LogPrint("vm", "GetVmRunEnv lua_topointer:%p\n", pVmRunEnv);
         }
     }
     lua_pop(L, 1);
     return pVmRunEnv;
+}
+
+static CLuaVMRunEnv* GetVmRunEnvByContext(lua_State *L) {
+    lua_burner_state *pState = lua_GetBurnerState(L);
+    assert(pState != nullptr && pState->pContext != nullptr);
+    return (CLuaVMRunEnv*)pState->pContext;
 }
 
 static bool GetKeyId(const CAccountDBCache &accountView, vector<uint8_t> &ret, CKeyID &keyId) {
@@ -116,255 +123,277 @@ static bool GetKeyId(const CAccountDBCache &accountView, vector<uint8_t> &ret, C
     return true;
 }
 
-static bool GetArray(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
+static bool GetArray(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //从栈里取变长的数组
-    int totallen = lua_gettop(L);
-    if((totallen <= 0) || (totallen > LUA_C_BUFFER_SIZE))
-    {
-        LogPrint("vm","totallen error\n");
+    int32_t totallen = lua_gettop(L);
+    if ((totallen <= 0) || (totallen > LUA_C_BUFFER_SIZE)) {
+        LogPrint("vm", "totallen error\n");
         return false;
     }
 
     vector<uint8_t> vBuf;
     vBuf.clear();
-    for(int i = 0;i < totallen;i++)
-    {
-        if(!lua_isnumber(L, i + 1))//if(!lua_isnumber(L,-1 - i))
+    for (int32_t i = 0; i < totallen; i++) {
+        if (!lua_isnumber(L, i + 1))  // if(!lua_isnumber(L,-1 - i))
         {
-            LogPrint("vm","%s\n","data is not number");
+            LogPrint("vm", "%s\n", "data is not number");
             return false;
         }
-        vBuf.insert(vBuf.end(),lua_tonumber(L,i+1));
+        vBuf.insert(vBuf.end(), lua_tonumber(L, i + 1));
     }
-    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
-    //LogPrint("vm", "GetData:%s, len:%d\n", HexStr(vBuf).c_str(), vBuf.size());
+    ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
+    // LogPrint("vm", "GetData:%s, len:%d\n", HexStr(vBuf).c_str(), vBuf.size());
     return true;
 }
-static bool GetDataInt(lua_State *L,int &intValue) {
+
+static bool GetDataInt(lua_State *L, int32_t &intValue) {
     //从栈里取int 高度
-    if(!lua_isinteger(L,-1 - 0))
-    {
-        LogPrint("vm","%s\n","data is not integer");
+    if (!lua_isinteger(L, -1 - 0)) {
+        LogPrint("vm", "%s\n", "data is not integer");
         return false;
-    }else{
-        int value = (int)lua_tointeger(L,-1 - 0);
-//      LogPrint("vm", "GetDataInt:%d\n", value);
+    } else {
+        int32_t value = (int32_t)lua_tointeger(L, -1 - 0);
+        // LogPrint("vm", "GetDataInt:%d\n", value);
         intValue = value;
         return true;
     }
 }
-static bool GetDataString(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
+
+static bool GetDataString(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //从栈里取一串字符串
-    if(!lua_isstring(L,-1 - 0))
-    {
-        LogPrint("vm","%s\n","data is not string");
+    if (!lua_isstring(L, -1 - 0)) {
+        LogPrint("vm", "%s\n", "data is not string");
         return false;
     }
     vector<uint8_t> vBuf;
     vBuf.clear();
     const char *pStr = nullptr;
-    pStr = lua_tostring(L,-1 - 0);
-    if(pStr && (strlen(pStr) <= LUA_C_BUFFER_SIZE)){
-        for(size_t i = 0;i < strlen(pStr);i++){
-            vBuf.insert(vBuf.end(),pStr[i]);
+    pStr             = lua_tostring(L, -1 - 0);
+    if (pStr && (strlen(pStr) <= LUA_C_BUFFER_SIZE)) {
+        for (size_t i = 0; i < strlen(pStr); i++) {
+            vBuf.insert(vBuf.end(), pStr[i]);
         }
-        ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
-        //LogPrint("vm", "GetDataString:%s\n", pStr);
+        ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
+        // LogPrint("vm", "GetDataString:%s\n", pStr);
         return true;
-    }else{
-        LogPrint("vm","%s\n","lua_tostring get fail");
+    } else {
+        LogPrint("vm", "%s\n", "lua_tostring get fail");
         return false;
     }
 }
-static bool getNumberInTable(lua_State *L, const char* pKey, double &ret){
+
+// get bool field value of table
+static bool GetBoolInTable(lua_State *L, const char *pKey, bool &value) {
+    // the top of stack must be a table
+    lua_pushstring(L, pKey);
+    lua_gettable(L, -2);  // get the table field by key in top of stack
+    if (!lua_isboolean(L, -1)) {
+        LogPrint("vm", "get boolean field of table error! value=%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);  // pop the result of lua_gettable
+        return false;
+    }
+    value = lua_toboolean(L, -1);
+    lua_pop(L, 1);  // pop the result of lua_gettable
+    return true;
+}
+
+// get Integer field value of table
+static bool getIntegerInTable(lua_State *L, const char *pKey, lua_Integer &value) {
+    // the top of stack must be a table
+    lua_pushstring(L, pKey);
+    lua_gettable(L, -2);  // get the table field by key in top of stack
+    if (!lua_isinteger(L, -1)) {
+        LogPrint("vm", "get integer field of table error! value=%s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);  // pop the result of lua_gettable
+        return false;
+    }
+    value = lua_tointeger(L, -1);
+    lua_pop(L, 1);  // pop the result of lua_gettable
+    return true;
+}
+
+static bool getNumberInTable(lua_State *L, const char* pKey, double &ret) {
     // 在table里，取指定pKey对应的一个number值
 
     //默认栈顶是table，将pKey入栈
-    lua_pushstring(L,pKey);
-    lua_gettable(L,-2);  //查找键值为key的元素，置于栈顶
-    if(!lua_isnumber(L,-1))
-    {
-        LogPrint("vm","num get error! %s\n",lua_tostring(L,-1));
-        lua_pop(L,1); //删掉产生的查找结果
+    lua_pushstring(L, pKey);
+    lua_gettable(L, -2);  //查找键值为key的元素，置于栈顶
+    if (!lua_isnumber(L, -1)) {
+        LogPrint("vm", "num get error! %s\n", lua_tostring(L, -1));
+        lua_pop(L, 1);  //删掉产生的查找结果
         return false;
-    }else{
-        ret = lua_tonumber(L,-1);
-//      LogPrint("vm", "getNumberInTable:%d\n", ret);
-        lua_pop(L,1); //删掉产生的查找结果
+    } else {
+        ret = lua_tonumber(L, -1);
+        // LogPrint("vm", "getNumberInTable:%d\n", ret);
+        lua_pop(L, 1);  //删掉产生的查找结果
         return true;
     }
 }
 
-static bool getStringInTable(lua_State *L,char * pKey, string &strValue){
+static bool getStringInTable(lua_State *L, const char * pKey, string &strValue) {
     // 在table里，取指定pKey对应的string值
 
     const char *pStr = nullptr;
     //默认栈顶是table，将pKey入栈
-    lua_pushstring(L,pKey);
-    lua_gettable(L,-2);  //查找键值为key的元素，置于栈顶
-    if(!lua_isstring(L,-1))
-    {
-        LogPrint("vm","string get error! %s\n",lua_tostring(L,-1));
-    }else{
-        pStr = lua_tostring(L,-1);
-        if(pStr && (strlen(pStr) <= LUA_C_BUFFER_SIZE)){
+    lua_pushstring(L, pKey);
+    lua_gettable(L, -2);  //查找键值为key的元素，置于栈顶
+    if (!lua_isstring(L, -1)) {
+        LogPrint("vm", "string get error! %s\n", lua_tostring(L, -1));
+    } else {
+        pStr = lua_tostring(L, -1);
+        if (pStr && (strlen(pStr) <= LUA_C_BUFFER_SIZE)) {
             string res(pStr);
             strValue = res;
-//          LogPrint("vm", "getStringInTable:%s\n", pStr);
-            lua_pop(L,1); //删掉产生的查找结果
+            //          LogPrint("vm", "getStringInTable:%s\n", pStr);
+            lua_pop(L, 1);  //删掉产生的查找结果
             return true;
-        }else{
-            LogPrint("vm","%s\n","lua_tostring get fail");
+        } else {
+            LogPrint("vm", "%s\n", "lua_tostring get fail");
         }
     }
-    lua_pop(L,1); //删掉产生的查找结果
+    lua_pop(L, 1);  //删掉产生的查找结果
     return false;
 }
 
-template<typename ArrayType>
-static bool getArrayInTable(lua_State *L, const char *pKey, unsigned short usLen, ArrayType &arrayOut){
+template <typename ArrayType>
+static bool getArrayInTable(lua_State *L, const char *pKey, uint16_t usLen, ArrayType &arrayOut) {
     // 在table里，取指定pKey对应的数组
-
-    if((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)){
-        LogPrint("vm","usLen error\n");
+    if ((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)) {
+        LogPrint("vm", "usLen error\n");
         return false;
     }
-    unsigned char value = 0;
+    uint8_t value = 0;
     arrayOut.clear();
     //默认栈顶是table，将key入栈
-    lua_pushstring(L,pKey);
-    lua_gettable(L,1);
-    if(!lua_istable(L,-1))
-    {
-        LogPrint("vm","getTableInTable is not table\n");
+    lua_pushstring(L, pKey);
+    lua_gettable(L, -2);
+    if (!lua_istable(L, -1)) {
+        lua_pop(L, 1);
+        LogPrint("vm", "getTableInTable is not table\n");
         return false;
     }
-    for (int i = 0; i < usLen; ++i)
-    {
-        lua_pushnumber(L, i+1); //将索引入栈
+    for (int32_t i = 0; i < usLen; ++i) {
+        lua_pushnumber(L, i + 1);  //将索引入栈
         lua_gettable(L, -2);
-        if(!lua_isnumber(L,-1))
-        {
-            LogPrint("vm","getTableInTable is not number\n");
+        if (!lua_isnumber(L, -1)) {
+            LogPrint("vm", "getTableInTable is not number\n");
             return false;
         }
         value = 0;
         value = lua_tonumber(L, -1);
-        arrayOut.insert(arrayOut.end(),value);
+        arrayOut.insert(arrayOut.end(), value);
         lua_pop(L, 1);
     }
-    lua_pop(L,1); //删掉产生的查找结果
+    lua_pop(L, 1);  //删掉产生的查找结果
     return true;
 }
-static bool getStringLogPrint(lua_State *L,char * pKey,unsigned short usLen,vector<uint8_t> &vOut){
+
+static bool getStringLogPrint(lua_State *L, char *pKey, uint16_t usLen, vector<uint8_t> &vOut) {
     //从栈里取 table的值是一串字符串
     //该函数专用于写日志函数GetDataTableLogPrint，
-    if((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)){
-        LogPrint("vm","usLen error\n");
+    if ((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)) {
+        LogPrint("vm", "usLen error\n");
         return false;
     }
 
-
     //默认栈顶是table，将key入栈
-    lua_pushstring(L,pKey);
-    lua_gettable(L,1);
+    lua_pushstring(L, pKey);
+    lua_gettable(L, 1);
 
     const char *pStr = nullptr;
     vOut.clear();
-    lua_getfield(L,-2,pKey);
-    //stackDump(L);
-    if(!lua_isstring(L,-1)/*LUA_TSTRING != lua_type(L, -1)*/)
-    {
-        LogPrint("vm","getStringLogPrint is not string\n");
+    lua_getfield(L, -2, pKey);
+    // stackDump(L);
+    if (!lua_isstring(L, -1) /*LUA_TSTRING != lua_type(L, -1)*/) {
+        LogPrint("vm", "getStringLogPrint is not string\n");
         return false;
     }
-    pStr = lua_tostring(L,-1 - 0);
-    if(pStr && (strlen(pStr) == usLen)){
-        for(size_t i = 0;i < usLen;i++){
-            vOut.insert(vOut.end(),pStr[i]);
+    pStr = lua_tostring(L, -1 - 0);
+    if (pStr && (strlen(pStr) == usLen)) {
+        for (size_t i = 0; i < usLen; i++) {
+            vOut.insert(vOut.end(), pStr[i]);
         }
-//      LogPrint("vm", "getfieldTableString:%s\n", pStr);
-        lua_pop(L,1); //删掉产生的查找结果
+        //      LogPrint("vm", "getfieldTableString:%s\n", pStr);
+        lua_pop(L, 1);  //删掉产生的查找结果
         return true;
-    }else{
-        LogPrint("vm","%s\n","getStringLogPrint get fail\n");
-        lua_pop(L, 1); //删掉产生的查找结果
+    } else {
+        LogPrint("vm", "%s\n", "getStringLogPrint get fail\n");
+        lua_pop(L, 1);  //删掉产生的查找结果
         return false;
     }
 }
-static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
+
+static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //取日志的key value
-    if(!lua_istable(L,-1))
-    {
-        LogPrint("vm","GetDataTableLogPrint is not table\n");
+    if (!lua_istable(L, -1)) {
+        LogPrint("vm", "GetDataTableLogPrint is not table\n");
         return false;
     }
-    unsigned short len = 0;
-    vector<uint8_t> vBuf ;
+    uint16_t len = 0;
+    vector<uint8_t> vBuf;
     //取key
-    int key = 0;
+    int32_t key            = 0;
     double doubleValue = 0;
-    if (!(getNumberInTable(L, "key", doubleValue))){
+    if (!(getNumberInTable(L, "key", doubleValue))) {
         LogPrint("vm", "key get fail\n");
         return false;
     } else {
-        key = (int)doubleValue;
+        key = (int32_t)doubleValue;
     }
     vBuf.clear();
-    vBuf.insert(vBuf.end(),key);
-    ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
+    vBuf.insert(vBuf.end(), key);
+    ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
 
     //取value的长度
-    if (!(getNumberInTable(L, "length", doubleValue))){
+    if (!(getNumberInTable(L, "length", doubleValue))) {
         LogPrint("vm", "length get fail\n");
         return false;
     } else {
-        len = (unsigned short)doubleValue;
+        len = (uint16_t)doubleValue;
     }
 
     if (len > 0) {
         len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
-        if (key) {   //hex
-            if(!getArrayInTable(L,(char *)"value",len,vBuf)) {
-                LogPrint("vm","valueTable is not table\n");
+        if (key) {  // hex
+            if (!getArrayInTable(L, (char *)"value", len, vBuf)) {
+                LogPrint("vm", "valueTable is not table\n");
                 return false;
             } else {
-                ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
+                ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
             }
-        } else { //string
-            if(!getStringLogPrint(L,(char *)"value",len,vBuf)) {
-                LogPrint("vm","valueString is not string\n");
+        } else {  // string
+            if (!getStringLogPrint(L, (char *)"value", len, vBuf)) {
+                LogPrint("vm", "valueString is not string\n");
                 return false;
             } else {
-                ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
+                ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
             }
         }
         return true;
-    }else{
+    } else {
         LogPrint("vm", "length error\n");
         return false;
     }
 }
 
-static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
-{
+static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L, -1)) {
         LogPrint("vm", "is not table\n");
         return false;
     }
     double doubleValue = 0;
-    vector<uint8_t> vBuf ;
+    vector<uint8_t> vBuf;
 
-    int dataLen = 0;
-    if (!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
-            LogPrint("vm","dataLen get fail\n");
-            return false;
-        } else {
-            dataLen = (uint32_t)doubleValue;
+    int32_t dataLen = 0;
+    if (!(getNumberInTable(L, (char *)"dataLen", doubleValue))) {
+        LogPrint("vm", "dataLen get fail\n");
+        return false;
+    } else {
+        dataLen = (uint32_t)doubleValue;
     }
 
     if (dataLen <= 0) {
-        LogPrint("vm","dataLen <= 0\n");
+        LogPrint("vm", "dataLen <= 0\n");
         return false;
     }
 
@@ -375,7 +404,7 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
-    int keyLen = 0;
+    int32_t keyLen = 0;
     if (!(getNumberInTable(L, (char *)"keyLen", doubleValue))) {
         LogPrint("vm", "keyLen get fail\n");
         return false;
@@ -383,8 +412,8 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
         keyLen = (uint32_t)doubleValue;
     }
 
-    if(keyLen <= 0) {
-        LogPrint("vm","keyLen <= 0\n");
+    if (keyLen <= 0) {
+        LogPrint("vm", "keyLen <= 0\n");
         return false;
     }
 
@@ -395,7 +424,7 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
-    int nFlag = 0;
+    int32_t nFlag = 0;
     if (!(getNumberInTable(L, (char *)"flag", doubleValue))) {
         LogPrint("vm", "flag get fail\n");
         return false;
@@ -409,103 +438,155 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr < std::vector<u
     return true;
 }
 
-static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
-{
-    if(!lua_istable(L,-1))
-    {
-        LogPrint("vm","is not table\n");
+static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
+    if (!lua_istable(L, -1)) {
+        LogPrint("vm", "is not table\n");
         return false;
     }
     double doubleValue = 0;
-    vector<uint8_t> vBuf ;
+    vector<uint8_t> vBuf;
 
-    int dataLen = 0;
-    if(!(getNumberInTable(L,(char *)"dataLen",doubleValue))){
-            LogPrint("vm","get dataLen failed\n");
-            return false;
-        }else{
-            dataLen = (uint32_t)doubleValue;
+    int32_t dataLen = 0;
+    if (!(getNumberInTable(L, (char *)"dataLen", doubleValue))) {
+        LogPrint("vm", "get dataLen failed\n");
+        return false;
+    } else {
+        dataLen = (uint32_t)doubleValue;
     }
 
-    if(dataLen <= 0) {
-        LogPrint("vm","dataLen <= 0\n");
+    if (dataLen <= 0) {
+        LogPrint("vm", "dataLen <= 0\n");
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"data",dataLen,vBuf))
-    {
-        LogPrint("vm","get data failed\n");
+    if (!getArrayInTable(L, (char *)"data", dataLen, vBuf)) {
+        LogPrint("vm", "get data failed\n");
         return false;
-    }else{
-
+    } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
-    int pubKeyLen = 0;
-    if(!(getNumberInTable(L,(char *)"pubKeyLen",doubleValue))){
-            LogPrint("vm","get pubKeyLen failed\n");
-            return false;
-        }else{
-            pubKeyLen = (uint32_t)doubleValue;
+    int32_t pubKeyLen = 0;
+    if (!(getNumberInTable(L, (char *)"pubKeyLen", doubleValue))) {
+        LogPrint("vm", "get pubKeyLen failed\n");
+        return false;
+    } else {
+        pubKeyLen = (uint32_t)doubleValue;
     }
 
-    if(pubKeyLen <= 0) {
-        LogPrint("vm","error: pubKeyLen <= 0\n");
+    if (pubKeyLen <= 0) {
+        LogPrint("vm", "error: pubKeyLen <= 0\n");
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"pubKey",pubKeyLen,vBuf))
-    {
-        LogPrint("vm","get pubKey failed\n");
+    if (!getArrayInTable(L, (char *)"pubKey", pubKeyLen, vBuf)) {
+        LogPrint("vm", "get pubKey failed\n");
         return false;
-    }else{
-
+    } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
-    int signatureLen = 0;
-    if(!(getNumberInTable(L,(char *)"signatureLen",doubleValue))){
-        LogPrint("vm","get signatureLen failed\n");
+    int32_t signatureLen = 0;
+    if (!(getNumberInTable(L, (char *)"signatureLen", doubleValue))) {
+        LogPrint("vm", "get signatureLen failed\n");
         return false;
     }
     signatureLen = (uint32_t)doubleValue;
 
-    if(signatureLen <= 0) {
-        LogPrint("vm","hashLen <= 0\n");
+    if (signatureLen <= 0) {
+        LogPrint("vm", "hashLen <= 0\n");
         return false;
     }
 
-    if(!getArrayInTable(L,(char *)"signature",signatureLen,vBuf))
-    {
-        LogPrint("vm","get signature failed\n");
+    if (!getArrayInTable(L, (char *)"signature", signatureLen, vBuf)) {
+        LogPrint("vm", "get signature failed\n");
         return false;
-    }else{
-
+    } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     return true;
 }
 
-static int ExInt64MulFunc(lua_State *L) {
+/**
+ * Parse uidType in table
+ */
+static bool ParseUidTypeInTable(lua_State *L, const char *pKey, AccountType &uidType) {
+    lua_Integer uidTypeInt;
+    if (!(getIntegerInTable(L, pKey, uidTypeInt))) {
+        LogPrint("vm", "ParseUidTypeInTable(), get %s failed\n", pKey);
+        return false;
+    }
 
-    int argc = lua_gettop(L);    /* number of arguments */
+    if (uidTypeInt != AccountType::REGID && uidTypeInt != AccountType::BASE58ADDR) {
+        LogPrint("vm", "ParseUidTypeInTable(), invalid accountType: %d\n", uidTypeInt);
+        return false;
+    }
+    uidType = (AccountType)uidTypeInt;
+    return true;
+}
+
+/**
+ * Parse uid in table
+ */
+static bool ParseUidInTable(lua_State *L, const char *pKey, AccountType uidType, CUserID &uid) {
+    int32_t len;
+    if (uidType == AccountType::REGID) {
+       len = 6;
+    } else {
+        assert(uidType == AccountType::BASE58ADDR);
+       len = 34;
+    }
+
+    vector<uint8_t> accountBuf;
+    if (!getArrayInTable(L, pKey, len, accountBuf)) {
+        LogPrint("vm","ParseUidInTable(), get %s failed\n", pKey);
+        return false;
+    }
+
+    if (uidType == AccountType::REGID) {
+        CRegID regid(accountBuf);
+        if (regid.IsEmpty()) {
+            LogPrint("vm","ParseUidInTable(), %s is invalid regid! value(hex)=%s\n", pKey, HexStr(accountBuf));
+            return false;
+        }
+        uid = regid;
+    } else {
+        assert(uidType == AccountType::BASE58ADDR);
+        CKeyID keyid;
+        CCoinAddress coinAddress;
+        string addrStr(accountBuf.begin(), accountBuf.end());
+        if (!coinAddress.SetString(addrStr) || !coinAddress.GetKeyId(keyid) || keyid.IsEmpty()) {
+            LogPrint("vm","ParseUidInTable(), %s is invalid keyid! keyid=%s, hex=%s\n", pKey,
+                addrStr, HexStr(accountBuf));
+        }
+        uid = keyid;
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// lua contract api functions added in MAJOR_VER_R1
+
+int32_t ExInt64MulFunc(lua_State *L) {
+
+    int32_t argc = lua_gettop(L);    /* number of arguments */
     if(argc != 2) {
         return RetFalse("argc error\n");
     }
 
-    if(!lua_isinteger(L,1)) {
+    if (!lua_isinteger(L, 1)) {
         return RetFalse("Int64Mul para1 error\n");
     }
-    int64_t a = lua_tointeger(L,1);
+    int64_t a = lua_tointeger(L, 1);
 
-    if(!lua_isinteger(L,2)) {
+    if (!lua_isinteger(L, 2)) {
         return RetFalse("Int64Mul para2 error\n");
     }
-    int64_t b = lua_tointeger(L,2);
+    int64_t b = lua_tointeger(L, 2);
     int64_t c = 0;
     LUA_BurnFuncCall(L, FUEL_CALL_Int64Mul, BURN_VER_R2);
-    if(!SafeMultiply(a, b, c)) {
+    if (!SafeMultiply(a, b, c)) {
         return RetFalse("Int64Mul Operate overflow !\n");
     }
 
@@ -513,25 +594,25 @@ static int ExInt64MulFunc(lua_State *L) {
     return 1;
 }
 
-static int ExInt64AddFunc(lua_State *L) {
-    int argc = lua_gettop(L);    /* number of arguments */
-    if(argc != 2) {
+int32_t ExInt64AddFunc(lua_State *L) {
+    int32_t argc = lua_gettop(L); /* number of arguments */
+    if (argc != 2) {
         return RetFalse("argc error\n");
     }
 
-    if(!lua_isinteger(L,1)) {
+    if (!lua_isinteger(L, 1)) {
         return RetFalse("Int64Add para1 error\n");
     }
-    int64_t a = lua_tointeger(L,1);
+    int64_t a = lua_tointeger(L, 1);
 
-    if(!lua_isinteger(L,2)) {
+    if (!lua_isinteger(L, 2)) {
         return RetFalse("Int64Add para2 error\n");
     }
-    int64_t b = lua_tointeger(L,2);
+    int64_t b = lua_tointeger(L, 2);
 
     int64_t c = 0;
     LUA_BurnFuncCall(L, FUEL_CALL_Int64Add, BURN_VER_R2);
-    if(!SafeAdd(a, b, c)) {
+    if (!SafeAdd(a, b, c)) {
         return RetFalse("Int64Add Operate overflow !\n");
     }
 
@@ -539,25 +620,25 @@ static int ExInt64AddFunc(lua_State *L) {
     return 1;
 }
 
-static int ExInt64SubFunc(lua_State *L) {
-    int argc = lua_gettop(L);    /* number of arguments */
-    if(argc != 2) {
+int32_t ExInt64SubFunc(lua_State *L) {
+    int32_t argc = lua_gettop(L); /* number of arguments */
+    if (argc != 2) {
         return RetFalse("argc error\n");
     }
 
-    if(!lua_isinteger(L,1)) {
+    if (!lua_isinteger(L, 1)) {
         return RetFalse("Int64Sub para1 error\n");
     }
-    int64_t a = lua_tointeger(L,1);
+    int64_t a = lua_tointeger(L, 1);
 
-    if(!lua_isinteger(L,2)) {
+    if (!lua_isinteger(L, 2)) {
         return RetFalse("Int64Sub para2 error\n");
     }
-    int64_t b = lua_tointeger(L,2);
+    int64_t b = lua_tointeger(L, 2);
 
     int64_t c = 0;
     LUA_BurnFuncCall(L, FUEL_CALL_Int64Sub, BURN_VER_R2);
-    if(!SafeSubtract(a, b, c)) {
+    if (!SafeSubtract(a, b, c)) {
         return RetFalse("Int64Sub Operate overflow !\n");
     }
 
@@ -565,25 +646,25 @@ static int ExInt64SubFunc(lua_State *L) {
     return 1;
 }
 
-static int ExInt64DivFunc(lua_State *L) {
-    int argc = lua_gettop(L);    /* number of arguments */
-    if(argc != 2) {
+int32_t ExInt64DivFunc(lua_State *L) {
+    int32_t argc = lua_gettop(L); /* number of arguments */
+    if (argc != 2) {
         return RetFalse("argc error\n");
     }
 
-    if(!lua_isinteger(L,1)) {
+    if (!lua_isinteger(L, 1)) {
         return RetFalse("Int64Div para1 error\n");
     }
-    int64_t a = lua_tointeger(L,1);
+    int64_t a = lua_tointeger(L, 1);
 
-    if(!lua_isinteger(L,2)) {
+    if (!lua_isinteger(L, 2)) {
         return RetFalse("Int64Div para2 error\n");
     }
-    int64_t b = lua_tointeger(L,2);
+    int64_t b = lua_tointeger(L, 2);
 
     int64_t c = 0;
     LUA_BurnFuncCall(L, FUEL_CALL_Int64Div, BURN_VER_R2);
-    if(!SafeDivide(a, b, c)) {
+    if (!SafeDivide(a, b, c)) {
         return RetFalse("Int64Div Operate overflow !\n");
     }
 
@@ -592,11 +673,11 @@ static int ExInt64DivFunc(lua_State *L) {
 }
 
 /**
- *bool SHA256(void const* pfrist, const unsigned short len, void * const pout)
+ *bool SHA256(void const* pfrist, const uint16_t len, void * const pout)
  * This function receives an input param from a middle layer:
  *   1. The first param is the target string to be hashed twice in a BitCoin way
  */
-static int ExSha256Func(lua_State *L) {
+int32_t ExSha256Func(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataString(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() <= 0) {
         return RetFalse("ExSha256Func param err");
@@ -611,11 +692,11 @@ static int ExSha256Func(lua_State *L) {
 }
 
 /**
- *bool SHA256Once(void const* pfrist, const unsigned short len, void * const pout)
+ *bool SHA256Once(void const* pfrist, const uint16_t len, void * const pout)
  * This function receives an input param from a middle layer:
  *   1. The first param is the target string to be hashed once
  */
-static int ExSha256OnceFunc(lua_State *L) {
+int32_t ExSha256OnceFunc(lua_State *L) {
 
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataString(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() <= 0) {
@@ -631,7 +712,7 @@ static int ExSha256OnceFunc(lua_State *L) {
 }
 
 /**
- *unsigned short Des(void const* pdata, unsigned short len, void const* pkey, unsigned short keylen, bool IsEn, void * const pOut,unsigned short poutlen)
+ *uint16_t Des(void const* pData, uint16_t len, void const* pkey, uint16_t keylen, bool IsEn, void * const pOut,uint16_t poutlen)
  * 这个函数式从中间层传了三个个参数过来:
  * 1.第一个是要被加密数据或者解密数据
  * 2.第二格式加密或者解密的key值
@@ -645,7 +726,7 @@ static int ExSha256OnceFunc(lua_State *L) {
  *  flag = 0
  * }
  */
-static int ExDesFunc(lua_State *L) {
+int32_t ExDesFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t> > > retdata;
 
     if (!GetDataTableDes(L, retdata) || retdata.size() != 3) {
@@ -653,7 +734,7 @@ static int ExDesFunc(lua_State *L) {
     }
     vector<uint8_t> &dataIn = *retdata.at(0).get();
     vector<uint8_t> &keyIn = *retdata.at(1).get();
-    unsigned char flag = retdata.at(2).get()->at(0);
+    uint8_t flag = retdata.at(2).get()->at(0);
     static_assert(sizeof(DES_cblock) == 8, "DES block must be 8");
     if (keyIn.size() == 8) {
         LUA_BurnFuncData(L, FUEL_CALL_DesBasic, dataIn.size(), 8, FUEL_DATA8_DesBasic, BURN_VER_R2);
@@ -667,7 +748,7 @@ static int ExDesFunc(lua_State *L) {
 
     vector<uint8_t> desdata;
     vector<uint8_t> desout;
-    unsigned char datalen_rest = dataIn.size() % sizeof(DES_cblock);
+    uint8_t datalen_rest = dataIn.size() % sizeof(DES_cblock);
     desdata.assign(dataIn.begin(), dataIn.end());
     if (datalen_rest) {
         desdata.insert(desdata.end(), sizeof(DES_cblock) - datalen_rest, 0);
@@ -680,18 +761,14 @@ static int ExDesFunc(lua_State *L) {
 
     if (flag == 1) {
         if (keyIn.size() == 8) {
-            //          printf("the des encrypt\n");
             memcpy(key, &keyIn.at(0), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey1);
             for (uint32_t ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
                 memcpy(&in, &desdata[ii * sizeof(DES_cblock)], sizeof(in));
-                //              printf("in :%s\n", HexStr(in, in + 8, true).c_str());
                 DES_ecb_encrypt(&in, &out, &deskey1, DES_ENCRYPT);
-                //              printf("out :%s\n", HexStr(out, out + 8, true).c_str());
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
             }
         } else if (keyIn.size() == 16) {
-            //          printf("the 3 des encrypt\n");
             memcpy(key, &keyIn.at(0), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey1);
             DES_set_key_unchecked(&key, &deskey3);
@@ -703,23 +780,18 @@ static int ExDesFunc(lua_State *L) {
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
             }
         } else {
-            //error
             return RetFalse(string(__FUNCTION__) + "para  err !");
         }
     } else {
         if (keyIn.size() == 8) {
-            //          printf("the des decrypt\n");
             memcpy(key, &keyIn.at(0), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey1);
             for (uint32_t ii = 0; ii < desdata.size() / sizeof(DES_cblock); ii++) {
                 memcpy(&in, &desdata[ii * sizeof(DES_cblock)], sizeof(in));
-                //              printf("in :%s\n", HexStr(in, in + 8, true).c_str());
                 DES_ecb_encrypt(&in, &out, &deskey1, DES_DECRYPT);
-                //              printf("out :%s\n", HexStr(out, out + 8, true).c_str());
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
             }
         } else if (keyIn.size() == 16) {
-            //          printf("the 3 des decrypt\n");
             memcpy(key, &keyIn.at(0), sizeof(DES_cblock));
             DES_set_key_unchecked(&key, &deskey1);
             DES_set_key_unchecked(&key, &deskey3);
@@ -731,7 +803,6 @@ static int ExDesFunc(lua_State *L) {
                 memcpy(&desout[ii * sizeof(DES_cblock)], &out, sizeof(out));
             }
         } else {
-            //error
             return RetFalse(string(__FUNCTION__) + "para  err !");
         }
     }
@@ -740,8 +811,8 @@ static int ExDesFunc(lua_State *L) {
 }
 
 /**
- *bool SignatureVerify(void const* data, unsigned short datalen, void const* key, unsigned short keylen,
-        void const* phash, unsigned short hashlen)
+ *bool SignatureVerify(void const* data, uint16_t datalen, void const* key, uint16_t keylen,
+        void const* phash, uint16_t hashlen)
  * 这个函数式从中间层传了三个个参数过来:
  * 1.第一个是签名前的原始数据
  * 2.第二个是签名的公钥(public key)
@@ -756,7 +827,7 @@ static int ExDesFunc(lua_State *L) {
  *  signature = {}
  * }
  */
-static int ExVerifySignatureFunc(lua_State *L) {
+int32_t ExVerifySignatureFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t> > > retdata;
 
     if (!GetDataTableVerifySignature(L, retdata) || retdata.size() != 3 || retdata.at(1).get()->size() != 33) {
@@ -780,7 +851,7 @@ static int ExVerifySignatureFunc(lua_State *L) {
     return RetRstBooleanToLua(L, rlt);
 }
 
-static int ExGetTxContractFunc(lua_State *L) {
+int32_t ExGetTxContractFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t>>> retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
         return RetFalse("ExGetTxContractFunc, para error");
@@ -799,14 +870,18 @@ static int ExGetTxContractFunc(lua_State *L) {
     LogPrint("vm", "ExGetTxContractFunc, hash: %s\n", hash.GetHex().c_str());
 
     std::shared_ptr<CBaseTx> pBaseTx;
-    int len = 0;
+    int32_t len = 0;
     if (hash == pVmRunEnv->GetCurTxHash()) {
         const string &curTxArguments = pVmRunEnv->GetTxContract();
         LUA_BurnFuncData(L, FUEL_CALL_GetCurTxContract, curTxArguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
         len = RetRstToLua(L, curTxArguments, false);
-    } else if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
+    } else if (GetTransaction(pBaseTx, hash, pVmRunEnv->GetCw()->blockCache, false)) {
         if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
             CLuaContractInvokeTx *tx = static_cast<CLuaContractInvokeTx *>(pBaseTx.get());
+            LUA_BurnFuncData(L, FUEL_CALL_GetTxContract, tx->arguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
+            len = RetRstToLua(L, tx->arguments, false);
+        } else if (pBaseTx->nTxType == UCONTRACT_INVOKE_TX) {
+            CUniversalContractInvokeTx *tx = static_cast<CUniversalContractInvokeTx *>(pBaseTx.get());
             LUA_BurnFuncData(L, FUEL_CALL_GetTxContract, tx->arguments.size(), 32, FUEL_DATA32_GetTxContract, BURN_VER_R2);
             len = RetRstToLua(L, tx->arguments, false);
         } else {
@@ -819,38 +894,39 @@ static int ExGetTxContractFunc(lua_State *L) {
 }
 
 /**
- *void LogPrint(const void *pdata, const unsigned short datalen,PRINT_FORMAT flag )
+ *void LogPrint(const void *pData, const uint16_t datalen,PRINT_FORMAT flag )
  * 这个函数式从中间层传了两个个参数过来:
  * 1.第一个是打印数据的表示符号，true是一十六进制打印,否则以字符串的格式打印
  * 2.第二个是打印的字符串
  */
-static int ExLogPrintFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
-    if(!GetDataTableLogPrint(L,retdata) || retdata.size() != 2) {
+int32_t ExLogPrintFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
+    if (!GetDataTableLogPrint(L, retdata) || retdata.size() != 2) {
         return RetFalse("ExLogPrintFunc para err1");
     }
-    CDataStream tep1(*retdata.at(0), SER_DISK, CLIENT_VERSION);
-    bool flag ;
-    tep1 >> flag;
-    string pdata((*retdata[1]).begin(), (*retdata[1]).end());
-    LUA_BurnFuncData(L, FUEL_CALL_LogPrint, pdata.size(), 1, FUEL_DATA1_LogPrint, BURN_VER_R2);
 
-    if(flag) {
-        LogPrint("vm","%s\n", HexStr(pdata).c_str());
+    CDataStream tep1(*retdata.at(0), SER_DISK, CLIENT_VERSION);
+    bool flag;
+    tep1 >> flag;
+    string pData((*retdata[1]).begin(), (*retdata[1]).end());
+    LUA_BurnFuncData(L, FUEL_CALL_LogPrint, pData.size(), 1, FUEL_DATA1_LogPrint, BURN_VER_R2);
+
+    if (flag) {
+        LogPrint("vm", "%s\n", HexStr(pData).c_str());
     } else {
-        LogPrint("vm","%s\n", pdata.c_str());
+        LogPrint("vm", "%s\n", pData.c_str());
     }
-    return  0;
+
+    return 0;
 }
 
-
 /**
- *unsigned short GetAccounts(const unsigned char *txid, void* const paccount, unsigned short maxlen)
+ *uint16_t GetAccounts(const uint8_t *txid, void* const paccount, uint16_t maxlen)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 hash
  */
-static int ExGetTxRegIDFunc(lua_State *L) {
-    vector<std::shared_ptr<vector<uint8_t> > > retdata;
+int32_t ExGetTxRegIDFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
         return RetFalse("ExGetTxRegIDFunc, para error");
     }
@@ -870,8 +946,8 @@ static int ExGetTxRegIDFunc(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxRegID, BURN_VER_R2);
     std::shared_ptr<CBaseTx> pBaseTx;
-    int len = 0;
-    if (GetTransaction(pBaseTx, hash, *pVmRunEnv->GetScriptDB(), false)) {
+    int32_t len = 0;
+    if (GetTransaction(pBaseTx, hash, pVmRunEnv->GetCw()->blockCache, false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
             if (tx->txUid.type() != typeid(CRegID))
@@ -894,11 +970,11 @@ static int ExGetTxRegIDFunc(lua_State *L) {
     return len;
 }
 
-static int ExByteToIntegerFunc(lua_State *L) {
+int32_t ExByteToIntegerFunc(lua_State *L) {
     //把字节流组合成integer
-    vector< std::shared_ptr<vector<uint8_t>> > retdata;
-    if( !GetArray(L, retdata) ||retdata.size() != 1 ||
-        ((retdata.at(0).get()->size() != 4) && (retdata.at(0).get()->size() != 8)) ) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
+    if (!GetArray(L, retdata) || retdata.size() != 1 ||
+        ((retdata.at(0).get()->size() != 4) && (retdata.at(0).get()->size() != 8))) {
         return RetFalse("ExByteToIntegerFunc para err1");
     }
 
@@ -907,85 +983,82 @@ static int ExByteToIntegerFunc(lua_State *L) {
     CDataStream tep1(vValue, SER_DISK, CLIENT_VERSION);
 
     LUA_BurnFuncCall(L, FUEL_CALL_ByteToInteger, BURN_VER_R2);
-    if(retdata.at(0).get()->size() == 4) {
+    if (retdata.at(0).get()->size() == 4) {
         uint32_t height;
-        tep1 >>height;
+        tep1 >> height;
 
-//      LogPrint("vm","%d\n", height);
-       if(lua_checkstack(L,sizeof(lua_Integer))){
-            lua_pushinteger(L,(lua_Integer)height);
-            return 1 ;
-       }else{
+        // LogPrint("vm", "%d\n", height);
+        if (lua_checkstack(L, sizeof(lua_Integer))) {
+            lua_pushinteger(L, (lua_Integer)height);
+            return 1;
+        } else {
             return RetFalse("ExByteToIntegerFunc stack overflow");
-       }
+        }
     } else {
         int64_t llValue = 0;
-        tep1 >>llValue;
-//      LogPrint("vm","%lld\n", llValue);
-       if (lua_checkstack(L, sizeof(lua_Integer))) {
+        tep1 >> llValue;
+        // LogPrint("vm", "%lld\n", llValue);
+        if (lua_checkstack(L, sizeof(lua_Integer))) {
             lua_pushinteger(L, (lua_Integer)llValue);
-            return 1 ;
-       } else {
+            return 1;
+        } else {
             return RetFalse("ExByteToIntegerFunc stack overflow");
-       }
+        }
     }
 }
 
-static int ExIntegerToByte4Func(lua_State *L) {
+int32_t ExIntegerToByte4Func(lua_State *L) {
     //把integer转换成4字节数组
-    int height = 0;
-    if(!GetDataInt(L,height)){
-        return RetFalse("ExGetBlockHashFunc para err1");
+    int32_t height = 0;
+    if (!GetDataInt(L, height)) {
+        return RetFalse("ExIntegerToByte4Func para err1");
     }
     LUA_BurnFuncCall(L, FUEL_CALL_IntegerToByte4, BURN_VER_R2);
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << height;
-    vector<uint8_t> TMP(tep.begin(),tep.end());
-    return RetRstToLua(L,TMP);
+    vector<uint8_t> TMP(tep.begin(), tep.end());
+    return RetRstToLua(L, TMP);
 }
-static int ExIntegerToByte8Func(lua_State *L) {
+
+int32_t ExIntegerToByte8Func(lua_State *L) {
     //把integer转换成8字节数组
     int64_t llValue = 0;
-    if(!lua_isinteger(L,-1 - 0))
-    {
-        LogPrint("vm","%s\n","data is not integer");
+    if (!lua_isinteger(L, -1 - 0)) {
+        LogPrint("vm", "%s\n", "data is not integer");
         return 0;
-    }else{
-        llValue = (int64_t)lua_tointeger(L,-1 - 0);
-//      LogPrint("vm", "ExIntegerToByte8Func:%lld\n", llValue);
+    } else {
+        llValue = (int64_t)lua_tointeger(L, -1 - 0);
+        //      LogPrint("vm", "ExIntegerToByte8Func:%lld\n", llValue);
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_IntegerToByte8, BURN_VER_R2);
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << llValue;
-    vector<uint8_t> TMP(tep.begin(),tep.end());
-    return RetRstToLua(L,TMP);
+    vector<uint8_t> TMP(tep.begin(), tep.end());
+    return RetRstToLua(L, TMP);
 }
 /**
- *unsigned short GetAccountPublickey(const void* const accounid,void * const pubkey,const unsigned short maxlength)
+ *uint16_t GetAccountPublickey(const void* const accountId,void * const pubkey,const uint16_t maxlength)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 账户id,六个字节
  */
-static int ExGetAccountPublickeyFunc(lua_State *L) {
-
-    vector<std::shared_ptr<vector<uint8_t> > > retdata;
-    if(!GetArray(L,retdata) ||retdata.size() != 1
-        || !(retdata.at(0).get()->size() == 6 || retdata.at(0).get()->size() == 34))
-    {
+int32_t ExGetAccountPublickeyFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
+    if (!GetArray(L, retdata) || retdata.size() != 1 ||
+        !(retdata.at(0).get()->size() == 6 || retdata.at(0).get()->size() == 34)) {
         return RetFalse("ExGetAccountPublickeyFunc para err1");
     }
 
-    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(nullptr == pVmRunEnv)
-    {
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
         return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetAccountPublickey, BURN_VER_R2);
-     CKeyID addrKeyId;
-     if (!GetKeyId(*(pVmRunEnv->GetCatchView()),*retdata.at(0).get(), addrKeyId)) {
-            return RetFalse("ExGetAccountPublickeyFunc para err2");
-     }
+    CKeyID addrKeyId;
+    if (!GetKeyId(*(pVmRunEnv->GetCatchView()), *retdata.at(0).get(), addrKeyId)) {
+        return RetFalse("ExGetAccountPublickeyFunc para err2");
+    }
     CUserID userid(addrKeyId);
     CAccount account;
     if (!pVmRunEnv->GetCatchView()->GetAccount(userid, account)) {
@@ -994,67 +1067,62 @@ static int ExGetAccountPublickeyFunc(lua_State *L) {
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     vector<char> te;
     tep << account.owner_pubkey;
-//    assert(aaccount.owner_pubkey.IsFullyValid());
-    if(false == account.owner_pubkey.IsFullyValid()){
+    // assert(account.owner_pubkey.IsFullyValid());
+    if (false == account.owner_pubkey.IsFullyValid()) {
         return RetFalse("ExGetAccountPublickeyFunc pubKey invalid");
     }
-    tep >>te;
-    vector<uint8_t> tep1(te.begin(),te.end());
-    return RetRstToLua(L,tep1);
+    tep >> te;
+    vector<uint8_t> tep1(te.begin(), te.end());
+    return RetRstToLua(L, tep1);
 }
 
 /**
- *bool QueryAccountBalance(const unsigned char* const account,Int64* const pBalance)
+ *bool QueryAccountBalance(const uint8_t* const account,Int64* const pBalance)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 账户id,六个字节
  */
-static int ExQueryAccountBalanceFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
-    if(!GetArray(L,retdata) ||retdata.size() != 1
-        || !(retdata.at(0).get()->size() == 6 || retdata.at(0).get()->size() == 34))
-    {
+int32_t ExQueryAccountBalanceFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
+    if (!GetArray(L, retdata) || retdata.size() != 1 ||
+        !(retdata.at(0).get()->size() == 6 || retdata.at(0).get()->size() == 34)) {
         return RetFalse("ExQueryAccountBalanceFunc para err1");
     }
 
-    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(nullptr == pVmRunEnv)
-    {
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
         return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
-     CKeyID addrKeyId;
-     if (!GetKeyId(*(pVmRunEnv->GetCatchView()),*retdata.at(0).get(), addrKeyId)) {
-            return RetFalse("ExQueryAccountBalanceFunc para err2");
-     }
+    CKeyID addrKeyId;
+    if (!GetKeyId(*(pVmRunEnv->GetCatchView()), *retdata.at(0).get(), addrKeyId)) {
+        return RetFalse("ExQueryAccountBalanceFunc para err2");
+    }
 
-     CUserID userid(addrKeyId);
-     CAccount account;
-     int len = 0;
+    CUserID userid(addrKeyId);
+    CAccount account;
+    int32_t len = 0;
     if (!pVmRunEnv->GetCatchView()->GetAccount(userid, account)) {
         len = 0;
-    }
-    else
-    {
+    } else {
         uint64_t nbalance = account.GetToken(SYMB::WICC).free_amount;
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << nbalance;
-        vector<uint8_t> TMP(tep.begin(),tep.end());
-        len = RetRstToLua(L,TMP);
+        vector<uint8_t> TMP(tep.begin(), tep.end());
+        len = RetRstToLua(L, TMP);
     }
     return len;
 }
 
 /**
- *unsigned long GetTxConfirmHeight(const void * const txid)
+ *uint32_t GetTxConfirmHeight(const void * const txid)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个入参: hash,32个字节
  */
-static int ExGetTxConfirmHeightFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
+int32_t ExGetTxConfirmHeightFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
-    if(!GetArray(L,retdata) ||retdata.size() != 1|| retdata.at(0).get()->size() != 32)
-    {
+    if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 32) {
         return RetFalse("ExGetTxConfirmHeightFunc para err1");
     }
 
@@ -1065,39 +1133,36 @@ static int ExGetTxConfirmHeightFunc(lua_State *L) {
     vector<uint8_t> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
     CDataStream tep1(vec_hash, SER_DISK, CLIENT_VERSION);
     uint256 hash1;
-    tep1 >>hash1;
+    tep1 >> hash1;
 
-    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(nullptr == pVmRunEnv)
-    {
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
         return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxConfirmHeight, BURN_VER_R2);
-    int height = GetTxConfirmHeight(hash1, *pVmRunEnv->GetScriptDB());
-    if(-1 == height)
-    {
+    int32_t height = GetTxConfirmHeight(hash1, pVmRunEnv->GetCw()->blockCache);
+    if (-1 == height) {
         return RetFalse("ExGetTxConfirmHeightFunc para err2");
-    }
-    else{
-       if(lua_checkstack(L,sizeof(lua_Number))){
-            lua_pushnumber(L,(lua_Number)height);
-            return 1 ;
-       }else{
-           LogPrint("vm","%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
-           return 0;
-       }
+    } else {
+        if (lua_checkstack(L, sizeof(lua_Number))) {
+            lua_pushnumber(L, (lua_Number)height);
+            return 1;
+        } else {
+            LogPrint("vm", "%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
+            return 0;
+        }
     }
 }
 
 
 /**
- *bool GetBlockHash(const unsigned long height,void * const pblochHash)
+ *bool GetBlockHash(const uint32_t height,void * const pBlochHash)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 int类型的参数
  */
-static int ExGetBlockHashFunc(lua_State *L) {
-    int height = 0;
+int32_t ExGetBlockHashFunc(lua_State *L) {
+    int32_t height = 0;
     if (!GetDataInt(L, height)) {
         return RetFalse("ExGetBlockHashFunc para err1");
     }
@@ -1108,14 +1173,15 @@ static int ExGetBlockHashFunc(lua_State *L) {
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBlockHash, BURN_VER_R2);
-    if (height <= 0 || height >= pVmRunEnv->GetConfirmHeight())  //当前block 是不可以获取hash的
-    {
+    //当前block 是不可以获取hash的
+    if (height <= 0 || height >= pVmRunEnv->GetConfirmHeight()) {
         return RetFalse("ExGetBlockHashFunc para err2");
     }
 
     if (chainActive.Height() < height) {  //获取比当前高度高的数据是不可以的
         return RetFalse("ExGetBlockHashFunc para err3");
     }
+
     CBlockIndex *pIndex = chainActive[height];
     uint256 blockHash   = pIndex->GetBlockHash();
 
@@ -1128,14 +1194,14 @@ static int ExGetBlockHashFunc(lua_State *L) {
     return RetRstToLua(L, TMP2);
 }
 
-static int ExGetCurRunEnvHeightFunc(lua_State *L) {
+int32_t ExGetCurRunEnvHeightFunc(lua_State *L) {
     CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv) {
         return RetFalse("pVmRunEnv is nullptr");
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurRunEnvHeight, BURN_VER_R2);
-    int height = pVmRunEnv->GetConfirmHeight();
+    int32_t height = pVmRunEnv->GetConfirmHeight();
 
     //检测栈空间是否够
     if (height > 0) {
@@ -1157,16 +1223,17 @@ static int ExGetCurRunEnvHeightFunc(lua_State *L) {
     } else {
         LogPrint("vm", "ExGetCurRunEnvHeightFunc err height =%d\n", height);
     }
+
     return 0;
 }
 
-static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
+static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //取写数据库的key value
     if (!lua_istable(L, -1)) {
-        LogPrint("vm", "GetDataTableWriteOutput is not table\n");
+        LogPrint("vm", "GetDataTableWriteDataDB is not table\n");
         return false;
     }
-    unsigned short len = 0;
+    uint16_t len = 0;
     vector<uint8_t> vBuf;
     //取key
     string key = "";
@@ -1188,7 +1255,7 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
         LogPrint("vm", "length get fail\n");
         return false;
     } else {
-        len = (unsigned short)doubleValue;
+        len = (uint16_t)doubleValue;
         // LogPrint("vm", "len =%d\n", len);
     }
     if ((len > 0) && (len <= LUA_C_BUFFER_SIZE)) {
@@ -1207,19 +1274,17 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr < std::
 }
 
 /**
- *bool WriteDataDB(const void* const key,const unsigned char keylen,const void * const value,const unsigned short valuelen,const unsigned long time)
+ *bool WriteDataDB(const void* const key,const uint8_t keylen,const void * const value,const uint16_t valuelen,const uint32_t time)
  * 这个函数式从中间层传了三个个参数过来:
  * 1.第一个是 key值
  * 2.第二个是value值
  */
-static int ExWriteDataDBFunc(lua_State *L)
-{
+int32_t ExWriteDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataTableWriteDataDB(L, retdata) || retdata.size() != 2) {
         return RetFalse("ExWriteDataDBFunc key err1");
     }
 
-    // TODO:
     string key((*retdata.at(0)).begin(), (*retdata.at(0)).end());
     string value((*retdata.at(1)).begin(), (*retdata.at(1)).end());
 
@@ -1246,11 +1311,11 @@ static int ExWriteDataDBFunc(lua_State *L)
 }
 
 /**
- *bool DeleteDataDB(const void* const key,const unsigned char keylen)
+ *bool DeleteDataDB(const void* const key,const uint8_t keylen)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 key值
  */
-static int ExDeleteDataDBFunc(lua_State *L) {
+int32_t ExDeleteDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if (!GetDataString(L, retdata) || retdata.size() != 1) {
@@ -1284,11 +1349,11 @@ static int ExDeleteDataDBFunc(lua_State *L) {
 }
 
 /**
- *unsigned short ReadDataValueDB(const void* const key,const unsigned char keylen, void* const value,unsigned short const maxbuffer)
+ *uint16_t ReadDataValueDB(const void* const key,const uint8_t keylen, void* const value,uint16_t const maxbuffer)
  * 这个函数式从中间层传了一个参数过来:
  * 1.第一个是 key值
  */
-static int ExReadDataDBFunc(lua_State *L) {
+int32_t ExReadDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if (!GetDataString(L,retdata) ||retdata.size() != 1) {
@@ -1306,7 +1371,7 @@ static int ExReadDataDBFunc(lua_State *L) {
 
     string value;
     CContractDBCache* scriptDB = pVmRunEnv->GetScriptDB();
-    int len = 0;
+    int32_t len = 0;
     if (!scriptDB->GetContractData(scriptRegId, key, value)) {
         len = 0;
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
@@ -1317,7 +1382,7 @@ static int ExReadDataDBFunc(lua_State *L) {
     return len;
 }
 
-static int ExGetCurTxHash(lua_State *L) {
+int32_t ExGetCurTxHash(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv)
@@ -1333,13 +1398,12 @@ static int ExGetCurTxHash(lua_State *L) {
 }
 
 /**
- *bool ExModifyDataDBFunc(const void* const key,const unsigned char keylen, const void* const pvalue,const unsigned short valuelen)
+ *bool ExModifyDataDBFunc(const void* const key,const uint8_t keylen, const void* const pvalue,const uint16_t valuelen)
  * 中间层传了两个参数
  * 1.第一个是 key
  * 2.第二个是 value
  */
-static int ExModifyDataDBFunc(lua_State *L)
-{
+int32_t ExModifyDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!GetDataTableWriteDataDB(L,retdata) ||retdata.size() != 2) {
         return RetFalse("ExModifyDataDBFunc key err");
@@ -1379,7 +1443,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     }
 
     double doubleValue = 0;
-    unsigned short len = 0;
+    uint16_t len = 0;
     vector<uint8_t> vBuf ;
     if (!(getNumberInTable(L,(char *)"addrType",doubleValue))) {
         LogPrint("vm", "WriteOutput(), get addrType failed\n");
@@ -1398,14 +1462,14 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     }
 
     if (!getArrayInTable(L, "accountIdTbl", len, vBuf)) {
-        LogPrint("vm","WriteOutput(), get accountidTbl failed\n");
+        LogPrint("vm","WriteOutput(), get accountIdTbl failed\n");
         return false;
     } else {
        memcpy(operate.accountId,&vBuf[0],len);
     }
 
     if (!(getNumberInTable(L, "operatorType", doubleValue))) {
-        LogPrint("vm", "WriteOutput(),  get opType fail\n");
+        LogPrint("vm", "WriteOutput(),  get opType failed\n");
         return false;
 
     } else {
@@ -1413,7 +1477,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     }
 
     if (!(getNumberInTable(L, "outHeight", doubleValue))) {
-        LogPrint("vm", "WriteOutput(),  get outheight fail\n");
+        LogPrint("vm", "WriteOutput(),  get outheight failed\n");
         return false;
     } else {
         operate.timeoutHeight = (uint32_t)doubleValue;
@@ -1427,6 +1491,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     }
     return true;
 }
+
 /**
  * contract api - lua function
  * bool WriteOutput( vmOperTable )
@@ -1437,12 +1502,11 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
  *      operatorType: (number, required)  operator type, enum(ADD_FREE=1, SUB_FREE=2)
  *      outHeight: (number, required)     timeout height, use by contract script
  *      moneyTbl: (array, required)       money amount, serialized format of int64 (little endian)
- *      moneySymbol: (string, optional)   money symbol, must be valid symbol, such as WICC|WUSD
+ *      moneySymbol: (string, optional)   money symbol, must be valid symbol, such as WICC|WUSD, default is WICC
  * }
  * @return write succeed or not
  */
-static int ExWriteOutputFunc(lua_State *L)
-{
+int32_t ExWriteOutputFunc(lua_State *L) {
     CVmOperate operateIn;
     if (!GetDataTableWriteOutput(L, operateIn))
         return RetFalse("WriteOutput(), parse params failed");
@@ -1460,8 +1524,7 @@ static int ExWriteOutputFunc(lua_State *L)
     return RetRstBooleanToLua(L,true);
 }
 
-static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
-{
+static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L,-1)) {
         LogPrint("vm", "GetDataTableGetContractData is not table\n");
         return false;
@@ -1482,7 +1545,7 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < s
         LogPrint("vm","key get fail\n");
         return false;
     } else {
-//      LogPrint("vm", "key:%s\n", key);
+        // LogPrint("vm", "key:%s\n", key);
     }
 
     vBuf.clear();
@@ -1495,26 +1558,27 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr < s
 }
 
 /**
- *bool GetContractData(const void* const scriptID,void* const pkey,short len,void* const pvalve,short maxlen)
+ *bool GetContractData(const void* const scriptID,void* const pkey,short len,void* const pValue,short maxlen)
  * 中间层传了两个个参数
  * 1.脚本的id号
  * 2.数据库的key值
  */
-static int ExGetContractDataFunc(lua_State *L) {
+int32_t ExGetContractDataFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
     if (!GetDataTableGetContractData(L, retdata) || retdata.size() != 2 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetContractDataFunc tep1 err1");
 
     CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
-    if (nullptr == pVmRunEnv) return RetFalse("pVmRunEnv is nullptr");
+    if (nullptr == pVmRunEnv)
+        return RetFalse("pVmRunEnv is nullptr");
 
     CContractDBCache *scriptDB = pVmRunEnv->GetScriptDB();
     CRegID contractRegId(*retdata.at(0));
     string key((*retdata.at(1)).begin(), (*retdata.at(1)).end());
     string value;
 
-    int len = 0;
+    int32_t len = 0;
     if (!scriptDB->GetContractData(contractRegId, key, value)) {
         len = 0;
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
@@ -1533,8 +1597,7 @@ static int ExGetContractDataFunc(lua_State *L) {
  * @param pVmEvn
  * @return
  */
-static int ExGetContractRegIdFunc(lua_State *L)
-{
+int32_t ExGetContractRegIdFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv)
         return RetFalse("pVmRunEnv is nullptr");
@@ -1544,13 +1607,13 @@ static int ExGetContractRegIdFunc(lua_State *L)
    //2.调用C++库函数 执行运算
     UnsignedCharArray contractRegId = pVmRunEnv->GetContractRegID().GetRegIdRaw();
    //3.往函数私有栈里存运算后的结果
-    int len = RetRstToLua(L,contractRegId);
+    int32_t len = RetRstToLua(L,contractRegId);
    /*
     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
     return len; //number of results 告诉Lua返回了几个返回值
 }
-static int ExGetCurTxAccountFunc(lua_State *L)
-{
+
+int32_t ExGetCurTxAccountFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv)
         return RetFalse("pVmRunEnv is nullptr");
@@ -1558,83 +1621,68 @@ static int ExGetCurTxAccountFunc(lua_State *L)
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxAccount, BURN_VER_R2);
    //1.从lua取参数
    //2.调用C++库函数 执行运算
-    UnsignedCharArray vUserId =pVmRunEnv->GetTxAccount().GetRegIdRaw();
+    UnsignedCharArray vUserId =pVmRunEnv->GetTxUserRegid().GetRegIdRaw();
 
    //3.往函数私有栈里存运算后的结果
-    int len = RetRstToLua(L,vUserId);
+    int32_t len = RetRstToLua(L,vUserId);
    /*
     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
     return len; //number of results 告诉Lua返回了几个返回值
 }
 
-static int ExGetCurTxPayAmountFunc(lua_State *L)
-{
-    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
-    if(nullptr == pVmRunEnv)
+int32_t ExGetCurTxPayAmountFunc(lua_State *L) {
+    CLuaVMRunEnv *pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv)
         return RetFalse("pVmRunEnv is nullptr");
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxPayAmount, BURN_VER_R2);
-    uint64_t lvalue =pVmRunEnv->GetValue();
+    uint64_t lvalue = pVmRunEnv->GetValue();
 
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << lvalue;
-    vector<uint8_t> tep1(tep.begin(),tep.end());
-    int len = RetRstToLua(L,tep1);
+    vector<uint8_t> tep1(tep.begin(), tep.end());
+    int32_t len = RetRstToLua(L, tep1);
     /*
-    * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
-    return len; //number of results 告诉Lua返回了几个返回值
+     * 每个函数里的Lua栈是私有的,当把返回值压入Lua栈以后，该栈会自动被清空*/
+    return len;  // number of results 告诉Lua返回了几个返回值
 }
 
-struct S_APP_ID
-{
-    unsigned char idlen;                        //! the len of the tag
-    unsigned char ID[CAppCFund::MAX_TAG_SIZE];  //! the ID for the
-
-    const vector<uint8_t> GetIdV() const {
-        // assert(sizeof(ID) >= idlen);
-        vector<uint8_t> Id(&ID[0], &ID[idlen]);
-        return (Id);
-    }
-}__attribute((aligned (1)));
-
-static int ExGetUserAppAccValueFunc(lua_State *L)
-{
+int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!lua_istable(L, -1)) {
         LogPrint("vm", "is not table\n");
         return 0;
     }
     double doubleValue = 0;
-    vector<uint8_t> vBuf ;
-    S_APP_ID accid;
-    memset(&accid,0,sizeof(accid));
-    if (!(getNumberInTable(L, (char *)"idLen", doubleValue))){
+    uint32_t idlen = 0;
+    vector<uint8_t> accountId;
+    memset(&accountId, 0, sizeof(accountId));
+    if (!(getNumberInTable(L, "idLen", doubleValue))) {
         LogPrint("vm", "get idlen failed\n");
         return 0;
     } else {
-        accid.idlen = (unsigned char)doubleValue;
+        idlen = (uint8_t)doubleValue;
     }
-    if ((accid.idlen < 1) || (accid.idlen > sizeof(accid.ID))) {
+    if ((idlen < 1) || (idlen > CAppCFund::MAX_TAG_SIZE)) {
         LogPrint("vm","idlen invalid\n");
         return 0;
     }
-    if (!getArrayInTable(L, (char *) "idValueTbl", accid.idlen,vBuf)) {
+
+    if (!getArrayInTable(L, "idValueTbl", idlen, accountId)) {
         LogPrint("vm", "idValueTbl not table\n");
         return 0;
-    } else {
-       memcpy(&accid.ID[0],&vBuf[0],accid.idlen);
     }
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if(nullptr == pVmRunEnv)
         return RetFalse("pVmRunEnv is nullptr");
 
-    shared_ptr<CAppUserAccount> sptrAcc;
+    shared_ptr<CAppUserAccount> appAccount;
     uint64_t valueData = 0 ;
-    int len = 0;
-    LUA_BurnAccountGet(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(accid.GetIdV(), sptrAcc)) {
-        valueData = sptrAcc->GetBcoins();
+    int32_t len = 0;
+    LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
+    if (pVmRunEnv->GetAppUserAccount(accountId, appAccount)) {
+        valueData = appAccount->GetBcoins();
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
         tep << valueData;
@@ -1644,8 +1692,8 @@ static int ExGetUserAppAccValueFunc(lua_State *L)
     return len;
 }
 
-static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std::vector<uint8_t> > > &ret) {
-    if (!lua_istable(L,-1)) {
+static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
+    if (!lua_istable(L, -1)) {
         LogPrint("vm","is not table\n");
         return false;
     }
@@ -1657,7 +1705,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         LogPrint("vm", "opType get fail\n");
         return false;
     } else {
-        temp.opType = (unsigned char)doubleValue;
+        temp.opType = (uint8_t)doubleValue;
     }
 
     if (!(getNumberInTable(L, (char *)"outHeight", doubleValue))) {
@@ -1678,7 +1726,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         LogPrint("vm", "appuserIDlen get fail\n");
         return false;
     } else {
-        temp.appuserIDlen = (unsigned char) doubleValue;
+        temp.appuserIDlen = (uint8_t) doubleValue;
     }
 
     if ((temp.appuserIDlen < 1) || (temp.appuserIDlen > sizeof(temp.vAppuser))) {
@@ -1697,7 +1745,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
         LogPrint("vm", "fundTagLen get fail\n");
         return false;
     } else {
-        temp.fundTagLen = (unsigned char)doubleValue;
+        temp.fundTagLen = (uint8_t)doubleValue;
     }
 
     if ((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
@@ -1708,15 +1756,17 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr < std
             memcpy(temp.vFundTag, &vBuf[0], temp.fundTagLen);
         }
     }
+
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << temp;
     vector<uint8_t> tep1(tep.begin(),tep.end());
     ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(tep1.begin(), tep1.end()));
+
     return true;
 }
 
-static int ExGetUserAppAccFundWithTagFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
+int32_t ExGetUserAppAccFundWithTagFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
     CAppFundOperate temp;
     uint32_t size = ::GetSerializeSize(temp, SER_NETWORK, PROTOCOL_VERSION);
 
@@ -1731,12 +1781,12 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L) {
     CAppFundOperate userfund;
     ss >> userfund;
 
-    shared_ptr<CAppUserAccount> sptrAcc;
+    shared_ptr<CAppUserAccount> appAccount;
     CAppCFund fund;
-    int len = 0;
-    LUA_BurnAccountGet(L, FUEL_ACCOUNT_GET_FUND_TAG, BURN_VER_R2);
-    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), sptrAcc)) {
-        if (!sptrAcc->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
+    int32_t len = 0;
+    LUA_BurnAccount(L, FUEL_ACCOUNT_GET_FUND_TAG, BURN_VER_R2);
+    if (pVmRunEnv->GetAppUserAccount(userfund.GetAppUserV(), appAccount)) {
+        if (!appAccount->GetAppCFund(fund,userfund.GetFundTagV(), userfund.timeoutHeight))
             return RetFalse("GetUserAppAccFundWithTag GetAppCFund fail");
 
         CDataStream tep(SER_DISK, CLIENT_VERSION);
@@ -1744,11 +1794,11 @@ static int ExGetUserAppAccFundWithTagFunc(lua_State *L) {
         vector<uint8_t> TMP(tep.begin(),tep.end());
         len = RetRstToLua(L,TMP);
     }
+
     return len;
 }
 
-static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared_ptr < std::vector<uint8_t> > > &ret)
-{
+static bool GetDataTableAssetOperate(lua_State *L, int32_t index, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L, index)) {
         LogPrint("vm", "L is not table\n");
         return false;
@@ -1785,7 +1835,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
         LogPrint("vm", "fundTagLen get fail\n");
         return false;
     } else {
-        temp.fundTagLen = (unsigned char)doubleValue;
+        temp.fundTagLen = (uint8_t)doubleValue;
     }
 
     if ((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
@@ -1796,6 +1846,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
             memcpy(temp.vFundTag,&vBuf[0],temp.fundTagLen);
         }
     }
+
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << temp;
     vector<uint8_t> tep1(tep.begin(),tep.end());
@@ -1809,8 +1860,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int index, vector<std::shared
  * @param pVmEvn
  * @return
  */
-static int ExWriteOutAppOperateFunc(lua_State *L)
-{
+int32_t ExWriteOutAppOperateFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
     CAppFundOperate temp;
@@ -1823,7 +1873,7 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     if (nullptr == pVmRunEnv)
         return RetFalse("pVmRunEnv is nullptr");
 
-    int count = retdata.at(0).get()->size() / size;
+    int32_t count = retdata.at(0).get()->size() / size;
     CDataStream ss(*retdata.at(0), SER_DISK, CLIENT_VERSION);
     LUA_BurnAccountOperate(L, count, BURN_VER_R2);
 
@@ -1831,7 +1881,8 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     while (count--) {
         ss >> temp;
         // soft fork for contract negative money
-        if (GetFeatureForkVersion(pVmRunEnv->GetConfirmHeight()) >= MAJOR_VER_R2 && temp.mMoney < 0) // in case contract uses negative money input
+        if (GetFeatureForkVersion(pVmRunEnv->GetConfirmHeight()) >= MAJOR_VER_R2 &&
+            temp.mMoney < 0)  // in case contract uses negative money input
             return RetFalse("ExWriteOutAppOperateFunc para err2");
 
         pVmRunEnv->InsertOutAPPOperte(temp.GetAppUserV(),temp);
@@ -1843,8 +1894,8 @@ static int ExWriteOutAppOperateFunc(lua_State *L)
     return RetRstBooleanToLua(L, true);
 }
 
-static int ExGetBase58AddrFunc(lua_State *L) {
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
+int32_t ExGetBase58AddrFunc(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
     if (!GetArray(L, retdata) || retdata.size() != 1 || retdata.at(0).get()->size() != 6)
         return RetFalse("ExGetBase58AddrFunc para err0");
@@ -1858,11 +1909,11 @@ static int ExGetBase58AddrFunc(lua_State *L) {
 
     std::string recvaddr( recvKey.begin(), recvKey.end() );
 
-    for(int i = 0; i < recvKey.size(); i++)
+    for(int32_t i = 0; i < recvKey.size(); i++)
         LogPrint("vm", "==============%02X\n", recvKey[i]);
 
     vector<uint8_t> tmp;
-    for(int i = recvKey.size() - 1; i >=0 ; i--)
+    for(int32_t i = recvKey.size() - 1; i >=0 ; i--)
         tmp.push_back(recvKey[i]);
 */
 
@@ -1878,9 +1929,8 @@ static int ExGetBase58AddrFunc(lua_State *L) {
     return RetRstToLua(L, vTemp);
 }
 
-static int ExTransferContractAsset(lua_State *L)
-{
-    vector<std::shared_ptr < vector<uint8_t> > > retdata;
+int32_t ExTransferContractAsset(lua_State *L) {
+    vector<std::shared_ptr<vector<uint8_t>>> retdata;
 
     if (!GetArray(L,retdata) ||retdata.size() != 1 || retdata.at(0).get()->size() != 34)
         return RetFalse(string(__FUNCTION__)+"para  err !");
@@ -1893,7 +1943,7 @@ static int ExTransferContractAsset(lua_State *L)
     vector<uint8_t> recvKey;
     CRegID script = pVmRunEnv->GetContractRegID();
 
-    CRegID sendRegID =pVmRunEnv->GetTxAccount();
+    CRegID sendRegID =pVmRunEnv->GetTxUserRegid();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
     string addr = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(),addr.c_str()+addr.length());
@@ -1909,7 +1959,7 @@ static int ExTransferContractAsset(lua_State *L)
     CKeyID RecvKeyID;
     bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvKey, RecvKeyID);
     if (!bValid) {
-        LUA_BurnAccountGet(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
+        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         LogPrint("vm", "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
@@ -1918,7 +1968,7 @@ static int ExTransferContractAsset(lua_State *L)
     CContractDBCache* pContractScript = pVmRunEnv->GetScriptDB();
 
     if (!pContractScript->GetContractAccount(script, string(sendKey.begin(), sendKey.end()), *temp.get())) {
-        LUA_BurnAccountGet(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
+        LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
         return RetFalse(string(__FUNCTION__) + "para  err3 !");
     }
 
@@ -1926,8 +1976,8 @@ static int ExTransferContractAsset(lua_State *L)
 
     uint64_t nMoney = temp.get()->GetBcoins();
 
-    int count = 0;
-    int i = 0;
+    int32_t count = 0;
+    int32_t i = 0;
     CAppFundOperate op;
     memset(&op, 0, sizeof(op));
 
@@ -1981,7 +2031,7 @@ static int ExTransferContractAsset(lua_State *L)
     return RetRstBooleanToLua(L, true);
 }
 
-static int ExTransferSomeAsset(lua_State *L) {
+int32_t ExTransferSomeAsset(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     CAssetOperate tempAsset;
@@ -2003,7 +2053,7 @@ static int ExTransferSomeAsset(lua_State *L) {
     vector<uint8_t> recvKey;
     CRegID script = pVmRunEnv->GetContractRegID();
 
-    CRegID sendRegID = pVmRunEnv->GetTxAccount();
+    CRegID sendRegID = pVmRunEnv->GetTxUserRegid();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
     string addr      = SendKeyID.ToAddress();
     sendKey.assign(addr.c_str(), addr.c_str() + addr.length());
@@ -2027,11 +2077,11 @@ static int ExTransferSomeAsset(lua_State *L) {
     if (0 == uTransferMoney)
         return RetFalse(string(__FUNCTION__) + " Transfer Money is not valid !");
 
-    int height = assetOp.GetHeight();
+    int32_t height = assetOp.GetHeight();
     if (height < 0)
         return RetFalse(string(__FUNCTION__) + " outHeight is not valid !");
 
-    int i = 0;
+    int32_t i = 0;
     CAppFundOperate op;
     memset(&op, 0, sizeof(op));
     vector<uint8_t> vtag = assetOp.GetFundTagV();
@@ -2065,34 +2115,50 @@ static int ExTransferSomeAsset(lua_State *L) {
 
 }
 
-static int ExGetBlockTimestamp(lua_State *L)
-{
-    int height = 0;
+int32_t ExGetBlockTimestamp(lua_State *L) {
+    CLuaVMRunEnv* pLuaVMRunEnv = GetVmRunEnvByContext(L);
+    int32_t height = 0;
     if (!GetDataInt(L,height))
-        return RetFalse("ExGetBlcokTimestamp para err1");
+        return RetFalse("ExGetBlockTimestamp para err1");
+
+    // only support to get current block time
+    if (height != 0) {
+        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d must be 0\n", height);
+        return 0;
+    }
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBlockTimestamp, BURN_VER_R2);
-    if (height <= 0) {
-        height = chainActive.Height() + height;
-        if(height < 0)
-            return RetFalse("ExGetBlcokTimestamp para err2");
+
+    int32_t curBlockHeight = pLuaVMRunEnv->GetContext().height;
+
+    auto featureForkVersion = GetFeatureForkVersion(curBlockHeight);
+
+    lua_Integer blockTime = 0;
+    if (featureForkVersion == MAJOR_VER_R1) {
+        // compact with old data
+        CBlockIndex *pTipIndex = chainActive.Tip();
+        if (!pTipIndex) {
+            LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), invalid active chain! input_height=%d, curBlockHeight=%d\n",
+                height, curBlockHeight);
+            return 0;
+        }
+        blockTime = chainActive.Tip()->nTime;
+    } else {
+        blockTime = pLuaVMRunEnv->GetContext().block_time;
     }
 
-    CBlockIndex *pIndex = chainActive[height];
-    if (!pIndex)
-        return RetFalse("ExGetBlcokTimestamp get time stamp error");
-
-    if (lua_checkstack(L, sizeof(lua_Integer))) {
-        lua_pushinteger(L, (lua_Integer) pIndex->nTime);
-        return 1;
+    if (!lua_checkstack(L, sizeof(lua_Integer))) {
+        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), lua stack overflow! input_height=%d, curBlockHeight=%d\n",
+            height, curBlockHeight);
+        return 0;
     }
 
-    LogPrint("vm", "%s\n", "ExGetBlcokTimestamp stack overflow");
-    return 0;
+    lua_pushinteger(L, blockTime);
+    return 1;
 }
 
 
-static int ExLimitedRequire(lua_State *L) {
+int32_t ExLimitedRequire(lua_State *L) {
     const char* name = luaL_checkstring(L, 1);
     if (strcmp(name, "mylib") != 0) {
         return luaL_error(L, "Only supports to require \"mylib\"");
@@ -2108,9 +2174,9 @@ static int ExLimitedRequire(lua_State *L) {
     return 1;
 }
 
-static int ExLuaPrint(lua_State *L) {
-    int n = lua_gettop(L); /* number of arguments */
-    int i;
+int32_t ExLuaPrint(lua_State *L) {
+    int32_t n = lua_gettop(L); /* number of arguments */
+    int32_t i;
     std::string str = "";
     lua_getglobal(L, "tostring");
     for (i = 1; i <= n; i++) {
@@ -2120,7 +2186,9 @@ static int ExLuaPrint(lua_State *L) {
         lua_pushvalue(L, i);  /* value to print */
         lua_call(L, 1, 1);
         s = lua_tolstring(L, -1, &l); /* get result */
-        if (s == nullptr) return luaL_error(L, "'tostring' must return a string to 'print'");
+        if (s == nullptr)
+            return luaL_error(L, "'tostring' must return a string to 'print'");
+
         if (i == 1) {
             str = std::string(s, l);
         } else {
@@ -2132,6 +2200,250 @@ static int ExLuaPrint(lua_State *L) {
     LUA_BurnFuncData(L, FUEL_CALL_LogPrint, str.size(), 1, FUEL_DATA1_LogPrint, BURN_VER_R2);
     LogPrint("vm", "%s\n", str);
     return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// lua contract api function added in MAJOR_VER_R2
+
+static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, AssetTransfer &transfer) {
+    if (!lua_istable(L,-1)) {
+        LogPrint("vm","ParseAccountAssetTransfer(), transfer param must be table\n");
+        return false;
+    }
+
+    if (!(GetBoolInTable(L, "isContractAccount", transfer.isContractAccount))) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), get isContractAccount failed\n");
+        return false;
+    }
+
+    AccountType uidType;
+    if (!(ParseUidTypeInTable(L, "toAddressType", uidType))) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), get toAddressType failed\n");
+        return false;
+    }
+
+    if (!ParseUidInTable(L, "toAddress", uidType, transfer.toUid)) {
+        LogPrint("vm","ParseAccountAssetTransfer(), get toAddress failed\n");
+        return false;
+    }
+
+    if (!(getStringInTable(L, "tokenType", transfer.tokenType))) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), get tokenType failed\n");
+        return false;
+    }
+
+    auto pErr = vmRunEnv.GetCw()->assetCache.CheckTransferCoinSymbol(transfer.tokenType);
+    if (pErr) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), Invalid tokenType=%s! %s \n", transfer.tokenType, *pErr);
+        return false;
+    }
+
+    vector<uint8_t> amountVector;
+    if (!getArrayInTable(L, "tokenAmount", sizeof(uint64_t), amountVector)) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), get tokenAmount failed\n");
+        return false;
+    };
+    assert(amountVector.size() == sizeof(uint64_t));
+
+    int64_t amount = 0;
+    CDataStream ssAmount(amountVector, SER_DISK, CLIENT_VERSION);
+    ssAmount >> amount;
+
+    if (amount == 0 || !CheckBaseCoinRange(amount) ) {
+        LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", amount);
+        return false;
+    }
+    transfer.tokenAmount = amount;
+
+    return true;
+}
+
+int32_t ExTransferAccountAssetFunc(lua_State *L) {
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
+
+    AssetTransfer transfer;
+    if (!ParseAccountAssetTransfer(L, *pVmRunEnv, transfer)) {
+        LogPrint("vm","[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
+        return 0;
+    }
+
+    if (!pVmRunEnv->TransferAccountAsset(L, {transfer})) {
+        LogPrint("vm","[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
+        return 0;
+    }
+
+    return RetRstBooleanToLua(L, true);
+}
+
+static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vector<AssetTransfer> &transfers) {
+    if (!lua_istable(L, -1)) {
+        LogPrint("vm","[ERROR]%s(), transfers param must be table\n", __FUNCTION__);
+        return false;
+    }
+    //默认栈顶是table，将key入栈
+    size_t sz = lua_rawlen(L, -1);
+    if (sz == 0) {
+        LogPrint("vm","ParseAccountAssetTransfers(), transfers param is empty table\n");
+        return false;
+    }
+    for (size_t i = 1; i <= sz; i++) {
+        AssetTransfer transfer;
+        lua_geti(L, -1, i);
+        if (!ParseAccountAssetTransfer(L, vmRunEnv, transfer)) {
+            LogPrint("vm","ParseAccountAssetTransfers(), ParseAccountAssetTransfer[%d] failed\n", i);
+            lua_pop(L, 1); // pop the read item
+            return false;
+        }
+        lua_pop(L, 1); // pop the read item
+        transfers.push_back(transfer);
+    }
+
+    return true;
+}
+
+int32_t ExTransferAccountAssetsFunc(lua_State *L) {
+
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
+
+    // TODO: parse vector
+    vector<AssetTransfer> transfers;
+    if (!ParseAccountAssetTransfers(L, *pVmRunEnv, transfers)) {
+        LogPrint("vm","[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
+        return 0;
+    }
+
+    if (!pVmRunEnv->TransferAccountAsset(L, transfers)) {
+        LogPrint("vm","[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
+        return 0;
+    }
+
+    return RetRstBooleanToLua(L,true);
+}
+
+/**
+ * GetCurTxInputAsset - lua api
+ * table GetCurTxTransferAsset()
+ * get symbol and amount of current tx asset input by sender of tx
+ * @return table of asset info:
+ * {
+ *     symbol: (string), symbol of current tx input asset
+ *     amount: (integer)   amount of current tx input asset
+ * },
+ */
+int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
+
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
+
+    // check stack to avoid stack overflow
+    if (!lua_checkstack(L, 2)) {
+        LogPrint("vm", "[ERROR] ExGetCurTxInputAssetFunc(), lua stack overflow\n");
+        return 0;
+    }
+
+    LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxInputAsset, BURN_VER_R2);
+
+    lua_createtable (L, 0, 2); // create table object with 2 field
+    // set asset.symbol
+    lua_pushstring(L, pVmRunEnv->GetContext().transfer_symbol.c_str());
+    lua_setfield(L, -2, "symbol");
+
+    // set asset.amount
+    lua_pushinteger(L, pVmRunEnv->GetContext().transfer_amount);
+    lua_setfield(L, -2, "amount");
+
+    return 1;
+}
+
+/**
+ * GetAccountAsset - lua api
+ * boolean GetAccountAsset( transferTable )
+ * get asset of account by address
+ * @param transferTable:          transfer param table
+ * {
+ *   addressType: (number, required)       address type, REGID = 1, BASE58 = 2
+ *   address: (array, required)            address, array format
+ *   tokenType: (string, required)         Token type of the transfer, such as WICC | WUSD
+ * }
+ * @return asset info table or none
+ * {
+ *     symbol: (string), transfer symbol of current tx
+ *     amount: (integer)   transfer amount of current tx
+ * },
+ */
+int32_t ExGetAccountAssetFunc(lua_State *L) {
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
+    if (nullptr == pVmRunEnv) {
+        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        return 0;
+    }
+
+    if (!lua_istable(L,-1)) {
+        LogPrint("vm","[ERROR]%s(), input param must be a table\n", __FUNCTION__);
+        return 0;
+    }
+
+    AccountType uidType;
+    if (!(ParseUidTypeInTable(L, "addressType", uidType))) {
+        LogPrint("vm", "[ERROR]%s(), get addressType failed\n", __FUNCTION__);
+        return 0;
+    }
+
+    CUserID uid;
+    if (!ParseUidInTable(L, "address", uidType, uid)) {
+        LogPrint("vm","[ERROR]%s(), get address failed\n", __FUNCTION__);
+        return 0;
+    }
+
+    TokenSymbol tokenType;
+    if (!(getStringInTable(L, "tokenType", tokenType))) {
+        LogPrint("vm", "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
+        return 0;
+    }
+    auto pErr = pVmRunEnv->GetCw()->assetCache.CheckTransferCoinSymbol(tokenType);
+    if (pErr) {
+        LogPrint("vm", "[ERROR]%s(), Invalid tokenType=%s! %s \n", __FUNCTION__, tokenType, *pErr);
+        return 0;
+    }
+    LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
+
+    auto pAccount = make_shared<CAccount>();
+    if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *pAccount)) {
+        LogPrint("vm", "[ERROR]%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
+        return 0;
+    }
+
+    uint64_t value;
+    if (!pAccount->GetBalance(tokenType, FREE_VALUE, value)) {
+        value = 0;
+    }
+
+    // check stack to avoid stack overflow
+    if (!lua_checkstack(L, 2)) {
+        LogPrint("vm", "[ERROR] lua stack overflow\n");
+        return 0;
+    }
+    lua_createtable (L, 0, 2); // create table object with 2 field
+    // set asset.symbol
+    lua_pushstring(L, tokenType.c_str());
+    lua_setfield(L, -2, "symbol");
+
+    // set asset.amount
+    lua_pushinteger(L, value);
+    lua_setfield(L, -2, "amount");
+
+    return 1;
 }
 
 static const luaL_Reg mylib[] = {
@@ -2181,6 +2493,13 @@ static const luaL_Reg mylib[] = {
     {"TransferSomeAsset",           ExTransferSomeAsset},
     {"GetBlockTimestamp",           ExGetBlockTimestamp},
 
+///////////////////////////////////////////////////////////////////////////////
+// new function add in MAJOR_VER_R2
+    {"TransferAccountAsset",        ExTransferAccountAssetFunc},
+    {"TransferAccountAssets",       ExTransferAccountAssetsFunc},
+    {"GetCurTxInputAsset",          ExGetCurTxInputAssetFunc},
+    {"GetAccountAsset",             ExGetAccountAssetFunc},
+
     {nullptr, nullptr}
 
 };
@@ -2188,7 +2507,7 @@ static const luaL_Reg mylib[] = {
 // replace all global(in the _G) functions
 static const luaL_Reg baseLibsEx[] = {
     {"print",                       ExLuaPrint},        // replace default print function
-    {"require",                     ExLimitedRequire},  // repalace default require function
+    {"require",                     ExLimitedRequire},  // replace default require function
 
     {nullptr, nullptr}
 };
@@ -2196,9 +2515,9 @@ static const luaL_Reg baseLibsEx[] = {
 /*
  * 注册一个新Lua模块*/
 #ifdef WIN_DLL
-    extern "C" __declspec(dllexport)int luaopen_mylib(lua_State *L)
+    extern "C" __declspec(dllexport)int32_t luaopen_mylib(lua_State *L)
 #else
-    LUAMOD_API int luaopen_mylib(lua_State *L)
+    LUAMOD_API int32_t luaopen_mylib(lua_State *L)
 #endif
 
 {

@@ -11,7 +11,7 @@
 #include "commons/uint256.h"
 #include "config/configuration.h"
 #include "init.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_value.h"
 #include "main.h"
 #include "rpc/core/rpcserver.h"
 #include "sync.h"
@@ -41,16 +41,7 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     result.push_back(Pair("tx",             txs));
     result.push_back(Pair("time",           block.GetBlockTime()));
     result.push_back(Pair("nonce",          (uint64_t)block.GetNonce()));
-    // TODO: Fees
-    // CBlockRewardTx* pBlockRewardTx = (CBlockRewardTx*)block.vptx[0].get();
-    // uint64_t reward           = pBlockRewardTx->reward;
-    // int64_t fees                   = block.GetFees();
-    // int64_t fuel                   = block.GetFuel();
-    // uint64_t profits               = reward - (fees - fuel);
-    // result.push_back(Pair("fuel", (int)block.GetFuel()));
-    // result.push_back(Pair("fuel_rate", block.GetFuelRate()));
-    // result.push_back(Pair("profits", profits));
-    // result.push_back(Pair("fees", fees));
+
     if (pBlockIndex->pprev)
         result.push_back(Pair("previous_block_hash", pBlockIndex->pprev->GetBlockHash().GetHex()));
     CBlockIndex* pNext = chainActive.Next(pBlockIndex);
@@ -59,10 +50,14 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
 
     Array prices;
     for (auto &item : block.GetBlockMedianPrice()) {
+        if (item.second == 0) {
+            continue;
+        }
+
         Object price;
         price.push_back(Pair("coin_symbol",   item.first.first));
         price.push_back(Pair("price_symbol",  item.first.second));
-        price.push_back(Pair("price",         (double)item.second/kPercentBoost));
+        price.push_back(Pair("price",         (double) item.second / PRICE_BOOST));
         prices.push_back(price);
     }
     result.push_back(Pair("median_price", prices));
@@ -70,20 +65,43 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     return result;
 }
 
-Value getblockcount(const Array& params, bool fHelp)
-{
+Value getblockcount(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0)
         throw runtime_error(
             "getblockcount\n"
             "\nReturns the number of blocks in the longest chain.\n"
             "\nResult:\n"
             "\n    (numeric) The current block count\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblockcount", "")
-            + HelpExampleRpc("getblockcount", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getblockcount", "") + "\nAs json rpc\n" + HelpExampleRpc("getblockcount", ""));
 
     return chainActive.Height();
+}
+
+Value getfcoingenesistxinfo(const Array& params, bool fHelp) {
+    Object output;
+
+    NET_TYPE netType = SysCfg().NetworkID();
+    uint32_t nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(netType);
+
+    // Stablecoin Global Reserve Account with its initial reseve creation
+    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
+                                               FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT * COIN);
+    pTx->nVersion = INIT_TX_VERSION;
+    output.push_back(Pair("fcoin_global_account_txid", pTx->GetHash().GetHex()));
+
+    // FundCoin Genesis Account with the total FundCoin release creation
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(netType))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT,
+                                          FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN);
+    output.push_back(Pair("fcoin_genesis_account_txid", pTx->GetHash().GetHex()));
+
+    // DEX Order Matching Service Account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(netType))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT, 0);
+    output.push_back(Pair("dex_match_account_txid", pTx->GetHash().GetHex()));
+
+    return output;
 }
 
 Value getrawmempool(const Array& params, bool fHelp)
@@ -93,7 +111,8 @@ Value getrawmempool(const Array& params, bool fHelp)
             "getrawmempool ( verbose )\n"
             "\nReturns all transaction ids in memory pool as a json or an array of string transaction ids.\n"
             "\nArguments:\n"
-            "1. verbose           (boolean, optional, default=false) true for a json object, false for array of transaction ids\n"
+            "1. verbose           (boolean, optional, default=false) true for a json object, false for array of "
+            "transaction ids\n"
             "\nResult: (for verbose = false):\n"
             "[                     (json array of string)\n"
             "  \"txid\"     (string) The transaction id\n"
@@ -105,15 +124,13 @@ Value getrawmempool(const Array& params, bool fHelp)
             "    \"fee\" : n,              (numeric) transaction fee in WICC coins\n"
             "    \"size\" : n,             (numeric) transaction size in bytes\n"
             "    \"priority\" : n,         (numeric) priority\n"
-            "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 GMT\n"
+            "    \"time\" : n,             (numeric) local time transaction entered pool in seconds since 1 Jan 1970 "
+            "GMT\n"
             "    \"height\" : n,           (numeric) block height when transaction entered pool\n"
             "  }, ...\n"
             "]\n"
-            "\nExamples\n"
-            + HelpExampleCli("getrawmempool", "")
-            + HelpExampleCli("getrawmempool", "false")
-            + HelpExampleRpc("getrawmempool", "true")
-        );
+            "\nExamples\n" +
+            HelpExampleCli("getrawmempool", "true") + "\nAs json rpc\n" + HelpExampleRpc("getrawmempool", "true"));
 
     bool fVerbose = false;
     if (params.size() > 0)
@@ -149,15 +166,17 @@ Value getrawmempool(const Array& params, bool fHelp)
     }
 }
 
-Value getblock(const Array& params, bool fHelp)
-{
+Value getblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 1 || params.size() > 2) {
-        throw runtime_error("getblock \"hash or height\" ( verbose )\n"
+        throw runtime_error(
+            "getblock \"hash or height\" [\"verbose\"]\n"
             "\nIf verbose is false, returns a string that is serialized, hex-encoded data for block 'hash'.\n"
             "If verbose is true, returns an Object with information about block <hash>.\n"
             "\nArguments:\n"
-            "1. \"hash or height\"(string or numeric,required) string for the block hash, or numeric for the block height\n"
-            "2. verbose           (boolean, optional, default=true) true for a json object, false for the hex encoded data\n"
+            "1.\"hash or height\"   (string or numeric, required) string for the block hash, or numeric for the block "
+            "height\n"
+            "2.\"verbose\"          (boolean, optional, default=true) true for a json object, false for the hex "
+            "encoded data\n"
             "\nResult (for verbose = true):\n"
             "{\n"
             "  \"hash\" : \"hash\",     (string) the block hash (same as provided)\n"
@@ -180,9 +199,10 @@ Value getblock(const Array& params, bool fHelp)
             "}\n"
             "\nResult (for verbose=false):\n"
             "\"data\"             (string) A string that is serialized, hex-encoded data for block 'hash'.\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getblock", "\"1000\"")
-            + HelpExampleRpc("getblock", "\"00000000c937983704a73af28acdec37b049d214adbda81d7e2a3dd146f6ed09\""));
+            "\nExamples:\n" +
+            HelpExampleCli("getblock", "\"d640d051704155b1fd3ec8d0331497448c259b0ab0499e109da7ae2bc7423bc2\"") +
+            "\nAs json rpc\n" +
+            HelpExampleRpc("getblock", "\"d640d051704155b1fd3ec8d0331497448c259b0ab0499e109da7ae2bc7423bc2\""));
     }
 
     // RPCTypeCheck(params, boost::assign::list_of(str_type)(bool_type)); disable this to allow either string or int argument
@@ -223,20 +243,18 @@ Value getblock(const Array& params, bool fHelp)
     return BlockToJSON(block, pBlockIndex);
 }
 
-Value verifychain(const Array& params, bool fHelp)
-{
+Value verifychain(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 2) {
         throw runtime_error(
             "verifychain ( checklevel numofblocks )\n"
             "\nVerifies blockchain database.\n"
             "\nArguments:\n"
-            "1. checklevel   (numeric, optional, 0-4, default=3) How thorough the block verification is.\n"
-            "2. numofblocks    (numeric, optional, default=1288, 0=all) The number of blocks to check.\n"
+            "1.\"checklevel\"   (numeric, optional, 0-4, default=3) How thorough the block verification is.\n"
+            "2.\"numofblocks\"  (numeric, optional, default=1288, 0=all) The number of blocks to check.\n"
             "\nResult:\n"
             "true|false       (boolean) Verified Okay or not\n"
-            "\nExamples:\n"
-            + HelpExampleCli("verifychain", "")
-            + HelpExampleRpc("verifychain", "( 4 10000 )"));
+            "\nExamples:\n" +
+            HelpExampleCli("verifychain", "") + "\nAs json rpc\n" + HelpExampleRpc("verifychain", "4, 10000"));
     }
 
     int nCheckLevel = SysCfg().GetArg("-checklevel", 3);
@@ -249,22 +267,23 @@ Value verifychain(const Array& params, bool fHelp)
     return VerifyDB(nCheckLevel, nCheckDepth);
 }
 
-Value getcontractregid(const Array& params, bool fHelp)
-{
+Value getcontractregid(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
-        throw runtime_error("getcontractregid \n"
+        throw runtime_error(
+            "getcontractregid\n"
             "\nreturn an object with regid\n"
             "\nArguments:\n"
             "1. txid   (string, required) the contract registration txid.\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleRpc("getcontractregid", "5zQPcC1YpFMtwxiH787pSXanUECoGsxUq3KZieJxVG"));
+            "\nExamples:\n" +
+            HelpExampleCli("getcontractregid", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\"") + "\nAs json rpc\n" +
+            HelpExampleRpc("getcontractregid", "\"wNw1Rr8cHPerXXGt6yxEkAPHDXmzMiQBn4\""));
     }
 
     uint256 txid(uint256S(params[0].get_str()));
 
     int index = 0;
-    int nBlockHeight = GetTxConfirmHeight(txid, *pCdMan->pContractCache);
+    int nBlockHeight = GetTxConfirmHeight(txid, *pCdMan->pBlockCache);
     if (nBlockHeight > chainActive.Height()) {
         throw runtime_error("height bigger than tip block");
     } else if (-1 == nBlockHeight) {
@@ -386,7 +405,8 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
     CRegID srcRegId("0-1");
     CRegID desRegId("0-1");
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
-    uint64_t llFees         = SysCfg().GetTxFee();
+    uint64_t llFees         = 0;
+    GetTxMinFee(BCOIN_TRANSFER_TX, chainActive.Height(), SYMB::WICC, llFees);
 
     while (true) {
         // add interruption point
@@ -522,7 +542,9 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
     CRegID txUid("0-1");
     CRegID appUid(regid);
     static uint64_t llValue = 10000;  // use static variable to keep autoincrement
-    uint64_t llFees         = 10 * SysCfg().GetTxFee();
+    uint64_t llFees         = 0;
+    GetTxMinFee(LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, llFees);
+
     // hex(whmD4M8Q8qbEx6R5gULbcb5ZkedbcRDGY1) =
     // 77686d44344d3851387162457836523567554c626362355a6b656462635244475931
     string arguments = ParseHexStr("77686d44344d3851387162457836523567554c626362355a6b656462635244475931");

@@ -7,7 +7,7 @@
 #include "commons/util.h"
 
 #include "config/chainparams.h"
-#include <compat/compat.h>
+#include "commons/compat/endian.h"
 #include <commons/util.h>
 #include <netbase.h>
 #include <init.h>
@@ -32,7 +32,7 @@
 #include <event2/keyvalq_struct.h>
 #include <event2/util.h>
 
-#include <support/events.h>
+#include "commons/support/events.h"
 
 #ifdef EVENT__HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -412,8 +412,7 @@ bool InitHTTPServer() {
     }
 
     LogPrint("RPC", "Initialized HTTP server\n");
-    int workQueueDepth =
-        std::max((long)SysCfg().GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L);
+    int32_t workQueueDepth = std::max<int32_t>(SysCfg().GetArg("-rpcworkqueue", DEFAULT_HTTP_WORKQUEUE), 1L);
     LogPrint("RPC", "HTTP: creating work queue of depth %d\n", workQueueDepth);
 
     workQueue = new WorkQueue<HTTPClosure>(workQueueDepth);
@@ -439,7 +438,7 @@ bool UpdateHTTPServerLogging(bool enable) {
 
 void StartHTTPServer() {
     LogPrint("RPC", "Starting HTTP server\n");
-    int rpcThreads = std::max((long)SysCfg().GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L);
+    int32_t rpcThreads = std::max<int32_t>(SysCfg().GetArg("-rpcthreads", DEFAULT_HTTP_THREADS), 1L);
     LogPrint("RPC", "HTTP: starting %d worker threads\n", rpcThreads);
     threadHTTP = std::thread(ThreadHTTP, eventBase);
 

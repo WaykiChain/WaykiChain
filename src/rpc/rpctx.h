@@ -7,8 +7,8 @@
 #define RPC_RPCTX_H
 
 #include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace std;
 using namespace json_spirit;
@@ -16,11 +16,14 @@ using namespace json_spirit;
 class CBaseTx;
 
 extern Value submitaccountregistertx(const Array& params, bool fHelp);
-extern Value submitcontractcalltx(const Array& params, bool fHelp);
 extern Value submitcontractdeploytx(const Array& params, bool fHelp);
+extern Value submitcontractcalltx(const Array& params, bool fHelp);
 extern Value submitdelegatevotetx(const Array& params, bool fHelp);
+extern Value submitucontractdeploytx(const Array& params, bool fHelp);
+extern Value submitucontractcalltx(const Array& params, bool fHelp);
 
 extern Value gettxdetail(const Array& params, bool fHelp);
+extern Value getclosedcdp(const Array& params, bool fHelp);
 extern Value sign(const Array& params, bool fHelp);
 extern Value getaccountinfo(const Array& params, bool fHelp);
 extern Value disconnectblock(const Array& params, bool fHelp);
@@ -35,14 +38,12 @@ extern Value gethash(const Array& params, bool fHelp);
 extern Value validateaddr(const Array& params, bool fHelp);
 extern Object TxToJSON(CBaseTx *pTx);
 extern Value gettotalcoins(const Array& params, bool fHelp);
-extern Value gettotalassets(const Array& params, bool fHelp);
 
 extern Value getsignature(const Array& params, bool fHelp);
 
 extern Value listaddr(const Array& params, bool fHelp);
 extern Value listtx(const Array& params, bool fHelp);
 extern Value listcontractassets(const Array& params, bool fHelp);
-extern Value listunconfirmedtx(const Array& params, bool fHelp);
 extern Value listcontracts(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value listdelegates(const Array& params, bool fHelp);

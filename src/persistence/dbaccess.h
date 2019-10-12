@@ -11,8 +11,10 @@
 #include "leveldbwrapper.h"
 
 #include <string>
-#include <vector>
 #include <tuple>
+#include <vector>
+
+using namespace std;
 
 /**
  * Empty functions
@@ -22,6 +24,10 @@ namespace db_util {
     // bool
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
+
+    // int32_t
+    inline bool IsEmpty(const int32_t val) { return val == false; }
+    inline void SetEmpty(int32_t &val) { val = false; }
 
     // uint8_t
     inline bool IsEmpty(const uint8_t val) { return val == 0; }
@@ -144,9 +150,9 @@ namespace db_util {
 
 class CDBAccess {
 public:
-    CDBAccess(DBNameType dbNameTypeIn, size_t nCacheSize, bool fMemory, bool fWipe) :
+    CDBAccess(DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
               dbNameType(dbNameTypeIn),
-              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), nCacheSize, fMemory, fWipe ) {}
+              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>
@@ -174,22 +180,29 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; (count < maxNum) && pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (keys.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                auto ret = keys.emplace(key);
-                assert(ret.second);  // TODO: throw error
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
 
-                ++count;
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (keys.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    auto ret = keys.emplace(key);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
+                    ++count;
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -208,17 +221,24 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            // Got an valid element.
-            leveldb::Slice slValue = pCursor->value();
-            CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-            ds >> value;
-            auto ret = elements.emplace(key, value);
-            assert(ret.second);  // TODO: throw error
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
+
+                // Got an valid element.
+                leveldb::Slice slValue = pCursor->value();
+                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                ds >> value;
+                auto ret = elements.emplace(key, value);
+                if (!ret.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
+            }
         }
 
         return true;
@@ -239,62 +259,78 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (elements.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
+                    break;
+                }
+
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (elements.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    leveldb::Slice slValue = pCursor->value();
+                    CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                    ds >> value;
+                    auto ret = elements.emplace(key, value);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
+    // map<std::pair<string, uint256>, ValueType>
     template <typename ValueType>
     bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix,
-                        set<std::pair<string, string>> &expiredKeys,
-                        map<std::pair<string, string>, ValueType> &elements) {
-        std::pair<string, string> key;
+                        set<std::pair<string, uint256>> &expiredKeys,
+                        set<ValueType> &elements) {
+        std::pair<string, uint256> key;
         ValueType value;
         shared_ptr<leveldb::Iterator> pCursor = NewIterator();
 
         CDataStream ssKey(SER_DISK, CLIENT_VERSION);
         const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
         ssKey.write(keyPrefix.c_str(), keyPrefix.size());
-        ssKey << prefix;  // write the prefix
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) != prefix) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (elements.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) > prefix) {
+                    break;
+                }
+
+                if (expiredKeys.count(key)) {
+                    continue;
+                }
+
                 leveldb::Slice slValue = pCursor->value();
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
-                auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
+
+                if (elements.count(value)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    auto ret = elements.emplace(value);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -313,23 +349,30 @@ public:
         pCursor->Seek(ssKey.str());
 
         for (; pCursor->Valid(); pCursor->Next()) {
-            leveldb::Slice slKey = pCursor->key();
-            if (!dbk::ParseDbKey(slKey, prefixType, key)) {
-                break;
-            }
+            boost::this_thread::interruption_point();
 
-            if (expiredKeys.count(key)) {
-                continue;
-            } else if (elements.count(key)) {
-                // skip it if the element existed in memory cache(upper level cache)
-                continue;
-            } else {
-                // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
-                CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                ds >> value;
-                auto ret = elements.emplace(key, value);
-                assert(ret.second);  // TODO: throw error
+            try {
+                leveldb::Slice slKey = pCursor->key();
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) {
+                    break;
+                }
+
+                if (expiredKeys.count(key)) {
+                    continue;
+                } else if (elements.count(key)) {
+                    // skip it if the element existed in memory cache(upper level cache)
+                    continue;
+                } else {
+                    // Got an valid element.
+                    leveldb::Slice slValue = pCursor->value();
+                    CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
+                    ds >> value;
+                    auto ret = elements.emplace(key, value);
+                    if (!ret.second)
+                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+                }
+            } catch (std::exception &e) {
+                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
         }
 
@@ -370,15 +413,15 @@ public:
 
     DBNameType GetDbNameType() const { return dbNameType; }
 
-    shared_ptr<leveldb::Iterator> NewIterator() {
-        return shared_ptr<leveldb::Iterator>(db.NewIterator());
+    std::shared_ptr<leveldb::Iterator> NewIterator() {
+        return std::shared_ptr<leveldb::Iterator>(db.NewIterator());
     }
 private:
     DBNameType dbNameType;
     mutable CLevelDBWrapper db; // // TODO: remove the mutable declare
 };
 
-template<int PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
+template<int32_t PREFIX_TYPE_VALUE, typename __KeyType, typename __ValueType>
 class CCompositeKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
@@ -394,7 +437,7 @@ public:
      */
     CCompositeKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CCompositeKVCache(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn): pBase(pBaseIn),
+    CCompositeKVCache(CCompositeKVCache *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     };
@@ -405,7 +448,7 @@ public:
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
 
-    void SetBase(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBaseIn) {
+    void SetBase(CCompositeKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
         assert(mapData.empty());
         pBase = pBaseIn;
@@ -451,9 +494,10 @@ public:
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
-    bool GetAllElements(const string &prefix, map<std::pair<string, string>, ValueType> &elements) {
-        set<std::pair<string, string>> expiredKeys;
+    // NOT a general implementation to acquire all elements from memory and LDB.
+    // map<std::pair<string, uint256>, ValueType>
+    bool GetAllElements(const string &prefix, set<ValueType> &elements) {
+        set<std::pair<string, uint256>> expiredKeys;
         if (!GetAllElements(prefix, expiredKeys, elements)) {
             // TODO: log
             return false;
@@ -492,37 +536,14 @@ public:
         if (it == mapData.end()) {
             auto emptyValue = db_util::MakeEmptyValue<ValueType>();
             auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            assert(newRet.second); // TODO: if false then throw error
+            if (!newRet.second)
+                throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
             it = newRet.first;
         }
         AddOpLog(key, it->second);
         it->second = value;
         return true;
-    }
-
-    bool SetData(const KeyType &key, const ValueType &value, CDbOpLog &dbOpLog) {
-        if (db_util::IsEmpty(key)) {
-            return false;
-        }
-        auto it = GetDataIt(key);
-        if (it == mapData.end()) {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            assert(newRet.second); // TODO: if false then throw error
-            it = newRet.first;
-        }
-        dbOpLog.Set(key, it->second);
-        it->second = value;
-        return true;
-    }
-
-    bool SetData(const KeyType &key, const ValueType &value, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (SetData(key, value, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
     }
 
     bool HaveData(const KeyType &key) const {
@@ -545,32 +566,6 @@ public:
         return true;
     }
 
-    bool EraseData(const KeyType &key, CDbOpLog &dbOpLog) {
-        if (db_util::IsEmpty(key)) {
-            return false;
-        }
-        Iterator it = GetDataIt(key);
-        if (it != mapData.end()) {
-            dbOpLog.Set(key, it->second);
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(key, *emptyValue);
-        }
-        if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            db_util::SetEmpty(it->second);
-        }
-        return true;
-    }
-
-    bool EraseData(const KeyType &key, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (EraseData(key, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
-    }
-
     void Clear() {
         mapData.clear();
     }
@@ -590,37 +585,26 @@ public:
         Clear();
     }
 
-    bool UndoData(const CDbOpLog &dbOpLog) {
+    void UndoData(const CDbOpLog &dbOpLog) {
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
         mapData[key] = value;
-        return true;
     }
 
-    bool UndoDatas() {
+    bool UndoData() {
         if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (dbOpLogs != nullptr) {
-                for (auto &dbOpLog : *dbOpLogs) {
-                    if (!UndoData(dbOpLog)) return false;
+            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (pDbOpLogs != nullptr) {
+                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
+                    UndoData(*it);
                 }
             }
             return true;
+        } else {
+            assert(false && "must set the pDbOpLogMap first");
+            return false;
         }
-        return false;
-    }
-
-    bool UndoData(CDBOpLogMap &dbOpLogMap) {
-        const CDbOpLogs *dbOpLogs = dbOpLogMap.GetDbOpLogsPtr(PREFIX_TYPE);
-        for (auto &dbOpLog : *dbOpLogs) {
-            if (!UndoData(dbOpLog)) return false;
-        }
-        return true;
-    }
-
-    void ParseUndoData(const CDbOpLog &dbOpLog, KeyType &key, ValueType &value) {
-        dbOpLog.Get(key, value);
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
@@ -642,13 +626,15 @@ private:
         Iterator it = mapData.find(key);
         if (it != mapData.end()) {
             return it;
-        } else if (pBase != nullptr){
+        } else if (pBase != nullptr) {
             // find key-value at base cache
             auto baseIt = pBase->GetDataIt(key);
             if (baseIt != pBase->mapData.end()) {
                 // the found key-value add to current mapData
                 auto newRet = mapData.emplace(key, baseIt->second);
-                assert(newRet.second); // TODO: throw error
+                if (!newRet.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
                 return newRet.first;
             }
         } else if (pDbAccess != NULL) {
@@ -656,7 +642,9 @@ private:
             auto pDbValue = db_util::MakeEmptyValue<ValueType>();
             if (pDbAccess->GetData(PREFIX_TYPE, key, *pDbValue)) {
                 auto newRet = mapData.emplace(key, *pDbValue);
-                assert(newRet.second); // TODO: throw error
+                if (!newRet.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+
                 return newRet.first;
             }
         }
@@ -726,27 +714,21 @@ private:
         return true;
     }
 
-    // map<std::pair<string, string>, ValueType>
-    bool GetAllElements(const string &prefix, set<std::pair<string, string>> &expiredKeys,
-                        map<std::pair<string, string>, ValueType> &elements) {
+    // map<std::pair<string, uint256>, ValueType>
+    bool GetAllElements(const string &prefix, set<std::pair<string, uint256>> &expiredKeys, set<ValueType> &elements) {
         if (!mapData.empty()) {
-            // Tips: the final prefix is consist of std::pair<prefix, string()>.
-            auto boundary = mapData.upper_bound(std::make_pair(prefix, string("")));
+            static uint256 dummy = uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+            auto boundary = mapData.upper_bound(std::make_pair(prefix, dummy));
 
-            if (boundary != mapData.end()) {
-                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
-                    if (db_util::IsEmpty(iter->second)) {
-                        expiredKeys.insert(iter->first);
-                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
-                        // TODO: log
-                        continue;
-                    } else if (std::get<0>(iter->first) != prefix) {
-                        // break the loop if prefix does not match.
-                        break;
-                    } else {
-                        // Got a valid element.
-                        elements.emplace(iter->first, iter->second);
-                    }
+            for (auto iter = mapData.begin(); iter != boundary; ++iter) {
+                if (db_util::IsEmpty(iter->second)) {
+                    expiredKeys.insert(iter->first);
+                } else if (expiredKeys.count(iter->first) || elements.count(iter->second)) {
+                    // Skip
+                    continue;
+                } else {
+                    // Got a valid element.
+                    elements.emplace(iter->second);
                 }
             }
         }
@@ -800,7 +782,7 @@ private:
 };
 
 
-template<int PREFIX_TYPE_VALUE, typename ValueType>
+template<int32_t PREFIX_TYPE_VALUE, typename ValueType>
 class CSimpleKVCache {
 public:
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
@@ -810,7 +792,7 @@ public:
      */
     CSimpleKVCache(): pBase(nullptr), pDbAccess(nullptr) {};
 
-    CSimpleKVCache(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn): pBase(pBaseIn),
+    CSimpleKVCache(CSimpleKVCache *pBaseIn): pBase(pBaseIn),
         pDbAccess(nullptr) {
         assert(pBaseIn != nullptr);
     }
@@ -820,9 +802,26 @@ public:
         assert(pDbAccessIn != nullptr);
     }
 
-    void SetBase(CSimpleKVCache<PREFIX_TYPE, ValueType> *pBaseIn) {
+    CSimpleKVCache(const CSimpleKVCache &other) {
+        operator=(other);
+    }
+
+    CSimpleKVCache& operator=(const CSimpleKVCache& other) {
+        pBase = other.pBase;
+        pDbAccess = other.pDbAccess;
+        // deep copy for shared_ptr
+        if (other.ptrData == nullptr) {
+            ptrData = nullptr;
+        } else {
+            ptrData = make_shared<ValueType>(*other.ptrData);
+        }
+        pDbOpLogMap = other.pDbOpLogMap;
+        return *this;
+    }
+
+    void SetBase(CSimpleKVCache *pBaseIn) {
         assert(pDbAccess == nullptr);
-        assert(!ptrData);
+        assert(!ptrData && "Must SetBase before have any data");
         pBase = pBaseIn;
     }
 
@@ -831,6 +830,10 @@ public:
     }
 
     uint32_t GetCacheSize() const {
+        if (!ptrData) {
+            return 0;
+        }
+
         return ::GetSerializeSize(*ptrData, SER_DISK, CLIENT_VERSION);
     }
 
@@ -844,36 +847,12 @@ public:
     }
 
     bool SetData(const ValueType &value) {
-        if (ptrData) {
-            AddOpLog(*ptrData);
-            *ptrData = value;
-        } else {
-            AddOpLog(*(db_util::MakeEmptyValue<ValueType>()));
-            ptrData = std::make_shared<ValueType>(value);
+        if (!ptrData) {
+            ptrData = db_util::MakeEmptyValue<ValueType>();
         }
+        AddOpLog(*ptrData);
+        *ptrData = value;
         return true;
-    }
-
-    bool SetData(const ValueType &value, CDbOpLog &dbOpLog) {
-        if (ptrData) {
-            dbOpLog.Set(*ptrData);
-            *ptrData = value;
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(*emptyValue);
-            ptrData = std::make_shared<ValueType>(value);
-        }
-        return true;
-    }
-
-
-    bool SetData(const ValueType &value, CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (SetData(value, dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
     }
 
     bool HaveData() const {
@@ -890,32 +869,8 @@ public:
         return true;
     }
 
-    bool EraseData(CDbOpLog &dbOpLog) {
-        auto ptr = GetDataPtr();
-        if (ptr) {
-            dbOpLog.Set(*ptrData);
-        } else {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            dbOpLog.Set(*emptyValue);
-        }
-        if (ptr && !db_util::IsEmpty(*ptr)) {
-            db_util::SetEmpty(*ptr);
-        }
-        return true;
-    }
-
-    bool EraseData(CDBOpLogMap &dbOpLogMap) {
-        CDbOpLog dbOpLog;
-        if (EraseData(dbOpLog)) {
-            dbOpLogMap.AddOpLog(PREFIX_TYPE, dbOpLog);
-            return true;
-        }
-        return false;
-    }
-
     void Clear() {
-        if (ptrData)
-            ptrData = nullptr;
+        ptrData = nullptr;
     }
 
     void Flush() {
@@ -928,30 +883,30 @@ public:
                 assert(pBase == nullptr);
                 pDbAccess->BatchWrite(PREFIX_TYPE, *ptrData);
             }
+            ptrData = nullptr;
         }
-
-        Clear();
     }
 
     void UndoData(const CDbOpLog &dbOpLog) {
         if (!ptrData) {
-            ptrData = make_shared<ValueType>();
+            ptrData = db_util::MakeEmptyValue<ValueType>();
         }
         dbOpLog.Get(*ptrData);
     }
 
-    bool UndoDatas() {
+    bool UndoData() {
         if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *dbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (dbOpLogs != nullptr) {
-                // TODO: rbegin()
-                for (auto &dbOpLog : *dbOpLogs) {
-                    UndoData(dbOpLog);
+            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
+            if (pDbOpLogs != nullptr) {
+                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
+                    UndoData(*it);
                 }
             }
             return true;
+        } else {
+            assert(false && "Must set the pDbOpLogMap first");
+            return false;
         }
-        return false;
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
@@ -964,12 +919,11 @@ private:
         } else if (pBase != nullptr){
             auto ptr = pBase->GetDataPtr();
             if (ptr) {
-                assert(!db_util::IsEmpty(*ptr));
                 ptrData = std::make_shared<ValueType>(*ptr);
                 return ptrData;
             }
         } else if (pDbAccess != NULL) {
-            auto ptrDbData = std::make_shared<ValueType>();
+            auto ptrDbData = db_util::MakeEmptyValue<ValueType>();
 
             if (pDbAccess->GetData(PREFIX_TYPE, *ptrDbData)) {
                 assert(!db_util::IsEmpty(*ptrDbData));
@@ -991,7 +945,7 @@ private:
 private:
     mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
-    mutable std::shared_ptr<ValueType> ptrData;
+    mutable std::shared_ptr<ValueType> ptrData = nullptr;
     CDBOpLogMap *pDbOpLogMap = nullptr;
 };
 

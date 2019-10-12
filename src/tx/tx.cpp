@@ -13,9 +13,9 @@
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
 #include "entities/account.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
-#include "json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_utils.h"
 #include "commons/serialize.h"
 #include "crypto/hash.h"
 #include "commons/util.h"
@@ -75,48 +75,28 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
     return true;
 }
 
-bool CBaseTx::GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                            const int32_t index) {
+bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
     if (txUid.type() == typeid(CPubKey)) {
         account.owner_pubkey = txUid.get<CPubKey>();
 
         CRegID regId;
-        if (cw.accountCache.GetRegId(txUid, regId)) {
+        if (context.pCw->accountCache.GetRegId(txUid, regId)) {
             // account has regid already, return
             return true;
         }
 
         // generate a new regid for the account
-        account.regid = CRegID(height, index);
-        if (!cw.accountCache.SaveAccount(account))
-            return state.DoS(100, ERRORMSG("CBaseTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
+        account.regid = CRegID(context.height, context.index);
+        if (!context.pCw->accountCache.SaveAccount(account))
+            return context.pState->DoS(100, ERRORMSG("CBaseTx::GenerateRegID, save account info error"), WRITE_ACCOUNT_FAIL,
                              "bad-write-accountdb");
     }
 
     return true;
 }
 
-uint64_t CBaseTx::GetFuel(uint32_t nFuelRate) { return nRunStep == 0 ? 0 : ceil(nRunStep / 100.0f) * nFuelRate; }
-
-uint32_t CBaseTx::GetFuelRate(CContractDBCache &scriptDB) {
-    if (nFuelRate > 0)
-        return nFuelRate;
-
-    CDiskTxPos txPos;
-    if (scriptDB.ReadTxIndex(GetHash(), txPos)) {
-        CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
-        CBlockHeader header;
-        try {
-            file >> header;
-        } catch (std::exception &e) {
-            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-        }
-        nFuelRate = header.GetFuelRate();
-    } else {
-        nFuelRate = GetElementForBurn(chainActive.Tip());
-    }
-
-    return nFuelRate;
+uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
+    return nRunStep == 0 || fuelRate == 0 ? 0 : ceil(nRunStep / 100.0f) * fuelRate;
 }
 
 Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -181,4 +161,24 @@ bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) co
         // TODO: need to check other token range
         return amount >= 0;
     }
+}
+
+
+/**################################ Universal Coin Transfer ########################################**/
+
+string SingleTransfer::ToString(const CAccountDBCache &accountCache) const {
+    return strprintf("to_uid=%s, coin_symbol=%s, coin_amount=%llu", to_uid.ToDebugString(), coin_symbol, coin_amount);
+}
+
+Object SingleTransfer::ToJson(const CAccountDBCache &accountCache) const {
+    Object result;
+
+    CKeyID desKeyId;
+    accountCache.GetKeyId(to_uid, desKeyId);
+    result.push_back(Pair("to_uid",      to_uid.ToString()));
+    result.push_back(Pair("to_addr",     desKeyId.ToAddress()));
+    result.push_back(Pair("coin_symbol", coin_symbol));
+    result.push_back(Pair("coin_amount", coin_amount));
+
+    return result;
 }

@@ -18,7 +18,7 @@ bool CDelegateDBCache::LoadTopDelegateList() {
 
     for (const auto &regId : regIds) {
         string strRegId = std::get<1>(regId);
-        delegateRegIds.push_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
+        delegateRegIds.emplace_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
     }
 
     return true;
@@ -38,9 +38,8 @@ bool CDelegateDBCache::GetTopDelegateList(vector<CRegID> &delegatesList) {
     }
 
     if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
-        LogPrint("ERROR", "CDelegateDBCache::GetTopDelegateList, only got %lu delegates(need %u)\n", delegateRegIds.size(),
-                 IniCfg().GetTotalDelegateNum());
-        return false;
+        LogPrint("INFO", "WARNING: CDelegateDBCache::GetTopDelegateList, only got %lu delegates(need %u)\n",
+                 delegateRegIds.size(), IniCfg().GetTotalDelegateNum());
     }
 
     delegatesList = delegateRegIds;
@@ -50,7 +49,7 @@ bool CDelegateDBCache::GetTopDelegateList(vector<CRegID> &delegatesList) {
 
 bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t votes) {
     // If CRegID is empty, ignore received votes for forward compatibility.
-    if (regId.IsEmpty() || votes == 0) {
+    if (regId.IsEmpty()) {
         return true;
     }
 
@@ -66,7 +65,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
 
 bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t votes) {
     // If CRegID is empty, ignore received votes for forward compatibility.
-    if (regId.IsEmpty() || votes == 0) {
+    if (regId.IsEmpty()) {
         return true;
     }
 

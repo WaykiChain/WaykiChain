@@ -13,7 +13,8 @@ private:
     map<CoinPricePair, uint64_t> median_price_points;
 
 public:
-    CBlockPriceMedianTx(): CBaseTx(PRICE_MEDIAN_TX) {}
+    CBlockPriceMedianTx() : CBaseTx(PRICE_MEDIAN_TX) {}
+    CBlockPriceMedianTx(const int32_t validHeight) : CBaseTx(PRICE_MEDIAN_TX) { valid_height = validHeight; }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -44,8 +45,8 @@ public:
 
     bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds) { return true; }
 
-    bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
     bool SetMedianPricePoints(map<CoinPricePair, uint64_t> &mapMedianPricePointsIn) {

@@ -3,16 +3,15 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
-#include "config/configuration.h"
 #include "rpcclient.h"
 
-#include "rpcprotocol.h"
+#include "commons/json/json_spirit_writer_template.h"
 #include "commons/util.h"
-#include "config/chainparams.h" // for Params().RPCPort()
+#include "config/chainparams.h"  // for Params().RPCPort()
+#include "config/configuration.h"
+#include "main.h"
+#include "rpcprotocol.h"
 #include "tx/tx.h"
-
-#include <stdint.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
@@ -21,7 +20,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
-#include "json/json_spirit_writer_template.h"
 
 using namespace std;
 using namespace boost;
@@ -135,7 +133,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "signtxraw"              && n > 1) ConvertTo<Array>(params[1]);
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "getchainstate"          && n > 0) ConvertTo<int32_t>(params[0]);
+    if (strMethod == "getchaininfo"           && n > 0) ConvertTo<int32_t>(params[0]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
@@ -154,17 +152,15 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitcontractcalltx"         && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "submitcontractcalltx"         && n > 5) ConvertTo<int32_t>(params[5]);
 
+    if (strMethod == "submitucontractdeploytx"  && n > 3) ConvertTo<int32_t>(params[3]);
+
+    if (strMethod == "submitucontractcalltx"    && n > 5) ConvertTo<int32_t>(params[5]);
+
     if (strMethod == "listaddr"               && n > 1) ConvertTo<bool>(params[1]);
-    if (strMethod == "listunconfirmedtx"      && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "disconnectblock"        && n > 0) ConvertTo<int32_t>(params[0]);
 
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
-    if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size()<32) ConvertTo<int32_t>(params[0]);}
-
-    /****** generate a digitally signed raw transaction for network submission via submittxraw  **********/
-    if (strMethod == "genmulsigtx"            && n > 2) ConvertTo<double>(params[2]);
-    if (strMethod == "genmulsigtx"            && n > 3) ConvertTo<double>(params[3]);
-    if (strMethod == "genmulsigtx"            && n > 4) ConvertTo<int32_t>(params[4]);
+    if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
 
     /********************************************************************************************************************/
     if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[2]);
@@ -206,7 +202,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     /* for cdp */
     if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]);
 
-    if (strMethod == "submitfcoinstaketx"       && n > 1) ConvertTo<int64_t>(params[1]);
+    if (strMethod == "submitcoinstaketx"        && n > 2) ConvertTo<int64_t>(params[2]);
 
     if (strMethod == "submitcdpredeemtx"        && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitcdpredeemtx"        && n > 3) ConvertTo<int64_t>(params[3]);
@@ -217,7 +213,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
 
     /* vm functions work in vm simulator */
-    if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<uint64_t>(params[3]);
+    if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);
 
     return params;
 }
@@ -297,9 +293,7 @@ string HelpMessageCli(bool mainProgram)
         strUsage += "  -?                     " + _("This help message") + "\n";
         strUsage += "  -conf=<file>           " + _("Specify configuration file (default: ") + IniCfg().GetCoinName() + ".conf)" + "\n";
         strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
-        strUsage += "  -testnet               " + _("Use the test network") + "\n";
-        strUsage += "  -regtest               " + _("Enter regression test mode, which uses a special chain in which blocks can be "
-                                                    "solved instantly. This is intended for regression testing tools and app development.") + "\n";
+        strUsage += "  -nettype=<network>     " + _("Specify network type: main/test/regtest (default: main)") + "\n";
     } else {
         strUsage += _("RPC client options:") + "\n";
     }

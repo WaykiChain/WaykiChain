@@ -1,8 +1,8 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR,       2)
-define(_CLIENT_VERSION_MINOR,       0)
-define(_CLIENT_VERSION_REVISION,    0)
+define(_CLIENT_VERSION_MINOR,       1)
+define(_CLIENT_VERSION_REVISION,    1)
 define(_CLIENT_VERSION_BUILD,       0)
 define(_CLIENT_VERSION_IS_RELEASE,  true)
 define(_COPYRIGHT_YEAR, 2019)
@@ -768,7 +768,7 @@ AC_SUBST(BUILD_TEST_QT)
 AC_SUBST(EVENT_LIBS)
 AC_SUBST(EVENT_PTHREADS_LIBS)
 
-AC_CONFIG_FILES([Makefile src/Makefile src/ptests/Makefile share/setup.nsi share/qt/Info.plist])
+AC_CONFIG_FILES([Makefile src/Makefile src/tests/ptests/Makefile share/setup.nsi share/qt/Info.plist])
 AC_CONFIG_FILES([qa/pull-tester/run-bitcoind-for-test.sh],[chmod +x qa/pull-tester/run-bitcoind-for-test.sh])
 AC_CONFIG_FILES([qa/pull-tester/build-tests.sh],[chmod +x qa/pull-tester/build-tests.sh])
 
@@ -797,7 +797,7 @@ PKGCONFIG_LIBDIR_TEMP="$PKG_CONFIG_LIBDIR"
 unset PKG_CONFIG_LIBDIR
 PKG_CONFIG_LIBDIR="$PKGCONFIG_LIBDIR_TEMP"
 
-ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni"
-AC_CONFIG_SUBDIRS([src/secp256k1])
+ac_configure_args="${ac_configure_args} --disable-shared --with-pic --with-bignum=no --enable-module-recovery --disable-jni CFLAGS='${CFLAGS}'"
+AC_CONFIG_SUBDIRS([src/crypto/secp256k1])
 
 AC_OUTPUT

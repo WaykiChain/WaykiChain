@@ -14,9 +14,9 @@
 #include <map>
 #include <string>
 
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_reader_template.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_writer_template.h"
 using namespace std;
 class CBlockIndex;
 
@@ -111,7 +111,7 @@ extern json_spirit::Value ping(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value addnode(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getaddednodeinfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getnettotals(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getchainstate(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getchaininfo(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value dumpprivkey(const json_spirit::Array& params, bool fHelp); // in rpcdump.cpp
 extern json_spirit::Value importprivkey(const json_spirit::Array& params, bool fHelp);
@@ -155,7 +155,8 @@ extern json_spirit::Value signtxraw(const json_spirit::Array& params, bool fHelp
 extern json_spirit::Value decodetxraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value decodemulsigscript(const json_spirit::Array& params, bool fHelp);
 
-extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp); // in rpcblockchain.cpp
+extern json_spirit::Value getfcoingenesistxinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdifficulty(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getrawmempool(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblock(const json_spirit::Array& params, bool fHelp);
@@ -168,7 +169,7 @@ extern json_spirit::Value startcontracttpstest(const json_spirit::Array& params,
 extern json_spirit::Value getblockfailures(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitpricefeedtx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value submitfcoinstaketx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitcoinstaketx(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitdexbuylimitordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexselllimitordertx(const json_spirit::Array& params, bool fHelp);
@@ -189,6 +190,8 @@ extern json_spirit::Value getusercdp(const json_spirit::Array& params, bool fHel
 
 extern json_spirit::Value submitassetissuetx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitassetupdatetx(const json_spirit::Array& params, bool fHelp);
+
+extern json_spirit::Value getasset(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getassets(const json_spirit::Array& params, bool fHelp);
 
 

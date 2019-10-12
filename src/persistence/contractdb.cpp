@@ -76,9 +76,6 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
 
 bool CContractDBCache::Flush() {
     contractCache.Flush();
-    txOutputCache.Flush();
-    txDiskPosCache.Flush();
-    contractRelatedKidCache.Flush();
     contractDataCache.Flush();
     contractAccountCache.Flush();
 
@@ -87,59 +84,9 @@ bool CContractDBCache::Flush() {
 
 uint32_t CContractDBCache::GetCacheSize() const {
     return contractCache.GetCacheSize() +
-        txOutputCache.GetCacheSize() +
-        txDiskPosCache.GetCacheSize() +
-        contractRelatedKidCache.GetCacheSize() +
         contractDataCache.GetCacheSize() +
         contractAccountCache.GetCacheSize();
 }
-
-bool CContractDBCache::WriteTxOutput(const uint256 &txid, const vector<CVmOperate> &vOutput) {
-    return txOutputCache.SetData(txid, vOutput);
-}
-
-bool CContractDBCache::GetContractAccounts(const CRegID &scriptId, map<string, string> &mapAcc) {
-    return false;
-    /* TODO: GetContractAccounts
-    return pBase->GetContractAccounts(scriptId, mapAcc);
-    */
-}
-
-bool CContractDBCache::GetTxOutput(const uint256 &txid, vector<CVmOperate> &vOutput) {
-    vector<CVmOperate> value;
-    if (!txOutputCache.GetData(txid, value))
-        return false;
-    return true;
-}
-
-bool CContractDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {
-    return txDiskPosCache.GetData(txid, pos);
-}
-
-bool CContractDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
-    return txDiskPosCache.SetData(txid, pos);
-}
-
-bool CContractDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
-    for (auto it : list) {
-        LogPrint("txindex", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
-                it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
-
-        if (!txDiskPosCache.SetData(it.first, it.second))
-            return false;
-    }
-    return true;
-}
-
-bool CContractDBCache::SetTxRelAccout(const uint256 &txid, const set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.SetData(txid, relAccount);
-}
-
-bool CContractDBCache::GetTxRelAccount(const uint256 &txid, set<CKeyID> &relAccount) {
-    return contractRelatedKidCache.GetData(txid, relAccount);
-}
-
-bool CContractDBCache::EraseTxRelAccout(const uint256 &txid) { return contractRelatedKidCache.EraseData(txid); }
 
 shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
     const CRegID &contractRegid, const string &contractKeyPrefix, uint32_t count,

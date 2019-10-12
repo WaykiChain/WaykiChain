@@ -100,7 +100,7 @@ public:
     CBasePrefixIterator(CacheType &dbCache, const PrefixElement &prefixElement)
         : key(), value(), is_valid(false), db_cache(dbCache), prefix_element(prefixElement) {}
 
-    bool IsValid() {return is_valid;}
+    bool IsValid() { return is_valid; }
 };
 
 //CDBPrefixIterator

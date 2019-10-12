@@ -6,10 +6,11 @@
 #ifndef PERSIST_PRICEFEED_H
 #define PERSIST_PRICEFEED_H
 
-#include "entities/account.h"
-#include "entities/id.h"
 #include "block.h"
 #include "commons/serialize.h"
+#include "entities/account.h"
+#include "entities/asset.h"
+#include "entities/id.h"
 #include "tx/tx.h"
 
 #include <map>
@@ -58,6 +59,7 @@ public:
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
+    void Reset();
 
 private:
     bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);

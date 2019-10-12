@@ -14,13 +14,34 @@
 #include "commons/util.h"
 #include "config/version.h"
 
-bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    if (price_points.size() == 0 || price_points.size() > 3) { //FIXME: hardcode here
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, tx price points number not within 1..3"),
-            REJECT_INVALID, "bad-tx-pricepoint-size-error");
+    if (price_points.size() == 0 || price_points.size() > 2) {  // FIXME: hardcode here
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, price points number not within 1..2"), REJECT_INVALID,
+                         "bad-tx-pricepoint-size-error");
+    }
+
+    for (const auto &pricePoint : price_points) {
+        const CoinPricePair &coinPrice = pricePoint.coin_price_pair;
+        if (std::get<0>(coinPrice) != SYMB::WICC && std::get<0>(coinPrice) != SYMB::WGRT) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, coin type should be WICC or WGRT"), REJECT_INVALID,
+                             "bad-tx-coin-type");
+        }
+
+        if (std::get<1>(coinPrice) != SYMB::USD) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, currency type should be USD"), REJECT_INVALID,
+                             "bad-tx-currency-type");
+        }
+
+        const uint64_t &price = pricePoint.price;
+        if (price == 0) {
+            return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, invalid price"), REJECT_INVALID,
+                             "bad-tx-invalid-price");
+        }
     }
 
     CAccount account;
@@ -28,32 +49,33 @@ bool CPriceFeedTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
-    CRegID sendRegId = txUid.get<CRegID>();
-    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a miner
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, txUid %s account is not a delegate error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
-    }
-
-    uint64_t stakedAmountMin;
-    if (!cw.sysParamCache.GetParam(PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, read PRICE_FEED_FCOIN_STAKE_AMOUNT_MIN error",
-                        txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
-    }
-
-    CAccountToken accountToken = account.GetToken(SYMB::WGRT);
-    if (accountToken.staked_amount < stakedAmountMin) // must stake enough fcoins
-        return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, Staked Fcoins insufficient by txUid %s account error",
-                        txUid.ToString()), PRICE_FEED_FAIL, "account-stakedfoins-insufficient");
-
     IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
     return true;
 }
 
-bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
+
+    CRegID sendRegId = txUid.get<CRegID>();
+    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a delegate
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account is not a delegate error",
+                        txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
+    }
+
+    uint64_t stakedAmountMin;
+    if (!cw.sysParamCache.GetParam(PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN, stakedAmountMin)) {
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, read PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN error",
+                        txUid.ToString()), READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
+    }
+    CAccountToken accountToken = account.GetToken(SYMB::WICC);
+    if (accountToken.staked_amount < stakedAmountMin * COIN) // must stake enough bcoins to be a price feeder
+        return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, Staked Bcoins insufficient(%llu vs %llu) by txUid %s account error",
+                        accountToken.voted_amount, stakedAmountMin, txUid.ToString()),
+                        PRICE_FEED_FAIL, "account-staked-boins-insufficient");
 
     if (!account.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, deduct fee from account failed ,regId=%s",
@@ -66,7 +88,7 @@ bool CPriceFeedTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, C
     }
 
     // update the price feed cache accordingly
-    if (!cw.ppCache.AddBlockPricePointInBatch(height, txUid.get<CRegID>(), price_points)) {
+    if (!cw.ppCache.AddBlockPricePointInBatch(context.height, txUid.get<CRegID>(), price_points)) {
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account duplicated price feed exits",
                         txUid.ToString()), PRICE_FEED_FAIL, "duplicated-pricefeed");
     }

@@ -32,20 +32,20 @@ struct CDNSSeedData {
 };
 
 typedef enum {
-    MAIN_NET,          //!< MAIN_NET
-    TEST_NET,          //!< TESTNET
-    REGTEST_NET,       //!< REGTEST_NET
-    MAX_NETWORK_TYPES  //!< MAX_NETWORK_TYPES
+    MAIN_NET            = 0,
+    TEST_NET            = 1,
+    REGTEST_NET         = 2,
+    NULL_NETWORK_TYPE   = 3
 } NET_TYPE;
 
 typedef enum {
-    PUBKEY_ADDRESS,   //!< PUBKEY_ADDRESS
-    SCRIPT_ADDRESS, //!< SCRIPT_ADDRESS
-    SECRET_KEY,       //!< SECRET_KEY
-    EXT_PUBLIC_KEY,   //!< EXT_PUBLIC_KEY
-    EXT_SECRET_KEY,   //!< EXT_SECRET_KEY
-    ACC_ADDRESS,      //!< ACC_ADDRESS
-    MAX_BASE58_TYPES  //!< MAX_BASE58_TYPES
+    PUBKEY_ADDRESS,     //!< PUBKEY_ADDRESS
+    SCRIPT_ADDRESS,     //!< SCRIPT_ADDRESS
+    SECRET_KEY,         //!< SECRET_KEY
+    EXT_PUBLIC_KEY,     //!< EXT_PUBLIC_KEY
+    EXT_SECRET_KEY,     //!< EXT_SECRET_KEY
+    ACC_ADDRESS,        //!< ACC_ADDRESS
+    MAX_BASE58_TYPES    //!< MAX_BASE58_TYPES
 } Base58Type;
 
 /**
@@ -69,17 +69,17 @@ protected:
     mutable bool fBenchmark;
     mutable bool fTxIndex;
     mutable bool fLogFailures;
+    mutable bool fGenReceipt;
     mutable int64_t nTimeBestReceived;
-    mutable uint64_t payTxFee;
-    mutable uint32_t nViewCacheSize;
+    mutable uint32_t nCacheSize;
     mutable int32_t nTxCacheHeight;
     mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
-    mutable bool bContractLog;     // whether to save contract script operation account log
+    mutable int32_t nMaxForkTime;  // to limit the maximum fork time in seconds.
 
 public:
     virtual ~CBaseParams() {}
 
-    virtual bool InitialConfig() {
+    virtual bool InitializeConfig() {
         fServer = GetBoolArg("-rpcserver", false);
 
         m_mapMultiArgs["-debug"].push_back("ERROR");  // Enable ERROR logger by default
@@ -91,13 +91,9 @@ public:
             fPrintLogToFile    = GetBoolArg("-logprinttofile", false);
             fLogPrintFileLine  = GetBoolArg("-logprintfileline", false);
         }
-        int64_t nTransactionFee ;
-        if (ParseMoney(GetArg("-paytxfee", ""), nTransactionFee) && nTransactionFee > 0) {
-            payTxFee = nTransactionFee;
-        }
 
-        nLogMaxSize    = GetArg("-logmaxsize", 100) * 1024 * 1024;
-        bContractLog   = GetBoolArg("-contractlog", false);  // contract account change log
+        nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
+        nMaxForkTime = GetArg("-maxforktime", 24 * 60 * 60);
 
         return true;
     }
@@ -125,19 +121,18 @@ public:
         te += strprintf("fTxIndex:%d\n",                            fTxIndex);
         te += strprintf("fLogFailures:%d\n",                        fLogFailures);
         te += strprintf("nTimeBestReceived:%llu\n",                 nTimeBestReceived);
-        te += strprintf("paytxfee:%llu\n",                          payTxFee);
         te += strprintf("nBlockIntervalPreStableCoinRelease:%u\n",  nBlockIntervalPreStableCoinRelease);
         te += strprintf("nBlockIntervalStableCoinRelease:%u\n",     nBlockIntervalStableCoinRelease);
-        te += strprintf("nViewCacheSize:%u\n",                      nViewCacheSize);
+        te += strprintf("nCacheSize:%u\n",                          nCacheSize);
         te += strprintf("nTxCacheHeight:%u\n",                      nTxCacheHeight);
         te += strprintf("nLogMaxSize:%u\n",                         nLogMaxSize);
+        te += strprintf("nMaxForkTime:%d\n",                        nMaxForkTime);
 
         return te;
     }
 
     virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     int64_t GetTxFee() const;
-    int64_t SetDefaultTxFee(int64_t fee) const;
     virtual string GetDefaultTestDataPath() const {
         char findchar;
         #ifdef WIN32
@@ -184,8 +179,9 @@ public:
     bool IsBenchmark() const { return fBenchmark; }
     bool IsTxIndex() const { return fTxIndex; }
     bool IsLogFailures() const { return fLogFailures; };
+    bool IsGenReceipt() const { return fGenReceipt; };
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
-    uint32_t GetViewCacheSize() const { return nViewCacheSize; }
+    uint32_t GetCacheSize() const { return nCacheSize; }
     int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
     uint32_t GetLogMaxSize() const { return nLogMaxSize; }
     void SetImporting(bool flag) const { fImporting = flag; }
@@ -193,10 +189,9 @@ public:
     void SetBenchMark(bool flag) const { fBenchmark = flag; }
     void SetTxIndex(bool flag) const { fTxIndex = flag; }
     void SetLogFailures(bool flag) const { fLogFailures = flag; }
+    void SetGenReceipt(bool flag) const { fGenReceipt = flag; }
     void SetBestRecvTime(int64_t nTime) const { nTimeBestReceived = nTime; }
-    void SetViewCacheSize(uint32_t nSize) const { nViewCacheSize = nSize; }
-    void SetTxCacheHeight(int32_t height) const { nTxCacheHeight = height; }
-    bool IsContractLogOn() const { return bContractLog; }
+    int32_t GetMaxForkHeight(int32_t currBlockHeight) const;
     const MessageStartChars& MessageStart() const { return pchMessageStart; }
     const vector<uint8_t>& AlertKey() const { return vAlertPubKey; }
     int32_t GetDefaultPort() const { return nDefaultPort; }
@@ -204,8 +199,8 @@ public:
     uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
-    CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, kFcoinGenesisIssueTxIndex); }
-    CRegID GetDexMatchSvcRegId() const    { return CRegID(nStableCoinGenesisHeight, kDexMatchSvcRegisterTxIndex); }
+    CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, 1); }
+    CRegID GetDexMatchSvcRegId() const  { return CRegID(nStableCoinGenesisHeight, 3); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
     virtual const CBlock& GenesisBlock() const = 0;
     const uint256& GetGenesisBlockHash() const { return genesisBlockHash; }
@@ -277,6 +272,6 @@ extern const CBaseParams& SysParamsTest();
 // write for test code
 extern const CBaseParams& SysParamsReg();
 
-extern string initPubKey[];
+extern string initPubKey[3];
 
 #endif

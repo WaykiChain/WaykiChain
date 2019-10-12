@@ -10,8 +10,8 @@
 #include "commons/uint256.h"
 #include "entities/receipt.h"
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 #include <vector>
 
@@ -128,20 +128,6 @@ public:
 
         return CUserID();
     }
-
-    uint8_t GetOpType() const { return opType; }
-
-    bool SetOpType(uint8_t opType) {
-        if ((opType >= ADD_FREE_OP) && (opType <= SUB_TAG_OP)) {
-            this->opType = opType;
-            return true;
-        } else
-            return false;
-    }
-
-    uint32_t GetOutHeight() const { return timeoutHeight; }
-
-    void SetOutHeight(uint32_t timeoutHeightIn) { this->timeoutHeight = timeoutHeightIn; }
 };
 
 class CAppUserAccount {

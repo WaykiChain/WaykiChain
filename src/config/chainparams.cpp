@@ -17,6 +17,8 @@
 #include <boost/algorithm/string/predicate.hpp> // for startswith() and endswith()
 #include <boost/filesystem.hpp>
 
+#include <string>
+#include <iostream>
 #include <memory>
 
 using namespace boost::assign;
@@ -47,13 +49,17 @@ public:
 
         genesis.SetVersion(INIT_BLOCK_VERSION);
         genesis.SetTime(IniCfg().GetStartTimeInit(MAIN_NET));
-        genesis.SetNonce(108);
+        genesis.SetNonce(IniCfg().GetGenesisBlockNonce(MAIN_NET));
         genesis.SetFuelRate(INIT_FUEL_RATES);
         genesis.SetHeight(0);
         genesis.ClearSignature();
         genesisBlockHash = genesis.GetHash();
+
+        // cout << "GetGenesisBlockHash: " << IniCfg().GetGenesisBlockHash(MAIN_NET).GetHex()
+        //     << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
+
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(MAIN_NET));
-        assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
+        // assert(genesis.GetMerkleRootHash() == IniCfg().GetMerkleRootHash());
 
         vSeeds.push_back(CDNSSeedData("seed1.waykichain.net", "n1.waykichain.net"));
         vSeeds.push_back(CDNSSeedData("seed2.waykichain.net", "n2.waykichain.net"));
@@ -81,7 +87,7 @@ public:
 
     virtual const CBlock& GenesisBlock() const { return genesis; }
     virtual NET_TYPE NetworkID() const { return MAIN_NET; }
-    virtual bool InitialConfig() { return CBaseParams::InitialConfig(); }
+    virtual bool InitializeConfig() { return CBaseParams::InitializeConfig(); }
     virtual uint32_t GetBlockMaxNonce() const { return 1000; }
     virtual const vector<CAddress>& FixedSeeds() const { return vFixedSeeds; }
     virtual bool IsInFixedSeeds(CAddress& addr) {
@@ -109,7 +115,7 @@ public:
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
-        genesis.SetNonce(99);
+        genesis.SetNonce(IniCfg().GetGenesisBlockNonce(TEST_NET));
         genesis.vptx.clear();
         assert(CreateGenesisBlockRewardTx(genesis.vptx, TEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, TEST_NET));
@@ -117,6 +123,9 @@ public:
         genesisBlockHash = genesis.GetHash();
         for (auto& item : vFixedSeeds)
             item.SetPort(GetDefaultPort());
+
+        // cout << "GetGenesisBlockHash: " << IniCfg().GetGenesisBlockHash(TEST_NET).GetHex()
+        //     << "\nacutal blockhash: " << genesisBlockHash.GetHex() << "\r\n";
 
         assert(genesisBlockHash == IniCfg().GetGenesisBlockHash(TEST_NET));
         vSeeds.push_back(CDNSSeedData("seed1.waykitest.net", "n1.waykitest.net"));
@@ -131,12 +140,12 @@ public:
 
     virtual NET_TYPE NetworkID() const { return TEST_NET; }
 
-    virtual bool InitialConfig() {
-        CMainParams::InitialConfig();
+    virtual bool InitializeConfig() {
+        CMainParams::InitializeConfig();
 
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
-        nFeatureForkHeight =
-            std::max((int64_t)nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
+        nFeatureForkHeight       = std::max<uint32_t>(nStableCoinGenesisHeight + 1,
+                                                GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
         fServer = true;
 
         return true;
@@ -157,7 +166,7 @@ public:
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
-        genesis.SetNonce(68);
+        genesis.SetNonce(IniCfg().GetGenesisBlockNonce(REGTEST_NET));
         genesis.vptx.clear();
         assert(CreateGenesisBlockRewardTx(genesis.vptx, REGTEST_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, REGTEST_NET));
@@ -173,15 +182,15 @@ public:
 
     virtual NET_TYPE NetworkID() const { return REGTEST_NET; }
 
-    virtual bool InitialConfig() {
-        CTestNetParams::InitialConfig();
+    virtual bool InitializeConfig() {
+        CTestNetParams::InitializeConfig();
 
         nBlockIntervalPreStableCoinRelease =
             GetArg("-blockintervalprestablecoinrelease", BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE);
         nBlockIntervalStableCoinRelease = GetArg("-blockintervalstablecoinrelease", BLOCK_INTERVAL_STABLE_COIN_RELEASE);
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(REGTEST_NET));
-        nFeatureForkHeight =
-            std::max((int64_t)nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
+        nFeatureForkHeight       = std::max<uint32_t>(
+            nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
         fServer = true;
 
         return true;
@@ -247,20 +256,20 @@ CBaseParams& SysCfg() {
     static shared_ptr<CBaseParams> pParams;
 
     if (!pParams.get()) {
-        bool fRegTest = CBaseParams::GetBoolArg("-regtest", false);
-        bool fTestNet = CBaseParams::GetBoolArg("-testnet", false);
-        if (fTestNet && fRegTest) {
-            fprintf(stderr, "Error: Invalid combination of -regtest and -testnet.\n");
-        }
+        string netType = CBaseParams::GetArg("-nettype", "main");
+        std::transform(netType.begin(), netType.end(), netType.begin(), ::tolower);
 
-        if (fRegTest) {
-            pParams = std::make_shared<CRegTestParams>();
-        } else if (fTestNet) {
-            pParams = std::make_shared<CTestNetParams>();
-        } else {
+        if (netType == "main") {  // MAIN_NET
             pParams = std::make_shared<CMainParams>();
+        } else if (netType == "test") {  // TEST_NET
+            pParams = std::make_shared<CTestNetParams>();
+        } else if (netType == "regtest") {  // REGTEST_NET
+            pParams = std::make_shared<CRegTestParams>();
+        } else {
+            throw runtime_error("Given nettype not in (main|test|regtest) \n");
         }
     }
+
     assert(pParams.get());
     return *pParams.get();
 }
@@ -287,18 +296,6 @@ const CBaseParams &SysParamsReg() {
     pParams = std::make_shared<CRegTestParams>();
     assert(pParams != NULL);
     return *pParams.get();
-}
-
-static void InterpretNegativeSetting(string name, map<string, string>& mapSettingsRet) {
-    // interpret -nofoo as -foo=0 (and -nofoo=0 as -foo=1) as long as -foo not set
-    if (name.find("-no") == 0) {
-        string positive("-");
-        positive.append(name.begin() + 3, name.end());
-        if (mapSettingsRet.count(positive) == 0) {
-            bool value = !SysCfg().GetBoolArg(name, false);
-            mapSettingsRet[positive] = (value ? "1" : "0");
-        }
-    }
 }
 
 void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
@@ -334,9 +331,6 @@ void CBaseParams::ParseParameters(int argc, const char* const argv[]) {
                 m_mapArgs[singleDash] = entry.second;
             name = singleDash;
         }
-
-        // interpret -nofoo as -foo=0 (and -nofoo=0 as -foo=1) as long as -foo not set
-        InterpretNegativeSetting(name, m_mapArgs);
     }
 }
 
@@ -379,19 +373,21 @@ bool CBaseParams::CreateGenesisDelegateTx(vector<std::shared_ptr<CBaseTx> > &vpt
 }
 
 bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx, NET_TYPE type) {
-    // global account
-    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WGRT, 0);
+    // Stablecoin Global Reserve Account with its initial reseve creation
+    auto pTx      = std::make_shared<CCoinRewardTx>(CNullID(), nStableCoinGenesisHeight, SYMB::WUSD,
+                                               FUND_COIN_GENESIS_INITIAL_RESERVE_AMOUNT * COIN);
     pTx->nVersion = INIT_TX_VERSION;
     vptx.push_back(pTx);
 
-    // Initial FundCoin Owner's account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))), nStableCoinGenesisHeight,
-                                          SYMB::WGRT, kTotalFundCoinGenesisReleaseAmount * COIN);
+    // FundCoin Genesis Account with the total FundCoin release creation
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetInitFcoinOwnerPubKey(type))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT,
+                                          FUND_COIN_GENESIS_TOTAL_RELEASE_AMOUNT * COIN);
     vptx.push_back(pTx);
 
-    // Order Matching Service's account
-    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))), nStableCoinGenesisHeight,
-                                          SYMB::WGRT, 0);
+    // DEX Order Matching Service Account
+    pTx = std::make_shared<CCoinRewardTx>(CPubKey(ParseHex(IniCfg().GetDexMatchServicePubKey(type))),
+                                          nStableCoinGenesisHeight, SYMB::WGRT, 0);
     vptx.push_back(pTx);
 
     return true;
@@ -400,24 +396,19 @@ bool CBaseParams::CreateFundCoinRewardTx(vector<std::shared_ptr<CBaseTx> >& vptx
 bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
     ParseParameters(argc, argv);
     if (!boost::filesystem::is_directory(GetDataDir(false))) {
-        fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n", CBaseParams::m_mapArgs["-datadir"].c_str());
+        fprintf(stderr, "Error: Specified data directory \"%s\" does not exist.\n",
+                CBaseParams::m_mapArgs["-datadir"].c_str());
         return false;
     }
 
     try {
         ReadConfigFile(CBaseParams::m_mapArgs, CBaseParams::m_mapMultiArgs);
     } catch (exception &e) {
-        fprintf(stderr, "Error reading configuration file: %s\n", e.what());
+        fprintf(stderr, "Error: reading configuration file: %s\n", e.what());
         return false;
     }
 
     return true;
-}
-
-int64_t CBaseParams::GetTxFee() const { return payTxFee; }
-int64_t CBaseParams::SetDefaultTxFee(int64_t fee) const {
-    payTxFee = fee;
-    return fee;
 }
 
 CBaseParams::CBaseParams() {
@@ -429,8 +420,7 @@ CBaseParams::CBaseParams() {
     nLogMaxSize             = 100 * 1024 * 1024;  // 100M
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
-    nViewCacheSize          = 2000000;
-    payTxFee                = 10000;
+    nCacheSize              = 300 << 10;  // 300K bytes
     nDefaultPort            = 0;
     fPrintLogToConsole      = 0;
     fPrintLogToFile         = 0;
@@ -441,5 +431,13 @@ CBaseParams::CBaseParams() {
     fServer                 = 0;
     fServer                 = 0;
     nRPCPort                = 0;
-    bContractLog            = false;
+    nMaxForkTime            = 24 * 60 * 60;  // 86400 seconds
+}
+
+int32_t CBaseParams::GetMaxForkHeight(int32_t currBlockHeight) const {
+    uint32_t interval = GetBlockInterval(currBlockHeight);
+    if (interval != 0)
+        return nMaxForkTime / (uint32_t)interval;
+
+    return 0 ;
 }

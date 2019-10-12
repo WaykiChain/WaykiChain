@@ -39,14 +39,40 @@ bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
     return true;
 }
 
-bool CTxMemCache::HaveTx(const uint256 &txid) {
+bool CTxMemCache::HaveBlock(const uint256 &blockHash) const {
+    if (blockHash == uint256()) {
+        return false;
+    }
+
+    if (mapBlockTxHashSet.empty()) {
+        return true;
+    }
+
+    auto te = mapBlockTxHashSet.find(blockHash);
+    if (te != mapBlockTxHashSet.end()) {
+        return !te->second.empty();
+    }
+
+    return false;
+}
+
+uint256 CTxMemCache::HaveTx(const uint256 &txid) {
     for (auto &item : mapBlockTxHashSet) {
-        if (item.second.count(txid)) {
-            return true;
+        if (item.second.find(txid) != item.second.end()) {
+            return item.first;
         }
     }
 
-    return pBase ? pBase->HaveTx(txid) : false;
+    if (pBase == nullptr) {
+        return uint256();
+    }
+
+    uint256 blockHash = pBase->HaveTx(txid);
+    if (HaveBlock(blockHash)) {
+        return blockHash;
+    }
+
+    return uint256();
 }
 
 void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {

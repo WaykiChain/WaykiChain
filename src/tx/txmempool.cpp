@@ -8,6 +8,7 @@
 #include "main.h"
 #include "persistence/txdb.h"
 #include "tx/tx.h"
+#include "miner/miner.h"
 
 using namespace std;
 
@@ -32,8 +33,8 @@ CTxMemPoolEntry::CTxMemPoolEntry(const CTxMemPoolEntry &other) {
     this->nTxSize   = other.nTxSize;
     this->dPriority = other.dPriority;
 
-    this->nTime     = other.nTime;
-    this->height   = other.height;
+    this->nTime  = other.nTime;
+    this->height = other.height;
 }
 
 CTxMemPool::CTxMemPool() {
@@ -94,7 +95,7 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bExecute) {
     // is it already confirmed in block
-    if (cw->txCache.HaveTx(txid))
+    if (cw->txCache.HaveTx(txid) != uint256())
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s has been confirmed", txid.GetHex()), REJECT_INVALID,
                              "tx-duplicate-confirmed");
 
@@ -105,21 +106,19 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
                              REJECT_INVALID, "tx-invalid-height");
     }
 
-    auto spCW = std::make_shared<CCacheWrapper>(*cw);
+    auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
     if (bExecute) {
-        if (!memPoolEntry.GetTransaction()->ExecuteTx(chainActive.Height(), 0, *spCW, state)) {
-            if (SysCfg().IsLogFailures()) {
-                pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
-                                                  state.GetRejectCode(), state.GetRejectReason());
-            }
+        uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
+        uint32_t blockTime = chainActive.Tip()->GetBlockTime();
+        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, spCW.get(), &state);
+        if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) {
+            pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
+                                              state.GetRejectCode(), state.GetRejectReason());
             return false;
         }
     }
 
-    // Need to re-sync all to cache layer except for transaction cache, as it's depend on
-    // the global transaction cache to verify whether a transaction(txid) has been confirmed
-    // already in block.
     spCW->Flush();
 
     return true;

@@ -8,14 +8,14 @@
 
 #include <boost/assign/list_of.hpp>
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace std;
 using namespace json_spirit;
 
 extern Value submitpricefeedtx(const Array& params, bool fHelp);
-extern Value submitfcoinstaketx(const Array& params, bool fHelp);
+extern Value submitcoinstaketx(const Array& params, bool fHelp);
 
 extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
 extern Value submitdexselllimitordertx(const Array& params, bool fHelp);
@@ -42,6 +42,7 @@ extern Value listcdpstoliquidate(const Array& params, bool fHelp);
 extern Value submitassetissuetx(const Array& params, bool fHelp);
 extern Value submitassetupdatetx(const Array& params, bool fHelp);
 
+extern Value getasset(const Array& params, bool fHelp);
 extern Value getassets(const Array& params, bool fHelp);
 
 #endif /* RPC_SCOIN_H_ */

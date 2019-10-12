@@ -11,14 +11,15 @@ struct CDiskBlockPos {
     uint32_t nPos;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(nFile));
-        READWRITE(VARINT(nPos));)
+        READWRITE(nFile); /* TODO: write with var signed int format */
+        READWRITE(VARINT(nPos));
+    )
 
     CDiskBlockPos() {
         SetNull();
     }
 
-    CDiskBlockPos(int32_t nFileIn, uint32_t nPosIn) {
+    CDiskBlockPos(uint32_t nFileIn, uint32_t nPosIn) {
         nFile = nFileIn;
         nPos  = nPosIn;
     }
@@ -91,6 +92,9 @@ public:
         nTimeFirst   = 0;
         nTimeLast    = 0;
     }
+
+    bool IsEmpty() { return nBlocks == 0 && nSize == 0; }
+    void SetEmpty() { SetNull(); }
 
     CBlockFileInfo() {
         SetNull();

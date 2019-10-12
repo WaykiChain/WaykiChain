@@ -80,7 +80,7 @@ private:
 public:
     CDEXSysOrdersGetter(DEXBlockOrdersCache &dbCache)
         : db_cache(dbCache), db_access(*dbCache.GetDbAccessPtr()) {
-    }    
+    }
     bool Execute(uint32_t height);
 
     void ToJson(Object &obj);
@@ -103,6 +103,11 @@ public:
         blockOrdersCache.Flush();
         return true;
     }
+
+    uint32_t GetCacheSize() const {
+        return activeOrderCache.GetCacheSize() +
+            blockOrdersCache.GetCacheSize();
+    }
     void SetBaseViewPtr(CDexDBCache *pBaseIn) {
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);
         blockOrdersCache.SetBase(&pBaseIn->blockOrdersCache);
@@ -113,9 +118,9 @@ public:
         blockOrdersCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoDatas() {
-        return activeOrderCache.UndoDatas() &&
-               blockOrdersCache.UndoDatas();
+    bool UndoData() {
+        return activeOrderCache.UndoData() &&
+               blockOrdersCache.UndoData();
     }
 
     shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {

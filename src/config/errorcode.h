@@ -24,7 +24,7 @@ static const uint8_t WRITE_ACCOUNT_FAIL         = 0X31;
 static const uint8_t UPDATE_ACCOUNT_FAIL        = 0X32;
 
 static const uint8_t PRICE_FEED_FAIL            = 0X40;
-static const uint8_t FCOIN_STAKE_FAIL           = 0X41;
+static const uint8_t UCOIN_STAKE_FAIL           = 0X41;
 static const uint8_t CDP_LIQUIDATE_FAIL         = 0X41;
 
 static const uint8_t READ_SCRIPT_FAIL           = 0X50;

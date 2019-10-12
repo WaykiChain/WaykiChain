@@ -12,7 +12,7 @@
 #include "id.h"
 #include "asset.h"
 #include "commons/types.h"
-#include "json/json_spirit.h"
+#include "commons/json/json_spirit.h"
 
 enum OrderSide: uint8_t {
     ORDER_BUY  = 1,
@@ -135,7 +135,7 @@ struct CDEXActiveOrder {
     uint64_t total_deal_asset_amount   = 0;            //!< total deal asset amount
 
     CDEXActiveOrder() {}
-    
+
     CDEXActiveOrder(OrderGenerateType generateType, const CTxCord &txCord):
         generate_type(generateType), tx_cord(txCord)
     {}

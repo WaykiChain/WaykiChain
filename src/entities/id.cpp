@@ -9,15 +9,9 @@
 
 extern CCacheDBManager *pCdMan;
 
-bool CRegID::Clear() {
-    height = 0;
-    index  = 0;
-    vRegID.clear();
+CRegID::CRegID(const string &strRegID) { SetRegID(strRegID); }
 
-    return true;
-}
-
-CRegID::CRegID(const vector<uint8_t>& vIn) {
+CRegID::CRegID(const vector<uint8_t> &vIn) {
     assert(vIn.size() == 6);
     vRegID = vIn;
     height = 0;
@@ -27,6 +21,13 @@ CRegID::CRegID(const vector<uint8_t>& vIn) {
     ds >> index;
 }
 
+CRegID::CRegID(const uint32_t heightIn, const uint16_t indexIn) {
+    height = heightIn;
+    index  = indexIn;
+    vRegID.clear();
+    vRegID.insert(vRegID.end(), BEGIN(heightIn), END(heightIn));
+    vRegID.insert(vRegID.end(), BEGIN(indexIn), END(indexIn));
+}
 
 bool IsDigitalString(const string str){
 
@@ -48,15 +49,15 @@ bool CRegID::IsSimpleRegIdStr(const string & str) {
         if (pos > len - 1) {
             return false;
         }
-        string firtstr = str.substr(0, pos);
-        string endstr = str.substr(pos + 1);
+        string firstStr = str.substr(0, pos);
+        string endStr = str.substr(pos + 1);
 
-        return IsDigitalString(firtstr) && IsDigitalString(endstr) ;
+        return IsDigitalString(firstStr) && IsDigitalString(endStr) ;
     }
     return false;
 }
 
-bool CRegID::GetKeyId(const string & str,CKeyID &keyId) {
+bool CRegID::GetKeyId(const string &str, CKeyID &keyId) {
     CRegID regId(str);
     if (regId.IsEmpty())
         return false;
@@ -75,9 +76,9 @@ void CRegID::SetRegID(string strRegID) {
     vRegID.clear();
 
     if (IsSimpleRegIdStr(strRegID)) {
-        int pos = strRegID.find('-');
-        height = atoi(strRegID.substr(0, pos).c_str());
-        index  = atoi(strRegID.substr(pos + 1).c_str());
+        auto pos = strRegID.find('-');
+        height   = atoi(strRegID.substr(0, pos).c_str());
+        index    = atoi(strRegID.substr(pos + 1).c_str());
         vRegID.insert(vRegID.end(), BEGIN(height), END(height));
         vRegID.insert(vRegID.end(), BEGIN(index), END(index));
     } else if (strRegID.length() == 12) {
@@ -109,14 +110,12 @@ string CRegID::ToRawString() const {
     return string(vRegID.begin(), vRegID.end());  // TODO: change the vRegID to string
 }
 
-CRegID::CRegID(string strRegID) { SetRegID(strRegID); }
-
-CRegID::CRegID(uint32_t nHeightIn, uint16_t nIndexIn) {
-    height = nHeightIn;
-    index  = nIndexIn;
+bool CRegID::Clear() {
+    height = 0;
+    index  = 0;
     vRegID.clear();
-    vRegID.insert(vRegID.end(), BEGIN(nHeightIn), END(nHeightIn));
-    vRegID.insert(vRegID.end(), BEGIN(nIndexIn), END(nIndexIn));
+
+    return true;
 }
 
 string CRegID::ToString() const {
@@ -148,6 +147,23 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserID
+
+const CUserID CUserID::NULL_ID = {};
+
+string CUserID::ToDebugString() const {
+        if (is<CRegID>()) {
+            return "R:" + get<CRegID>().ToString();
+        } else if (is<CKeyID>()) {
+            return "A:" + get<CKeyID>().ToAddress();
+        } else if (is<CPubKey>()) {
+            return "P:" + get<CPubKey>().ToString();
+        } else if (is<CNickID>()) {
+            return "N:" + get<CNickID>().ToString();
+        } else {
+            assert(is<CNullID>());
+            return "Null";
+        }
+}
 
 shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
     CRegID regId(idStr);

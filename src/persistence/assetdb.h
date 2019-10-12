@@ -44,6 +44,11 @@ public:
     bool HaveAsset(const TokenSymbol &tokenSymbol);
     bool SaveAsset(const CAsset &asset);
     bool ExistAssetSymbol(const TokenSymbol &tokenSymbol);
+    /**
+     * check transfer coin symbol
+     * return nullptr if succeed, else error msg
+     */
+    shared_ptr<string> CheckTransferCoinSymbol(const TokenSymbol &symbol);
 
     bool AddAssetTradingPair(const CAssetTradingPair &assetTradingPair);
     bool ExistAssetTradingPair(const CAssetTradingPair &TradingPair);
@@ -51,19 +56,24 @@ public:
 
     bool Flush();
 
+    uint32_t GetCacheSize() const {
+        return assetCache.GetCacheSize() +
+            assetTradingPairCache.GetCacheSize();
+    }
+
     void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
         assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);
-    };
+    }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         assetCache.SetDbOpLogMap(pDbOpLogMapIn);
         assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoDatas() {
-        return assetCache.UndoDatas() &&
-               assetTradingPairCache.UndoDatas();
+    bool UndoData() {
+        return assetCache.UndoData() &&
+               assetTradingPairCache.UndoData();
     }
 
     shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() {

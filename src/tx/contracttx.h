@@ -44,12 +44,12 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractDeployTx>(*this); }
-    virtual uint64_t GetFuel(uint32_t nFuelRate);
+    virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 class CLuaContractInvokeTx : public CBaseTx {
@@ -89,14 +89,14 @@ public:
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 /**#################### Universal Contract Deploy & Invoke Class Definitions ##############################**/
 class CUniversalContractDeployTx : public CBaseTx {
 public:
-    CUniversalContract  contract;  // contract script content
+    CUniversalContract contract;  // contract script content
 
 public:
     CUniversalContractDeployTx(): CBaseTx(UCONTRACT_DEPLOY_TX) {}
@@ -128,12 +128,12 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployTx>(*this); }
-    virtual uint64_t GetFuel(uint32_t nFuelRate);
+    virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
 class CUniversalContractInvokeTx : public CBaseTx {
@@ -178,7 +178,8 @@ public:
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state);
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state);
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
 };
-#endif //TX_CONTRACT_H
+
+#endif  // TX_CONTRACT_H

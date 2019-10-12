@@ -9,6 +9,7 @@
 
 #include "allocators.h"
 #include "uint256.h"
+#include "config/const.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -31,7 +32,8 @@ class CAutoFile;
 class CDataStream;
 class CBaseTx;
 
-static const unsigned int MAX_SIZE = 0x02000000;
+static const uint32_t MAX_SIZE           = 0x02000000;
+static const uint32_t MAX_SERIALIZE_SIZE = MAX_BLOCK_SIZE;
 
 // Used to bypass the rule against non-const reference to temporary
 // where it makes sense with wrappers such as CFlatData or CTxDB
@@ -134,6 +136,11 @@ enum
 
 #define READWRITE(obj)      (nSerSize += ::SerReadWrite(s, (obj), nType, nVersion, ser_action))
 
+#define READWRITE_CONVERT(SerializeType, originValue) { \
+    SerializeType value = originValue; \
+    nSerSize += ::SerReadWrite(s, value, nType, nVersion, ser_action); \
+    SerConvertValue(value, originValue); \
+}
 //
 // Basic types
 //
@@ -400,6 +407,32 @@ public:
 };
 
 template<typename I>
+class CVarIntValue {
+protected:
+    I n;
+public:
+    CVarIntValue(): n(0) {}
+    CVarIntValue(const I& nIn) : n(nIn) { }
+
+    unsigned int GetSerializeSize(int, int) const {
+        return GetSizeOfVarInt<I>(n);
+    }
+
+    template<typename Stream>
+    void Serialize(Stream &s, int, int) const {
+        WriteVarInt<Stream,I>(s, n);
+    }
+
+    template<typename Stream>
+    void Unserialize(Stream& s, int, int) {
+        n = ReadVarInt<Stream,I>(s);
+    }
+
+    I &get() { return n; }
+    const I &get() const { return n; }
+};
+
+template<typename I>
 CVarInt<I> WrapVarInt(I& n) { return CVarInt<I>(n); }
 
 
@@ -476,6 +509,11 @@ inline unsigned int SerReadWrite(Stream& s, const T& obj, int nType, int nVersio
 template<typename Stream, typename T>
 inline unsigned int SerReadWrite(Stream& s, T& obj, int nType, int nVersion, CSerActionUnserialize ser_action);
 
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, const OriginType &origin);
+
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, OriginType &origin);
 
 //
 // If none of the specialized versions above matched, default to calling member function.
@@ -522,6 +560,8 @@ template<typename Stream, typename C>
 void Unserialize(Stream& is, basic_string<C>& str, int, int)
 {
     unsigned int nSize = ReadCompactSize(is);
+    if (nSize > MAX_SERIALIZE_SIZE)
+        throw ios_base::failure("the string value size is too large");
     str.resize(nSize);
     if (nSize != 0)
         is.read((char*)&str[0], nSize * sizeof(str[0]));
@@ -821,11 +861,13 @@ inline unsigned int SerReadWrite(Stream& s, T& obj, int nType, int nVersion, CSe
     return 0;
 }
 
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, const OriginType &origin) {}
 
-
-
-
-
+template<typename SerializeType, typename OriginType>
+inline void SerConvertValue(const SerializeType &value, OriginType &origin) {
+    origin = OriginType(value);
+}
 
 typedef vector<char, zero_after_free_allocator<char> > CSerializeData;
 
@@ -1149,10 +1191,10 @@ public:
 
     CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn)
     {
-        file = filenew;
-        nType = nTypeIn;
-        nVersion = nVersionIn;
-        state = 0;
+        file       = filenew;
+        nType      = nTypeIn;
+        nVersion   = nVersionIn;
+        state      = 0;
         exceptmask = ios::badbit | ios::failbit;
     }
 

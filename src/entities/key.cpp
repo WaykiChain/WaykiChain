@@ -61,7 +61,7 @@ void CKey::MakeNewKey(bool fCompressedIn) {
 CPrivKey CKey::GetPrivKey() const {
     assert(fValid);
     CPrivKey privkey;
-    int ret;
+    int32_t ret;
     size_t privkeylen;
     privkey.resize(PRIVATE_KEY_SIZE);
     privkeylen = PRIVATE_KEY_SIZE;
@@ -78,7 +78,7 @@ CPubKey CKey::GetPubKey() const {
     secp256k1_pubkey pubkey;
     size_t clen = CPubKey::PUBLIC_KEY_SIZE;
     CPubKey result;
-    int ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &pubkey, begin());
+    int32_t ret = secp256k1_ec_pubkey_create(secp256k1_context_sign, &pubkey, begin());
     assert(ret);
     secp256k1_ec_pubkey_serialize(secp256k1_context_sign, (uint8_t *)result.begin(), &clen, &pubkey,
                                   fCompressed ? SECP256K1_EC_COMPRESSED : SECP256K1_EC_UNCOMPRESSED);
@@ -88,19 +88,19 @@ CPubKey CKey::GetPubKey() const {
 }
 
 bool CKey::Sign(const uint256 &hash, vector<uint8_t> &vchSig) const {
-    if (!fValid) return false;
+    if (!fValid)
+        return false;
 
-    static const int test_case = 0;
+    static const int32_t test_case = 0;
     static const bool grind    = true;
 
-    if (!fValid) return false;
     vchSig.resize(CPubKey::SIGNATURE_SIZE);
     size_t nSigLen            = CPubKey::SIGNATURE_SIZE;
     uint8_t extra_entropy[32] = {0};
     WriteLE32(extra_entropy, test_case);
     secp256k1_ecdsa_signature sig;
     uint32_t counter = 0;
-    int ret          = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(),
+    int32_t ret          = secp256k1_ecdsa_sign(secp256k1_context_sign, &sig, hash.begin(), begin(),
                                    secp256k1_nonce_function_rfc6979, (!grind && test_case) ? extra_entropy : nullptr);
 
     // Grind for low R
@@ -119,9 +119,9 @@ bool CKey::SignCompact(const uint256 &hash, vector<uint8_t> &vchSig) const {
     if (!fValid) return false;
 
     vchSig.resize(CPubKey::COMPACT_SIGNATURE_SIZE);
-    int rec = -1;
+    int32_t rec = -1;
     secp256k1_ecdsa_recoverable_signature sig;
-    int ret = secp256k1_ecdsa_sign_recoverable(secp256k1_context_sign, &sig, hash.begin(), begin(),
+    int32_t ret = secp256k1_ecdsa_sign_recoverable(secp256k1_context_sign, &sig, hash.begin(), begin(),
                                                secp256k1_nonce_function_rfc6979, nullptr);
     assert(ret);
     ret = secp256k1_ecdsa_recoverable_signature_serialize_compact(secp256k1_context_sign, &vchSig[1], &rec, &sig);
@@ -138,7 +138,8 @@ bool CKey::Load(CPrivKey &privkey, CPubKey &vchPubKey, bool fSkipCheck = false) 
     fCompressed = vchPubKey.IsCompressed();
     fValid      = true;
 
-    if (fSkipCheck) return true;
+    if (fSkipCheck)
+        return true;
 
     return VerifyPubKey(vchPubKey);
 }
@@ -211,7 +212,7 @@ bool CPubKey::Verify(const uint256 &hash, const vector<uint8_t> &vchSig) const {
 bool CPubKey::RecoverCompact(const uint256 &hash, const vector<uint8_t> &vchSig) {
     if (vchSig.size() != COMPACT_SIGNATURE_SIZE) return false;
 
-    int recid  = (vchSig[0] - 27) & 3;
+    int32_t recid  = (vchSig[0] - 27) & 3;
     bool fComp = ((vchSig[0] - 27) & 4) != 0;
     secp256k1_pubkey pubkey;
     secp256k1_ecdsa_recoverable_signature sig;
@@ -377,7 +378,7 @@ CKeyID::CKeyID(const string &strAddress) : uint160() {
     }
 }
 
-/* static */ int ECCVerifyHandle::refcount = 0;
+/* static */ int32_t ECCVerifyHandle::refcount = 0;
 
 ECCVerifyHandle::ECCVerifyHandle() {
     if (refcount == 0) {

@@ -218,7 +218,6 @@ uint64_t CAccountDBCache::GetAccountFreeAmount(const CKeyID &keyId, const TokenS
 }
 
 bool CAccountDBCache::Flush() {
-    blockHashCache.Flush();
     accountCache.Flush();
     regId2KeyIdCache.Flush();
     nickId2KeyIdCache.Flush();
@@ -227,26 +226,23 @@ bool CAccountDBCache::Flush() {
 }
 
 uint32_t CAccountDBCache::GetCacheSize() const {
-    return blockHashCache.GetCacheSize() +
-        accountCache.GetCacheSize() +
+    return accountCache.GetCacheSize() +
         regId2KeyIdCache.GetCacheSize() +
         nickId2KeyIdCache.GetCacheSize();
 }
 
-std::tuple<uint64_t, uint64_t> CAccountDBCache::TraverseAccount() {
-    // TODO: GetTotalCoins
-    //return pBase->TraverseAccount();
-    return make_tuple<uint64_t, uint64_t>(0, 0);
-}
+std::tuple<uint64_t /* total coins */, uint64_t /* total regids */> CAccountDBCache::TraverseAccount() {
+    map<CKeyID, CAccount> items;
 
-uint256 CAccountDBCache::GetBestBlock() const {
-    uint256 blockHash;
-    blockHashCache.GetData(blockHash);
-    return blockHash;
-}
+    accountCache.GetAllElements(items);
 
-bool CAccountDBCache::SetBestBlock(const uint256 &blockHashIn) {
-    return blockHashCache.SetData(blockHashIn);
+    uint64_t totalCoins  = 0;
+    uint64_t totalRegIds = 0;
+    for (auto &item : items) {
+        totalRegIds++;
+        totalCoins += item.second.GetToken(SYMB::WICC).free_amount;
+    }
+    return std::tie(totalCoins, totalRegIds);
 }
 
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {

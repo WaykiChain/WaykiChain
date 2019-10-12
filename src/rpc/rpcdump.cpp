@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "commons/base58.h"
 #include "rpc/core/rpccommons.h"
@@ -16,12 +16,12 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
 
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_reader.h"
-#include "json/json_spirit_stream_reader.h"
+#include "commons/json/json_spirit_reader_template.h"
+#include "commons/json/json_spirit_reader.h"
+#include "commons/json/json_spirit_stream_reader.h"
 
 
 using namespace json_spirit;
@@ -76,7 +76,7 @@ Value dumpwallet(const Array& params, bool fHelp) {
 	file.close();
 
 	Object reply2;
-	reply2.push_back(Pair("info",   "succeed to dump wallet"));
+	reply2.push_back(Pair("info",   "successfully dumped wallet"));
 	reply2.push_back(Pair("count",  (int32_t)setKeyIds.size()));
 	return reply2;
 }
@@ -108,7 +108,7 @@ Value importwallet(const Array& params, bool fHelp) {
     if (file.good()) {
     	Value reply;
     	json_spirit::read(file, reply);
-    	const Value & keyObj = find_value(reply.get_obj(),"key");
+        const Value& keyObj   = find_value(reply.get_obj(), "key");
         const Array& keyArray = keyObj.get_array();
         for (auto const& keyItem : keyArray) {
             CKeyCombi keyCombi;
@@ -129,7 +129,7 @@ Value importwallet(const Array& params, bool fHelp) {
     file.close();
 
     Object reply2;
-    reply2.push_back(Pair("info",   "succeed to import wallet"));
+    reply2.push_back(Pair("info",   "successfully imported wallet"));
     reply2.push_back(Pair("count",  importedKeySize));
     return reply2;
 }
@@ -177,12 +177,13 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
 // TODO: enable rescan wallet.
 Value importprivkey(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1)
+    if (fHelp || (params.size() != 1 && params.size() != 2))
         throw runtime_error(
             "importprivkey \"privkey\"\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1. \"privkey\"     (string, required) The private key (see dumpprivkey)\n"
+            "1.\"privkey\"      (string, required) The private key (see dumpprivkey)\n"
+            "2.\"address\"      (string, optional) Set the address while importing a miner privkey\n"
             "\nExamples:\n"
             "\nDump privkey first\n" +
             HelpExampleCli("dumpprivkey", "\"address\"") + "\nImport privkey\n" +
@@ -206,8 +207,22 @@ Value importprivkey(const Array& params, bool fHelp) {
     {
         LOCK2(cs_main, pWalletMain->cs_wallet);
 
-        if (!pWalletMain->AddKey(key))
-            throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
+        if (params.size() == 1) {
+            if (!pWalletMain->AddKey(key))
+                throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
+        } else {
+            CKeyCombi keyCombi;
+            CKey emptyMainKey;
+            keyCombi.SetMainKey(emptyMainKey);
+            keyCombi.SetMinerKey(key);
+
+            CKeyID keyid;
+            if (!GetKeyId(params[1].get_str(), keyid))
+                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+
+            if (!pWalletMain->AddKey(keyid, keyCombi))
+                throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
+        }
     }
 
     Object ret;

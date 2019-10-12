@@ -19,9 +19,9 @@
 #include "vm/luavm/luavmrunenv.h"
 #include <algorithm>
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_reader.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_reader.h"
 
 
 using namespace std;
@@ -46,7 +46,7 @@ static bool FindKeyId(CAccountDBCache *pAccountView, string const &addr, CKeyID 
 }
 
 Value vmexecutescript(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
+    if (fHelp || params.size() < 2 || params.size() > 5) {
         throw runtime_error(
             "vmexecutescript \"addr\" \"script_path\" [\"arguments\"] [amount] [symbol:fee:unit]\n"
             "\nexecutes the script in vm simulator, and then returns the executing status.\n"
@@ -127,7 +127,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
 
     uint64_t minFee = regMinFee + invokeMinFee;
-    uint64_t totalFee = regMinFee + invokeMinFee; // set default totalFee
+    uint64_t totalFee = regMinFee + invokeMinFee * 10; // set default totalFee
     if (params.size() > 4) {
         ComboMoney feeIn = RPC_PARAM::GetFee(params, 4, LCONTRACT_DEPLOY_TX);
         assert(feeIn.symbol == SYMB::WICC);
@@ -139,7 +139,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    uint32_t nFuelRate = GetElementForBurn(chainActive.Tip());
+    uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
+    uint32_t blockTime = chainActive.Tip()->GetBlockTime();
 
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     CKeyID srcKeyId;
@@ -170,7 +171,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     Object DeployContractTxObj;
     EnsureWalletIsUnlocked();
-    int newHeight = chainActive.Height() + 1;
+    int32_t newHeight = chainActive.Height() + 1;
     assert(pWalletMain != nullptr);
     {
         size_t contract_size = contract.GetContractSize();
@@ -186,12 +187,13 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        if (!tx.ExecuteTx(newHeight, 1, *spCW, state)) {
+        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, spCW.get(), &state);
+        if (!tx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
 
         DeployContractTxObj.push_back(Pair("contract_size", contract_size));
-        DeployContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(nFuelRate)));
+        DeployContractTxObj.push_back(Pair("used_fuel", tx.GetFuel(newHeight, fuelRate)));
     }
 
     CRegID appId(newHeight, 1); //App RegId
@@ -221,18 +223,19 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        if (!contractInvokeTx.ExecuteTx(chainActive.Height() + 1, 2, *spCW, state)) {
-            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx  contract failed");
+        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, spCW.get(), &state);
+        if (!contractInvokeTx.ExecuteTx(context)) {
+            throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx contract failed");
         }
     }
 
     Object callContractTxObj;
 
     callContractTxObj.push_back(Pair("run_steps", contractInvokeTx.nRunStep));
-    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(contractInvokeTx.nFuelRate)));
+    callContractTxObj.push_back(Pair("used_fuel", contractInvokeTx.GetFuel(newHeight, contractInvokeTx.nFuelRate)));
 
     Object retObj;
-    retObj.push_back(Pair("fuel_rate",              (int32_t)nFuelRate));
+    retObj.push_back(Pair("fuel_rate",              (int32_t)fuelRate));
     retObj.push_back(Pair("register_contract_tx",   DeployContractTxObj));
     retObj.push_back(Pair("call_contract_tx",       callContractTxObj));
 

@@ -28,8 +28,8 @@
 
 #include <stdint.h>
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace json_spirit;
 using namespace std;
@@ -120,8 +120,6 @@ Value getmininginfo(const Array& params, bool fHelp) {
         );
     }
 
-    static const string NetTypes[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
-
     Object obj;
     obj.push_back(Pair("blocks",           chainActive.Height()));
     obj.push_back(Pair("currentblocksize", (uint64_t)nLastBlockSize));
@@ -129,7 +127,7 @@ Value getmininginfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("errors",           GetWarnings("statusbar")));
     obj.push_back(Pair("genblocklimit",    1));
     obj.push_back(Pair("pooledtx",         (uint64_t)mempool.Size()));
-    obj.push_back(Pair("nettype",          NetTypes[SysCfg().NetworkID()]));
+    obj.push_back(Pair("nettype",          NetTypeNames[SysCfg().NetworkID()]));
     obj.push_back(Pair("posmaxnonce",      (int32_t)SysCfg().GetBlockMaxNonce()));
     obj.push_back(Pair("generate",         GetMiningInfo()));
     return obj;
@@ -217,7 +215,7 @@ Value getminedblocks(const Array& params, bool fHelp) {
     Array ret;
 
     auto minedBlocks = GetMinedBlocks(count);
-    for ( auto &blockInfo : minedBlocks) {
+    for (auto& blockInfo : minedBlocks) {
         Object obj;
         obj.push_back(Pair("time",          blockInfo.time));
         obj.push_back(Pair("nonce",         blockInfo.nonce));

@@ -1,19 +1,19 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2015 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef _COINALERT_H_
-#define _COINALERT_H_
+#ifndef COIN_ALERT_H
+#define COIN_ALERT_H
 
 #include "commons/serialize.h"
 #include "sync.h"
 
 #include <map>
 #include <set>
-#include <stdint.h>
+#include <cstdint>
 #include <string>
+
 using namespace std;
 
 class CAlert;
@@ -108,4 +108,4 @@ public:
     static CAlert getAlertByHash(const uint256 &hash);
 };
 
-#endif
+#endif  // COIN_ALERT_H

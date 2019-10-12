@@ -8,15 +8,17 @@
 
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
 #include "persistence/contractdb.h"
+#include "persistence/blockdb.h"
 #include "config/configuration.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
+
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 #include <memory>
 #include <string>
@@ -27,18 +29,33 @@ using namespace std;
 
 class CCacheWrapper;
 class CValidationState;
-class CContractDBCache;
-
-typedef uint256 TxID;
 
 string GetTxType(const TxType txType);
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
+class CTxExecuteContext {
+public:
+    int32_t height;
+    int32_t index;
+    uint32_t fuel_rate;
+    uint32_t block_time;
+    CCacheWrapper *pCw;
+    CValidationState *pState;
+
+    CTxExecuteContext() : height(0), index(0), fuel_rate(0), block_time(0), pCw(nullptr), pState(nullptr) {}
+
+    CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
+                      const uint32_t blockTimeIn, CCacheWrapper *pCwIn, CValidationState *pStateIn)
+        : height(heightIn),
+          index(indexIn),
+          fuel_rate(fuelRateIn),
+          block_time(blockTimeIn),
+          pCw(pCwIn),
+          pState(pStateIn) {}
+};
+
 class CBaseTx {
 public:
-    static uint64_t nMinTxFee;
-    static uint64_t nMinRelayTxFee;
-    static uint64_t nDustAmountThreshold;
     static const int32_t CURRENT_VERSION = INIT_TX_VERSION;
 
     int32_t nVersion;
@@ -80,29 +97,27 @@ public:
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
-    virtual uint64_t GetFuel(uint32_t nFuelRate);
-    uint32_t GetFuelRate(CContractDBCache &contractCache);
+    virtual uint64_t GetFuel(int32_t height, uint32_t nFuelRate);
     virtual double GetPriority() const {
-        return kTransactionPriorityCeiling / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
+        return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
     virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
-    virtual string ToString(CAccountDBCache &accountCache)           = 0;
+    virtual string ToString(CAccountDBCache &accountCache)            = 0;
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
 
     virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
 
-    virtual bool CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state)                  = 0;
-    virtual bool ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) = 0;
+    virtual bool CheckTx(CTxExecuteContext &context)   = 0;
+    virtual bool ExecuteTx(CTxExecuteContext &context) = 0;
 
     bool IsValidHeight(int32_t nCurHeight, int32_t nTxCacheHeight) const;
 
     // If the sender has no regid before, geneate a regid for the sender.
-    bool GenerateRegID(CAccount &account, CCacheWrapper &cw, CValidationState &state, const int32_t height,
-                       const int32_t index);
+    bool GenerateRegID(CTxExecuteContext &context, CAccount &account);
 
     bool IsBlockRewardTx() { return nTxType == BLOCK_REWARD_TX || nTxType == UCOIN_BLOCK_REWARD_TX; }
-    bool IsMedianPriceTx() { return nTxType == PRICE_MEDIAN_TX; }
+    bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
 
 protected:
@@ -113,10 +128,32 @@ protected:
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };
 
+/**################################ Universal Coin Transfer ########################################**/
+
+struct SingleTransfer {
+    CUserID to_uid;
+    TokenSymbol coin_symbol = SYMB::WICC;
+    uint64_t coin_amount    = 0;
+
+    SingleTransfer() {}
+
+    SingleTransfer(const CUserID &toUidIn, const TokenSymbol &coinSymbol, const uint64_t coinAmount)
+        : to_uid(toUidIn), coin_symbol(coinSymbol), coin_amount(coinAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(to_uid);
+        READWRITE(coin_symbol);
+        READWRITE(VARINT(coin_amount));
+    )
+    string ToString(const CAccountDBCache &accountCache) const;
+
+    Object ToJson(const CAccountDBCache &accountCache) const;
+};
+
 class CPricePoint {
 public:
     CoinPricePair coin_price_pair;
-    uint64_t price;     // boosted by 10^4
+    uint64_t price;  // boosted by 10^8
 
 public:
     CPricePoint() {}
@@ -133,8 +170,7 @@ public:
     CoinPricePair GetCoinPricePair() const { return coin_price_pair; }
 
     string ToString() {
-        return strprintf("coin_price_pair:%s:%s, price:%lld",
-                        coin_price_pair.first, coin_price_pair.second, price);
+        return strprintf("coin_price_pair:%s:%s, price:%lld", coin_price_pair.first, coin_price_pair.second, price);
     }
 
     json_spirit::Object ToJson() const {
@@ -169,19 +205,28 @@ public:
 
 #define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                    \
     if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                  \
-        return state.DoS(100, ERRORMSG("%s, arguments's size too large, __FUNCTION__"), REJECT_INVALID, \
+        return state.DoS(100, ERRORMSG("%s, arguments's size too large", __FUNCTION__), REJECT_INVALID, \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_FEE                                                                         \
-    if (!CheckBaseCoinRange(llFees))                                                                   \
-        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,       \
-                         "bad-tx-fee-toolarge");                                                       \
-     if (!kFeeSymbolSet.count(fee_symbol))                                                             \
-        return state.DoS(100, ERRORMSG("%s, not support fee symbol=%s, only supports:%s",              \
-            __FUNCTION__, fee_symbol, GetFeeSymbolSetStr()), REJECT_INVALID, "bad-tx-fee-symbol");     \
-    if (!CheckTxFeeSufficient(fee_symbol, llFees, height)) {                                           \
-        return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu",   \
-            __FUNCTION__, height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");         \
+#define IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE                                                        \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                              \
+        return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__), \
+                         REJECT_INVALID, "unsupported-tx-type-pre-stable-coin-release");
+
+#define IMPLEMENT_CHECK_TX_FEE                                                                                 \
+    if (!CheckBaseCoinRange(llFees))                                                                           \
+        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,               \
+                         "bad-tx-fee-toolarge");                                                               \
+    if (!kFeeSymbolSet.count(fee_symbol))                                                                      \
+        return state.DoS(100,                                                                                  \
+                         ERRORMSG("%s, not support fee symbol=%s, only supports:%s", __FUNCTION__, fee_symbol, \
+                                  GetFeeSymbolSetStr()),                                                       \
+                         REJECT_INVALID, "bad-tx-fee-symbol");                                                 \
+    if (!CheckTxFeeSufficient(fee_symbol, llFees, context.height)) {                                           \
+        return state.DoS(100,                                                                                  \
+                         ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)", __FUNCTION__, \
+                                  context.height, fee_symbol, llFees),                                         \
+                         REJECT_INVALID, "bad-tx-fee-toosmall");                                               \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \
@@ -197,9 +242,19 @@ public:
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                        \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {              \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),    \
+                         REJECT_INVALID, "txUid-type-error");                                                \
+    }                                                                                                        \
     if ((txUidType != typeid(CRegID)) && (txUidType != typeid(CPubKey))) {                                   \
         return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
                          "txUid-type-error");                                                                \
+    }
+
+#define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUidType)                                              \
+    if ((candidateUidType != typeid(CRegID)) && (candidateUidType != typeid(CPubKey))) {                            \
+        return state.DoS(100, ERRORMSG("%s, candidateUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
+                         "candidateUid-type-error");                                                                \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUidType)                                                        \

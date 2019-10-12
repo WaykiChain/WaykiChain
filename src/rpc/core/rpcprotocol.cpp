@@ -16,7 +16,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_writer_template.h"
 
 using namespace std;
 using namespace boost;

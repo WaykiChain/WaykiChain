@@ -15,12 +15,11 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 
-
 #include <stdint.h>
 
 #include <boost/assign/list_of.hpp>
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace std;
 using namespace boost;
@@ -65,12 +64,11 @@ Value getinfo(const Array& params, bool fHelp) {
             "Returns an object containing various state info.\n"
             "\nResult:\n"
             "{\n"
-            "  \"version\": xxxxx,              (numeric) the node program version\n"
-            "  \"full_version\": \"xxxxx\",     (string) the node program fullversion\n"
+            "  \"version\": \"xxxxx\",          (string) the node program fullversion\n"
             "  \"protocol_version\": xxxxx,     (numeric) the protocol version\n"
             "  \"net_type\": \"xxxxx\",         (string) the blockchain network type (MAIN_NET|TEST_NET|REGTEST_NET)\n"
             "  \"proxy\": \"host:port\",        (string) the proxy server used by the node program\n"
-            "  \"connections\": xxxxx,          (numeric) the number of connections\n"
+            "  \"ext_ip\": \"xxxxx\",           (string) the external ip of the node\n"
             "  \"conf_dir\": \"xxxxx\",         (string) the conf directory\n"
             "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
             "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the "
@@ -79,7 +77,6 @@ Value getinfo(const Array& params, bool fHelp) {
             "false\n"
             "  \"time_offset\": xxxxx,          (numeric) the time offset\n"
 
-            "  \"wallet_version\": xxxxx,       (numeric) the wallet version\n"
             "  \"wallet_balance\": xxxxx,       (numeric) the total coin balance of the wallet\n"
             "  \"wallet_unlock_time\": xxxxx,   (numeric) the timestamp in seconds since epoch (midnight Jan 1 1970 "
             "GMT) that the wallet is unlocked for transfers, or 0 if the wallet is being locked\n"
@@ -92,6 +89,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"tipblock_hash\": \"xxxxx\",    (string) the tip block hash\n"
             "  \"tipblock_height\": xxxxx ,     (numeric) the number of blocks contained the most work in the network\n"
             "  \"syncblock_height\": xxxxx ,    (numeric) the block height of the loggest chain found in the network\n"
+            "  \"connections\": xxxxx,          (numeric) the number of connections\n"
             "  \"errors\": \"xxxxx\"            (string) any error messages\n"
             "}\n"
             "\nExamples:\n" +
@@ -100,31 +98,26 @@ Value getinfo(const Array& params, bool fHelp) {
     ProxyType proxy;
     GetProxy(NET_IPV4, proxy);
     static const string fullVersion = strprintf("%s (%s)", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    static const string netType[] = {"MAIN_NET", "TEST_NET", "REGTEST_NET"};
 
     Object obj;
-    obj.push_back(Pair("version",               CLIENT_VERSION));
-    obj.push_back(Pair("full_version",          fullVersion));
+    obj.push_back(Pair("version",               fullVersion));
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
-    obj.push_back(Pair("net_type",              netType[SysCfg().NetworkID()]));
+    obj.push_back(Pair("net_type",              NetTypeNames[SysCfg().NetworkID()]));
     obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
+    obj.push_back(Pair("ext_ip",                externalIp));
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
     obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
     obj.push_back(Pair("genblock",              SysCfg().GetArg("-genblock", 0)));
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
-    obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
-    obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 
     if (pWalletMain) {
-        obj.push_back(Pair("wallet_version",    pWalletMain->GetVersion()));
         obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBcoins())));
         if (pWalletMain->IsEncrypted())
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
 
-    obj.push_back(Pair("miner_fee_perkb",       ValueFromAmount(SysCfg().GetTxFee())));
-    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(CBaseTx::nMinRelayTxFee)));
+    obj.push_back(Pair("relay_fee_perkb",       ValueFromAmount(MIN_RELAY_TX_FEE)));
 
     obj.push_back(Pair("tipblock_fuel_rate",    (int32_t)chainActive.Tip()->nFuelRate));
     obj.push_back(Pair("tipblock_fuel",         chainActive.Tip()->nFuel));
@@ -132,6 +125,8 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));
     obj.push_back(Pair("syncblock_height",      nSyncTipHeight));
+    obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
+    obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 
     return obj;
 }

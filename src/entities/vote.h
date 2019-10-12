@@ -12,8 +12,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 #include "key.h"
 #include "crypto/hash.h"
 #include "entities/id.h"
@@ -109,7 +109,7 @@ public:
     }
 
     string ToString() const {
-        string str = strprintf("voteType: %s, candidateUid: %s, votes: %lld \n", GetVoteType(voteType),
+        string str = strprintf("voteType: %s, candidateUid: %s, votes: %lld\n", GetVoteType(voteType),
                                candidateUid.ToString(), votedBcoins);
         return str;
     }

@@ -1,6 +1,5 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -14,48 +13,6 @@
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
-
-
-////////////////////////////////////////////////
-//                                            //
-// THE SIMPLE DEFINITON, EXCLUDING DEBUG CODE //
-//                                            //
-////////////////////////////////////////////////
-
-/*
-
-
-
-CCriticalSection mutex;
-    boost::recursive_mutex mutex;
-
-LOCK(mutex);
-    boost::unique_lock<boost::recursive_mutex> criticalblock(mutex);
-
-LOCK2(mutex1, mutex2);
-    boost::unique_lock<boost::recursive_mutex> criticalblock1(mutex1);
-    boost::unique_lock<boost::recursive_mutex> criticalblock2(mutex2);
-
-TRY_LOCK(mutex, name);
-    boost::unique_lock<boost::recursive_mutex> name(mutex, boost::try_to_lock_t);
-
-ENTER_CRITICAL_SECTION(mutex); // no RAII
-    mutex.lock();
-
-LEAVE_CRITICAL_SECTION(mutex); // no RAII
-    mutex.unlock();
-
-
-
- */
-
-
-
-///////////////////////////////
-//                           //
-// THE ACTUAL IMPLEMENTATION //
-//                           //
-///////////////////////////////
 
 // Template mixin that adds -Wthread-safety locking annotations to a
 // subset of the mutex API.

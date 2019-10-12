@@ -1,5 +1,5 @@
-// Copyright (c) 2012 The WaykiChain developers
-// Copyright (c) 2016 The Coin developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -11,8 +11,7 @@
 #include <utility>
 using namespace std;
 /** STL-like set container that only keeps the most recent N elements. */
-template <typename T> class mruset
-{
+template <typename T> class mruset {
 public:
     typedef T key_type;
     typedef T value_type;

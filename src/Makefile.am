@@ -26,9 +26,9 @@ SUBDIRS = . $(BUILD_QT) $(BUILD_P_TEST)
 #DIST_SUBDIRS = . test ptest
 
 #secp256k1
-DIST_SUBDIRS = secp256k1
-LIBSECP256K1=secp256k1/libsecp256k1.la
-AM_CPPFLAGS += -I$(srcdir)/secp256k1/include -I$(srcdir)/secp256k1/contrib
+DIST_SUBDIRS = crypto/secp256k1
+LIBSECP256K1 = crypto/secp256k1/libsecp256k1.la
+AM_CPPFLAGS += -I$(srcdir)/crypto/secp256k1/include -I$(srcdir)/crypto/secp256k1/contrib
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
@@ -96,6 +96,9 @@ coin_CORE_H = \
   commons/serialize.h \
   commons/types.h \
   commons/util.h \
+  commons/compat/byteswap.h \
+  commons/compat/compat.h \
+  commons/compat/endian.h \
   config/configuration.h \
   config/const.h \
   config/errorcode.h \
@@ -104,7 +107,6 @@ coin_CORE_H = \
   config/clientversion.h \
   config/version.h \
   config/chainparams.h \
-  compat\compat.h \
   wallet/crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
@@ -116,6 +118,7 @@ coin_CORE_H = \
   mruset.h \
   netbase.h \
   net.h \
+  nodeinfo.h \
   persistence/assetdb.h \
   persistence/leveldbwrapper.h \
   persistence/accountdb.h \
@@ -151,7 +154,7 @@ coin_CORE_H = \
   rpc/rpctx.h \
   rpc/rpcvm.h \
   rpc/rpcwallet.h \
-  support/cleanse.h \
+  commons/support/cleanse.h \
   sigcache.h \
   tx/assettx.h \
   tx/accountregtx.h \
@@ -163,7 +166,7 @@ coin_CORE_H = \
   tx/cointransfertx.h \
   tx/delegatetx.h \
   tx/dextx.h \
-  tx/fcoinstaketx.h \
+  tx/coinstaketx.h \
   tx/merkletx.h \
   tx/mulsigtx.h \
   tx/pricefeedtx.h \
@@ -177,15 +180,15 @@ coin_CORE_H = \
   wallet/db.h
 
 JSON_H = \
-  json/json_spirit.h \
-  json/json_spirit_error_position.h \
-  json/json_spirit_reader.h \
-  json/json_spirit_reader_template.h \
-  json/json_spirit_stream_reader.h \
-  json/json_spirit_utils.h \
-  json/json_spirit_value.h \
-  json/json_spirit_writer.h \
-  json/json_spirit_writer_template.h
+  commons/json/json_spirit.h \
+  commons/json/json_spirit_error_position.h \
+  commons/json/json_spirit_reader.h \
+  commons/json/json_spirit_reader_template.h \
+  commons/json/json_spirit_stream_reader.h \
+  commons/json/json_spirit_utils.h \
+  commons/json/json_spirit_value.h \
+  commons/json/json_spirit_writer.h \
+  commons/json/json_spirit_writer_template.h
 
 # VmScript #
 VMLUA_H = \
@@ -257,6 +260,7 @@ VMLUA_C = \
 VM_H = \
   vm/luavm/luavmrunenv.h \
   vm/luavm/appaccount.h \
+  vm/luavm/lmylib.h \
   vm/luavm/luavm.h
 
 
@@ -333,7 +337,7 @@ libcoin_server_a_SOURCES = \
   tx/cointransfertx.cpp \
   tx/delegatetx.cpp \
   tx/dextx.cpp \
-  tx/fcoinstaketx.cpp \
+  tx/coinstaketx.cpp \
   tx/mulsigtx.cpp \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
@@ -387,18 +391,18 @@ libcoin_common_a_SOURCES = \
   persistence/leveldbwrapper.cpp \
   persistence/dexdb.cpp \
   persistence/logdb.cpp \
-  support/cleanse.cpp \
-  support/events.cpp \
+  commons/support/cleanse.cpp \
+  commons/support/events.cpp \
+  commons/json/json_spirit_reader.cpp \
+  commons/json/json_spirit_value.cpp \
+  commons/json/json_spirit_writer.cpp \
   sync.cpp \
   tx/coinrewardtx.cpp \
-  json/json_spirit_reader.cpp \
-  json/json_spirit_value.cpp \
-  json/json_spirit_writer.cpp \
   $(COIN_CORE_H)
 
 if GLIBC_BACK_COMPAT
-libcoin_common_a_SOURCES += compat/glibc_compat.cpp
-libcoin_common_a_SOURCES += compat/glibcxx_compat.cpp
+libcoin_common_a_SOURCES += commons/compat/glibc_compat.cpp
+libcoin_common_a_SOURCES += commons/compat/glibcxx_compat.cpp
 endif
 
 libcoin_cli_a_SOURCES = \
@@ -449,7 +453,7 @@ endif
 # NOTE: This dependency is not strictly necessary, but without it make may try to build both in parallel, which breaks the LevelDB build system in a race
 $(LIBLEVELDB): $(LIBMEMENV)
 
-leveldb/%.a:
+persistence/leveldb/%.a:
 	@echo "Building LevelDB ..." && $(MAKE) -C $(@D) $(@F) CXX="$(CXX)" \
 	  CC="$(CC)" PLATFORM=$(TARGET_OS) AR="$(AR)" $(LEVELDB_TARGET_FLAGS) \
 	  OPT="$(CXXFLAGS) $(CPPFLAGS)"
@@ -458,7 +462,7 @@ qt/bitcoinstrings.cpp: $(libcoin_server_a_SOURCES) $(libcoin_common_a_SOURCES) $
 	@test -n $(XGETTEXT) || echo "xgettext is required for updating translations"
 	@cd $(top_srcdir); XGETTEXT=$(XGETTEXT) share/qt/extract_strings_qt.py
 
-CLEANFILES = leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
+CLEANFILES = persistence/leveldb/libleveldb.a leveldb/libmemenv.a *.gcda *.gcno
 
 DISTCLEANFILES = config/build.h
 
@@ -467,4 +471,4 @@ EXTRA_DIST = leveldb Makefile.include
 clean-local:
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C leveldb clean
-	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
+	rm -f persistence/leveldb/*/*.gcno persistence/leveldb/helpers/memenv/*.gcno

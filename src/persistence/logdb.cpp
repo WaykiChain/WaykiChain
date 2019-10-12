@@ -4,14 +4,20 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "logdb.h"
+#include "config/chainparams.h"
 
 bool CLogDBCache::SetExecuteFail(const int32_t blockHeight, const uint256 txid, const uint8_t errorCode,
                                  const string &errorMessage) {
+    if (!SysCfg().IsLogFailures())
+        return true;
     return executeFailCache.SetData(std::to_string(blockHeight) + "_" + txid.GetHex(),
                                     std::make_pair(errorCode, errorMessage));
 }
 
 bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<uint256, uint8_t, string> > &result) {
+    if (!SysCfg().IsLogFailures())
+        return true;
+
     map<string, std::pair<uint8_t, string> > elements;
     if (!executeFailCache.GetAllElements(std::to_string(blockHeight) + "_", elements)) {
         return false;
@@ -27,6 +33,4 @@ bool CLogDBCache::GetExecuteFail(const int32_t blockHeight, vector<std::tuple<ui
     return true;
 }
 
-void CLogDBCache::Flush() {
-    executeFailCache.Flush();
-}
+void CLogDBCache::Flush() { executeFailCache.Flush(); }

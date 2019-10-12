@@ -12,38 +12,47 @@
 #include "entities/account.h"
 #include "entities/receipt.h"
 #include "persistence/leveldbwrapper.h"
+#include "persistence/cachewrapper.h"
 
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/json/json_spirit_writer_template.h"
 
 #include <memory>
 
 using namespace std;
 class CVmOperate;
+struct lua_State;
+
+class CLuaVMContext {
+public:
+    CCacheWrapper *p_cw;
+    uint32_t height;
+    uint32_t block_time;
+	CBaseTx *p_base_tx;
+    uint64_t fuel_limit;
+    TokenSymbol transfer_symbol;  // amount of tx user transfer to contract account
+    uint64_t transfer_amount;     // amount of tx user transfer to contract account
+    CAccount* p_tx_user_account;
+    CAccount* p_app_account;
+    CUniversalContract* p_contract;
+    string* p_arguments;
+};
+
+struct AssetTransfer {
+    bool isContractAccount; // Is contract account or tx sender' account
+    CUserID  toUid;         // to address of the transfer
+    TokenSymbol tokenType;  // Token type of the transfer
+    uint64_t  tokenAmount;  // Token amount of the transfer
+};
 
 class CLuaVMRunEnv {
 private:
+    CLuaVMContext *p_context;
 	/**
 	 * Run the script object
 	 */
 	std::shared_ptr<CLuaVM> pLua;
-	/**
-	 * vm before the account state
-	 */
-	vector<std::shared_ptr<CAccount> > rawAccount;
-	/**
-	 * vm operate the account state
-	 */
-	vector<std::shared_ptr<CAccount> > newAccount;
-	/**
-	 * current run the tx
-	 */
-	std::shared_ptr<CBaseTx> pBaseTx;
-	/**
-	 * the block height
-	 */
-	uint32_t runtimeHeight;
 	/**
 	 * vm before the app account state
 	 */
@@ -53,31 +62,18 @@ private:
 	 */
 	vector<std::shared_ptr<CAppUserAccount>> newAppUserAccount;
 
-	CAccountDBCache *pAccountCache;
-	CContractDBCache *pContractCache;
     vector<CReceipt> receipts;
 
-	vector<CVmOperate> vmOperateOutput;   //保存操作结果
-    bool isCheckAccount;  //校验账户平衡开关
+    vector<CVmOperate> vmOperateOutput;  // save operate output
+    uint32_t transfer_count;
+    bool isCheckAccount;  // check account balance
 
     map<vector<uint8_t>, vector<CAppFundOperate>> mapAppFundOperate;  // vector<unsigned char > 存的是accountId
 private:
-    /**
-     * @brief The initialization function
-     * @param Tx: run the tx's contact
-     * @param accountCache: Cache holds account
-     * @param contractCache: Cache holds contract
-     * @param height: run the Environment the block's height
-     * @return : check the the tx and account is Legal true is legal false is illegal
-     */
-    bool Initialize(std::shared_ptr<CBaseTx>& tx, CAccountDBCache& accountCache, CContractDBCache& contractCache,
-                    int32_t height);
-    /**
-     * @brief check action
-     * @param operates: run the script return the code,check the code
-     * @return : true check success
-     */
-    bool CheckOperate(const vector<CVmOperate>& operates);
+    bool Init();
+
+    bool CheckOperateAccountLimit();
+    bool CheckOperate();
     /**
      *
      * @param operates: through the vm return code, The accounts add/minus money
@@ -86,18 +82,7 @@ private:
      * @return true operate account success
      */
     bool OperateAccount(const vector<CVmOperate>& operates);
-    /**
-     * @brief find the vOldAccount from newAccount if find success remove it from newAccount
-     * @param vOldAccount: the argument
-     * @return:Return the object
-     */
-    std::shared_ptr<CAccount> GetNewAccount(std::shared_ptr<CAccount>& vOldAccount);
-    /**
-     * @brief find the account from newAccount
-     * @param account: argument
-     * @return:Return the object
-     */
-    std::shared_ptr<CAccount> GetAccount(std::shared_ptr<CAccount>& account);
+
     /**
      * @brief get the account id
      * @param value: argument
@@ -116,33 +101,18 @@ public:
     CLuaVMRunEnv();
     virtual ~CLuaVMRunEnv();
 
-    /**
-     * @brief get be operate the account
-     * @return the variable rawAccount
-     */
-    vector<std::shared_ptr<CAccount>>& GetRawAccont();
-    /**
-     * @brief get after operate the account
-     * @return :the variable newAccount
-     */
-    vector<std::shared_ptr<CAccount>>& GetNewAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetRawAppUserAccount();
     vector<std::shared_ptr<CAppUserAccount>>& GetNewAppUserAccount();
 
-    vector<CReceipt> GetReceipts() const { return receipts; }
+    const vector<CReceipt>& GetReceipts() const { return receipts; }
 
     /**
-     * @brief  start to run the script
-     * @param Tx: run the tx
-     * @param accountCache: the second argument
-     * @param height: block height
-     * @param nBurnFactor: Executing a step script to spending
-     * @return: tuple<bool,uint64_t,string>  bool represent the script run success
-     * uint64_t if the script run success Run the script calls the money ,string represent run the
-     * failed's  Reason
+     * execute contract
+     * @param pContextIn: run context
+     * @param fuel: burned fuel amount
+     * @return: nullptr if run success, else error string
      */
-    std::tuple<bool, uint64_t, string> ExecuteContract(std::shared_ptr<CBaseTx>& tx, int32_t height, CCacheWrapper& cw,
-                                                       uint64_t nBurnFactor, uint64_t& uRunStep);
+    std::shared_ptr<string> ExecuteContract(CLuaVMContext *pContextIn, uint64_t& uRunStep);
 
     /**
      * @brief just for test
@@ -150,9 +120,10 @@ public:
      */
     //	shared_ptr<vector<CVmOperate> > GetOperate() const;
     const CRegID& GetContractRegID();
-    const CRegID& GetTxAccount();
+    const CRegID& GetTxUserRegid();
     uint64_t GetValue() const;
     const string& GetTxContract();
+    CCacheWrapper* GetCw();
     CContractDBCache* GetScriptDB();
     CAccountDBCache* GetCatchView();
     int32_t GetConfirmHeight();
@@ -160,11 +131,19 @@ public:
     int32_t GetBurnVersion();
     uint256 GetCurTxHash();
     bool InsertOutputData(const vector<CVmOperate>& source);
+    /**
+     * transfer account asset
+     * @param transfers: transfer info vector
+     * @return transfer success or not
+     */
+    bool TransferAccountAsset(lua_State *L, const vector<AssetTransfer> &transfers);
     void InsertOutAPPOperte(const vector<uint8_t>& userId, const CAppFundOperate& source);
 
     bool GetAppUserAccount(const vector<uint8_t>& id, std::shared_ptr<CAppUserAccount>& pAppUserAccount);
-    bool CheckAppAcctOperate(CLuaContractInvokeTx* tx);
+    bool CheckAppAcctOperate();
     void SetCheckAccount(bool bCheckAccount);
+
+    CLuaVMContext &GetContext() const { assert(p_context != nullptr); return *p_context; }
 };
 
 #endif  // LUA_VM_RUNENV_H

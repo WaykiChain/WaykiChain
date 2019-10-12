@@ -79,26 +79,39 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
 }
 
 map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
-    if (vptx.size() == 1 || !vptx[1]->IsMedianPriceTx()) {
+    if (GetFeatureForkVersion(GetHeight()) == MAJOR_VER_R1) {
         return map<CoinPricePair, uint64_t>();
     }
 
-    return ((CBlockPriceMedianTx*)vptx[1].get())->GetMedianPrice();
+    for (size_t index = 1; index < vptx.size(); ++ index) {
+        if (vptx[index]->IsPriceFeedTx()) {
+            continue;
+        } else if (vptx[index]->IsPriceMedianTx()) {
+            return ((CBlockPriceMedianTx*)vptx[index].get())->GetMedianPrice();
+        } else {
+            break;
+        }
+    }
+
+    LogPrint("ERROR", "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
+             GetHash().GetHex());
+    assert(false && "block does not have price median tx");
+    return map<CoinPricePair, uint64_t>();
 }
 
-void CBlock::Print(CAccountDBCache& accountCache) const {
+void CBlock::Print(CBlockDBCache& blockCache) const {
     string medianPrices;
     for (const auto &item : GetBlockMedianPrice()) {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 
-    LogPrint("INFO", "block hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
+    LogPrint("DEBUG", "block height=%d, hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
              "nFuelRate=%d, median prices: %s\n",
-             GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
+             height, GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
              vptx.size(), nFuel, nFuelRate, medianPrices);
     // LogPrint("INFO", "list transactions:\n");
     // for (uint32_t i = 0; i < vptx.size(); i++) {
-    //     LogPrint("INFO", "%s ", vptx[i]->ToString(accountCache));
+    //     LogPrint("INFO", "%s ", vptx[i]->ToString(blockCache));
     // }
     // LogPrint("INFO", "  vMerkleTree: ");
     // for (uint32_t i = 0; i < vMerkleTree.size(); i++) {

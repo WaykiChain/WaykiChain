@@ -20,10 +20,10 @@ using namespace std;
 
 class CDelegateDBCache {
 public:
-    CDelegateDBCache(){};
-    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess), regId2VoteCache(pDbAccess){};
+    CDelegateDBCache() {}
+    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess), regId2VoteCache(pDbAccess) {}
     CDelegateDBCache(CDelegateDBCache *pBaseIn)
-        : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache){};
+        : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache) {}
 
     bool LoadTopDelegateList();
     bool ExistDelegate(const CRegID &regId);
@@ -45,19 +45,17 @@ public:
     void SetBaseViewPtr(CDelegateDBCache *pBaseIn) {
         voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
         regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
-    };
+    }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         voteRegIdCache.SetDbOpLogMap(pDbOpLogMapIn);
         regId2VoteCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoDatas() {
-        return voteRegIdCache.UndoDatas() &&
-               regId2VoteCache.UndoDatas();
-    }
+    bool UndoData() { return voteRegIdCache.UndoData() && regId2VoteCache.UndoData(); }
+
 private:
-/*  CSimpleKVCache  prefixType     key                         value                   variable       */
+/*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
     CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;

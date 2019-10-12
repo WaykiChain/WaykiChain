@@ -16,9 +16,9 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_writer_template.h"
+#include "commons/json/json_spirit_reader_template.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_writer_template.h"
 using namespace std;
 // HTTP status codes
 enum HTTPStatusCode

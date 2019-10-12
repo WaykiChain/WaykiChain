@@ -14,7 +14,7 @@ string CUserCDP::ToString() const {
 }
 
 Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) const {
-    double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / kPercentBoost;
+    double collateralRatio = collateral_ratio_base * bcoinMedianPrice * 100 / PRICE_BOOST;
 
     Object result;
     result.push_back(Pair("cdpid",              cdpid.GetHex()));
@@ -24,7 +24,7 @@ Object CUserCDP::ToJson(uint64_t bcoinMedianPrice) const {
     result.push_back(Pair("total_bcoin",        total_staked_bcoins));
     result.push_back(Pair("scoin_symbol",       scoin_symbol));
     result.push_back(Pair("total_scoin",        total_owed_scoins));
-    result.push_back(Pair("collateral_ratio",   strprintf("%.2f%%", collateralRatio)));
+    result.push_back(Pair("collateral_ratio",   total_owed_scoins == 0 ? "INF" : strprintf("%.2f%%", collateralRatio)));
     return result;
 }
 
@@ -34,7 +34,7 @@ void CUserCDP::Redeem(int32_t blockHeight, uint64_t bcoinsToRedeem, uint64_t sco
     block_height = blockHeight;
     total_staked_bcoins -= bcoinsToRedeem;
     total_owed_scoins -= scoinsToRepay;
-    Update();
+    ComputeCollateralRatioBase();
 }
 
 
@@ -44,24 +44,15 @@ void CUserCDP::AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mi
     block_height = blockHeight;
     total_staked_bcoins += bcoinsToStake;
     total_owed_scoins += mintedScoins;
-    Update();
+    ComputeCollateralRatioBase();
 }
 
 void CUserCDP::LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate) {
     assert(total_staked_bcoins >= bcoinsToLiquidate);
     assert(total_owed_scoins >= scoinsToLiquidate);
-    block_height = blockHeight;
+    // Attention: do NOT try to update height, depend it to compute interest while staking or redeeming.
+    // block_height = blockHeight;
     total_staked_bcoins -= bcoinsToLiquidate;
     total_owed_scoins -= scoinsToLiquidate;
-    Update();
-}
-
-uint64_t CUserCDP::ComputeCollateralRatio(uint64_t bcoinPrice) {
-    if (total_staked_bcoins != 0 && total_owed_scoins == 0) {
-        return UINT64_MAX; // big safe percent
-    } else if (total_staked_bcoins == 0 || total_owed_scoins == 0) {
-        return 0;
-    } else {
-        return  double(bcoinPrice) * total_staked_bcoins / total_owed_scoins;
-    }
+    ComputeCollateralRatioBase();
 }

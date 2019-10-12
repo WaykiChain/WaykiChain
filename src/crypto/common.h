@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <compat/endian.h>
+#include "commons/compat/endian.h"
 
 uint16_t static inline ReadLE16(const unsigned char* ptr)
 {

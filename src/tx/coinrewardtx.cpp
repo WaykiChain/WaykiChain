@@ -8,15 +8,16 @@
 
 #include "main.h"
 
-bool CCoinRewardTx::CheckTx(int32_t height, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinRewardTx::CheckTx(CTxExecuteContext &context) {
     // Only used in stable coin genesis.
-    return height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
+    return context.height == (int32_t)SysCfg().GetStableCoinGenesisHeight() ? true : false;
 }
 
-bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, CValidationState &state) {
+bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
     CAccount account;
-    CRegID regId(height, index);
+    CRegID regId(context.height, context.index);
     CKeyID keyId;
     CPubKey pubKey;
     if (txUid.is<CPubKey>()) {
@@ -35,12 +36,12 @@ bool CCoinRewardTx::ExecuteTx(int32_t height, int32_t index, CCacheWrapper &cw, 
     account.keyid        = keyId;
 
     if (!account.OperateBalance(coin_symbol, ADD_FREE, coin_amount))
-        return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, OperateBalance failed"),
-            UPDATE_ACCOUNT_FAIL, "operate-balance-failed");
+        return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, operate account failed"), UPDATE_ACCOUNT_FAIL,
+                         "operate-account-failed");
 
     if (!cw.accountCache.SaveAccount(account))
         return state.DoS(100, ERRORMSG("CCoinRewardTx::ExecuteTx, write secure account info error"),
-            UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
+                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
     return true;
 }
@@ -49,9 +50,9 @@ string CCoinRewardTx::ToString(CAccountDBCache &accountCache) {
     assert(txUid.is<CPubKey>() || txUid.is<CNullID>());
     string toAddr = txUid.is<CPubKey>() ? txUid.get<CPubKey>().GetKeyId().ToAddress() : "";
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, coin_symbol=%s, coin_amount=%ld",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, coin_symbol=%s, coin_amount=%llu, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), toAddr, coin_symbol,
-                     coin_amount);
+                     coin_amount, valid_height);
 }
 
 Object CCoinRewardTx::ToJson(const CAccountDBCache &accountCache) const {

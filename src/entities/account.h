@@ -19,8 +19,8 @@
 #include "entities/receipt.h"
 #include "id.h"
 #include "vote.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_value.h"
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
 
 using namespace json_spirit;
 
@@ -30,7 +30,8 @@ enum BalanceType : uint8_t {
     NULL_TYPE    = 0,  //!< invalid type
     FREE_VALUE   = 1,
     STAKED_VALUE = 2,
-    FROZEN_VALUE = 3
+    FROZEN_VALUE = 3,
+    VOTED_VALUE  = 4
 };
 
 enum BalanceOpType : uint8_t {
@@ -40,7 +41,9 @@ enum BalanceOpType : uint8_t {
     STAKE    = 3,  //!< free   -> staked
     UNSTAKE  = 4,  //!< staked -> free
     FREEZE   = 5,  //!< free   -> frozen
-    UNFREEZE = 6   //!< frozen -> free
+    UNFREEZE = 6,  //!< frozen -> free
+    VOTE     = 7,  //!< free -> voted
+    UNVOTE   = 8   //!< voted -> free
 };
 
 struct BalanceOpTypeHash {
@@ -54,7 +57,9 @@ static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpT
     { STAKE,    "STAKE"     },
     { UNSTAKE,  "UNSTAKE"   },
     { FREEZE,   "FREEZE"    },
-    { UNFREEZE, "UNFREEZE"  }
+    { UNFREEZE, "UNFREEZE"  },
+    { VOTE,     "VOTE"      },
+    { UNVOTE,   "UNVOTE"    }
 };
 
 inline string GetBalanceOpTypeName(const BalanceOpType opType) {
@@ -64,14 +69,15 @@ inline string GetBalanceOpTypeName(const BalanceOpType opType) {
 class CAccountToken {
 public:
     uint64_t free_amount;
-    uint64_t frozen_amount;  // held within open DEX orders
-    uint64_t staked_amount;  // for staking purposes
+    uint64_t frozen_amount;     // for coins held in DEX buy/sell orders
+    uint64_t staked_amount;     // for staking
+    uint64_t voted_amount;      // for voting
 
 public:
-    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0) { }
+    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0) { }
 
-    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount)
-        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount) {}
+    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, uint64_t& votedAmount)
+        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), voted_amount(votedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other)
@@ -80,6 +86,7 @@ public:
         this->free_amount   = other.free_amount;
         this->frozen_amount = other.frozen_amount;
         this->staked_amount = other.staked_amount;
+        this->voted_amount  = other.voted_amount;
 
         return *this;
     }
@@ -88,6 +95,7 @@ public:
         READWRITE(VARINT(free_amount));
         READWRITE(VARINT(frozen_amount));
         READWRITE(VARINT(staked_amount));
+        READWRITE(VARINT(voted_amount));
     )
 };
 
@@ -109,10 +117,11 @@ public:
     AccountTokenMap tokens;         //!< In total, 3 types of coins/tokens:
                                     //!<    1) system-issued coins: WICC, WGRT
                                     //!<    2) miner-issued stablecoins WUSD|WCNY|...
-                                    //!<    3) user-issued tokens (WRC20 compilant)
+                                    //!<    3) user-issued tokens (WRC20 compliant)
 
     uint64_t received_votes;        //!< votes received
     uint64_t last_vote_height;      //!< account's last vote block height used for computing interest
+    uint64_t last_vote_epoch;       //!< account's last vote epoch used for computing interest
 
     mutable uint256 sigHash;        //!< in-memory only
 
@@ -131,12 +140,13 @@ public:
         this->tokens           = other.tokens;
         this->received_votes   = other.received_votes;
         this->last_vote_height = other.last_vote_height;
+        this->last_vote_epoch  = other.last_vote_epoch;
 
         return *this;
     }
-    CAccount(const CKeyID& keyIdIn): keyid(keyIdIn), regid(), nickid(), received_votes(0), last_vote_height(0) {}
+    CAccount(const CKeyID& keyIdIn): keyid(keyIdIn), regid(), nickid(), received_votes(0), last_vote_height(0), last_vote_epoch(0) {}
     CAccount(const CKeyID& keyidIn, const CNickID& nickidIn, const CPubKey& ownerPubkeyIn)
-        : keyid(keyidIn), nickid(nickidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0) {
+        : keyid(keyidIn), nickid(nickidIn), owner_pubkey(ownerPubkeyIn), received_votes(0), last_vote_height(0), last_vote_epoch(0) {
         miner_pubkey = CPubKey();
         tokens.clear();
         regid.Clear();
@@ -155,22 +165,25 @@ public:
         READWRITE(tokens);
         READWRITE(VARINT(received_votes));
         READWRITE(VARINT(last_vote_height));
+        READWRITE(VARINT(last_vote_epoch));
     )
 
     CAccountToken GetToken(const TokenSymbol &tokenSymbol) const;
     bool SetToken(const TokenSymbol &tokenSymbol, const CAccountToken &accountToken);
 
+
+    uint64_t GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType);
     bool GetBalance(const TokenSymbol &tokenSymbol, const BalanceType balanceType, uint64_t &value);
     bool OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpType opType, const uint64_t &value);
 
     bool StakeVoteBcoins(VoteType type, const uint64_t votes);
     bool ProcessCandidateVotes(const vector<CCandidateVote>& candidateVotesIn,
-                              vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
-                              const CAccountDBCache &accountCache, vector<CReceipt> &receipts);
+                               vector<CCandidateReceivedVote>& candidateVotesInOut, const uint32_t currHeight,
+                               const uint32_t currBlockTime, const CAccountDBCache& accountCache,
+                               vector<CReceipt>& receipts);
 
-    uint64_t GetVotedBcoins(const vector<CCandidateReceivedVote>& candidateVotes, const uint64_t currHeight);
-
-    uint64_t ComputeVoteStakingInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
+    uint64_t ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
+    uint64_t ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currBlockTime);
     uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
