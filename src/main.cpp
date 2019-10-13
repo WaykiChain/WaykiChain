@@ -50,7 +50,7 @@ CTxMemPool mempool;
 map<uint256, CBlockIndex *> mapBlockIndex;
 int32_t nSyncTipHeight = 0;
 string externalIp;
-map<uint256, std::shared_ptr<CCacheWrapper> > mapForkCache;
+map<uint256/* blockhash */, std::shared_ptr<CCacheWrapper>> mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;
 CChain chainMostWork;
@@ -58,10 +58,9 @@ bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
 
-map<uint256, COrphanBlock *> mapOrphanBlocks;
-multimap<uint256, COrphanBlock *> mapOrphanBlocksByPrev;
-
-map<uint256, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
+map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
+multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
+map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
 
 const string strMessageMagic = "Coin Signed Message:\n";
 
@@ -85,6 +84,7 @@ namespace {
 
         for (const auto &entry : state->vBlocksInFlight)
             mapBlocksInFlight.erase(entry.hash);
+
         for (const auto &hash : state->vBlocksToDownload)
             mapBlocksToDownload.erase(hash);
 
@@ -102,6 +102,7 @@ namespace {
         QueuedBlock newentry = {hash, GetTimeMicros(), state->nBlocksInFlight};
         if (state->nBlocksInFlight == 0)
             state->nLastBlockReceive = newentry.nTime;  // Reset when a first request is sent.
+
         list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(state->vBlocksInFlight.end(), newentry);
         state->nBlocksInFlight++;
         mapBlocksInFlight[hash] = make_pair(nodeid, it);
@@ -111,13 +112,12 @@ namespace {
     bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
 
         // First sort by most total work, ...
-        if(pa->nChainWork != pb->nChainWork){
+        if (pa->nChainWork != pb->nChainWork) {
             return (pa->nChainWork < pb->nChainWork) ;
         }
 
-
         // ... then by earliest time received, ...
-        if(pa->nSequenceId != pb->nSequenceId){
+        if (pa->nSequenceId != pb->nSequenceId) {
             return (pa->nSequenceId > pb->nSequenceId) ;
         }
 
@@ -131,18 +131,20 @@ namespace {
 CBlockIndex *pIndexBestInvalid;
 // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't
 // failed
-set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //根据高度排序的有序集合
+set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //an ordered set sorted by height
 
 struct COrphanBlockComparator {
     bool operator()(COrphanBlock *pa, COrphanBlock *pb) {
         if (pa->height > pb->height)
             return false;
+
         if (pa->height < pb->height)
             return true;
+
         return false;
     }
 };
-set<COrphanBlock *, COrphanBlockComparator> setOrphanBlock;  //存的孤立块
+set<COrphanBlock *, COrphanBlockComparator> setOrphanBlock;  //set of Orphan Blocks
 
 CCriticalSection cs_LastBlockFile;
 CBlockFileInfo infoLastBlockFile;
@@ -153,10 +155,6 @@ int32_t nLastBlockFile = 0;
 CCriticalSection cs_nBlockSequenceId;
 // Blocks loaded from disk are assigned id 0, so start the counter at 1.
 uint32_t nBlockSequenceId = 1;
-
-
-
-
 
 
 }  // namespace
@@ -225,6 +223,7 @@ bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
     CNodeState *state = State(nodeid);
     if (state == nullptr)
         return false;
+
     stats.nMisbehavior = state->nMisbehavior;
     return true;
 }
@@ -258,7 +257,7 @@ CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
     vChain.resize(pIndex->height + 1);
     while (pIndex && vChain[pIndex->height] != pIndex) {
         vChain[pIndex->height] = pIndex;
-        pIndex                  = pIndex->pprev;
+        pIndex                 = pIndex->pprev;
     }
     return pIndex;
 }
@@ -283,9 +282,11 @@ CBlockLocator CChain::GetLocator(const CBlockIndex *pIndex) const {
         // In case pIndex is not in this chain, iterate pIndex->pprev to find blocks.
         while (!Contains(pIndex))
             pIndex = pIndex->pprev;
+
         // If pIndex is in this chain, use direct height-based access.
         if (pIndex->height > height)
             pIndex = (*this)[height];
+
         if (vHave.size() > 10)
             nStep *= 2;
     }
@@ -338,27 +339,26 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     return true;
 }
 
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx, bool fLimitFree,
-                        bool fRejectInsaneFee) {
+bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx, 
+                        bool fLimitFree, bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
     // is it already in the memory pool?
     uint256 hash = pBaseTx->GetHash();
     if (pool.Exists(hash))
         return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s already in mempool", hash.GetHex()),
-            REJECT_INVALID, "tx-already-in-mempool");
+                            REJECT_INVALID, "tx-already-in-mempool");
 
     // is it a miner reward tx or price median tx?
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
-        return state.Invalid(
-            ERRORMSG("AcceptToMemoryPool() : txid: %s is a miner reward/price median transaction, can't put into mempool",
-            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
+                            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
     if (SysCfg().NetworkID() == MAIN_NET && !IsStandardTx(pBaseTx, reason))
         return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s is nonstandard transaction due to %s",
-            hash.GetHex(), reason), REJECT_NONSTANDARD, reason);
+                        hash.GetHex(), reason), REJECT_NONSTANDARD, reason);
 
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
@@ -389,7 +389,7 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
         // At default rate it would take over a month to fill 1GB
         if (dFreeCount >= SysCfg().GetArg("-limitfreerelay", 15) * 10 * 1000 / 60)
             return state.DoS(0, ERRORMSG("AcceptToMemoryPool() : txid: %s is a free transaction, rejected by rate limiter",
-                hash.GetHex()), REJECT_INSUFFICIENTFEE, "insufficient priority");
+                            hash.GetHex()), REJECT_INSUFFICIENTFEE, "insufficient priority");
 
         LogPrint("INFO", "Rate limit dFreeCount: %g => %g\n", dFreeCount, dFreeCount + nSize);
         dFreeCount += nSize;
@@ -404,12 +404,14 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 int32_t CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
     if (blockHash.IsNull() || index == -1)
         return 0;
+
     AssertLockHeld(cs_main);
 
     // Find the block it claims to be in
     map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(blockHash);
     if (mi == mapBlockIndex.end())
         return 0;
+
     CBlockIndex *pIndex = (*mi).second;
     if (!pIndex || !chainActive.Contains(pIndex))
         return 0;
@@ -418,6 +420,7 @@ int32_t CMerkleTx::GetDepthInMainChainINTERNAL(CBlockIndex *&pindexRet) const {
     if (!fMerkleVerified) {
         if (CBlock::CheckMerkleBranch(pTx->GetHash(), vMerkleBranch, index) != pIndex->merkleRootHash)
             return 0;
+
         fMerkleVerified = true;
     }
 
@@ -553,7 +556,7 @@ bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) {
 
 bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx) {
     auto pBlock = std::make_shared<CBlock>();
-    const CBlockIndex* pBlockIndex = chainActive[txCord.GetHeight()];
+    const CBlockIndex* pBlockIndex = chainActive[ txCord.GetHeight() ];
     if (pBlockIndex == nullptr) {
         return ERRORMSG("ReadBaseTxFromDisk error, the height(%d) is exceed current best block height", txCord.GetHeight());
     }
@@ -657,11 +660,13 @@ void CheckForkWarningConditions() {
                      "  lasting to   height %d (%s)\n",
                      pIndexBestForkBase->height, pIndexBestForkBase->pBlockHash->ToString(),
                      pIndexBestForkTip->height, pIndexBestForkTip->pBlockHash->ToString());
+
             fLargeWorkForkFound = true;
         } else {
             LogPrint("INFO",
                      "CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best "
                      "chain.\nChain state database corruption likely.\n");
+                     
             fLargeWorkInvalidChainFound = true;
         }
     } else {
@@ -1053,8 +1058,8 @@ bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state
 }
 
 // compute vote staking interest && revoke votes
-static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime, CCacheWrapper &cw,
-                                              CValidationState &state) {
+static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime, 
+                                                    CCacheWrapper &cw, CValidationState &state) {
     // acquire votes list
     map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
     if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
