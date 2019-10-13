@@ -229,7 +229,7 @@ public:
 
     CBlockIndexDB       *pBlockIndexDb;
     CDBAccess           *pBlockDb;
-    CBlockDBCache        *pBlockCache;
+    CBlockDBCache       *pBlockCache;
 
     CDBAccess           *pLogDb;
     CLogDBCache         *pLogCache;

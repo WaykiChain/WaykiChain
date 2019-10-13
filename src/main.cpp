@@ -1436,14 +1436,15 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
     uint32_t cachesize        =
+        pCdMan->pSysParamCache->GetCacheSize() +
         pCdMan->pAccountCache->GetCacheSize() +
         pCdMan->pAssetCache->GetCacheSize() +
-        pCdMan->pBlockCache->GetCacheSize() +
         pCdMan->pContractCache->GetCacheSize() +
         pCdMan->pDelegateCache->GetCacheSize() +
         pCdMan->pCdpCache->GetCacheSize() +
         pCdMan->pClosedCdpCache->GetCacheSize() +
         pCdMan->pDexCache->GetCacheSize() +
+        pCdMan->pBlockCache->GetCacheSize() +
         pCdMan->pLogCache->GetCacheSize() +
         pCdMan->pReceiptCache->GetCacheSize();
 
