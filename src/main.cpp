@@ -128,7 +128,7 @@ namespace {
     }
 };
 
-CBlockIndex *pindexBestInvalid;
+CBlockIndex *pIndexBestInvalid;
 // may contain all CBlockIndex*'s that have validness >=BLOCK_VALID_TRANSACTIONS, and must contain those who aren't
 // failed
 set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //根据高度排序的有序集合
@@ -639,8 +639,8 @@ void CheckForkWarningConditions() {
         pIndexBestForkTip = nullptr;
 
     if (pIndexBestForkTip ||
-        (pindexBestInvalid &&
-         pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6))) {
+        (pIndexBestInvalid &&
+         pIndexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6))) {
         if (!fLargeWorkForkFound && pIndexBestForkBase) {
             string strCmd = SysCfg().GetArg("-alertnotify", "");
             if (!strCmd.empty()) {
@@ -722,13 +722,13 @@ void Misbehaving(NodeId pNode, int32_t howmuch) {
 }
 
 void static InvalidChainFound(CBlockIndex *pIndexNew) {
-    if (!pindexBestInvalid || pIndexNew->nChainWork > pindexBestInvalid->nChainWork) {
-        pindexBestInvalid = pIndexNew;
+    if (!pIndexBestInvalid || pIndexNew->nChainWork > pIndexBestInvalid->nChainWork) {
+        pIndexBestInvalid = pIndexNew;
         // The current code doesn't actually read the BestInvalidWork entry in
         // the block database anymore, as it is derived from the flags in block
         // index entry. We only write it for backward compatibility.
         // TODO: need to remove the indexBestInvalid
-        //pCdMan->pBlockCache->WriteBestInvalidWork(ArithToUint256(pindexBestInvalid->nChainWork));
+        //pCdMan->pBlockCache->WriteBestInvalidWork(ArithToUint256(pIndexBestInvalid->nChainWork));
     }
     LogPrint("INFO", "InvalidChainFound: invalid block=%s  height=%d  log2_work=%.8g  date=%s\n",
              pIndexNew->GetBlockHash().ToString(), pIndexNew->height,
@@ -806,9 +806,9 @@ bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex) {
             it->second->nStatus &= ~BLOCK_FAILED_MASK;
             pCdMan->pBlockIndexDb->WriteBlockIndex(CDiskBlockIndex(it->second));
             setBlockIndexValid.insert(it->second);
-            if (it->second == pindexBestInvalid) {
+            if (it->second == pIndexBestInvalid) {
                 // Reset invalid block marker if it was pointing to one of those.
-                pindexBestInvalid = nullptr;
+                pIndexBestInvalid = nullptr;
             }
         }
         it++;
@@ -1626,8 +1626,8 @@ void static FindMostWorkChain() {
         while (pindexTest && !chainActive.Contains(pindexTest)) {
             if (pindexTest->nStatus & BLOCK_FAILED_MASK) {
                 // Candidate has an invalid ancestor, remove entire chain from the set.
-                if (pindexBestInvalid == nullptr || pIndexNew->nChainWork > pindexBestInvalid->nChainWork)
-                    pindexBestInvalid = pIndexNew;
+                if (pIndexBestInvalid == nullptr || pIndexNew->nChainWork > pIndexBestInvalid->nChainWork)
+                    pIndexBestInvalid = pIndexNew;
                 CBlockIndex *pindexFailed = pIndexNew;
                 while (pindexTest != pindexFailed) {
                     pindexFailed->nStatus |= BLOCK_FAILED_CHILD;
@@ -2518,8 +2518,8 @@ bool static LoadBlockIndexDB() {
         if ((pIndex->nStatus & BLOCK_VALID_MASK) >= BLOCK_VALID_TRANSACTIONS && !(pIndex->nStatus & BLOCK_FAILED_MASK))
             setBlockIndexValid.insert(pIndex);
         if (pIndex->nStatus & BLOCK_FAILED_MASK &&
-            (!pindexBestInvalid || pIndex->nChainWork > pindexBestInvalid->nChainWork))
-            pindexBestInvalid = pIndex;
+            (!pIndexBestInvalid || pIndex->nChainWork > pIndexBestInvalid->nChainWork))
+            pIndexBestInvalid = pIndex;
         if (pIndex->pprev)
             pIndex->BuildSkip();
     }
@@ -2651,7 +2651,7 @@ void UnloadBlockIndex() {
     mapBlockIndex.clear();
     setBlockIndexValid.clear();
     chainActive.SetTip(nullptr);
-    pindexBestInvalid = nullptr;
+    pIndexBestInvalid = nullptr;
 }
 
 bool LoadBlockIndex() {
