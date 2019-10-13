@@ -1435,7 +1435,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 // Update the on-disk chain state.
 bool static WriteChainState(CValidationState &state) {
     static int64_t nLastWrite = 0;
-    uint32_t cachesize        =
+    uint32_t cacheSize        =
         pCdMan->pSysParamCache->GetCacheSize() +
         pCdMan->pAccountCache->GetCacheSize() +
         pCdMan->pAssetCache->GetCacheSize() +
@@ -1448,20 +1448,19 @@ bool static WriteChainState(CValidationState &state) {
         pCdMan->pLogCache->GetCacheSize() +
         pCdMan->pReceiptCache->GetCacheSize();
 
-    if (!IsInitialBlockDownload() || cachesize > SysCfg().GetCacheSize() ||
+    if (!IsInitialBlockDownload() || cacheSize > SysCfg().GetCacheSize() ||
         GetTimeMicros() > nLastWrite + 60 * 1000000) {
         // Typical CCoins structures on disk are around 100 bytes in size.
         // Pushing a new one to the database can cause it to be written
         // twice (once in the log, and once in the tables). This is already
         // an overestimation, as most will delete an existing entry or
         // overwrite one. Still, use a conservative safety factor of 2.
-        if (!CheckDiskSpace(cachesize))
+        if (!CheckDiskSpace(cacheSize))
             return state.Error("out of disk space");
 
         FlushBlockFile();
         // pCdMan->pBlockCache->Sync();
         pCdMan->Flush();
-
         mapForkCache.clear();
         nLastWrite = GetTimeMicros();
     }
@@ -2571,8 +2570,10 @@ bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth) {
     // Verify blocks in the best chain
     if (nCheckDepth <= 0)
         nCheckDepth = 1000000000;  // suffices until the year 19000
+
     if (nCheckDepth > chainActive.Height())
         nCheckDepth = chainActive.Height();
+
     nCheckLevel = max(0, min(4, nCheckLevel));
     LogPrint("INFO", "Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
 
@@ -2663,6 +2664,7 @@ bool LoadBlockIndex() {
     // Load block index from databases
     if (!SysCfg().IsReindex() && !LoadBlockIndexDB())
         return false;
+        
     return true;
 }
 
