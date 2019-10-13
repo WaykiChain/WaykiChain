@@ -50,7 +50,7 @@ Object CallRPC(const string& strMethod, const Array& params) {
         if (fWait)
             MilliSleep(1000);
         else
-            throw runtime_error("couldn't connect to server");
+            throw runtime_error("couldn't connect to server... pls wait for a while or check rpcserver=1 setting.");
     } while (fWait);
 
     // HTTP basic authentication
