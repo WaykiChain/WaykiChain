@@ -652,8 +652,9 @@ void CheckForkWarningConditions() {
         }
         if (pIndexBestForkTip && pIndexBestForkBase) {
             LogPrint("INFO",
-                     "CheckForkWarningConditions: Warning: Large valid fork found\n  forking the chain at height %d "
-                     "(%s)\n  lasting to height %d (%s).\nChain state database corruption likely.\n",
+                     "CheckForkWarningConditions: Warning: Large valid fork found\n"
+                     "  forking from height %d (%s)\n"
+                     "  lasting to   height %d (%s)\n",
                      pIndexBestForkBase->height, pIndexBestForkBase->pBlockHash->ToString(),
                      pIndexBestForkTip->height, pIndexBestForkTip->pBlockHash->ToString());
             fLargeWorkForkFound = true;
