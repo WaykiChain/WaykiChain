@@ -1477,10 +1477,10 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     // New best block
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
-    LogPrint("INFO", "UpdateTip: block=%s height=%d chainTxCnt=%lu ts=%s txCnt=%d fuelRate=%d\n",
-             chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(), chainActive.Tip()->nChainTx,
-             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()),
-             block.vptx.size(), chainActive.Tip()->nFuelRate);
+    LogPrint("INFO", "UpdateTip[%d]: %s blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
+             chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(), 
+             block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
+             DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload) {
