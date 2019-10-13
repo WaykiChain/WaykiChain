@@ -106,10 +106,6 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 /** Verify consistency of the block and coin databases */
 bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth);
 
-/** Process protocol messages received from a given node */
-bool ProcessMessages(CNode *pFrom);
-/** Send queued protocol messages to be sent to a give node */
-bool SendMessages(CNode *pTo, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
