@@ -1445,7 +1445,6 @@ bool static WriteChainState(CValidationState &state) {
         pCdMan->pClosedCdpCache->GetCacheSize() +
         pCdMan->pDexCache->GetCacheSize() +
         pCdMan->pLogCache->GetCacheSize() +
-        pCdMan->pLogCache->GetCacheSize() +
         pCdMan->pReceiptCache->GetCacheSize();
 
     if (!IsInitialBlockDownload() || cachesize > SysCfg().GetCacheSize() ||
