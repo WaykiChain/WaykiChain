@@ -365,7 +365,9 @@ inline int ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStream &v
 
     pFrom->fSuccessfullyConnected = true;
 
-    LogPrint("INFO", "receive version message: %s: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pFrom->cleanSubVer, pFrom->nVersion, pFrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(), pFrom->addr.ToString());
+    LogPrint("INFO", "receive version msg: %s: protocol_ver %d, blocks=%d, us=%s, them=%s, peer=%s\n", 
+            pFrom->cleanSubVer, pFrom->nVersion, pFrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(),
+            pFrom->addr.ToString());
 
     AddTimeData(pFrom->addr, nTime);
 
