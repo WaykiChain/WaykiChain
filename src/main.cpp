@@ -66,6 +66,7 @@ map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
 
 const string strMessageMagic = "Coin Signed Message:\n";
 
+
 // Internal stuff
 namespace {
 
@@ -91,23 +92,6 @@ namespace {
             mapBlocksToDownload.erase(hash);
 
         mapNodeState.erase(nodeid);
-    }
-
-    // Requires cs_main.
-    void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
-        CNodeState *state = State(nodeid);
-        assert(state != nullptr);
-
-        // Make sure it's not listed somewhere already.
-        MarkBlockAsReceived(hash);
-
-        QueuedBlock newentry = {hash, GetTimeMicros(), state->nBlocksInFlight};
-        if (state->nBlocksInFlight == 0)
-            state->nLastBlockReceive = newentry.nTime;  // Reset when a first request is sent.
-
-        list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(state->vBlocksInFlight.end(), newentry);
-        state->nBlocksInFlight++;
-        mapBlocksInFlight[hash] = make_pair(nodeid, it);
     }
 
     struct CBlockIndexWorkComparator {
@@ -167,22 +151,6 @@ uint32_t nBlockSequenceId = 1;
 //
 
 // These functions dispatch to one or all registered wallets
-
-namespace {
-struct CMainSignals {
-    // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found
-    // in.
-    boost::signals2::signal<void(const uint256 &, CBaseTx *, const CBlock *)> SyncTransaction;
-    // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
-    boost::signals2::signal<void(const uint256 &)> EraseTransaction;
-    // Notifies listeners of a new active block chain.
-    boost::signals2::signal<void(const CBlockLocator &)> SetBestChain;
-    // Notifies listeners about an inventory item being seen on the network.
-    // boost::signals2::signal<void (const uint256 &)> Inventory;
-    // Tells listeners to broadcast their data.
-    boost::signals2::signal<void()> Broadcast;
-} g_signals;
-}  // namespace
 
 void RegisterWallet(CWalletInterface *pWalletIn) {
     g_signals.SyncTransaction.connect(boost::bind(&CWalletInterface::SyncTransaction, pWalletIn, _1, _2, _3));
@@ -341,7 +309,7 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
     return true;
 }
 
-bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx, 
+bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee) {
     AssertLockHeld(cs_main);
 
@@ -668,7 +636,7 @@ void CheckForkWarningConditions() {
             LogPrint("INFO",
                      "CheckForkWarningConditions: Warning: Found invalid chain at least ~6 blocks longer than our best "
                      "chain.\nChain state database corruption likely.\n");
-                     
+
             fLargeWorkInvalidChainFound = true;
         }
     } else {
@@ -1060,7 +1028,7 @@ bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state
 }
 
 // compute vote staking interest && revoke votes
-static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime, 
+static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime,
                                                     CCacheWrapper &cw, CValidationState &state) {
     // acquire votes list
     map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
@@ -1484,7 +1452,7 @@ void static UpdateTip(CBlockIndex *pIndexNew, const CBlock &block) {
     SysCfg().SetBestRecvTime(GetTime());
     mempool.AddUpdatedTransactionNum(1);
     LogPrint("INFO", "UpdateTip[%d]: %s blkTxCnt=%d chainTxCnt=%lu fuelRate=%d ts=%s\n",
-             chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(), 
+             chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString(),
              block.vptx.size(), chainActive.Tip()->nChainTx, chainActive.Tip()->nFuelRate,
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
 

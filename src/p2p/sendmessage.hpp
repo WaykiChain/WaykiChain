@@ -7,6 +7,24 @@
 #define SENDMESSAGE_HPP
 
 #include "main.h"
+#include "net.h"
+
+// Requires cs_main.
+void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
+    CNodeState *state = State(nodeid);
+    assert(state != nullptr);
+
+    // Make sure it's not listed somewhere already.
+    MarkBlockAsReceived(hash);
+
+    QueuedBlock newentry = {hash, GetTimeMicros(), state->nBlocksInFlight};
+    if (state->nBlocksInFlight == 0)
+        state->nLastBlockReceive = newentry.nTime;  // Reset when a first request is sent.
+
+    list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(state->vBlocksInFlight.end(), newentry);
+    state->nBlocksInFlight++;
+    mapBlocksInFlight[hash] = make_pair(nodeid, it);
+}
 
 bool SendMessages(CNode *pTo, bool fSendTrickle) {
     {

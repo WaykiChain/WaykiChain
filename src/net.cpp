@@ -91,8 +91,8 @@ CCriticalSection cs_nLastNodeId;
 static CSemaphore* semOutbound = nullptr;
 
 // Signals for message handling
-static CNodeSignals g_signals;
-CNodeSignals& GetNodeSignals() { return g_signals; }
+static CNodeSignals g_node_signals;
+CNodeSignals& GetNodeSignals() { return g_node_signals; }
 
 void AddOneShot(string strDest) {
     LOCK(cs_vOneShots);
@@ -535,7 +535,7 @@ void CNode::CloseSocketDisconnect() {
 void CNode::Cleanup() {}
 
 void CNode::PushVersion() {
-    int32_t nBestHeight = g_signals.GetHeight().get_value_or(0);
+    int32_t nBestHeight = g_node_signals.GetHeight().get_value_or(0);
 
 #ifdef WIN32
     string os("windows");
@@ -1367,7 +1367,7 @@ void static StartSync(const vector<CNode*>& vNodes) {
     CNode* pnodeNewSync = nullptr;
     int64_t nBestScore  = 0;
 
-    int32_t nBestHeight = g_signals.GetHeight().get_value_or(0);
+    int32_t nBestHeight = g_node_signals.GetHeight().get_value_or(0);
 
     // Iterate over all nodes
     for (auto pNode : vNodes) {
@@ -1426,7 +1426,7 @@ void ThreadMessageHandler() {
             {
                 TRY_LOCK(pNode->cs_vRecvMsg, lockRecv);
                 if (lockRecv) {
-                    if (!g_signals.ProcessMessages(pNode))
+                    if (!g_node_signals.ProcessMessages(pNode))
                         pNode->CloseSocketDisconnect();
 
                     if (pNode->nSendSize < SendBufferSize()) {
@@ -1443,7 +1443,7 @@ void ThreadMessageHandler() {
             {
                 TRY_LOCK(pNode->cs_vSend, lockSend);
                 if (lockSend)
-                    g_signals.SendMessages(pNode, pNode == pnodeTrickle);
+                    g_node_signals.SendMessages(pNode, pNode == pnodeTrickle);
             }
             boost::this_thread::interruption_point();
         }
