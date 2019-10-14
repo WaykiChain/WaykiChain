@@ -91,7 +91,7 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
-static bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
+bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
                                CRegID &delegate) {
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
     uint32_t index = slot % IniCfg().GetTotalDelegateNum();
@@ -145,7 +145,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 }
 
-static void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
+void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);

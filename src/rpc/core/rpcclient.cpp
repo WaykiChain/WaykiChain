@@ -173,6 +173,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     /** for mining */
     if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getminerbyblocktime"   && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getminerbyblocktime"   && n > 0) ConvertTo<int64_t>(params[1]);
 
     /* for dex */
     if (strMethod == "submitdexbuylimitordertx"     && n > 3) ConvertTo<int64_t>(params[3]);

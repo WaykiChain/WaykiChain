@@ -227,3 +227,73 @@ Value getminedblocks(const Array& params, bool fHelp) {
 
     return ret;
 }
+
+
+extern Value getminerbyblocktime(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 2) {
+        throw runtime_error("getminerbyblocktime height time\n"
+            "\ncalculate the miner of block by time."
+            "\nArguments:\n"
+            "1. height         (numeric, required) block height,\n"
+            "2. time         (numeric, required) block time,\n"
+            "\nResult:\n"
+            "{\n"
+            "  \"miner_regid\": n        (numeric) block time\n"
+            "  \"miner_addr\": n         (numeric) block height\n"
+            "  \"top_idx\": n            (numeric) block nonce\n"
+            "}\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getminerbyblocktime", "100 1571039490")
+            + HelpExampleRpc("getminerbyblocktime", "100, 1571039490")
+        );
+    }
+
+    int64_t blockHeight = params[0].get_int();
+    int64_t blockTime = params[1].get_int();
+
+    if (blockHeight <= 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("invalid blockHeight=%lld <= 0\n", blockHeight));
+    }
+
+    if (blockTime <= 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("invalid blockTime=%lld <= 0\n", blockTime));
+    }
+
+    vector<CRegID> delegateList;
+    if (!pCdMan->pDelegateCache->GetTopDelegateList(delegateList)) {
+        LogPrint("ERROR", "%s() : failed to get top delegates\n", __FUNCTION__);
+        return false;
+    }
+
+    uint16_t index = 0;
+    for (auto &delegate : delegateList)
+        LogPrint("shuffle", "before shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.ToString());
+
+    ShuffleDelegates(blockHeight, delegateList);
+
+    index = 0;
+    for (auto &delegate : delegateList)
+        LogPrint("shuffle", "after shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.ToString());
+
+    CRegID regid;
+    GetCurrentDelegate(blockTime, blockHeight, delegateList, regid);
+
+    index = 0;
+    for (; index < delegateList.size(); index++) {
+        if (delegateList.at(index) == regid) {
+            break;
+        }
+    }
+    if (index >= delegateList.size())
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "find current delegate failed!\n");
+
+
+    CKeyID keyid;
+    if (!pCdMan->pAccountCache->GetKeyId(regid, keyid))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get miner keyid failed! regid=%s\n", regid.ToString()));
+    Object obj;
+    obj.push_back(Pair("miner_regid",    regid.ToString()));
+    obj.push_back(Pair("miner_addr",     keyid.ToAddress()));
+    obj.push_back(Pair("top_idx",        index));
+    return obj;
+}

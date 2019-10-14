@@ -255,6 +255,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
+    { "getminerbyblocktime",   &getminerbyblocktime,   true,      true,       false },
 
     /* Raw transactions */
     { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
