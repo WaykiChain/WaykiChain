@@ -2055,7 +2055,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
                                 REJECT_INVALID, "time-too-early");
         }
 
-        if (pPreBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
+        if (pBlockIndexPrev->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
             if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
                 return state.DoS(100, ERRORMSG("AcceptBlock() : failed to process forked chain"), REJECT_INVALID,
                                 "failed-to-process-forked-chain");
