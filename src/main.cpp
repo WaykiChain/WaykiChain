@@ -2033,15 +2033,15 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
                          "fuel-rate-unmatched");
 
     // Get prev block index
-    CBlockIndex *pBlockIndexPrev = nullptr;
+    CBlockIndex *pPrevBlockIndex = nullptr;
     int32_t height = 0;
     if (block.GetHeight() != 0 || blockHash != SysCfg().GetGenesisBlockHash()) {
         map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(block.GetPrevBlockHash());
         if (mi == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("AcceptBlock() : prev block not found"), 0, "bad-prevblk");
 
-        pBlockIndexPrev = (*mi).second;
-        height          = pBlockIndexPrev->height + 1;
+        pPrevBlockIndex = (*mi).second;
+        height          = pPrevBlockIndex->height + 1;
 
         if (block.GetHeight() != (uint32_t)height) {
             return state.DoS(100, ERRORMSG("AcceptBlock() : height given in block mismatches with its actual height"),
@@ -2049,14 +2049,14 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
         }
 
         // Check timestamp against prev
-        if (block.GetBlockTime() <= pBlockIndexPrev->GetBlockTime() ||
-            (block.GetBlockTime() - pBlockIndexPrev->GetBlockTime()) < GetBlockInterval(block.GetHeight())) {
+        if (block.GetBlockTime() <= pPrevBlockIndex->GetBlockTime() ||
+            (block.GetBlockTime() - pPrevBlockIndex->GetBlockTime()) < GetBlockInterval(block.GetHeight())) {
             return state.Invalid(ERRORMSG("AcceptBlock() : the new block came in too early"),
                                 REJECT_INVALID, "time-too-early");
         }
 
-        if (pBlockIndexPrev->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
-            if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
+        if (pPrevBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
+            if (!ProcessForkedChain(block, pPrevBlockIndex, state)) {
                 return state.DoS(100, ERRORMSG("AcceptBlock() : failed to process forked chain"), REJECT_INVALID,
                                 "failed-to-process-forked-chain");
             }
@@ -2064,8 +2064,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
         // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has been upgraded:
         if (block.GetVersion() < 2) {
-            if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 950, 1000)) ||
-                (TestNet() && CBlockIndex::IsSuperMajority(2, pBlockIndexPrev, 75, 100))) {
+            if ((!TestNet() && CBlockIndex::IsSuperMajority(2, pPrevBlockIndex, 950, 1000)) ||
+                (TestNet() && CBlockIndex::IsSuperMajority(2, pPrevBlockIndex, 75, 100))) {
                 return state.Invalid(ERRORMSG("AcceptBlock() : rejected nVersion=1 block"), REJECT_OBSOLETE, "bad-version");
             }
         }
