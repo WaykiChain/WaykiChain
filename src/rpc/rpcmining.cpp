@@ -3,33 +3,28 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#include <boost/foreach.hpp>
-#include <algorithm>
-#include <cassert>
-#include <stdexcept>
-#include <string>
-#include <vector>
-
+#include "commons/json/json_spirit_utils.h"
+#include "commons/json/json_spirit_value.h"
+#include "commons/serialize.h"
+#include "commons/uint256.h"
+#include "commons/util.h"
 #include "config/chainparams.h"
+#include "config/version.h"
 #include "init.h"
 #include "main.h"
 #include "miner/miner.h"
-//#include "net.h"
 #include "rpc/core/rpcprotocol.h"
 #include "rpc/core/rpcserver.h"
-#include "commons/serialize.h"
 #include "sync.h"
 #include "tx/txmempool.h"
-#include "commons/uint256.h"
-#include "commons/util.h"
-#include "config/version.h"
+#include "wallet/wallet.h"
 
-#include "../wallet/wallet.h"
-
-#include <stdint.h>
-
-#include "commons/json/json_spirit_utils.h"
-#include "commons/json/json_spirit_value.h"
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 using namespace json_spirit;
 using namespace std;

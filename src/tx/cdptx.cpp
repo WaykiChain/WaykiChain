@@ -942,9 +942,9 @@ string CCDPLiquidateTx::ToString(CAccountDBCache &accountCache) {
 
 Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("cdp_txid",            cdp_txid.ToString()));
+    result.push_back(Pair("cdp_txid",               cdp_txid.ToString()));
     result.push_back(Pair("liquidate_asset_symbol", liquidate_asset_symbol));
-    result.push_back(Pair("scoins_to_liquidate", scoins_to_liquidate));
+    result.push_back(Pair("scoins_to_liquidate",    scoins_to_liquidate));
 
     return result;
 }
