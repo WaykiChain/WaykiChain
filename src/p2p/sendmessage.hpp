@@ -7,7 +7,7 @@
 #define SENDMESSAGE_HPP
 
 #include "main.h"
-#include "net.h"
+// #include "net.h"
 
 // Requires cs_main.
 void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
