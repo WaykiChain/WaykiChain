@@ -332,10 +332,12 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
 
-    uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
-    uint32_t blockTime = chainActive.Tip()->GetBlockTime();
+    CBlockIndex *pTip =  chainActive.Tip();
+    uint32_t fuelRate  = GetElementForBurn(pTip);
+    uint32_t blockTime = pTip->GetBlockTime();
+    uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
-    CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, spCW.get(), &state);
+    CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
     if (!pBaseTx->CheckTx(context))
         return ERRORMSG("AcceptToMemoryPool() : CheckTx failed, txid: %s", hash.GetHex());
 
@@ -1200,7 +1202,9 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             pBaseTx->nFuelRate = fuelRate;
             cw.EnableTxUndoLog(pBaseTx->GetHash());
-            CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, &cw, &state);
+
+            uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
+            CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
@@ -1269,7 +1273,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     // Execute block reward transaction
-    CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, &cw, &state);
+    uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
+    CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
     cw.EnableTxUndoLog(block.vptx[0]->GetHash());
     if (!block.vptx[0]->ExecuteTx(context)) {
         pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
@@ -1312,7 +1317,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                  "bad-read-block");
             }
 
-            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, &cw, &state);
+            uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
+            CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
             cw.EnableTxUndoLog(matureBlock.vptx[0]->GetHash());
             if (!matureBlock.vptx[0]->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
@@ -1973,7 +1979,8 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     for (uint32_t i = 0; i < block.vptx.size(); i++) {
         uniqueTx.insert(block.GetTxid(i));
 
-        CTxExecuteContext context(block.GetHeight(), i + 1, block.GetFuelRate(), block.GetTime(), &cw, &state);
+        uint32_t prevBlockTime = block.GetTime(); // the prev block maybe unkown when checking block
+        CTxExecuteContext context(block.GetHeight(), i + 1, block.GetFuelRate(), block.GetTime(), prevBlockTime, &cw, &state);
         if (fCheckTx && !block.vptx[i]->CheckTx(context))
             return ERRORMSG("CheckBlock() : CheckTx failed, txid: %s", block.vptx[i]->GetHash().GetHex());
 
@@ -2025,7 +2032,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     assert(block.GetHeight() == 0 || mapBlockIndex.count(block.GetPrevBlockHash()));
 
     if (block.GetHeight() != 0 && block.GetFuelRate() != GetElementForBurn(mapBlockIndex[block.GetPrevBlockHash()]))
-        return state.DoS(100, ERRORMSG("CheckBlock() : block fuel rate unmatched"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("AcceptBlock() : block fuel rate unmatched"), REJECT_INVALID,
                          "fuel-rate-unmatched");
 
     // Get prev block index

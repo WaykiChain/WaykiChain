@@ -109,9 +109,11 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
     if (bExecute) {
-        uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
-        uint32_t blockTime = chainActive.Tip()->GetBlockTime();
-        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, spCW.get(), &state);
+        CBlockIndex *pTip =  chainActive.Tip();
+        uint32_t fuelRate  = GetElementForBurn(pTip);
+        uint32_t blockTime = pTip->GetBlockTime();
+        uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
+        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
         if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
