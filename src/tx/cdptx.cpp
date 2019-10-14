@@ -567,7 +567,7 @@ string CCDPRedeemTx::ToString(CAccountDBCache &accountCache) {
     accountCache.GetKeyId(txUid, keyId);
 
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, valid_heihgt=%llu, cdp_txid=%s, scoins_to_repay=%d, "
+        "txType=%s, hash=%s, ver=%d, txUid=%s, addr=%s, valid_height=%llu, cdp_txid=%s, scoins_to_repay=%d, "
         "assets_to_redeem=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), keyId.ToAddress(), valid_height,
         cdp_txid.ToString(), scoins_to_repay, cdp_util::ToString(assets_to_redeem));
