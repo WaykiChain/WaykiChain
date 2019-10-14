@@ -1800,9 +1800,6 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, uint32_t nAddSize
 }
 
 bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValidationState &state) {
-    if (pPreBlockIndex->GetBlockHash() == chainActive.Tip()->GetBlockHash())
-        return true;  // No fork, return immediately.
-
     bool forkChainTipFound = false;
     uint256 forkChainTipBlockHash;
     vector<CBlock> vPreBlocks;
@@ -2058,10 +2055,11 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
                                 REJECT_INVALID, "time-too-early");
         }
 
-        // Process forked branch
-        if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
-            return state.DoS(100, ERRORMSG("AcceptBlock() : failed to process forked chain"), REJECT_INVALID,
-                             "failed-to-process-forked-chain");
+        if (pPreBlockIndex->GetBlockHash() != chainActive.Tip()->GetBlockHash()) {
+            if (!ProcessForkedChain(block, pBlockIndexPrev, state)) {
+                return state.DoS(100, ERRORMSG("AcceptBlock() : failed to process forked chain"), REJECT_INVALID,
+                                "failed-to-process-forked-chain");
+            }
         }
 
         // Reject block.nVersion=1 blocks when 95% (75% on testnet) of the network has been upgraded:
