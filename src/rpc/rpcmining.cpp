@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2013 The WaykiChain developers
+// Copyright (c) 2009-2010 Satoshi Nakamoto
+// Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -42,16 +42,16 @@ Value setgenerate(const Array& params, bool fHelp) {
             "Generation is limited to 'genblocklimit' processors, -1 is unlimited.\n"
             "See the getgenerate call for the current setting.\n"
             "\nArguments:\n"
-            "1. generate         (boolean, required) Set to true to turn on generation, off to turn off.\n"
-            "2. genblocklimit     (numeric, optional) Set the processor limit for when generation is on. Can be -1 for unlimited.\n"
-            "                    Note: in -regtest mode, genblocklimit controls how many blocks are generated immediately.\n"
+            "1. generate            (boolean, required) Set to true to turn on generation, off to turn off.\n"
+            "2. genblocklimit       (numeric, optional) Set the processor limit for when generation is on. Can be -1 for "
+            "unlimited.\n"
+            "                    Note: in -regtest mode, genblocklimit controls how many blocks are generated "
+            "immediately.\n"
             "\nExamples:\n"
-            "\nSet the generation on with a limit of one processor\n"
-            + HelpExampleCli("setgenerate", "true 1")
-            + HelpExampleRpc("setgenerate", "true, 1")
-            + "\nTurn off generation\n"
-            + HelpExampleCli("setgenerate", "false")
-            + HelpExampleRpc("setgenerate", "false"));
+            "\nSet the generation on with a limit of one processor\n" +
+            HelpExampleCli("setgenerate", "true 1") + "\nAs json rpc call\n" +
+            HelpExampleRpc("setgenerate", "true, 1") + "\nTurn off generation\n" +
+            HelpExampleCli("setgenerate", "false") + "\nAs json rpc call\n" + HelpExampleRpc("setgenerate", "false"));
 
     static bool fGenerate = false;
 
@@ -97,7 +97,8 @@ Value setgenerate(const Array& params, bool fHelp) {
 
 Value getmininginfo(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
-        throw runtime_error("getmininginfo\n"
+        throw runtime_error(
+            "getmininginfo\n"
             "\nReturns a json object containing mining-related information."
             "\nResult:\n"
             "{\n"
@@ -105,14 +106,13 @@ Value getmininginfo(const Array& params, bool fHelp) {
             "  \"currentblocksize\": nnn,   (numeric) The last block size\n"
             "  \"currentblocktx\": nnn,     (numeric) The last block transaction\n"
             "  \"errors\": \"...\"          (string) Current errors\n"
-            "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate calls)\n"
+            "  \"generate\": true|false     (boolean) If the generation is on or off (see getgenerate or setgenerate "
+            "calls)\n"
             "  \"pooledtx\": n              (numeric) The size of the mem pool\n"
             "  \"testnet\": true|false      (boolean) If using testnet or not\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getmininginfo", "")
-            + HelpExampleRpc("getmininginfo", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getmininginfo", "") + "\nAs json rpc call\n" + HelpExampleRpc("getmininginfo", ""));
     }
 
     Object obj;
@@ -130,7 +130,8 @@ Value getmininginfo(const Array& params, bool fHelp) {
 
 Value submitblock(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 1 || params.size() > 2)
-        throw runtime_error("submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
+        throw runtime_error(
+            "submitblock \"hexdata\" ( \"jsonparametersobject\" )\n"
             "\nAttempts to submit new block to network.\n"
             "The 'jsonparametersobject' parameter is currently ignored.\n"
             "See https://en.bitcoin.it/wiki/BIP_0022 for full specification.\n"
@@ -139,13 +140,13 @@ Value submitblock(const Array& params, bool fHelp) {
             "1. \"hexdata\"    (string, required) the hex-encoded block data to submit\n"
             "2. \"jsonparametersobject\"     (string, optional) object of optional parameters\n"
             "    {\n"
-            "      \"workid\" : \"id\"    (string, optional) if the server provided a workid, it MUST be included with submissions\n"
+            "      \"workid\" : \"id\"    (string, optional) if the server provided a workid, it MUST be included with "
+            "submissions\n"
             "    }\n"
             "\nResult:\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitblock", "\"mydata\"")
-            + HelpExampleRpc("submitblock", "\"mydata\"")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("submitblock", "\"mydata\"") + "\nAs json rpc call\n" +
+            HelpExampleRpc("submitblock", "\"mydata\""));
 
     vector<unsigned char> blockData(ParseHex(params[0].get_str()));
     CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
@@ -175,7 +176,8 @@ Value submitblock(const Array& params, bool fHelp) {
 
 Value getminedblocks(const Array& params, bool fHelp) {
     if (fHelp || params.size() > 1) {
-        throw runtime_error("getminedblocks\n"
+        throw runtime_error(
+            "getminedblocks\n"
             "\nReturns a json array containing the blocks mined by this node."
             "\nArguments:\n"
             "1. count         (numeric, optional) If provided, get the specified count blocks,\n"
@@ -196,10 +198,8 @@ Value getminedblocks(const Array& params, bool fHelp) {
             "    \"preblockhash\": xxx     (string) pre block hash\n"
             "  }\n"
             "]\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getminedblocks", "")
-            + HelpExampleRpc("getminedblocks", "")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getminedblocks", "") + "\nAs json rpc call\n" + HelpExampleRpc("getminedblocks", ""));
     }
 
     unsigned int count = (unsigned int)-1;
@@ -231,25 +231,25 @@ Value getminedblocks(const Array& params, bool fHelp) {
 
 extern Value getminerbyblocktime(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
-        throw runtime_error("getminerbyblocktime height time\n"
+        throw runtime_error(
+            "getminerbyblocktime height time\n"
             "\ncalculate the miner of block by time."
             "\nArguments:\n"
-            "1. height         (numeric, required) block height,\n"
-            "2. time         (numeric, required) block time,\n"
+            "1. height          (numeric, required) block height,\n"
+            "2. time            (numeric, required) block time,\n"
             "\nResult:\n"
             "{\n"
             "  \"miner_regid\": n        (numeric) block time\n"
             "  \"miner_addr\": n         (numeric) block height\n"
             "  \"top_idx\": n            (numeric) block nonce\n"
             "}\n"
-            "\nExamples:\n"
-            + HelpExampleCli("getminerbyblocktime", "100 1571039490")
-            + HelpExampleRpc("getminerbyblocktime", "100, 1571039490")
-        );
+            "\nExamples:\n" +
+            HelpExampleCli("getminerbyblocktime", "100 1571039490") + "\nAs json rpc call\n" +
+            HelpExampleRpc("getminerbyblocktime", "100, 1571039490"));
     }
 
-    int64_t blockHeight = params[0].get_int();
-    int64_t blockTime = params[1].get_int();
+    int64_t blockHeight = params[0].get_int64();
+    int64_t blockTime   = params[1].get_int64();
 
     if (blockHeight <= 0) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("invalid blockHeight=%lld <= 0\n", blockHeight));
@@ -291,9 +291,11 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
     CKeyID keyid;
     if (!pCdMan->pAccountCache->GetKeyId(regid, keyid))
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get miner keyid failed! regid=%s\n", regid.ToString()));
+
     Object obj;
     obj.push_back(Pair("miner_regid",    regid.ToString()));
     obj.push_back(Pair("miner_addr",     keyid.ToAddress()));
     obj.push_back(Pair("top_idx",        index));
+
     return obj;
 }
