@@ -754,7 +754,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             if (!pBlock.get()) {
                 throw runtime_error("CoinMiner() : failed to create new block");
             } else {
-                LogPrint("MINER", "CoinMiner() : succeded in adding a new block, contain %s transactions, used %s ms\n",
+                LogPrint("MINER", "CoinMiner() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
                          pBlock->vptx.size(), GetTimeMillis() - lastTime);
             }
 

@@ -200,13 +200,13 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         // Message: getdata (blocks)
         //
         vector<CInv> vGetData;
-        int32_t index(0);
+        int32_t index = 0;
         while (!pTo->fDisconnect && state.nBlocksToDownload && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
             MarkBlockAsInFlight(pTo->GetId(), hash);
-            LogPrint("net", "Requesting block [%d] %s from %s, nBlocksInFlight=%d\n",
-                     ++index, hash.ToString().c_str(), state.name.c_str(), state.nBlocksInFlight);
+            LogPrint("net", "Requesting block [%d] %s from %s, nBlocksInFlight=%d\n", index++, hash.ToString().c_str(),
+                     state.name.c_str(), state.nBlocksInFlight);
             if (vGetData.size() >= 1000) {
                 pTo->PushMessage("getdata", vGetData);
                 vGetData.clear();
