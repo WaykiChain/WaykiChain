@@ -381,6 +381,10 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
 
+        if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+            return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, write fcoin genesis account info error!"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
+
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         CReceipt receipt(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RISERVE);
 
@@ -541,6 +545,10 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, operate balance failed"),
                              UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
         }
+
+        if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
+            return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::ExecuteTx, write fcoin genesis account info error!"),
+                             UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RISERVE);
