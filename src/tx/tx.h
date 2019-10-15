@@ -39,17 +39,27 @@ public:
     int32_t index;
     uint32_t fuel_rate;
     uint32_t block_time;
+    uint32_t prev_block_time;
     CCacheWrapper *pCw;
     CValidationState *pState;
 
-    CTxExecuteContext() : height(0), index(0), fuel_rate(0), block_time(0), pCw(nullptr), pState(nullptr) {}
+    CTxExecuteContext()
+        : height(0),
+          index(0),
+          fuel_rate(0),
+          block_time(0),
+          prev_block_time(0),
+          pCw(nullptr),
+          pState(nullptr) {}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
-                      const uint32_t blockTimeIn, CCacheWrapper *pCwIn, CValidationState *pStateIn)
+                      const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
           block_time(blockTimeIn),
+          prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
           pState(pStateIn) {}
 };

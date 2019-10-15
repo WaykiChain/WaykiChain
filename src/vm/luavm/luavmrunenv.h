@@ -26,17 +26,18 @@ struct lua_State;
 
 class CLuaVMContext {
 public:
-    CCacheWrapper *p_cw;
-    uint32_t height;
-    uint32_t block_time;
-	CBaseTx *p_base_tx;
-    uint64_t fuel_limit;
-    TokenSymbol transfer_symbol;  // amount of tx user transfer to contract account
-    uint64_t transfer_amount;     // amount of tx user transfer to contract account
-    CAccount* p_tx_user_account;
-    CAccount* p_app_account;
-    CUniversalContract* p_contract;
-    string* p_arguments;
+    CCacheWrapper* p_cw;
+    uint32_t height                = 0;
+    uint32_t block_time            = 0;
+    uint32_t prev_block_time       = 0;
+    CBaseTx* p_base_tx             = nullptr;
+    uint64_t fuel_limit            = 0;
+    TokenSymbol transfer_symbol;         // amount of tx user transfer to contract account
+    uint64_t transfer_amount       = 0;  // amount of tx user transfer to contract account
+    CAccount* p_tx_user_account    = nullptr;
+    CAccount* p_app_account        = nullptr;
+    CUniversalContract* p_contract = nullptr;
+    string* p_arguments            = nullptr;
 };
 
 struct AssetTransfer {

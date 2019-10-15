@@ -33,7 +33,7 @@ MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(MAX_MINED_BLOCK_COUNT);
 CCriticalSection csMinedBlocks;
 
-// base on the last 50 blocks
+// base on the lastest 50 blocks
 uint32_t GetElementForBurn(CBlockIndex *pIndex) {
     if (!pIndex) {
         return INIT_FUEL_RATES;
@@ -91,7 +91,7 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
-static bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
+bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
                                CRegID &delegate) {
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
     uint32_t index = slot % IniCfg().GetTotalDelegateNum();
@@ -145,7 +145,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
     }
 }
 
-static void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
+void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -238,7 +238,8 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
                 return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;
-            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), pBlock->GetTime(), spCW.get(), &state);
+            uint32_t prevBlockTime = pBlockIndex->pprev != nullptr ? pBlockIndex->pprev->GetBlockTime() : pBlockIndex->GetBlockTime();
+            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), pBlock->GetTime(), prevBlockTime, spCW.get(), &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
@@ -317,7 +318,8 @@ std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn) 
             try {
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, spCW.get(), &state);
+                uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
                 if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
@@ -495,7 +497,8 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
                 LogPrint("MINER", "CreateNewBlockStableCoinRelease() : begin to pack transaction: %s\n",
                          pBaseTx->ToString(spCW->accountCache));
 
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, spCW.get(), &state);
+                uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
                 if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction: %s\n",
                              pBaseTx->ToString(spCW->accountCache));
@@ -751,7 +754,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             if (!pBlock.get()) {
                 throw runtime_error("CoinMiner() : failed to create new block");
             } else {
-                LogPrint("MINER", "CoinMiner() : succeded in adding a new block, contain %s transactions, used %s ms\n",
+                LogPrint("MINER", "CoinMiner() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
                          pBlock->vptx.size(), GetTimeMillis() - lastTime);
             }
 

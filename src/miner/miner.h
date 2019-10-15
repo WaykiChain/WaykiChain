@@ -94,4 +94,9 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
 
+void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList);
+
+bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
+                        const vector<CRegID> &delegateList, CRegID &delegate);
+
 #endif  // COIN_MINER_H

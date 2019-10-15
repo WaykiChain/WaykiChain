@@ -139,8 +139,10 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
-    uint32_t blockTime = chainActive.Tip()->GetBlockTime();
+    CBlockIndex *pTip =  chainActive.Tip();
+    uint32_t fuelRate  = GetElementForBurn(pTip);
+    uint32_t blockTime = pTip->GetBlockTime();
+    uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     CKeyID srcKeyId;
@@ -187,7 +189,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, spCW.get(), &state);
+        CTxExecuteContext context(newHeight, 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
         if (!tx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx register contract failed");
         }
@@ -223,7 +225,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         }
 
         CValidationState state;
-        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, spCW.get(), &state);
+        CTxExecuteContext context(chainActive.Height() + 1, 2, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
         if (!contractInvokeTx.ExecuteTx(context)) {
             throw JSONRPCError(RPC_TRANSACTION_ERROR, "Executetx contract failed");
         }

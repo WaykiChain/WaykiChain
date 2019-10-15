@@ -2129,27 +2129,20 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetBlockTimestamp, BURN_VER_R2);
 
-    int32_t curBlockHeight = pLuaVMRunEnv->GetContext().height;
-
-    auto featureForkVersion = GetFeatureForkVersion(curBlockHeight);
+    CLuaVMContext &vmContext = pLuaVMRunEnv->GetContext();
+    auto featureForkVersion = GetFeatureForkVersion(vmContext.height);
 
     lua_Integer blockTime = 0;
     if (featureForkVersion == MAJOR_VER_R1) {
         // compact with old data
-        CBlockIndex *pTipIndex = chainActive.Tip();
-        if (!pTipIndex) {
-            LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), invalid active chain! input_height=%d, curBlockHeight=%d\n",
-                height, curBlockHeight);
-            return 0;
-        }
-        blockTime = chainActive.Tip()->nTime;
+        blockTime = vmContext.prev_block_time;
     } else {
-        blockTime = pLuaVMRunEnv->GetContext().block_time;
+        blockTime = vmContext.block_time;
     }
 
     if (!lua_checkstack(L, sizeof(lua_Integer))) {
         LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), lua stack overflow! input_height=%d, curBlockHeight=%d\n",
-            height, curBlockHeight);
+            height, vmContext.height);
         return 0;
     }
 
