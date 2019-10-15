@@ -647,8 +647,11 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
             }
         } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
             COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
-            LogPrint("net", "receive orphan block inv height=%d hash=%s lead to getblocks, current block height=%d, current block hash=%s\n",
-                     pOrphanBlock->height, inv.hash.GetHex(), chainActive.Height(), chainActive.Tip()->GetBlockHash().GetHex());
+            LogPrint("net",
+                     "receive orphan block inv height=%d hash=%s from peer %s lead to getblocks, current block "
+                     "height=%d, current block hash=%s\n",
+                     pOrphanBlock->height, inv.hash.GetHex(), pFrom->addr.ToString(), chainActive.Height(),
+                     chainActive.Tip()->GetBlockHash().GetHex());
             PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
         }
 
@@ -657,7 +660,8 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv){
             return ERRORMSG("send buffer size() = %u", pFrom->nSendSize);
         }
     }
-    return true ;
+
+    return true;
 }
 
 inline bool ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv){
@@ -669,21 +673,22 @@ inline bool ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv){
     }
 
     if ((vInv.size() != 1))
-    LogPrint("net", "received getdata (%u invsz)\n", vInv.size());
+        LogPrint("net", "received getdata (%u invsz) from peer %s\n", vInv.size(), pFrom->addr.ToString());
 
     if ((vInv.size() > 0) || (vInv.size() == 1))
-    LogPrint("net", "received getdata for: %s\n", vInv[0].ToString());
+        LogPrint("net", "received getdata for: %s from peer %s\n", vInv[0].ToString(), pFrom->addr.ToString());
 
     pFrom->vRecvGetData.insert(pFrom->vRecvGetData.end(), vInv.begin(), vInv.end());
     ProcessGetData(pFrom);
-    return true ;
+
+    return true;
 }
 
 inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv){
     CBlock block;
     vRecv >> block;
 
-    LogPrint("net", "received block %s from %s\n", block.GetHash().ToString(), pFrom->addr.ToString());
+    LogPrint("net", "received block %s from peer %s\n", block.GetHash().ToString(), pFrom->addr.ToString());
     // block.Print();
 
     CInv inv(MSG_BLOCK, block.GetHash());
