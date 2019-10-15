@@ -252,7 +252,7 @@ bool AlreadyHave(const CInv &inv) {
 // Requires cs_main.
 inline bool AddBlockToQueue(NodeId nodeid, const uint256 &hash) {
     if (mapBlocksToDownload.count(hash) || mapBlocksInFlight.count(hash)) {
-        LogPrint("net", "block: %s is ready to download, ignore")
+        LogPrint("net", "block: %s already to be downloaded, ignore\n", hash.GetHex());
         return false;
     }
 
@@ -365,7 +365,7 @@ inline int ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStream &v
 
     pFrom->fSuccessfullyConnected = true;
 
-    LogPrint("INFO", "receive version msg: %s: protocol_ver %d, blocks=%d, us=%s, them=%s, peer=%s\n", 
+    LogPrint("INFO", "receive version msg: %s: protocol_ver %d, blocks=%d, us=%s, them=%s, peer=%s\n",
             pFrom->cleanSubVer, pFrom->nVersion, pFrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(),
             pFrom->addr.ToString());
 
