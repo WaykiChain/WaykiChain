@@ -370,6 +370,25 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 
     nRunStep = contract.GetContractSize();
 
+    // If fees paid by WUSD, send the fuel to risk reserve pool.
+    if (fee_symbol == SYMB::WUSD) {
+        uint64_t fuel = GetFuel(context.height, context.fuel_rate);
+        CAccount fcoinGenesisAccount;
+        cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+
+        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::ADD_FREE, fuel)) {
+            return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, operate balance failed"),
+                             UPDATE_ACCOUNT_FAIL, "operate-scoins-genesis-account-failed");
+        }
+
+        CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
+        CReceipt receipt(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RISERVE);
+
+        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt}))
+            return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+    }
+
     return true;
 }
 
