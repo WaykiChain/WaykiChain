@@ -133,7 +133,7 @@ uint64_t CLuaContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
         LogPrint("ERROR", "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
     }
-    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
+
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
 }
 
@@ -288,7 +288,9 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CUniversalContractDeployTx
 
 bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -329,7 +331,9 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, read regist addr %s account info error",
@@ -375,6 +379,7 @@ uint64_t CUniversalContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate)
         LogPrint("ERROR", "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
     }
+
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
 }
 
