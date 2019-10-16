@@ -269,10 +269,10 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     state->nBlocksToDownload++;
     if (state->nBlocksToDownload > 5000) {
         LogPrint("INFO", "Misbehaving: AddBlockToQueue download too many times, nMisbehavior add 10\n");
-        Misbehaving(nodeid, 10);
+        Misbehaving(nodeId, 10);
     }
 
-    mapBlocksToDownload[hash] = std::make_tuple(nodeid, it, GetTimeMicros());
+    mapBlocksToDownload[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 
     return true;
 }
