@@ -253,7 +253,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     // TODO: use different timeouts between BP node and witness node.
     if ((mapBlocksToDownload.count(hash) && GetTimeMicros() - std::get<2>(mapBlocksToDownload[hash]) < 2 * 1000000) ||
         (mapBlocksInFlight.count(hash) && GetTimeMicros() - std::get<2>(mapBlocksInFlight[hash]) < 1 * 1000000)) {
-        LogPrint("net", "block: %s already to be downloaded, ignore\n", hash.GetHex());
+        LogPrint("net", "block: %s is downloading from another node, ignore\n", hash.GetHex());
         return false;
     }
 
@@ -272,6 +272,8 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
         Misbehaving(nodeId, 10);
     }
 
+    LogPrint("net", "block: %s start to download from node[%s]\n",
+        hash.ToString(), state->name);
     mapBlocksToDownload[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 
     return true;
