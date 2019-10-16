@@ -10,8 +10,8 @@
 // #include "net.h"
 
 // Requires cs_main.
-void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
-    CNodeState *state = State(nodeid);
+void MarkBlockAsInFlight(const uint256 &hash, NodeId nodeId) {
+    CNodeState *state = State(nodeId);
     assert(state != nullptr);
 
     // Make sure it's not listed somewhere already.
@@ -23,7 +23,7 @@ void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
 
     list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(state->vBlocksInFlight.end(), newentry);
     state->nBlocksInFlight++;
-    mapBlocksInFlight[hash] = make_pair(nodeid, it);
+    mapBlocksInFlight[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 }
 
 bool SendMessages(CNode *pTo, bool fSendTrickle) {
@@ -204,7 +204,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         while (!pTo->fDisconnect && state.nBlocksToDownload && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
-            MarkBlockAsInFlight(pTo->GetId(), hash);
+            MarkBlockAsInFlight(hash, pTo->GetId());
             LogPrint("net", "Requesting block [%d] %s from %s, nBlocksInFlight=%d\n", index++, hash.ToString().c_str(),
                      state.name.c_str(), state.nBlocksInFlight);
             if (vGetData.size() >= 1000) {
