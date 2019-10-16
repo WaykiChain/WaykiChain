@@ -1259,9 +1259,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
-        if (pRewardTx->reward_fees != rewards) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
-                             "bad-reward-amount");
+
+        if (SysCfg().NetworkID() == TEST_NET && block.GetHeight() < 200000) {
+            // TODO: remove me if reset testnet.
+        } else {
+            if (pRewardTx->reward_fees != rewards) {
+                return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
+                                 "bad-reward-amount");
+            }
         }
 
         // Verify profits
