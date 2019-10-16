@@ -2231,21 +2231,24 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
     // Check for duplicate
-    uint256 blockHash = pBlock->GetHash();
+    uint256 blockHash    = pBlock->GetHash();
+    uint32_t blockHeight = pBlock->GetHeight();
     if (mapBlockIndex.count(blockHash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s",
-                            mapBlockIndex[blockHash]->height, blockHash.ToString()), 0, "duplicate");
+        return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
+                             "duplicate");
 
     if (mapOrphanBlocks.count(blockHash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
+        return state.Invalid(
+            ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
+            "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
-        LogPrint("INFO", "CheckBlock() height: %d elapse time:%lld ms\n",
-                chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
+        LogPrint("INFO", "CheckBlock() height: %d elapse time:%lld ms\n", chainActive.Height(),
+                 GetTimeMillis() - llBeginCheckBlockTime);
 
         return ERRORMSG("ProcessBlock() : block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
     }
