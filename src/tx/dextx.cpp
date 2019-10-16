@@ -839,7 +839,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(
                     100,
                     ERRORMSG("%s(), i[%d] the total_deal_asset_amount=%llu exceed the "
-                             "buyer's asset_amount\n",
+                             "buyer's asset_amount=%llu\n",
                              __FUNCTION__, i, buyOrder.total_deal_asset_amount, limitAssetAmount),
                     REJECT_INVALID, "buy-deal-amount-exceeded");
             }
