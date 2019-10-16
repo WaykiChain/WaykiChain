@@ -751,12 +751,11 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
                                     ? CreateNewBlockPreStableCoinRelease(*spCW) // pre-stable coin release
                                     : CreateNewBlockStableCoinRelease(*spCW);   // stable coin release
 
-            if (!pBlock.get()) {
+            if (!pBlock.get())
                 throw runtime_error("CoinMiner() : failed to create new block");
-            } else {
-                LogPrint("MINER", "CoinMiner() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
-                         pBlock->vptx.size(), GetTimeMillis() - lastTime);
-            }
+
+            LogPrint("MINER", "CoinMiner() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
+                    pBlock->vptx.size(), GetTimeMillis() - lastTime);
 
             // Attention: need to reset delegate cache to compute the miner account according to received votes ranking
             // list.
