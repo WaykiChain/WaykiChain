@@ -18,6 +18,11 @@
 
 using namespace std;
 
+static const int64_t MINER_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT   = 2;   // 2 seconds
+static const int64_t MINER_NODE_BLOCKS_IN_FLIGHT_TIMEOUT     = 1;   // 1 seconds
+static const int64_t WITNESS_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT = 20;  // 20 seconds
+static const int64_t WITNESS_NODE_BLOCKS_IN_FLIGHT_TIMEOUT   = 10;  // 10 seconds
+
 class CNode;
 class CDataStream;
 class CInv;
@@ -250,10 +255,18 @@ bool AlreadyHave(const CInv &inv) {
 
 // Requires cs_main.
 inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
-    // TODO: use different timeouts between BP node and witness node.
-    if ((mapBlocksToDownload.count(hash) && GetTimeMicros() - std::get<2>(mapBlocksToDownload[hash]) < 2 * 1000000) ||
-        (mapBlocksInFlight.count(hash) && GetTimeMicros() - std::get<2>(mapBlocksInFlight[hash]) < 1 * 1000000)) {
+    int64_t now  = GetTimeMicros();
+    bool isMiner = SysCfg().GetBoolArg("-genblock", false);
+
+    int64_t blocksToDownloadTimeout = isMiner ? MINER_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT : WITNESS_NODE_BLOCKS_TO_DOWNLOAD_TIMEOUT;
+    int64_t blockInFlightTimeout    = isMiner ? MINER_NODE_BLOCKS_IN_FLIGHT_TIMEOUT : WITNESS_NODE_BLOCKS_IN_FLIGHT_TIMEOUT;
+
+    if ((mapBlocksToDownload.count(hash) &&
+         (now - std::get<2>(mapBlocksToDownload[hash]) < blocksToDownloadTimeout * 1000000)) ||
+        (mapBlocksInFlight.count(hash) &&
+         (now - std::get<2>(mapBlocksInFlight[hash]) < blockInFlightTimeout * 1000000))) {
         LogPrint("net", "block: %s is downloading from another node, ignore\n", hash.GetHex());
+
         return false;
     }
 
