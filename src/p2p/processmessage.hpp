@@ -54,17 +54,17 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     }
 
     else if (strCommand == "getblocks") {
-        ProcessGetBlocksMessage(pFrom,vRecv) ;
+        ProcessGetBlocksMessage(pFrom, vRecv);
     }
 
     else if (strCommand == "getheaders") {
-       if(ProcessGetHeadersMessage(pFrom, vRecv))
-           return true;
+        if (ProcessGetHeadersMessage(pFrom, vRecv))
+            return true;
     }
 
     else if (strCommand == "tx") {
-        if(!ProcessTxMessage(pFrom, strCommand , vRecv))
-            return false ;
+        if (!ProcessTxMessage(pFrom, strCommand, vRecv))
+            return false;
     }
 
     else if (strCommand == "block" && !SysCfg().IsImporting() && !SysCfg().IsReindex())  // Ignore blocks received while importing
@@ -165,8 +165,10 @@ bool ProcessMessages(CNode *pFrom) {
     deque<CNetMessage>::iterator it = pFrom->vRecvMsg.begin();
     while (!pFrom->fDisconnect && it != pFrom->vRecvMsg.end()) {
         // Don't bother if send buffer is too full to respond anyway
-        if (pFrom->nSendSize >= SendBufferSize())
+        if (pFrom->nSendSize >= SendBufferSize()) {
+            LogPrint("net", "send buffer size: %d full for peer: %s\n", pFrom->nSendSize, pFrom->addr.ToString());
             break;
+        }
 
         // get next message
         CNetMessage &msg = *it;

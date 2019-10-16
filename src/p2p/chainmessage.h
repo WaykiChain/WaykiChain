@@ -138,8 +138,10 @@ inline void ProcessGetData(CNode *pFrom) {
 
     while (it != pFrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
-        if (pFrom->nSendSize >= SendBufferSize())
+        if (pFrom->nSendSize >= SendBufferSize()) {
+            LogPrint("net", "send buffer size: %d full for peer: %s\n", pFrom->nSendSize, pFrom->addr.ToString());
             break;
+        }
 
         const CInv &inv = *it;
         {
@@ -151,7 +153,10 @@ inline void ProcessGetData(CNode *pFrom) {
                 map<uint256, CBlockIndex *>::iterator mi = mapBlockIndex.find(inv.hash);
                 if (mi != mapBlockIndex.end()) {
                     send = true;
+                } else {
+                    LogPrint("net", "block %s not exist\n", inv.hash.GetHex());
                 }
+
                 if (send) {
                     // Send block from disk
                     CBlock block;
