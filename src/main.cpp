@@ -2026,7 +2026,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
-    LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
+    LogPrint("INFO", "AcceptBlock[%d]: %s, miner: %s, timestamp: %u\n", block.GetHeight(), blockHash.GetHex(),
+             block.GetMinerUserID().ToString(), block.GetBlockTime());
+
     // Check for duplicated block
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
