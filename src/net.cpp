@@ -814,11 +814,13 @@ void ThreadSocketHandler() {
             hSocketMax = max(hSocketMax, hListenSocket);
             have_fds   = true;
         }
+
         {
             LOCK(cs_vNodes);
             for (auto pNode : vNodes) {
                 if (pNode->hSocket == INVALID_SOCKET)
                     continue;
+
                 FD_SET(pNode->hSocket, &fdsetError);
                 hSocketMax = max(hSocketMax, pNode->hSocket);
                 have_fds   = true;
@@ -968,7 +970,8 @@ void ThreadSocketHandler() {
                 continue;
             if (FD_ISSET(pNode->hSocket, &fdsetSend)) {
                 TRY_LOCK(pNode->cs_vSend, lockSend);
-                if (lockSend) SocketSendData(pNode);
+                if (lockSend)
+                    SocketSendData(pNode);
             }
 
             //
@@ -1445,6 +1448,7 @@ void ThreadMessageHandler() {
                 if (lockSend)
                     g_node_signals.SendMessages(pNode, pNode == pnodeTrickle);
             }
+
             boost::this_thread::interruption_point();
         }
 

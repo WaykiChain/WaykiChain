@@ -39,26 +39,29 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             // RPC ping request by user
             pingSend = true;
         }
+
         if (pTo->nLastSend && GetTime() - pTo->nLastSend > 30 * 60 && pTo->vSendMsg.empty()) {
             // Ping automatically sent as a keepalive
             pingSend = true;
         }
+
         if (pingSend) {
             uint64_t nonce = 0;
             while (nonce == 0) {
                 RAND_bytes((uint8_t *)&nonce, sizeof(nonce));
             }
+
             pTo->nPingNonceSent = nonce;
             pTo->fPingQueued    = false;
-            //            if (pTo->nVersion > BIP0031_VERSION) {
+            // if (pTo->nVersion > BIP0031_VERSION) {
             // Take timestamp as close as possible before transmitting ping
             pTo->nPingUsecStart = GetTimeMicros();
             pTo->PushMessage("ping", nonce);
-            //            } else {
-            //                // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
-            //                pTo->nPingUsecStart = 0;
-            //                pTo->PushMessage("ping");
-            //            }
+            // } else {
+            //     // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
+            //     pTo->nPingUsecStart = 0;
+            //     pTo->PushMessage("ping");
+            // }
         }
 
         TRY_LOCK(cs_main, lockMain);  // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
