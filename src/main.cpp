@@ -2228,7 +2228,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
 
 bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp) {
     int64_t llBeginTime = GetTimeMillis();
-    //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
+    // LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
     // Check for duplicate
     uint256 blockHash    = pBlock->GetHash();
