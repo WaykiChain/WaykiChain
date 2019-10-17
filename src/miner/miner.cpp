@@ -619,7 +619,7 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
         {
             LOCK(cs_main);
 
-            if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
+            if (!pCdMan->pDelegateCache->GetTopDelegateList(delegateList)) {
                 LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
                 return false;
             }
@@ -768,9 +768,6 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             LogPrint("MINER", "CoinMiner() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
                     pBlock->vptx.size(), GetTimeMillis() - lastTime);
 
-            // Attention: need to reset delegate cache to compute the miner account according to received votes ranking
-            // list.
-            spCW->delegateCache.Clear();
             MineBlock(pBlock.get(), pWallet, pIndexPrev, txUpdated, *spCW);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
