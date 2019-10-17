@@ -9,7 +9,7 @@
 
 #include "commons/base58.h"
 #include "commons/serialize.h"
-#include "protocol.h"
+#include "p2p/protocol.h"
 #include "sync.h"
 #include "tx/tx.h"
 #include "wallet.h"
