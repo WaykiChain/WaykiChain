@@ -459,6 +459,7 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
             return true;
         }
     }
+
     return false;
 }
 

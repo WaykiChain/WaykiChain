@@ -2184,7 +2184,7 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
-        LogPrint("net", "filter the same GetLocator\n");
+        LogPrint("net", "filter the same GetLocator from peer %s\n", pNode->addr.ToString());
         return;
     }
     pNode->pIndexLastGetBlocksBegin = pIndexBegin;
@@ -2199,7 +2199,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
-        LogPrint("net", "filter the same GetLocator\n");
+        LogPrint("net", "filter the same GetLocator from peer %s\n", pNode->addr.ToString());
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
         static uint32_t count = 0;
         string key            = to_string(pNode->id) + ":" + to_string((GetTime() / 2));

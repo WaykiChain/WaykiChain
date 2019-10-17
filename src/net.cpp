@@ -789,8 +789,9 @@ void ThreadSocketHandler() {
             }
         }
         if (vNodes.size() != nPrevNodeCount) {
-            LogPrint("INFO", "Connections number changed, %d -> %d\n", nPrevNodeCount, vNodes.size());
             nPrevNodeCount = vNodes.size();
+
+            LogPrint("INFO", "Connections number changed, %d -> %d\n", nPrevNodeCount, vNodes.size());
         }
 
         //
@@ -896,7 +897,7 @@ void ThreadSocketHandler() {
                 if (hSocket == INVALID_SOCKET) {
                     int32_t nErr = WSAGetLastError();
                     if (nErr != WSAEWOULDBLOCK)
-                        LogPrint("INFO", "socket error accept failed: %s\n", NetworkErrorString(nErr));
+                        LogPrint("INFO", "socket[%s] error accept failed: %s\n", addr.ToString(), NetworkErrorString(nErr));
                 } else if (nInbound >= nMaxConnections - MAX_OUTBOUND_CONNECTIONS) {
                     closesocket(hSocket);
                 } else if (CNode::IsBanned(addr)) {
@@ -947,7 +948,7 @@ void ThreadSocketHandler() {
                         } else if (nBytes == 0) {
                             // socket closed gracefully
                             if (!pNode->fDisconnect)
-                                LogPrint("net", "socket closed\n");
+                                LogPrint("net", "socket[%s] closed\n", pNode->addr.ToString());
                             pNode->CloseSocketDisconnect();
                         } else if (nBytes < 0) {
                             // error
@@ -955,7 +956,7 @@ void ThreadSocketHandler() {
                             if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR &&
                                 nErr != WSAEINPROGRESS) {
                                 if (!pNode->fDisconnect)
-                                    LogPrint("INFO", "socket[%s] recv error %s\n", pNode->addrName, NetworkErrorString(nErr));
+                                    LogPrint("INFO", "socket[%s] recv error %s\n", pNode->addr.ToString(), NetworkErrorString(nErr));
                                 pNode->CloseSocketDisconnect();
                             }
                         }
@@ -977,7 +978,9 @@ void ThreadSocketHandler() {
             //
             // Inactivity checking
             //
-            if (pNode->vSendMsg.empty()) pNode->nLastSendEmpty = GetTime();
+            if (pNode->vSendMsg.empty())
+                pNode->nLastSendEmpty = GetTime();
+
             if (GetTime() - pNode->nTimeConnected > 60) {
                 if (pNode->nLastRecv == 0 || pNode->nLastSend == 0) {
                     LogPrint("net", "socket no message in first 60 seconds, %d %d\n", pNode->nLastRecv != 0,
@@ -992,6 +995,7 @@ void ThreadSocketHandler() {
                 }
             }
         }
+
         {
             LOCK(cs_vNodes);
             for (auto pNode : vNodesCopy)
