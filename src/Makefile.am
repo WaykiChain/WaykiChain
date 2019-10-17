@@ -317,7 +317,6 @@ libcoin_common_a_SOURCES = \
   config/configuration.cpp \
   config/version.cpp \
   netbase.cpp \
-  p2p/chainmessage.cpp \
   p2p/protocol.cpp \
   persistence/block.cpp \
   persistence/cdpdb.cpp \
