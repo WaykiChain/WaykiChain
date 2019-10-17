@@ -955,7 +955,7 @@ void ThreadSocketHandler() {
                             if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR &&
                                 nErr != WSAEINPROGRESS) {
                                 if (!pNode->fDisconnect)
-                                    LogPrint("INFO", "socket recv error %s\n", NetworkErrorString(nErr));
+                                    LogPrint("INFO", "socket[%s] recv error %s\n", pNode->addrName, NetworkErrorString(nErr));
                                 pNode->CloseSocketDisconnect();
                             }
                         }
