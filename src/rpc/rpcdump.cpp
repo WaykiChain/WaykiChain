@@ -182,8 +182,8 @@ Value importprivkey(const Array& params, bool fHelp) {
             "importprivkey \"privkey\"\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1.\"privkey\"      (string, required) The private key (see dumpprivkey)\n"
-            "2.\"address\"      (string, optional) Set the address while importing a miner privkey\n"
+            "1.\"privkey\"      (string, required) The private key, which can be the mining key when address is supplied (also refer to dumpprivkey)\n"
+            "2.\"address\"      (string, optional) Set the miner's saving account address when importing the mining privkey in front\n"
             "\nExamples:\n"
             "\nDump privkey first\n" +
             HelpExampleCli("dumpprivkey", "\"address\"") + "\nImport privkey\n" +
