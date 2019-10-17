@@ -103,7 +103,7 @@ public:
 
     virtual ~CBaseTx() {}
 
-    virtual std::pair<TokenSymbol, uint64_t> GetFees() const { return std::make_pair(SYMB::WICC, llFees); }
+    virtual std::pair<TokenSymbol, uint64_t> GetFees() const { return std::make_pair(fee_symbol, llFees); }
     virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 

@@ -176,6 +176,7 @@ public:
 
     map<TokenSymbol, uint64_t> GetFees() const;
     map<CoinPricePair, uint64_t> GetBlockMedianPrice() const;
+    CUserID GetMinerUserID() const;
 
     void Print(CBlockDBCache &blockCache) const;
 };

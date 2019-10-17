@@ -80,6 +80,7 @@ coin_CORE_H = \
   limitedmap.h \
   main.h \
   p2p/chainmessage.h \
+  p2p/protocol.h \
   miner/miner.h \
   mruset.h \
   netbase.h \
@@ -104,7 +105,6 @@ coin_CORE_H = \
   persistence/dbiterator.h \
   persistence/dexdb.h \
   persistence/logdb.h \
-  protocol.h \
   random.h   \
   rpc/core/httpserver.h \
   rpc/core/rpcclient.h \
@@ -317,7 +317,7 @@ libcoin_common_a_SOURCES = \
   config/configuration.cpp \
   config/version.cpp \
   netbase.cpp \
-  protocol.cpp \
+  p2p/protocol.cpp \
   persistence/block.cpp \
   persistence/cdpdb.cpp \
   persistence/accountdb.cpp \

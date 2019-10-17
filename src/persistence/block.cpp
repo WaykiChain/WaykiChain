@@ -99,6 +99,13 @@ map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
     return map<CoinPricePair, uint64_t>();
 }
 
+CUserID CBlock::GetMinerUserID() const {
+    assert(vptx.size() > 0);
+    assert(vptx[0]->IsBlockRewardTx());
+
+    return vptx[0]->txUid;
+}
+
 void CBlock::Print(CBlockDBCache& blockCache) const {
     string medianPrices;
     for (const auto &item : GetBlockMedianPrice()) {

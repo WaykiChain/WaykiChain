@@ -6,7 +6,7 @@
 #define _COIN_ADDRMAN 1
 
 #include "netbase.h"
-#include "protocol.h"
+#include "p2p/protocol.h"
 #include "sync.h"
 #include "commons/util.h"
 

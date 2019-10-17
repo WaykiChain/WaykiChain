@@ -250,6 +250,7 @@ public:
     CDexDBCache         *pDexCache;
 
     CBlockIndexDB       *pBlockIndexDb;
+
     CDBAccess           *pBlockDb;
     CBlockDBCache       *pBlockCache;
 
@@ -289,6 +290,7 @@ public:
         pDexCache       = new CDexDBCache(pDexDb);
 
         pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
+
         pBlockDb        = new CDBAccess(DBNameType::BLOCK, false, fReIndex);
         pBlockCache     = new CBlockDBCache(pBlockDb);
 
@@ -312,6 +314,7 @@ public:
         delete pCdpCache;       pCdpCache = nullptr;
         delete pClosedCdpCache; pClosedCdpCache = nullptr;
         delete pDexCache;       pDexCache = nullptr;
+        delete pBlockCache;     pBlockCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
         delete pReceiptCache;   pReceiptCache = nullptr;
 
@@ -320,11 +323,10 @@ public:
         delete pAssetDb;        pAssetDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
-        delete pBlockIndexDb;   pBlockIndexDb = nullptr;
-        delete pBlockCache;     pBlockCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
         delete pClosedCdpDb;    pClosedCdpDb = nullptr;
         delete pDexDb;          pDexDb = nullptr;
+        delete pBlockIndexDb;   pBlockIndexDb = nullptr;
         delete pBlockDb;        pBlockDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
         delete pReceiptDb;      pReceiptDb = nullptr;
@@ -336,9 +338,6 @@ public:
 
     bool Flush() {
         if (pSysParamCache) pSysParamCache->Flush();
-
-        if (pBlockIndexDb) pBlockIndexDb->Flush();
-        if (pBlockCache) pBlockCache->Flush();
 
         if (pAccountCache) pAccountCache->Flush();
 
@@ -353,6 +352,10 @@ public:
         if (pClosedCdpCache) pClosedCdpCache->Flush();
 
         if (pDexCache) pDexCache->Flush();
+
+        if (pBlockIndexDb) pBlockIndexDb->Flush();
+
+        if (pBlockCache) pBlockCache->Flush();
 
         if (pLogCache) pLogCache->Flush();
 

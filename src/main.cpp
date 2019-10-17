@@ -1294,9 +1294,14 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     } else if (block.vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx = (CUCoinBlockRewardTx *)block.vptx[0].get();
-        if (pRewardTx->reward_fees != rewards) {
-            return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
-                             "bad-reward-amount");
+
+        if (SysCfg().NetworkID() == TEST_NET && block.GetHeight() < 200000) {
+            // TODO: remove me if reset testnet.
+        } else {
+            if (pRewardTx->reward_fees != rewards) {
+                return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase reward amount"), REJECT_INVALID,
+                                 "bad-reward-amount");
+            }
         }
 
         // Verify profits
@@ -2083,7 +2088,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
-    LogPrint("INFO", "AcceptBlock[%d]: %s\n", block.GetHeight(), blockHash.GetHex());
+    LogPrint("INFO", "AcceptBlock[%d]: %s, miner: %s, timestamp: %u\n", block.GetHeight(), blockHash.GetHex(),
+             block.GetMinerUserID().ToString(), block.GetBlockTime());
+
     // Check for duplicated block
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
@@ -2239,7 +2246,7 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
-        LogPrint("net", "filter the same GetLocator\n");
+        LogPrint("net", "filter the same GetLocator from peer %s\n", pNode->addr.ToString());
         return;
     }
     pNode->pIndexLastGetBlocksBegin = pIndexBegin;
@@ -2254,7 +2261,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
     AssertLockHeld(cs_main);
     // Filter out duplicate requests
     if (pIndexBegin == pNode->pIndexLastGetBlocksBegin && hashEnd == pNode->hashLastGetBlocksEnd) {
-        LogPrint("net", "filter the same GetLocator\n");
+        LogPrint("net", "filter the same GetLocator from peer %s\n", pNode->addr.ToString());
         static CBloomFilter filter(5000, 0.0001, 0, BLOOM_UPDATE_NONE);
         static uint32_t count = 0;
         string key            = to_string(pNode->id) + ":" + to_string((GetTime() / 2));
@@ -2283,27 +2290,30 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
 
 bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBlockPos *dbp) {
     int64_t llBeginTime = GetTimeMillis();
-    //  LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
+    // LogPrint("INFO", "ProcessBlock() enter:%lld\n", llBeginTime);
     AssertLockHeld(cs_main);
     // Check for duplicate
-    uint256 blockHash = pBlock->GetHash();
+    uint256 blockHash    = pBlock->GetHash();
+    uint32_t blockHeight = pBlock->GetHeight();
     if (mapBlockIndex.count(blockHash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : block exists: %d %s",
-                            mapBlockIndex[blockHash]->height, blockHash.ToString()), 0, "duplicate");
+        return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
+                             "duplicate");
    if ( pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
         return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
     }
     if (mapOrphanBlocks.count(blockHash))
-        return state.Invalid(ERRORMSG("ProcessBlock() : block (orphan) exists %s", blockHash.ToString()), 0, "duplicate");
+        return state.Invalid(
+            ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
+            "duplicate");
 
     int64_t llBeginCheckBlockTime = GetTimeMillis();
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
 
     // Preliminary checks
     if (!CheckBlock(*pBlock, state, *spCW, false)) {
-        LogPrint("INFO", "CheckBlock() height: %d elapse time:%lld ms\n",
-                chainActive.Height(), GetTimeMillis() - llBeginCheckBlockTime);
+        LogPrint("INFO", "CheckBlock() height: %d elapse time:%lld ms\n", chainActive.Height(),
+                 GetTimeMillis() - llBeginCheckBlockTime);
 
         return ERRORMSG("ProcessBlock() : block hash:%s CheckBlock FAILED", pBlock->GetHash().GetHex());
     }

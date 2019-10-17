@@ -7,11 +7,10 @@
 #define SENDMESSAGE_HPP
 
 #include "main.h"
-// #include "net.h"
 
 // Requires cs_main.
-void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
-    CNodeState *state = State(nodeid);
+void MarkBlockAsInFlight(const uint256 &hash, NodeId nodeId) {
+    CNodeState *state = State(nodeId);
     assert(state != nullptr);
 
     // Make sure it's not listed somewhere already.
@@ -23,7 +22,7 @@ void MarkBlockAsInFlight(NodeId nodeid, const uint256 &hash) {
 
     list<QueuedBlock>::iterator it = state->vBlocksInFlight.insert(state->vBlocksInFlight.end(), newentry);
     state->nBlocksInFlight++;
-    mapBlocksInFlight[hash] = make_pair(nodeid, it);
+    mapBlocksInFlight[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 }
 
 bool SendMessages(CNode *pTo, bool fSendTrickle) {
@@ -40,26 +39,29 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             // RPC ping request by user
             pingSend = true;
         }
+
         if (pTo->nLastSend && GetTime() - pTo->nLastSend > 30 * 60 && pTo->vSendMsg.empty()) {
             // Ping automatically sent as a keepalive
             pingSend = true;
         }
+
         if (pingSend) {
             uint64_t nonce = 0;
             while (nonce == 0) {
                 RAND_bytes((uint8_t *)&nonce, sizeof(nonce));
             }
+
             pTo->nPingNonceSent = nonce;
             pTo->fPingQueued    = false;
-            //            if (pTo->nVersion > BIP0031_VERSION) {
+            // if (pTo->nVersion > BIP0031_VERSION) {
             // Take timestamp as close as possible before transmitting ping
             pTo->nPingUsecStart = GetTimeMicros();
             pTo->PushMessage("ping", nonce);
-            //            } else {
-            //                // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
-            //                pTo->nPingUsecStart = 0;
-            //                pTo->PushMessage("ping");
-            //            }
+            // } else {
+            //     // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
+            //     pTo->nPingUsecStart = 0;
+            //     pTo->PushMessage("ping");
+            // }
         }
 
         TRY_LOCK(cs_main, lockMain);  // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
@@ -204,7 +206,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         while (!pTo->fDisconnect && state.nBlocksToDownload && state.nBlocksInFlight < MAX_BLOCKS_IN_TRANSIT_PER_PEER) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
-            MarkBlockAsInFlight(pTo->GetId(), hash);
+            MarkBlockAsInFlight(hash, pTo->GetId());
             LogPrint("net", "Requesting block [%d] %s from %s, nBlocksInFlight=%d\n", index++, hash.ToString().c_str(),
                      state.name.c_str(), state.nBlocksInFlight);
             if (vGetData.size() >= 1000) {
