@@ -126,8 +126,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         !GetTxMinFee(LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, invokeMinFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
 
-    uint64_t minFee = regMinFee + invokeMinFee;
-    uint64_t totalFee = regMinFee + invokeMinFee * 10; // set default totalFee
+    uint64_t minFee   = regMinFee + invokeMinFee;
+    uint64_t totalFee = regMinFee + invokeMinFee * 10;  // set default totalFee
     if (params.size() > 4) {
         ComboMoney feeIn = RPC_PARAM::GetFee(params, 4, LCONTRACT_DEPLOY_TX);
         assert(feeIn.symbol == SYMB::WICC);
@@ -139,9 +139,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    CBlockIndex *pTip =  chainActive.Tip();
-    uint32_t fuelRate  = GetElementForBurn(pTip);
-    uint32_t blockTime = pTip->GetBlockTime();
+    CBlockIndex *pTip      = chainActive.Tip();
+    uint32_t fuelRate      = GetElementForBurn(pTip);
+    uint32_t blockTime     = pTip->GetBlockTime();
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
