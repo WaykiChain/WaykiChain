@@ -304,6 +304,11 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
+    if (contract.vm_type != VMType::LUA_VM) {
+        return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
+                         "vm-type-error");
+    }
+
     if (!contract.IsValid()) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, contract is invalid"),
                          REJECT_INVALID, "vmscript-invalid");
