@@ -184,11 +184,13 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
 
     std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx *)&tx);
     if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "SubmitTx error: txid=" + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR,
+                           strprintf("SubmitTx failed: txid=%s, %s", tx.GetHash().GetHex(), std::get<1>(ret)));
     }
 
     Object obj;
     obj.push_back(Pair("txid", std::get<1>(ret)));
+
     return obj;
 }
 

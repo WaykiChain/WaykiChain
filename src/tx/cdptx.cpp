@@ -250,18 +250,13 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "compute-interest-error");
         }
 
-        uint64_t free_scoins = account.GetToken(scoin_symbol).free_amount;
-        if (free_scoins < scoinsInterestToRepay) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: %llu < scoinsInterestToRepay: %llu",
-                            free_scoins, scoinsInterestToRepay), INTEREST_INSUFFICIENT, "interest-insufficient-error");
-        }
-
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state))
             return false;
 
         if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance: < scoinsInterestToRepay: %d",
-                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL, "interest-insufficient-error");
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
+                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
         }
 
         // settle cdp state & persist
@@ -320,8 +315,8 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
-    const uint64_t scoinsInterestToRepay,  CCacheWrapper &cw, CValidationState &state) {
-
+                                        const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
+                                        CValidationState &state) {
     if (scoinsInterestToRepay == 0)
         return true;
 
