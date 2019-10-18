@@ -60,6 +60,7 @@ coin_CORE_H = \
   commons/bloom.h \
   commons/openssl.hpp \
   commons/serialize.h \
+  commons/leb128.h \
   commons/types.h \
   commons/util.h \
   commons/compat/byteswap.h \

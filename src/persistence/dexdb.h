@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "commons/serialize.h"
+#include "commons/leb128.h"
 #include "persistence/dbaccess.h"
 #include "entities/account.h"
 #include "entities/dexorder.h"
@@ -21,7 +22,7 @@ using namespace std;
 /*  ----------------   -------------------------  ---------------------------       ------------------   ------------------------ */
     /////////// DexDB
     // block orders: height generate_type txid -> active order
-typedef CCompositeKVCache<dbk::DEX_BLOCK_ORDERS,  tuple<uint32_t, uint8_t, uint256>, CDEXOrderDetail>     DEXBlockOrdersCache;
+typedef CCompositeKVCache<dbk::DEX_BLOCK_ORDERS,  tuple<CFixedUInt32, uint8_t, uint256>, CDEXOrderDetail>     DEXBlockOrdersCache;
 
 // DEX_DB
 namespace DEX_DB {
@@ -30,7 +31,7 @@ namespace DEX_DB {
     typedef vector<BlockOrdersItem> BlockOrders;
 
     inline uint32_t GetHeight(const DEXBlockOrdersCache::KeyType &key) {
-        return std::get<0>(key);
+        return std::get<0>(key).value;
     }
 
     inline OrderGenerateType GetGenerateType(const DEXBlockOrdersCache::KeyType &key) {
