@@ -21,7 +21,7 @@ public:
     typedef typename std::make_unsigned<I>::type UnsignedInt; // supports signed int type
 public:
     CFixedLeb128(): value(0) {}
-    CFixedLeb128(const I &valueIn): value(valueIn) {}
+    explicit CFixedLeb128(const I &valueIn): value(valueIn) {}
 
     unsigned int GetSerializeSize(int nType, int nVersion) const
     {

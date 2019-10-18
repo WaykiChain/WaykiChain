@@ -100,7 +100,7 @@ public:
     }
 
     bool First() {
-        return First(make_tuple(begin_height, 0, uint256()));
+        return First(make_tuple(CFixedUInt32(begin_height), 0, uint256()));
     }
 
     bool Next() {
@@ -148,7 +148,7 @@ public:
     }
 
     bool First() {
-        return First(make_tuple(begin_height, 0, uint256()));
+        return First(make_tuple(CFixedUInt32(begin_height), 0, uint256()));
     }
 
     bool Next() {
@@ -304,7 +304,7 @@ public:
         : key(), value(), data_map(dbCache.GetMapData()), map_it(data_map.end()), height(heightIn), is_valid(false) {}
 
     bool First() {
-        map_it = data_map.upper_bound(make_tuple(height, (uint8_t)SYSTEM_GEN_ORDER, uint256()));
+        map_it = data_map.upper_bound(make_tuple(CFixedUInt32(height), (uint8_t)SYSTEM_GEN_ORDER, uint256()));
         return Parse();
     }
     bool Next() {

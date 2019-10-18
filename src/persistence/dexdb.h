@@ -135,7 +135,7 @@ public:
     }
 private:
     DEXBlockOrdersCache::KeyType MakeBlockOrderKey(const uint256 &orderid, const CDEXOrderDetail &activeOrder) {
-        return make_tuple(activeOrder.tx_cord.GetHeight(), (uint8_t)activeOrder.generate_type, orderid);
+        return make_tuple(CFixedUInt32(activeOrder.tx_cord.GetHeight()), (uint8_t)activeOrder.generate_type, orderid);
     }
 private:
 /*       type               prefixType                      key                        value                variable             */

@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(commons_leb128_tests)
 
 void CheckUint32Value(uint32_t val, const string& serializedStr) {
     string msg = "check uint32_t=" + std::to_string(val);
-    CFixedUInt32 value1 = val;
+    CFixedUInt32 value1(val);
     CDataStream dsWrite(1, 1);
     dsWrite << value1;
     string serStr = dsWrite.str();
@@ -24,7 +24,7 @@ void CheckUint32Value(uint32_t val, const string& serializedStr) {
     BOOST_CHECK_MESSAGE(serStr == ParseHexStr(serializedStr),
         msg + " serialize content error: " + HexStr(serStr) + " vs expected=" + serializedStr);
 
-    CFixedUInt32 value2 = ~value1.value;
+    CFixedUInt32 value2(~value1.value);
     CDataStream dsRead(serStr, 1, 1);
     dsRead >> value2;
     BOOST_CHECK_MESSAGE(value2 == value1, msg + " unserialize content error: " +
