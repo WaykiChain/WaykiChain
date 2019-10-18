@@ -45,7 +45,9 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 // class CLuaContractDeployTx
 
 bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
@@ -76,6 +78,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
+
     if (!account.HaveOwnerPubKey()) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, account unregistered"), REJECT_INVALID,
                          "bad-account-unregistered");
@@ -87,7 +90,9 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, read regist addr %s account info error", txUid.ToString()),
@@ -117,6 +122,7 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, save code for contract id %s error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
     }
+
     if (!cw.accountCache.SaveAccount(contractAccount)) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::ExecuteTx, create new account script id %s script info error",
                         contractRegId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-scriptdb");
@@ -159,7 +165,9 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CLuaContractInvokeTx
 
 bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
@@ -186,7 +194,8 @@ bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
 
     uint64_t fuelLimit;
     if (!GetFuelLimit(*this, context, fuelLimit))
@@ -320,6 +329,7 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, get account failed"),
                          REJECT_INVALID, "bad-getaccount");
     }
+
     if (!account.HaveOwnerPubKey()) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, account unregistered"),
             REJECT_INVALID, "bad-account-unregistered");
@@ -431,7 +441,9 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
 // class CUniversalContractInvokeTx
 
 bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;

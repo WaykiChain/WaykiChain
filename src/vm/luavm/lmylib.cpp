@@ -902,7 +902,7 @@ int32_t ExGetTxContractFunc(lua_State *L) {
 int32_t ExLogPrintFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t>>> retdata;
     if (!GetDataTableLogPrint(L, retdata) || retdata.size() != 2) {
-        return RetFalse("ExLogPrintFunc para err1");
+        return RetFalse("ExLogPrintFunc para, err1");
     }
 
     CDataStream tep1(*retdata.at(0), SER_DISK, CLIENT_VERSION);
