@@ -43,8 +43,8 @@ BOOST_AUTO_TEST_CASE(fixed_uint32_test)
         {128,           "0000000100"},
         {255,           "000000017F"},
         {256,           "0000000200"},
-        {0x80000000,    "0800000000"},
         {0x7FFFFFFF,    "077F7F7F7F"},
+        {0x80000000,    "0800000000"},
         {0xFFFFFFFF,    "0F7F7F7F7F"},
     };
     for (size_t i = 0; i < values.size(); i++) {
