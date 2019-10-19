@@ -461,8 +461,8 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read account failed, regId=%s",
-                        txUid.get<CRegID>().ToString()), REJECT_INVALID, "bad-getaccount");
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read account failed, txUid=%s",
+                        txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
 
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
