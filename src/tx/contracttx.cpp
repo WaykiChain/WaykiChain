@@ -464,6 +464,12 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read account failed, txUid=%s",
                         txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
 
+    auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(coin_symbol);
+    if (pSymbolErr) {
+        return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s, %s",
+                        coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
+    }
+
     CUniversalContract contract;
     if (!cw.contractCache.GetContract(app_uid.get<CRegID>(), contract))
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, read script failed, regId=%s",
@@ -476,7 +482,8 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
 
     uint64_t fuelLimit;
     if (!GetFuelLimit(*this, context, fuelLimit))

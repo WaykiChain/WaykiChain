@@ -561,9 +561,12 @@ string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramNa
 
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
                                     const uint64_t value) {
+    if (pCdMan->pAssetCache->CheckTransferCoinSymbol(tokenSymbol))
+        throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
+
+
     if (!account.OperateBalance(tokenSymbol, opType, value))
-        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS,
-                           strprintf("Account does not have enough %s", tokenSymbol));
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strprintf("Account does not have enough %s", tokenSymbol));
 }
 
 void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &orderTxid) {
