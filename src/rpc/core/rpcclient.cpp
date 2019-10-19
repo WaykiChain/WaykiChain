@@ -84,6 +84,7 @@ Object CallRPC(const string& strMethod, const Array& params) {
     Value valReply;
     if (!read_string(strReply, valReply))
         throw runtime_error("couldn't parse reply from server");
+
     const Object& reply = valReply.get_obj();
     if (reply.empty())
         throw runtime_error("expected reply to have result, error and id properties");

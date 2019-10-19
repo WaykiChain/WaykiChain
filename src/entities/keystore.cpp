@@ -91,7 +91,7 @@ CKeyCombi::CKeyCombi(const CKey& key, const CKey& minerKey, int32_t nVersion) {
 }
 
 bool CKeyCombi::GetPubKey(CPubKey& mOutKey, bool IsMine) const {
-    if (IsMine == true) {
+    if (IsMine) {
         if (mMinerCkey.IsValid()) {
             mOutKey = mMinerCkey.GetPubKey();
             return true;
@@ -151,6 +151,7 @@ bool CKeyStore::GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut, bool IsM
     CKey key;
     if (!GetKey(address, key, IsMine))
         return false;
+
     vchPubKeyOut = key.GetPubKey();
     return true;
 }
