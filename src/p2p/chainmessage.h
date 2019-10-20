@@ -161,8 +161,11 @@ inline void ProcessGetData(CNode *pFrom) {
                     // Send block from disk
                     CBlock block;
                     ReadBlockFromDisk((*mi).second, block);
-                    if (inv.type == MSG_BLOCK)
+                    if (inv.type == MSG_BLOCK) {
+                        LogPrint("net", "send block[%u]: %s to peer %s\n", block.GetHeight(), block.GetHash().GetHex(),
+                                 pFrom->addr.ToString());
                         pFrom->PushMessage("block", block);
+                    }
                     else  // MSG_FILTERED_BLOCK)
                     {
                         LOCK(pFrom->cs_filter);
