@@ -1134,7 +1134,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return state.DoS(100, ERRORMSG("ConnectBlock() : check block error"), REJECT_INVALID, "check-block-error");
 
     if (!fJustCheck) {
-        // Verify that the view's current state corresponds to the previous block
+        // Verify that the cache's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
@@ -1849,7 +1849,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
             pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
     } else {
-        spCW              = CCacheWrapper::NewCopyFrom(pCdMan);
+        spCW                     = CCacheWrapper::NewCopyFrom(pCdMan);
         int64_t beginTime        = GetTimeMillis();
         CBlockIndex *pBlockIndex = chainActive.Tip();
 
@@ -1869,6 +1869,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
             pBlockIndex = pBlockIndex->pprev;
         }  // Rollback the active chain to the forked point.
+
+        // Attention: need to reload top N delegates.
+        spCW->delegateCache.LoadTopDelegateList();
 
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
@@ -1929,10 +1932,16 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
                 pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
             }
+
+            // Attention: need to reload top N delegates.
+            spNewForkCW->delegateCache.LoadTopDelegateList();
         }
-        spNewForkCW->Flush(); // flush to spCW
+
+        spNewForkCW->Flush();  // flush to spNewForkCW
     }
 
+    // Attention: need to reload top N delegates.
+    spCW->delegateCache.LoadTopDelegateList();
     if (!VerifyRewardTx(&block, *spCW, false))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block hash=%s verify reward tx error",
             block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
