@@ -1938,15 +1938,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         }
 
         spNewForkCW->Flush();  // flush to spNewForkCW
-    }
 
-    // Attention: need to reload top N delegates.
-    spCW->delegateCache.LoadTopDelegateList();
-    if (!VerifyRewardTx(&block, *spCW, false))
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
-            block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
-
-    if (!vPreBlocks.empty()) {
         vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
         if (forkChainTipFound) {
             mapForkCache.erase(forkChainTipBlockHash);
@@ -1954,6 +1946,12 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
         mapForkCache[iterBlock->GetHash()] = spCW;
     }
+
+    // Attention: need to reload top N delegates.
+    spCW->delegateCache.LoadTopDelegateList();
+    if (!VerifyRewardTx(&block, *spCW, false))
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
+            block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 
     return true;
 }
