@@ -168,6 +168,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         scoins_to_mint == 0
             ? UINT64_MAX
             : uint64_t(double(assetAmount) * bcoinMedianPrice / PRICE_BOOST / scoins_to_mint * RATIO_BOOST);
+    vector<CReceipt> receipts;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (assetAmount == 0 || scoins_to_mint == 0) {
@@ -250,7 +251,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "compute-interest-error");
         }
 
-        if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state))
+        if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
 
         if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
@@ -282,7 +283,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
 
-    vector<CReceipt> receipts;
     receipts.emplace_back(txUid, nullId, assetSymbol, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER);
     receipts.emplace_back(nullId, txUid, scoin_symbol, scoins_to_mint, ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER);
 
@@ -316,7 +316,7 @@ Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
                                         const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
-                                        CValidationState &state) {
+                                        CValidationState &state, vector<CReceipt> &receipts) {
     if (scoinsInterestToRepay == 0)
         return true;
 
@@ -344,6 +344,9 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
 
+    assert(!fcoinGenesisAccount.regid.IsEmpty());
+    receipts.emplace_back(txUid, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinsInterestToRepay,
+                          ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS);
     return true;
 }
 
@@ -449,7 +452,8 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "deduct-interest-error");
     }
 
-    if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state)) {
+    vector<CReceipt> receipts;
+    if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, SellInterestForFcoins error!"),
                             REJECT_INVALID, "sell-interest-for-fcoins-error");
     }
@@ -546,7 +550,6 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
 
-    vector<CReceipt> receipts;
     receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, actualScoinsToRepay, ReceiptCode::CDP_REPAID_SCOIN_FROM_OWNER);
     receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, assetAmount, ReceiptCode::CDP_REDEEMED_ASSET_TO_OWNER);
 
@@ -579,7 +582,7 @@ Object CCDPRedeemTx::ToJson(const CAccountDBCache &accountCache) const {
 
 bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp,
                                         const uint64_t scoinsInterestToRepay, CCacheWrapper &cw,
-                                        CValidationState &state) {
+                                        CValidationState &state, vector<CReceipt> &receipts) {
     if (scoinsInterestToRepay == 0)
         return true;
 
@@ -607,6 +610,10 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
+
+    assert(!fcoinGenesisAccount.regid.IsEmpty());
+    receipts.emplace_back(txUid, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinsInterestToRepay,
+                          ReceiptCode::CDP_INTEREST_BUY_DEFLATE_FCOINS);
 
     return true;
 }
