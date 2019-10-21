@@ -52,8 +52,7 @@ TEST_CASE("Testing varuint", "[varuint_tests]") {
     std::vector<uint8_t> tv2 = {0x80, 0x7f};
     guarded_ptr<uint8_t> gp7_1(tv2.data(), 5);
     guarded_ptr<uint8_t> gp32_1(tv2.data(), 5);
-   
-    varuint<7> v7_1(gp7_1); 
+
     varuint<32> v32_1(gp32_1); 
     CHECK( v32_1.to() == 16256 );
    }

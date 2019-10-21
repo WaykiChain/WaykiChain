@@ -9,6 +9,7 @@ namespace eosio { namespace vm {
    inline constexpr bool should_align_memory_ops = false;
 #endif
 
+
 #ifdef EOS_VM_SOFTFLOAT
    inline constexpr bool use_softfloat = true;
 #else

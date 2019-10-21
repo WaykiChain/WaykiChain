@@ -36,7 +36,7 @@ CREATE_ERROR_CODES(memory_errors, MEMORY_ERRORS)
 CREATE_ERROR_CODES(system_errors, SYSTEM_ERRORS)
 CREATE_ERROR_CODES(auxiliary_errors, AUXILIARY_ERRORS)
 
-#define EOS_VM_ASSERT(expr, err_type)                                                                                  \
+#define _EOS_VM_ASSERT(expr, err_type)                                                                                  \
    if (!UNLIKELY(expr)) {                                                                                              \
       return err_type;                                                                                                 \
    }

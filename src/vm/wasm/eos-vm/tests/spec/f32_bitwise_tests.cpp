@@ -12,10 +12,10 @@
 using namespace eosio;
 using namespace eosio::vm;
 extern wasm_allocator wa;
-using backend_t = backend<std::nullptr_t>;
 
-TEST_CASE( "Testing wasm <f32_bitwise_0_wasm>", "[f32_bitwise_0_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( f32_bitwise_0_wasm );
+BACKEND_TEST_CASE( "Testing wasm <f32_bitwise_0_wasm>", "[f32_bitwise_0_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f32_bitwise.0.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -380,5 +380,23 @@ TEST_CASE( "Testing wasm <f32_bitwise_0_wasm>", "[f32_bitwise_0_wasm_tests]" ) {
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "neg", bit_cast<float>(UINT32_C(2139095040)))->to_f32()) == UINT32_C(4286578688));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "neg", bit_cast<float>(UINT32_C(4290772992)))->to_f32()) == UINT32_C(2143289344));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "neg", bit_cast<float>(UINT32_C(2143289344)))->to_f32()) == UINT32_C(4290772992));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <f32_bitwise_1_wasm>", "[f32_bitwise_1_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f32_bitwise.1.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <f32_bitwise_2_wasm>", "[f32_bitwise_2_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f32_bitwise.2.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <f32_bitwise_3_wasm>", "[f32_bitwise_3_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f32_bitwise.3.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
 }
 

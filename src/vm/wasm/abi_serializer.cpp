@@ -1,5 +1,4 @@
 #include <chrono>
-
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #include <wasm/exceptions.hpp>

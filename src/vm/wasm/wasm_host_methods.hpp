@@ -8,32 +8,32 @@
 #include <sstream>
 #include <map>
 
-#include "wasm_context_interface.hpp"
-#include "datastream.hpp"
 #include "softfloat.hpp"
 #include "compiler_builtins/compiler_builtins.hpp"
-#include "types/uint128.hpp"
-#include "exceptions.hpp"
-#include "wasm_log.hpp"
-#include "wasm_config.hpp"
+#include "wasm/wasm_context_interface.hpp"
+#include "wasm/datastream.hpp"
+#include "wasm/types/uint128.hpp"
+#include "wasm/exceptions.hpp"
+#include "wasm/wasm_log.hpp"
+#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_runtime.hpp"
 
-extern map <string, string> database;
 using namespace wasm;
 namespace wasm {
 
-    class WasmHostMethods {
+    class wasm_host_methods {
 
     public:
-        WasmHostMethods( CWasmContextInterface *pCtx ) {
+        wasm_host_methods( wasm_context_interface *pCtx ) {
             pWasmContext = pCtx;
             print_ignore = !pCtx->contracts_console();
             //print_ignore = false;
         };
 
-        ~WasmHostMethods() {};
+        ~wasm_host_methods() {};
 
 
-        CWasmContextInterface *pWasmContext;
+        wasm_context_interface *pWasmContext;
 
         static uint64_t char_to_symbol( char c ) {
             if (c >= 'a' && c <= 'z')
@@ -111,14 +111,15 @@ namespace wasm {
             WASM_ASSERT(false, abort_called, "wasm-assert-fail:%s", "abort() called")
         }
 
-        void wasm_assert( uint32_t test, const char *msg ) {
+        void wasm_assert( uint32_t test, const void *msg ) {
+        //void wasm_assert( uint32_t test, const char *msg ) {
             //std::cout << "wasm_assert:" << msg << std::endl;
 
             //WASM_TRACE("%s", msg)
 
             if (!test) {
                 //std::cout << msg << std::endl;
-                WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg)
+                WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", (char *)msg)
             }
         }
 
@@ -290,14 +291,14 @@ namespace wasm {
 
 
         //memory
-        char *memcpy( void *dest, const void *src, int len ) {
+        void *memcpy( void *dest, const void *src, int len ) {
             WASM_ASSERT((size_t)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
                   overlapping_memory_error, "%s", "memcpy can only accept non-aliasing pointers");
 
             return (char *) std::memcpy(dest, src, len);
         }
 
-        char *memmove( void *dest, const void *src, int len ) {
+        void *memmove( void *dest, const void *src, int len ) {
             //std::cout << "memmove" << std::endl;
             return (char *) std::memmove(dest, src, len);
         }
@@ -312,7 +313,7 @@ namespace wasm {
             return 0;
         }
 
-        char *memset( void *dest, int val, int len ) {
+        void *memset( void *dest, int val, int len ) {
             //std::cout << "memset" << std::endl;
             return (char *) std::memset(dest, val, len);
         }
@@ -345,25 +346,25 @@ namespace wasm {
             }
         }
 
-        void prints( const char *str ) {
-            WASM_ASSERT(strlen(str) < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
+        void prints( const void *str ) {
+            WASM_ASSERT(strlen((const char*)str) < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "string size too big");
             //std::cout << str ;
             if (!print_ignore) {
                 std::ostringstream o;
-                o << str;
+                o << (const char*)str;
                 //WASM_TRACE("%s", str)
                 pWasmContext->console_append(o.str());
             }
         }
 
-        void prints_l( const char *str, uint32_t str_len ) {
+        void prints_l( const void *str, uint32_t str_len ) {
             WASM_ASSERT(str_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "string size too big");
 
             if (!print_ignore) {
                // WASM_TRACE("%s", string(str, str_len).c_str())
-                pWasmContext->console_append(string(str, str_len));
+                pWasmContext->console_append(string((const char*)str, str_len));
             }
         }
 
@@ -418,7 +419,7 @@ namespace wasm {
             }
         }
 
-        void printqf( const float128_t &val ) {
+        void printqf( const float128_t& val ) {
             /*
              * Native-side long double uses an 80-bit extended-precision floating-point number.
              * The easiest solution for now was to use the Berkeley softfloat library to round the 128-bit
@@ -452,13 +453,13 @@ namespace wasm {
             }
         }
 
-        void printhex( char *data, uint32_t data_len ) {
+        void printhex( const char *data, uint32_t data_len ) {
             if (!print_ignore) {
 
                 WASM_ASSERT(data_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                             "wasm api data too big");
 
-                string str(data, data_len);
+                string str((const char*)data, data_len);
                 pWasmContext->console_append(ToHex(str, ""));
             }
         }
@@ -802,4 +803,6 @@ namespace wasm {
         bool print_ignore;
 
     };
+ 
+
 }

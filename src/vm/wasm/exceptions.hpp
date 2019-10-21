@@ -73,4 +73,5 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(unsatisfied_authorization,            5000017, "unsatisfied authorization")
     WASM_DECLARE_EXCEPTION(abort_called,                         5000018, "abort called")
     WASM_DECLARE_EXCEPTION(wasm_assert_code_exception,           5000019, "wasm assert code")
+    WASM_DECLARE_EXCEPTION(wasm_execution_error,                 5000020, "wasm execution error")
 } //wasm

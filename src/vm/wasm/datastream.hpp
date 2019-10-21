@@ -13,10 +13,10 @@
 #include <sstream>
 #include <chrono>
 
-#include "types/types.hpp"
-#include "types/symbol.hpp"
-#include "types/varint.hpp"
-#include "types/inline_transaction.hpp"
+#include "wasm/types/types.hpp"
+#include "wasm/types/symbol.hpp"
+#include "wasm/types/varint.hpp"
+#include "wasm/types/inline_transaction.hpp"
 
 
 namespace wasm {

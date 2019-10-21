@@ -12,10 +12,10 @@
 using namespace eosio;
 using namespace eosio::vm;
 extern wasm_allocator wa;
-using backend_t = backend<std::nullptr_t>;
 
-TEST_CASE( "Testing wasm <br_if_0_wasm>", "[br_if_0_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( br_if_0_wasm );
+BACKEND_TEST_CASE( "Testing wasm <br_if_0_wasm>", "[br_if_0_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.0.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -108,5 +108,179 @@ TEST_CASE( "Testing wasm <br_if_0_wasm>", "[br_if_0_wasm_tests]" ) {
    CHECK(bkend.call_with_return(nullptr, "env", "nested-br_table-value", UINT32_C(1))->to_ui32() == UINT32_C(9));
    CHECK(bkend.call_with_return(nullptr, "env", "nested-br_table-value-index", UINT32_C(0))->to_ui32() == UINT32_C(5));
    CHECK(bkend.call_with_return(nullptr, "env", "nested-br_table-value-index", UINT32_C(1))->to_ui32() == UINT32_C(9));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_1_wasm>", "[br_if_1_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.1.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_10_wasm>", "[br_if_10_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.10.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_11_wasm>", "[br_if_11_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.11.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_12_wasm>", "[br_if_12_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.12.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_13_wasm>", "[br_if_13_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.13.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_14_wasm>", "[br_if_14_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.14.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_15_wasm>", "[br_if_15_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.15.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_16_wasm>", "[br_if_16_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.16.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_17_wasm>", "[br_if_17_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.17.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_18_wasm>", "[br_if_18_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.18.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_19_wasm>", "[br_if_19_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.19.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_2_wasm>", "[br_if_2_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.2.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_20_wasm>", "[br_if_20_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.20.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_21_wasm>", "[br_if_21_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.21.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_22_wasm>", "[br_if_22_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.22.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_23_wasm>", "[br_if_23_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.23.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_24_wasm>", "[br_if_24_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.24.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_25_wasm>", "[br_if_25_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.25.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_26_wasm>", "[br_if_26_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.26.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_27_wasm>", "[br_if_27_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.27.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_28_wasm>", "[br_if_28_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.28.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_29_wasm>", "[br_if_29_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.29.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_3_wasm>", "[br_if_3_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.3.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_4_wasm>", "[br_if_4_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.4.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_5_wasm>", "[br_if_5_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.5.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_6_wasm>", "[br_if_6_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.6.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_7_wasm>", "[br_if_7_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.7.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_8_wasm>", "[br_if_8_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.8.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <br_if_9_wasm>", "[br_if_9_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "br_if.9.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
 }
 

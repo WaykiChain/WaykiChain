@@ -1,3 +1,5 @@
+#pragma once
+
 namespace eosio { namespace vm {
    enum section_id {
       custom_section   = 0,

@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
       bkend.initialize();
 
       // Execute any exported functions provided by the wasm.
+      bkend.initialize();
       bkend.execute_all(wd);
 
    } catch ( const eosio::vm::exception& ex ) {

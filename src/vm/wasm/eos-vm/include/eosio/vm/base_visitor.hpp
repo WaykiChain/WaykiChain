@@ -1,17 +1,13 @@
 #pragma once
 
-#include <eosio/vm/execution_context.hpp>
+#include <eosio/vm/exceptions.hpp>
 #include <eosio/vm/opcodes.hpp>
-
-#include <eosio/vm/config.hpp>
-#include <eosio/vm/softfloat.hpp>
 
 namespace eosio { namespace vm {
 
    struct base_visitor {
       [[gnu::always_inline]] inline void operator()(const unreachable_t& ) {}
       [[gnu::always_inline]] inline void operator()(const nop_t& ) {}
-      [[gnu::always_inline]] inline void operator()(const fend_t& ) {}
       [[gnu::always_inline]] inline void operator()(const exit_t& ) {}
       [[gnu::always_inline]] inline void operator()(const end_t& ) {}
       [[gnu::always_inline]] inline void operator()(const return_t& ) {}

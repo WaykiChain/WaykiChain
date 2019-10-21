@@ -3,7 +3,7 @@
 
 namespace wasm {
 
-    abi_def wasmio_contract_abi( const abi_def &abi ) {
+    abi_def wasmio_contract_abi(const abi_def &abi) {
 
         abi_def wasmio_abi(abi);
         wasmio_abi.structs.emplace_back(struct_def{
@@ -21,7 +21,7 @@ namespace wasm {
 
     }
 
-    abi_def wasmio_bank_contract_abi( const abi_def &abi ) {
+    abi_def wasmio_bank_contract_abi(const abi_def &abi) {
 
         abi_def wasmio_bank_abi(abi);
         wasmio_bank_abi.structs.emplace_back(struct_def{

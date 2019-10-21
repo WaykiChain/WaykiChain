@@ -1,3 +1,6 @@
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+
 #include "config/errorcode.h"
 #include "wasm/wasm_native_contract.hpp"
 #include "wasm/exceptions.hpp"
@@ -10,7 +13,7 @@ using namespace wasm;
 
 namespace wasm {
 
-    void wasm_native_setcode( CWasmContext &context ) {
+    void wasm_native_setcode(wasm_context &context) {
 
         CAccount sender;
         WASM_ASSERT(context.cache.accountCache.GetAccount(context.control_trx.txUid, sender),
@@ -69,7 +72,7 @@ namespace wasm {
     }
 
 
-    void wasm_native_transfer( CWasmContext &context ) {
+    void wasm_native_transfer(wasm_context &context) {
 
         using Transfer = std::tuple<uint64_t, uint64_t, wasm::asset, string>;
         Transfer transfer = wasm::unpack<Transfer>(context.trx.data);
@@ -79,25 +82,24 @@ namespace wasm {
         auto quantity = std::get<2>(transfer);
         auto memo = std::get<3>(transfer);
 
-        WASM_ASSERT( from != to, wasm_assert_exception, "%s", "cannot transfer to self" );
-        context.require_auth( from );
-        WASM_ASSERT( context.is_account( to ), wasm_assert_exception, "%s", "to account does not exist");
+        WASM_ASSERT(from != to, wasm_assert_exception, "%s", "cannot transfer to self");
+        context.require_auth(from);
+        WASM_ASSERT(context.is_account(to), wasm_assert_exception, "%s", "to account does not exist");
         auto sym = quantity.sym.code();
 
         // currency_stats st;
         // stats statstable( _self, sym.raw() );
         // statstable.get( st, sym.raw() );
 
-        context.require_recipient( from );
-        context.require_recipient( to );
+        context.require_recipient(from);
+        context.require_recipient(to);
 
-        WASM_ASSERT( quantity.is_valid(), wasm_assert_exception, "%s", "invalid quantity" );
-        WASM_ASSERT( quantity.amount > 0, wasm_assert_exception, "%s", "must transfer positive quantity" );
+        WASM_ASSERT(quantity.is_valid(), wasm_assert_exception, "%s", "invalid quantity");
+        WASM_ASSERT(quantity.amount > 0, wasm_assert_exception, "%s", "must transfer positive quantity");
         //check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
-        WASM_ASSERT( memo.size() <= 256, wasm_assert_exception, "%s", "memo has more than 256 bytes" );
+        WASM_ASSERT(memo.size() <= 256, wasm_assert_exception, "%s", "memo has more than 256 bytes");
 
-        auto payer = context.has_authorization( to ) ? to : from;
-
+        auto payer = context.has_authorization(to) ? to : from;
         // sub_balance( from, quantity );
         // add_balance( to, quantity, payer );
 

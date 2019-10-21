@@ -10,6 +10,15 @@ using namespace eosio::vm;
 
 #include "hello.wasm.hpp"
 
+namespace eosio { namespace vm {
+
+   template <>
+   struct wasm_type_converter<const char*> : linear_memory_access {
+      const char* from_wasm(const void* val) { validate_c_str(val); return static_cast<const char*>(val); }
+   };
+
+}}
+
 // example of host function as a raw C style function
 void eosio_assert(bool test, const char* msg) {
    if (!test) {
@@ -54,13 +63,12 @@ int main(int argc, char** argv) {
    watchdog wd{std::chrono::seconds(3)};
    try {
       // Instaniate a new backend using the wasm provided.
-      backend_t bkend(hello_wasm);
+      backend_t bkend(hello_wasm, rhf_t{});
 
       // Point the backend to the allocator you want it to use.
       bkend.set_wasm_allocator(&wa);
       bkend.initialize();
       // Resolve the host functions indices.
-      rhf_t::resolve(bkend.get_module());
 
       // Instaniate a "host"
       example_host_methods ehm;

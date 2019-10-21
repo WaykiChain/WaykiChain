@@ -1,8 +1,5 @@
 #pragma once
-
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
-#include <eosio/vm/error_codes_def.hpp>
-
 #include <chrono>
 #include <functional>
 #include <thread>
@@ -86,6 +83,7 @@ namespace eosio { namespace vm {
     public:
       template<typename F>
       null_watchdog scoped_run(F&&) { return *this; }
+      ~null_watchdog() {} // avoid unused variable warnings
    };
 
 }} // namespace eosio::vm

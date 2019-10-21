@@ -12,10 +12,10 @@
 using namespace eosio;
 using namespace eosio::vm;
 extern wasm_allocator wa;
-using backend_t = backend<std::nullptr_t>;
 
-TEST_CASE( "Testing wasm <i64_0_wasm>", "[i64_0_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( i64_0_wasm );
+BACKEND_TEST_CASE( "Testing wasm <i64_0_wasm>", "[i64_0_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.0.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -379,5 +379,179 @@ TEST_CASE( "Testing wasm <i64_0_wasm>", "[i64_0_wasm_tests]" ) {
    CHECK(bkend.call_with_return(nullptr, "env", "ge_u", UINT64_C(18446744073709551615), UINT64_C(9223372036854775808))->to_ui32() == UINT32_C(1));
    CHECK(bkend.call_with_return(nullptr, "env", "ge_u", UINT64_C(9223372036854775808), UINT64_C(9223372036854775807))->to_ui32() == UINT32_C(1));
    CHECK(bkend.call_with_return(nullptr, "env", "ge_u", UINT64_C(9223372036854775807), UINT64_C(9223372036854775808))->to_ui32() == UINT32_C(0));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_1_wasm>", "[i64_1_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.1.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_10_wasm>", "[i64_10_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.10.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_11_wasm>", "[i64_11_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.11.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_12_wasm>", "[i64_12_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.12.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_13_wasm>", "[i64_13_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.13.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_14_wasm>", "[i64_14_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.14.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_15_wasm>", "[i64_15_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.15.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_16_wasm>", "[i64_16_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.16.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_17_wasm>", "[i64_17_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.17.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_18_wasm>", "[i64_18_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.18.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_19_wasm>", "[i64_19_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.19.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_2_wasm>", "[i64_2_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.2.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_20_wasm>", "[i64_20_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.20.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_21_wasm>", "[i64_21_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.21.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_22_wasm>", "[i64_22_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.22.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_23_wasm>", "[i64_23_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.23.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_24_wasm>", "[i64_24_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.24.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_25_wasm>", "[i64_25_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.25.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_26_wasm>", "[i64_26_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.26.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_27_wasm>", "[i64_27_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.27.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_28_wasm>", "[i64_28_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.28.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_29_wasm>", "[i64_29_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.29.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_3_wasm>", "[i64_3_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.3.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_4_wasm>", "[i64_4_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.4.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_5_wasm>", "[i64_5_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.5.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_6_wasm>", "[i64_6_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.6.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_7_wasm>", "[i64_7_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.7.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_8_wasm>", "[i64_8_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.8.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <i64_9_wasm>", "[i64_9_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "i64.9.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
 }
 

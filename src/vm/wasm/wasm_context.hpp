@@ -5,17 +5,23 @@
 #include <vector>
 #include <queue>
 #include <map>
+#include <chrono>
 
 #include "tx/wasmcontracttx.h"
 #include "wasm/types/inline_transaction.hpp"
 #include "wasm/wasm_interface.hpp"
 #include "wasm/datastream.hpp"
 #include "wasm/wasm_trace.hpp"
+#include "eosio/vm/allocator.hpp"
 #include "persistence/cachewrapper.h"
 
 using namespace std;
 using namespace wasm;
 namespace wasm {
+
+   // struct wasm_exit {
+   //    int32_t code = 0;
+   // };
 
     static inline CRegID Name2RegID( uint64_t account ) {
         uint32_t height = uint32_t(account);
@@ -29,18 +35,20 @@ namespace wasm {
         return account;
     }
 
-    class CWasmContext;
+    class wasm_context;
 
-    class CWasmContext : public CWasmContextInterface {
+    class wasm_context : public wasm_context_interface {
 
     public:
-        CWasmContext( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
+        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
                       uint32_t depth = 0 )
                 : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
             reset_console();
         };
 
-        ~CWasmContext() {};
+        ~wasm_context() { 
+            //wasm_alloc.free(); 
+        };
 
     public:
         std::vector <uint8_t> get_code( uint64_t account );
@@ -85,6 +93,9 @@ namespace wasm {
         bool has_authorization( uint64_t account ) const { return true; }
         uint64_t block_time() { return 0; }
 
+        vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
+        std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+
     public:
         uint64_t _receiver;
 
@@ -97,7 +108,8 @@ namespace wasm {
         vector <uint64_t> notified;
         vector <inline_transaction> inline_transactions;
 
-        CWasmInterface wasmInterface;
+        wasm::wasm_interface wasmif;
+        vm::wasm_allocator  wasm_alloc;
 
     private:
         std::ostringstream _pending_console_output;

@@ -12,13 +12,14 @@
 using namespace eosio;
 using namespace eosio::vm;
 extern wasm_allocator wa;
-using backend_t = backend<std::nullptr_t>;
 
-TEST_CASE( "Testing wasm <address_0_wasm>", "[address_0_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( address_0_wasm );
+BACKEND_TEST_CASE( "Testing wasm <address_0_wasm>", "[address_0_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "address.0.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
+
    CHECK(bkend.call_with_return(nullptr, "env", "8u_good1", UINT32_C(0))->to_ui32() == UINT32_C(97));
    CHECK(bkend.call_with_return(nullptr, "env", "8u_good2", UINT32_C(0))->to_ui32() == UINT32_C(97));
    CHECK(bkend.call_with_return(nullptr, "env", "8u_good3", UINT32_C(0))->to_ui32() == UINT32_C(98));
@@ -106,8 +107,9 @@ TEST_CASE( "Testing wasm <address_0_wasm>", "[address_0_wasm_tests]" ) {
    CHECK_THROWS_AS(bkend(nullptr, "env", "32_bad", UINT32_C(1)), std::exception);
 }
 
-TEST_CASE( "Testing wasm <address_2_wasm>", "[address_2_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( address_2_wasm );
+BACKEND_TEST_CASE( "Testing wasm <address_2_wasm>", "[address_2_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "address.2.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -233,8 +235,9 @@ TEST_CASE( "Testing wasm <address_2_wasm>", "[address_2_wasm_tests]" ) {
    CHECK_THROWS_AS(bkend(nullptr, "env", "64_bad", UINT32_C(1)), std::exception);
 }
 
-TEST_CASE( "Testing wasm <address_3_wasm>", "[address_3_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( address_3_wasm );
+BACKEND_TEST_CASE( "Testing wasm <address_3_wasm>", "[address_3_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "address.3.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -258,8 +261,9 @@ TEST_CASE( "Testing wasm <address_3_wasm>", "[address_3_wasm_tests]" ) {
    CHECK_THROWS_AS(bkend(nullptr, "env", "32_bad", UINT32_C(1)), std::exception);
 }
 
-TEST_CASE( "Testing wasm <address_4_wasm>", "[address_4_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( address_4_wasm );
+BACKEND_TEST_CASE( "Testing wasm <address_4_wasm>", "[address_4_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "address.4.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);

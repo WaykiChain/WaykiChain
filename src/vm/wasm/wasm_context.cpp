@@ -6,19 +6,19 @@
 
 using namespace std;
 using namespace wasm;
-using std::chrono::microseconds;
-using std::chrono::system_clock;
+// using std::chrono::microseconds;
+// using std::chrono::system_clock;
 
 namespace wasm {
-    using nativeHandler = std::function<void( CWasmContext & )>;
-    bool has_wasm_interface_initialized = false;
+    using nativeHandler = std::function<void(wasm_context & )>;
+    bool has_wasm_interface_inited = false;
     map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
 
-    inline void register_native_handler( uint64_t receiver, uint64_t action, nativeHandler v ) {
+    inline void register_native_handler(uint64_t receiver, uint64_t action, nativeHandler v) {
         wasm_native_handlers[std::pair(receiver, action)] = v;
     }
 
-    inline nativeHandler* find_native_handle( uint64_t receiver, uint64_t action ) {
+    inline nativeHandler *find_native_handle(uint64_t receiver, uint64_t action) {
         auto handler = wasm_native_handlers.find(std::pair(receiver, action));
         if (handler != wasm_native_handlers.end()) {
             return &handler->second;
@@ -27,7 +27,7 @@ namespace wasm {
         return nullptr;
     }
 
-    static inline void print_debug( uint64_t receiver, const inline_transaction_trace &trace ) {
+    static inline void print_debug(uint64_t receiver, const inline_transaction_trace &trace) {
         if (!trace.console.empty()) {
 
             ostringstream prefix;
@@ -44,16 +44,16 @@ namespace wasm {
     }
 
 
-    void CWasmContext::reset_console() {
+    void wasm_context::reset_console() {
         _pending_console_output = std::ostringstream();
     }
 
 
-    void CWasmContext::execute_inline( inline_transaction t ) {
+    void wasm_context::execute_inline(inline_transaction t) {
         inline_transactions.push_back(t);
     }
 
-    std::vector <uint8_t> CWasmContext::get_code( uint64_t account ) {
+    std::vector <uint8_t> wasm_context::get_code(uint64_t account) {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
@@ -64,7 +64,7 @@ namespace wasm {
         return code;
     }
 
-    std::string CWasmContext::get_abi( uint64_t account ) {
+    std::string wasm_context::get_abi(uint64_t account) {
 
         CUniversalContract contract;
         cache.contractCache.GetContract(Name2RegID(account), contract);
@@ -72,17 +72,17 @@ namespace wasm {
         return contract.abi;
     }
 
-    void CWasmContext::initialize() {
+    void wasm_context::initialize() {
 
-        if (!has_wasm_interface_initialized) {
-            has_wasm_interface_initialized = true;
-            wasmInterface.initialize(wasm::vmType::eosvm);
+        if (!has_wasm_interface_inited) {
+            has_wasm_interface_inited = true;
+            wasmif.initialize(wasm::vm_type::eos_vm_jit);
             register_native_handler(wasmio, N(setcode), wasm_native_setcode);
             register_native_handler(wasmio_bank, N(transfer), wasm_native_transfer);
         }
     }
 
-    void CWasmContext::execute( inline_transaction_trace &trace ) {
+    void wasm_context::execute(inline_transaction_trace &trace) {
 
         initialize();
 
@@ -108,7 +108,7 @@ namespace wasm {
 
     }
 
-    void CWasmContext::execute_one( inline_transaction_trace &trace ) {
+    void wasm_context::execute_one(inline_transaction_trace &trace) {
 
         auto start = system_clock::now();
 
@@ -123,19 +123,21 @@ namespace wasm {
             } else {
                 vector <uint8_t> code = get_code(_receiver);
                 if (code.size() > 0) {
-                    wasmInterface.execute(code, this);
+                    wasmif.execute(code, this);
                 }
             }
         } catch (wasm::exception &e) {
             std::ostringstream o;
             o << e.detail();
-            if (_pending_console_output.str().size() > 0) o << " , " << tfm::format("pending console output: %s",
-                                                                                    _pending_console_output.str().c_str());
+            if (_pending_console_output.str().size() > 0)
+                o << " , " << tfm::format("pending console output: %s",
+                                          _pending_console_output.str().c_str());
             e.msg = o.str();
             throw;
         } catch (...) {
             if (_pending_console_output.str().size() > 0)
-                throw wasm_exception(tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
+                throw wasm_exception(
+                        tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
             else
                 throw wasm_exception("wasm exception");
         }
@@ -154,14 +156,14 @@ namespace wasm {
 
     }
 
-    bool CWasmContext::has_recipient( uint64_t account ) const {
+    bool wasm_context::has_recipient(uint64_t account) const {
         for (auto a : notified)
             if (a == account)
                 return true;
         return false;
     }
 
-    void CWasmContext::require_recipient( uint64_t recipient ) {
+    void wasm_context::require_recipient(uint64_t recipient) {
 
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);

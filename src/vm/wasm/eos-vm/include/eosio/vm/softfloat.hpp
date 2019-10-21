@@ -2,8 +2,7 @@
 #ifdef EOS_VM_SOFTFLOAT
 #include <eosio/vm/exceptions.hpp>
 
-#include <cfloat>
-#include <cinttypes>
+#include <cstdint>
 
 #include <softfloat.hpp>
 
@@ -377,59 +376,59 @@ inline float _eosio_f64_demote( double a ) {
 
 inline int32_t _eosio_f32_trunc_i32s( float af ) {
    float32_t a = to_softfloat32(af);
-   EOS_WB_ASSERT(!(_eosio_f32_ge(af, 2147483648.0f) || _eosio_f32_lt(af, -2147483648.0f)), wasm_interpreter_exception, "Error, f32.convert_s/i32 overflow" );
+   EOS_VM_ASSERT(!(_eosio_f32_ge(af, 2147483648.0f) || _eosio_f32_lt(af, -2147483648.0f)), wasm_interpreter_exception, "Error, f32.convert_s/i32 overflow" );
 
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_s/i32 unrepresentable");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_s/i32 unrepresentable");
    return f32_to_i32( to_softfloat32(_eosio_f32_trunc( af )), 0, false );
 }
 
 inline int32_t _eosio_f64_trunc_i32s( double af ) {
    float64_t a = to_softfloat64(af);
-   EOS_WB_ASSERT(!(_eosio_f64_ge(af, 2147483648.0) || _eosio_f64_lt(af, -2147483648.0)), wasm_interpreter_exception, "Error, f64.convert_s/i32 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_s/i32 unrepresentable");
+   EOS_VM_ASSERT(!(_eosio_f64_ge(af, 2147483648.0) || _eosio_f64_lt(af, -2147483648.0)), wasm_interpreter_exception, "Error, f64.convert_s/i32 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_s/i32 unrepresentable");
    return f64_to_i32( to_softfloat64(_eosio_f64_trunc( af )), 0, false );
 }
 
 inline uint32_t _eosio_f32_trunc_i32u( float af ) {
    float32_t a = to_softfloat32(af);
-   EOS_WB_ASSERT(!(_eosio_f32_ge(af, 4294967296.0f) || _eosio_f32_le(af, -1.0f)),wasm_interpreter_exception, "Error, f32.convert_u/i32 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_u/i32 unrepresentable");
+   EOS_VM_ASSERT(!(_eosio_f32_ge(af, 4294967296.0f) || _eosio_f32_le(af, -1.0f)),wasm_interpreter_exception, "Error, f32.convert_u/i32 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_u/i32 unrepresentable");
    return f32_to_ui32( to_softfloat32(_eosio_f32_trunc( af )), 0, false );
 }
 
 inline uint32_t _eosio_f64_trunc_i32u( double af ) {
    float64_t a = to_softfloat64(af);
-   EOS_WB_ASSERT(!(_eosio_f64_ge(af, 4294967296.0) || _eosio_f64_le(af, -1.0)), wasm_interpreter_exception, "Error, f64.convert_u/i32 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_u/i32 unrepresentable");
+   EOS_VM_ASSERT(!(_eosio_f64_ge(af, 4294967296.0) || _eosio_f64_le(af, -1.0)), wasm_interpreter_exception, "Error, f64.convert_u/i32 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_u/i32 unrepresentable");
    return f64_to_ui32( to_softfloat64(_eosio_f64_trunc( af )), 0, false );
 }
 
 inline int64_t _eosio_f32_trunc_i64s( float af ) {
    float32_t a = to_softfloat32(af);
-      EOS_WB_ASSERT(!(_eosio_f32_ge(af, 9223372036854775808.0f) || _eosio_f32_lt(af, -9223372036854775808.0f)), wasm_interpreter_exception, "Error, f32.convert_s/i64 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_s/i64 unrepresentable");
+      EOS_VM_ASSERT(!(_eosio_f32_ge(af, 9223372036854775808.0f) || _eosio_f32_lt(af, -9223372036854775808.0f)), wasm_interpreter_exception, "Error, f32.convert_s/i64 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_s/i64 unrepresentable");
    return f32_to_i64( to_softfloat32(_eosio_f32_trunc( af )), 0, false );
 }
 
 inline int64_t _eosio_f64_trunc_i64s( double af ) {
    float64_t a = to_softfloat64(af);
-   EOS_WB_ASSERT(!(_eosio_f64_ge(af, 9223372036854775808.0) || _eosio_f64_lt(af, -9223372036854775808.0)), wasm_interpreter_exception, "Error, f64.convert_s/i64 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_s/i64 unrepresentable");
+   EOS_VM_ASSERT(!(_eosio_f64_ge(af, 9223372036854775808.0) || _eosio_f64_lt(af, -9223372036854775808.0)), wasm_interpreter_exception, "Error, f64.convert_s/i64 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_s/i64 unrepresentable");
 
    return f64_to_i64( to_softfloat64(_eosio_f64_trunc( af )), 0, false );
 }
 
 inline uint64_t _eosio_f32_trunc_i64u( float af ) {
    float32_t a = to_softfloat32(af);
-   EOS_WB_ASSERT(!(_eosio_f32_ge(af, 18446744073709551616.0f) || _eosio_f32_le(af, -1.0f)), wasm_interpreter_exception, "Error, f32.convert_u/i64 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_u/i64 unrepresentable");
+   EOS_VM_ASSERT(!(_eosio_f32_ge(af, 18446744073709551616.0f) || _eosio_f32_le(af, -1.0f)), wasm_interpreter_exception, "Error, f32.convert_u/i64 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f32.convert_u/i64 unrepresentable");
    return f32_to_ui64( to_softfloat32(_eosio_f32_trunc( af )), 0, false );
 }
 
 inline uint64_t _eosio_f64_trunc_i64u( double af ) {
    float64_t a = to_softfloat64(af);
-   EOS_WB_ASSERT(!(_eosio_f64_ge(af, 18446744073709551616.0) || _eosio_f64_le(af, -1.0)), wasm_interpreter_exception, "Error, f64.convert_u/i64 overflow");
-   EOS_WB_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_u/i64 unrepresentable");
+   EOS_VM_ASSERT(!(_eosio_f64_ge(af, 18446744073709551616.0) || _eosio_f64_le(af, -1.0)), wasm_interpreter_exception, "Error, f64.convert_u/i64 overflow");
+   EOS_VM_ASSERT(!is_nan(a), wasm_interpreter_exception, "Error, f64.convert_u/i64 unrepresentable");
    return f64_to_ui64( to_softfloat64(_eosio_f64_trunc( af )), 0, false );
 }
 

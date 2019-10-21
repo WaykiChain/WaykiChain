@@ -62,7 +62,9 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     std::vector<char> abi(contract.abi.begin(), contract.abi.end());
 
     if (contract.abi.size() > 0) {
-        val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
+        //WASM_TRACE("%s", ToHex(t.data, "").c_str());
+        if(t.data.size() > 0)
+            val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
                                            max_serialization_time);
     } else
         to_variant(ToHex(t.data,""), val);
@@ -217,9 +219,9 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace 
                                                  CValidationState &state,
                                                  uint32_t recurse_depth ) {
 
-    CWasmContext wasmContext(*this, trx, cache, state, recurse_depth);
-    wasmContext._receiver = receiver;
-    wasmContext.execute(trace);
+    wasm_context ctx(*this, trx, cache, state, recurse_depth);
+    ctx._receiver = receiver;
+    ctx.execute(trace);
 
 }
 

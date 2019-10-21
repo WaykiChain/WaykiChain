@@ -12,10 +12,10 @@
 using namespace eosio;
 using namespace eosio::vm;
 extern wasm_allocator wa;
-using backend_t = backend<std::nullptr_t>;
 
-TEST_CASE( "Testing wasm <f64_bitwise_0_wasm>", "[f64_bitwise_0_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( f64_bitwise_0_wasm );
+BACKEND_TEST_CASE( "Testing wasm <f64_bitwise_0_wasm>", "[f64_bitwise_0_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f64_bitwise.0.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -380,5 +380,23 @@ TEST_CASE( "Testing wasm <f64_bitwise_0_wasm>", "[f64_bitwise_0_wasm_tests]" ) {
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "neg", bit_cast<double>(UINT64_C(9218868437227405312)))->to_f64()) == UINT64_C(18442240474082181120));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "neg", bit_cast<double>(UINT64_C(18444492273895866368)))->to_f64()) == UINT64_C(9221120237041090560));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "neg", bit_cast<double>(UINT64_C(9221120237041090560)))->to_f64()) == UINT64_C(18444492273895866368));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <f64_bitwise_1_wasm>", "[f64_bitwise_1_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f64_bitwise.1.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <f64_bitwise_2_wasm>", "[f64_bitwise_2_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f64_bitwise.2.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
+}
+
+BACKEND_TEST_CASE( "Testing wasm <f64_bitwise_3_wasm>", "[f64_bitwise_3_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "f64_bitwise.3.wasm");
+   CHECK_THROWS_AS(backend_t(code), std::exception);
 }
 

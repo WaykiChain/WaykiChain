@@ -1,11 +1,11 @@
 #pragma once
-
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #include <eosio/vm/utils.hpp>
 
+#include <cstdint>
 #include <exception>
-#include <string>
 
-#define EOS_WB_ASSERT( expr, exc_type, msg ) \
+#define EOS_VM_ASSERT( expr, exc_type, msg ) \
    if (!UNLIKELY(expr)) {                    \
       throw exc_type{msg};                   \
    }
@@ -40,4 +40,5 @@ namespace eosio { namespace vm {
    DECLARE_EXCEPTION( wasm_link_exception,               4000010, "wasm linked function failure" )
    DECLARE_EXCEPTION( guarded_ptr_exception,             4010000, "pointer out of bounds" )
    DECLARE_EXCEPTION( timeout_exception,                 4010001, "timeout" )
+   DECLARE_EXCEPTION( wasm_exit_exception,               4010002, "exit" )
 }} // eosio::vm

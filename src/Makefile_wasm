@@ -16,9 +16,11 @@ EOSIO_VM_H = \
   vm/wasm/eos-vm/include/eosio/vm/allocator.hpp \
   vm/wasm/eos-vm/include/eosio/vm/backend.hpp \
   vm/wasm/eos-vm/include/eosio/vm/base_visitor.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/bitcode_writer.hpp \
   vm/wasm/eos-vm/include/eosio/vm/config.hpp \
   vm/wasm/eos-vm/include/eosio/vm/constants.hpp \
-  vm/wasm/eos-vm/include/eosio/vm/dispatcher.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/debug_visitor.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/disassembly_visitor.hpp \
   vm/wasm/eos-vm/include/eosio/vm/error_codes.hpp \
   vm/wasm/eos-vm/include/eosio/vm/error_codes_def.hpp \
   vm/wasm/eos-vm/include/eosio/vm/error_codes_pp.hpp \
@@ -30,6 +32,7 @@ EOSIO_VM_H = \
   vm/wasm/eos-vm/include/eosio/vm/leb128.hpp \
   vm/wasm/eos-vm/include/eosio/vm/opcodes.hpp \
   vm/wasm/eos-vm/include/eosio/vm/opcodes_def.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/memory_dump.hpp \
   vm/wasm/eos-vm/include/eosio/vm/parser.hpp \
   vm/wasm/eos-vm/include/eosio/vm/sections.hpp \
   vm/wasm/eos-vm/include/eosio/vm/softfloat.hpp \
@@ -37,9 +40,11 @@ EOSIO_VM_H = \
   vm/wasm/eos-vm/include/eosio/vm/types.hpp \
   vm/wasm/eos-vm/include/eosio/vm/utils.hpp \
   vm/wasm/eos-vm/include/eosio/vm/validation.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/variant.hpp \
   vm/wasm/eos-vm/include/eosio/vm/vector.hpp \
   vm/wasm/eos-vm/include/eosio/vm/wasm_stack.hpp \
   vm/wasm/eos-vm/include/eosio/vm/watchdog.hpp \
+  vm/wasm/eos-vm/include/eosio/vm/x86_64.hpp \
   vm/wasm/types/asset.hpp \
   vm/wasm/types/inline_transaction.hpp \
   vm/wasm/types/check.hpp \
@@ -47,10 +52,11 @@ EOSIO_VM_H = \
   vm/wasm/types/symbol.hpp \
   vm/wasm/types/types.hpp \
   vm/wasm/types/uint128.hpp \
-  vm/wasm/types/varint.hpp
+  vm/wasm/types/varint.hpp 
 
 
 WASM_INTERFACE = vm/wasm/wasm_interface.cpp
+WASM_RUNTIME = vm/wasm/wasm_runtime.cpp
 
 UINT128_SRC = vm/wasm/types/uint128.cpp
 
@@ -94,6 +100,7 @@ libwasm_a_CXXFLAGS = -std=gnu++1z -Wno-unknown-pragmas -DEOS_VM_SOFTFLOAT $(SOFT
 
 libwasm_a_SOURCES = \
   $(WASM_INTERFACE) \
+  $(WASM_RUNTIME) \
   $(UINT128_SRC) \
   $(COMPILER_BUILTINS_H) \
   $(EOSIO_VM_H)

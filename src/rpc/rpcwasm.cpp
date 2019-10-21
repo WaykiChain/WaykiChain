@@ -111,8 +111,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     try {
         vector <uint8_t> code_v;
         code_v.insert(code_v.begin(), code.begin(), code.end());
-        CWasmInterface wasmInterface;
-        wasmInterface.validate(code_v);
+        wasm_interface wasmif;
+        wasmif.validate(code_v);
     } catch (wasm::exception &e) {
         throw JSONRPCError(e.code(), e.detail());
     }

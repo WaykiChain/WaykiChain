@@ -14,11 +14,15 @@
 #include "wasm/datastream.hpp"
 #include "wasm/wasm_context_interface.hpp"
 #include "wasm/wasm_trace.hpp"
+#include "eosio/vm/allocator.hpp"
 
 using namespace std;
 using namespace wasm;
 namespace wasm {
 
+struct wasm_exit {
+  int32_t code = 0;
+};
 
 
 class CValidationState{
@@ -99,9 +103,6 @@ public:
 	map<string, string> database;
 };
 
-class CWasmContext;
-using nativeHandler = std::function<void( CWasmContext & )>;
-
 
 class CWasmContractTx{
 public:
@@ -122,25 +123,23 @@ public:
 
 
 
-    class CWasmContext : public CWasmContextInterface {
+    class wasm_context : public wasm_context_interface {
 
     public:
-        CWasmContext( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
+        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
                       uint32_t depth = 0 )
                 : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
             reset_console();
         };
 
-        ~CWasmContext() {};
+        ~wasm_context() {};
 
     public:
-        std::vector <uint8_t> GetCode( uint64_t account );
-        std::string GetAbi( uint64_t account );
-        void RegisterNativeHandler( uint64_t receiver, uint64_t action, nativeHandler v );
-        nativeHandler *FindNativeHandle( uint64_t receiver, uint64_t action );
-        void ExecuteOne( inline_transaction_trace &trace );
-        void Initialize();
-        void Execute( inline_transaction_trace &trace );
+        std::vector <uint8_t> get_code( uint64_t account );
+        std::string get_abi( uint64_t account );
+        void execute_one( inline_transaction_trace &trace );
+        void initialize();
+        void execute( inline_transaction_trace &trace );
 
 // Console methods:
     public:
@@ -150,24 +149,21 @@ public:
 
 //virtual
     public:
-        void ExecuteInline( inline_transaction t );
-        bool HasRecipient( uint64_t account ) const;
-        void RequireRecipient( uint64_t recipient );
-        uint64_t Receiver() { return receiver; }
-        uint64_t Contract() { return trx.contract; }
-        uint64_t Action() { return trx.action; }
-        const char *GetActionData() { return trx.data.data(); }
-        uint32_t GetActionDataSize() { return trx.data.size(); }
-        bool SetData( uint64_t contract, string k, string v ) {
-            //return cache.contractCache.SetContractData(Name2RegID(contract), k, v);
+        void execute_inline( inline_transaction t );
+        bool has_recipient( uint64_t account ) const;
+        void require_recipient( uint64_t recipient );
+        uint64_t receiver() { return _receiver; }
+        uint64_t contract() { return trx.contract; }
+        uint64_t action() { return trx.action; }
+        const char *get_action_data() { return trx.data.data(); }
+        uint32_t get_action_data_size() { return trx.data.size(); }
+        bool set_data( uint64_t contract, string k, string v ) {
             return cache.SetContractData(contract, k, v);
         }
-        bool GetData( uint64_t contract, string k, string &v ) {
-            //return cache.contractCache.GetContractData(Name2RegID(contract), k, v);
+        bool get_data( uint64_t contract, string k, string &v ) {
             return cache.GetContractData(contract, k, v);
         }
-        bool EraseData( uint64_t contract, string k ) {
-            //return cache.contractCache.EraseContractData(Name2RegID(contract), k);
+        bool erase_data( uint64_t contract, string k ) {
             return cache.EraseContractData(contract, k);
         }
         bool contracts_console() { return true; } //should be set by console
@@ -181,8 +177,11 @@ public:
         bool has_authorization( uint64_t account ) const {return true;}
         uint64_t block_time() { return 0; }
 
+        vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
+        std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+
     public:
-        uint64_t receiver;
+        uint64_t _receiver;
 
         inline_transaction &trx;
         CWasmContractTx &control_trx;
@@ -193,8 +192,9 @@ public:
         vector <uint64_t> notified;
         vector <inline_transaction> inline_transactions;
 
-        CWasmInterface wasmInterface;
-        map <pair<uint64_t, uint64_t>, nativeHandler> native_handlers;
+        wasm::wasm_interface wasmif;
+        vm::wasm_allocator wasm_alloc;
+        //std::chrono::milliseconds ;
 
     private:
         std::ostringstream _pending_console_output;

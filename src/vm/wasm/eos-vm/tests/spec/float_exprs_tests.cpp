@@ -12,10 +12,10 @@
 using namespace eosio;
 using namespace eosio::vm;
 extern wasm_allocator wa;
-using backend_t = backend<std::nullptr_t>;
 
-TEST_CASE( "Testing wasm <float_exprs_0_wasm>", "[float_exprs_0_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_0_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_0_wasm>", "[float_exprs_0_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.0.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -27,132 +27,9 @@ TEST_CASE( "Testing wasm <float_exprs_0_wasm>", "[float_exprs_0_wasm_tests]" ) {
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_contraction", bit_cast<double>(UINT64_C(9554523352352050493)), bit_cast<double>(UINT64_C(18042841594766434431)), bit_cast<double>(UINT64_C(4368037109959396445)))->to_f64()) == UINT64_C(4544162191519938727));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_10_wasm>", "[float_exprs_10_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_10_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-}
-
-TEST_CASE( "Testing wasm <float_exprs_11_wasm>", "[float_exprs_11_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_11_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-}
-
-TEST_CASE( "Testing wasm <float_exprs_12_wasm>", "[float_exprs_12_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_12_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-   CHECK(bkend.call_with_return(nullptr, "env", "f32.no_fold_eq_self", bit_cast<float>(UINT32_C(2143289344)))->to_ui32() == UINT32_C(0));
-   CHECK(bkend.call_with_return(nullptr, "env", "f64.no_fold_eq_self", bit_cast<double>(UINT64_C(9221120237041090560)))->to_ui32() == UINT32_C(0));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_13_wasm>", "[float_exprs_13_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_13_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-   CHECK(bkend.call_with_return(nullptr, "env", "f32.no_fold_ne_self", bit_cast<float>(UINT32_C(2143289344)))->to_ui32() == UINT32_C(1));
-   CHECK(bkend.call_with_return(nullptr, "env", "f64.no_fold_ne_self", bit_cast<double>(UINT64_C(9221120237041090560)))->to_ui32() == UINT32_C(1));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_14_wasm>", "[float_exprs_14_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_14_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-}
-
-TEST_CASE( "Testing wasm <float_exprs_15_wasm>", "[float_exprs_15_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_15_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-}
-
-TEST_CASE( "Testing wasm <float_exprs_16_wasm>", "[float_exprs_16_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_16_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(3634023955)))->to_f32()) == UINT32_C(3620628505));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(4000459555)))->to_f32()) == UINT32_C(3986780695));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(2517965963)))->to_f32()) == UINT32_C(2504446137));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(2173683100)))->to_f32()) == UINT32_C(2160046629));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(2750097330)))->to_f32()) == UINT32_C(2736571681));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(16679796490173820099)))->to_f64()) == UINT64_C(16672802667330368301));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(13081777497422760306)))->to_f64()) == UINT64_C(13074664638073319671));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(674365394458900388)))->to_f64()) == UINT64_C(667250911628840899));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(18365700772251870524)))->to_f64()) == UINT64_C(18358201936817915643));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(6476267216527259981)))->to_f64()) == UINT64_C(6468791534604471399));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_17_wasm>", "[float_exprs_17_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_17_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(3550941609)), bit_cast<float>(UINT32_C(3628209942)), bit_cast<float>(UINT32_C(1568101121)))->to_f32()) == UINT32_C(4131116008));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(3168433147)), bit_cast<float>(UINT32_C(1028017286)), bit_cast<float>(UINT32_C(3141035521)))->to_f32()) == UINT32_C(3095417249));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(2869115159)), bit_cast<float>(UINT32_C(536308199)), bit_cast<float>(UINT32_C(2100177580)))->to_f32()) == UINT32_C(3904015703));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(2684117842)), bit_cast<float>(UINT32_C(369386499)), bit_cast<float>(UINT32_C(2061166438)))->to_f32()) == UINT32_C(3679965352));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(2510116111)), bit_cast<float>(UINT32_C(476277495)), bit_cast<float>(UINT32_C(1237750930)))->to_f32()) == UINT32_C(649094375));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(2698691837980592503)), bit_cast<double>(UINT64_C(2529920934327896545)), bit_cast<double>(UINT64_C(12819783413251458936)))->to_f64()) == UINT64_C(10911876679403600666));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(1626864102540432200)), bit_cast<double>(UINT64_C(9287829620889669687)), bit_cast<double>(UINT64_C(9524500187773169472)))->to_f64()) == UINT64_C(0));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(12326480769054961745)), bit_cast<double>(UINT64_C(12563546453737163926)), bit_cast<double>(UINT64_C(15990519985875741037)))->to_f64()) == UINT64_C(5500432744005058080));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(12532477544855171977)), bit_cast<double>(UINT64_C(3439526350000314825)), bit_cast<double>(UINT64_C(12694541248380731909)))->to_f64()) == UINT64_C(11527035460272583044));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(1871759566187673434)), bit_cast<double>(UINT64_C(2002968319587025494)), bit_cast<double>(UINT64_C(16033202089880281080)))->to_f64()) == UINT64_C(13429277897969282899));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_18_wasm>", "[float_exprs_18_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_18_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(3550941609)), bit_cast<float>(UINT32_C(3628209942)), bit_cast<float>(UINT32_C(1568101121)))->to_f32()) == UINT32_C(4131116009));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(3168433147)), bit_cast<float>(UINT32_C(1028017286)), bit_cast<float>(UINT32_C(3141035521)))->to_f32()) == UINT32_C(3095417248));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(2869115159)), bit_cast<float>(UINT32_C(536308199)), bit_cast<float>(UINT32_C(2100177580)))->to_f32()) == UINT32_C(3904015704));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(2684117842)), bit_cast<float>(UINT32_C(369386499)), bit_cast<float>(UINT32_C(2061166438)))->to_f32()) == UINT32_C(3679965351));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(2510116111)), bit_cast<float>(UINT32_C(476277495)), bit_cast<float>(UINT32_C(1237750930)))->to_f32()) == UINT32_C(649094374));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(2698691837980592503)), bit_cast<double>(UINT64_C(2529920934327896545)), bit_cast<double>(UINT64_C(12819783413251458936)))->to_f64()) == UINT64_C(10911876679403600667));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(1626864102540432200)), bit_cast<double>(UINT64_C(9287829620889669687)), bit_cast<double>(UINT64_C(9524500187773169472)))->to_f64()) == UINT64_C(9223372036854775808));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(12326480769054961745)), bit_cast<double>(UINT64_C(12563546453737163926)), bit_cast<double>(UINT64_C(15990519985875741037)))->to_f64()) == UINT64_C(5500432744005058079));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(12532477544855171977)), bit_cast<double>(UINT64_C(3439526350000314825)), bit_cast<double>(UINT64_C(12694541248380731909)))->to_f64()) == UINT64_C(11527035460272583043));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(1871759566187673434)), bit_cast<double>(UINT64_C(2002968319587025494)), bit_cast<double>(UINT64_C(16033202089880281080)))->to_f64()) == UINT64_C(13429277897969282898));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_19_wasm>", "[float_exprs_19_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_19_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(2249624147)), bit_cast<float>(UINT32_C(2678828342)), bit_cast<float>(UINT32_C(95319815)))->to_f32()) == UINT32_C(538190437));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(3978470300)), bit_cast<float>(UINT32_C(2253997363)), bit_cast<float>(UINT32_C(3824852100)))->to_f32()) == UINT32_C(2147483648));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(3350590135)), bit_cast<float>(UINT32_C(3042588643)), bit_cast<float>(UINT32_C(2186448635)))->to_f32()) == UINT32_C(4206661932));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(2430706172)), bit_cast<float>(UINT32_C(1685220483)), bit_cast<float>(UINT32_C(1642018044)))->to_f32()) == UINT32_C(2473922297));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(2011387707)), bit_cast<float>(UINT32_C(1274956446)), bit_cast<float>(UINT32_C(3811596788)))->to_f32()) == UINT32_C(3768838261));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(2703215631877943472)), bit_cast<double>(UINT64_C(13295603997208052007)), bit_cast<double>(UINT64_C(1719211436532588593)))->to_f64()) == UINT64_C(14279677686886620461));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(6126139291059848917)), bit_cast<double>(UINT64_C(2596039250849921421)), bit_cast<double>(UINT64_C(17423258659719899654)))->to_f64()) == UINT64_C(9223372036854775808));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(2451868557331674239)), bit_cast<double>(UINT64_C(8672326445062988097)), bit_cast<double>(UINT64_C(2593279393835739385)))->to_f64()) == UINT64_C(9218868437227405312));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(15994259208199847538)), bit_cast<double>(UINT64_C(16584156163346075677)), bit_cast<double>(UINT64_C(17596923907238870430)))->to_f64()) == UINT64_C(14981548491626301009));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(1912002771029783751)), bit_cast<double>(UINT64_C(655387110450354003)), bit_cast<double>(UINT64_C(10060746190138762841)))->to_f64()) == UINT64_C(10953754119023888080));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_1_wasm>", "[float_exprs_1_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_1_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_1_wasm>", "[float_exprs_1_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.1.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -169,8 +46,172 @@ TEST_CASE( "Testing wasm <float_exprs_1_wasm>", "[float_exprs_1_wasm_tests]" ) {
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fma", bit_cast<double>(UINT64_C(4843589256781277081)), bit_cast<double>(UINT64_C(7695653093478086834)), bit_cast<double>(UINT64_C(16938438850771988744)))->to_f64()) == UINT64_C(7932313162666085329));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_20_wasm>", "[float_exprs_20_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_20_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_10_wasm>", "[float_exprs_10_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.10.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_neg0_sub", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_neg0_sub", bit_cast<double>(UINT64_C(9219994337134247936)))));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_11_wasm>", "[float_exprs_11_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.11.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_neg1_mul", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_neg1_mul", bit_cast<double>(UINT64_C(9219994337134247936)))));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_12_wasm>", "[float_exprs_12_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.12.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bkend.call_with_return(nullptr, "env", "f32.no_fold_eq_self", bit_cast<float>(UINT32_C(2143289344)))->to_ui32() == UINT32_C(0));
+   CHECK(bkend.call_with_return(nullptr, "env", "f64.no_fold_eq_self", bit_cast<double>(UINT64_C(9221120237041090560)))->to_ui32() == UINT32_C(0));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_13_wasm>", "[float_exprs_13_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.13.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bkend.call_with_return(nullptr, "env", "f32.no_fold_ne_self", bit_cast<float>(UINT32_C(2143289344)))->to_ui32() == UINT32_C(1));
+   CHECK(bkend.call_with_return(nullptr, "env", "f64.no_fold_ne_self", bit_cast<double>(UINT64_C(9221120237041090560)))->to_ui32() == UINT32_C(1));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_14_wasm>", "[float_exprs_14_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.14.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_sub_self", bit_cast<float>(UINT32_C(2139095040)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_sub_self", bit_cast<float>(UINT32_C(2143289344)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_sub_self", bit_cast<double>(UINT64_C(9218868437227405312)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_sub_self", bit_cast<double>(UINT64_C(9221120237041090560)))));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_15_wasm>", "[float_exprs_15_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.15.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_self", bit_cast<float>(UINT32_C(2139095040)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_self", bit_cast<float>(UINT32_C(2143289344)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_self", bit_cast<float>(UINT32_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_self", bit_cast<float>(UINT32_C(2147483648)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_self", bit_cast<double>(UINT64_C(9218868437227405312)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_self", bit_cast<double>(UINT64_C(9221120237041090560)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_self", bit_cast<double>(UINT64_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_self", bit_cast<double>(UINT64_C(9223372036854775808)))));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_16_wasm>", "[float_exprs_16_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.16.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(3634023955)))->to_f32()) == UINT32_C(3620628505));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(4000459555)))->to_f32()) == UINT32_C(3986780695));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(2517965963)))->to_f32()) == UINT32_C(2504446137));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(2173683100)))->to_f32()) == UINT32_C(2160046629));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_3", bit_cast<float>(UINT32_C(2750097330)))->to_f32()) == UINT32_C(2736571681));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(16679796490173820099)))->to_f64()) == UINT64_C(16672802667330368301));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(13081777497422760306)))->to_f64()) == UINT64_C(13074664638073319671));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(674365394458900388)))->to_f64()) == UINT64_C(667250911628840899));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(18365700772251870524)))->to_f64()) == UINT64_C(18358201936817915643));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_3", bit_cast<double>(UINT64_C(6476267216527259981)))->to_f64()) == UINT64_C(6468791534604471399));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_17_wasm>", "[float_exprs_17_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.17.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(3550941609)), bit_cast<float>(UINT32_C(3628209942)), bit_cast<float>(UINT32_C(1568101121)))->to_f32()) == UINT32_C(4131116008));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(3168433147)), bit_cast<float>(UINT32_C(1028017286)), bit_cast<float>(UINT32_C(3141035521)))->to_f32()) == UINT32_C(3095417249));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(2869115159)), bit_cast<float>(UINT32_C(536308199)), bit_cast<float>(UINT32_C(2100177580)))->to_f32()) == UINT32_C(3904015703));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(2684117842)), bit_cast<float>(UINT32_C(369386499)), bit_cast<float>(UINT32_C(2061166438)))->to_f32()) == UINT32_C(3679965352));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_factor", bit_cast<float>(UINT32_C(2510116111)), bit_cast<float>(UINT32_C(476277495)), bit_cast<float>(UINT32_C(1237750930)))->to_f32()) == UINT32_C(649094375));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(2698691837980592503)), bit_cast<double>(UINT64_C(2529920934327896545)), bit_cast<double>(UINT64_C(12819783413251458936)))->to_f64()) == UINT64_C(10911876679403600666));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(1626864102540432200)), bit_cast<double>(UINT64_C(9287829620889669687)), bit_cast<double>(UINT64_C(9524500187773169472)))->to_f64()) == UINT64_C(0));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(12326480769054961745)), bit_cast<double>(UINT64_C(12563546453737163926)), bit_cast<double>(UINT64_C(15990519985875741037)))->to_f64()) == UINT64_C(5500432744005058080));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(12532477544855171977)), bit_cast<double>(UINT64_C(3439526350000314825)), bit_cast<double>(UINT64_C(12694541248380731909)))->to_f64()) == UINT64_C(11527035460272583044));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_factor", bit_cast<double>(UINT64_C(1871759566187673434)), bit_cast<double>(UINT64_C(2002968319587025494)), bit_cast<double>(UINT64_C(16033202089880281080)))->to_f64()) == UINT64_C(13429277897969282899));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_18_wasm>", "[float_exprs_18_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.18.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(3550941609)), bit_cast<float>(UINT32_C(3628209942)), bit_cast<float>(UINT32_C(1568101121)))->to_f32()) == UINT32_C(4131116009));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(3168433147)), bit_cast<float>(UINT32_C(1028017286)), bit_cast<float>(UINT32_C(3141035521)))->to_f32()) == UINT32_C(3095417248));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(2869115159)), bit_cast<float>(UINT32_C(536308199)), bit_cast<float>(UINT32_C(2100177580)))->to_f32()) == UINT32_C(3904015704));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(2684117842)), bit_cast<float>(UINT32_C(369386499)), bit_cast<float>(UINT32_C(2061166438)))->to_f32()) == UINT32_C(3679965351));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_distribute", bit_cast<float>(UINT32_C(2510116111)), bit_cast<float>(UINT32_C(476277495)), bit_cast<float>(UINT32_C(1237750930)))->to_f32()) == UINT32_C(649094374));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(2698691837980592503)), bit_cast<double>(UINT64_C(2529920934327896545)), bit_cast<double>(UINT64_C(12819783413251458936)))->to_f64()) == UINT64_C(10911876679403600667));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(1626864102540432200)), bit_cast<double>(UINT64_C(9287829620889669687)), bit_cast<double>(UINT64_C(9524500187773169472)))->to_f64()) == UINT64_C(9223372036854775808));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(12326480769054961745)), bit_cast<double>(UINT64_C(12563546453737163926)), bit_cast<double>(UINT64_C(15990519985875741037)))->to_f64()) == UINT64_C(5500432744005058079));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(12532477544855171977)), bit_cast<double>(UINT64_C(3439526350000314825)), bit_cast<double>(UINT64_C(12694541248380731909)))->to_f64()) == UINT64_C(11527035460272583043));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute", bit_cast<double>(UINT64_C(1871759566187673434)), bit_cast<double>(UINT64_C(2002968319587025494)), bit_cast<double>(UINT64_C(16033202089880281080)))->to_f64()) == UINT64_C(13429277897969282898));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_19_wasm>", "[float_exprs_19_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.19.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(2249624147)), bit_cast<float>(UINT32_C(2678828342)), bit_cast<float>(UINT32_C(95319815)))->to_f32()) == UINT32_C(538190437));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(3978470300)), bit_cast<float>(UINT32_C(2253997363)), bit_cast<float>(UINT32_C(3824852100)))->to_f32()) == UINT32_C(2147483648));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(3350590135)), bit_cast<float>(UINT32_C(3042588643)), bit_cast<float>(UINT32_C(2186448635)))->to_f32()) == UINT32_C(4206661932));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(2430706172)), bit_cast<float>(UINT32_C(1685220483)), bit_cast<float>(UINT32_C(1642018044)))->to_f32()) == UINT32_C(2473922297));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_regroup_div_mul", bit_cast<float>(UINT32_C(2011387707)), bit_cast<float>(UINT32_C(1274956446)), bit_cast<float>(UINT32_C(3811596788)))->to_f32()) == UINT32_C(3768838261));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(2703215631877943472)), bit_cast<double>(UINT64_C(13295603997208052007)), bit_cast<double>(UINT64_C(1719211436532588593)))->to_f64()) == UINT64_C(14279677686886620461));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(6126139291059848917)), bit_cast<double>(UINT64_C(2596039250849921421)), bit_cast<double>(UINT64_C(17423258659719899654)))->to_f64()) == UINT64_C(9223372036854775808));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(2451868557331674239)), bit_cast<double>(UINT64_C(8672326445062988097)), bit_cast<double>(UINT64_C(2593279393835739385)))->to_f64()) == UINT64_C(9218868437227405312));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(15994259208199847538)), bit_cast<double>(UINT64_C(16584156163346075677)), bit_cast<double>(UINT64_C(17596923907238870430)))->to_f64()) == UINT64_C(14981548491626301009));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_div_mul", bit_cast<double>(UINT64_C(1912002771029783751)), bit_cast<double>(UINT64_C(655387110450354003)), bit_cast<double>(UINT64_C(10060746190138762841)))->to_f64()) == UINT64_C(10953754119023888080));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_2_wasm>", "[float_exprs_2_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.2.wasm");
+   backend_t bkend( code );
+   bkend.set_wasm_allocator( &wa );
+   bkend.initialize(nullptr);
+
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_zero", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(0));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_zero", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(0));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_zero", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_zero", bit_cast<double>(UINT64_C(9219994337134247936)))));
+}
+
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_20_wasm>", "[float_exprs_20_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.20.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -187,8 +228,9 @@ TEST_CASE( "Testing wasm <float_exprs_20_wasm>", "[float_exprs_20_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_regroup_mul_div", bit_cast<double>(UINT64_C(1912002771029783751)), bit_cast<double>(UINT64_C(655387110450354003)), bit_cast<double>(UINT64_C(10060746190138762841)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_21_wasm>", "[float_exprs_21_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_21_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_21_wasm>", "[float_exprs_21_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.21.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -205,8 +247,9 @@ TEST_CASE( "Testing wasm <float_exprs_21_wasm>", "[float_exprs_21_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_reassociate_add", bit_cast<double>(UINT64_C(16720963389015391005)), bit_cast<double>(UINT64_C(16597092572968550980)), bit_cast<double>(UINT64_C(7518944085377596897)), bit_cast<double>(UINT64_C(16733407756820198530)))->to_f64()) == UINT64_C(7516931113564586278));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_22_wasm>", "[float_exprs_22_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_22_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_22_wasm>", "[float_exprs_22_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.22.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -223,8 +266,9 @@ TEST_CASE( "Testing wasm <float_exprs_22_wasm>", "[float_exprs_22_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_reassociate_mul", bit_cast<double>(UINT64_C(3553622953022765407)), bit_cast<double>(UINT64_C(1044040287824900408)), bit_cast<double>(UINT64_C(17112762794520509437)), bit_cast<double>(UINT64_C(11134095486440145773)))->to_f64()) == UINT64_C(576919682754813073));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_23_wasm>", "[float_exprs_23_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_23_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_23_wasm>", "[float_exprs_23_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.23.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -233,14 +277,23 @@ TEST_CASE( "Testing wasm <float_exprs_23_wasm>", "[float_exprs_23_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(3212836864)))->to_f32()) == UINT32_C(4286578688));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(2139095040)))->to_f32()) == UINT32_C(2139095040));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(4286578688)))->to_f32()) == UINT32_C(4286578688));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(2147483648)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_0", bit_cast<float>(UINT32_C(2143289344)))));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(4607182418800017408)))->to_f64()) == UINT64_C(9218868437227405312));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(13830554455654793216)))->to_f64()) == UINT64_C(18442240474082181120));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(9218868437227405312)))->to_f64()) == UINT64_C(9218868437227405312));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(18442240474082181120)))->to_f64()) == UINT64_C(18442240474082181120));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(9223372036854775808)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(9221120237041090560)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_0", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_24_wasm>", "[float_exprs_24_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_24_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_24_wasm>", "[float_exprs_24_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.24.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -249,14 +302,23 @@ TEST_CASE( "Testing wasm <float_exprs_24_wasm>", "[float_exprs_24_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(3212836864)))->to_f32()) == UINT32_C(2139095040));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(2139095040)))->to_f32()) == UINT32_C(4286578688));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(4286578688)))->to_f32()) == UINT32_C(2139095040));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(2147483648)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg0", bit_cast<float>(UINT32_C(2143289344)))));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(4607182418800017408)))->to_f64()) == UINT64_C(18442240474082181120));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(13830554455654793216)))->to_f64()) == UINT64_C(9218868437227405312));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(9218868437227405312)))->to_f64()) == UINT64_C(18442240474082181120));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(18442240474082181120)))->to_f64()) == UINT64_C(9218868437227405312));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(9223372036854775808)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(9221120237041090560)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg0", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_25_wasm>", "[float_exprs_25_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_25_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_25_wasm>", "[float_exprs_25_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.25.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -273,8 +335,9 @@ TEST_CASE( "Testing wasm <float_exprs_25_wasm>", "[float_exprs_25_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_to_hypot", bit_cast<double>(UINT64_C(1591440107418864392)), bit_cast<double>(UINT64_C(11515806374387309036)))->to_f64()) == UINT64_C(2292434337532533215));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_26_wasm>", "[float_exprs_26_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_26_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_26_wasm>", "[float_exprs_26_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.26.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -286,8 +349,9 @@ TEST_CASE( "Testing wasm <float_exprs_26_wasm>", "[float_exprs_26_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_approximate_reciprocal", bit_cast<float>(UINT32_C(2528120561)))->to_f32()) == UINT32_C(3896123071));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_27_wasm>", "[float_exprs_27_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_27_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_27_wasm>", "[float_exprs_27_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.27.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -304,8 +368,9 @@ TEST_CASE( "Testing wasm <float_exprs_27_wasm>", "[float_exprs_27_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fuse_reciprocal_sqrt", bit_cast<double>(UINT64_C(5267858027841559467)))->to_f64()) == UINT64_C(4276321761661248681));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_28_wasm>", "[float_exprs_28_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_28_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_28_wasm>", "[float_exprs_28_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.28.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -317,8 +382,9 @@ TEST_CASE( "Testing wasm <float_exprs_28_wasm>", "[float_exprs_28_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_approximate_sqrt_reciprocal", bit_cast<float>(UINT32_C(1940205041)))->to_f32()) == UINT32_C(627137240));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_29_wasm>", "[float_exprs_29_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_29_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_29_wasm>", "[float_exprs_29_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.29.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -337,18 +403,22 @@ TEST_CASE( "Testing wasm <float_exprs_29_wasm>", "[float_exprs_29_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "i64.no_fold_f64_u", UINT64_C(17293822569102705664))->to_ui64() == UINT32_C(17293822569102704640));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_2_wasm>", "[float_exprs_2_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_2_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_3_wasm>", "[float_exprs_3_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.3.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_zero", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(0));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_zero", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(0));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_sub", bit_cast<float>(UINT32_C(0)))->to_f32()) == UINT32_C(0));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_sub", bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(0));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_sub", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_sub", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_30_wasm>", "[float_exprs_30_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_30_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_30_wasm>", "[float_exprs_30_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.30.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -365,8 +435,9 @@ TEST_CASE( "Testing wasm <float_exprs_30_wasm>", "[float_exprs_30_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_sub", bit_cast<double>(UINT64_C(11043298296128683688)), bit_cast<double>(UINT64_C(11182857345495207592)))->to_f64()) == UINT64_C(11043298296775835648));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_31_wasm>", "[float_exprs_31_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_31_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_31_wasm>", "[float_exprs_31_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.31.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -383,8 +454,9 @@ TEST_CASE( "Testing wasm <float_exprs_31_wasm>", "[float_exprs_31_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_sub_add", bit_cast<double>(UINT64_C(2955729038738127538)), bit_cast<double>(UINT64_C(12208627806665035010)))->to_f64()) == UINT64_C(2955729038738127552));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_32_wasm>", "[float_exprs_32_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_32_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_32_wasm>", "[float_exprs_32_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.32.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -401,8 +473,9 @@ TEST_CASE( "Testing wasm <float_exprs_32_wasm>", "[float_exprs_32_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_div", bit_cast<double>(UINT64_C(16807035693954817236)), bit_cast<double>(UINT64_C(12360222454864961326)))->to_f64()) == UINT64_C(16807035693954817237));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_33_wasm>", "[float_exprs_33_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_33_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_33_wasm>", "[float_exprs_33_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.33.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -419,8 +492,9 @@ TEST_CASE( "Testing wasm <float_exprs_33_wasm>", "[float_exprs_33_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_mul", bit_cast<double>(UINT64_C(16624217782795067216)), bit_cast<double>(UINT64_C(9062205521150975866)))->to_f64()) == UINT64_C(16624217782795067215));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_34_wasm>", "[float_exprs_34_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_34_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_34_wasm>", "[float_exprs_34_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.34.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -429,8 +503,9 @@ TEST_CASE( "Testing wasm <float_exprs_34_wasm>", "[float_exprs_34_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div2_mul2", bit_cast<double>(UINT64_C(9007199254740991)))->to_f64()) == UINT64_C(9007199254740992));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_35_wasm>", "[float_exprs_35_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_35_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_35_wasm>", "[float_exprs_35_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.35.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -442,12 +517,14 @@ TEST_CASE( "Testing wasm <float_exprs_35_wasm>", "[float_exprs_35_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "no_fold_demote_promote", bit_cast<double>(UINT64_C(5076240020598306430)))->to_f64()) == UINT64_C(5076240020759642112));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_36_wasm>", "[float_exprs_36_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_36_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_36_wasm>", "[float_exprs_36_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.36.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "no_fold_promote_demote", bit_cast<float>(UINT32_C(2141192192)))));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "no_fold_promote_demote", bit_cast<float>(UINT32_C(0)))->to_f32()) == UINT32_C(0));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "no_fold_promote_demote", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(2147483648));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "no_fold_promote_demote", bit_cast<float>(UINT32_C(1)))->to_f32()) == UINT32_C(1));
@@ -462,8 +539,9 @@ TEST_CASE( "Testing wasm <float_exprs_36_wasm>", "[float_exprs_36_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "no_fold_promote_demote", bit_cast<float>(UINT32_C(4286578688)))->to_f32()) == UINT32_C(4286578688));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_37_wasm>", "[float_exprs_37_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_37_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_37_wasm>", "[float_exprs_37_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.37.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -480,8 +558,9 @@ TEST_CASE( "Testing wasm <float_exprs_37_wasm>", "[float_exprs_37_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "no_demote_mixed_add_commuted", bit_cast<float>(UINT32_C(2870112826)), bit_cast<double>(UINT64_C(13742514716462174325)))->to_f32()) == UINT32_C(3048850075));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_38_wasm>", "[float_exprs_38_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_38_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_38_wasm>", "[float_exprs_38_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.38.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -493,8 +572,9 @@ TEST_CASE( "Testing wasm <float_exprs_38_wasm>", "[float_exprs_38_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "no_demote_mixed_sub", bit_cast<double>(UINT64_C(4673175763235896759)), bit_cast<float>(UINT32_C(1198952676)))->to_f32()) == UINT32_C(3339501185));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_39_wasm>", "[float_exprs_39_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_39_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_39_wasm>", "[float_exprs_39_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.39.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -533,18 +613,20 @@ TEST_CASE( "Testing wasm <float_exprs_39_wasm>", "[float_exprs_39_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.i64.no_fold_trunc_u_convert_u", bit_cast<double>(UINT64_C(13826050856027422720)))->to_f64()) == UINT64_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_3_wasm>", "[float_exprs_3_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_3_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_4_wasm>", "[float_exprs_4_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.4.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_sub", bit_cast<float>(UINT32_C(0)))->to_f32()) == UINT32_C(0));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_sub", bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(0));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_sub_zero", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_sub_zero", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_40_wasm>", "[float_exprs_40_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_40_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_40_wasm>", "[float_exprs_40_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.40.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -564,8 +646,9 @@ bkend(nullptr, "env", "run", UINT32_C(16), bit_cast<float>(UINT32_C(1077936128))
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "check", UINT32_C(12))->to_f32()) == UINT32_C(1084507204));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_41_wasm>", "[float_exprs_41_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_41_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_41_wasm>", "[float_exprs_41_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.41.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -585,8 +668,9 @@ bkend(nullptr, "env", "run", UINT32_C(32), bit_cast<double>(UINT64_C(46139378182
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "check", UINT32_C(24))->to_f64()) == UINT64_C(4617465637949180041));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_42_wasm>", "[float_exprs_42_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_42_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_42_wasm>", "[float_exprs_42_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.42.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -625,8 +709,9 @@ TEST_CASE( "Testing wasm <float_exprs_42_wasm>", "[float_exprs_42_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "f64.uge", bit_cast<double>(UINT64_C(4611686018427387904)), bit_cast<double>(UINT64_C(9221120237041090560)))->to_ui32() == UINT32_C(1));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_43_wasm>", "[float_exprs_43_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_43_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_43_wasm>", "[float_exprs_43_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.43.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -665,8 +750,9 @@ TEST_CASE( "Testing wasm <float_exprs_43_wasm>", "[float_exprs_43_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_ge_select", bit_cast<double>(UINT64_C(9223372036854775808)), bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_44_wasm>", "[float_exprs_44_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_44_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_44_wasm>", "[float_exprs_44_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.44.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -705,8 +791,9 @@ TEST_CASE( "Testing wasm <float_exprs_44_wasm>", "[float_exprs_44_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_ge_if", bit_cast<double>(UINT64_C(9223372036854775808)), bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_45_wasm>", "[float_exprs_45_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_45_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_45_wasm>", "[float_exprs_45_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.45.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -745,8 +832,9 @@ TEST_CASE( "Testing wasm <float_exprs_45_wasm>", "[float_exprs_45_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_ge_select_to_abs", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_46_wasm>", "[float_exprs_46_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_46_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_46_wasm>", "[float_exprs_46_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.46.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -785,8 +873,9 @@ TEST_CASE( "Testing wasm <float_exprs_46_wasm>", "[float_exprs_46_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_ge_if_to_abs", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_47_wasm>", "[float_exprs_47_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_47_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_47_wasm>", "[float_exprs_47_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.47.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -795,8 +884,9 @@ TEST_CASE( "Testing wasm <float_exprs_47_wasm>", "[float_exprs_47_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.incorrect_correction")->to_f64()) == UINT64_C(13596367275031527424));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_48_wasm>", "[float_exprs_48_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_48_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_48_wasm>", "[float_exprs_48_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.48.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -804,8 +894,9 @@ TEST_CASE( "Testing wasm <float_exprs_48_wasm>", "[float_exprs_48_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "calculate")->to_f32()) == UINT32_C(3286857379));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_49_wasm>", "[float_exprs_49_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_49_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_49_wasm>", "[float_exprs_49_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.49.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -813,16 +904,26 @@ TEST_CASE( "Testing wasm <float_exprs_49_wasm>", "[float_exprs_49_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "calculate")->to_f64()) == UINT64_C(13870293918930799763));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_4_wasm>", "[float_exprs_4_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_4_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_5_wasm>", "[float_exprs_5_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.5.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(2147483648));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(3212836864)))->to_f32()) == UINT32_C(2147483648));
+   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(3221225472)))->to_f32()) == UINT32_C(2147483648));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(9223372036854775808));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(13830554455654793216)))->to_f64()) == UINT64_C(9223372036854775808));
+   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(13835058055282163712)))->to_f64()) == UINT64_C(9223372036854775808));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_50_wasm>", "[float_exprs_50_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_50_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_50_wasm>", "[float_exprs_50_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.50.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -830,8 +931,9 @@ TEST_CASE( "Testing wasm <float_exprs_50_wasm>", "[float_exprs_50_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "llvm_pr26746", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_51_wasm>", "[float_exprs_51_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_51_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_51_wasm>", "[float_exprs_51_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.51.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -839,8 +941,9 @@ TEST_CASE( "Testing wasm <float_exprs_51_wasm>", "[float_exprs_51_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "llvm_pr27153", UINT32_C(33554434))->to_f32()) == UINT32_C(1270874112));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_52_wasm>", "[float_exprs_52_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_52_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_52_wasm>", "[float_exprs_52_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.52.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -848,8 +951,9 @@ TEST_CASE( "Testing wasm <float_exprs_52_wasm>", "[float_exprs_52_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "llvm_pr27036", UINT32_C(4269932491), UINT32_C(14942208))->to_f32()) == UINT32_C(3407478836));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_53_wasm>", "[float_exprs_53_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_53_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_53_wasm>", "[float_exprs_53_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.53.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -859,8 +963,9 @@ TEST_CASE( "Testing wasm <float_exprs_53_wasm>", "[float_exprs_53_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "thepast2", bit_cast<float>(UINT32_C(16777216)), bit_cast<float>(UINT32_C(1056964608)), bit_cast<float>(UINT32_C(1065353216)))->to_f32()) == UINT32_C(8388608));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_54_wasm>", "[float_exprs_54_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_54_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_54_wasm>", "[float_exprs_54_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.54.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -868,8 +973,9 @@ TEST_CASE( "Testing wasm <float_exprs_54_wasm>", "[float_exprs_54_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "inverse", bit_cast<float>(UINT32_C(1119879168)))->to_f32()) == UINT32_C(1009429163));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_55_wasm>", "[float_exprs_55_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_55_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_55_wasm>", "[float_exprs_55_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.55.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -878,8 +984,9 @@ TEST_CASE( "Testing wasm <float_exprs_55_wasm>", "[float_exprs_55_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64_sqrt_minus_2", bit_cast<double>(UINT64_C(4616189618054758400)))->to_f64()) == UINT64_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_56_wasm>", "[float_exprs_56_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_56_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_56_wasm>", "[float_exprs_56_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.56.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -904,8 +1011,9 @@ TEST_CASE( "Testing wasm <float_exprs_56_wasm>", "[float_exprs_56_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_recip_recip", bit_cast<double>(UINT64_C(9218868437227405312)))->to_f64()) == UINT64_C(9218868437227405312));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_57_wasm>", "[float_exprs_57_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_57_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_57_wasm>", "[float_exprs_57_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.57.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -922,8 +1030,9 @@ TEST_CASE( "Testing wasm <float_exprs_57_wasm>", "[float_exprs_57_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_algebraic_factoring", bit_cast<double>(UINT64_C(5121779675912507154)), bit_cast<double>(UINT64_C(14237286623175920791)))->to_f64()) == UINT64_C(5636689734063865714));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_58_wasm>", "[float_exprs_58_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_58_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_58_wasm>", "[float_exprs_58_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.58.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -940,8 +1049,9 @@ TEST_CASE( "Testing wasm <float_exprs_58_wasm>", "[float_exprs_58_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_algebraic_factoring", bit_cast<double>(UINT64_C(12768321634751930140)), bit_cast<double>(UINT64_C(12767602092732820937)))->to_f64()) == UINT64_C(2473652960990319032));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_59_wasm>", "[float_exprs_59_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_59_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_59_wasm>", "[float_exprs_59_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.59.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -953,22 +1063,20 @@ TEST_CASE( "Testing wasm <float_exprs_59_wasm>", "[float_exprs_59_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.load", UINT32_C(44))->to_f32()) == UINT32_C(2147483649));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_5_wasm>", "[float_exprs_5_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_5_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_6_wasm>", "[float_exprs_6_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.6.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(2147483648));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(3212836864)))->to_f32()) == UINT32_C(2147483648));
-   CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_zero", bit_cast<float>(UINT32_C(3221225472)))->to_f32()) == UINT32_C(2147483648));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(9223372036854775808));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(13830554455654793216)))->to_f64()) == UINT64_C(9223372036854775808));
-   CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_zero", bit_cast<double>(UINT64_C(13835058055282163712)))->to_f64()) == UINT64_C(9223372036854775808));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_one", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_one", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_60_wasm>", "[float_exprs_60_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_60_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_60_wasm>", "[float_exprs_60_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.60.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -980,8 +1088,9 @@ TEST_CASE( "Testing wasm <float_exprs_60_wasm>", "[float_exprs_60_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.load", UINT32_C(88))->to_f64()) == UINT64_C(9223372036854775809));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_61_wasm>", "[float_exprs_61_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_61_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_61_wasm>", "[float_exprs_61_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.61.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -990,8 +1099,9 @@ TEST_CASE( "Testing wasm <float_exprs_61_wasm>", "[float_exprs_61_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.plain_sum", UINT32_C(0), UINT32_C(256))->to_f32()) == UINT32_C(4082113053));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_62_wasm>", "[float_exprs_62_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_62_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_62_wasm>", "[float_exprs_62_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.62.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1000,8 +1110,9 @@ TEST_CASE( "Testing wasm <float_exprs_62_wasm>", "[float_exprs_62_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.plain_sum", UINT32_C(0), UINT32_C(256))->to_f64()) == UINT64_C(9105671289202539655));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_63_wasm>", "[float_exprs_63_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_63_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_63_wasm>", "[float_exprs_63_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.63.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1016,8 +1127,9 @@ TEST_CASE( "Testing wasm <float_exprs_63_wasm>", "[float_exprs_63_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_neg_sub", bit_cast<double>(UINT64_C(0)), bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_64_wasm>", "[float_exprs_64_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_64_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_64_wasm>", "[float_exprs_64_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.64.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1032,8 +1144,9 @@ TEST_CASE( "Testing wasm <float_exprs_64_wasm>", "[float_exprs_64_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_neg_add", bit_cast<double>(UINT64_C(0)), bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_65_wasm>", "[float_exprs_65_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_65_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_65_wasm>", "[float_exprs_65_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.65.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1048,20 +1161,26 @@ TEST_CASE( "Testing wasm <float_exprs_65_wasm>", "[float_exprs_65_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_neg_neg", bit_cast<double>(UINT64_C(0)), bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(9223372036854775808));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_66_wasm>", "[float_exprs_66_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_66_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_66_wasm>", "[float_exprs_66_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.66.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_neg", bit_cast<float>(UINT32_C(0)))->to_f32()) == UINT32_C(0));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_neg", bit_cast<float>(UINT32_C(2147483648)))->to_f32()) == UINT32_C(0));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_neg", bit_cast<float>(UINT32_C(2139095040)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_add_neg", bit_cast<float>(UINT32_C(4286578688)))));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_neg", bit_cast<double>(UINT64_C(0)))->to_f64()) == UINT64_C(0));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_neg", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(0));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_neg", bit_cast<double>(UINT64_C(9218868437227405312)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_neg", bit_cast<double>(UINT64_C(18442240474082181120)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_67_wasm>", "[float_exprs_67_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_67_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_67_wasm>", "[float_exprs_67_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.67.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1078,8 +1197,9 @@ TEST_CASE( "Testing wasm <float_exprs_67_wasm>", "[float_exprs_67_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_6x_via_add", bit_cast<double>(UINT64_C(14886926859367497770)))->to_f64()) == UINT64_C(14898679235615764511));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_68_wasm>", "[float_exprs_68_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_68_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_68_wasm>", "[float_exprs_68_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.68.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1096,8 +1216,9 @@ TEST_CASE( "Testing wasm <float_exprs_68_wasm>", "[float_exprs_68_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_div", bit_cast<double>(UINT64_C(9835707468114203513)), bit_cast<double>(UINT64_C(1924400690116523912)), bit_cast<double>(UINT64_C(13208934041167870811)))->to_f64()) == UINT64_C(3916014548332337260));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_69_wasm>", "[float_exprs_69_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_69_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_69_wasm>", "[float_exprs_69_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.69.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1114,16 +1235,26 @@ TEST_CASE( "Testing wasm <float_exprs_69_wasm>", "[float_exprs_69_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_divs", bit_cast<double>(UINT64_C(4529089342618677929)), bit_cast<double>(UINT64_C(3361245300043094097)), bit_cast<double>(UINT64_C(1815899012046749567)), bit_cast<double>(UINT64_C(15418396504351552390)))->to_f64()) == UINT64_C(10619033301585441215));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_6_wasm>", "[float_exprs_6_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_6_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_7_wasm>", "[float_exprs_7_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.7.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_div", bit_cast<float>(UINT32_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_div", bit_cast<float>(UINT32_C(2147483648)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_div", bit_cast<float>(UINT32_C(2143289344)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_zero_div", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_div", bit_cast<double>(UINT64_C(0)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_div", bit_cast<double>(UINT64_C(9223372036854775808)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_div", bit_cast<double>(UINT64_C(9221120237041090560)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_zero_div", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_70_wasm>", "[float_exprs_70_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_70_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_70_wasm>", "[float_exprs_70_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.70.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1140,8 +1271,9 @@ TEST_CASE( "Testing wasm <float_exprs_70_wasm>", "[float_exprs_70_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_divs", bit_cast<double>(UINT64_C(10555667216821129841)), bit_cast<double>(UINT64_C(1207418919037494573)), bit_cast<double>(UINT64_C(4296330408727545598)))->to_f64()) == UINT64_C(10866511466898347555));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_71_wasm>", "[float_exprs_71_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_71_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_71_wasm>", "[float_exprs_71_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.71.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1158,40 +1290,47 @@ TEST_CASE( "Testing wasm <float_exprs_71_wasm>", "[float_exprs_71_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_sqrt_square", bit_cast<double>(UINT64_C(8465406758332488378)))->to_f64()) == UINT64_C(9218868437227405312));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_72_wasm>", "[float_exprs_72_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_72_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_72_wasm>", "[float_exprs_72_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.72.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_sqrts", bit_cast<float>(UINT32_C(24047316)), bit_cast<float>(UINT32_C(2517821717)))));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_sqrts", bit_cast<float>(UINT32_C(295749258)), bit_cast<float>(UINT32_C(803416494)))->to_f32()) == UINT32_C(549395357));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_sqrts", bit_cast<float>(UINT32_C(329708528)), bit_cast<float>(UINT32_C(1120042892)))->to_f32()) == UINT32_C(724841268));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_sqrts", bit_cast<float>(UINT32_C(1916535951)), bit_cast<float>(UINT32_C(994115420)))->to_f32()) == UINT32_C(1455324620));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_mul_sqrts", bit_cast<float>(UINT32_C(598482176)), bit_cast<float>(UINT32_C(990534933)))->to_f32()) == UINT32_C(794443079));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_sqrts", bit_cast<double>(UINT64_C(10974446854152441278)), bit_cast<double>(UINT64_C(13797896470155574122)))));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_sqrts", bit_cast<double>(UINT64_C(1712959863583927241)), bit_cast<double>(UINT64_C(2792003944717853898)))->to_f64()) == UINT64_C(2252469008297979510));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_sqrts", bit_cast<double>(UINT64_C(4208351758938831157)), bit_cast<double>(UINT64_C(497361189565243603)))->to_f64()) == UINT64_C(2352856462697312748));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_sqrts", bit_cast<double>(UINT64_C(2976792199849816182)), bit_cast<double>(UINT64_C(2030444188042608984)))->to_f64()) == UINT64_C(2503613111125550255));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_sqrts", bit_cast<double>(UINT64_C(4717634334691577101)), bit_cast<double>(UINT64_C(6919598687070693285)))->to_f64()) == UINT64_C(5818898567902921651));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_73_wasm>", "[float_exprs_73_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_73_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_73_wasm>", "[float_exprs_73_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.73.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_sqrts", bit_cast<float>(UINT32_C(3428799709)), bit_cast<float>(UINT32_C(2733489079)))));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_sqrts", bit_cast<float>(UINT32_C(1339867611)), bit_cast<float>(UINT32_C(1296568207)))->to_f32()) == UINT32_C(1086203643));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_sqrts", bit_cast<float>(UINT32_C(65679161)), bit_cast<float>(UINT32_C(1196795110)))->to_f32()) == UINT32_C(498959746));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_sqrts", bit_cast<float>(UINT32_C(1566143010)), bit_cast<float>(UINT32_C(816694667)))->to_f32()) == UINT32_C(1439333972));
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_sqrts", bit_cast<float>(UINT32_C(130133331)), bit_cast<float>(UINT32_C(208189588)))->to_f32()) == UINT32_C(1025844032));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_sqrts", bit_cast<double>(UINT64_C(10629913473787695463)), bit_cast<double>(UINT64_C(12991130264919696663)))));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_sqrts", bit_cast<double>(UINT64_C(1966780663211935584)), bit_cast<double>(UINT64_C(7043916066229883379)))->to_f64()) == UINT64_C(2068364230648818889));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_sqrts", bit_cast<double>(UINT64_C(6965599900716272009)), bit_cast<double>(UINT64_C(4118781927977980600)))->to_f64()) == UINT64_C(6030491425828883991));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_sqrts", bit_cast<double>(UINT64_C(962551478168675351)), bit_cast<double>(UINT64_C(5918292176617055751)))->to_f64()) == UINT64_C(2129092583060403799));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_sqrts", bit_cast<double>(UINT64_C(1056821405580891413)), bit_cast<double>(UINT64_C(8865548665903786673)))->to_f64()) == UINT64_C(702724841785532050));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_74_wasm>", "[float_exprs_74_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_74_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_74_wasm>", "[float_exprs_74_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.74.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1208,8 +1347,9 @@ TEST_CASE( "Testing wasm <float_exprs_74_wasm>", "[float_exprs_74_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_mul_sqrt_div", bit_cast<double>(UINT64_C(5076901024782455083)), bit_cast<double>(UINT64_C(8399438310541178654)))->to_f64()) == UINT64_C(3180744754328846996));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_75_wasm>", "[float_exprs_75_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_75_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_75_wasm>", "[float_exprs_75_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.75.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1218,8 +1358,9 @@ TEST_CASE( "Testing wasm <float_exprs_75_wasm>", "[float_exprs_75_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_flush_intermediate_subnormal", bit_cast<double>(UINT64_C(4503599627370496)), bit_cast<double>(UINT64_C(4372995238176751616)), bit_cast<double>(UINT64_C(4841369599423283200)))->to_f64()) == UINT64_C(4503599627370496));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_76_wasm>", "[float_exprs_76_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_76_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_76_wasm>", "[float_exprs_76_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.76.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1239,8 +1380,9 @@ TEST_CASE( "Testing wasm <float_exprs_76_wasm>", "[float_exprs_76_wasm_tests]" )
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "recoding_demote", bit_cast<double>(UINT64_C(4014054135371399168)), bit_cast<float>(UINT32_C(1150853120)))->to_f32()) == UINT32_C(46548238));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_77_wasm>", "[float_exprs_77_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_77_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_77_wasm>", "[float_exprs_77_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.77.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1249,8 +1391,9 @@ TEST_CASE( "Testing wasm <float_exprs_77_wasm>", "[float_exprs_77_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "f64.no_extended_precision_div", bit_cast<double>(UINT64_C(4613937818241073152)), bit_cast<double>(UINT64_C(4619567317775286272)), bit_cast<double>(UINT64_C(4601392076421969627)))->to_ui32() == UINT32_C(1));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_78_wasm>", "[float_exprs_78_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_78_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_78_wasm>", "[float_exprs_78_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.78.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1259,8 +1402,9 @@ TEST_CASE( "Testing wasm <float_exprs_78_wasm>", "[float_exprs_78_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_distribute_exact", bit_cast<double>(UINT64_C(9223372036854775808)))->to_f64()) == UINT64_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_79_wasm>", "[float_exprs_79_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_79_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_79_wasm>", "[float_exprs_79_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.79.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1281,16 +1425,20 @@ TEST_CASE( "Testing wasm <float_exprs_79_wasm>", "[float_exprs_79_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.xkcd_better_sqrt_5", bit_cast<double>(UINT64_C(4623507967449235456)), bit_cast<double>(UINT64_C(4616189618054758400)), bit_cast<double>(UINT64_C(4614256656552045848)), bit_cast<double>(UINT64_C(4627448617123184640)))->to_f64()) == UINT64_C(4612217595876713891));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_7_wasm>", "[float_exprs_7_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_7_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_8_wasm>", "[float_exprs_8_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.8.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_one", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_one", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_80_wasm>", "[float_exprs_80_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_80_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_80_wasm>", "[float_exprs_80_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.80.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1299,8 +1447,9 @@ TEST_CASE( "Testing wasm <float_exprs_80_wasm>", "[float_exprs_80_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.compute_radix", bit_cast<double>(UINT64_C(4607182418800017408)), bit_cast<double>(UINT64_C(4607182418800017408)))->to_f64()) == UINT64_C(4611686018427387904));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_81_wasm>", "[float_exprs_81_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_81_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_81_wasm>", "[float_exprs_81_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.81.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1309,8 +1458,9 @@ TEST_CASE( "Testing wasm <float_exprs_81_wasm>", "[float_exprs_81_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_sub1_mul_add", bit_cast<double>(UINT64_C(4318952042648305664)), bit_cast<double>(UINT64_C(4607182418800017408)))->to_f64()) == UINT64_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_82_wasm>", "[float_exprs_82_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_82_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_82_wasm>", "[float_exprs_82_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.82.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1321,8 +1471,9 @@ TEST_CASE( "Testing wasm <float_exprs_82_wasm>", "[float_exprs_82_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "f64.no_fold_add_le_monotonicity", bit_cast<double>(UINT64_C(9218868437227405312)), bit_cast<double>(UINT64_C(18442240474082181120)), bit_cast<double>(UINT64_C(9218868437227405312)))->to_ui32() == UINT32_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_83_wasm>", "[float_exprs_83_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_83_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_83_wasm>", "[float_exprs_83_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.83.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1337,8 +1488,9 @@ TEST_CASE( "Testing wasm <float_exprs_83_wasm>", "[float_exprs_83_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "f64.not_ge", bit_cast<double>(UINT64_C(9221120237041090560)), bit_cast<double>(UINT64_C(0)))->to_ui32() == UINT32_C(1));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_84_wasm>", "[float_exprs_84_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_84_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_84_wasm>", "[float_exprs_84_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.84.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1347,8 +1499,9 @@ TEST_CASE( "Testing wasm <float_exprs_84_wasm>", "[float_exprs_84_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.epsilon")->to_f64()) == UINT64_C(4372995238176751616));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_85_wasm>", "[float_exprs_85_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_85_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_85_wasm>", "[float_exprs_85_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.85.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1357,8 +1510,9 @@ TEST_CASE( "Testing wasm <float_exprs_85_wasm>", "[float_exprs_85_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.epsilon")->to_f64()) == UINT64_C(4372995238176751616));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_86_wasm>", "[float_exprs_86_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_86_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_86_wasm>", "[float_exprs_86_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.86.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1373,8 +1527,9 @@ TEST_CASE( "Testing wasm <float_exprs_86_wasm>", "[float_exprs_86_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "f64.no_trichotomy_ge", bit_cast<double>(UINT64_C(0)), bit_cast<double>(UINT64_C(9221120237041090560)))->to_ui32() == UINT32_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_87_wasm>", "[float_exprs_87_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_87_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_87_wasm>", "[float_exprs_87_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.87.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1414,8 +1569,9 @@ TEST_CASE( "Testing wasm <float_exprs_87_wasm>", "[float_exprs_87_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "no_fold_promote_demote", UINT32_C(2141192192))->to_ui32() == UINT32_C(2143289344));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_88_wasm>", "[float_exprs_88_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_88_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_88_wasm>", "[float_exprs_88_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.88.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1424,8 +1580,9 @@ TEST_CASE( "Testing wasm <float_exprs_88_wasm>", "[float_exprs_88_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "with_binary_sum_collapse", bit_cast<double>(UINT64_C(4719355144821538816)), bit_cast<double>(UINT64_C(4607182418800017408)), bit_cast<double>(UINT64_C(13830554455654793216)), bit_cast<double>(UINT64_C(4725141118604279808)), bit_cast<double>(UINT64_C(4720637518976909312)), bit_cast<double>(UINT64_C(4607182418800017408)), bit_cast<double>(UINT64_C(13830554455654793216)), bit_cast<double>(UINT64_C(13938223582048944128)))->to_f64()) == UINT64_C(4611686018427387904));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_89_wasm>", "[float_exprs_89_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_89_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_89_wasm>", "[float_exprs_89_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.89.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1438,16 +1595,20 @@ TEST_CASE( "Testing wasm <float_exprs_89_wasm>", "[float_exprs_89_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.contract2fma", bit_cast<double>(UINT64_C(4608083138725491507)), bit_cast<double>(UINT64_C(4608083138725491507)))->to_f64()) == UINT64_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_8_wasm>", "[float_exprs_8_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_8_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_9_wasm>", "[float_exprs_9_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.9.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f32.no_fold_div_neg1", bit_cast<float>(UINT32_C(2141192192)))));
+   CHECK(check_nan(bkend.call_with_return(nullptr, "env", "f64.no_fold_div_neg1", bit_cast<double>(UINT64_C(9219994337134247936)))));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_90_wasm>", "[float_exprs_90_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_90_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_90_wasm>", "[float_exprs_90_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.90.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1456,8 +1617,9 @@ TEST_CASE( "Testing wasm <float_exprs_90_wasm>", "[float_exprs_90_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.division_by_small_number", bit_cast<double>(UINT64_C(4727288602252279808)), bit_cast<double>(UINT64_C(4681608360884174848)), bit_cast<double>(UINT64_C(4561440258104740754)))->to_f64()) == UINT64_C(4695882709507797376));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_91_wasm>", "[float_exprs_91_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_91_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_91_wasm>", "[float_exprs_91_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.91.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1466,8 +1628,9 @@ TEST_CASE( "Testing wasm <float_exprs_91_wasm>", "[float_exprs_91_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.golden_ratio", bit_cast<double>(UINT64_C(4602678819172646912)), bit_cast<double>(UINT64_C(4607182418800017408)), bit_cast<double>(UINT64_C(4617315517961601024)))->to_f64()) == UINT64_C(4609965796441453736));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_92_wasm>", "[float_exprs_92_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_92_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_92_wasm>", "[float_exprs_92_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.92.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1486,8 +1649,9 @@ TEST_CASE( "Testing wasm <float_exprs_92_wasm>", "[float_exprs_92_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.silver_means", bit_cast<double>(UINT64_C(4617315517961601024)))->to_f64()) == UINT64_C(4617532346471836922));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_93_wasm>", "[float_exprs_93_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_93_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_93_wasm>", "[float_exprs_93_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.93.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1495,8 +1659,9 @@ TEST_CASE( "Testing wasm <float_exprs_93_wasm>", "[float_exprs_93_wasm_tests]" )
    CHECK(bkend.call_with_return(nullptr, "env", "point_four", bit_cast<double>(UINT64_C(4616189618054758400)), bit_cast<double>(UINT64_C(4621819117588971520)))->to_ui32() == UINT32_C(0));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_94_wasm>", "[float_exprs_94_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_94_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_94_wasm>", "[float_exprs_94_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.94.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
@@ -1505,21 +1670,14 @@ TEST_CASE( "Testing wasm <float_exprs_94_wasm>", "[float_exprs_94_wasm_tests]" )
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "tau", UINT32_C(11))->to_f64()) == UINT64_C(4618760256179416344));
 }
 
-TEST_CASE( "Testing wasm <float_exprs_95_wasm>", "[float_exprs_95_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_95_wasm );
+BACKEND_TEST_CASE( "Testing wasm <float_exprs_95_wasm>", "[float_exprs_95_wasm_tests]" ) {
+   using backend_t = backend<std::nullptr_t, TestType>;
+   auto code = backend_t::read_wasm( std::string(wasm_directory) + "float_exprs.95.wasm");
    backend_t bkend( code );
    bkend.set_wasm_allocator( &wa );
    bkend.initialize(nullptr);
 
    CHECK(bit_cast<uint32_t>(bkend.call_with_return(nullptr, "env", "f32.no_fold_conditional_inc", bit_cast<float>(UINT32_C(2147483648)), bit_cast<float>(UINT32_C(3212836864)))->to_f32()) == UINT32_C(2147483648));
    CHECK(bit_cast<uint64_t>(bkend.call_with_return(nullptr, "env", "f64.no_fold_conditional_inc", bit_cast<double>(UINT64_C(9223372036854775808)), bit_cast<double>(UINT64_C(13830554455654793216)))->to_f64()) == UINT64_C(9223372036854775808));
-}
-
-TEST_CASE( "Testing wasm <float_exprs_9_wasm>", "[float_exprs_9_wasm_tests]" ) {
-   auto code = backend_t::read_wasm( float_exprs_9_wasm );
-   backend_t bkend( code );
-   bkend.set_wasm_allocator( &wa );
-   bkend.initialize(nullptr);
-
 }
 

@@ -2,28 +2,28 @@
 
 #include <vector>
 #include <map>
-#include "wasm_context_interface.hpp"
+#include "wasm/wasm_context_interface.hpp"
+#include "wasm/wasm_runtime.hpp"
 
 namespace wasm {
 
-    enum class vmType {
-        eosvm,
-        wabt
+    enum class vm_type {
+        eos_vm,
+        eos_vm_jit
     };
 
-    class CWasmInterface {
+    class wasm_interface {
 
     public:
 
-        CWasmInterface();
-        //CWasmInterface(vmType type);
-        ~CWasmInterface();
+        wasm_interface();
+        ~wasm_interface();
 
     public:
-        void initialize( vmType type );
-        void execute( vector <uint8_t> code, CWasmContextInterface *pWasmContext );
-        void validate( vector <uint8_t> code );
-        void exit() {};
+        void initialize(vm_type vm);
+        void execute(const vector <uint8_t>& code, wasm_context_interface *pWasmContext);
+        void validate(const vector <uint8_t>& code);
+        void exit();
 
     };
 }

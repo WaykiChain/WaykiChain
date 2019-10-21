@@ -5,11 +5,12 @@
 #include "wasm/types/varint.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
-#include "commons/json/json_spirit.h"
-#include "commons/json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/datastream.hpp"
+
+#include "commons/json/json_spirit.h"
+#include "commons/json/json_spirit_value.h"
 
 namespace wasm {
     using namespace json_spirit;
