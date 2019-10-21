@@ -179,8 +179,16 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate");
 
     CAccount curDelegate;
-    if (!cwIn.accountCache.GetAccount(regId, curDelegate))
+    if (!cwIn.accountCache.GetAccount(regId, curDelegate)) {
+        string delegates;
+        for (const auto & item : delegateList) {
+            delegates += strprintf("%s, ", item.ToString());
+        }
+
+        LogPrint("ERROR", "VerifyRewardTx() : delegate list: %s\n", delegates);
+
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate's account, regId=%s", regId.ToString());
+    }
 
     if (pBlock->GetNonce() > maxNonce)
         return ERRORMSG("VerifyRewardTx() : invalid nonce: %u", pBlock->GetNonce());

@@ -273,7 +273,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
          (now - std::get<2>(mapBlocksToDownload[hash]) < blocksToDownloadTimeout * 1000000)) ||
         (mapBlocksInFlight.count(hash) &&
          (now - std::get<2>(mapBlocksInFlight[hash]) < blockInFlightTimeout * 1000000))) {
-        LogPrint("net", "block: %s is downloading from another node, ignore\n", hash.GetHex());
+        LogPrint("net", "block: %s is downloading from another peer, ignore\n", hash.GetHex());
 
         return false;
     }
@@ -293,8 +293,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
         Misbehaving(nodeId, 10);
     }
 
-    LogPrint("net", "block: %s start to download from node[%s]\n",
-        hash.ToString(), state->name);
+    LogPrint("net", "block: %s start to download from peer %s\n", hash.ToString(), state->name);
     mapBlocksToDownload[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 
     return true;

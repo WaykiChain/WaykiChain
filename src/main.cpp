@@ -1943,8 +1943,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     // Attention: need to reload top N delegates.
     spCW->delegateCache.LoadTopDelegateList();
     if (!VerifyRewardTx(&block, *spCW, false))
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block hash=%s verify reward tx error",
-            block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
+            block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 
     if (!vPreBlocks.empty()) {
         vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
@@ -2274,14 +2274,12 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
             bool success = PruneOrphanBlocks(pBlock->GetHeight());
             if (success) {
                 COrphanBlock *pblock2 = new COrphanBlock();
-                {
-                    CDataStream ss(SER_DISK, CLIENT_VERSION);
-                    ss << *pBlock;
-                    pblock2->vchBlock = vector<uint8_t>(ss.begin(), ss.end());
-                }
-                pblock2->blockHash = blockHash;
+                CDataStream ss(SER_DISK, CLIENT_VERSION);
+                ss << *pBlock;
+                pblock2->vchBlock      = vector<uint8_t>(ss.begin(), ss.end());
+                pblock2->blockHash     = blockHash;
                 pblock2->prevBlockHash = pBlock->GetPrevBlockHash();
-                pblock2->height = pBlock->GetHeight();
+                pblock2->height        = pBlock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(blockHash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->prevBlockHash, pblock2));
                 setOrphanBlock.insert(pblock2);
