@@ -238,7 +238,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getnettotals",           &getnettotals,           true,      true,       false },
     { "getpeerinfo",            &getpeerinfo,            true,      false,      false },
     { "ping",                   &ping,                   true,      false,      false },
-    { "getchaininfo",           &getchaininfo,           true,     false,      false },
+    { "getchaininfo",           &getchaininfo,           true,      false,      false },
 
     /* Block chain and UTXO */
     { "getfcoingenesistxinfo",  &getfcoingenesistxinfo,  true,      true,       false },
@@ -258,7 +258,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getminerbyblocktime",    &getminerbyblocktime,    true,      true,       false },
 
     /* Raw transactions */
-    { "genmulsigtx",            &genmulsigtx,            true,     false,     false },
+    { "genmulsigtx",            &genmulsigtx,            true,      false,     false },
 
     /* uses wallet if enabled */
     { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },

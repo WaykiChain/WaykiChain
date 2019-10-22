@@ -223,11 +223,15 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     uint256 txid        = pTx->GetHash();
     unconfirmedTx[txid] = pTx->GetNewInstance();
     bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
-    string message      = flag ? txid.ToString() : "write-unconfirmed-tx-error";
+    string message      = txid.ToString();
+
+    if (!flag) {
+        message = strprintf("write unconfirmed tx failed: %s, corrupted wallet?", txid.GetHex());
+    }
 
     ::RelayTransaction(pTx, txid);
 
-    return std::make_tuple(flag, txid.ToString());
+    return std::make_tuple(flag, message);
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {

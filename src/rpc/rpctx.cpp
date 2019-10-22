@@ -922,7 +922,7 @@ Value submittxraw(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pWalletMain->CommitTx((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "submittxraw error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("txid", std::get<1>(ret)));
