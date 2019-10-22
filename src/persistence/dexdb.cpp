@@ -36,10 +36,10 @@ shared_ptr<string> DEX_DB::ParseLastPos(const string &lastPosInfo, DEXBlockOrder
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>(strprintf("The last_pos_info is not contained in acitve chains,"
+        return make_shared<string>(strprintf("The last_pos_info is not contained in active chains,"
             " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
     if (pBlockIndex->GetBlockHash() != lastBlockHash)
-        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the acitve block,"
+        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the active block,"
             " height=%d, last_block_hash=%s, cur_height_block_hash=%s",
             lastHeight, lastBlockHash.ToString(), pBlockIndex->GetBlockHash().ToString()));
     return nullptr;
@@ -49,7 +49,7 @@ shared_ptr<string> DEX_DB::MakeLastPos(const DEXBlockOrdersCache::KeyType &lastK
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>(strprintf("The block of lastKey is not contained in acitve chains,"
+        return make_shared<string>(strprintf("The block of lastKey is not contained in active chains,"
             " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
