@@ -223,6 +223,8 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     uint256 txid        = pTx->GetHash();
     unconfirmedTx[txid] = pTx->GetNewInstance();
     bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
+    string message      = flag ? txid.ToString() : "write-unconfirmed-tx-error";
+
     ::RelayTransaction(pTx, txid);
 
     return std::make_tuple(flag, txid.ToString());

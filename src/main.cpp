@@ -321,8 +321,9 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     // is it a miner reward tx or price median tx?
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
-                            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
+                    hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
