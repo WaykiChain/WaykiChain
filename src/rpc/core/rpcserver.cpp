@@ -255,7 +255,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
-    { "getminerbyblocktime",   &getminerbyblocktime,   true,      true,       false },
+    { "getminerbyblocktime",    &getminerbyblocktime,    true,      true,       false },
 
     /* Raw transactions */
     { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
@@ -282,7 +282,7 @@ static const CRPCCommand vRPCCommands[] =
     { "walletlock",             &walletlock,             true,      false,      true },
     { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
     { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
-    { "setgenerate",            &setgenerate,            true,      true,       false},
+    { "setgenerate",            &setgenerate,            true,      true,       false },
     { "listcontracts",          &listcontracts,          true,      false,      true },
     { "getcontractinfo",        &getcontractinfo,        true,      false,      true },
     { "listtxcache",            &listtxcache,            true,      false,      true },
@@ -301,7 +301,7 @@ static const CRPCCommand vRPCCommands[] =
     { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
 
     /* submit raw tx */
-    { "submittxraw",            &submittxraw,            true,      false,    false},
+    { "submittxraw",            &submittxraw,            true,      false,      false },
 
     /* basic tx */
     { "submitsendtx",           &submitsendtx,           false,     false,      true },
@@ -309,8 +309,8 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
     { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
     { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
-    { "submitucontractdeploytx", &submitucontractdeploytx, false,     false,      true },
-    { "submitucontractcalltx",   &submitucontractcalltx,   false,     false,      true },
+    { "submitucontractdeploytx",&submitucontractdeploytx,false,     false,      true },
+    { "submitucontractcalltx",  &submitucontractcalltx,  false,     false,      true },
 
     /* for CDP */
     { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },
