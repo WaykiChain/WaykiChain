@@ -102,7 +102,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
                 return false;
 
             comboMoney.symbol = defaultSymbol;
-            comboMoney.amount = (uint64_t) iValue;
+            comboMoney.amount = (uint64_t)iValue;
             comboMoney.unit   = COIN_UNIT::SAWI;
             break;
         }
@@ -112,13 +112,14 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
                 if (iValue < 0)
                     return false;
 
-                if (!CoinUnitTypeTable.count(comboMoneyArr[1]))
+                string strUnit = comboMoneyArr[1];
+                std::for_each(strUnit.begin(), strUnit.end(), [](char &c) { c = ::tolower(c); });
+                if (!CoinUnitTypeTable.count(strUnit))
                     return false;
 
                 comboMoney.symbol = defaultSymbol;
                 comboMoney.amount = (uint64_t) iValue;
-                comboMoney.unit   = comboMoneyArr[1];
-
+                comboMoney.unit   = strUnit;
             } else if (is_number(comboMoneyArr[1])) {
                 if (comboMoneyArr[0].size() > MAX_TOKEN_SYMBOL_LEN) // check symbol len
                     return false;
@@ -128,12 +129,10 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
                     return false;
 
                 string strSymbol = comboMoneyArr[0];
-                std::for_each(strSymbol.begin(), strSymbol.end(), [](char & c){
-                    c = ::toupper(c);
-                });
+                std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
 
                 comboMoney.symbol = strSymbol;
-                comboMoney.amount = (uint64_t) iValue;
+                comboMoney.amount = (uint64_t)iValue;
                 comboMoney.unit   = COIN_UNIT::SAWI;
 
             } else {
@@ -149,21 +148,22 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
             if (!is_number(comboMoneyArr[1]))
                 return false;
 
+            string strSymbol = comboMoneyArr[0];
+            std::for_each(strSymbol.begin(), strSymbol.end(), [](char &c) { c = ::toupper(c); });
+
             int64_t iValue = std::atoll(comboMoneyArr[1].c_str());
             if (iValue < 0)
                 return false;
 
-            if (!CoinUnitTypeTable.count(comboMoneyArr[2]))
+            string strUnit = comboMoneyArr[2];
+            std::for_each(strUnit.begin(), strUnit.end(), [](char &c) { c = ::tolower(c); });
+            if (!CoinUnitTypeTable.count(strUnit))
                 return false;
 
-            string strSymbol = comboMoneyArr[0];
-            std::for_each(strSymbol.begin(), strSymbol.end(), [](char & c){
-                c = ::toupper(c);
-            });
-
             comboMoney.symbol = strSymbol;
-            comboMoney.amount = (uint64_t) iValue;
-            comboMoney.unit   = comboMoneyArr[2];
+            comboMoney.amount = (uint64_t)iValue;
+            comboMoney.unit   = strUnit;
+
             break;
         }
         default:
@@ -352,6 +352,7 @@ ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
     } else {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid json value type: %s", JSON::GetValueTypeName(valueType)));
     }
+
     return money;
 }
 
