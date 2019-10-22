@@ -175,8 +175,8 @@ string CDEXSellLimitOrderTx::ToString(CAccountDBCache &accountCache) {
 
 Object CDEXSellLimitOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("coin_symbol",      coin_symbol));
-    result.push_back(Pair("asset_symbol",     asset_symbol));
+    result.push_back(Pair("coin_symbol",    coin_symbol));
+    result.push_back(Pair("asset_symbol",   asset_symbol));
     result.push_back(Pair("asset_amount",   asset_amount));
     result.push_back(Pair("price",          ask_price));
     return result;
