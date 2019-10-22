@@ -375,16 +375,16 @@ void CDEXSysOrdersGetter::ToJson(Object &obj) {
 
 bool CDexDBCache::GetActiveOrder(const uint256 &orderId, CDEXOrderDetail &activeOrder) {
     return activeOrderCache.GetData(orderId, activeOrder);
-};
+}
 
-bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) {
-    return activeOrderCache.HaveData(orderId);
-};
+bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) { return activeOrderCache.HaveData(orderId); }
 
 bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
-    if(activeOrderCache.HaveData(orderId)) {
-        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", activeOrder.ToString());
+    if (activeOrderCache.HaveData(orderId)) {
+        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", orderId.GetHex(),
+                        activeOrder.ToString());
     }
+
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
 }
@@ -392,9 +392,9 @@ bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetai
 bool CDexDBCache::UpdateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
-};
+}
 
 bool CDexDBCache::EraseActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.EraseData(orderId)
         && blockOrdersCache.EraseData(MakeBlockOrderKey(orderId, activeOrder));
-};
+}

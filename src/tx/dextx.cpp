@@ -20,11 +20,11 @@ bool CDEXOrderBaseTx::CheckOrderAmountRange(CValidationState &state, const strin
     // TODO: should check the min amount of order by symbol
     static_assert(MIN_DEX_ORDER_AMOUNT < INT64_MAX, "minimum dex order amount out of range");
     if (amount < (int64_t)MIN_DEX_ORDER_AMOUNT)
-        return state.DoS(100, ERRORMSG("%s amount is too small, symbol=%s, amount=%llu, min_amount=%llu\n",
+        return state.DoS(100, ERRORMSG("%s amount is too small, symbol=%s, amount=%llu, min_amount=%llu",
                         title, symbol, amount, MIN_DEX_ORDER_AMOUNT), REJECT_INVALID, "order-amount-too-small");
 
     if (!CheckCoinRange(symbol, amount))
-        return state.DoS(100, ERRORMSG("%s amount is out of range, symbol=%s, amount=%llu\n",
+        return state.DoS(100, ERRORMSG("%s amount is out of range, symbol=%s, amount=%llu",
                         title, symbol, amount), REJECT_INVALID, "invalid-order-amount-range");
 
     return true;
@@ -36,7 +36,7 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
     // TODO: should check the price range??
     if (price <= 0)
         return state.DoS(100, ERRORMSG("%s price out of range,"
-                        " coin_symbol=%s, asset_symbol=%s, price=%llu\n",
+                        " coin_symbol=%s, asset_symbol=%s, price=%llu",
                         title, coin_symbol, asset_symbol, price),
                         REJECT_INVALID, "invalid-price-range");
 
@@ -46,17 +46,17 @@ bool CDEXOrderBaseTx::CheckOrderPriceRange(CValidationState &state, const string
 bool CDEXOrderBaseTx::CheckOrderSymbols(CValidationState &state, const string &title,
                           const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol) {
     if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s invalid order coin symbol=%s\n", title, coinSymbol),
+        return state.DoS(100, ERRORMSG("%s invalid order coin symbol=%s", title, coinSymbol),
                         REJECT_INVALID, "invalid-order-coin-symbol");
     }
 
     if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
-        return state.DoS(100, ERRORMSG("%s invalid order asset symbol=%s\n", title, assetSymbol),
+        return state.DoS(100, ERRORMSG("%s invalid order asset symbol=%s", title, assetSymbol),
                         REJECT_INVALID, "invalid-order-asset-symbol");
     }
 
     if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-        return state.DoS(100, ERRORMSG("%s not support the trading pair! coin_symbol=%s, asset_symbol=%s\n",
+        return state.DoS(100, ERRORMSG("%s not support the trading pair! coin_symbol=%s, asset_symbol=%s",
             title, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
     }
 
@@ -103,7 +103,7 @@ bool CDEXBuyLimitOrderTx::CheckTx(CTxExecuteContext &context) {
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed\n"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
@@ -116,7 +116,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, read source addr account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
@@ -125,19 +125,19 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's coin for buying the asset
     uint64_t coinAmount = CalcCoinAmount(asset_amount, bid_price);
 
     if (!srcAccount.OperateBalance(coin_symbol, FREEZE, coinAmount)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     assert(!srcAccount.regid.IsEmpty());
@@ -156,7 +156,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     // other fields keep the default value
 
     if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
-        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, create active buy order failed\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
 
     return true;
@@ -196,7 +196,7 @@ bool CDEXSellLimitOrderTx::CheckTx(CTxExecuteContext &context) {
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed\n"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
@@ -218,18 +218,18 @@ bool CDEXSellLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
     // freeze user's asset for selling.
     if (!srcAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     assert(!srcAccount.regid.IsEmpty());
@@ -248,7 +248,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     // other fields keep the default value
 
     if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
 
     return true;
@@ -287,7 +287,7 @@ bool CDEXBuyMarketOrderTx::CheckTx(CTxExecuteContext &context) {
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed\n"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
@@ -300,7 +300,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, read source addr account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
@@ -309,17 +309,17 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's coin for buying the asset
     if (!srcAccount.OperateBalance(coin_symbol, FREEZE, coin_amount)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     assert(!srcAccount.regid.IsEmpty());
@@ -338,7 +338,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     // other fields keep the default value
 
     if (!cw.dexCache.CreateActiveOrder(txid, orderDetail)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed\n"),
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
@@ -370,13 +370,15 @@ bool CDEXSellMarketOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
-    if (!CheckOrderSymbols(state, "CDEXSellMarketOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
+    if (!CheckOrderSymbols(state, "CDEXSellMarketOrderTx::CheckTx,", coin_symbol, asset_symbol))
+        return false;
 
-    if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, asset,", asset_symbol, asset_amount)) return false;
+    if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, asset,", asset_symbol, asset_amount))
+        return false;
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed\n"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
@@ -389,7 +391,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, read source addr account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
@@ -398,17 +400,17 @@ bool CDEXSellMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's asset for selling
     if (!srcAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
 
@@ -428,7 +430,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     // other fields keep the default value
 
     if (!cw.dexCache.CreateActiveOrder(txid, orderDetail)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed\n"),
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
                          WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
     }
 
@@ -459,11 +461,11 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
 
     if (orderId.IsEmpty())
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty\n"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
                          "invalid-order-id");
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed\n"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
@@ -476,7 +478,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
@@ -485,22 +487,22 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
     CDEXOrderDetail activeOrder;
     if (!cw.dexCache.GetActiveOrder(orderId, activeOrder)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed\n"),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed"),
                         REJECT_INVALID, "order-inactive");
     }
     if (activeOrder.generate_type != USER_GEN_ORDER) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is not generate by tx of user\n"),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is not generate by tx of user"),
                         REJECT_INVALID, "order-inactive");
     }
 
     if (srcAccount.regid.IsEmpty() || srcAccount.regid != activeOrder.user_regid) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, can not cancel other user's order tx\n"),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, can not cancel other user's order tx"),
                         REJECT_INVALID, "user-unmatched");
     }
 
@@ -518,7 +520,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     if (!srcAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze\n"),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze"),
                          UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
     }
 
@@ -527,7 +529,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
     if (!cw.dexCache.EraseActiveOrder(orderId, activeOrder)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s\n", orderId.ToString()),
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", orderId.ToString()),
                         REJECT_INVALID, "order-erase-failed");
     }
     return true;
@@ -581,25 +583,25 @@ bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
     if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex match-svc regId\n"),
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex match-svc regId"),
                          REJECT_INVALID, "unauthorized-settle-account");
     }
 
     if (dealItems.empty() || dealItems.size() > MAX_SETTLE_ITEM_COUNT)
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal items is empty or count=%d is too large than %d\n",
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal items is empty or count=%d is too large than %d",
             dealItems.size(), MAX_SETTLE_ITEM_COUNT), REJECT_INVALID, "invalid-deal-items");
 
     for (size_t i = 0; i < dealItems.size(); i++) {
         const DEXDealItem & dealItem = dealItems.at(i);
         if (dealItem.buyOrderId.IsEmpty() || dealItem.sellOrderId.IsEmpty())
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id or sell_order_id is empty\n",
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id or sell_order_id is empty",
                 i), REJECT_INVALID, "invalid-deal-item");
         if (dealItem.buyOrderId == dealItem.sellOrderId)
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id cannot equal to sell_order_id\n",
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d], buy_order_id cannot equal to sell_order_id",
                 i), REJECT_INVALID, "invalid-deal-item");
         if (dealItem.dealCoinAmount == 0 || dealItem.dealAssetAmount == 0 || dealItem.dealPrice == 0)
             return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, deal_items[%d],"
-                " deal_coin_amount or deal_asset_amount or deal_price is zero\n",
+                " deal_coin_amount or deal_asset_amount or deal_price is zero",
                 i), REJECT_INVALID, "invalid-deal-item");
     }
 
@@ -711,12 +713,12 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
 
     shared_ptr<CAccount> pSrcAccount = make_shared<CAccount>();
    if (!cw.accountCache.GetAccount(txUid, *pSrcAccount)) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read source addr account info error\n"),
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!pSrcAccount->OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds\n"),
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
@@ -727,8 +729,11 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         auto &dealItem = dealItems[i];
         //1. get and check buyDealOrder and sellDealOrder
         CDEXOrderDetail buyOrder, sellOrder;
-        if (!GetDealOrder(cw, state, dealItem.buyOrderId, ORDER_BUY, buyOrder)) return false;
-        if (!GetDealOrder(cw, state, dealItem.sellOrderId, ORDER_SELL, sellOrder)) return false;
+        if (!GetDealOrder(cw, state, dealItem.buyOrderId, ORDER_BUY, buyOrder))
+            return false;
+
+        if (!GetDealOrder(cw, state, dealItem.sellOrderId, ORDER_SELL, sellOrder))
+            return false;
 
         // 2. get account of order
         shared_ptr<CAccount> pBuyOrderAccount = nullptr;
@@ -738,7 +743,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         } else {
             pBuyOrderAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(buyOrder.user_regid, *pBuyOrderAccount)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] read buy order account info error! order_id=%s, regid=%s\n",
+                return state.DoS(100, ERRORMSG("%s(), i[%d] read buy order account info error! order_id=%s, regid=%s",
                     __FUNCTION__, i, dealItem.buyOrderId.ToString(), buyOrder.user_regid.ToString()),
                     READ_ACCOUNT_FAIL, "bad-read-accountdb");
             }
@@ -752,7 +757,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         } else {
             pSellOrderAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(sellOrder.user_regid, *pSellOrderAccount)) {
-            return state.DoS(100, ERRORMSG("%s(), i[%d] read sell order account info error! order_id=%s, regid=%s\n",
+            return state.DoS(100, ERRORMSG("%s(), i[%d] read sell order account info error! order_id=%s, regid=%s",
                 __FUNCTION__, i, dealItem.sellOrderId.ToString(), sellOrder.user_regid.ToString()),
                 READ_ACCOUNT_FAIL, "bad-read-accountdb");
             }
@@ -762,13 +767,13 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         // 3. check coin type match
         if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
             return state.DoS(100, ERRORMSG("%s(), i[%d] coin symbol unmatch! buyer coin_symbol=%s, " \
-                "seller coin_symbol=%s\n", __FUNCTION__, i, buyOrder.coin_symbol, sellOrder.coin_symbol),
+                "seller coin_symbol=%s", __FUNCTION__, i, buyOrder.coin_symbol, sellOrder.coin_symbol),
                 REJECT_INVALID, "coin-symbol-unmatch");
         }
         // 4. check asset type match
         if (buyOrder.asset_symbol != sellOrder.asset_symbol) {
             return state.DoS(100, ERRORMSG("%s(), i[%d] asset symbol unmatch! buyer asset_symbol=%s, " \
-                "seller asset_symbol=%s\n", __FUNCTION__, i, buyOrder.asset_symbol, sellOrder.asset_symbol),
+                "seller asset_symbol=%s", __FUNCTION__, i, buyOrder.asset_symbol, sellOrder.asset_symbol),
                 REJECT_INVALID, "asset-symbol-unmatch");
         }
 
@@ -777,21 +782,21 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             if ( buyOrder.price < dealItem.dealPrice
                 || sellOrder.price > dealItem.dealPrice ) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] the expected price unmatch! buyer limit price=%llu, "
-                    "seller limit price=%llu, deal_price=%llu\n",
+                    "seller limit price=%llu, deal_price=%llu",
                     __FUNCTION__, i, buyOrder.price, sellOrder.price, dealItem.dealPrice),
                     REJECT_INVALID, "deal-price-unmatch");
             }
         } else if (buyOrder.order_type == ORDER_LIMIT_PRICE && sellOrder.order_type == ORDER_MARKET_PRICE) {
             if (dealItem.dealPrice != buyOrder.price) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] the expected price unmatch! buyer limit price=%llu, "
-                    "seller market price, deal_price=%llu\n",
+                    "seller market price, deal_price=%llu",
                     __FUNCTION__, i, buyOrder.price, dealItem.dealPrice),
                     REJECT_INVALID, "deal-price-unmatch");
             }
         } else if (buyOrder.order_type == ORDER_MARKET_PRICE && sellOrder.order_type == ORDER_LIMIT_PRICE) {
             if (dealItem.dealPrice != sellOrder.price) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] the expected price unmatch! buyer market price, "
-                    "seller limit price=%llu, deal_price=%llu\n",
+                    "seller limit price=%llu, deal_price=%llu",
                     __FUNCTION__, i, sellOrder.price, dealItem.dealPrice),
                     REJECT_INVALID, "deal-price-unmatch");
             }
@@ -811,7 +816,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         }
         if (!isCoinAmountMatch)
             return state.DoS(100, ERRORMSG("%s(), i[%d] the deal_coin_amount unmatch!"
-                " deal_info={%s}, calcCoinAmount=%llu\n",
+                " deal_info={%s}, calcCoinAmount=%llu",
                 __FUNCTION__, i, dealItem.ToString(), calcCoinAmount),
                 REJECT_INVALID, "deal-coin-amount-unmatch");
 
@@ -828,7 +833,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             uint64_t limitCoinAmount = buyOrder.coin_amount;
             if (limitCoinAmount < buyOrder.total_deal_coin_amount) {
                 return state.DoS(100, ERRORMSG( "%s(), i[%d] the total_deal_coin_amount=%llu exceed the buyer's "
-                    "coin_amount=%llu\n", __FUNCTION__, i, buyOrder.total_deal_coin_amount, limitCoinAmount),
+                    "coin_amount=%llu", __FUNCTION__, i, buyOrder.total_deal_coin_amount, limitCoinAmount),
                     REJECT_INVALID, "buy-deal-coin-amount-exceeded");
             }
 
@@ -839,7 +844,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(
                     100,
                     ERRORMSG("%s(), i[%d] the total_deal_asset_amount=%llu exceed the "
-                             "buyer's asset_amount=%llu\n",
+                             "buyer's asset_amount=%llu",
                              __FUNCTION__, i, buyOrder.total_deal_asset_amount, limitAssetAmount),
                     REJECT_INVALID, "buy-deal-amount-exceeded");
             }
@@ -853,7 +858,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(
                     100,
                     ERRORMSG("%s(), i[%d] the total_deal_asset_amount=%llu exceed the "
-                             "seller's asset_amount=%llu\n",
+                             "seller's asset_amount=%llu",
                              __FUNCTION__, i, sellOrder.total_deal_asset_amount, limitAssetAmount),
                     REJECT_INVALID, "sell-deal-amount-exceeded");
             }
@@ -865,7 +870,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (   !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, dealItem.dealCoinAmount)
             || !pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, SUB_FREE, dealItem.dealCoinAmount)) {// - subtract buyer's coins
             return state.DoS(100, ERRORMSG("%s(), i[%d] subtract coins from buyer account failed!"
-                " deal_info={%s}, coin_symbol=%s\n",
+                " deal_info={%s}, coin_symbol=%s",
                 __FUNCTION__, i, dealItem.ToString(), buyOrder.coin_symbol),
                 REJECT_INVALID, "operate-account-failed");
         }
@@ -873,7 +878,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (   !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, UNFREEZE, dealItem.dealAssetAmount)
             || !pSellOrderAccount->OperateBalance(sellOrder.asset_symbol, SUB_FREE, dealItem.dealAssetAmount)) { // - subtract seller's assets
             return state.DoS(100, ERRORMSG("%s(), i[%d] subtract assets from seller account failed!"
-                " deal_info={%s}, asset_symbol=%s\n",
+                " deal_info={%s}, asset_symbol=%s",
                 __FUNCTION__, i, dealItem.ToString(), sellOrder.asset_symbol),
                 REJECT_INVALID, "operate-account-failed");
         }
@@ -881,7 +886,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         // 9. calc deal fees
         uint64_t dexDealFeeRatio;
         if (!cw.sysParamCache.GetParam(DEX_DEAL_FEE_RATIO, dexDealFeeRatio)) {
-            return state.DoS(100, ERRORMSG("%s(), i[%d] read DEX_DEAL_FEE_RATIO error\n", __FUNCTION__, i),
+            return state.DoS(100, ERRORMSG("%s(), i[%d] read DEX_DEAL_FEE_RATIO error", __FUNCTION__, i),
                                 READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
         }
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
@@ -893,7 +898,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             // pay asset fee from seller to settler
             if (!pSrcAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] pay asset fee from buyer to settler failed!"
-                    " deal_info={%s}, asset_symbol=%s, asset_fee=%llu\n",
+                    " deal_info={%s}, asset_symbol=%s, asset_fee=%llu",
                     __FUNCTION__, i, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee),
                     REJECT_INVALID, "operate-account-failed");
             }
@@ -909,7 +914,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             // pay coin fee from buyer to settler
             if (!pSrcAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] pay coin fee from seller to settler failed!"
-                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu\n",
+                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu",
                     __FUNCTION__, i, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee),
                     REJECT_INVALID, "operate-account-failed");
             }
@@ -921,7 +926,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets)    // + add buyer's assets
             || !pSellOrderAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, sellerReceivedCoins)){ // + add seller's coin
             return state.DoS(100,ERRORMSG("%s(), i[%d] add assets to buyer or add coins to seller failed!"
-                " deal_info={%s}, asset_symbol=%s, assets=%llu, coin_symbol=%s, coins=%llu\n",
+                " deal_info={%s}, asset_symbol=%s, assets=%llu, coin_symbol=%s, coins=%llu",
                 __FUNCTION__, i, dealItem.ToString(), buyOrder.asset_symbol,
                 buyerReceivedAssets, sellOrder.coin_symbol, sellerReceivedCoins),
                 REJECT_INVALID, "operate-account-failed");
@@ -939,7 +944,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
 
                     if (!pBuyOrderAccount->OperateBalance(buyOrder.coin_symbol, UNFREEZE, residualCoinAmount)) {
                         return state.DoS(100, ERRORMSG("%s(), i[%d] unfreeze buyer's residual coins failed!"
-                            " deal_info={%s}, coin_symbol=%s, residual_coins=%llu\n",
+                            " deal_info={%s}, coin_symbol=%s, residual_coins=%llu",
                             __FUNCTION__, i, dealItem.ToString(), buyOrder.coin_symbol, residualCoinAmount),
                             REJECT_INVALID, "operate-account-failed");
                     }
@@ -949,13 +954,13 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             }
             // erase active order
             if (!cw.dexCache.EraseActiveOrder(dealItem.buyOrderId, buyOrder)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] finish the active buy order failed! deal_info={%s}\n",
+                return state.DoS(100, ERRORMSG("%s(), i[%d] finish the active buy order failed! deal_info={%s}",
                     __FUNCTION__, i, dealItem.ToString()),
                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
             if (!cw.dexCache.UpdateActiveOrder(dealItem.buyOrderId, buyOrder)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] update active buy order failed! deal_info={%s}\n",
+                return state.DoS(100, ERRORMSG("%s(), i[%d] update active buy order failed! deal_info={%s}",
                     __FUNCTION__, i, dealItem.ToString()),
                     REJECT_INVALID, "write-dexdb-failed");
             }
@@ -964,13 +969,13 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         if (sellResidualAmount == 0) { // sell order fulfilled
             // erase active order
             if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, sellOrder)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] finish active sell order failed! deal_info={%s}\n",
+                return state.DoS(100, ERRORMSG("%s(), i[%d] finish active sell order failed! deal_info={%s}",
                     __FUNCTION__, i, dealItem.ToString()),
                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
             if (!cw.dexCache.UpdateActiveOrder(dealItem.sellOrderId, sellOrder)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] update active sell order failed! deal_info={%s}\n",
+                return state.DoS(100, ERRORMSG("%s(), i[%d] update active sell order failed! deal_info={%s}",
                     __FUNCTION__, i, dealItem.ToString()),
                     REJECT_INVALID, "write-dexdb-failed");
             }
@@ -981,13 +986,13 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
     for (auto accountItem : accountMap) {
         auto pAccount = accountItem.second;
         if (!cw.accountCache.SetAccount(pAccount->keyid, *pAccount))
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error! regid=%s, addr=%s\n",
+            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error! regid=%s, addr=%s",
                 pAccount->regid.ToString(), pAccount->keyid.ToAddress()),
                 WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set tx receipts failed!! txid=%s\n",
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
@@ -995,13 +1000,13 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
 bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &orderId,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(orderId, dealOrder))
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! orderId=%s\n",
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! orderId=%s",
             orderId.ToString()), REJECT_INVALID, "get-active-order-failed");
 
     if (dealOrder.order_side != orderSide)
         return state.DoS(100,
                          ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s, "
-                                  "but get order_side=%s! orderId=%s\n",
+                                  "but get order_side=%s! orderId=%s",
                                   GetOrderSideName(orderSide),
                                   GetOrderSideName(dealOrder.order_side), orderId.ToString()),
                          REJECT_INVALID, "order-side-unmatched");
