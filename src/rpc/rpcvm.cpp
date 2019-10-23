@@ -200,7 +200,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     CRegID appId(newHeight, 1); //App RegId
 
-    vector<unsigned char> arguments;
+    vector<uint8_t> arguments;
     if (params.size() > 2) {
         arguments = ParseHex(params[2].get_str());
     }
@@ -219,7 +219,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.arguments    = string(arguments.begin(), arguments.end());
         contractInvokeTx.valid_height = newHeight;
 
-        vector<unsigned char> signature;
+        vector<uint8_t> signature;
         if (!pWalletMain->Sign(srcKeyId, contractInvokeTx.ComputeSignatureHash(), contractInvokeTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
