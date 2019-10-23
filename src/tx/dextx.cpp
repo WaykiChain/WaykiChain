@@ -475,7 +475,9 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
 }
 
 bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
@@ -496,6 +498,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed"),
                         REJECT_INVALID, "order-inactive");
     }
+
     if (activeOrder.generate_type != USER_GEN_ORDER) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is not generate by tx of user"),
                         REJECT_INVALID, "order-inactive");
@@ -507,14 +510,21 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // get frozen money
+    vector<CReceipt> receipts;
     TokenSymbol frozenSymbol;
     uint64_t frozenAmount = 0;
     if (activeOrder.order_side == ORDER_BUY) {
         frozenSymbol = activeOrder.coin_symbol;
         frozenAmount = activeOrder.coin_amount - activeOrder.total_deal_coin_amount;
+
+        receipts.emplace_back(CUserID::NULL_ID, activeOrder.user_regid, frozenSymbol, frozenAmount,
+                              ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER);
     } else if(activeOrder.order_side == ORDER_SELL) {
         frozenSymbol = activeOrder.asset_symbol;
         frozenAmount = activeOrder.asset_amount - activeOrder.total_deal_asset_amount;
+
+        receipts.emplace_back(CUserID::NULL_ID, activeOrder.user_regid, frozenSymbol, frozenAmount,
+                              ReceiptCode::DEX_UNFREEZE_ASSET_TO_SELLER);
     } else {
         assert(false && "Order side must be ORDER_BUY|ORDER_SELL");
     }
@@ -530,8 +540,13 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!cw.dexCache.EraseActiveOrder(orderId, activeOrder)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", orderId.ToString()),
-                        REJECT_INVALID, "order-erase-failed");
+                         REJECT_INVALID, "order-erase-failed");
     }
+
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, write tx receipt failed! txid=%s", GetHash().ToString()),
+                         REJECT_INVALID, "write-tx-receipt-failed");
+
     return true;
 }
 

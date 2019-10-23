@@ -51,6 +51,8 @@ static CUserID nullId;
     DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \
     DEFINE(DEX_ASSET_TO_BUYER,                  503, "dex deal deal assets to buyer") \
     DEFINE(DEX_COIN_TO_SELLER,                  504, "dex deal deal coins to seller") \
+    DEFINE(DEX_UNFREEZE_COIN_TO_BUYER,          505, "dex unfreeze coins to buyer for canceling order") \
+    DEFINE(DEX_UNFREEZE_ASSET_TO_SELLER,        506, "dex unfreeze asset to seller for canceling order") \
     /**** contract */ \
     DEFINE(CONTRACT_FUEL_TO_RISK_RISERVE,       601, "contract fuel to risk riserve") \
     DEFINE(CONTRACT_TOKEN_OPERATE_ADD,          602, "operate add token of contract user account") \
