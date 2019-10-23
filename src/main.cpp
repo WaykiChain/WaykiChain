@@ -425,7 +425,6 @@ int32_t GetTxConfirmHeight(const uint256 &hash, CBlockDBCache &blockCache) {
             CBlockHeader header;
             try {
                 file >> header;
-
             } catch (std::exception &e) {
                 ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
                 return -1;
@@ -1547,7 +1546,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(pIndexNew, block))
-        return state.Abort(strprintf("Failed to read block hash: %s\n", pIndexNew->GetBlockHash().GetHex()));
+        return state.Abort(strprintf("Failed to read block hash: %s", pIndexNew->GetBlockHash().GetHex()));
 
     // Apply the block automatically to the chain state.
     int64_t nStart = GetTimeMicros();

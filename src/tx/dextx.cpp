@@ -75,7 +75,7 @@ uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t pr
 string CDEXBuyLimitOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%u, asset_symbol=%u, amount=%llu, price=%llu",
+        "coin_symbol=%s, asset_symbol=%s, amount=%llu, price=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, asset_amount, bid_price);
 }
@@ -168,7 +168,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
 string CDEXSellLimitOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%u, asset_symbol=%u, amount=%llu, price=%llu",
+        "coin_symbol=%s, asset_symbol=%s, amount=%llu, price=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, asset_amount, ask_price);
 }
@@ -261,7 +261,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
 string CDEXBuyMarketOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%u, asset_symbol=%u, amount=%llu",
+        "coin_symbol=%s, asset_symbol=%s, amount=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, coin_amount);
 }
@@ -351,7 +351,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
 string CDEXSellMarketOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%u, asset_symbol=%u, amount=%llu",
+        "coin_symbol=%s, asset_symbol=%s, amount=%llu",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
         coin_symbol, asset_symbol, asset_amount);
 }

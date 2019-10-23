@@ -141,8 +141,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 }
                 if (IsMine(sptx.get())) {
                     unconfirmedTx[sptx.get()->GetHash()] = sptx.get()->GetNewInstance();
-                    CWalletDB(strWalletFile)
-                        .WriteUnconfirmedTx(sptx.get()->GetHash(), unconfirmedTx[sptx.get()->GetHash()]);
+                    CWalletDB(strWalletFile).WriteUnconfirmedTx(sptx.get()->GetHash(), unconfirmedTx[sptx.get()->GetHash()]);
                 }
             }
             if (mapInBlockTx.count(blockhash)) {
@@ -428,6 +427,7 @@ CWallet *CWallet::GetInstance() {
     if (StartUp(strWalletFile)) {
         return new CWallet(strWalletFile);
     }
+
     return nullptr;
 }
 

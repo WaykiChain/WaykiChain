@@ -248,8 +248,10 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
                 return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;
-            uint32_t prevBlockTime = pBlockIndex->pprev != nullptr ? pBlockIndex->pprev->GetBlockTime() : pBlockIndex->GetBlockTime();
-            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), pBlock->GetTime(), prevBlockTime, spCW.get(), &state);
+            uint32_t prevBlockTime =
+                pBlockIndex->pprev != nullptr ? pBlockIndex->pprev->GetBlockTime() : pBlockIndex->GetBlockTime();
+            CTxExecuteContext context(pBlock->GetHeight(), i, pBlock->GetFuelRate(), pBlock->GetTime(), prevBlockTime,
+                                      spCW.get(), &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pBlock->GetHeight(), pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
