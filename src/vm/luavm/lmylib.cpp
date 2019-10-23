@@ -2132,11 +2132,10 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
     CLuaVMContext &vmContext = pLuaVMRunEnv->GetContext();
     auto featureForkVersion = GetFeatureForkVersion(vmContext.height);
 
-    lua_Integer blockTime = 0;
-    if (featureForkVersion == MAJOR_VER_R1) {
-        // compact with old data
-        blockTime = vmContext.prev_block_time;
-    } else {
+    lua_Integer blockTime = vmContext.prev_block_time;
+    if (SysCfg().NetworkID() == MAIN_NET &&
+        featureForkVersion == MAJOR_VER_R2
+        && height < FORK_MAIN_CONTRACT_GET_BLOCK_TIME) {
         blockTime = vmContext.block_time;
     }
 

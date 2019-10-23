@@ -146,4 +146,10 @@ static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^
 
 static const string EMPTY_STRING = "";
 
+// soft forks
+
+// soft fork for contract api GetBlockTimestamp() in mainnet
+static const int32_t FORK_MAIN_CONTRACT_GET_BLOCK_TIME = 4450780;
+
+
 #endif //CONFIG_CONST_H
