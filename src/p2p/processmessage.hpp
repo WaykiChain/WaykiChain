@@ -8,10 +8,9 @@
 
 #include "main.h"
 
-bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
-{
-    RandAddSeedPerfmon();
-    LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
+bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) {
+    LogPrint("net", "received: %s (%u bytes) from peer %s\n", strCommand, vRecv.size(), pFrom->addr.ToString());
+    // RandAddSeedPerfmon();
     // if (GetRand(atoi(SysCfg().GetArg("-dropmessagestest", "0"))) == 0) {
     //     LogPrint("INFO", "dropmessagestest DROPPING RECV MESSAGE\n");
     //     return true;
@@ -23,9 +22,9 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
     }
 
     if (strCommand == "version") {
-        int32_t res = ProcessVersionMessage(pFrom,strCommand, vRecv);
-        if(res !=-1)
-            return res == 1 ;
+        int32_t res = ProcessVersionMessage(pFrom, strCommand, vRecv);
+        if (res != -1)
+            return res == 1;
     }
 
     else if (pFrom->nVersion == 0) {

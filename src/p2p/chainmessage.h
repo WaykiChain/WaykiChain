@@ -527,11 +527,12 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
 
     if (pBaseTx == nullptr) {
         // TODO: record the misebehaving or ban the peer node.
-        return ERRORMSG("Unknown transaction type, ignore");
+        return ERRORMSG("Unknown transaction type from peer %s, ignore", pFrom->addr.ToString());
     }
 
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx()) {
-        return ERRORMSG("Forbidden transaction from network, raw: %s", HexStr(vRecv.begin(), vRecv.end()));
+        return ERRORMSG("Forbidden transaction from network from peer %s, raw: %s", pFrom->addr.ToString(),
+                        HexStr(vRecv.begin(), vRecv.end()));
     }
 
     vRecv >> pBaseTx;
@@ -589,7 +590,8 @@ inline bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
     // We must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
     vector<CBlock> vHeaders;
     int32_t nLimit = 2000;
-    LogPrint("NET", "getheaders %d to %s\n", (pIndex ? pIndex->height : -1), hashStop.ToString());
+    LogPrint("NET", "getheaders %d to %s from peer %s\n", (pIndex ? pIndex->height : -1), hashStop.ToString(),
+             pFrom->addr.ToString());
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         vHeaders.push_back(pIndex->GetBlockHeader());
         if (--nLimit <= 0 || pIndex->GetBlockHash() == hashStop)
@@ -614,18 +616,22 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     if (pIndex)
         pIndex = chainActive.Next(pIndex);
 
-    int32_t nLimit = 500;
-    LogPrint("net", "getblocks %d to %s limit %d\n", (pIndex ? pIndex->height : -1), hashStop.ToString(), nLimit);
+    static int32_t nLimit = 500;
+    LogPrint("net", "getblocks %d to %s limit %d from peer %s\n", (pIndex ? pIndex->height : -1),
+             hashStop.ToString(), nLimit, pFrom->addr.ToString());
+
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         if (pIndex->GetBlockHash() == hashStop) {
-            LogPrint("net", "getblocks stopping at %d %s\n", pIndex->height, pIndex->GetBlockHash().ToString());
+            LogPrint("net", "getblocks stopping at %d %s from peer %s\n", pIndex->height,
+                     pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
             break;
         }
         pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()));
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
-            LogPrint("net", "getblocks stopping at limit %d %s\n", pIndex->height, pIndex->GetBlockHash().ToString());
+            LogPrint("net", "getblocks stopping at limit %d %s from peer %s\n", pIndex->height,
+                     pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;
         }
@@ -637,7 +643,7 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
     vRecv >> vInv;
     if (vInv.size() > MAX_INV_SZ) {
         Misbehaving(pFrom->GetId(), 20);
-        return ERRORMSG("message inv size() = %u", vInv.size());
+        return ERRORMSG("message inv size() = %u from peer %s", vInv.size(), pFrom->addr.ToString());
     }
 
     LOCK(cs_main);
@@ -686,14 +692,14 @@ inline bool ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv) {
     vRecv >> vInv;
     if (vInv.size() > MAX_INV_SZ) {
         Misbehaving(pFrom->GetId(), 20);
-        return ERRORMSG("message getdata size() = %u", vInv.size());
+        return ERRORMSG("message getdata size() = %u from peer %s", vInv.size(), pFrom->addr.ToString());
     }
 
     if ((vInv.size() != 1))
-        LogPrint("net", "received getdata (%u invsz) from %s\n", vInv.size(), pFrom->addr.ToString());
+        LogPrint("net", "received getdata (%u invsz) from peer %s\n", vInv.size(), pFrom->addr.ToString());
 
     if ((vInv.size() > 0) || (vInv.size() == 1))
-        LogPrint("net", "received getdata for: %s from %s\n", vInv[0].ToString(), pFrom->addr.ToString());
+        LogPrint("net", "received getdata for: %s from peer %s\n", vInv[0].ToString(), pFrom->addr.ToString());
 
     pFrom->vRecvGetData.insert(pFrom->vRecvGetData.end(), vInv.begin(), vInv.end());
     ProcessGetData(pFrom);
@@ -705,7 +711,7 @@ inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv) {
     CBlock block;
     vRecv >> block;
 
-    LogPrint("net", "received block %s from %s\n", block.GetHash().ToString(), pFrom->addr.ToString());
+    LogPrint("net", "received block %s from peer %s\n", block.GetHash().ToString(), pFrom->addr.ToString());
     // block.Print();
 
     CInv inv(MSG_BLOCK, block.GetHash());
@@ -827,7 +833,7 @@ inline void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv) {
         if (s.size() > 111)
             s.erase(111, string::npos);
 
-        LogPrint("net", "Reject %s\n", SanitizeString(s));
+        LogPrint("net", "Reject %s from peer %s\n", SanitizeString(s), pFrom->addr.ToString());
     }
 }
 
