@@ -279,7 +279,7 @@ Value dropprivkey(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Failed to drop privkey from wallet.");
 
     Object ret;
-    ret.push_back(Pair("info", "privkey is dropped from wallet."));
+    ret.push_back(Pair("info", "privkey was dropped."));
 
     return ret;
 }
