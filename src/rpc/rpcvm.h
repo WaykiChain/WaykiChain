@@ -1,6 +1,6 @@
 // Copyright (c) 2017-2019 WaykiChain Core Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #ifndef RPC_VM_H
 #define RPC_VM_H

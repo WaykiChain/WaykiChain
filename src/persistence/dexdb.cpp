@@ -36,10 +36,10 @@ shared_ptr<string> DEX_DB::ParseLastPos(const string &lastPosInfo, DEXBlockOrder
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>(strprintf("The last_pos_info is not contained in acitve chains,"
+        return make_shared<string>(strprintf("The last_pos_info is not contained in active chains,"
             " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
     if (pBlockIndex->GetBlockHash() != lastBlockHash)
-        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the acitve block,"
+        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the active block,"
             " height=%d, last_block_hash=%s, cur_height_block_hash=%s",
             lastHeight, lastBlockHash.ToString(), pBlockIndex->GetBlockHash().ToString()));
     return nullptr;
@@ -49,7 +49,7 @@ shared_ptr<string> DEX_DB::MakeLastPos(const DEXBlockOrdersCache::KeyType &lastK
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>(strprintf("The block of lastKey is not contained in acitve chains,"
+        return make_shared<string>(strprintf("The block of lastKey is not contained in active chains,"
             " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -100,7 +100,7 @@ public:
     }
 
     bool First() {
-        return First(make_tuple(begin_height, 0, uint256()));
+        return First(make_tuple(CFixedUInt32(begin_height), 0, uint256()));
     }
 
     bool Next() {
@@ -148,7 +148,7 @@ public:
     }
 
     bool First() {
-        return First(make_tuple(begin_height, 0, uint256()));
+        return First(make_tuple(CFixedUInt32(begin_height), 0, uint256()));
     }
 
     bool Next() {
@@ -304,7 +304,7 @@ public:
         : key(), value(), data_map(dbCache.GetMapData()), map_it(data_map.end()), height(heightIn), is_valid(false) {}
 
     bool First() {
-        map_it = data_map.upper_bound(make_tuple(height, (uint8_t)SYSTEM_GEN_ORDER, uint256()));
+        map_it = data_map.upper_bound(make_tuple(CFixedUInt32(height), (uint8_t)SYSTEM_GEN_ORDER, uint256()));
         return Parse();
     }
     bool Next() {
@@ -375,16 +375,16 @@ void CDEXSysOrdersGetter::ToJson(Object &obj) {
 
 bool CDexDBCache::GetActiveOrder(const uint256 &orderId, CDEXOrderDetail &activeOrder) {
     return activeOrderCache.GetData(orderId, activeOrder);
-};
+}
 
-bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) {
-    return activeOrderCache.HaveData(orderId);
-};
+bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) { return activeOrderCache.HaveData(orderId); }
 
 bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
-    if(activeOrderCache.HaveData(orderId)) {
-        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", activeOrder.ToString());
+    if (activeOrderCache.HaveData(orderId)) {
+        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", orderId.GetHex(),
+                        activeOrder.ToString());
     }
+
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
 }
@@ -392,9 +392,9 @@ bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetai
 bool CDexDBCache::UpdateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
-};
+}
 
 bool CDexDBCache::EraseActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.EraseData(orderId)
         && blockOrdersCache.EraseData(MakeBlockOrderKey(orderId, activeOrder));
-};
+}

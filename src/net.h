@@ -236,7 +236,7 @@ public:
     uint256 hashContinue;                   // getblocks the next batch of inventory下一次 盘点的块
     CBlockIndex* pIndexLastGetBlocksBegin;  //上次开始的块  本地节点有的块chainActive.Tip()
     uint256 hashLastGetBlocksEnd;           // 本地节点保存的孤儿块的根块 hash GetOrphanRoot(hash)
-    int32_t nStartingHeight;                    // Start block sync,currHegiht
+    int32_t nStartingHeight;                // Start block sync, current height
     bool fStartSync;
 
     // flood relay

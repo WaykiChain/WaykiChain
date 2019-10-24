@@ -141,8 +141,7 @@ void CWallet::SyncTransaction(const uint256 &hash, CBaseTx *pTx, const CBlock *p
                 }
                 if (IsMine(sptx.get())) {
                     unconfirmedTx[sptx.get()->GetHash()] = sptx.get()->GetNewInstance();
-                    CWalletDB(strWalletFile)
-                        .WriteUnconfirmedTx(sptx.get()->GetHash(), unconfirmedTx[sptx.get()->GetHash()]);
+                    CWalletDB(strWalletFile).WriteUnconfirmedTx(sptx.get()->GetHash(), unconfirmedTx[sptx.get()->GetHash()]);
                 }
             }
             if (mapInBlockTx.count(blockhash)) {
@@ -223,9 +222,15 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     uint256 txid        = pTx->GetHash();
     unconfirmedTx[txid] = pTx->GetNewInstance();
     bool flag           = CWalletDB(strWalletFile).WriteUnconfirmedTx(txid, unconfirmedTx[txid]);
+    string message      = txid.ToString();
+
+    if (!flag) {
+        message = strprintf("write unconfirmed tx failed: %s, corrupted wallet?", txid.GetHex());
+    }
+
     ::RelayTransaction(pTx, txid);
 
-    return std::make_tuple(flag, txid.ToString());
+    return std::make_tuple(flag, message);
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
@@ -422,6 +427,7 @@ CWallet *CWallet::GetInstance() {
     if (StartUp(strWalletFile)) {
         return new CWallet(strWalletFile);
     }
+
     return nullptr;
 }
 

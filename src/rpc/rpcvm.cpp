@@ -52,17 +52,17 @@ Value vmexecutescript(const Array& params, bool fHelp) {
             "\nexecutes the script in vm simulator, and then returns the executing status.\n"
             "\nthe execution include submitcontractdeploytx and submitcontractcalltx.\n"
             "\nArguments:\n"
-            "1.\"addr\": (string required) contract owner address from this wallet\n"
-            "2.\"script_path\": (string required), the file path of the app script\n"
-            "3.\"arguments\": (string, optional) contract method invoke content (Hex encode required)\n"
-            "4.\"amount\": (numeric, optional) amount of WICC to send to app account\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:110010000:sawi\n"
+            "1.\"addr\":                (string required) contract owner address from this wallet\n"
+            "2.\"script_path\":         (string required), the file path of the app script\n"
+            "3.\"arguments\":           (string, optional) contract method invoke content (Hex encode required)\n"
+            "4.\"amount\":              (numeric, optional) amount of WICC to send to app account\n"
+            "5.\"symbol:fee:unit\":     (string:numeric:string, optional) fee paid for miner, default is WICC:110010000:sawi\n"
             "\nResult vm execute detail\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("vmexecutescript","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"\n")
+            + HelpExampleCli("vmexecutescript","\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("vmexecutescript", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/script.lua\"\n"));
+            + HelpExampleRpc("vmexecutescript", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"/tmp/lua/script.lua\""));
     }
 
     string luaScriptFilePath = GetAbsolutePath(params[1].get_str()).string();
@@ -126,8 +126,8 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         !GetTxMinFee(LCONTRACT_INVOKE_TX, chainActive.Height(), SYMB::WICC, invokeMinFee))
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Get tx min fee failed");
 
-    uint64_t minFee = regMinFee + invokeMinFee;
-    uint64_t totalFee = regMinFee + invokeMinFee * 10; // set default totalFee
+    uint64_t minFee   = regMinFee + invokeMinFee;
+    uint64_t totalFee = regMinFee + invokeMinFee * 10;  // set default totalFee
     if (params.size() > 4) {
         ComboMoney feeIn = RPC_PARAM::GetFee(params, 4, LCONTRACT_DEPLOY_TX);
         assert(feeIn.symbol == SYMB::WICC);
@@ -139,9 +139,9 @@ Value vmexecutescript(const Array& params, bool fHelp) {
                            strprintf("input fee could not smaller than: %ld sawi", minFee));
     }
 
-    CBlockIndex *pTip =  chainActive.Tip();
-    uint32_t fuelRate  = GetElementForBurn(pTip);
-    uint32_t blockTime = pTip->GetBlockTime();
+    CBlockIndex *pTip      = chainActive.Tip();
+    uint32_t fuelRate      = GetElementForBurn(pTip);
+    uint32_t blockTime     = pTip->GetBlockTime();
     uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
 
     auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
@@ -200,7 +200,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
 
     CRegID appId(newHeight, 1); //App RegId
 
-    vector<unsigned char> arguments;
+    vector<uint8_t> arguments;
     if (params.size() > 2) {
         arguments = ParseHex(params[2].get_str());
     }
@@ -219,7 +219,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.arguments    = string(arguments.begin(), arguments.end());
         contractInvokeTx.valid_height = newHeight;
 
-        vector<unsigned char> signature;
+        vector<uint8_t> signature;
         if (!pWalletMain->Sign(srcKeyId, contractInvokeTx.ComputeSignatureHash(), contractInvokeTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }

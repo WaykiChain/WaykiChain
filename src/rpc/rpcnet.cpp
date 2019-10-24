@@ -34,7 +34,7 @@ Value getconnectioncount(const Array& params, bool fHelp) {
             HelpExampleCli("getconnectioncount", "") + "\nAs json rpc\n" + HelpExampleRpc("getconnectioncount", ""));
 
     LOCK(cs_vNodes);
-    return (int)vNodes.size();
+    return (int32_t)vNodes.size();
 }
 
 Value ping(const Array& params, bool fHelp) {
@@ -377,42 +377,49 @@ Value getchaininfo(const Array& params, bool fHelp) {
             "getchaininfo \"num\"\n"
             "\nget the chain state by the most recent blocks.\n"
             "\nArguments:\n"
-            "1.num   (numeric, required) The most _num_ recent blocks (shall not exceed 1000)\n"
+            "1.\"num\":                 (numeric, required) The most _num_ recent blocks (shall not exceed 1000)\n"
             "\nResult:\n"
-            "{\n"
-            "  \"blocktime\": n, (numeric) the time of each block\n"
-            "  \"transactions\": n, (numeric) number of transactions within each block\n"
-            "  \"fuel\": n, (numeric) fuel of each block\n"
-            "  \"miner\": n, (string) RegId of the miner of each block\n"
-            "}\n"
+            "[\n"
+            "  {\n"
+            "    \"height\": n,         (numeric) The block height\n"
+            "    \"time\": n,           (numeric) The block time\n"
+            "    \"tx_count\":n,        (numeric) The transaction number in the block\n"
+            "    \"fuel\": n,           (numeric) The fuel consumed in the block\n"
+            "    \"fuel_rate\":n,       (numeric) The fuel rate in the block\n"
+            "    \"miner\": n,          (string) The miner\n"
+            "  },\n"
+            "  ...\n"
+            "]\n"
             "\nExamples:\n" +
             HelpExampleCli("getchaininfo", "5") + "\nAs json rpc call\n" + HelpExampleRpc("getchaininfo", "5"));
 
     RPCTypeCheck(params, list_of(int_type));
 
-    int height = params[0].get_int();
+    int32_t height = params[0].get_int();
     if (height < 1 || height > chainActive.Height() || height > MAX_RECENT_BLOCK_COUNT)
         throw runtime_error("Block number out of range.");
 
     CBlockIndex* pBlockIndex = chainActive.Tip();
-    Array blocktime;
-    Array transactions;
-    Array fuel;
-    Array blockminer;
+    Array array;
+    CBlock block;
 
-    for (int i = 0; (i < height) && (pBlockIndex != NULL); i++) {
-        blocktime.push_back(pBlockIndex->GetBlockTime());
-        transactions.push_back((int)pBlockIndex->nTx);
-        fuel.push_back(pBlockIndex->nFuel);
-        blockminer.push_back(pBlockIndex->miner.ToString()) ;
+    for (int32_t i = 0; (i < height) && (pBlockIndex != nullptr); i++) {
+        Object object;
+        object.push_back(Pair("height",     pBlockIndex->height));
+        object.push_back(Pair("time",       pBlockIndex->GetBlockTime()));
+        object.push_back(Pair("tx_count",   (int32_t)pBlockIndex->nTx));
+        object.push_back(Pair("fuel",       (int64_t)pBlockIndex->nFuel));
+        object.push_back(Pair("fuel_rate",  (int32_t)pBlockIndex->nFuelRate));
+
+        block.SetNull();
+        if (ReadBlockFromDisk(pBlockIndex, block)) {
+            object.push_back(Pair("miner",  block.vptx[0]->txUid.ToString()));
+        }
+
+        array.push_back(object);
+
         pBlockIndex = pBlockIndex->pprev;
     }
 
-    Object obj;
-    obj.push_back(Pair("blocktime",     blocktime));
-    obj.push_back(Pair("transactions",  transactions));
-    obj.push_back(Pair("fuel",          fuel));
-    obj.push_back(Pair("miner",         blockminer));
-
-    return obj;
+    return array;
 }

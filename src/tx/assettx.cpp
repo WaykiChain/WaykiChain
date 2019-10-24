@@ -50,7 +50,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 
     if (!txAccount.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, assetFee))
         return state.DoS(100, ERRORMSG("ProcessAssetFee, insufficient funds in account for %s asset fee=%llu, tx_regid=%s",
-                        assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+                        action, assetFee, txAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
     uint64_t riskFee       = assetFee * ASSET_RISK_FEE_RATIO / RATIO_BOOST;
     uint64_t minerTotalFee = assetFee - riskFee;

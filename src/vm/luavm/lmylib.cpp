@@ -902,7 +902,7 @@ int32_t ExGetTxContractFunc(lua_State *L) {
 int32_t ExLogPrintFunc(lua_State *L) {
     vector<std::shared_ptr<vector<uint8_t>>> retdata;
     if (!GetDataTableLogPrint(L, retdata) || retdata.size() != 2) {
-        return RetFalse("ExLogPrintFunc para err1");
+        return RetFalse("ExLogPrintFunc para, err1");
     }
 
     CDataStream tep1(*retdata.at(0), SER_DISK, CLIENT_VERSION);
@@ -2132,11 +2132,10 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
     CLuaVMContext &vmContext = pLuaVMRunEnv->GetContext();
     auto featureForkVersion = GetFeatureForkVersion(vmContext.height);
 
-    lua_Integer blockTime = 0;
-    if (featureForkVersion == MAJOR_VER_R1) {
-        // compact with old data
-        blockTime = vmContext.prev_block_time;
-    } else {
+    lua_Integer blockTime = vmContext.prev_block_time;
+    if (SysCfg().NetworkID() == MAIN_NET &&
+        featureForkVersion == MAJOR_VER_R2
+        && height < FORK_MAIN_CONTRACT_GET_BLOCK_TIME) {
         blockTime = vmContext.block_time;
     }
 

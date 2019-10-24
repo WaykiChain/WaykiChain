@@ -292,7 +292,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                                      const uint32_t currBlockTime, const CAccountDBCache &accountCache,
                                      vector<CReceipt> &receipts) {
     if (currHeight < last_vote_height) {
-        LogPrint("ERROR", "currHeight (%d) < last_vote_height (%d)", currHeight, last_vote_height);
+        LogPrint("ERROR", "currHeight (%u) < last_vote_height (%llu)\n", currHeight, last_vote_height);
         return false;
     }
 

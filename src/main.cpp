@@ -356,8 +356,9 @@ bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBas
 
     // is it a miner reward tx or price median tx?
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx())
-        return state.Invalid(ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
-                            hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
+        return state.Invalid(
+            ERRORMSG("AcceptToMemoryPool() : txid: %s is a block reward or price median tx, not allowed to put into mempool",
+                    hash.GetHex()), REJECT_INVALID, "tx-coinbase-to-mempool");
 
     // Rather not work on nonstandard transactions (unless -testnet/-regtest)
     string reason;
@@ -459,7 +460,6 @@ int32_t GetTxConfirmHeight(const uint256 &hash, CBlockDBCache &blockCache) {
             CBlockHeader header;
             try {
                 file >> header;
-
             } catch (std::exception &e) {
                 ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
                 return -1;
@@ -1169,7 +1169,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         return state.DoS(100, ERRORMSG("ConnectBlock() : check block error"), REJECT_INVALID, "check-block-error");
 
     if (!fJustCheck) {
-        // Verify that the view's current state corresponds to the previous block
+        // Verify that the cache's current state corresponds to the previous block
         uint256 hashPrevBlock = pIndex->pprev == nullptr ? uint256() : pIndex->pprev->GetBlockHash();
         if (hashPrevBlock != cw.blockCache.GetBestBlockHash()) {
             LogPrint("INFO", "hashPrevBlock=%s, bestblock=%s\n", hashPrevBlock.GetHex(),
@@ -1581,7 +1581,7 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
     // Read block from disk.
     CBlock block;
     if (!ReadBlockFromDisk(pIndexNew, block))
-        return state.Abort(strprintf("Failed to read block hash: %s\n", pIndexNew->GetBlockHash().GetHex()));
+        return state.Abort(strprintf("Failed to read block hash: %s", pIndexNew->GetBlockHash().GetHex()));
 
     // Apply the block automatically to the chain state.
     int64_t nStart = GetTimeMicros();
@@ -1827,7 +1827,7 @@ bool FindBlockPos(CValidationState &state, CDiskBlockPos &pos, uint32_t nAddSize
         }
     } else {
         while (infoLastBlockFile.nSize + nAddSize >= MAX_BLOCKFILE_SIZE) {
-            LogPrint("INFO", "Leaving block file %i: %s\n", nLastBlockFile, infoLastBlockFile.ToString());
+            LogPrint("INFO", "Leaving block file %d: %s\n", nLastBlockFile, infoLastBlockFile.ToString());
             FlushBlockFile(true);
             nLastBlockFile++;
             infoLastBlockFile.SetNull();
@@ -1911,7 +1911,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         LogPrint("INFO", "ProcessForkedChain() : found [%d]: %s in cache\n",
             pPreBlockIndex->height, forkChainTipBlockHash.GetHex());
     } else {
-        spCW              = CCacheWrapper::NewCopyFrom(pCdMan);
+        spCW                     = CCacheWrapper::NewCopyFrom(pCdMan);
         int64_t beginTime        = GetTimeMillis();
         CBlockIndex *pBlockIndex = chainActive.Tip();
 
@@ -1931,6 +1931,9 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
             pBlockIndex = pBlockIndex->pprev;
         }  // Rollback the active chain to the forked point.
+
+        // Attention: need to reload top N delegates.
+        spCW->delegateCache.LoadTopDelegateList();
 
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
@@ -1991,15 +1994,13 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
                 pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
             }
+
+            // Attention: need to reload top N delegates.
+            spNewForkCW->delegateCache.LoadTopDelegateList();
         }
-        spNewForkCW->Flush(); // flush to spCW
-    }
 
-    if (!VerifyRewardTx(&block, *spCW, false))
-        return state.DoS(100, ERRORMSG("ProcessForkedChain() : the block hash=%s verify reward tx error",
-            block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
+        spNewForkCW->Flush();  // flush to spNewForkCW
 
-    if (!vPreBlocks.empty()) {
         vector<CBlock>::iterator iterBlock = vPreBlocks.begin();
         if (forkChainTipFound) {
             mapForkCache.erase(forkChainTipBlockHash);
@@ -2007,6 +2008,12 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
         mapForkCache[iterBlock->GetHash()] = spCW;
     }
+
+    // Attention: need to reload top N delegates.
+    spCW->delegateCache.LoadTopDelegateList();
+    if (!VerifyRewardTx(&block, *spCW, false))
+        return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
+            block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 
     return true;
 }
@@ -2330,14 +2337,12 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
             bool success = PruneOrphanBlocks(pBlock->GetHeight());
             if (success) {
                 COrphanBlock *pblock2 = new COrphanBlock();
-                {
-                    CDataStream ss(SER_DISK, CLIENT_VERSION);
-                    ss << *pBlock;
-                    pblock2->vchBlock = vector<uint8_t>(ss.begin(), ss.end());
-                }
-                pblock2->blockHash = blockHash;
+                CDataStream ss(SER_DISK, CLIENT_VERSION);
+                ss << *pBlock;
+                pblock2->vchBlock      = vector<uint8_t>(ss.begin(), ss.end());
+                pblock2->blockHash     = blockHash;
                 pblock2->prevBlockHash = pBlock->GetPrevBlockHash();
-                pblock2->height = pBlock->GetHeight();
+                pblock2->height        = pBlock->GetHeight();
                 mapOrphanBlocks.insert(make_pair(blockHash, pblock2));
                 mapOrphanBlocksByPrev.insert(make_pair(pblock2->prevBlockHash, pblock2));
                 setOrphanBlock.insert(pblock2);
