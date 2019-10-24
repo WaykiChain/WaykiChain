@@ -744,10 +744,10 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         auto &dealItem = dealItems[i];
         //1. get and check buyDealOrder and sellDealOrder
         CDEXOrderDetail buyOrder, sellOrder;
-        if (!GetDealOrder(cw, state, dealItem.buyOrderId, ORDER_BUY, buyOrder))
+        if (!GetDealOrder(cw, state, i, dealItem.buyOrderId, ORDER_BUY, buyOrder))
             return false;
 
-        if (!GetDealOrder(cw, state, dealItem.sellOrderId, ORDER_SELL, sellOrder))
+        if (!GetDealOrder(cw, state, i, dealItem.sellOrderId, ORDER_SELL, sellOrder))
             return false;
 
         // 2. get account of order
@@ -1012,19 +1012,19 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &orderId,
+bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(orderId, dealOrder))
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! orderId=%s",
-            orderId.ToString()), REJECT_INVALID, "get-active-order-failed");
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! i=%d, orderId=%s",
+            index, orderId.ToString()), REJECT_INVALID,
+            strprintf("get-active-order-failed, i=%d, order_id=%s", index, orderId.ToString()));
 
     if (dealOrder.order_side != orderSide)
-        return state.DoS(100,
-                         ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s, "
-                                  "but get order_side=%s! orderId=%s",
-                                  GetOrderSideName(orderSide),
-                                  GetOrderSideName(dealOrder.order_side), orderId.ToString()),
-                         REJECT_INVALID, "order-side-unmatched");
+        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s "
+                "but got order_side=%s! i=%d, orderId=%s", GetOrderSideName(orderSide),
+                GetOrderSideName(dealOrder.order_side), index, orderId.ToString()),
+                REJECT_INVALID,
+                strprintf("order-side-unmatched, i=%d, order_id=%s", index, orderId.ToString()));
 
     return true;
 }
