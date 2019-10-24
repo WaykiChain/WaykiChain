@@ -151,8 +151,8 @@ public:
 
 class CAsset: public CBaseAsset {
 public:
-    uint64_t min_order_amount;  // min amount for submit order tx, 0 is unlimit
-    uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimit
+    uint64_t min_order_amount;  // min amount for submit order tx, 0 is unlimited
+    uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimited
 public:
     CAsset(): CBaseAsset(), min_order_amount(0), max_order_amount(0) {}
 
