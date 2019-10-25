@@ -440,6 +440,7 @@ Value listaddr(const Array& params, bool fHelp) {
             obj.push_back(Pair("addr",          keyid.ToAddress()));
             obj.push_back(Pair("regid",         account.regid.ToString()));
             obj.push_back(Pair("regid_mature",  account.regid.IsMature(chainActive.Height())));
+            obj.push_back(Pair("received_votes",account.received_votes));
 
             Object tokenMapObj;
             for (auto tokenPair : account.tokens) {
