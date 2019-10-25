@@ -149,7 +149,7 @@ static const string EMPTY_STRING = "";
 // soft forks
 
 // soft fork for contract api GetBlockTimestamp() in mainnet
-static const int32_t FORK_MAIN_CONTRACT_GET_BLOCK_TIME = 4450780;
+static const int32_t FORK_MAIN_CONTRACT_GET_BLOCK_TIME = 4287969;
 
 
 #endif //CONFIG_CONST_H
