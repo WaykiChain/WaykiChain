@@ -129,17 +129,10 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeigh
 }
 
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
-    FeatureForkVersionEnum featureForkVersion = GetFeatureForkVersion(currBlockHeight);
-    switch (featureForkVersion) {
-        case MAJOR_VER_R1:
-            return SysCfg().GetBlockIntervalPreStableCoinRelease();
-        case MAJOR_VER_R2:
-            return SysCfg().GetBlockIntervalStableCoinRelease();
-        default:
-            assert(false && "unknown feature fork version");
-    }
-
-    return 0;
+    if (currBlockHeight < (int32_t)SysCfg().GetFeatureForkHeight())
+        return SysCfg().GetBlockIntervalPreStableCoinRelease();
+    else
+        return SysCfg().GetBlockIntervalStableCoinRelease();
 }
 
 inline uint32_t GetYearBlockCount(const int32_t currBlockHeight) {
