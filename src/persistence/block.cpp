@@ -106,7 +106,7 @@ CUserID CBlock::GetMinerUserID() const {
     return vptx[0]->txUid;
 }
 
-void CBlock::Print(CBlockDBCache& blockCache) const {
+void CBlock::Print() const {
     string medianPrices;
     for (const auto &item : GetBlockMedianPrice()) {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
@@ -116,15 +116,6 @@ void CBlock::Print(CBlockDBCache& blockCache) const {
              "nFuelRate=%d, median prices: %s\n",
              height, GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
              vptx.size(), nFuel, nFuelRate, medianPrices);
-    // LogPrint("INFO", "list transactions:\n");
-    // for (uint32_t i = 0; i < vptx.size(); i++) {
-    //     LogPrint("INFO", "%s ", vptx[i]->ToString(blockCache));
-    // }
-    // LogPrint("INFO", "  vMerkleTree: ");
-    // for (uint32_t i = 0; i < vMerkleTree.size(); i++) {
-    //     LogPrint("INFO", "%s ", vMerkleTree[i].ToString());
-    // }
-    // LogPrint("INFO", "\n");
 }
 
 std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txid) const {

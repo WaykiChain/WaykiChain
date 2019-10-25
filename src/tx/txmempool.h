@@ -73,9 +73,6 @@ public:
     bool AddUnchecked(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state);
     void Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive = false);
     void QueryHash(vector<uint256> &txids);
-    uint32_t GetUpdatedTransactionNum() const;
-    void AddUpdatedTransactionNum(uint32_t n);
-
     bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
                           bool bExecute = true);
     void SetMemPoolCache(CCacheDBManager *pCdManIn);
@@ -88,7 +85,6 @@ public:
 
 private:
     bool fSanityCheck; // Normally false, true if -checkmempool or -regtest
-    uint32_t nTransactionsUpdated;
 };
 
 

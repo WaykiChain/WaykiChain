@@ -582,48 +582,39 @@ std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn) {
 
 bool CheckWork(CBlock *pBlock, CWallet &wallet) {
     // Print block information
-    pBlock->Print(*pCdMan->pBlockCache);
+    pBlock->Print();
 
-    // Found a solution
-    {
-        LOCK(cs_main);
-        if (pBlock->GetPrevBlockHash() != chainActive.Tip()->GetBlockHash())
-            return ERRORMSG("CheckWork() : generated block is stale");
+    if (pBlock->GetPrevBlockHash() != chainActive.Tip()->GetBlockHash())
+        return ERRORMSG("CheckWork() : generated block is stale");
 
-        // Process this block the same as if we received it from another node
-        CValidationState state;
-        if (!ProcessBlock(state, nullptr, pBlock))
-            return ERRORMSG("CheckWork() : failed to process block");
-    }
+    // Process this block the same as if we received it from another node
+    CValidationState state;
+    if (!ProcessBlock(state, nullptr, pBlock))
+        return ERRORMSG("CheckWork() : failed to process block");
 
     return true;
 }
 
-bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev, uint32_t txUpdated,
-                      CCacheWrapper &cw) {
-    int64_t nStart = GetTime();
-
+void static MineBlock(CWallet *pWallet) {
     while (true) {
         boost::this_thread::interruption_point();
 
-        // Should not mine new blocks if the miner does not connect to other nodes except running
-        // in regtest network.
-        if (vNodes.empty() && SysCfg().NetworkID() != REGTEST_NET)
-            return false;
-
-        if (pIndexPrev != chainActive.Tip())
-            return false;
+        int64_t lastTime        = 0;
+        bool success            = false;
+        int32_t blockHeight     = chainActive.Height() + 1;
+        CBlockIndex *pIndexPrev = chainActive.Tip();
 
         // Take a sleep and check.
-        [&]() {
-            int64_t whenCanIStart = pIndexPrev->GetBlockTime() + GetBlockInterval(chainActive.Height() + 1);
-            while (GetTime() < whenCanIStart) {
-                ::MilliSleep(100);
-            }
-        }();
+        int64_t whenCanIStart = pIndexPrev->GetBlockTime() + GetBlockInterval(blockHeight);
+        while (GetTime() < whenCanIStart) {
+            boost::this_thread::interruption_point();
 
-        bool success = false;
-        int64_t lastTime;
+            ::MilliSleep(100);
+        }
+
+        // Receive a new block before generating a new block by itself.
+        if (pIndexPrev != chainActive.Tip())
+            continue;  // continue to mine a new block if failed.
 
         vector<CRegID> delegateList;
         {
@@ -631,91 +622,97 @@ bool static MineBlock(CBlock *pBlock, CWallet *pWallet, CBlockIndex *pIndexPrev,
 
             if (!pCdMan->pDelegateCache->GetTopDelegateList(delegateList)) {
                 LogPrint("MINER", "MineBlock() : failed to get top delegates\n");
-                return false;
+                return;
             }
         }
 
-        uint16_t index = 0;
-        for (auto &delegate : delegateList)
-            LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
+        // uint16_t index = 0;
+        // for (auto &delegate : delegateList)
+        //     LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
-        ShuffleDelegates(pBlock->GetHeight(), delegateList);
+        ShuffleDelegates(blockHeight, delegateList);
 
-        index = 0;
-        for (auto &delegate : delegateList)
-            LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
+        // index = 0;
+        // for (auto &delegate : delegateList)
+        //     LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
         int64_t currentTime = GetTime();
-
         CRegID regId;
-        GetCurrentDelegate(currentTime, pBlock->GetHeight(), delegateList, regId);
+        GetCurrentDelegate(currentTime, blockHeight, delegateList, regId);
 
         CAccount minerAcct;
         {
             LOCK(cs_main);
 
-            if (!cw.accountCache.GetAccount(regId, minerAcct)) {
+            if (!pCdMan->pAccountCache->GetAccount(regId, minerAcct)) {
                 LogPrint("MINER", "MineBlock() : failed to get miner's account: %s\n", regId.ToString());
-                return false;
+                return;
             }
         }
-
-        if (uint32_t(chainActive.Height() + 1) != pBlock->GetHeight())
-            return false;
 
         {
             LOCK2(cs_main, pWalletMain->cs_wallet);
             CKey acctKey;
             if (pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey, true) ||
                 pWalletMain->GetKey(minerAcct.keyid.ToAddress(), acctKey)) {
-                lastTime   = GetTimeMillis();
-                mining     = true;
-                minerKeyId = minerAcct.keyid;
-                success    = CreateBlockRewardTx(currentTime, minerAcct, cw.accountCache, pBlock);
+                lastTime         = GetTimeMillis();
+                mining           = true;
+                minerKeyId       = minerAcct.keyid;
+
+                // Create a new block
+                auto spCW   = std::make_shared<CCacheWrapper>(pCdMan);
+                auto pBlock = (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight())
+                                  ? CreateStableCoinGenesisBlock()  // stable coin genesis
+                                  : (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1)
+                                        ? CreateNewBlockPreStableCoinRelease(*spCW)  // pre-stable coin release
+                                        : CreateNewBlockStableCoinRelease(*spCW);    // stable coin release
+
+                if (!pBlock.get())
+                    throw runtime_error("MineBlock() : failed to create new block");
+
+                LogPrint("MINER",
+                         "MineBlock() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
+                         pBlock->vptx.size(), GetTimeMillis() - lastTime);
+
+                lastTime = GetTimeMillis();
+                success  = CreateBlockRewardTx(currentTime, minerAcct, spCW->accountCache, pBlock.get());
                 LogPrint("MINER", "MineBlock() : %s to create block reward transaction, used %d ms, miner address %s\n",
-                        success ? "succeed" : "failed", GetTimeMillis() - lastTime, minerAcct.keyid.ToAddress());
+                         success ? "succeed" : "failed", GetTimeMillis() - lastTime, minerAcct.keyid.ToAddress());
+
+                if (!success)
+                    continue;   // continue to mine a new block if failed.
+
+                lastTime = GetTimeMillis();
+                success  = CheckWork(pBlock.get(), *pWallet);
+                LogPrint("MINER", "MineBlock() : %s to check work, used %s ms\n", success ? "succeed" : "failed",
+                         GetTimeMillis() - lastTime);
+
+                miningBlockInfo.time          = pBlock->GetBlockTime();
+                miningBlockInfo.nonce         = pBlock->GetNonce();
+                miningBlockInfo.height        = pBlock->GetHeight();
+                miningBlockInfo.totalFuel     = pBlock->GetFuel();
+                miningBlockInfo.fuelRate      = pBlock->GetFuelRate();
+                miningBlockInfo.hash          = pBlock->GetHash();
+                miningBlockInfo.hashPrevBlock = pBlock->GetHash();
+
+                {
+                    LOCK(csMinedBlocks);
+                    minedBlocks.push_front(miningBlockInfo);
+                }
+
+                if (!success)
+                    continue;  // continue to mine a new block if failed.
+
             } else {
                 mining = false;
             }
         }
-
-        if (success) {
-            SetThreadPriority(THREAD_PRIORITY_NORMAL);
-
-            lastTime = GetTimeMillis();
-            success  = CheckWork(pBlock, *pWallet);
-            LogPrint("MINER", "MineBlock() : %s to check work, used %s ms\n", success ? "succeed" : "failed",
-                     GetTimeMillis() - lastTime);
-
-            SetThreadPriority(THREAD_PRIORITY_LOWEST);
-
-            miningBlockInfo.time          = pBlock->GetBlockTime();
-            miningBlockInfo.nonce         = pBlock->GetNonce();
-            miningBlockInfo.height        = pBlock->GetHeight();
-            miningBlockInfo.totalFuel     = pBlock->GetFuel();
-            miningBlockInfo.fuelRate      = pBlock->GetFuelRate();
-            miningBlockInfo.hash          = pBlock->GetHash();
-            miningBlockInfo.hashPrevBlock = pBlock->GetHash();
-
-            {
-                LOCK(csMinedBlocks);
-                minedBlocks.push_front(miningBlockInfo);
-            }
-
-            return true;
-        }
-
-        if (mempool.GetUpdatedTransactionNum() != txUpdated || GetTime() - nStart > 60)
-            return false;
     }
-
-    return false;
 }
 
 void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
     LogPrint("INFO", "CoinMiner() : started\n");
 
-    SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("Coin-miner");
 
     auto HaveMinerKey = [&]() {
@@ -757,28 +754,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
 
             miningBlockInfo.SetNull();  // TODO: remove
 
-            //
-            // Create new block
-            //
-            int64_t lastTime        = GetTimeMillis();
-            uint32_t txUpdated      = mempool.GetUpdatedTransactionNum();
-            int32_t blockHeight     = chainActive.Height() + 1;
-            CBlockIndex *pIndexPrev = chainActive.Tip();
-
-            auto spCW   = std::make_shared<CCacheWrapper>(pCdMan);
-            auto pBlock = (blockHeight == (int32_t)SysCfg().GetStableCoinGenesisHeight())
-                              ? CreateStableCoinGenesisBlock()  // stable coin genesis
-                              : (GetFeatureForkVersion(blockHeight) == MAJOR_VER_R1)
-                                    ? CreateNewBlockPreStableCoinRelease(*spCW) // pre-stable coin release
-                                    : CreateNewBlockStableCoinRelease(*spCW);   // stable coin release
-
-            if (!pBlock.get())
-                throw runtime_error("CoinMiner() : failed to create new block");
-
-            LogPrint("MINER", "CoinMiner() : succeeded in adding a new block, contain %s transactions, used %s ms\n",
-                    pBlock->vptx.size(), GetTimeMillis() - lastTime);
-
-            MineBlock(pBlock.get(), pWallet, pIndexPrev, txUpdated, *spCW);
+            MineBlock(pWallet);
 
             if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= GetCurrHeight())
                 throw boost::thread_interrupted();
