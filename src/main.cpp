@@ -1558,7 +1558,8 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
             if (state.IsInvalid()) {
                 InvalidBlockFound(pIndexNew, state);
             }
-            return ERRORMSG("ConnectTip() : ConnectBlock %s failed", pIndexNew->GetBlockHash().ToString());
+
+            return ERRORMSG("ConnectTip() : ConnectBlock [%d]:%s failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
         }
         mapBlockSource.erase(inv.hash);
 
