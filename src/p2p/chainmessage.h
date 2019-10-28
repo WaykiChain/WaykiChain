@@ -530,7 +530,7 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
         return ERRORMSG("Unknown transaction type from peer %s, ignore", pFrom->addr.ToString());
     }
 
-    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsPriceMedianTx()) {
+    if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsCoinRewardTx() || pBaseTx->IsPriceMedianTx()) {
         return ERRORMSG("Forbidden transaction from network from peer %s, raw: %s", pFrom->addr.ToString(),
                         HexStr(vRecv.begin(), vRecv.end()));
     }
