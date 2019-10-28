@@ -88,7 +88,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"tipblock_time\": xxxxx,        (numeric) the nTime of the tip block in chainActive\n"
             "  \"tipblock_hash\": \"xxxxx\",    (string) the tip block hash\n"
             "  \"tipblock_height\": xxxxx ,     (numeric) the number of blocks contained the most work in the network\n"
-            "  \"syncblock_height\": xxxxx ,    (numeric) the block height of the loggest chain found in the network\n"
+            "  \"synblock_height\": xxxxx ,     (numeric) the block height of the loggest chain found in the network\n"
             "  \"connections\": xxxxx,          (numeric) the number of connections\n"
             "  \"errors\": \"xxxxx\"            (string) any error messages\n"
             "}\n"
@@ -124,7 +124,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_time",         (int32_t)chainActive.Tip()->nTime));
     obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));
-    obj.push_back(Pair("syncblock_height",      nSyncTipHeight));
+    obj.push_back(Pair("synblock_height",       nSyncTipHeight));
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 
