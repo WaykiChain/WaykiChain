@@ -184,7 +184,7 @@ namespace dbk {
     }
 
     // CDBTailKey
-    // support patial match.
+    // support partial match.
     // must be last element of pair or tuple key,
     template<uint32_t __MAX_KEY_SIZE>
     class CDBTailKey {
