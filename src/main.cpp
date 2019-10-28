@@ -2031,7 +2031,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
-    LogPrint("INFO", "AcceptBlock[%d]: %s, miner: %s, timestamp: %u\n", block.GetHeight(), blockHash.GetHex(),
+    LogPrint("INFO", "AcceptBlock[%d]: %s, miner: %s, ts: %u\n", block.GetHeight(), blockHash.GetHex(),
              block.GetMinerUserID().ToString(), block.GetBlockTime());
 
     // Check for duplicated block
