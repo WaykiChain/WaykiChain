@@ -552,8 +552,9 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
 
     int32_t nDoS = 0;
     if (state.IsInvalid(nDoS)) {
-        LogPrint("INFO", "%s from %s %s was not accepted into the memory pool: %s\n", pBaseTx->GetHash().ToString(),
-                 pFrom->addr.ToString(), pFrom->cleanSubVer, state.GetRejectReason());
+        LogPrint("INFO", "%s [%d] from %s %s was not accepted into the memory pool: %s\n",
+                pBaseTx->GetHash().ToString(), pBaseTx->valid_height,
+                pFrom->addr.ToString(), pFrom->cleanSubVer, state.GetRejectReason());
 
         pFrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
         // if (nDoS > 0) {
