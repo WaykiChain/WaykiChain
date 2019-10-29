@@ -594,14 +594,14 @@ static bool GetMiner(const int32_t blockHeight, const int64_t currentTime, CAcco
     for (auto &delegate : delegateList)
         LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
-    CRegID regId;
-    GetCurrentDelegate(currentTime, blockHeight, delegateList, regId);
+    CRegID minerRegId;
+    GetCurrentDelegate(currentTime, blockHeight, delegateList, minerRegId);
 
     {
         LOCK(cs_main);
 
-        if (!pCdMan->pAccountCache->GetAccount(regId, minerAccount)) {
-            LogPrint("MINER", "GetMiner() : failed to get miner account: %s\n", regId.ToString());
+        if (!pCdMan->pAccountCache->GetAccount(minerRegId, minerAccount)) {
+            LogPrint("MINER", "GetMiner() : failed to get miner account: %s\n", minerRegId.ToString());
             return false;
         }
     }
