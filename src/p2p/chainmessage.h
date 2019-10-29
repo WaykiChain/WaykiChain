@@ -617,8 +617,8 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     if (pIndex)
         pIndex = chainActive.Next(pIndex);
 
-    static int32_t nLimit = 500;
-    LogPrint("net", "getblocks %d to %s limit %d from peer %s\n", (pIndex ? pIndex->height : -1),
+    int32_t nLimit = 500;
+    LogPrint("net", "recv getblocks %d to %s limit %d from peer %s\n", (pIndex ? pIndex->height : -1),
              hashStop.ToString(), nLimit, pFrom->addr.ToString());
 
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
@@ -631,7 +631,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
-            LogPrint("net", "getblocks stopping at limit %d %s from peer %s\n", pIndex->height,
+            LogPrint("net", "process getblocks stopping at limit %d %s from peer %s\n", pIndex->height,
                      pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;
