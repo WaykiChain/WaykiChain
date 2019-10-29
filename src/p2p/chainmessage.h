@@ -653,13 +653,17 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
     for (CInv &inv : vInv) {
         boost::this_thread::interruption_point();
         pFrom->AddInventoryKnown(inv);
+
         bool fAlreadyHave = AlreadyHave(inv);
-
-        int32_t nBlockHeight = 0;
-        if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
+        if (fAlreadyHave) {
+            int32_t nBlockHeight = 0;
+            if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
             nBlockHeight = mapBlockIndex[inv.hash]->height;
+            LogPrint("net", "got inv[%d]: %s h=%d peer=%d\n", i++, inv.ToString(), nBlockHeight, pFrom->GetId());
+        } else {
+            LogPrint("net", "got inv[%d]: %s new peer=%d\n", i++, inv.ToString(), pFrom->GetId());
+        }
 
-        LogPrint("net", "got inv[%d]: %s  %s peer=%d\n", i++, inv.ToString(), fAlreadyHave ? "have" : "new", pFrom->GetId());
 
         if (!fAlreadyHave) {
             if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
