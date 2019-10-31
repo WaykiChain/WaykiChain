@@ -20,6 +20,7 @@
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/abi_serializer.hpp"
+#include "wasm/wasm_native_contract_abi.hpp"
 
 static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
@@ -55,13 +56,21 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     }
     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
 
-    //should be lock
-    CUniversalContract contract;
-    pCdMan->pContractCache->GetContract(wasm::Name2RegID(t.contract), contract);
 
-    std::vector<char> abi(contract.abi.begin(), contract.abi.end());
+    std::vector<char> abi;
+    if(t.contract == wasm::wasmio){
+        wasm::abi_def wasmio_abi = wasmio_contract_abi();
+        abi = wasm::pack<wasm::abi_def>(wasmio_abi);
+    } else {
+        //should be lock
+        CUniversalContract contract;
+        pCdMan->pContractCache->GetContract(wasm::Name2RegID(t.contract), contract);
+        abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
+    }
 
-    if (contract.abi.size() > 0) {
+    //std::vector<char> abi(contract.abi.begin(), contract.abi.end());
+
+    if (abi.size() > 0) {
         //WASM_TRACE("%s", ToHex(t.data, "").c_str());
         if(t.data.size() > 0)
             val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,

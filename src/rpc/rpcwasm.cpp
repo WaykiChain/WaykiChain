@@ -35,6 +35,7 @@
 #include "types/name.hpp"
 #include "types/asset.hpp"
 #include "wasm_config.hpp"
+#include "wasm_native_contract_abi.hpp"
 
 using namespace std;
 using namespace boost;
@@ -182,8 +183,6 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 
         CRegID senderRegID;
         pCdMan->pAccountCache->GetRegId(sender, senderRegID);
-
-
         uint64_t contract = wasm::RegID2Name(contractRegID);
 
         tx.nTxType = WASM_CONTRACT_TX;
@@ -225,6 +224,32 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     return obj;
 }
 
+bool is_digital_string(const string s){
+    if (s.length() > 10 || s.length() == 0) //int max is 4294967295 can not over 10
+        return false;
+    for (auto c : s) {
+        if (!isdigit(c))
+            return false;
+    }
+    return true ;
+}
+
+bool is_regid(const string& s){
+    int len = s.length();
+    if (len >= 3) {
+        int pos = s.find('-');
+
+        if (pos > len - 1) {
+            return false;
+        }
+        string firstStr = s.substr(0, pos);
+        string endStr = s.substr(pos + 1);
+
+        return is_digital_string(firstStr) && is_digital_string(endStr) ;
+    }
+    return false;
+}
+
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
@@ -243,25 +268,9 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
                 "\nAs json rpc call\n" +
                 HelpExampleRpc("callcontracttx",
                                "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
-        // 1.sender
-        // 2.contract
-        // 3.action
-        // 4.data
-        // 5.fee
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
-
-    // std::cout << "rpccall wasmcontracttx line321"
-    //           << " sender:" << params[0].get_str()
-    //           << " contract:" << params[1].get_str()
-    //           << " action:" << params[2].get_str()
-    //           //<< " data:"<< json_spirit::write(params[3].get_obj())
-    //           << " data:" << params[3].get_str()
-    //           //<< " amount:" << params[4].get_str()
-    //           << " fee:" << params[4].get_str()
-    //           << " \n";
-
 
     EnsureWalletIsUnlocked();
 
@@ -273,17 +282,34 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
     // }
 
-    CRegID contractRegID(params[1].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    uint64_t contract;
+    std::vector<char> abi;
+    string contract_str = params[1].get_str();
+    if(is_regid(contract_str)){
+        CRegID contractRegID(params[1].get_str());
+        if (contractRegID.IsEmpty()) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+        }
+        if (!pCdMan->pContractCache->HaveContract(contractRegID)) {
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
+        }
+        contract = wasm::RegID2Name(contractRegID);
+
+        CUniversalContract contractCode;
+        pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+        abi.insert(abi.end(), contractCode.abi.begin(), contractCode.abi.end());
+        // std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
+        // contract_abi_def = wasm::unpack<wasm::abi_def>(abi);
+
+    } else if(wasm::wasmio == wasm::NAME(contract_str.c_str()) ) {
+        contract = wasm::wasmio;
+        wasm::abi_def wasmio_abi = wasmio_contract_abi();
+        abi = wasm::pack<wasm::abi_def>(wasmio_abi);
+    } else {
+
+       throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract");
     }
 
-    if (!pCdMan->pContractCache->HaveContract(contractRegID)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
-    }
-
-
-    uint64_t contract = wasm::RegID2Name(contractRegID);
     uint64_t action = wasm::NAME(params[2].get_str().c_str());
 
     string arguments = params[3].get_str();
@@ -291,15 +317,9 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments empty or the size out of range");
     }
 
-
-    CUniversalContract contractCode;
-    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
-
     std::vector<char> data;
-    if (contractCode.abi.size() > 0)
+    if (abi.size() > 0)
         try {
-
-            std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
             data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), arguments,
                                               max_serialization_time);
         } catch (wasm::exception &e) {
@@ -336,7 +356,6 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     tx.valid_height = height;
     tx.fee_symbol = fee.symbol;
     tx.llFees = fee.GetSawiAmount();
-
 
     tx.inlinetransactions.push_back({contract,
                                      action,

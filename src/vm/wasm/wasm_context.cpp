@@ -78,7 +78,7 @@ namespace wasm {
             has_wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
             register_native_handler(wasmio, N(setcode), wasm_native_setcode);
-            register_native_handler(wasmio_bank, N(transfer), wasm_native_transfer);
+            register_native_handler(wasmio, N(transfer), wasm_native_transfer);
         }
     }
 

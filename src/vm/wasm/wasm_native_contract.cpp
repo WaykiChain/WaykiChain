@@ -7,6 +7,10 @@
 #include "wasm/datastream.hpp"
 #include "wasm/types/asset.hpp"
 #include "persistence/cachewrapper.h"
+#include "wasm/wasm_log.hpp"
+#include "wasm/wasm_native_contract_abi.hpp"
+#include "wasm/abi_def.hpp"
+#include "wasm/abi_serializer.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -77,6 +81,13 @@ namespace wasm {
         using Transfer = std::tuple<uint64_t, uint64_t, wasm::asset, string>;
         Transfer transfer = wasm::unpack<Transfer>(context.trx.data);
 
+        wasm::abi_def wasmio_abi = wasmio_contract_abi();
+        std::vector<char> abi = wasm::pack<wasm::abi_def>(wasmio_abi);
+        json_spirit::Value val = wasm::abi_serializer::unpack(abi, "transfer", context.trx.data,
+                                           max_serialization_time);
+
+        WASM_TRACE("%s", json_spirit::write_formatted(val).c_str());
+
         auto from = std::get<0>(transfer);
         auto to = std::get<1>(transfer);
         auto quantity = std::get<2>(transfer);
@@ -102,6 +113,8 @@ namespace wasm {
         auto payer = context.has_authorization(to) ? to : from;
         // sub_balance( from, quantity );
         // add_balance( to, quantity, payer );
+
+        WASM_TRACE("%s", "wasm_native_transfer");
 
     }
 
