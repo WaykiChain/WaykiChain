@@ -80,7 +80,7 @@ bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CA
 bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
 
 /** Check mined block */
-bool CheckWork(CBlock *pBlock, CWallet &wallet);
+bool CheckWork(CBlock *pBlock);
 
 /** Get burn element */
 uint32_t GetElementForBurn(CBlockIndex *pIndex);

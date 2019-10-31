@@ -319,6 +319,8 @@ inline int64_t GetTimeMicros() {
         .total_microseconds();
 }
 
+#define MillisToSecond(ms) (ms / 1000)
+
 string DateTimeStrFormat(const char* pszFormat, int64_t nTime);
 
 template <typename T>
