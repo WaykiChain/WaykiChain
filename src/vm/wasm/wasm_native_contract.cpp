@@ -96,14 +96,14 @@ namespace wasm {
         json_spirit::Value val = wasm::abi_serializer::unpack(abi, "transfer", context.trx.data,
                                            max_serialization_time);
 
-        WASM_TRACE("%s", json_spirit::write_formatted(val).c_str());
+        //WASM_TRACE("%s", json_spirit::write_formatted(val).c_str());
 
         auto from = std::get<0>(transfer);
         auto to = std::get<1>(transfer);
         auto quantity = std::get<2>(transfer);
         auto memo = std::get<3>(transfer);
 
-        WASM_TRACE("from %s, to %s", wasm::name(from).to_string().c_str(), wasm::name(to).to_string().c_str());
+        //WASM_TRACE("from %s, to %s", wasm::name(from).to_string().c_str(), wasm::name(to).to_string().c_str());
 
         from = wasm::RegID2Name(get_regid(from));
         to = wasm::RegID2Name(get_regid(to));
@@ -129,7 +129,7 @@ namespace wasm {
         // sub_balance( from, quantity );
         // add_balance( to, quantity, payer );
 
-        WASM_TRACE("%s", "wasm_native_transfer");
+        //WASM_TRACE("%s", "wasm_native_transfer");
 
     }
 

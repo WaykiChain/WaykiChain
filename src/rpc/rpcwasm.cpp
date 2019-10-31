@@ -296,6 +296,9 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         contract = wasm::RegID2Name(contractRegID);
 
         CUniversalContract contractCode;
+        if (contractCode.vm_type != VMType::WASM_VM)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
+
         pCdMan->pContractCache->GetContract(contractRegID, contractCode);
         abi.insert(abi.end(), contractCode.abi.begin(), contractCode.abi.end());
 
@@ -304,7 +307,6 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         wasm::abi_def wasmio_abi = wasmio_contract_abi();
         abi = wasm::pack<wasm::abi_def>(wasmio_abi);
     } else {
-
        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract");
     }
 
@@ -521,6 +523,8 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
 
     CUniversalContract contractCode;
     pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    if (contractCode.vm_type != VMType::WASM_VM)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
     std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
     if (abi.size() == 0)
@@ -579,6 +583,8 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
 
     CUniversalContract contractCode;
     pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    if (contractCode.vm_type != VMType::WASM_VM)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
     std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
     if (abi.size() == 0)
@@ -627,6 +633,8 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 
     CUniversalContract contractCode;
     pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    if (contractCode.vm_type != VMType::WASM_VM)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
     if (contractCode.code.size() == 0)
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set code");
@@ -664,6 +672,8 @@ Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
 
     CUniversalContract contractCode;
     pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    if (contractCode.vm_type != VMType::WASM_VM)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
     if (contractCode.code.size() == 0)
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set code");

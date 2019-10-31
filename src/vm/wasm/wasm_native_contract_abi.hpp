@@ -36,22 +36,5 @@ namespace wasm {
 
     }
 
-    // abi_def wasmio_bank_contract_abi(const abi_def &abi) {
-
-    //     abi_def wasmio_bank_abi(abi);
-    //     wasmio_bank_abi.structs.emplace_back(struct_def{
-    //             "transfer", "", {
-    //                     {"from", "name"},
-    //                     {"to", "name"},
-    //                     {"quantity", "asset"},
-    //                     {"memo", "string"}
-    //             }
-    //     });
-
-    //     wasmio_bank_abi.actions.push_back(action_def{"transfer", "transfer", ""});
-
-    //     return wasmio_bank_abi;
-
-    // }
 
 }
