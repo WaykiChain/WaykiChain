@@ -75,6 +75,16 @@ namespace wasm {
         //if (!SaveTxAddresses(height, index, cw, state, {txUid})) return false;
     }
 
+    inline CRegID get_regid(uint64_t id){
+
+        string id_str = wasm::name(id).to_string();
+        string::size_type pos =  id_str.find(".");
+        if( pos!= string::npos ) id_str.replace(pos, 1, "-");  
+        CRegID regid(id_str);
+        return regid;
+    }
+    
+   
 
     void wasm_native_transfer(wasm_context &context) {
 
@@ -92,6 +102,11 @@ namespace wasm {
         auto to = std::get<1>(transfer);
         auto quantity = std::get<2>(transfer);
         auto memo = std::get<3>(transfer);
+
+        WASM_TRACE("from %s, to %s", wasm::name(from).to_string().c_str(), wasm::name(to).to_string().c_str());
+
+        from = wasm::RegID2Name(get_regid(from));
+        to = wasm::RegID2Name(get_regid(to));
 
         WASM_ASSERT(from != to, wasm_assert_exception, "%s", "cannot transfer to self");
         context.require_auth(from);

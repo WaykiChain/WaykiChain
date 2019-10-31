@@ -14,8 +14,8 @@ namespace wasm {
         wasmio_abi.structs.emplace_back(struct_def{
                 "setcode", "", {
                         {"account", "name"},
-                        {"code", "string"},
-                        {"abi", "string"},
+                        {"code", "bytes"},
+                        {"abi", "bytes"},
                         {"memo", "string"}
                 }
         });

@@ -298,8 +298,6 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         CUniversalContract contractCode;
         pCdMan->pContractCache->GetContract(contractRegID, contractCode);
         abi.insert(abi.end(), contractCode.abi.begin(), contractCode.abi.end());
-        // std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
-        // contract_abi_def = wasm::unpack<wasm::abi_def>(abi);
 
     } else if(wasm::wasmio == wasm::NAME(contract_str.c_str()) ) {
         contract = wasm::wasmio;

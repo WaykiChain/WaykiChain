@@ -70,7 +70,7 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
 
     //std::vector<char> abi(contract.abi.begin(), contract.abi.end());
 
-    if (abi.size() > 0) {
+    if (abi.size() > 0 && t.action != wasm::N(setcode)) {
         //WASM_TRACE("%s", ToHex(t.data, "").c_str());
         if(t.data.size() > 0)
             val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
