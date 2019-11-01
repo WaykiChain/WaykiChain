@@ -71,7 +71,7 @@ const string strMessageMagic = "Coin Signed Message:\n";
 namespace {
 
     void InitializeNode(NodeId nodeid, const CNode *pNode) {
-        LOCK(cs_main);
+        LOCK(cs_mapNodeState);
         CNodeState &state = mapNodeState.insert(make_pair(nodeid, CNodeState())).first->second;
         state.name        = pNode->addrName;
     }
