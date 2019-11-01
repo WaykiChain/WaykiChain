@@ -83,11 +83,13 @@ struct CNodeState {
     }
 };
 
-// Map maintaining per-node state. Requires cs_main.
+// Map maintaining per-node state. Requires cs_mapNodeState.
 map<NodeId, CNodeState> mapNodeState;
+CCriticalSection cs_mapNodeState;
 
-// Requires cs_main.
+// Requires cs_mapNodeState.
 CNodeState *State(NodeId pNode) {
+    AssertLockHeld(cs_mapNodeState);
     map<NodeId, CNodeState>::iterator it = mapNodeState.find(pNode);
     if (it == mapNodeState.end())
         return nullptr;
@@ -95,8 +97,9 @@ CNodeState *State(NodeId pNode) {
     return &it->second;
 }
 
-// Requires cs_main.
+// Requires cs_mapNodeState.
 void MarkBlockAsReceived(const uint256 &hash, NodeId nodeFrom = -1) {
+    AssertLockHeld(cs_mapNodeState);
     auto itToDownload = mapBlocksToDownload.find(hash);
     if (itToDownload != mapBlocksToDownload.end()) {
         CNodeState *state = State(std::get<0>(itToDownload->second));
@@ -278,6 +281,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
         return false;
     }
 
+    LOCK(cs_mapNodeState);
     CNodeState *state = State(nodeId);
     if (state == nullptr) {
         return false;
@@ -720,11 +724,14 @@ inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv) {
     CInv inv(MSG_BLOCK, block.GetHash());
     pFrom->AddInventoryKnown(inv);
 
-    LOCK(cs_main);
-    // Remember who we got this block from.
-    mapBlockSource[inv.hash] = pFrom->GetId();
-    MarkBlockAsReceived(inv.hash, pFrom->GetId());
+    {
+        // Remember who we got this block from.
+        LOCK(cs_mapNodeState);
+        mapBlockSource[inv.hash] = pFrom->GetId();
+        MarkBlockAsReceived(inv.hash, pFrom->GetId());
+    }
 
+    LOCK(cs_main);
     CValidationState state;
     ProcessBlock(state, pFrom, &block);
 }
