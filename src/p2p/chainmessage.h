@@ -297,7 +297,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
         Misbehaving(nodeId, 10);
     }
 
-    LogPrint("net", "block: %s start to download from peer %s\n", hash.ToString(), state->name);
+    LogPrint("net", "start to download block! hash=%s peer=%s\n", hash.ToString(), state->name);
     mapBlocksToDownload[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 
     return true;
@@ -658,32 +658,46 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
         boost::this_thread::interruption_point();
         pFrom->AddInventoryKnown(inv);
 
-        bool fAlreadyHave = AlreadyHave(inv);
-        if (fAlreadyHave) {
-            int32_t nBlockHeight = 0;
-            if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
-            nBlockHeight = mapBlockIndex[inv.hash]->height;
-            LogPrint("net", "got inv[%d]: %s h=%d peer=%d\n", i++, inv.ToString(), nBlockHeight, pFrom->GetId());
-        } else {
-            LogPrint("net", "got inv[%d]: %s new peer=%d\n", i++, inv.ToString(), pFrom->GetId());
+        bool fAlreadyHave = false;
+        i++;
+        if (inv.type ==  MSG_TX) {
+            if (mempool.Exists(inv.hash)) {
+                LogPrint("net", "recv inv old data! i=%d, msg=%s, hash=%s, peer=%s\n",
+                    i, "MSG_TX", inv.ToString(), pFrom->addrName);
+                fAlreadyHave = true;
+            }
+        } else if (inv.type == MSG_BLOCK) {
+            auto blockIndexIt = mapBlockIndex.find(inv.hash);
+            if (blockIndexIt != mapBlockIndex.end()) {
+                LogPrint("net", "recv inv old data! i=%d, msg=%s, hash=%s, peer=%s, found_in=%s, height=%d\n",
+                    i, "MSG_BLOCK", inv.ToString(), pFrom->addrName, "BlockIndex", blockIndexIt->second->height);
+                fAlreadyHave = true;
+            } else {
+                auto orphanBlockIt = mapOrphanBlocks.find(inv.hash);
+                if (orphanBlockIt != mapOrphanBlocks.end()) {
+                    LogPrint("net", "recv inv old data! i=%d, msg=%s, hash=%s, peer=%s, found_in=%s, height=%d\n",
+                        i, "MSG_BLOCK", inv.ToString(), pFrom->addrName, "OrphanBlock", orphanBlockIt->second->height);
+                    fAlreadyHave = true;
+
+                    LogPrint("net", "recv orphan block and lead to getblocks! height=%d, hash=%s, "
+                             "tip_height=%d, tip_hash=%s, peer=%s\n",
+                             orphanBlockIt->second->height, inv.hash.GetHex(), chainActive.Height(),
+                             chainActive.Tip()->GetBlockHash().GetHex(), pFrom->addrName);
+                    PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
+                    // TODO: should get the headmost block of this fork from current peer
+                }
+            }
         }
 
-
         if (!fAlreadyHave) {
+            LogPrint("net", "recv inv new data! i=%d, msg=%s, hash=%s, peer=%s\n",
+                i, "MSG_TX", inv.ToString(), pFrom->addrName);
             if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
                 if (inv.type == MSG_BLOCK)
                     AddBlockToQueue(inv.hash, pFrom->GetId());
                 else
                     pFrom->AskFor(inv);  // MSG_TX
             }
-        } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
-            COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
-            LogPrint("net",
-                     "receive orphan block inv height=%d hash=%s from %s lead to getblocks, current block height=%d, "
-                     "current block hash=%s\n",
-                     pOrphanBlock->height, inv.hash.GetHex(), pFrom->addr.ToString(), chainActive.Height(),
-                     chainActive.Tip()->GetBlockHash().GetHex());
-            PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
         }
 
         if (pFrom->nSendSize > (SendBufferSize() * 2)) {
