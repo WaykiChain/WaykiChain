@@ -1,9 +1,30 @@
 Coding
 ====================
 
-## Naming Conventions
+## General Naming Convention
 
-Please be consistent with the existing coding style.
+|Type|Naming Convention| Examples |
+|--|--|--|
+|function| Pascal case | ```GetAccountBalance```, ```OperateBalance``` |
+|global variables| all small case, starting with "g_".| ```g_cs_main```|
+|local variables| camel case | ```freeAmount```, ```delegateVotes```|
+|class fields| all small case, "_" to connect words| ```tx_uid```, ```free_amount``` |
+
+## Container Type Naming Postfix/Prefix
+|Category |Type | Examples|
+|--|--|--|
+| Container| Array | variables |
+| Container| List | variables |
+| Container| Vector | variables |
+| Container| Map | variableMap |
+| Container| Set | variableSet |
+| pointer | |pVariable |
+| shared pointer | |spVariable |
+
+
+## Coding Style
+
+- Please be consistent with the existing coding style.
 
 Block style:
 
