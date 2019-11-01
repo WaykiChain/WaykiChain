@@ -82,7 +82,7 @@ namespace {
     }
 
     void FinalizeNode(NodeId nodeid) {
-        LOCK(cs_main);
+        LOCK(cs_mapNodeState);
         CNodeState *state = State(nodeid);
 
         for (const auto &entry : state->vBlocksInFlight)
@@ -189,7 +189,7 @@ void EraseTransaction(const uint256 &hash) { g_signals.EraseTransaction(hash); }
 
 
 bool GetNodeStateStats(NodeId nodeid, CNodeStateStats &stats) {
-    LOCK(cs_main);
+    LOCK(cs_mapNodeState);
     CNodeState *state = State(nodeid);
     if (state == nullptr)
         return false;
@@ -678,11 +678,11 @@ void CheckForkWarningConditionsOnNewFork(CBlockIndex *pindexNewForkTip) {
     CheckForkWarningConditions();
 }
 
-// Requires cs_main.
 void Misbehaving(NodeId pNode, int32_t howmuch) {
     if (howmuch == 0)
         return;
 
+    LOCK(cs_mapNodeState);
     CNodeState *state = State(pNode);
     if (state == nullptr)
         return;
@@ -721,6 +721,7 @@ void static InvalidChainFound(CBlockIndex *pIndexNew) {
 void static InvalidBlockFound(CBlockIndex *pIndex, const CValidationState &state) {
     int32_t nDoS = 0;
     if (state.IsInvalid(nDoS)) {
+        LOCK(cs_mapNodeState);
         map<uint256, NodeId>::iterator it = mapBlockSource.find(pIndex->GetBlockHash());
         if (it != mapBlockSource.end() && State(it->second)) {
             CBlockReject reject = {state.GetRejectCode(), state.GetRejectReason(), pIndex->GetBlockHash()};
@@ -1558,7 +1559,10 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
             return ERRORMSG("ConnectTip() : ConnectBlock [%d]:%s failed", pIndexNew->height, pIndexNew->GetBlockHash().ToString());
         }
-        mapBlockSource.erase(inv.hash);
+        {
+            LOCK(cs_mapNodeState);
+            mapBlockSource.erase(inv.hash);
+        }
 
         // Need to re-sync all to global cache layer.
         spCW->Flush();

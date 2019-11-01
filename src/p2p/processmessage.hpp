@@ -17,7 +17,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
     // }
 
     {
-        LOCK(cs_main);
+        LOCK(cs_mapNodeState);
         State(pFrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
 
