@@ -1,6 +1,8 @@
 Coding
 ====================
 
+## Naming Conventions
+
 Please be consistent with the existing coding style.
 
 Block style:
@@ -15,7 +17,7 @@ Block style:
 	            return false;
 	        ...
 	    }
-	
+
 	    // Success return is usually at the end
 	    return true;
 	}
@@ -60,11 +62,11 @@ bool function(int arg1, const char *arg2)
 ```
 A complete list of `@xxx` commands can be found at http://www.stack.nl/~dimitri/doxygen/manual/commands.html.
 As Doxygen recognizes the comments by the delimiters (`/**` and `*/` in this case), you don't
-*need* to provide any commands for a comment to be valid, just a description text is fine. 
+*need* to provide any commands for a comment to be valid, just a description text is fine.
 
 To describe a class use the same construct above the class definition:
 ```c++
-/** 
+/**
  * Alerts are for notifying old versions if they become too obsolete and
  * need to upgrade. The message is displayed in the status bar.
  * @see GetWarnings()
