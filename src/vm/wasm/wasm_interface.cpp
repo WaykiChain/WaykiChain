@@ -12,6 +12,7 @@
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_runtime.hpp"
 #include "wasm/wasm_interface.hpp"
+#include "wasm/wasm_variant.hpp"
 
 #include "crypto/hash.h"
 
@@ -98,70 +99,6 @@ namespace wasm {
 
 
         wasm_context_interface *pWasmContext;
-
-        static uint64_t char_to_symbol( char c ) {
-            if (c >= 'a' && c <= 'z')
-                return (c - 'a') + 6;
-            if (c >= '1' && c <= '5')
-                return (c - '1') + 1;
-            return 0;
-        }
-
-        // Each char of the string is encoded into 5-bit chunk and left-shifted
-        // to its 5-bit slot starting with the highest slot for the first char.
-        // The 13th char, if str is long enough, is encoded into 4-bit chunk
-        // and placed in the lowest 4 bits. 64 = 12 * 5 + 4
-        static uint64_t string_to_name( const char *str ) {
-            uint64_t name = 0;
-            int i = 0;
-            for (; str[i] && i < 12; ++i) {
-                // NOTE: char_to_symbol() returns char type, and without this explicit
-                // expansion to uint64 type, the compilation fails at the point of usage
-                // of string_to_name(), where the usage requires constant (compile time) expression.
-                name |= (char_to_symbol(str[i]) & 0x1f) << (64 - 5 * (i + 1));
-            }
-
-            // The for-loop encoded up to 60 high bits into uint64 'name' variable,
-            // if (strlen(str) > 12) then encode str[12] into the low (remaining)
-            // 4 bits of 'name'
-            if (i == 12)
-                name |= char_to_symbol(str[12]) & 0x0F;
-            return name;
-        }
-
-        static std::string name_to_string( uint64_t value ) {
-            string charmap(".12345abcdefghijklmnopqrstuvwxyz");
-            string str(".............");//(13,'.');
-
-            uint64_t tmp = value;
-            for (uint32_t i = 0; i <= 12; ++i) {
-                char c = charmap[tmp & (i == 0 ? 0x0f : 0x1f)];
-                str[12 - i] = c;
-                tmp >>= (i == 0 ? 4 : 5);
-            }
-
-            //str.trim_right([]( char c ){ return c == '.'; });
-            uint32_t length = str.size();
-            for (int32_t i = length - 1; i >= 0; --i) {
-                if (str[i] != '.') {
-                    return str.substr(0, i + 1);//string(str, str + i + 1);
-                }
-            }
-
-            return "";
-        }
-
-        static string ToHex( string str, string separator = "" ) {
-
-            const std::string hex = "0123456789abcdef";
-            std::ostringstream o;
-
-            for (std::string::size_type i = 0; i < str.size(); ++i)
-                o << hex[(unsigned char) str[i] >> 4] << hex[(unsigned char) str[i] & 0xf] << separator;
-
-            return o.str();
-
-        }
 
         template<typename T>
         static void AddPrefix( T t, string &k ) {
@@ -386,7 +323,7 @@ namespace wasm {
             //std::cout << "printn" << std::endl;
             //std::cout << name_to_string(value);
             if (!print_ignore) {
-                pWasmContext->console_append(name_to_string(val));
+                pWasmContext->console_append(wasm::name(val).to_string());
             }
         }
 
