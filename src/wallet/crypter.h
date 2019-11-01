@@ -160,7 +160,7 @@ public:
         }
         return false;
     }
-    bool GetKey(const CKeyID& address, CKey& keyOut, bool IsMine = false) const;
+    bool GetKey(const CKeyID& address, CKey& keyOut, bool IsMiner = false) const;
 
     bool GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut, bool IsMiner = false) const;
 

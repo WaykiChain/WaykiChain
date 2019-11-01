@@ -46,6 +46,7 @@ static CUserID nullId;
     /**** CDP forced liquidate*/ \
     DEFINE(CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE, 460, "total closeout scoins from risk reserve in forced-liquidation") \
     DEFINE(CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE,    461, "total inflate fcoins to risk reserve in forced-liquidation") \
+    DEFINE(CDP_TOTAL_ASSET_TO_RESERVE,            462, "total assets to reserve in forced-liquidation") \
     /**** DEX */ \
     DEFINE(DEX_ASSET_FEE_TO_SETTLER,            501, "dex deal asset fee from buyer to settler") \
     DEFINE(DEX_COIN_FEE_TO_SETTLER,             502, "dex deal coin fee from seller to settler") \

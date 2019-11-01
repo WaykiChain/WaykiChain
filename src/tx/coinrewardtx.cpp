@@ -23,9 +23,9 @@ bool CCoinRewardTx::ExecuteTx(CTxExecuteContext &context) {
     if (txUid.is<CPubKey>()) {
         pubKey = txUid.get<CPubKey>();
         assert(pubKey.IsFullyValid());
-        keyId   =  pubKey.GetKeyId();
+        keyId = pubKey.GetKeyId();
     } else if (txUid.is<CNullID>()) {
-        keyId   = Hash160(regId.GetRegIdRaw());
+        keyId = Hash160(regId.GetRegIdRaw());
     } else {
         assert(false && "txUid must be CPubKey or CNullID");
     }

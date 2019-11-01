@@ -148,10 +148,5 @@ static const string EMPTY_STRING = "";
 
 static const int32_t FINALITY_BLOCK_CONFIRM_MINER_COUNT = 8 ;
 
-// soft forks
-
-// soft fork for contract api GetBlockTimestamp() in mainnet
-static const int32_t FORK_MAIN_CONTRACT_GET_BLOCK_TIME = 4450780;
-
 
 #endif //CONFIG_CONST_H

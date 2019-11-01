@@ -72,15 +72,15 @@ bool CPricePointMemCache::ExistBlockUserPrice(const int32_t blockHeight, const C
 
 bool CPricePointMemCache::AddBlockToCache(const CBlock &block) {
     // index[0]: block reward transaction
-    // index[1]: block median price transaction
-    // index[2 - n]: price feed transactions if existing
+    // index[1 ~ n - 1]: price feed transactions if existing
+    // index[n]: block median price transaction
 
     if (block.vptx.size() < 3) {
         return true;
     }
 
     // More than 3 transactions in the block.
-    for (uint32_t i = 2; i < block.vptx.size(); ++i) {
+    for (uint32_t i = 1; i < block.vptx.size(); ++i) {
         if (!block.vptx[i]->IsPriceFeedTx()) {
             break;
         }

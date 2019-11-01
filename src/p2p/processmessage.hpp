@@ -8,10 +8,9 @@
 
 #include "main.h"
 
-bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
-{
-    RandAddSeedPerfmon();
-    LogPrint("net", "received: %s (%u bytes)\n", strCommand, vRecv.size());
+bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) {
+    LogPrint("net", "received: %s (%u bytes) from peer %s\n", strCommand, vRecv.size(), pFrom->addr.ToString());
+    // RandAddSeedPerfmon();
     // if (GetRand(atoi(SysCfg().GetArg("-dropmessagestest", "0"))) == 0) {
     //     LogPrint("INFO", "dropmessagestest DROPPING RECV MESSAGE\n");
     //     return true;
@@ -22,10 +21,10 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         State(pFrom->GetId())->nLastBlockProcess = GetTimeMicros();
     }
 
-    if (strCommand == "version") {
-        int32_t res = ProcessVersionMessage(pFrom,strCommand, vRecv);
-        if(res !=-1)
-            return res == 1 ;
+    if (strCommand == NetMsgType::VERSION) {
+        int32_t res = ProcessVersionMessage(pFrom, strCommand, vRecv);
+        if (res != -1)
+            return res == 1;
     }
 
     else if (pFrom->nVersion == 0) {
@@ -34,56 +33,57 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         return false;
     }
 
-    else if (strCommand == "verack") {
+    else if (strCommand == NetMsgType::VERACK) {
         pFrom->SetRecvVersion(min(pFrom->nVersion, PROTOCOL_VERSION));
     }
 
-    else if (strCommand == "addr") {
+    else if (strCommand == NetMsgType::ADDR) {
        if(!ProcessAddrMessage(pFrom, vRecv))
            return false ;
     }
 
-    else if (strCommand == "inv") {
+    else if (strCommand == NetMsgType::INV) {
         if(!ProcessInvMessage(pFrom, vRecv))
             return false ;
     }
 
-    else if (strCommand == "getdata") {
+    else if (strCommand == NetMsgType::GETDATA) {
         if(!ProcessGetDataMessage(pFrom, vRecv))
             return false ;
     }
 
-    else if (strCommand == "getblocks") {
+    else if (strCommand == NetMsgType::GETBLOCKS) {
         ProcessGetBlocksMessage(pFrom, vRecv);
     }
 
-    else if (strCommand == "getheaders") {
+    else if (strCommand == NetMsgType::GETHEADERS) {
         if (ProcessGetHeadersMessage(pFrom, vRecv))
             return true;
     }
 
-    else if (strCommand == "tx") {
+    else if (strCommand == NetMsgType::TX) {
         if (!ProcessTxMessage(pFrom, strCommand, vRecv))
             return false;
     }
 
-    else if (strCommand == "block" && !SysCfg().IsImporting() && !SysCfg().IsReindex())  // Ignore blocks received while importing
+    else if (strCommand == NetMsgType::BLOCK &&
+            !SysCfg().IsImporting() && !SysCfg().IsReindex())  // Ignore blocks received while importing
     {
         ProcessBlockMessage(pFrom, vRecv);
     }
 
-    else if (strCommand == "getaddr") {
+    else if (strCommand == NetMsgType::GETADDR) {
         pFrom->vAddrToSend.clear();
         vector<CAddress> vAddr = addrman.GetAddr();
         for (const auto &addr : vAddr)
             pFrom->PushAddress(addr);
     }
 
-    else if (strCommand == "mempool") {
+    else if (strCommand == NetMsgType::MEMPOOL) {
         ProcessMempoolMessage(pFrom, vRecv);
     }
 
-    else if (strCommand == "ping") {
+    else if (strCommand == NetMsgType::PING) {
         // Echo the message back with the nonce. This allows for two useful features:
         //
         // 1) A remote node can quickly check if the connection is operational
@@ -99,34 +99,34 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
         uint64_t nonce = 0;
         vRecv >> nonce;
 
-        pFrom->PushMessage("pong", nonce);
+        pFrom->PushMessage(NetMsgType::PONG, nonce);
 
     }
 
-    else if (strCommand == "pong") {
+    else if (strCommand == NetMsgType::PONG) {
        ProcessPongMessage(pFrom, vRecv) ;
     }
 
-    else if (strCommand == "alert") {
+    else if (strCommand == NetMsgType::ALERT) {
         ProcessAlertMessage(pFrom, vRecv) ;
     }
 
-    else if (strCommand == "filterload") {
+    else if (strCommand == NetMsgType::FILTERLOAD) {
         ProcessFilterLoadMessage(pFrom, vRecv);
     }
 
-    else if (strCommand == "filteradd") {
+    else if (strCommand == NetMsgType::FILTERADD) {
         ProcessFilterAddMessage(pFrom, vRecv);
     }
 
-    else if (strCommand == "filterclear") {
+    else if (strCommand == NetMsgType::FILTERCLEAR) {
         LOCK(pFrom->cs_filter);
         delete pFrom->pFilter;
         pFrom->pFilter    = new CBloomFilter();
         pFrom->fRelayTxes = true;
     }
 
-    else if (strCommand == "reject") {
+    else if (strCommand == NetMsgType::REJECT) {
         ProcessRejectMessage(pFrom, vRecv);
     } else {
         // Ignore unknown commands for extensibility
@@ -134,7 +134,11 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv)
 
     // Update the last seen time for this node's address
     if (pFrom->fNetworkNode)
-        if (strCommand == "version" || strCommand == "addr" || strCommand == "inv" || strCommand == "getdata" || strCommand == "ping")
+        if (strCommand == NetMsgType::VERSION ||
+            strCommand == NetMsgType::ADDR ||
+            strCommand == NetMsgType::INV ||
+            strCommand == NetMsgType::GETDATA ||
+            strCommand == NetMsgType::PING)
             AddressCurrentlyConnected(pFrom->addr);
 
     return true;

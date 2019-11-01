@@ -27,6 +27,8 @@ class CBaseCoinTransferTx;
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
     result.push_back(Pair("block_hash",     block.GetHash().GetHex()));
+    result.push_back(Pair("block_miner",    block.vptx[0]->txUid.ToString()));
+
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations",  (int32_t)txGen.GetDepthInMainChain()));

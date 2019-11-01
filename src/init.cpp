@@ -126,7 +126,6 @@ void Shutdown() {
         return;
 
     RenameThread("Coin-shutoff");
-    mempool.AddUpdatedTransactionNum(1);
 
     StopRPCServer();
 
@@ -767,8 +766,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 CBlock block;
                 ReadBlockFromDisk(pIndex, block);
                 block.BuildMerkleTree();
-                block.Print(*pCdMan->pBlockCache);
-                LogPrint("INFO", "\n");
+                block.Print();
                 nFound++;
             }
         }

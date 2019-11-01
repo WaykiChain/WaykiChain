@@ -60,7 +60,9 @@ public:
     bool operator<(I i) { return value < i; }
 
     friend bool operator==(const CFixedLeb128 &a, const CFixedLeb128 &b) { return a.value == b.value; }
+    friend bool operator!=(const CFixedLeb128 &a, const CFixedLeb128 &b) { return a.value != b.value; }
     friend bool operator<(const CFixedLeb128 &a, const CFixedLeb128 &b) { return a.value < b.value; }
+    friend bool operator>(const CFixedLeb128 &a, const CFixedLeb128 &b) { return a.value > b.value; }
 };
 
 using CFixedUInt32 = CFixedLeb128<uint32_t>;

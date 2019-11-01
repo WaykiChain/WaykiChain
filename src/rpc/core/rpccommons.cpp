@@ -522,7 +522,7 @@ CAccount RPC_PARAM::GetUserAccount(CAccountDBCache &accountCache, const CUserID 
     CAccount account;
     if (!accountCache.GetAccount(userId, account))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
-                           strprintf("The account not exists! userId=%s", userId.ToString()));
+                           strprintf("The account not exist (never received coins before)! userId=%s", userId.ToString()));
 
     assert(!account.keyid.IsEmpty());
     return account;

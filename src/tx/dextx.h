@@ -358,7 +358,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:
-    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, const uint256 &orderId,
+    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
         const OrderSide orderSide, CDEXOrderDetail &dealOrder);
 
 private:
