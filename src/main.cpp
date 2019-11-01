@@ -2491,7 +2491,7 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes) {
 
 bool static LoadBlockIndexDB() {
     if (!pCdMan->pBlockIndexDb->LoadBlockIndexes())
-        return false;
+        return ERRORMSG("%s(), LoadBlockIndexes from db failed", __FUNCTION__);
 
     boost::this_thread::interruption_point();
 
@@ -2520,7 +2520,7 @@ bool static LoadBlockIndexDB() {
     pCdMan->pBlockCache->ReadLastBlockFile(nLastBlockFile);
     LogPrint("INFO", "LoadBlockIndexDB(): last block file = %i\n", nLastBlockFile);
     if (pCdMan->pBlockIndexDb->ReadBlockFileInfo(nLastBlockFile, infoLastBlockFile))
-        LogPrint("INFO", "LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
+    LogPrint("INFO", "LoadBlockIndexDB(): last block file info: %s\n", infoLastBlockFile.ToString());
 
     // Check whether we need to continue reindexing
     bool fReindexing = false;
@@ -2539,7 +2539,8 @@ bool static LoadBlockIndexDB() {
     uint256 bestBlockHash = pCdMan->pBlockCache->GetBestBlockHash();
     const auto &it = mapBlockIndex.find(bestBlockHash);
     if (it == mapBlockIndex.end()) {
-        return true;
+        return ERRORMSG("The best block hash in db not found in block index! hash=%s\n",
+            __FUNCTION__, bestBlockHash.ToString());
     }
 
     chainActive.SetTip(it->second);
