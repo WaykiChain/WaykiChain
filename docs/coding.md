@@ -8,8 +8,8 @@ Coding
 |function| Pascal case | ```GetAccountBalance```, ```OperateBalance``` |
 |global variables| all small case, starting with "g_".| ```g_cs_main```|
 |local variables| camel case | ```freeAmount```, ```delegateVotes```|
-|class fields| all small case, "_" to connect words| ```tx_uid```, ```free_amount``` |
-
+|class fields| all small case, using "_" to connect words| ```tx_uid```, ```free_amount``` |
+|constants| all capital letters, using "_" to connect words| ```ASSET_RISK_FEE_RATIO```|
 ## Container Type Naming Postfix/Prefix
 |Category |Type | Examples|
 |--|--|--|
