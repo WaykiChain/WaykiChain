@@ -235,16 +235,16 @@ bool CChain::UpdateFinalityBlock(){
     set<CRegID> minerSet ;
     uint32_t confirmMiners = FINALITY_BLOCK_CONFIRM_MINER_COUNT ;
 
-    if(SysCfg().NetworkID() == MAIN_NET && chainActive.Height()< 3880000){
+    if(SysCfg().NetworkID() == MAIN_NET && Height()< 3880000){
         confirmMiners = 0 ;
     }
 
-    if(SysCfg().NetworkID() == TEST_NET && chainActive.Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
+    if(SysCfg().NetworkID() == TEST_NET && Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
         confirmMiners = 0 ;
     }
 
 
-    auto pBlockIndex = chainActive.Tip() ;
+    auto pBlockIndex = Tip() ;
     while(pBlockIndex->height > 0){
 
         if(minerSet.size() >=confirmMiners ){
@@ -252,7 +252,7 @@ bool CChain::UpdateFinalityBlock(){
             if( (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height) || !finalityBlockIndex ){
 
                 if(finalityBlockIndex)
-                    assert(chainActive.Contains(finalityBlockIndex));
+                    assert(Contains(finalityBlockIndex));
 
                 finalityBlockIndex = pBlockIndex ;
             }
