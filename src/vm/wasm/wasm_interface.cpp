@@ -1,7 +1,6 @@
 #include <eosio/vm/backend.hpp>
 #include <eosio/vm/error_codes.hpp>
 
-//#include "wasm/wasm_host_methods.hpp"
 #include "softfloat.hpp"
 #include "compiler_builtins/compiler_builtins.hpp"
 #include "wasm/wasm_context_interface.hpp"

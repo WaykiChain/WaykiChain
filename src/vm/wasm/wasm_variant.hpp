@@ -8,14 +8,12 @@
 #include "wasm/types/varint.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
-// #include "wasm/types/inline_transaction.hpp"
 #include "commons/json/json_spirit.h"
 #include "commons/json/json_spirit_value.h"
 #include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
-// #include "wasm/wasm_trace.hpp"
 
 namespace wasm {
     using namespace json_spirit;
