@@ -8,6 +8,7 @@ Coding
 |function| Pascal case | ```GetAccountBalance```, ```OperateBalance``` |
 |global variables| all small case, starting with "g_".| ```g_cs_main```|
 |local variables| camel case | ```freeAmount```, ```delegateVotes```|
+|classes| Pascal case, starting with ```C``` |```CCDPStakeTx``` |
 |class fields| all small case, using "_" to connect words| ```tx_uid```, ```free_amount``` |
 |constants| all capital letters, using "_" to connect words| ```ASSET_RISK_FEE_RATIO```|
 ## Container Type Naming Postfix/Prefix
@@ -21,6 +22,11 @@ Coding
 | pointer | |pVariable |
 | shared pointer | |spVariable |
 
+## Code Structure
+- Commons
+- Tx
+- Persistence
+- Smart Contract Engine
 
 ## Coding Style
 
