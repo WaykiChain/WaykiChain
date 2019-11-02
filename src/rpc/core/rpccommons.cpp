@@ -311,8 +311,10 @@ const char* JSON::GetValueTypeName(const Value_type &valueType) {
 
 Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt) {
     CKeyID fromKeyId, toKeyId;
-    accountCache.GetKeyId(receipt.from_uid, fromKeyId);
-    accountCache.GetKeyId(receipt.to_uid, toKeyId);
+    if (!receipt.from_uid.IsEmpty())
+        accountCache.GetKeyId(receipt.from_uid, fromKeyId);
+    if (!receipt.to_uid.IsEmpty())
+        accountCache.GetKeyId(receipt.to_uid, toKeyId);
 
     Object obj;
     obj.push_back(Pair("from_addr",     fromKeyId.ToAddress()));
