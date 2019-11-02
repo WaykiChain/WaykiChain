@@ -382,10 +382,10 @@ public:
         }
     }
 
-    void PushInventory(const CInv& inv) {
+    void PushInventory(const CInv& inv, bool forced = false) {
         {
             LOCK(cs_inventory);
-            if (!setInventoryKnown.count(inv))
+            if (forced || !setInventoryKnown.count(inv))
                 vInventoryToSend.push_back(inv);
         }
     }

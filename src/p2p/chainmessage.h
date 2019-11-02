@@ -616,29 +616,34 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     LOCK(cs_main);
 
     // Find the last block the caller has in the main chain
-    CBlockIndex *pIndex = chainActive.FindFork(locator);
+    CBlockIndex *pStartIndex = chainActive.FindFork(locator);
 
     // Send the rest of the chain
-    if (pIndex)
-        pIndex = chainActive.Next(pIndex);
+    if (pStartIndex)
+        pStartIndex = chainActive.Next(pStartIndex);
 
     int32_t nLimit = 500;
-    LogPrint("net", "recv getblocks %d to %s limit %d from peer %s\n", (pIndex ? pIndex->height : -1),
-             hashStop.ToString(), nLimit, pFrom->addr.ToString());
+    LogPrint("net", "recv getblocks msg! start_block=%s, end_block=%s, tip_block=%s, limit=%d, peer=%s\n",
+        (pStartIndex ? pStartIndex->GetIndentityString() : ""), hashStop.ToString(),
+        chainActive.Tip()->ToString(), nLimit, pFrom->addrName);
 
+    CBlockIndex *pIndex = pStartIndex;
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         if (pIndex->GetBlockHash() == hashStop) {
-            LogPrint("net", "getblocks stopping at %d %s from peer %s\n", pIndex->height,
-                     pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
+            LogPrint("net", "processing getblocks stoped by hash_end! end_block=%s, peer=%s\n",
+                pIndex->GetIndentityString(), pFrom->addrName);
             break;
         }
-        // TODO: push inventory forcely for the headmost fork block
-        pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()));
+
+        bool forced = false;
+        if (pIndex == pStartIndex || pIndex->pprev == pStartIndex)
+            forced = true;
+        pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), forced);
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
-            LogPrint("net", "process getblocks stopping at limit %d %s from peer %s\n", pIndex->height,
-                     pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
+            LogPrint("net", "processing getblocks stopped by limit! end_block=%s, limit=%d, peer=%s\n",
+                pIndex->GetIndentityString(), 500, pFrom->addr.ToString());
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;
         }

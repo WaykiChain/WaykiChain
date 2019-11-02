@@ -354,6 +354,10 @@ public:
                          merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString());
     }
 
+    string GetIndentityString() const {
+        return strprintf("%d:%s", height, GetBlockHash().ToString());
+    }
+
     void Print() const { LogPrint("INFO", "%s\n", ToString()); }
 
     // Build the skiplist pointer for this entry.
