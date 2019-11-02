@@ -211,8 +211,8 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
             MarkBlockAsInFlight(hash, pTo->GetId());
-            LogPrint("net", "send MSG_BLOCK msg! hash=%s, peer=%s, FlightBlocks=%d, index=%d\n", hash.ToString(),
-                     state.name, state.nBlocksInFlight, index++);
+            LogPrint("net", "send MSG_BLOCK msg! time_ms=%lld, hash=%s, peer=%s, FlightBlocks=%d, index=%d\n",
+                GetTimeMillis(), hash.ToString(), state.name, state.nBlocksInFlight, index++);
             if (vGetData.size() >= 1000) {
                 pTo->PushMessage("getdata", vGetData);
                 vGetData.clear();
