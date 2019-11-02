@@ -284,6 +284,8 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     LOCK(cs_mapNodeState);
     CNodeState *state = State(nodeId);
     if (state == nullptr) {
+        LogPrint("net", "peer not found! time_ms=%lld, hash=%s peer_id=%d\n",
+            GetTimeMillis(), hash.ToString(), nodeId);
         return false;
     }
 
@@ -625,7 +627,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     int32_t nLimit = 500;
     LogPrint("net", "recv getblocks msg! start_block=%s, end_block=%s, tip_block=%s, limit=%d, peer=%s\n",
         (pStartIndex ? pStartIndex->GetIndentityString() : ""), hashStop.ToString(),
-        chainActive.Tip()->ToString(), nLimit, pFrom->addrName);
+        chainActive.Tip()->GetIndentityString(), nLimit, pFrom->addrName);
 
     CBlockIndex *pIndex = pStartIndex;
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
@@ -643,7 +645,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
             LogPrint("net", "processing getblocks stopped by limit! end_block=%s, limit=%d, peer=%s\n",
-                pIndex->GetIndentityString(), 500, pFrom->addr.ToString());
+                pIndex->GetIndentityString(), 500, pFrom->addrName);
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;
         }
@@ -655,7 +657,7 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
     vRecv >> vInv;
     if (vInv.size() > MAX_INV_SZ) {
         Misbehaving(pFrom->GetId(), 20);
-        return ERRORMSG("message inv size() = %u from peer %s", vInv.size(), pFrom->addr.ToString());
+        return ERRORMSG("message inv size() = %u from peer %s", vInv.size(), pFrom->addrName);
     }
 
     LOCK(cs_main);
