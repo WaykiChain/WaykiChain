@@ -12,7 +12,9 @@
 bool CBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 
 bool CBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(100, ERRORMSG("CBlockRewardTx::ExecuteTx, read source addr %s account info error",
@@ -73,7 +75,9 @@ Object CBlockRewardTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CUCoinBlockRewardTx::CheckTx(CTxExecuteContext &context) { return true; }
 
 bool CUCoinBlockRewardTx::ExecuteTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    CCacheWrapper &cw       = *context.pCw;
+    CValidationState &state = *context.pState;
+
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
         return state.DoS(

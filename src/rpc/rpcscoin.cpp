@@ -731,7 +731,7 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
 
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
     Array dealItemArray = params[1].get_array();
-    ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_LIMIT_BUY_ORDER_TX);
+    ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_TRADE_SETTLE_TX);
 
     vector<DEXDealItem> dealItems;
     for (auto dealItemObj : dealItemArray) {
@@ -1137,7 +1137,7 @@ extern Value getassets(const Array& params, bool fHelp) {
     }
 
     Object obj;
-    obj.push_back(Pair("count", (int64_t)pGetter->data_list.size()));
-    obj.push_back(Pair("assets", assetArray));
+    obj.push_back(Pair("count",     (int64_t)pGetter->data_list.size()));
+    obj.push_back(Pair("assets",    assetArray));
     return obj;
 }

@@ -35,8 +35,8 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
 
     pLua = std::make_shared<CLuaVM>(p_context->p_contract->code, *p_context->p_arguments);
 
-    LogPrint("vm", "CVmScriptRun::ExecuteContract(), prepare to execute tx. txid=%s, fuelLimit=%llu\n", p_context->p_base_tx->GetHash().GetHex(),
-        p_context->fuel_limit);
+    LogPrint("vm", "CVmScriptRun::ExecuteContract(), prepare to execute tx. txid=%s, fuelLimit=%llu\n",
+             p_context->p_base_tx->GetHash().GetHex(), p_context->fuel_limit);
 
     tuple<uint64_t, string> ret = pLua.get()->Run(p_context->fuel_limit, this);
 
@@ -49,7 +49,7 @@ std::shared_ptr<string>  CLuaVMRunEnv::ExecuteContract(CLuaVMContext *pContextIn
         uRunStep = step;
     }
 
-    LogPrint("vm", "tx:%s,step:%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), uRunStep);
+    LogPrint("vm", "txid:%s, step:%ld\n", p_context->p_base_tx->ToString(p_context->p_cw->accountCache), uRunStep);
 
     if (!CheckOperate()) {
         return make_shared<string>("VmScript CheckOperate Failed");

@@ -199,7 +199,7 @@ bool CAppUserAccount::Operate(const CAppFundOperate& operate, vector<CReceipt> &
 
         bcoins = tempValue;
 
-        receipts.emplace_back(nullId, operate.GetUserID(), SYMB::WICC, operate.GetUint64Value(), ReceiptCode::CONTRACT_TOKEN_OPERATE_ADD);
+        receipts.emplace_back(nullId, operate.GetUserID(), "", operate.GetUint64Value(), ReceiptCode::CONTRACT_TOKEN_OPERATE_ADD);
 
         return true;
     } else if (operate.opType == SUB_FREE_OP) {
@@ -207,7 +207,7 @@ bool CAppUserAccount::Operate(const CAppFundOperate& operate, vector<CReceipt> &
         if (bcoins >= tem) {
             bcoins -= tem;
 
-            receipts.emplace_back(operate.GetUserID(), nullId, SYMB::WICC, operate.GetUint64Value(), ReceiptCode::CONTRACT_TOKEN_OPERATE_SUB);
+            receipts.emplace_back(operate.GetUserID(), nullId, "", operate.GetUint64Value(), ReceiptCode::CONTRACT_TOKEN_OPERATE_SUB);
 
             return true;
         }

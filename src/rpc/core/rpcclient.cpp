@@ -50,7 +50,7 @@ Object CallRPC(const string& strMethod, const Array& params) {
         if (fWait)
             MilliSleep(1000);
         else
-            throw runtime_error("couldn't connect to server");
+            throw runtime_error("couldn't connect to server... pls wait for a while or check \"rpcserver=1\" setting.");
     } while (fWait);
 
     // HTTP basic authentication
@@ -84,6 +84,7 @@ Object CallRPC(const string& strMethod, const Array& params) {
     Value valReply;
     if (!read_string(strReply, valReply))
         throw runtime_error("couldn't parse reply from server");
+
     const Object& reply = valReply.get_obj();
     if (reply.empty())
         throw runtime_error("expected reply to have result, error and id properties");
@@ -134,6 +135,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchaininfo"           && n > 0) ConvertTo<int32_t>(params[0]);
+    if (strMethod == "getchaininfo"           && n > 1) ConvertTo<int32_t>(params[1]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
@@ -172,7 +174,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "invalidateblock"        && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
 
     /** for mining */
-    if (strMethod == "getminedblocks"         && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getminedblocks"           && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getminerbyblocktime"      && n > 0) ConvertTo<int64_t>(params[0]);
+    if (strMethod == "getminerbyblocktime"      && n > 1) ConvertTo<int64_t>(params[1]);
 
     /* for dex */
     if (strMethod == "submitdexbuylimitordertx"     && n > 3) ConvertTo<int64_t>(params[3]);

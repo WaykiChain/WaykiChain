@@ -174,8 +174,9 @@ public:
 
     map<TokenSymbol, uint64_t> GetFees() const;
     map<CoinPricePair, uint64_t> GetBlockMedianPrice() const;
+    CUserID GetMinerUserID() const;
 
-    void Print(CBlockDBCache &blockCache) const;
+    void Print() const;
 };
 
 /** The block chain is a tree shaped structure starting with the
@@ -351,6 +352,10 @@ public:
     string ToString() const {
         return strprintf("CBlockIndex(pprev=%p, height=%d, merkle=%s, blockHash=%s, chainWork=%s)", pprev, height,
                          merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString());
+    }
+
+    string GetIndentityString() const {
+        return strprintf("%d:%s", height, GetBlockHash().ToString());
     }
 
     void Print() const { LogPrint("INFO", "%s\n", ToString()); }

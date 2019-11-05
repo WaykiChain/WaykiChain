@@ -154,9 +154,9 @@ string CUserID::ToDebugString() const {
         if (is<CRegID>()) {
             return "R:" + get<CRegID>().ToString();
         } else if (is<CKeyID>()) {
-            return "A:" + get<CKeyID>().ToAddress();
+            return "K:" + get<CKeyID>().ToString() + ", addr=" + get<CKeyID>().ToAddress();
         } else if (is<CPubKey>()) {
-            return "P:" + get<CPubKey>().ToString();
+            return "P:" + get<CPubKey>().ToString() + ", addr=" + get<CPubKey>().GetKeyId().ToAddress();
         } else if (is<CNickID>()) {
             return "N:" + get<CNickID>().ToString();
         } else {

@@ -26,6 +26,9 @@ bool CUniversalContract::IsValid() {
     if (vm_type == VMType::LUA_VM) {
         if (code.compare(0, LUA_CONTRACT_HEADLINE.size(), LUA_CONTRACT_HEADLINE))
             return false;  // lua script shebang existing verified
+
+        if (!abi.empty())
+            return false;
     }
 
     if (code.size() > MAX_CONTRACT_CODE_SIZE)

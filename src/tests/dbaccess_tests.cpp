@@ -12,14 +12,15 @@
 
 using namespace std;
 
-BOOST_AUTO_TEST_SUITE(dbaccess_tests)
+static const CRegID id; // to fix the link error: undefined reference to `CRegID ...
 
+BOOST_AUTO_TEST_SUITE(dbaccess_tests)
 
 BOOST_AUTO_TEST_CASE(dbaccess_test)
 {
     bool isWipe = true;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        DBNameType::ACCOUNT, 100000, false, isWipe);
+        DBNameType::ACCOUNT, false, isWipe);
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     map<string, string> mapData;
     mapData["regid-1"] = "keyid-1";
@@ -45,7 +46,7 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level1_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        DBNameType::ACCOUNT, 100000, false, isWipe);
+        DBNameType::ACCOUNT, false, isWipe);
 
     auto pDBCache = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
     pDBCache->SetData("regid-1", "keyid-1");
@@ -67,18 +68,19 @@ BOOST_AUTO_TEST_CASE(dbcache_multi_value_Level3_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        DBNameType::ACCOUNT, 100000, false, isWipe);
+        DBNameType::ACCOUNT, false, isWipe);
 
     auto pDBCache1 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
     auto pDBCache2 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBCache1.get());
     auto pDBCache3 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBCache2.get());
     auto pDbOpLogMap = make_shared<CDBOpLogMap>();
-    pDBCache3->SetData("regid-1", "keyid-1", *pDbOpLogMap);
-    pDBCache3->SetData("regid-2", "keyid-2", *pDbOpLogMap);
-    pDBCache3->SetData("regid-3", "keyid-3", *pDbOpLogMap);
-    assert(pDbOpLogMap->GetDbOpLogs(prefix).size() == 3);
+    pDBCache3->SetDbOpLogMap(pDbOpLogMap.get());
+    pDBCache3->SetData("regid-1", "keyid-1");
+    pDBCache3->SetData("regid-2", "keyid-2");
+    pDBCache3->SetData("regid-3", "keyid-3");
+    assert(pDbOpLogMap->GetDbOpLogsPtr(prefix)->size() == 3);
     string opKey3, opValue3;
-    pDbOpLogMap->GetDbOpLogs(prefix).at(2).Get(opKey3, opValue3);
+    pDbOpLogMap->GetDbOpLogsPtr(prefix)->at(2).Get(opKey3, opValue3);
     assert(opKey3 == "regid-3" && opValue3 == "");
 
     pDBCache3->Flush();
@@ -102,7 +104,7 @@ BOOST_AUTO_TEST_CASE(dbcache_scalar_value_Level3_test)
     const bool isWipe = true;
     const dbk::PrefixType prefix = dbk::REGID_KEYID;
     shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
-        DBNameType::ACCOUNT, 100000, false, isWipe);
+        DBNameType::ACCOUNT, false, isWipe);
 
     auto pDBCache1 = make_shared< CSimpleKVCache<prefix, string> >(pDBAccess.get());
     auto pDBCache2 = make_shared< CSimpleKVCache<prefix, string> >(pDBCache1.get());

@@ -56,10 +56,7 @@ public:
 
     bool Flush();
 
-    uint32_t GetCacheSize() const {
-        return assetCache.GetCacheSize() +
-            assetTradingPairCache.GetCacheSize();
-    }
+    uint32_t GetCacheSize() const { return assetCache.GetCacheSize() + assetTradingPairCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
@@ -71,14 +68,10 @@ public:
         assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() {
-        return assetCache.UndoData() &&
-               assetTradingPairCache.UndoData();
-    }
+    bool UndoData() { return assetCache.UndoData() && assetTradingPairCache.UndoData(); }
 
-    shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() {
-        return make_shared<CUserAssetsGetter>(assetCache);
-    }
+    shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() { return make_shared<CUserAssetsGetter>(assetCache); }
+
 private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */

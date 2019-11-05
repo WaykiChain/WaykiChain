@@ -96,7 +96,7 @@ bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
 }
 
 uint64_t CBaseTx::GetFuel(int32_t height, uint32_t fuelRate) {
-    return nRunStep == 0 || fuelRate == 0 ? 0 : ceil(nRunStep / 100.0f) * fuelRate;
+    return (nRunStep == 0 || fuelRate == 0) ? 0 : std::ceil(nRunStep / 100.0f) * fuelRate;
 }
 
 Object CBaseTx::ToJson(const CAccountDBCache &accountCache) const {

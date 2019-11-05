@@ -130,9 +130,10 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
                 i, transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
 
-        if (!CheckBaseCoinRange(transfers[i].coin_amount))
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], coin_amount=%llu out of valid range",
-                i, transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
+        if (!CheckCoinRange(transfers[i].coin_symbol, transfers[i].coin_amount))
+            return state.DoS(100,
+                ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], coin_symbol=%s, coin_amount=%llu out of valid range",
+                         i, transfers[i].coin_symbol, transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
     }
 
     uint64_t minFee;

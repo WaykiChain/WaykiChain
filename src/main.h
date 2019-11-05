@@ -87,6 +87,22 @@ class CUserCDP;
 
 struct CNodeStateStats;
 
+namespace {
+struct CMainSignals {
+    // Notifies listeners of updated transaction data (passing hash, transaction, and optionally the block it is found
+    // in.
+    boost::signals2::signal<void(const uint256 &, CBaseTx *, const CBlock *)> SyncTransaction;
+    // Notifies listeners of an erased transaction (currently disabled, requires transaction replacement).
+    boost::signals2::signal<void(const uint256 &)> EraseTransaction;
+    // Notifies listeners of a new active block chain.
+    boost::signals2::signal<void(const CBlockLocator &)> SetBestChain;
+    // Notifies listeners about an inventory item being seen on the network.
+    // boost::signals2::signal<void (const uint256 &)> Inventory;
+    // Tells listeners to broadcast their data.
+    boost::signals2::signal<void()> Broadcast;
+} g_signals;
+}  // namespace
+
 /** Register a wallet to receive updates from core */
 void RegisterWallet(CWalletInterface *pWalletIn);
 /** Unregister a wallet from core */
@@ -107,10 +123,6 @@ bool CheckDiskSpace(uint64_t nAdditionalBytes = 0);
 /** Verify consistency of the block and coin databases */
 bool VerifyDB(int32_t nCheckLevel, int32_t nCheckDepth);
 
-/** Process protocol messages received from a given node */
-bool ProcessMessages(CNode *pFrom);
-/** Send queued protocol messages to be sent to a give node */
-bool SendMessages(CNode *pTo, bool fSendTrickle);
 /** Run an instance of the script checking thread */
 void ThreadScriptCheck();
 
@@ -229,8 +241,9 @@ public:
     CDexDBCache         *pDexCache;
 
     CBlockIndexDB       *pBlockIndexDb;
+
     CDBAccess           *pBlockDb;
-    CBlockDBCache        *pBlockCache;
+    CBlockDBCache       *pBlockCache;
 
     CDBAccess           *pLogDb;
     CLogDBCache         *pLogCache;
@@ -268,6 +281,7 @@ public:
         pDexCache       = new CDexDBCache(pDexDb);
 
         pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
+
         pBlockDb        = new CDBAccess(DBNameType::BLOCK, false, fReIndex);
         pBlockCache     = new CBlockDBCache(pBlockDb);
 
@@ -291,6 +305,7 @@ public:
         delete pCdpCache;       pCdpCache = nullptr;
         delete pClosedCdpCache; pClosedCdpCache = nullptr;
         delete pDexCache;       pDexCache = nullptr;
+        delete pBlockCache;     pBlockCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
         delete pReceiptCache;   pReceiptCache = nullptr;
 
@@ -299,11 +314,10 @@ public:
         delete pAssetDb;        pAssetDb = nullptr;
         delete pContractDb;     pContractDb = nullptr;
         delete pDelegateDb;     pDelegateDb = nullptr;
-        delete pBlockIndexDb;   pBlockIndexDb = nullptr;
-        delete pBlockCache;     pBlockCache = nullptr;
         delete pCdpDb;          pCdpDb = nullptr;
         delete pClosedCdpDb;    pClosedCdpDb = nullptr;
         delete pDexDb;          pDexDb = nullptr;
+        delete pBlockIndexDb;   pBlockIndexDb = nullptr;
         delete pBlockDb;        pBlockDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
         delete pReceiptDb;      pReceiptDb = nullptr;
@@ -315,9 +329,6 @@ public:
 
     bool Flush() {
         if (pSysParamCache) pSysParamCache->Flush();
-
-        if (pBlockIndexDb) pBlockIndexDb->Flush();
-        if (pBlockCache) pBlockCache->Flush();
 
         if (pAccountCache) pAccountCache->Flush();
 
@@ -332,6 +343,10 @@ public:
         if (pClosedCdpCache) pClosedCdpCache->Flush();
 
         if (pDexCache) pDexCache->Flush();
+
+        if (pBlockIndexDb) pBlockIndexDb->Flush();
+
+        if (pBlockCache) pBlockCache->Flush();
 
         if (pLogCache) pLogCache->Flush();
 

@@ -111,6 +111,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
         int32_t cdpIndex             = 0;
         uint64_t totalCloseoutScoins = 0;
+        uint64_t totalSelloutBcoins  = 0;
         uint64_t totalInflateFcoins  = 0;
         vector<CReceipt> receipts;
         CAccount fcoinGenesisAccount;
@@ -152,6 +153,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed",
                                 pBcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
             }
+
+            totalSelloutBcoins += cdp.total_staked_bcoins;
 
             // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
             uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / PRICE_BOOST);
@@ -223,6 +226,11 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
         if (totalCloseoutScoins > 0) {
             receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalCloseoutScoins,
                                   ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
+        }
+
+        if (totalSelloutBcoins > 0) {
+            receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WICC, totalSelloutBcoins,
+                                  ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE);
         }
 
         if (totalInflateFcoins > 0) {

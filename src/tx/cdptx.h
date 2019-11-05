@@ -77,7 +77,7 @@ public:
 
 private:
     bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
-        CCacheWrapper &cw, CValidationState &state);
+        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
 
 private:
     TxID cdp_txid;                      // optional: only required for staking existing CDPs
@@ -138,7 +138,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 private:
     bool SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &cdp, const uint64_t scoinsInterestToRepay,
-        CCacheWrapper &cw, CValidationState &state);
+        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
 
 private:
     uint256 cdp_txid;           // CDP cdpTxId

@@ -27,6 +27,8 @@ class CBaseCoinTransferTx;
 Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
     Object result;
     result.push_back(Pair("block_hash",     block.GetHash().GetHex()));
+    result.push_back(Pair("block_miner",    block.vptx[0]->txUid.ToString()));
+
     CMerkleTx txGen(block.vptx[0]);
     txGen.SetMerkleBranch(&block);
     result.push_back(Pair("confirmations",  (int32_t)txGen.GetDepthInMainChain()));
@@ -189,10 +191,8 @@ Value getblock(const Array& params, bool fHelp) {
             "     \"txid\"     (string) The transaction id\n"
             "     ,...\n"
             "  ],\n"
-            "  \"time\" : ttt,          (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n"
+            "  \"time\" : n,            (numeric) The block time in seconds since epoch (Jan 1 1970 GMT)\n"
             "  \"nonce\" : n,           (numeric) The nonce\n"
-            "  \"bits\" : \"1d00ffff\", (string) The bits\n"
-            "  \"difficulty\" : x.xxx,  (numeric) The difficulty\n"
             "  \"previousblockhash\" : \"hash\",  (string) The hash of the previous block\n"
             "  \"nextblockhash\" : \"hash\"       (string) The hash of the next block\n"
             "  \"median_price\" :  \"array\"      (array)  The median price info\n"

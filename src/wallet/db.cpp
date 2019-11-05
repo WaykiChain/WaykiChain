@@ -7,7 +7,7 @@
 
 #include "addrman.h"
 #include "crypto/hash.h"
-#include "protocol.h"
+#include "p2p/protocol.h"
 #include "commons/util.h"
 
 #include <stdint.h>

@@ -238,16 +238,16 @@ static const CRPCCommand vRPCCommands[] =
     { "getnettotals",           &getnettotals,           true,      true,       false },
     { "getpeerinfo",            &getpeerinfo,            true,      false,      false },
     { "ping",                   &ping,                   true,      false,      false },
-    { "getchaininfo",           &getchaininfo,           false,     false,      false },
+    { "getchaininfo",           &getchaininfo,           true,      false,      false },
 
     /* Block chain and UTXO */
     { "getfcoingenesistxinfo",  &getfcoingenesistxinfo,  true,      true,       false },
     { "getblockcount",          &getblockcount,          true,      true,       false },
-    { "getblock",               &getblock,               false,     false,      false },
+    { "getblock",               &getblock,               true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
 
-    { "gettotalcoins",          &gettotalcoins,          false,     false,      false },
+    { "gettotalcoins",          &gettotalcoins,          true,      false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
     { "reconsiderblock",        &reconsiderblock,        true,      true,       false },
 
@@ -255,52 +255,53 @@ static const CRPCCommand vRPCCommands[] =
     { "getmininginfo",          &getmininginfo,          true,      false,      false },
     { "submitblock",            &submitblock,            true,      false,      false },
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
+    { "getminerbyblocktime",    &getminerbyblocktime,    true,      true,       false },
 
     /* Raw transactions */
-    { "genmulsigtx",            &genmulsigtx,            false,     false,     false },
+    { "genmulsigtx",            &genmulsigtx,            true,      false,     false },
 
     /* uses wallet if enabled */
     { "addmulsigaddr",          &addmulsigaddr,          false,     false,      true },
-    { "backupwallet",           &backupwallet,           true,      false,      true },
-    { "dumpprivkey",            &dumpprivkey,            true,      false,      true },
-    { "dumpwallet",             &dumpwallet,             true,      false,      true },
-    { "encryptwallet",          &encryptwallet,          false,     false,      true },
     { "getaccountinfo",         &getaccountinfo,         true,      false,      true },
-    { "getnewaddr",             &getnewaddr,             true,      false,      true },
+    { "getnewaddr",             &getnewaddr,             false,     false,      true },
     { "gettxdetail",            &gettxdetail,            true,      false,      true },
     { "getclosedcdp",           &getclosedcdp,           true,      false,      true },
     { "getwalletinfo",          &getwalletinfo,          true,      false,      true },
+
+    { "dumpprivkey",            &dumpprivkey,            false,     false,      true },
     { "importprivkey",          &importprivkey,          false,     false,      true },
     { "dropminerkeys",          &dropminerkeys,          false,     false,      true },
     { "dropprivkey",            &dropprivkey,            false,     false,      true },
-
+    { "backupwallet",           &backupwallet,           false,     false,      true },
+    { "dumpwallet",             &dumpwallet,             false,     false,      true },
     { "importwallet",           &importwallet,           false,     false,      true },
+    { "encryptwallet",          &encryptwallet,          false,     false,      true },
+    { "walletlock",             &walletlock,             false,     false,      true },
+    { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
+    { "walletpassphrase",       &walletpassphrase,       false,     false,      true },
+
     { "listaddr",               &listaddr,               true,      false,      true },
     { "listtx",                 &listtx,                 true,      false,      true },
-
-    { "walletlock",             &walletlock,             true,      false,      true },
-    { "walletpassphrasechange", &walletpassphrasechange, false,     false,      true },
-    { "walletpassphrase",       &walletpassphrase,       true,      false,      true },
-    { "setgenerate",            &setgenerate,            true,      true,       false},
+    { "setgenerate",            &setgenerate,            true,      true,       false },
     { "listcontracts",          &listcontracts,          true,      false,      true },
     { "getcontractinfo",        &getcontractinfo,        true,      false,      true },
     { "listtxcache",            &listtxcache,            true,      false,      true },
     { "getcontractdata",        &getcontractdata,        true,      false,      true },
     { "signmessage",            &signmessage,            false,     false,      true },
-    { "verifymessage",          &verifymessage,          false,     false,      false },
-    { "getcoinunitinfo",        &getcoinunitinfo,        false,     false,      false },
-    { "getcontractassets",      &getcontractassets,      false,     false,      true },
-    { "listcontractassets",     &listcontractassets,     false,     false,      true },
+    { "verifymessage",          &verifymessage,          true,      false,      false },
+    { "getcoinunitinfo",        &getcoinunitinfo,        true,      false,      false },
+    { "getcontractassets",      &getcontractassets,      true,      false,      true },
+    { "listcontractassets",     &listcontractassets,     true,      false,      true },
 
     { "signtxraw",              &signtxraw,              true,      false,      true },
     { "getcontractaccountinfo", &getcontractaccountinfo, true,      false,      true },
     { "getsignature",           &getsignature,           true,      false,      true },
     { "listdelegates",          &listdelegates,          true,      false,      true },
-    { "decodetxraw",            &decodetxraw,            false,     false,      false },
-    { "decodemulsigscript",     &decodemulsigscript,     false,     false,      false },
+    { "decodetxraw",            &decodetxraw,            true,      false,      false },
+    { "decodemulsigscript",     &decodemulsigscript,     true,      false,      false },
 
     /* submit raw tx */
-    { "submittxraw",            &submittxraw,            true,      false,    false},
+    { "submittxraw",            &submittxraw,            true,      false,      false },
 
     /* basic tx */
     { "submitsendtx",           &submitsendtx,           false,     false,      true },
@@ -308,37 +309,37 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
     { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
     { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
-    { "submitucontractdeploytx", &submitucontractdeploytx, false,     false,      true },
-    { "submitucontractcalltx",   &submitucontractcalltx,   false,     false,      true },
+    { "submitucontractdeploytx",&submitucontractdeploytx,false,     false,      true },
+    { "submitucontractcalltx",  &submitucontractcalltx,  false,     false,      true },
 
     /* for CDP */
-    { "submitpricefeedtx",      &submitpricefeedtx,      true,      false,      true },
-    { "submitcoinstaketx",      &submitcoinstaketx,      true,      false,      true },
-    { "submitcdpstaketx",       &submitcdpstaketx,       true,      false,      true },
-    { "submitcdpredeemtx",      &submitcdpredeemtx,      true,      false,      true },
-    { "submitcdpliquidatetx",   &submitcdpliquidatetx,   true,      false,      true },
+    { "submitpricefeedtx",      &submitpricefeedtx,      false,     false,      true },
+    { "submitcoinstaketx",      &submitcoinstaketx,      false,     false,      true },
+    { "submitcdpstaketx",       &submitcdpstaketx,       false,     false,      true },
+    { "submitcdpredeemtx",      &submitcdpredeemtx,      false,     false,      true },
+    { "submitcdpliquidatetx",   &submitcdpliquidatetx,   false,     false,      true },
 
-    { "getscoininfo",           &getscoininfo,          false,     false,      false },
-    { "getcdp",                 &getcdp,                false,     false,      false },
-    { "getusercdp",             &getusercdp,            false,     false,      false },
+    { "getscoininfo",           &getscoininfo,           true,      false,      false },
+    { "getcdp",                 &getcdp,                 true,      false,      false },
+    { "getusercdp",             &getusercdp,             true,      false,      false },
 
     /* for dex */
-    { "submitdexbuylimitordertx",   &submitdexbuylimitordertx,   true,     false,      false },
-    { "submitdexselllimitordertx",  &submitdexselllimitordertx,  true,     false,      false },
-    { "submitdexbuymarketordertx",  &submitdexbuymarketordertx,  true,     false,      false },
-    { "submitdexsellmarketordertx", &submitdexsellmarketordertx, true,     false,      false },
-    { "submitdexsettletx",          &submitdexsettletx,          true,     false,      false },
-    { "submitdexcancelordertx",     &submitdexcancelordertx,     true,     false,      false },
+    { "submitdexbuylimitordertx",   &submitdexbuylimitordertx,   false,     false,      false },
+    { "submitdexselllimitordertx",  &submitdexselllimitordertx,  false,     false,      false },
+    { "submitdexbuymarketordertx",  &submitdexbuymarketordertx,  false,     false,      false },
+    { "submitdexsellmarketordertx", &submitdexsellmarketordertx, false,     false,      false },
+    { "submitdexsettletx",          &submitdexsettletx,          false,     false,      false },
+    { "submitdexcancelordertx",     &submitdexcancelordertx,     false,     false,      false },
 
-    { "getdexorder",                &getdexorder,                true,     false,      false },
-    { "getdexsysorders",            &getdexsysorders,            true,     false,      false },
-    { "getdexorders",               &getdexorders,               true,     false,      false },
+    { "getdexorder",                &getdexorder,                true,      false,      false },
+    { "getdexsysorders",            &getdexsysorders,            true,      false,      false },
+    { "getdexorders",               &getdexorders,               true,      false,      false },
 
     /* for asset */
-    { "submitassetissuetx",         &submitassetissuetx,         true,     false,      false },
-    { "submitassetupdatetx",        &submitassetupdatetx,        true,     false,      false },
-    { "getasset",                   &getasset,                   true,     false,      false },
-    { "getassets",                  &getassets,                  true,     false,      false },
+    { "submitassetissuetx",         &submitassetissuetx,         false,     false,      false },
+    { "submitassetupdatetx",        &submitassetupdatetx,        false,     false,      false },
+    { "getasset",                   &getasset,                   true,      false,      false },
+    { "getassets",                  &getassets,                  true,      false,      false },
 
     /* for wasm */
     { "setcodewasmcontracttx",      &setcodewasmcontracttx,       true,      false,      true },  
@@ -357,7 +358,7 @@ static const CRPCCommand vRPCCommands[] =
     { "gethash",                &gethash,                true,      false,      true },
     { "startcommontpstest",     &startcommontpstest,     true,      true,       false },
     { "startcontracttpstest",   &startcontracttpstest,   true,      true,       false },
-    { "getblockfailures",       &getblockfailures,       false,     false,      false },
+    { "getblockfailures",       &getblockfailures,       true,      false,      false },
 
     /* vm functions work in vm simulator */
     { "vmexecutescript",        &vmexecutescript,        true,      true,       true },
@@ -570,15 +571,15 @@ json_spirit::Value CRPCTable::execute(const string& strMethod,
                                       const json_spirit::Array& params) const {
     // Find method
     const CRPCCommand* pcmd = tableRPC[strMethod];
-    if (!pcmd) throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
+    if (!pcmd)
+        throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found");
 
     if (pcmd->reqWallet && !pWalletMain)
         throw JSONRPCError(RPC_METHOD_NOT_FOUND, "Method not found (disabled)");
 
     // Observe safe mode
-    string strWarning = GetWarnings("rpc");
-    if (strWarning != "" && !SysCfg().GetBoolArg("-disablesafemode", false) && !pcmd->okSafeMode)
-        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, string("Safe mode: ") + strWarning);
+    if (!SysCfg().GetBoolArg("-disablesafemode", false) && !pcmd->okSafeMode)
+        throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, "Banned RPC method");
 
     try {
         // Execute

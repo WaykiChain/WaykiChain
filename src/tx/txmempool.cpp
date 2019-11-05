@@ -42,17 +42,6 @@ CTxMemPool::CTxMemPool() {
     // accepting transactions becomes O(N^2) where N is the number
     // of transactions in the pool
     fSanityCheck         = false;
-    nTransactionsUpdated = 0;
-}
-
-uint32_t CTxMemPool::GetUpdatedTransactionNum() const {
-    LOCK(cs);
-    return nTransactionsUpdated;
-}
-
-void CTxMemPool::AddUpdatedTransactionNum(uint32_t n) {
-    LOCK(cs);
-    nTransactionsUpdated += n;
 }
 
 void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &removed, bool fRecursive) {
@@ -63,7 +52,6 @@ void CTxMemPool::Remove(CBaseTx *pBaseTx, list<std::shared_ptr<CBaseTx> > &remov
         removed.push_front(std::shared_ptr<CBaseTx>(memPoolTxs[txid].GetTransaction()));
         memPoolTxs.erase(txid);
         EraseTransaction(txid);
-        nTransactionsUpdated++;
     }
 }
 
@@ -77,7 +65,6 @@ bool CTxMemPool::AddUnchecked(const uint256 &txid, const CTxMemPoolEntry &entry,
             return false;
 
         memPoolTxs.insert(make_pair(txid, entry));
-        ++nTransactionsUpdated;
     }
     return true;
 }
@@ -109,9 +96,11 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
     if (bExecute) {
-        uint32_t fuelRate  = GetElementForBurn(chainActive.Tip());
-        uint32_t blockTime = chainActive.Tip()->GetBlockTime();
-        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, spCW.get(), &state);
+        CBlockIndex *pTip =  chainActive.Tip();
+        uint32_t fuelRate  = GetElementForBurn(pTip);
+        uint32_t blockTime = pTip->GetBlockTime();
+        uint32_t prevBlockTime = pTip->pprev != nullptr ? pTip->pprev->GetBlockTime() : pTip->GetBlockTime();
+        CTxExecuteContext context(chainActive.Height(), 0, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
         if (!memPoolEntry.GetTransaction()->ExecuteTx(context)) {
             pCdMan->pLogCache->SetExecuteFail(chainActive.Height(), memPoolEntry.GetTransaction()->GetHash(),
                                               state.GetRejectCode(), state.GetRejectReason());
@@ -149,8 +138,6 @@ void CTxMemPool::Clear() {
 
     memPoolTxs.clear();
     cw.reset(new CCacheWrapper(pCdMan));
-
-    ++nTransactionsUpdated;
 }
 
 uint64_t CTxMemPool::Size() {

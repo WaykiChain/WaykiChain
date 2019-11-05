@@ -289,22 +289,26 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
 
 Value submitucontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
-        throw runtime_error("submitucontractdeploytx \"addr\" \"filepath\" \"fee\" [\"height\"] [\"contract_memo\"]\n"
+        throw runtime_error(
+            "submitucontractdeploytx \"addr\" \"filepath\" \"symbol:fee:unit\" [\"height\"] [\"contract_memo\"]\n"
             "\ncreate a transaction of registering a universal contract\n"
             "\nArguments:\n"
             "1.\"addr\":            (string, required) contract owner address from this wallet\n"
             "2.\"filepath\":        (string, required) the file path of the app script\n"
             "3.\"symbol:fee:unit\": (symbol:amount:unit, required) fee paid to miner, default is WICC:100000000:sawi\n"
-            "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in chainActive will be used\n"
+            "4.\"height\":          (numeric, optional) valid height, when not specified, the tip block height in "
+            "chainActive will be used\n"
             "5.\"contract_memo\":   (string, optional) contract memo\n"
             "\nResult:\n"
             "\"txid\":              (string)\n"
-            "\nExamples:\n"
-            + HelpExampleCli("submitucontractdeploytx",
-                "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" \"WICC:100000000:sawi\" 10000 \"Hello, WaykiChain!\"") +
-                "\nAs json rpc call\n"
-            + HelpExampleRpc("submitucontractdeploytx",
-                "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", \"WICC:100000000:sawi\", 10000, \"Hello, WaykiChain!\""));
+            "\nExamples:\n" +
+            HelpExampleCli("submitucontractdeploytx",
+                           "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"/tmp/lua/myapp.lua\" \"WICC:100000000:sawi\" "
+                           "10000 \"Hello, WaykiChain!\"") +
+            "\nAs json rpc call\n" +
+            HelpExampleRpc("submitucontractdeploytx",
+                           "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", \"WICC:100000000:sawi\", "
+                           "10000, \"Hello, WaykiChain!\""));
     }
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(str_type));
@@ -340,8 +344,8 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
 Value submitucontractcalltx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 5 || params.size() > 6) {
         throw runtime_error(
-            "submitucontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"amount\" \"fee\" "
-            "[\"height\"]\n"
+            "submitucontractcalltx \"sender_addr\" \"contract_regid\" \"arguments\" \"symbol:coin:unit\" "
+            "\"symbol:fee:unit\" [\"height\"]\n"
             "\ncreate contract invocation transaction\n"
             "\nArguments:\n"
             "1.\"sender_addr\":     (string, required) tx sender's base58 addr\n"
@@ -436,6 +440,7 @@ Value listaddr(const Array& params, bool fHelp) {
             obj.push_back(Pair("addr",          keyid.ToAddress()));
             obj.push_back(Pair("regid",         account.regid.ToString()));
             obj.push_back(Pair("regid_mature",  account.regid.IsMature(chainActive.Height())));
+            obj.push_back(Pair("received_votes",account.received_votes));
 
             Object tokenMapObj;
             for (auto tokenPair : account.tokens) {
@@ -918,7 +923,7 @@ Value submittxraw(const Array& params, bool fHelp) {
     std::tuple<bool, string> ret;
     ret = pWalletMain->CommitTx((CBaseTx *) tx.get());
     if (!std::get<0>(ret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "submittxraw error: " + std::get<1>(ret));
+        throw JSONRPCError(RPC_WALLET_ERROR, "Submittxraw error: " + std::get<1>(ret));
 
     Object obj;
     obj.push_back(Pair("txid", std::get<1>(ret)));

@@ -36,10 +36,10 @@ shared_ptr<string> DEX_DB::ParseLastPos(const string &lastPosInfo, DEXBlockOrder
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>(strprintf("The last_pos_info is not contained in acitve chains,"
+        return make_shared<string>(strprintf("The last_pos_info is not contained in active chains,"
             " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
     if (pBlockIndex->GetBlockHash() != lastBlockHash)
-        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the acitve block,"
+        return make_shared<string>(strprintf("The block of height in last_pos_info does not match with the active block,"
             " height=%d, last_block_hash=%s, cur_height_block_hash=%s",
             lastHeight, lastBlockHash.ToString(), pBlockIndex->GetBlockHash().ToString()));
     return nullptr;
@@ -49,7 +49,7 @@ shared_ptr<string> DEX_DB::MakeLastPos(const DEXBlockOrdersCache::KeyType &lastK
     uint32_t lastHeight = DEX_DB::GetHeight(lastKey);
     CBlockIndex *pBlockIndex = chainActive[lastHeight];
     if (pBlockIndex == nullptr)
-        return make_shared<string>(strprintf("The block of lastKey is not contained in acitve chains,"
+        return make_shared<string>(strprintf("The block of lastKey is not contained in active chains,"
             " last_height=%d, tip_height=%d", lastHeight, chainActive.Height()));
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -68,10 +68,10 @@ public:
     bool is_valid;
 protected:
     DEXBlockOrdersCache &db_cache;
-    uint32_t begin_height;
-    uint32_t end_height;
+    CFixedUInt32 begin_height;
+    CFixedUInt32 end_height;
 public:
-    CDexOrderIt(DEXBlockOrdersCache &dbCache, uint32_t beginHeight, uint32_t endHeight)
+    CDexOrderIt(DEXBlockOrdersCache &dbCache, const CFixedUInt32 &beginHeight, const CFixedUInt32 &endHeight)
         : key(),
           value(),
           is_valid(false),
@@ -120,7 +120,7 @@ private:
             throw runtime_error(strprintf("CDBDexOrderIt::Parse db key error! key=%s", HexStr(slKey.ToString())));
         }
 
-        uint32_t curHeight = DEX_DB::GetHeight(key);
+        const CFixedUInt32 &curHeight = std::get<0>(key);
         if ( curHeight < begin_height || curHeight > end_height)
             return false;
 
@@ -138,7 +138,6 @@ private:
 class CMapDexOrderIt: public CDexOrderIt {
 private:
     DEXBlockOrdersCache::Iterator map_it;
-    uint32_t height;
 public:
     using CDexOrderIt::CDexOrderIt;
 
@@ -162,7 +161,7 @@ private:
         is_valid = false;
         if (map_it == db_cache.GetMapData().end())  return false;
         key = map_it->first;
-        uint32_t curHeight = DEX_DB::GetHeight(key);
+        const CFixedUInt32 &curHeight = std::get<0>(key);
         if ( curHeight < begin_height || curHeight > end_height)
             return false;
         value = map_it->second;
@@ -170,9 +169,11 @@ private:
     }
 };
 
-bool CDEXOrdersGetter::Execute(uint32_t beginHeight, uint32_t endHeight, uint32_t maxCount, const DEXBlockOrdersCache::KeyType &lastKey) {
+bool CDEXOrdersGetter::Execute(uint32_t beginHeightIn, uint32_t endHeightIn, uint32_t maxCount, const DEXBlockOrdersCache::KeyType &lastKey) {
 
     assert(orders.size() == 0 && "Can only execute 1 times");
+    CFixedUInt32 beginHeight(beginHeightIn);
+    CFixedUInt32 endHeight(endHeightIn);
     CMapDexOrderIt mapIt(db_cache, beginHeight, endHeight);
     CDBDexOrderIt dbIt(db_cache, beginHeight, endHeight);
 
@@ -245,11 +246,11 @@ public:
     DEXBlockOrdersCache::ValueType value;
 private:
     shared_ptr<leveldb::Iterator> p_db_it;
-    uint32_t height;
+    CFixedUInt32 height;
     bool is_valid;
     string prefix;
 public:
-    CDBDexSysOrderIt(CDBAccess &dbAccess, uint32_t heightIn)
+    CDBDexSysOrderIt(CDBAccess &dbAccess, const CFixedUInt32 &heightIn)
         : key(), value(), height(heightIn), is_valid(false) {
 
         p_db_it = dbAccess.NewIterator();
@@ -277,7 +278,7 @@ private:
         if (!ParseDbKey(slKey, DEXBlockOrdersCache::PREFIX_TYPE, key)) {
             throw runtime_error(strprintf("CDBDexSysOrderIt::Parse db key error! key=%s", HexStr(slKey.ToString())));
         }
-        assert(DEX_DB::GetHeight(key) == height || DEX_DB::GetGenerateType(key) == (uint8_t)SYSTEM_GEN_ORDER);
+        assert(std::get<0>(key) == height || DEX_DB::GetGenerateType(key) == (uint8_t)SYSTEM_GEN_ORDER);
 
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
@@ -297,10 +298,10 @@ public:
 private:
     DEXBlockOrdersCache::Map &data_map;
     DEXBlockOrdersCache::Iterator map_it;
-    uint32_t height;
+    CFixedUInt32 height;
     bool is_valid;
 public:
-    CMapDexSysOrderIt(DEXBlockOrdersCache &dbCache, uint32_t heightIn)
+    CMapDexSysOrderIt(DEXBlockOrdersCache &dbCache, const CFixedUInt32 &heightIn)
         : key(), value(), data_map(dbCache.GetMapData()), map_it(data_map.end()), height(heightIn), is_valid(false) {}
 
     bool First() {
@@ -318,15 +319,16 @@ private:
         is_valid = false;
         if (map_it == data_map.end())  return false;
         key = map_it->first;
-        if (DEX_DB::GetHeight(key) != height || DEX_DB::GetGenerateType(key) != SYSTEM_GEN_ORDER)
+        if (std::get<0>(key) != height || DEX_DB::GetGenerateType(key) != SYSTEM_GEN_ORDER)
             return false;
         value = map_it->second;
         return true;
     }
 };
 
-bool CDEXSysOrdersGetter::Execute(uint32_t height) {
+bool CDEXSysOrdersGetter::Execute(uint32_t heightIn) {
 
+    CFixedUInt32 height(heightIn);
     CMapDexSysOrderIt mapIt(db_cache, height);
     CDBDexSysOrderIt dbIt(db_access, height);
     mapIt.First();
@@ -375,16 +377,16 @@ void CDEXSysOrdersGetter::ToJson(Object &obj) {
 
 bool CDexDBCache::GetActiveOrder(const uint256 &orderId, CDEXOrderDetail &activeOrder) {
     return activeOrderCache.GetData(orderId, activeOrder);
-};
+}
 
-bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) {
-    return activeOrderCache.HaveData(orderId);
-};
+bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) { return activeOrderCache.HaveData(orderId); }
 
 bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
-    if(activeOrderCache.HaveData(orderId)) {
-        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", activeOrder.ToString());
+    if (activeOrderCache.HaveData(orderId)) {
+        return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", orderId.GetHex(),
+                        activeOrder.ToString());
     }
+
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
 }
@@ -392,9 +394,9 @@ bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetai
 bool CDexDBCache::UpdateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.SetData(orderId, activeOrder)
         && blockOrdersCache.SetData(MakeBlockOrderKey(orderId, activeOrder), activeOrder);
-};
+}
 
 bool CDexDBCache::EraseActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
     return activeOrderCache.EraseData(orderId)
         && blockOrdersCache.EraseData(MakeBlockOrderKey(orderId, activeOrder));
-};
+}

@@ -54,10 +54,9 @@ class MinedBlockInfo {
 public:
     int64_t time;             // block time
     int64_t nonce;            // nonce
-    int32_t height;               // block height
+    int32_t height;           // block height
     uint64_t totalFuel;       // the total fuels of all transactions in the block
     uint fuelRate;            // block fuel rate
-    uint64_t totalFees;       // the total fees of all transactions in the block
     uint64_t txCount;         // transaction count in block, exclude coinbase
     uint64_t totalBlockSize;  // block size(bytes)
     uint256 hash;             // block hash
@@ -66,6 +65,7 @@ public:
 public:
     MinedBlockInfo() { SetNull(); }
     void SetNull();
+    void Set(const CBlock *pBlock);
 };
 
 // get the info of mined blocks. thread safe.
@@ -74,24 +74,22 @@ vector<MinedBlockInfo> GetMinedBlocks(uint32_t count);
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t nThreads);
 
-/** Generate a new block pre-stable coin release */
-std::unique_ptr<CBlock> CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn);
-/** Generate fund coin's genesis block */
-std::unique_ptr<CBlock> CreateStableCoinGenesisBlock();
-/** Generate a new block after stable coin release */
-std::unique_ptr<CBlock> CreateNewBlockStableCoinRelease(CCacheWrapper &cwIn);
-
 bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &accountCache,
                          CBlock *pBlock);
 
 bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
 
 /** Check mined block */
-bool CheckWork(CBlock *pBlock, CWallet &wallet);
+bool CheckWork(CBlock *pBlock);
 
 /** Get burn element */
 uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
+
+void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList);
+
+bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
+                        const vector<CRegID> &delegateList, CRegID &delegate);
 
 #endif  // COIN_MINER_H
