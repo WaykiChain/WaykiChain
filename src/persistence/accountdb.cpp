@@ -201,6 +201,11 @@ bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
     return false;
 }
 
+bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
+    return nickId2KeyIdCache.HaveData(nickId);
+}
+
+
 bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {
         return EraseKeyId(userId.get<CRegID>());

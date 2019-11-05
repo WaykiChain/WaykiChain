@@ -52,6 +52,7 @@
 #include "tx/tx.h"
 #include "tx/txmempool.h"
 #include "tx/assettx.h"
+#include "tx/nickidregtx.h"
 
 // class CBlockIndex;
 class CBloomFilter;
@@ -773,6 +774,8 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
             Serialize(os, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion); break;
         case DEX_MARKET_SELL_ORDER_TX:
             Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
+        case NICKID_REGISTER_TX:
+            Serialize(os, *((CNickIdRegisterTx *)(pa.get())), nType, nVersion); break;
 
         default:
             throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.",
@@ -922,6 +925,11 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
         case DEX_MARKET_SELL_ORDER_TX: {
             pa = std::make_shared<CDEXSellMarketOrderTx>();
             Unserialize(is, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case NICKID_REGISTER_TX: {
+            pa = std::make_shared<CNickIdRegisterTx>();
+            Unserialize(is, *((CNickIdRegisterTx *)(pa.get())), nType, nVersion);
             break;
         }
         default:

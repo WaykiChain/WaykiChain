@@ -51,6 +51,7 @@ public:
 
     bool HaveAccount(const CKeyID &keyId) const;
     bool HaveAccount(const CUserID &userId) const;
+    bool HaveAccount(const CNickID &nickId) const;
 
     bool EraseAccount(const CKeyID &keyId);
     bool EraseAccount(const CUserID &userId);
