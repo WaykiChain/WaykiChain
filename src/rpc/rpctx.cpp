@@ -22,6 +22,7 @@
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
 #include "commons/json/json_spirit_reader.h"
+#include "vm/wasm/types/name.hpp"
 
 #define revert(height) ((height<<24) | (height << 8 & 0xff0000) |  (height>>8 & 0xff00) | (height >> 24))
 
@@ -93,6 +94,52 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
     return SubmitTx(account.keyid, tx);
 }
+
+
+Value submitnickidregistertx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 2)
+        throw runtime_error("submitnickidregistertx \"addr\" [\"fee\"]\n"
+                            "\nregister account to acquire its regid\n"
+                            "\nArguments:\n"
+                            "1.\"addr\":    (string, required)\n"
+                            "2.\"nickid\":  (string, required)\n"
+                            "3.\"fee\":     (numeric, optional)\n"
+                            "\nResult:\n"
+                            "\"txid\":      (string) The transaction id.\n"
+                            "\nExamples:\n"
+                            + HelpExampleCli("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 10000")
+                            + "\nAs json rpc call\n"
+                            + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
+
+    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type));
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    string nickid        = params[1].get_str() ;
+    int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, NICKID_REGISTER_TX);
+    int32_t validHeight  = chainActive.Height();
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+
+    wasm::name n = wasm::name(nickid) ;
+
+
+    CPubKey pubkey;
+    if (!pWalletMain->GetPubKey(account.keyid, pubkey))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in local wallet");
+
+
+    CNickIdRegisterTx tx;
+    tx.nickId       = nickid;
+    tx.txUid        = pubkey;
+    tx.llFees       = fee;
+    tx.valid_height = validHeight;
+
+    return SubmitTx(account.keyid, tx);
+}
+
 
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {

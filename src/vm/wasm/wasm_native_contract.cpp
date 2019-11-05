@@ -117,10 +117,12 @@ namespace wasm {
         auto memo = std::get<3>(setcode);
 
         CAccount account;
-        CRegID contractRegId = wasm::Name2RegID(nick_name);
-        // if (!cw.accountCache.GetAccount(contractRegId, account)){
-        //   return;
-        // }
+      //  CRegID contractRegId = wasm::Name2RegID(nick_name);
+        CNickID nickId(wasm::name(nick_name).to_string()) ;
+        if (!cw.accountCache.GetAccount(nickId, account)){
+           return;
+        }
+        CRegID contractRegId = account.regid ;
 
         CUniversalContract contract;
         cw.contractCache.GetContract(contractRegId, contract);

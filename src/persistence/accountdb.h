@@ -43,14 +43,17 @@ public:
     bool GetAccount(const CKeyID &keyId,    CAccount &account) const;
     bool GetAccount(const CRegID &regId,    CAccount &account) const;
     bool GetAccount(const CUserID &uid,     CAccount &account) const;
+    bool GetAccount(const CNickID &nickId,  CAccount &account) const;
 
     bool SetAccount(const CKeyID &keyId,    const CAccount &account);
     bool SetAccount(const CRegID &regId,    const CAccount &account);
     bool SetAccount(const CUserID &uid,     const CAccount &account);
+    bool SetAccount(const CNickID &nickId,     const CAccount &account);
     bool SaveAccount(const CAccount &account);
 
     bool HaveAccount(const CKeyID &keyId) const;
     bool HaveAccount(const CUserID &userId) const;
+    bool HaveAccount(const CNickID &nickId) const;
 
     bool EraseAccount(const CKeyID &keyId);
     bool EraseAccount(const CUserID &userId);

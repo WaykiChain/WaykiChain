@@ -2929,6 +2929,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
         case DEX_LIMIT_SELL_ORDER_TX: return std::make_shared<CDEXSellLimitOrderTx>();
         case DEX_MARKET_BUY_ORDER_TX: return std::make_shared<CDEXBuyMarketOrderTx>();
         case DEX_MARKET_SELL_ORDER_TX:return std::make_shared<CDEXSellMarketOrderTx>();
+        case NICKID_REGISTER_TX:      return std::make_shared<CNickIdRegisterTx>();
 
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");

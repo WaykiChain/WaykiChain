@@ -35,6 +35,17 @@ bool CAccountDBCache::GetAccount(const CRegID &regId, CAccount &account) const {
     return false;
 }
 
+bool CAccountDBCache::GetAccount(const CNickID &nickId,  CAccount &account) const{
+    if(nickId.IsEmpty())
+        return false ;
+    CKeyID keyId;
+
+    if(nickId2KeyIdCache.GetData(nickId, keyId)){
+        return accountCache.GetData(keyId, account) ;
+    }
+    return false ;
+}
+
 bool CAccountDBCache::GetAccount(const CUserID &userId, CAccount &account) const {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
@@ -68,6 +79,14 @@ bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
     }
     return false;
 }
+bool CAccountDBCache::SetAccount(const CNickID &nickId,const CAccount &account){
+    CKeyID keyId;
+    if(nickId2KeyIdCache.GetData(nickId, keyId)){
+        return accountCache.SetData(keyId, account);
+    }
+    return false ;
+}
+
 
 bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
     return accountCache.HaveData(keyId);
@@ -173,10 +192,16 @@ bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
 bool CAccountDBCache::SetAccount(const CUserID &userId, const CAccount &account) {
     if (userId.type() == typeid(CRegID)) {
         return SetAccount(userId.get<CRegID>(), account);
+
     } else if (userId.type() == typeid(CKeyID)) {
         return SetAccount(userId.get<CKeyID>(), account);
+
     } else if (userId.type() == typeid(CPubKey)) {
         return SetAccount(userId.get<CPubKey>().GetKeyId(), account);
+
+    } else if (userId.type() == typeid(CNickID)) {
+        return SetAccount(userId.get<CNickID>(), account);
+
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");
     }
@@ -200,6 +225,11 @@ bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
     }
     return false;
 }
+
+bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
+    return nickId2KeyIdCache.HaveData(nickId);
+}
+
 
 bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {

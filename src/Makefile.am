@@ -159,6 +159,7 @@ coin_CORE_H = \
   sigcache.h \
   tx/assettx.h \
   tx/accountregtx.h \
+  tx/nickidregtx.h \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
   tx/cdptx.h \
@@ -330,6 +331,7 @@ libcoin_server_a_SOURCES = \
   sigcache.cpp \
   tx/assettx.cpp \
   tx/accountregtx.cpp \
+  tx/nickidregtx.cpp \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \
   tx/cdptx.cpp \

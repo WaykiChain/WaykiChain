@@ -97,10 +97,11 @@ private:
 public:
     CNickID() {}
     CNickID(string nickIdIn) {
-        if (nickIdIn.size() > 32) throw ios_base::failure("Nickname ID length > 32 not allowed!");
+        if (nickIdIn.size() > 12) throw ios_base::failure("Nickname ID length > 12 not allowed!");
 
         nickId = nickIdIn;
     }
+
 
     const string &GetNickIdRaw() const { return nickId; }
     bool IsEmpty() const { return (nickId.size() == 0); }

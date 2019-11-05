@@ -72,6 +72,7 @@ public:
     bool GetContract(const CRegID &contractRegId, CUniversalContract &contract);
     bool GetContracts(map<string, CUniversalContract> &contracts);
     bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
+
     bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
@@ -109,6 +110,7 @@ private:
     /////////// ContractDB
     // contract $RegId.ToRawString() -> Contract
     CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
+
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
