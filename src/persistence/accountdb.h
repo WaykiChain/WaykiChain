@@ -68,6 +68,7 @@ public:
     bool SetKeyId(const CUserID &uid,   const CKeyID &keyId);
     bool GetKeyId(const CRegID &regId,  CKeyID &keyId) const;
     bool GetKeyId(const CUserID &uid,   CKeyID &keyId) const;
+    bool GetKeyId(const CNickID &nickId, CKeyID &keyId) const;
 
     bool EraseKeyId(const CRegID &regId);
     bool EraseKeyId(const CUserID &userId);

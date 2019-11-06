@@ -92,6 +92,7 @@ namespace wasm {
             if (str.size() > 13) {
                 check( false, "string is too long to be a valid name" );
             }
+
             if (str.empty()) {
                 return;
             }
@@ -128,7 +129,7 @@ namespace wasm {
                 return (c - 'a') + 6;
             }
             else{
-                //check( false, "character is not in allowed character set for names" );
+                check( false, "character is not in allowed character set for names" );
             }
 
             return 0; // control flow will never reach here; just added to suppress warning

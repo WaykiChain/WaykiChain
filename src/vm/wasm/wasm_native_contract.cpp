@@ -119,13 +119,12 @@ namespace wasm {
         CAccount account;
       //  CRegID contractRegId = wasm::Name2RegID(nick_name);
         CNickID nickId(wasm::name(nick_name).to_string()) ;
-        if (!cw.accountCache.GetAccount(nickId, account)){
-           return;
-        }
-        CRegID contractRegId = account.regid ;
 
         CUniversalContract contract;
-        cw.contractCache.GetContract(contractRegId, contract);
+        if( cw.contractCache.GetContract(nickId,cw, contract)){
+            return ;
+        }
+
 
         if (contract.vm_type != VMType::WASM_VM) contract.vm_type = VMType::WASM_VM;
 
@@ -133,7 +132,7 @@ namespace wasm {
         if (abi.size() > 0) contract.abi = abi;
         if (memo.size() > 0) contract.memo = memo;
 
-        WASM_ASSERT(cw.contractCache.SaveContract(contractRegId, contract), account_operation_exception,
+        WASM_ASSERT(cw.contractCache.SaveContract(nickId,cw, contract), account_operation_exception,
                     "%s",
                     "wasmnativecontract.Setcode, save account info error")
 

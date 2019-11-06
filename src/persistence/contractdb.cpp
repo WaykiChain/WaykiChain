@@ -4,7 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "contractdb.h"
-#include "accountdb.h"
+#include "entities/account.h"
+
 
 #include "entities/account.h"
 #include "entities/id.h"
@@ -34,10 +35,16 @@ bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAp
 
 /************************ contract in cache ******************************/
 bool CContractDBCache::GetContract(const CRegID &contractRegId, CUniversalContract &contract) {
-
     return contractCache.GetData(contractRegId.ToRawString(), contract);
 }
 
+bool CContractDBCache::GetContract(const CNickID &contractNickId, CCacheWrapper &cw, CUniversalContract &contract){
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account)){
+        return contractCache.GetData(account.regid.ToString(), contract);
+    }
+    return false ;
+}
 
 
 bool CContractDBCache::GetContracts(map<string, CUniversalContract> &contracts) {
@@ -46,6 +53,15 @@ bool CContractDBCache::GetContracts(map<string, CUniversalContract> &contracts) 
 
 bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CUniversalContract &contract) {
     return contractCache.SetData(contractRegId.ToRawString(), contract);
+}
+
+bool CContractDBCache::SaveContract(const CNickID &contractNickId, CCacheWrapper &cw, const CUniversalContract &contract){
+
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account)){
+        return contractCache.SetData(account.regid.ToString(), contract);
+    }
+    return false ;
 }
 
 bool CContractDBCache::HaveContract(const CRegID &contractRegId) {

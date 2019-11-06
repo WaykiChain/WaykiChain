@@ -111,6 +111,10 @@ bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
     return regId2KeyIdCache.GetData(regId.ToRawString(), keyId);
 }
 
+bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
+    return nickId2KeyIdCache.GetData(nickId, keyId) ;
+}
+
 bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
     if (userId.type() == typeid(CRegID)) {
         return GetKeyId(userId.get<CRegID>(), keyId);

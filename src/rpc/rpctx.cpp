@@ -123,7 +123,12 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
-    wasm::name n = wasm::name(nickid) ;
+    try{
+        wasm::name n = wasm::name(nickid) ;
+    }catch (const wasm::exception& e ){
+        throw JSONRPCError(RPC_WALLET_ERROR, e.detail());
+    }
+
 
 
     CPubKey pubkey;

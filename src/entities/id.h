@@ -97,7 +97,7 @@ private:
 public:
     CNickID() {}
     CNickID(string nickIdIn) {
-        if (nickIdIn.size() > 12) throw ios_base::failure("Nickname ID length > 12 not allowed!");
+        if (nickIdIn.size() != 12) throw ios_base::failure("Nickname ID length must be 12 !");
 
         nickId = nickIdIn;
     }

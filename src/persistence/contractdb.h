@@ -26,6 +26,8 @@ class CKeyID;
 class CRegID;
 class CAccount;
 class CContractDB;
+class CCacheWrapper;
+
 struct CDiskTxPos;
 
 typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
@@ -70,8 +72,12 @@ public:
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
     bool GetContract(const CRegID &contractRegId, CUniversalContract &contract);
+    bool GetContract(const CNickID &contractNickId, CCacheWrapper &cw, CUniversalContract &contract);
     bool GetContracts(map<string, CUniversalContract> &contracts);
     bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
+
+    bool SaveContract(const CNickID &contractNickId, CCacheWrapper &cw, const CUniversalContract &contract);
+
 
     bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);

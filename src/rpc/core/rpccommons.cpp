@@ -203,13 +203,16 @@ string RegIDToAddress(CUserID &userId) {
 }
 
 bool GetKeyId(const string &addr, CKeyID &keyId) {
-    if (!CRegID::GetKeyId(addr, keyId)) {
-        keyId = CKeyID(addr);
-        if (keyId.IsEmpty())
-            return false;
-    }
 
-    return true;
+    if(CRegID::GetKeyId(addr, keyId)){
+        return true ;
+    }
+    keyId = CKeyID(addr);
+    if (!keyId.IsEmpty()){
+        return true ;
+    }
+    CNickID nickId(addr) ;
+    return pCdMan->pAccountCache->GetKeyId(nickId, keyId);
 }
 
 Object GetTxDetailJSON(const uint256& txid) {
