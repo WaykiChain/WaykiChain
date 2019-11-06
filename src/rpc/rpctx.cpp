@@ -124,7 +124,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
     try{
-        wasm::name n = wasm::name(nickid) ;
+        assert(wasm::name(nickid).value != 0) ;
     }catch (const wasm::exception& e ){
         throw JSONRPCError(RPC_WALLET_ERROR, e.detail());
     }
