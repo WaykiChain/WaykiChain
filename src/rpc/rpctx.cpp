@@ -123,13 +123,15 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
 
+    if(!account.nickid.IsEmpty()){
+        throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
+    }
+
     try{
         assert(wasm::name(nickid).value != 0) ;
     }catch (const wasm::exception& e ){
         throw JSONRPCError(RPC_WALLET_ERROR, e.detail());
     }
-
-
 
     CPubKey pubkey;
     if (!pWalletMain->GetPubKey(account.keyid, pubkey))

@@ -55,6 +55,10 @@ bool CNickIdRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "pubkey-not-exist");
     }
 
+    if(!account.nickid.IsEmpty()){
+        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, the account have nickid already!", keyId.ToString()),
+                         UPDATE_ACCOUNT_FAIL, "nickid-exist");
+    }
     account.nickid       = nick;
     account.owner_pubkey = txUid.get<CPubKey>();
 
