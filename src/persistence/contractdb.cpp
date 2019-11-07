@@ -94,6 +94,36 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
     return contractDataCache.EraseData(key);
 }
 
+bool CContractDBCache::GetContractData(const CNickID &contractNickId, CCacheWrapper& cw, const string &contractKey, string &contractData) {
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account) && !account.regid.IsEmpty()){
+        return GetContractData(account.regid,contractKey, contractData) ;
+    }
+    return false ;
+}
+bool CContractDBCache::SetContractData(const CNickID &contractNickId, CCacheWrapper& cw, const string &contractKey, const string &contractData) {
+
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account) && !account.regid.IsEmpty()){
+        return SetContractData(account.regid, contractKey, contractData);
+    }
+    return false ;
+}
+bool CContractDBCache::HaveContractData(const CNickID &contractNickId, CCacheWrapper& cw, const string &contractKey) {
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account) && !account.regid.IsEmpty()){
+        return HaveContractData(account.regid,contractKey) ;
+    }
+    return false ;
+}
+bool CContractDBCache::EraseContractData(const CNickID &contractNickId,CCacheWrapper& cw, const string &contractKey) {
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account) && !account.regid.IsEmpty()){
+        return EraseContractData(account.regid,contractKey) ;
+    }
+    return false ;
+}
+
 bool CContractDBCache::Flush() {
     contractCache.Flush();
     contractDataCache.Flush();
@@ -108,6 +138,16 @@ uint32_t CContractDBCache::GetCacheSize() const {
         contractAccountCache.GetCacheSize();
 }
 
+shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(const CNickID &contractNickId,CCacheWrapper &cw,
+        const string &contractKeyPrefix, uint32_t count, const string &lastKey){
+
+    CAccount account;
+    if(cw.accountCache.GetAccount(contractNickId, account) && !account.regid.IsEmpty()){
+        return CreateContractDatasGetter(account.regid,contractKeyPrefix, count, lastKey) ;
+    }
+    throw runtime_error("nickid haven't related account or account haven't regid") ;
+
+}
 shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
     const CRegID &contractRegid, const string &contractKeyPrefix, uint32_t count,
     const string &lastKey) {

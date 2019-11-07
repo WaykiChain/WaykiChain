@@ -75,10 +75,7 @@ public:
     bool GetContract(const CNickID &contractNickId, CCacheWrapper &cw, CUniversalContract &contract);
     bool GetContracts(map<string, CUniversalContract> &contracts);
     bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
-
     bool SaveContract(const CNickID &contractNickId, CCacheWrapper &cw, const CUniversalContract &contract);
-
-
     bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
 
@@ -86,6 +83,11 @@ public:
     bool SetContractData(const CRegID &contractRegId, const string &contractKey, const string &contractData);
     bool HaveContractData(const CRegID &contractRegId, const string &contractKey);
     bool EraseContractData(const CRegID &contractRegId, const string &contractKey);
+
+    bool GetContractData(const CNickID &contractNickId, CCacheWrapper& cw, const string &contractKey, string &contractData);
+    bool SetContractData(const CNickID &contractNickId, CCacheWrapper& cw, const string &contractKey, const string &contractData);
+    bool HaveContractData(const CNickID &contractNickId, CCacheWrapper& cw, const string &contractKey);
+    bool EraseContractData(const CNickID &contractNickId,CCacheWrapper& cw, const string &contractKey);
 
     bool Flush();
     uint32_t GetCacheSize() const;
@@ -110,6 +112,10 @@ public:
 
     shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,
         const string &contractKeyPrefix, uint32_t count, const string &lastKey);
+
+
+    shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CNickID &contractNickId,CCacheWrapper &cw,
+            const string &contractKeyPrefix, uint32_t count, const string &lastKey);
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
