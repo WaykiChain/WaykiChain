@@ -22,6 +22,8 @@
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
 
+//static CCacheWrapper *g_pCW = nullptr;//= std::make_shared<CCacheWrapper>(mempool.cw.get());
+
 static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
     json_spirit::Object obj;
@@ -37,7 +39,7 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
 }
 
 
-static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v ) {
+static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &cw) {
 
     json_spirit::Object obj;
 
@@ -56,7 +58,6 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     }
     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
 
-
     std::vector<char> abi;
     if(t.contract == wasm::wasmio){
         wasm::abi_def wasmio_abi = wasmio_contract_abi();
@@ -64,8 +65,8 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     } else {
         //should be lock
         CUniversalContract contract;
-        pCdMan->pContractCache->GetContract(wasm::Name2RegID(t.contract), contract);
-        abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
+        if(cw.contractCache.GetContract(CNickID(wasm::name(t.contract).to_string()), cw, contract))
+            abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
     }
 
     if (abi.size() > 0 && t.action != wasm::N(setcode)) {
@@ -86,7 +87,7 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
 }
 
 
-static inline void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v ) {
+static inline void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &cw) {
 
     json_spirit::Object obj;
 
@@ -100,7 +101,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
     to_variant(wasm::name(t.receiver), val);
     json_spirit::Config::add(obj, "receiver", val);
 
-    to_variant(t.trx, val);
+    to_variant(t.trx, val, cw);
     json_spirit::Config::add(obj, "trx", val);
 
     to_variant(t.console, val);
@@ -110,7 +111,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
         json_spirit::Array arr;
         for (const auto &trace :t.inline_traces) {
             json_spirit::Value tmp;
-            to_variant(trace, tmp);
+            to_variant(trace, tmp, cw);
             arr.push_back(tmp);
         }
 
@@ -123,7 +124,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
 }
 
 
-static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v ) {
+static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &cw ) {
 
     json_spirit::Object obj;
 
@@ -138,7 +139,7 @@ static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Va
         json_spirit::Array arr;
         for (const auto &trace :t.traces) {
             json_spirit::Value tmp;
-            to_variant(trace, tmp);
+            to_variant(trace, tmp, cw);
             arr.push_back(tmp);
         }
 
@@ -148,6 +149,28 @@ static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Va
     v = obj;
 }
 
+void CWasmContractTx::pause_billing_timer(){
+
+  if(billed_time > chrono::microseconds(0)){
+      return;// already paused
+  }
+
+  auto now = system_clock::now();
+  billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
+
+}
+
+void CWasmContractTx::resume_billing_timer(){
+
+  if(billed_time > chrono::microseconds(0)){
+       return;// already paused
+  }
+  auto now = system_clock::now();
+  pseudo_start = now - billed_time;
+
+  billed_time = chrono::microseconds(0);
+
+}
 
 bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
     // IMPLEMENT_CHECK_TX_FEE;
@@ -196,7 +219,8 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
 
-        auto start = system_clock::now();
+        //auto start = system_clock::now();
+        pseudo_start = system_clock::now();
 
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
@@ -204,15 +228,14 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         //trx_trace.block_time =
 
         for (auto trx: inlinetransactions) {
-
             trx_trace.traces.emplace_back();
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, *context.pCw, *context.pState, 0);
         }
 
-        trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
+        trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);        
 
         json_spirit::Value v;
-        to_variant(trx_trace, v);
+        to_variant(trx_trace, v, *context.pCw);
         context.pState->SetReturn(json_spirit::write(v));
 
     } catch (wasm::exception &e) {

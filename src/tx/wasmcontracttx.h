@@ -4,6 +4,10 @@
 #include "tx.h"
 #include "wasm/types/inline_transaction.hpp"
 #include "wasm/wasm_trace.hpp"
+#include "chrono"
+
+using std::chrono::microseconds;
+using std::chrono::system_clock;
 
 class CWasmContractTx : public CBaseTx {
 public:
@@ -12,6 +16,12 @@ public:
     // std::vector<uint64_t> permissions;
     // std::vector<char> data;
     vector<wasm::inline_transaction> inlinetransactions;
+public:
+    system_clock::time_point pseudo_start;
+    std::chrono::microseconds billed_time;
+
+    void pause_billing_timer();
+    void resume_billing_timer();
 
     // uint64_t amount;
     // TokenSymbol symbol;

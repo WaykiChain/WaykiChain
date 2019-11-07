@@ -44,6 +44,9 @@ namespace wasm {
         virtual vm::wasm_allocator* get_wasm_allocator(){ return nullptr; }
         virtual std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
 
+        virtual void pause_billing_timer(){};
+        virtual void resume_billing_timer(){};
+
     };
 
 }

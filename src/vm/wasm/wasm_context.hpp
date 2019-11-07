@@ -23,17 +23,17 @@ namespace wasm {
    //    int32_t code = 0;
    // };
 
-    static inline CRegID Name2RegID( uint64_t account ) {
-        uint32_t height = uint32_t(account);
-        uint16_t index = uint16_t(account >> 32);
-        return CRegID(height, index);
-    }
+    // static inline CRegID Name2RegID( uint64_t account ) {
+    //     uint32_t height = uint32_t(account);
+    //     uint16_t index = uint16_t(account >> 32);
+    //     return CRegID(height, index);
+    // }
 
-    static inline uint64_t RegID2Name( CRegID regID ) {
-        uint64_t account = uint64_t(regID.GetIndex());
-        account = (account << 32) + uint64_t(regID.GetHeight());
-        return account;
-    }
+    // static inline uint64_t RegID2Name( CRegID regID ) {
+    //     uint64_t account = uint64_t(regID.GetIndex());
+    //     account = (account << 32) + uint64_t(regID.GetHeight());
+    //     return account;
+    // }
 
     class wasm_context;
 
@@ -74,13 +74,17 @@ namespace wasm {
         const char *get_action_data() { return trx.data.data(); }
         uint32_t get_action_data_size() { return trx.data.size(); }
         bool set_data( uint64_t contract, string k, string v ) {
-            return cache.contractCache.SetContractData(Name2RegID(contract), k, v);
+            //return cache.contractCache.SetContractData(Name2RegID(contract), k, v);
+            //return cache.contractCache.SetContractData(CNickID(wasm::name(contract).to_string()),cache, k, v);
+            return true;
         }
         bool get_data( uint64_t contract, string k, string &v ) {
-            return cache.contractCache.GetContractData(Name2RegID(contract), k, v);
+            //return cache.contractCache.GetContractData(CNickID(wasm::name(contract).to_string()),cache, k, v);
+            return true;
         }
         bool erase_data( uint64_t contract, string k ) {
-            return cache.contractCache.EraseContractData(Name2RegID(contract), k);
+            //return cache.contractCache.EraseContractData(CNickID(wasm::name(contract).to_string()), cache, k);
+            return true;
         }
         bool contracts_console() { return true; } //should be set by console
         void console_append( string val ) {
@@ -95,6 +99,9 @@ namespace wasm {
 
         vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
         std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+
+        void pause_billing_timer(){ control_trx.pause_billing_timer(); };
+        void resume_billing_timer(){ control_trx.resume_billing_timer(); };
 
     public:
         uint64_t _receiver;

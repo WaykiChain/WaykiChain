@@ -32,12 +32,14 @@ namespace wasm {
         CCacheWrapper &cw       = context.cache;
         //CValidationState &state = *context.pState;
         
-        CRegID regid = Name2RegID(from);
+        //CRegID regid = Name2RegID(from);
+        CNickID nick_name(wasm::name(from).to_string()) ;
+
         CAccount account;
-        WASM_ASSERT(cw.accountCache.GetAccount(regid, account),
+        WASM_ASSERT(cw.accountCache.GetAccount(nick_name, account),
                     account_operation_exception,
-                    "wasmnativecontract.sub_balance, from account does not exist, sender Id = %s",
-                    regid.ToString().c_str()) 
+                    "wasmnativecontract.sub_balance, from account does not exist, sender name = %s",
+                    wasm::name(from).to_string().c_str()) 
 
         string symbol = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
@@ -50,8 +52,8 @@ namespace wasm {
         uint64_t amount = quantity.amount;
         WASM_ASSERT(account.OperateBalance(symbol, BalanceOpType::SUB_FREE, amount),
                     account_operation_exception,
-                    "wasmnativecontract.sub_balance, operate account failed ,regId=%s",
-                    regid.ToString().c_str())  
+                    "wasmnativecontract.sub_balance, operate account failed ,name=%s",
+                    wasm::name(from).to_string().c_str())  
 
         WASM_ASSERT(cw.accountCache.SetAccount(CUserID(account.keyid), account), account_operation_exception,
                     "%s",
@@ -62,12 +64,13 @@ namespace wasm {
          CCacheWrapper &cw       = context.cache;
         //CValidationState &state = *context.pState;
         
-        CRegID regid = Name2RegID(to);
+        //CRegID regid = Name2RegID(to);
+        CNickID nick_name(wasm::name(to).to_string()) ;
         CAccount account;
-        WASM_ASSERT(cw.accountCache.GetAccount(regid, account),
+        WASM_ASSERT(cw.accountCache.GetAccount(nick_name, account),
                     account_operation_exception,
-                    "wasmnativecontract.add_balance, from account does not exist, sender Id = %s",
-                    regid.ToString().c_str()) 
+                    "wasmnativecontract.add_balance, from account does not exist, sender name = %s",
+                    wasm::name(to).to_string().c_str()) 
 
         string symbol = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
@@ -80,8 +83,8 @@ namespace wasm {
         uint64_t amount = quantity.amount;
         WASM_ASSERT(account.OperateBalance(symbol, BalanceOpType::ADD_FREE, amount),
                     account_operation_exception,
-                    "wasmnativecontract.add_balance, operate account failed ,regId=%s",
-                    regid.ToString().c_str()) 
+                    "wasmnativecontract.add_balance, operate account failed ,name=%s",
+                    wasm::name(to).to_string().c_str()) 
 
         WASM_ASSERT(cw.accountCache.SetAccount(CUserID(account.keyid), account), account_operation_exception,
                     "%s",
@@ -111,20 +114,17 @@ namespace wasm {
         using SetCode = std::tuple<uint64_t, string, string, string>;
         SetCode setcode = wasm::unpack<SetCode>(context.trx.data);
 
-        auto nick_name = std::get<0>(setcode);
+        auto account = std::get<0>(setcode);
         auto code = std::get<1>(setcode);
         auto abi = std::get<2>(setcode);
         auto memo = std::get<3>(setcode);
 
-        CAccount account;
-      //  CRegID contractRegId = wasm::Name2RegID(nick_name);
-        CNickID nickId(wasm::name(nick_name).to_string()) ;
+        CNickID nick_id(wasm::name(account).to_string()) ;
 
         CUniversalContract contract;
-        if( cw.contractCache.GetContract(nickId,cw, contract)){
+        if( cw.contractCache.GetContract(nick_id, cw, contract)){
             return ;
         }
-
 
         if (contract.vm_type != VMType::WASM_VM) contract.vm_type = VMType::WASM_VM;
 
@@ -132,7 +132,7 @@ namespace wasm {
         if (abi.size() > 0) contract.abi = abi;
         if (memo.size() > 0) contract.memo = memo;
 
-        WASM_ASSERT(cw.contractCache.SaveContract(nickId,cw, contract), account_operation_exception,
+        WASM_ASSERT(cw.contractCache.SaveContract(nick_id, cw, contract), account_operation_exception,
                     "%s",
                     "wasmnativecontract.Setcode, save account info error")
 
@@ -166,9 +166,9 @@ namespace wasm {
         auto quantity = std::get<2>(transfer);
         auto memo = std::get<3>(transfer);
 
-        WASM_TRACE("from %s, to %s", get_regid(from).ToString().c_str(), get_regid(from).ToString().c_str());
-        from = wasm::RegID2Name(get_regid(from));
-        to = wasm::RegID2Name(get_regid(to));
+        //WASM_TRACE("from %s, to %s", get_regid(from).ToString().c_str(), get_regid(from).ToString().c_str());
+        // from = wasm::RegID2Name(get_regid(from));
+        // to = wasm::RegID2Name(get_regid(to));
 
         WASM_ASSERT(from != to, wasm_assert_exception, "%s", "cannot transfer to self");
         context.require_auth(from); //from auth

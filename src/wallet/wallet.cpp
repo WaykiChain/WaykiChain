@@ -234,7 +234,12 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
 
     ::RelayTransaction(pTx, txid);
 
+    //xiaoyu 20191106
+    if(pTx->nTxType == WASM_CONTRACT_TX){
+        message = ret;
+    }
     return std::make_tuple(flag, message);
+
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {

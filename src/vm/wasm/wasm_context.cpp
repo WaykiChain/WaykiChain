@@ -3,6 +3,7 @@
 #include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_config.hpp"
+#include "wasm/wasm_log.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -55,11 +56,10 @@ namespace wasm {
 
     std::vector <uint8_t> wasm_context::get_code(uint64_t account) {
 
-        CUniversalContract contract;
-        cache.contractCache.GetContract(Name2RegID(account), contract);
-
         vector <uint8_t> code;
-        code.insert(code.begin(), contract.code.begin(), contract.code.end());
+        CUniversalContract contract;
+        if(cache.contractCache.GetContract(CNickID(wasm::name(account).to_string()), cache, contract))
+            code.insert(code.begin(), contract.code.begin(), contract.code.end());
 
         return code;
     }
@@ -67,7 +67,7 @@ namespace wasm {
     std::string wasm_context::get_abi(uint64_t account) {
 
         CUniversalContract contract;
-        cache.contractCache.GetContract(Name2RegID(account), contract);
+        cache.contractCache.GetContract(CNickID(wasm::name(account).to_string()), cache, contract);
 
         return contract.abi;
     }
@@ -110,8 +110,7 @@ namespace wasm {
 
     void wasm_context::execute_one(inline_transaction_trace &trace) {
 
-        auto start = system_clock::now();
-
+        //auto start = system_clock::now();
         trace.trx = trx;
         trace.receiver = _receiver;
 
@@ -143,7 +142,7 @@ namespace wasm {
         }
 
         trace.trx_id = control_trx.GetHash();
-        trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
+        //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
         trace.console = _pending_console_output.str();
 
         // trace.block_height =

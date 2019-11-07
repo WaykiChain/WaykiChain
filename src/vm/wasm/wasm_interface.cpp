@@ -49,13 +49,15 @@ namespace wasm {
     }
 
     void wasm_interface::execute(const vector <uint8_t> &code, wasm_context_interface *pWasmContext) {
+        pWasmContext->pause_billing_timer();
         std::shared_ptr <wasm_instantiated_module_interface> pInstantiated_module = get_instantiated_backend(code);
+        pWasmContext->resume_billing_timer();
 
-        system_clock::time_point start = system_clock::now();
+        //system_clock::time_point start = system_clock::now();
         pInstantiated_module->apply(pWasmContext);
-        system_clock::time_point end = system_clock::now();
-        std::cout << std::string("wasm duration:")
-                  << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
+        // system_clock::time_point end = system_clock::now();
+        // std::cout << std::string("wasm duration:")
+        //           << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
 
     }
 
