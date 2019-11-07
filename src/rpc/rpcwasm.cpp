@@ -44,7 +44,7 @@ using namespace boost::assign;
 using std::chrono::microseconds;
 // using namespace wasm;
 
-// send code and abi
+// set code and abi
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 4 || params.size() > 7) {
         throw runtime_error(
@@ -79,9 +79,15 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address");
     }
 
-    CRegID contractRegID(params[1].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    // CRegID contractRegID(params[1].get_str());
+    // if (contractRegID.IsEmpty()) {
+    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    // }
+    wasm::name contract;
+    try{
+        contract = wasm::name(params[1].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
     string codeFile = GetAbsolutePath(params[2].get_str()).string();
@@ -183,7 +189,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 
         CRegID senderRegID;
         pCdMan->pAccountCache->GetRegId(sender, senderRegID);
-        uint64_t contract = wasm::RegID2Name(contractRegID);
+        //uint64_t contract = wasm::RegID2Name(contractRegID);
 
         tx.nTxType = WASM_CONTRACT_TX;
         tx.txUid = senderRegID;
@@ -194,7 +200,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         tx.inlinetransactions.push_back({wasmio,
                                          wasm::N(setcode),
                                          std::vector<permission>{{wasmio, wasmio_owner}},
-                                         wasm::pack(std::tuple(contract, code, abi, memo))});
+                                         wasm::pack(std::tuple(contract.value, code, abi, memo))});
 
 
         if (0 == height) {
@@ -282,33 +288,46 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
     // }
 
-    uint64_t contract;
-    std::vector<char> abi;
-    string contract_str = params[1].get_str();
-    if(is_regid(contract_str)){
-        CRegID contractRegID(params[1].get_str());
-        if (contractRegID.IsEmpty()) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
-        }
-        if (!pCdMan->pContractCache->HaveContract(contractRegID)) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
-        }
-        contract = wasm::RegID2Name(contractRegID);
+    wasm::name contract;
+    try{
+        contract = wasm::name(params[1].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
+    }
+
+   std::vector<char> abi;
+   if(wasm::wasmio == contract.value ) {
+
+        //contract = wasm::wasmio;
+        wasm::abi_def wasmio_abi = wasmio_contract_abi();
+        abi = wasm::pack<wasm::abi_def>(wasmio_abi);
+
+    } else {
+        // CRegID contractRegID(params[1].get_str());
+        // if (contractRegID.IsEmpty()) {
+        //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+        // }
+        CNickID nick_name(contract.to_string());
+
+        // if (!pCdMan->pContractCache->HaveContract(nick_name)) {
+        //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
+        // }
+        //contract = wasm::RegID2Name(contractRegID);
 
         CUniversalContract contractCode;
+        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+        spCW->contractCache.GetContract(nick_name, *spCW.get(), contractCode);
         if (contractCode.vm_type != VMType::WASM_VM)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
-        pCdMan->pContractCache->GetContract(contractRegID, contractCode);
         abi.insert(abi.end(), contractCode.abi.begin(), contractCode.abi.end());
 
-    } else if(wasm::wasmio == wasm::NAME(contract_str.c_str()) ) {
-        contract = wasm::wasmio;
-        wasm::abi_def wasmio_abi = wasmio_contract_abi();
-        abi = wasm::pack<wasm::abi_def>(wasmio_abi);
-    } else {
-       throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract");
     }
+
+
+    // else{
+    //    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract");
+    // }
 
     uint64_t action = wasm::NAME(params[2].get_str().c_str());
 
@@ -357,7 +376,7 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     tx.fee_symbol = fee.symbol;
     tx.llFees = fee.GetSawiAmount();
 
-    tx.inlinetransactions.push_back({contract,
+    tx.inlinetransactions.push_back({contract.value,
                                      action,
                                      std::vector<permission>{{wasm::N(sender), wasmio_owner}},
                                      data});
@@ -417,16 +436,32 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
     //EnsureWalletIsUnlocked();
 
-    CRegID contractRegID(params[0].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    // CRegID contractRegID(params[0].get_str());
+    // if (contractRegID.IsEmpty()) {
+    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    // }
+
+    // uint64_t contract = wasm::RegID2Name(contractRegID);
+
+    // CUniversalContract contractCode;
+    // if (!pCdMan->pContractCache->GetContract(contractRegID, contractCode))
+    //     throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
+
+    wasm::name contract;
+    try{
+        contract = wasm::name(params[0].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
-    uint64_t contract = wasm::RegID2Name(contractRegID);
-
     CUniversalContract contractCode;
-    if (!pCdMan->pContractCache->GetContract(contractRegID, contractCode))
-        throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
+    auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
+    CNickID nick_name(contract.to_string());
+    spCW->contractCache.GetContract(nick_name, *spCW.get(), contractCode);
+    if (contractCode.vm_type != VMType::WASM_VM)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");   
+
+
 
     //string abi = contractCode.abi;
     std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
@@ -436,7 +471,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
     uint64_t table = wasm::NAME(params[1].get_str().c_str());
 
-    uint64_t numbers = default_query_rows;
+    //uint64_t numbers = default_query_rows;
     if (params.size() > 2)
         numbers = std::atoi(params[2].get_str().data());
 
@@ -449,37 +484,37 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         lastKey = FromHex(params[3].get_str());
     }
 
-    auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
-    if (!pGetter || !pGetter->Execute()) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
-    }
+    // auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
+    // if (!pGetter || !pGetter->Execute()) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
+    // }
 
     json_spirit::Object object;
-    try {
-        json_spirit::Array vars;
-        string last_key;
+    // try {
+    //     json_spirit::Array vars;
+    //     string last_key;
 
-        for (auto item : pGetter->data_list) {
-            last_key = pGetter->GetKey(item);
-            const string &value = pGetter->GetValue(item);
+    //     for (auto item : pGetter->data_list) {
+    //         last_key = pGetter->GetKey(item);
+    //         const string &value = pGetter->GetValue(item);
 
-            std::vector<char> row(value.begin(), value.end());
-            //row.insert(row.end(), value.begin(), value.end());
-            json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
+    //         std::vector<char> row(value.begin(), value.end());
+    //         //row.insert(row.end(), value.begin(), value.end());
+    //         json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
 
-            json_spirit::Object &obj = v.get_obj();
-            obj.push_back(Pair("key", ToHex(last_key, "")));
-            obj.push_back(Pair("value", ToHex(value, "")));
+    //         json_spirit::Object &obj = v.get_obj();
+    //         obj.push_back(Pair("key", ToHex(last_key, "")));
+    //         obj.push_back(Pair("value", ToHex(value, "")));
 
-            vars.push_back(v);
-        }
+    //         vars.push_back(v);
+    //     }
 
-        object.push_back(Pair("rows", vars));
-        object.push_back(Pair("more", pGetter->has_more));
+    //     object.push_back(Pair("rows", vars));
+    //     object.push_back(Pair("more", pGetter->has_more));
 
-    } catch (wasm::exception &e) {
-        throw JSONRPCError( e.code(), e.detail() );
-    }
+    // } catch (wasm::exception &e) {
+    //     throw JSONRPCError( e.code(), e.detail() );
+    // }
 
     return object;
 
@@ -508,9 +543,11 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
-    CRegID contractRegID(params[0].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    CNickID contract;
+    try{
+        contract = CNickID(params[0].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
     //uint64_t contract = wasm::RegID2Name(contractRegID);
@@ -522,7 +559,8 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
     }
 
     CUniversalContract contractCode;
-    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
     if (contractCode.vm_type != VMType::WASM_VM)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
@@ -568,9 +606,11 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
 
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
-    CRegID contractRegID(params[0].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    CNickID contract;
+    try{
+        contract = CNickID(params[0].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
     //uint64_t contract = wasm::RegID2Name(contractRegID);
@@ -582,7 +622,8 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
     }
 
     CUniversalContract contractCode;
-    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
     if (contractCode.vm_type != VMType::WASM_VM)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
@@ -626,13 +667,21 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 
     RPCTypeCheck(params, list_of(str_type));
 
-    CRegID contractRegID(params[0].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    // CRegID contractRegID(params[0].get_str());
+    // if (contractRegID.IsEmpty()) {
+    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    // }
+
+    CNickID contract;
+    try{
+        contract = CNickID(params[0].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
     CUniversalContract contractCode;
-    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
     if (contractCode.vm_type != VMType::WASM_VM)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
@@ -665,13 +714,17 @@ Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
 
     RPCTypeCheck(params, list_of(str_type));
 
-    CRegID contractRegID(params[0].get_str());
-    if (contractRegID.IsEmpty()) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
+    CNickID contract;
+    try{
+        contract = CNickID(params[0].get_str());
+    } catch(wasm::exception& e){
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
     CUniversalContract contractCode;
-    pCdMan->pContractCache->GetContract(contractRegID, contractCode);
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
+
     if (contractCode.vm_type != VMType::WASM_VM)
             throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
 
