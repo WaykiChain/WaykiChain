@@ -44,6 +44,60 @@ using namespace boost::assign;
 using std::chrono::microseconds;
 // using namespace wasm;
 
+#define JSON_RPC_ASSERT(expr , code, msg) \
+    if( !( expr ) ){                     \
+        throw JSONRPCError(code, msg);   \
+    }
+
+bool read_file_limit(const string& path, string& data, uint64_t max_size){
+    try {
+        if(path.empty()) return false;
+
+        char byte;
+        ifstream f(path, ios::binary);
+        while (f.get(byte)) data.push_back(byte);
+        size_t size = data.size();
+
+        if (size == 0 || size > max_size){
+            return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    } 
+
+}
+
+void read_and_validate_code(const string& path, string& code){
+    try {
+        WASM_ASSERT(read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE), file_read_exception, "wasm code file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
+        vector <uint8_t> code_v;
+        code_v.insert(code_v.begin(), code.begin(), code.end());
+        wasm_interface wasmif;
+        wasmif.validate(code_v);
+    } catch (wasm::exception &e) {
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    }    
+}
+
+void read_and_validate_abi(const string& abi_file, string& abi){
+    try {
+        WASM_ASSERT(read_file_limit(abi_file, abi, MAX_CONTRACT_CODE_SIZE), file_read_exception, "wasm abi file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
+        json_spirit::Value abiJson;
+        json_spirit::read_string(abi, abiJson);
+
+        abi_def abi_d;
+        from_variant(abiJson, abi_d);
+        wasm::abi_serializer abis(abi_d, max_serialization_time);
+
+        //abi in vector
+        std::vector<char> abi_v = wasm::pack<wasm::abi_def>(abi_d);
+        abi = string(abi_v.begin(), abi_v.end());
+    } catch (wasm::exception &e) {
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    }  
+}
+
 // set code and abi
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     if (fHelp || params.size() < 4 || params.size() > 7) {
@@ -67,155 +121,71 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
                                  "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
     }
 
-
-    //get contract
-    wasm::name contract;
+    //pack tx and commit
+    Object obj_return;
     try{
-        contract = wasm::name(params[1].get_str());
-    } catch(wasm::exception& e){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
-    }
+        auto database = pCdMan->pAccountCache;
+        auto wallet = pWalletMain;
 
-    //get code and abi
-    string code_file = GetAbsolutePath(params[2].get_str()).string();
-    string abi_file = GetAbsolutePath(params[3].get_str()).string();
-    if (code_file.empty() || abi_file.empty()) {
-        throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code or abi file do not exist!");
-    }
+        //get code and abi
+        string code_file = GetAbsolutePath(params[2].get_str()).string();
+        string abi_file = GetAbsolutePath(params[3].get_str()).string();
+        JSON_RPC_ASSERT( !(code_file.empty() || abi_file.empty()), RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file name are both empty!")
 
+        //read and validate code, abi
+        string code, abi;
+        read_and_validate_code(code_file, code);
+        read_and_validate_abi(abi_file, abi);
 
-    string code, abi;
-    if (!code_file.empty()) {
-        char byte;
-        ifstream f(code_file, ios::binary);
-        while (f.get(byte)) code.push_back(byte);
-        size_t size = code.size();
-        if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               strprintf("contract code is empty or larger than %d bytes", MAX_CONTRACT_CODE_SIZE));
-        }
-
-        if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               strprintf("contract abi is empty or lager than %d bytes", MAX_CONTRACT_CODE_SIZE));
-        }
-    }
-
-    //validate code
-    try {
-        vector <uint8_t> code_v;
-        code_v.insert(code_v.begin(), code.begin(), code.end());
-        wasm_interface wasmif;
-        wasmif.validate(code_v);
-    } catch (wasm::exception &e) {
-        throw JSONRPCError(e.code(), e.detail());
-    }
-
-
-    if (!abi_file.empty()) {
-        char byte;
-        ifstream f(abi_file, ios::binary);
-        while (f.get(byte)) abi.push_back(byte);
-        size_t size = abi.size();
-        if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               strprintf("contract abi is empty or lager than %d bytes", MAX_CONTRACT_CODE_SIZE));
-        }
-    }
-
-    //validate abi
-    try {
-        json_spirit::Value abiJson;
-        json_spirit::read_string(abi, abiJson);
-
-        abi_def abi_d;
-        from_variant(abiJson, abi_d);
-        wasm::abi_serializer abis(abi_d, max_serialization_time);
-
-        //abi in vector
-        std::vector<char> abi_v = wasm::pack<wasm::abi_def>(abi_d);
-        abi = string(abi_v.begin(), abi_v.end());
-
-    } catch (wasm::exception &e) {
-        throw JSONRPCError(e.code(), e.detail());
-    }
-
-    //get memo
-    string memo;
-    if (params.size() > 5) {
-        string memo = params[5].get_str();
-        if (memo.size() > MAX_CONTRACT_MEMO_SIZE) {
-            throw JSONRPCError(RPC_INVALID_PARAMETER,
-                               strprintf("The size of the memo of a contract must less than %d bytes",
-                                         MAX_CONTRACT_MEMO_SIZE));
-        }
-    }
-
-    //get tx fee
-    const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
-
-    int height = chainActive.Tip()->height;
-
-    assert(pWalletMain != NULL);
-    CWasmContractTx tx;
-    {
+        JSON_RPC_ASSERT(wallet != NULL, RPC_WALLET_ERROR, "wallet error")
         EnsureWalletIsUnlocked();
 
-        CKeyID sender_key_id;
-        if (!GetKeyId(params[0].get_str(), sender_key_id)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address");
+        CWasmContractTx tx;
+        {
+            auto contract = wasm::name(params[1].get_str()).value;
+            string memo = (params.size() > 5)?params[5].get_str():"";
+
+            CAccount sender;
+            CKeyID sender_key_id;
+            CRegID sender_reg_id;
+            
+            JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE, RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
+            JSON_RPC_ASSERT(GetKeyId(params[0].get_str(), sender_key_id), RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
+            JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id), RPC_WALLET_ERROR, "Sender address is not in wallet")
+            JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
+            JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender), RPC_WALLET_ERROR, "Cannot get sender account")
+            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(), RPC_WALLET_ERROR, "Account is unregistered")
+
+            const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
+            RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+            tx.nTxType    = WASM_CONTRACT_TX;
+            tx.txUid      = sender_reg_id;
+            tx.fee_symbol = fee.symbol;
+            tx.llFees     = fee.GetSawiAmount();
+            tx.valid_height = chainActive.Tip()->height;
+            tx.inlinetransactions.push_back({wasmio,
+                                             wasm::N(setcode),
+                                             std::vector<permission>{{wasmio, wasmio_owner}},
+                                             wasm::pack(std::tuple(contract, code, abi, memo))});
+            //tx.nRunStep = tx.data.size();
+            JSON_RPC_ASSERT(wallet->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
-        CAccount sender;
-        if (!pCdMan->pAccountCache->GetAccount(sender_key_id, sender)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Invalid send address");
-        }
+        std::tuple<bool, string> r = wallet->CommitTx((CBaseTx * ) & tx);
+        JSON_RPC_ASSERT(std::get<0>(r), RPC_WALLET_ERROR, std::get<1>(r))
 
-        if (!sender.HaveOwnerPubKey()) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
-        }
+        json_spirit::Value abi_v;
+        json_spirit::read_string(std::get<1>(r), abi_v);
+        json_spirit::Config::add(obj_return, "result",  abi_v);
 
-        RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
-
-        if (!pWalletMain->HaveKey(sender_key_id)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sender address is not in wallet");
-        }
-
-        CRegID sender_reg_id;
-        if(!pCdMan->pAccountCache->GetRegId(sender_key_id, sender_reg_id)){
-            throw JSONRPCError(RPC_WALLET_ERROR, "Get sender reg id error");
-        }
-
-        tx.nTxType    = WASM_CONTRACT_TX;
-        tx.txUid      = sender_reg_id;
-        tx.fee_symbol = fee.symbol;
-        tx.llFees     = fee.GetSawiAmount();
-
-        tx.inlinetransactions.push_back({wasmio,
-                                         wasm::N(setcode),
-                                         std::vector<permission>{{wasmio, wasmio_owner}},
-                                         wasm::pack(std::tuple(contract.value, code, abi, memo))});
-
-        tx.valid_height = chainActive.Tip()->height;
-        //tx.nRunStep = tx.data.size();
-
-        if (!pWalletMain->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-        }
+    } catch(wasm::exception &e){
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    } catch(...){
+        //JSON_RPC_ASSERT(false, RPC_INVALID_ADDRESS_OR_KEY, "rpc exception")
+        throw;
     }
-
-    std::tuple<bool, string> ret;
-    ret = pWalletMain->CommitTx((CBaseTx * ) & tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-    json_spirit::Value abi_v;
-    json_spirit::read_string(std::get<1>(ret), abi_v);
-    json_spirit::Config::add(obj, "result",  abi_v);
-
-    return obj;
+    return obj_return;
 }
 
 bool is_digital_string(const string s){

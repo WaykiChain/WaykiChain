@@ -95,8 +95,8 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
     to_variant(t.trx_id.ToString(), val);
     json_spirit::Config::add(obj, "trx_id", val);
 
-    to_variant(t.elapsed.count(), val);
-    json_spirit::Config::add(obj, "elapsed", val);
+    // to_variant(t.elapsed.count(), val);
+    // json_spirit::Config::add(obj, "elapsed", val);
 
     to_variant(wasm::name(t.receiver), val);
     json_spirit::Config::add(obj, "receiver", val);
@@ -219,7 +219,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
 
-        //auto start = system_clock::now();
         pseudo_start = system_clock::now();
 
         wasm::transaction_trace trx_trace;
@@ -231,11 +230,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
             trx_trace.traces.emplace_back();
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, *context.pCw, *context.pState, 0);
         }
-
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);        
 
         json_spirit::Value v;
         to_variant(trx_trace, v, *context.pCw);
+
         context.pState->SetReturn(json_spirit::write(v));
 
     } catch (wasm::exception &e) {

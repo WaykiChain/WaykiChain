@@ -20,7 +20,6 @@ namespace wasm {
     inline void sub_balance(CAccount& from, const wasm::asset& quantity, wasm_context &context){
 
         CCacheWrapper &cw       = context.cache;
-        //CValidationState &state = *context.pState;
 
         string symbol = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
@@ -35,6 +34,8 @@ namespace wasm {
                     "wasmnativecontract.sub_balance, operate account failed ,name=%s",
                     from.nickid.ToString().c_str())  
 
+        //WASM_TRACE("%s", "sub_balance");
+
         WASM_ASSERT(cw.accountCache.SetAccount(from.regid, from), account_operation_exception,
                     "%s",
                     "wasmnativecontract.Setcode, save account info error")     
@@ -42,7 +43,6 @@ namespace wasm {
 
     inline void add_balance(CAccount& to, const wasm::asset& quantity, wasm_context &context){
          CCacheWrapper &cw       = context.cache;
-        //CValidationState &state = *context.pState;
 
         string symbol = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
@@ -67,15 +67,14 @@ namespace wasm {
         CCacheWrapper   &cw            = context.cache;
         CWasmContractTx &control_trx   = context.control_trx;
 
-
         //charger fee
         CAccount sender;
         WASM_ASSERT(cw.accountCache.GetAccount(control_trx.txUid, sender),
                     account_operation_exception,
                     "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
-                    control_trx.txUid.ToString().c_str())
-        sub_balance(sender, wasm::asset{control_trx.llFees, wasm::symbol("SYMB::WICC", 0)}, context);
-
+                    control_trx.txUid.ToString().c_str())  
+        auto quantity = wasm::asset(control_trx.llFees, wasm::symbol(SYMB::WICC, 0)); 
+        sub_balance(sender, quantity, context);
 
         //set contract code and abi
         std::tuple<uint64_t, string, string, string> set_code = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
@@ -91,7 +90,7 @@ namespace wasm {
         CUniversalContract contract_store;
         WASM_ASSERT(cw.contractCache.GetContract(contract.regid, contract_store),
                     account_operation_exception,
-                    "wasmnativecontract.Setcode, contract code already exist, contract = %s",
+                    "wasmnativecontract.Setcode, get contract error, contract = %s",
                     contract_name.c_str()) 
 
         contract_store.vm_type = VMType::WASM_VM;
