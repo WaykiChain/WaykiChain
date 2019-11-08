@@ -490,23 +490,23 @@ Value getclosedcdp(const Array& params, bool fHelp) {
 
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 6) {
+    if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
             "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [symbol:fee:unit]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
-            "5.\"price\": (numeric, required) bidding price willing to buy\n"
-            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to buy \n "
+            "   default symbol is WICC, default unit is sawi.\n"
+            "4.\"price\": (numeric, required) bidding price willing to buy\n"
+            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\"  200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC\", 1000000, 200000000\n")
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\", 200000000\n")
         );
     }
 
@@ -514,21 +514,20 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
-    uint64_t assetAmount           = AmountToRawValue(params[3]);
-    uint64_t price                 = RPC_PARAM::GetPrice(params[4]);  // TODO: need to check price?
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_BUY_ORDER_TX);
+    ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    uint64_t price                 = RPC_PARAM::GetPrice(params[3]);  // TODO: need to check price?
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_LIMIT_BUY_ORDER_TX);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetAmount, price);
+    uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetInfo.GetSawiAmount(), price);
     RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
 
     int32_t validHeight = chainActive.Height();
     CDEXBuyLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
-                           assetSymbol, assetAmount, price);
+                           assetInfo.symbol, assetInfo.GetSawiAmount(), price);
     return SubmitTx(account.keyid, tx);
 }
 
