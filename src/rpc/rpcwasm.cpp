@@ -36,6 +36,7 @@
 #include "types/asset.hpp"
 #include "wasm_config.hpp"
 #include "wasm_native_contract_abi.hpp"
+#include "wasm_rpc_message.hpp"
 
 using namespace std;
 using namespace boost;
@@ -49,6 +50,11 @@ using std::chrono::microseconds;
         throw JSONRPCError(code, msg);   \
     }
 
+#define RESPONSE_RPC_HELP(expr , msg) \
+    if( ( expr ) ){                     \
+        throw runtime_error( msg);   \
+    }
+
 bool read_file_limit(const string& path, string& data, uint64_t max_size){
     try {
         if(path.empty()) return false;
@@ -57,15 +63,14 @@ bool read_file_limit(const string& path, string& data, uint64_t max_size){
         ifstream f(path, ios::binary);
         while (f.get(byte)) data.push_back(byte);
         size_t size = data.size();
-
         if (size == 0 || size > max_size){
             return false;
         }
         return true;
+
     } catch (...) {
         return false;
     } 
-
 }
 
 void read_and_validate_code(const string& path, string& code){
@@ -100,26 +105,9 @@ void read_and_validate_abi(const string& abi_file, string& abi){
 
 // set code and abi
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 4 || params.size() > 7) {
-        throw runtime_error(
-                "setcodewasmcontracttx \"sender\" \"contract\" \"wasm_file\" \"abi_file\" [\"memo\"] [symbol:fee:unit]\n"
-                "\ncreate a transaction of registering a contract app\n"
-                "\nArguments:\n"
-                "1.\"sender\": (string required) contract owner address from this wallet\n"
-                "2.\"contract\": (string required), contract name\n"
-                "3.\"wasm_file\": (string required), the file path of the contract code\n"
-                "4.\"abi_file\": (string required), the file path of the contract abi\n"
-                "5.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
-                "6.\"memo\": (string optional) the memo of contract\n"
-                "\nResult:\n"
-                "\"txhash\": (string)\n"
-                "\nExamples:\n"
-                + HelpExampleCli("setcodewasmcontracttx",
-                                 "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\"") +
-                "\nAs json rpc call\n"
-                + HelpExampleRpc("setcodewasmcontracttx",
-                                 "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
-    }
+
+    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 7, wasm::rpc::set_code_wasm_contract_tx_rpc_help_message)
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     //pack tx and commit
     Object obj_return;
@@ -139,7 +127,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 
         JSON_RPC_ASSERT(wallet != NULL, RPC_WALLET_ERROR, "wallet error")
         EnsureWalletIsUnlocked();
-
+ 
         CWasmContractTx tx;
         {
             auto contract = wasm::name(params[1].get_str()).value;
@@ -154,7 +142,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
             JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id), RPC_WALLET_ERROR, "Sender address is not in wallet")
             JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
             JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender), RPC_WALLET_ERROR, "Cannot get sender account")
-            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(), RPC_WALLET_ERROR, "Account is unregistered")
+            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(), RPC_WALLET_ERROR, "Sender account is unregistered")
 
             const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
             RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -175,14 +163,13 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         std::tuple<bool, string> r = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(r), RPC_WALLET_ERROR, std::get<1>(r))
 
-        json_spirit::Value abi_v;
-        json_spirit::read_string(std::get<1>(r), abi_v);
-        json_spirit::Config::add(obj_return, "result",  abi_v);
+        json_spirit::Value v;
+        json_spirit::read_string(std::get<1>(r), v);
+        json_spirit::Config::add(obj_return, "result",  v);
 
     } catch(wasm::exception &e){
         JSON_RPC_ASSERT(false, e.code(), e.detail())
     } catch(...){
-        //JSON_RPC_ASSERT(false, RPC_INVALID_ADDRESS_OR_KEY, "rpc exception")
         throw;
     }
     return obj_return;
@@ -215,25 +202,8 @@ bool is_regid(const string& s){
 }
 
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 5 || params.size() > 6) {
-        throw runtime_error(
-                "callwasmcontracttx \"sender addr\" \"contract\" \"action\" \"data\" \"amount\" \"fee\" \n"
-                "1.\"sender \": (string, required) tx sender's base58 addr\n"
-                "2.\"contract\":   (string, required) contract name\n"
-                "3.\"action\":   (string, required) action name\n"
-                "4.\"data\":   (json string, required) action data\n"
-                // "5.\"amount\":      (numeric, required) amount of WICC to be sent to the contract account\n"
-                "5.\"fee\":         (numeric, required) pay to miner\n"
-                "\nResult:\n"
-                "\"txid\":        (string)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("callcontracttx",
-                               "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\" \"411994-1\" \"01020304\" 10000 10000 100") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("callcontracttx",
-                               "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
-    }
 
+    RESPONSE_RPC_HELP( fHelp || params.size() != 5 , wasm::rpc::call_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     EnsureWalletIsUnlocked();
