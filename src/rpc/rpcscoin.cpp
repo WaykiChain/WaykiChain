@@ -579,10 +579,10 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
-            "4.\"asset_symbol\": (string required), asset type to buy\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "2.\"coin_symbol:coin_amount:unit\",(comboMoney,required) the target coin amount for buying asset \n "
+            "   default symbol is WUSD, default unit is sawi.\n"
+            "3.\"asset_symbol\": (string required), asset type to buy\n"
+            "4.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -595,20 +595,19 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
-    const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    uint64_t coinAmount            = AmountToRawValue(params[2]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_BUY_ORDER_TX);
+    ComboMoney coinInfo            = RPC_PARAM::GetComboMoney(params[1], SYMB::WUSD);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 3, DEX_MARKET_BUY_ORDER_TX);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinInfo.symbol, assetSymbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
+    RPC_PARAM::CheckAccountBalance(account, coinInfo.symbol, FREEZE, coinInfo.GetSawiAmount());
 
     int32_t validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
-                            coinAmount);
+    CDEXBuyMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinInfo.symbol, assetSymbol,
+                            coinInfo.GetSawiAmount());
     return SubmitTx(account.keyid, tx);
 }
 
