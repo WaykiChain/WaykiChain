@@ -42,6 +42,7 @@ config/version.o: config/build.h
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
+  chain/blockdelegates.h \
   entities/account.h \
   entities/assett.h \
   entities/cdp.h \
@@ -243,6 +244,7 @@ liblua53_a_SOURCES = \
 
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
+  chain/blockdelegates.cpp \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \

@@ -103,11 +103,11 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
-bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const vector<CRegID> &delegateList,
+bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const DelegateVector &delegates,
                                CRegID &delegate) {
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
     uint32_t index = slot % IniCfg().GetTotalDelegateNum();
-    delegate       = delegateList[index];
+    delegate       = delegates[index];
     LogPrint("DEBUG", "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.ToString());
 
     return true;
@@ -140,7 +140,7 @@ bool CreateBlockRewardTx(const CAccount &delegate, CAccountDBCache &accountCache
     }
 }
 
-void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
+void ShuffleDelegates(const int32_t nCurHeight, DelegateVector &delegates) {
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -151,9 +151,9 @@ void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
         for (uint32_t x = 0; x < 4 && i < totalDelegateNum; i++, x++) {
             memcpy(&newIndexSource, currentSeed.begin() + (x * 8), 8);
             uint32_t newIndex      = newIndexSource % totalDelegateNum;
-            CRegID regId           = delegateList[newIndex];
-            delegateList[newIndex] = delegateList[i];
-            delegateList[i]        = regId;
+            CRegID regId           = delegates[newIndex];
+            delegates[newIndex] = delegates[i];
+            delegates[i]        = regId;
         }
         ss << currentSeed;
         currentSeed = ss.GetHash();
@@ -163,24 +163,24 @@ void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList) {
 bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
     uint32_t maxNonce = SysCfg().GetBlockMaxNonce();
 
-    vector<CRegID> delegateList;
-    if (!cwIn.delegateCache.GetTopDelegateList(delegateList))
+    DelegateVector delegates;
+    if (!cwIn.delegateCache.GetActiveDelegates(delegates))
         return false;
 
-    ShuffleDelegates(pBlock->GetHeight(), delegateList);
+    ShuffleDelegates(pBlock->GetHeight(), delegates);
 
     CRegID regId;
-    if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegateList, regId))
+    if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegates, regId))
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate");
 
     CAccount curDelegate;
     if (!cwIn.accountCache.GetAccount(regId, curDelegate)) {
-        string delegates;
-        for (const auto & item : delegateList) {
-            delegates += strprintf("%s, ", item.ToString());
+        string delegatesStr;
+        for (const auto & item : delegates) {
+            delegatesStr += strprintf("%s, ", item.ToString());
         }
 
-        LogPrint("ERROR", "VerifyRewardTx() : delegate list: %s\n", delegates);
+        LogPrint("ERROR", "VerifyRewardTx() : delegate list: %s\n", delegatesStr);
 
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate's account, regId=%s", regId.ToString());
     }
@@ -561,29 +561,29 @@ bool CheckWork(CBlock *pBlock) {
 
 static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, CAccount &minerAccount,
                      CKey &minerKey) {
-    vector<CRegID> delegateList;
+    DelegateVector delegates;
     {
         LOCK(cs_main);
 
-        if (!pCdMan->pDelegateCache->GetTopDelegateList(delegateList)) {
-            LogPrint("MINER", "GetMiner() : fail to get top delegates! height=%d, time_ms=%lld\n",
+        if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
+            LogPrint("ERROR", "GetMiner() : GetActiveDelegates failed! height=%d, time_ms=%lld\n",
                 blockHeight, startMiningMs);
             return false;
         }
     }
 
     uint16_t index = 0;
-    for (auto &delegate : delegateList)
+    for (auto &delegate : delegates)
         LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
-    ShuffleDelegates(blockHeight, delegateList);
+    ShuffleDelegates(blockHeight, delegates);
 
     index = 0;
-    for (auto &delegate : delegateList)
+    for (auto &delegate : delegates)
         LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
 
     CRegID minerRegId;
-    GetCurrentDelegate(MillisToSecond(startMiningMs), blockHeight, delegateList, minerRegId);
+    GetCurrentDelegate(MillisToSecond(startMiningMs), blockHeight, delegates, minerRegId);
 
     {
         LOCK(cs_main);

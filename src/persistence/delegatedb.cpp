@@ -7,42 +7,30 @@
 
 #include "config/configuration.h"
 
-bool CDelegateDBCache::LoadTopDelegateList() {
-    delegateRegIds.clear();
+bool CDelegateDBCache::ExistDelegate(const CRegID &regid) {
+    DelegateVector delegates;
+    if (!GetActiveDelegates(delegates))
+        return false;
 
-    // vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
-    set<std::pair<string, string> > regIds;
-    voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), regIds);
+    return std::find(delegates.begin(), delegates.end(), regid) != delegates.end();
+}
+
+bool CDelegateDBCache::GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates) {
+
+    // votes{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
+    set<decltype(voteRegIdCache)::KeyType> topKeys;
+    voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), topKeys);
 
     // assert(regIds.size() == IniCfg().GetTotalDelegateNum());
 
-    for (const auto &regId : regIds) {
-        string strRegId = std::get<1>(regId);
-        delegateRegIds.emplace_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
+    for (const auto &key : topKeys) {
+        const string &votesStr = std::get<0>(key);
+        const string &regIdStr = std::get<1>(key);
+        VoteDelegate votedDelegate;
+        votedDelegate.regid.SetRegID(UnsignedCharArray(regIdStr.begin(), regIdStr.end()));
+        votedDelegate.votes = std::strtoull(votesStr.c_str(), nullptr, 10);
+        topVotedDelegates.push_back(votedDelegate);
     }
-
-    return true;
-}
-
-bool CDelegateDBCache::ExistDelegate(const CRegID &delegateRegId) {
-    if (delegateRegIds.empty()) {
-        LoadTopDelegateList();
-    }
-
-    return std::find(delegateRegIds.begin(), delegateRegIds.end(), delegateRegId) != delegateRegIds.end();
-}
-
-bool CDelegateDBCache::GetTopDelegateList(vector<CRegID> &delegatesList) {
-    if (delegateRegIds.empty()) {
-        LoadTopDelegateList();
-    }
-
-    if (delegateRegIds.size() != IniCfg().GetTotalDelegateNum()) {
-        LogPrint("INFO", "WARNING: CDelegateDBCache::GetTopDelegateList, only got %lu delegates(need %u)\n",
-                 delegateRegIds.size(), IniCfg().GetTotalDelegateNum());
-    }
-
-    delegatesList = delegateRegIds;
 
     return true;
 }
@@ -78,6 +66,36 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     return voteRegIdCache.EraseData(oldKey);
 }
 
+
+int32_t CDelegateDBCache::GetLastVoteHeight() {
+    uint32_t height;
+    if (!last_vote_height_cache.GetData(height))
+        height = 0;
+    return (int32_t)height;
+}
+
+bool CDelegateDBCache::SetLastVoteHeight(int32_t height) {
+    return last_vote_height_cache.SetData((uint32_t)height);
+}
+
+
+bool CDelegateDBCache::GetPendingDelegates(PendingDelegates &delegates) {
+    return pending_delegates_cache.GetData(delegates);
+}
+
+bool CDelegateDBCache::SetPendingDelegates(const PendingDelegates &delegates) {
+    return pending_delegates_cache.SetData(delegates);
+
+}
+
+bool CDelegateDBCache::GetActiveDelegates(DelegateVector &delegates) {
+    return active_delegates_cache.GetData(delegates);
+}
+
+bool CDelegateDBCache::SetActiveDelegates(const DelegateVector &delegates) {
+    return active_delegates_cache.SetData(delegates);
+}
+
 bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
                                        const vector<CCandidateReceivedVote> &candidateVotes) {
     return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes);
@@ -94,15 +112,25 @@ bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateRec
 bool CDelegateDBCache::Flush() {
     voteRegIdCache.Flush();
     regId2VoteCache.Flush();
+    last_vote_height_cache.Flush();
+    pending_delegates_cache.Flush();
+    active_delegates_cache.Flush();
 
     return true;
 }
 
 uint32_t CDelegateDBCache::GetCacheSize() const {
-    return voteRegIdCache.GetCacheSize() + regId2VoteCache.GetCacheSize();
+    return  voteRegIdCache.GetCacheSize() +
+            regId2VoteCache.GetCacheSize() +
+            last_vote_height_cache.GetCacheSize() +
+            pending_delegates_cache.GetCacheSize() +
+            active_delegates_cache.GetCacheSize();
 }
 
 void CDelegateDBCache::Clear() {
     voteRegIdCache.Clear();
     regId2VoteCache.Clear();
+    last_vote_height_cache.Clear();
+    pending_delegates_cache.Clear();
+    active_delegates_cache.Clear();
 }

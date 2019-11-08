@@ -132,6 +132,11 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
         }
     }
 
+    if (!cw.delegateCache.SetLastVoteHeight(context.height)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save last vote height error"),
+            UPDATE_ACCOUNT_FAIL, "bad-save-last-vote-height");
+    }
+
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);
 
     return true;

@@ -258,32 +258,32 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("invalid blockTime=%lld <= 0\n", blockTime));
     }
 
-    vector<CRegID> delegateList;
-    if (!pCdMan->pDelegateCache->GetTopDelegateList(delegateList)) {
-        LogPrint("ERROR", "%s() : failed to get top delegates\n", __FUNCTION__);
+    DelegateVector delegates;
+    if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
+        LogPrint("ERROR", "%s() : GetActiveDelegates failed\n", __FUNCTION__);
         return false;
     }
 
     uint16_t index = 0;
-    for (auto &delegate : delegateList)
+    for (auto &delegate : delegates)
         LogPrint("shuffle", "before shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.ToString());
 
-    ShuffleDelegates(blockHeight, delegateList);
+    ShuffleDelegates(blockHeight, delegates);
 
     index = 0;
-    for (auto &delegate : delegateList)
+    for (auto &delegate : delegates)
         LogPrint("shuffle", "after shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.ToString());
 
     CRegID regid;
-    GetCurrentDelegate(blockTime, blockHeight, delegateList, regid);
+    GetCurrentDelegate(blockTime, blockHeight, delegates, regid);
 
     index = 0;
-    for (; index < delegateList.size(); index++) {
-        if (delegateList.at(index) == regid) {
+    for (; index < delegates.size(); index++) {
+        if (delegates.at(index) == regid) {
             break;
         }
     }
-    if (index >= delegateList.size())
+    if (index >= delegates.size())
         throw JSONRPCError(RPC_INVALID_PARAMETER, "find current delegate failed!\n");
 
 
