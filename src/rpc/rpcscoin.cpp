@@ -556,7 +556,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC)
+    ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     uint64_t price                 = RPC_PARAM::GetPrice(params[3]);
     ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_LIMIT_SELL_ORDER_TX);
 
@@ -586,9 +586,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD\" 200000000 \"WICC\"\n")
+            + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD:200000000:sawi\"  \"WICC\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD\", 200000000, \"WICC\"\n")
+            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD:200000000:sawi\", \"WICC\"\n")
         );
     }
 
