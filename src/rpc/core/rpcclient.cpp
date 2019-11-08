@@ -183,7 +183,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitdexbuylimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
 
     if (strMethod == "submitdexselllimitordertx"    && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexselllimitordertx"    && n > 4) ConvertTo<int64_t>(params[4]);
+
 
     if (strMethod == "submitdexbuymarketordertx"    && n > 2) ConvertTo<int64_t>(params[2]);
 
