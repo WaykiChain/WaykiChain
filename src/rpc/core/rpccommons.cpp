@@ -77,8 +77,7 @@ std::vector<std::string> split(std::string stringToBeSplitted, std::string delim
 
     return splittedString;
 }
-
-int64_t pow10(string comboAmountStr, const unsigned int p){
+bool pow10(string comboAmountStr, const unsigned int precision, int64_t& sawiAmount){
 
     auto v = split(comboAmountStr, ".") ;
     if(v.size() == 1)
@@ -86,16 +85,18 @@ int64_t pow10(string comboAmountStr, const unsigned int p){
     string& intPart = v[0] ;
     string& decimalPart = v[1] ;
 
+    if(decimalPart.size() > precision )
+        return false ;
     unsigned int i = 0 ;
-    for(;i<p;i++){
+    for(;i<precision;i++){
         if(decimalPart.size() > i)
             intPart.push_back(decimalPart[i]);
         else
             intPart.push_back('0') ;
     }
-    return atoll(intPart.data()) ;
+    sawiAmount =  atoll(intPart.data()) ;
+    return true ;
 }
-
 
 // [N|R|A]:address
 // NickID (default) | RegID | Address
@@ -147,7 +148,8 @@ bool parseAmountAndUnit( vector<string>& comboMoneyArr, ComboMoney& comboMoney,c
     if (!CoinUnitTypeTable.count(strUnit))
         return false;
 
-    iValue = pow10(comboMoneyArr[0].c_str(), CoinUnitPrecisionTable.find(strUnit)->second);
+    if(!pow10(comboMoneyArr[0].c_str(), CoinUnitPrecisionTable.find(strUnit)->second, iValue))
+        return false;
 
     if (iValue < 0)
         return false;
