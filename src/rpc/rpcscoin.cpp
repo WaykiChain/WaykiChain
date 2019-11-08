@@ -573,7 +573,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 4 || params.size() > 5) {
+     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
             "submitdexbuymarketordertx \"addr\" \"coin_symbol\" coin_amount \"asset_symbol\" [symbol:fee:unit]\n"
             "\nsubmit a dex buy market price order tx.\n"
