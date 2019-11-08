@@ -65,24 +65,10 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
                 "\nAs json rpc call\n"
                 + HelpExampleRpc("setcodewasmcontracttx",
                                  "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
-
-        // 1.sender
-        // 2.contract(id)
-        // 3.filepath for code
-        // 4.filepath for abi
-        // 5.memo
-        // 6.fee
     }
 
-    CKeyID sender;
-    if (!GetKeyId(params[0].get_str(), sender)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address");
-    }
 
-    // CRegID contractRegID(params[1].get_str());
-    // if (contractRegID.IsEmpty()) {
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
-    // }
+    //get contract
     wasm::name contract;
     try{
         contract = wasm::name(params[1].get_str());
@@ -90,17 +76,18 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
-    string codeFile = GetAbsolutePath(params[2].get_str()).string();
-    string abiFile = GetAbsolutePath(params[3].get_str()).string();
-
-    string code, abi;
-    if (codeFile.empty() || abiFile.empty()) {
+    //get code and abi
+    string code_file = GetAbsolutePath(params[2].get_str()).string();
+    string abi_file = GetAbsolutePath(params[3].get_str()).string();
+    if (code_file.empty() || abi_file.empty()) {
         throw JSONRPCError(RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code or abi file do not exist!");
     }
 
-    if (!codeFile.empty()) {
+
+    string code, abi;
+    if (!code_file.empty()) {
         char byte;
-        ifstream f(codeFile, ios::binary);
+        ifstream f(code_file, ios::binary);
         while (f.get(byte)) code.push_back(byte);
         size_t size = code.size();
         if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
@@ -125,9 +112,9 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     }
 
 
-    if (!abiFile.empty()) {
+    if (!abi_file.empty()) {
         char byte;
-        ifstream f(abiFile, ios::binary);
+        ifstream f(abi_file, ios::binary);
         while (f.get(byte)) abi.push_back(byte);
         size_t size = abi.size();
         if (size == 0 || size > MAX_CONTRACT_CODE_SIZE) {
@@ -153,6 +140,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         throw JSONRPCError(e.code(), e.detail());
     }
 
+    //get memo
     string memo;
     if (params.size() > 5) {
         string memo = params[5].get_str();
@@ -163,6 +151,7 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         }
     }
 
+    //get tx fee
     const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
 
     int height = chainActive.Tip()->height;
@@ -172,44 +161,45 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     {
         EnsureWalletIsUnlocked();
 
-        CAccount account;
-        if (!pCdMan->pAccountCache->GetAccount(sender, account)) {
+        CKeyID sender_key_id;
+        if (!GetKeyId(params[0].get_str(), sender_key_id)) {
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address");
+        }
+
+        CAccount sender;
+        if (!pCdMan->pAccountCache->GetAccount(sender_key_id, sender)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Invalid send address");
         }
 
-        if (!account.HaveOwnerPubKey()) {
+        if (!sender.HaveOwnerPubKey()) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
         }
 
-        RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+        RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-        if (!pWalletMain->HaveKey(sender)) {
-            throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
+        if (!pWalletMain->HaveKey(sender_key_id)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Sender address is not in wallet");
         }
 
-        CRegID senderRegID;
-        pCdMan->pAccountCache->GetRegId(sender, senderRegID);
-        //uint64_t contract = wasm::RegID2Name(contractRegID);
+        CRegID sender_reg_id;
+        if(!pCdMan->pAccountCache->GetRegId(sender_key_id, sender_reg_id)){
+            throw JSONRPCError(RPC_WALLET_ERROR, "Get sender reg id error");
+        }
 
-        tx.nTxType = WASM_CONTRACT_TX;
-        tx.txUid = senderRegID;
+        tx.nTxType    = WASM_CONTRACT_TX;
+        tx.txUid      = sender_reg_id;
         tx.fee_symbol = fee.symbol;
-        tx.llFees = fee.GetSawiAmount();
-
+        tx.llFees     = fee.GetSawiAmount();
 
         tx.inlinetransactions.push_back({wasmio,
                                          wasm::N(setcode),
                                          std::vector<permission>{{wasmio, wasmio_owner}},
                                          wasm::pack(std::tuple(contract.value, code, abi, memo))});
 
-
-        if (0 == height) {
-            height = chainActive.Tip()->height;
-        }
-        tx.valid_height = height;
+        tx.valid_height = chainActive.Tip()->height;
         //tx.nRunStep = tx.data.size();
 
-        if (!pWalletMain->Sign(sender, tx.ComputeSignatureHash(), tx.signature)) {
+        if (!pWalletMain->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
@@ -221,10 +211,8 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     }
 
     Object obj;
-
     json_spirit::Value abi_v;
     json_spirit::read_string(std::get<1>(ret), abi_v);
-
     json_spirit::Config::add(obj, "result",  abi_v);
 
     return obj;
@@ -448,22 +436,22 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
     //     throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
 
     wasm::name contract;
+    CNickID contract_nick_id;
+    CUniversalContract contractCode;
+    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     try{
+        contract_nick_id = CNickID(params[0].get_str());
         contract = wasm::name(params[0].get_str());
+
+        spCW->contractCache.GetContract(contract_nick_id, *spCW.get(), contractCode);
+        if (contractCode.vm_type != VMType::WASM_VM)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");   
+
     } catch(wasm::exception& e){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
     }
 
-    CUniversalContract contractCode;
-    auto spCW = std::make_shared<CCacheWrapper>(mempool.cw.get());
-    CNickID nick_name(contract.to_string());
-    spCW->contractCache.GetContract(nick_name, *spCW.get(), contractCode);
-    if (contractCode.vm_type != VMType::WASM_VM)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");   
 
-
-
-    //string abi = contractCode.abi;
     std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
     if (abi.size() == 0)
         throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
@@ -471,7 +459,7 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
     uint64_t table = wasm::NAME(params[1].get_str().c_str());
 
-    //uint64_t numbers = default_query_rows;
+    uint64_t numbers = default_query_rows;
     if (params.size() > 2)
         numbers = std::atoi(params[2].get_str().data());
 
@@ -484,7 +472,9 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         lastKey = FromHex(params[3].get_str());
     }
 
-    // auto pGetter = pCdMan->pContractCache->CreateContractDatasGetter(contractRegID, keyPrefix, numbers, lastKey);
+
+    //auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
+    // auto pGetter =  spCW->contractCache.CreateContractDatasGetter(account, keyPrefix, numbers, lastKey);
     // if (!pGetter || !pGetter->Execute()) {
     //     throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
     // }
