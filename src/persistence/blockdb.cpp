@@ -6,7 +6,7 @@
 #include "blockdb.h"
 #include "entities/key.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "main.h"
 
 #include <stdint.h>

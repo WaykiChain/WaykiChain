@@ -11,7 +11,7 @@
 #include "commons/mruset.h"
 #include "commons/random.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "commons/compat/compat.h"
 #include "crypto/hash.h"
 #include "netbase.h"

@@ -62,11 +62,11 @@ coin_CORE_H = \
   commons/serialize.h \
   commons/leb128.h \
   commons/types.h \
-  commons/util.h \
+  commons/util/util.h \
+  commons/util/time.h \
   commons/compat/byteswap.h \
   commons/compat/compat.h \
   commons/compat/endian.h \
-  commons/util/time.h \
   config/configuration.h \
   config/const.h \
   config/errorcode.h \

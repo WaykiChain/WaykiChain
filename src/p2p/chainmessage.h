@@ -8,7 +8,7 @@
 
 #include "alert.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "main.h"
 #include "net.h"
 

@@ -8,7 +8,7 @@
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
 #include "main.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <stdint.h>
 #include <boost/assign/list_of.hpp>  // for 'map_list_of()'

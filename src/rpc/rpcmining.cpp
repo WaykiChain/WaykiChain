@@ -7,7 +7,7 @@
 #include "commons/json/json_spirit_value.h"
 #include "commons/serialize.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/chainparams.h"
 #include "config/version.h"
 #include "init.h"

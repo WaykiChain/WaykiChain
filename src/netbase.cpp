@@ -8,7 +8,7 @@
 #include "commons/uint256.h"
 #include "crypto/hash.h"
 #include "sync.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #ifndef WIN32
 #include <fcntl.h>

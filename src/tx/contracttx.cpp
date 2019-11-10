@@ -12,7 +12,7 @@
 #include "miner/miner.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 #include "vm/luavm/luavmrunenv.h"
 

@@ -5,7 +5,7 @@
 
 #include "protocol.h"
 
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #ifndef WIN32
 # include <arpa/inet.h>

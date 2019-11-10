@@ -9,7 +9,7 @@
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "persistence/blockdb.h"

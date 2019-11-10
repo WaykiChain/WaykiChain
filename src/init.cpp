@@ -24,7 +24,7 @@
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "tx/tx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #ifdef USE_UPNP
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/miniwget.h>

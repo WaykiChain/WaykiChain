@@ -6,7 +6,7 @@
 #include "luavmrunenv.h"
 #include "commons/SafeInt3.hpp"
 #include "tx/tx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "vm/luavm/lua/lua.hpp"
 #include "vm/luavm/lua/lburner.h"
 
