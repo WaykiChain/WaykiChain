@@ -66,6 +66,7 @@ coin_CORE_H = \
   commons/compat/byteswap.h \
   commons/compat/compat.h \
   commons/compat/endian.h \
+  commons/util/time.h \
   config/configuration.h \
   config/const.h \
   config/errorcode.h \
@@ -313,6 +314,7 @@ libcoin_common_a_SOURCES = \
   commons/uint256.cpp \
   commons/bloom.cpp \
   commons/util.cpp \
+  commons/util/time.cpp \
   crypto/hash.cpp \
   config/chainparams.cpp \
   config/configuration.cpp \
