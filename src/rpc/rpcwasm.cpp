@@ -46,13 +46,13 @@ using std::chrono::microseconds;
 // using namespace wasm;
 
 #define JSON_RPC_ASSERT(expr , code, msg) \
-    if( !( expr ) ){                     \
-        throw JSONRPCError(code, msg);   \
+    if( !( expr ) ){                      \
+        throw JSONRPCError(code, msg);    \
     }
 
-#define RESPONSE_RPC_HELP(expr , msg) \
+#define RESPONSE_RPC_HELP(expr , msg)   \
     if( ( expr ) ){                     \
-        throw runtime_error( msg);   \
+        throw runtime_error( msg);      \
     }
 
 bool read_file_limit(const string& path, string& data, uint64_t max_size){
@@ -61,13 +61,17 @@ bool read_file_limit(const string& path, string& data, uint64_t max_size){
 
         char byte;
         ifstream f(path, ios::binary);
-        while (f.get(byte)) data.push_back(byte);
-        size_t size = data.size();
-        if (size == 0 || size > max_size){
-            return false;
-        }
-        return true;
 
+        streampos pos = f.tellg();
+        f.seekg(0, ios::end);
+        size_t size = f.tellg();
+        if (size == 0 || size > max_size) return false;
+
+        f.seekg(pos);
+        while (f.get(byte)) data.push_back(byte);
+        // size_t size = data.size();
+        // if (size == 0 || size > max_size) return false;
+        return true;
     } catch (...) {
         return false;
     } 
@@ -75,11 +79,13 @@ bool read_file_limit(const string& path, string& data, uint64_t max_size){
 
 void read_and_validate_code(const string& path, string& code){
     try {
-        WASM_ASSERT(read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE), file_read_exception, "wasm code file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
-        vector <uint8_t> code_v;
-        code_v.insert(code_v.begin(), code.begin(), code.end());
+        WASM_ASSERT(read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE), 
+                    file_read_exception, 
+                    "wasm code file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
+        vector <uint8_t> c;
+        c.insert(c.begin(), code.begin(), code.end());
         wasm_interface wasmif;
-        wasmif.validate(code_v);
+        wasmif.validate(c);
     } catch (wasm::exception &e) {
         JSON_RPC_ASSERT(false, e.code(), e.detail())
     }    
@@ -87,17 +93,18 @@ void read_and_validate_code(const string& path, string& code){
 
 void read_and_validate_abi(const string& abi_file, string& abi){
     try {
-        WASM_ASSERT(read_file_limit(abi_file, abi, MAX_CONTRACT_CODE_SIZE), file_read_exception, "wasm abi file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
-        json_spirit::Value abiJson;
-        json_spirit::read_string(abi, abiJson);
+        WASM_ASSERT(read_file_limit(abi_file, abi, MAX_CONTRACT_CODE_SIZE), 
+                    file_read_exception, 
+                    "wasm abi file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
+        json_spirit::Value abi_json;
+        json_spirit::read_string(abi, abi_json);
 
-        abi_def abi_d;
-        from_variant(abiJson, abi_d);
-        wasm::abi_serializer abis(abi_d, max_serialization_time);
+        abi_def abi_struct;
+        from_variant(abi_json, abi_struct);
+        wasm::abi_serializer abis(abi_struct, max_serialization_time);//validate in abi_serializer constructor
 
-        //abi in vector
-        std::vector<char> abi_v = wasm::pack<wasm::abi_def>(abi_d);
-        abi = string(abi_v.begin(), abi_v.end());
+        std::vector<char> abi_bytes = wasm::pack<wasm::abi_def>(abi_struct);
+        abi = string(abi_bytes.begin(), abi_bytes.end());
     } catch (wasm::exception &e) {
         JSON_RPC_ASSERT(false, e.code(), e.detail())
     }  
@@ -110,17 +117,14 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     //pack tx and commit
-    Object obj_return;
     try{
         auto database = pCdMan->pAccountCache;
-        auto wallet = pWalletMain;
-
-        //get code and abi
-        string code_file = GetAbsolutePath(params[2].get_str()).string();
-        string abi_file = GetAbsolutePath(params[3].get_str()).string();
-        JSON_RPC_ASSERT( !(code_file.empty() || abi_file.empty()), RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file name are both empty!")
+        auto wallet   = pWalletMain;
 
         //read and validate code, abi
+        string code_file = GetAbsolutePath(params[2].get_str()).string();
+        string abi_file  = GetAbsolutePath(params[3].get_str()).string();
+        JSON_RPC_ASSERT( !(code_file.empty() || abi_file.empty()), RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file name are both empty!")
         string code, abi;
         read_and_validate_code(code_file, code);
         read_and_validate_abi(abi_file, abi);
@@ -131,30 +135,27 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         CWasmContractTx tx;
         {
             auto contract = wasm::name(params[1].get_str()).value;
-            string memo = (params.size() > 5)?params[5].get_str():"";
+            string memo   = (params.size() > 5)?params[5].get_str():"";
 
             CAccount sender;
             CKeyID sender_key_id;
             CRegID sender_reg_id;
-            
-            JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE, RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
-            JSON_RPC_ASSERT(GetKeyId(params[0].get_str(), sender_key_id), RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
-            JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id), RPC_WALLET_ERROR, "Sender address is not in wallet")
+            JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE,             RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
+            JSON_RPC_ASSERT(GetKeyId(params[0].get_str(), sender_key_id),     RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
+            JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                   RPC_WALLET_ERROR, "Sender address is not in wallet")
             JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
-            JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender), RPC_WALLET_ERROR, "Cannot get sender account")
-            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(), RPC_WALLET_ERROR, "Sender account is unregistered")
+            JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
+            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                         RPC_WALLET_ERROR, "Sender account is unregistered")
 
             const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
             RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-            tx.nTxType    = WASM_CONTRACT_TX;
-            tx.txUid      = sender_reg_id;
-            tx.fee_symbol = fee.symbol;
-            tx.llFees     = fee.GetSawiAmount();
+            tx.nTxType      = WASM_CONTRACT_TX;
+            tx.txUid        = sender_reg_id;
+            tx.fee_symbol   = fee.symbol;
+            tx.llFees       = fee.GetSawiAmount();
             tx.valid_height = chainActive.Tip()->height;
-            tx.inlinetransactions.push_back({wasmio,
-                                             wasm::N(setcode),
-                                             std::vector<permission>{{wasmio, wasmio_owner}},
+            tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{wasmio, wasmio_owner}},
                                              wasm::pack(std::tuple(contract, code, abi, memo))});
             //tx.nRunStep = tx.data.size();
             JSON_RPC_ASSERT(wallet->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
@@ -163,42 +164,17 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         std::tuple<bool, string> r = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(r), RPC_WALLET_ERROR, std::get<1>(r))
 
+        Object obj_return;
         json_spirit::Value v;
         json_spirit::read_string(std::get<1>(r), v);
         json_spirit::Config::add(obj_return, "result",  v);
 
+        return obj_return;
     } catch(wasm::exception &e){
         JSON_RPC_ASSERT(false, e.code(), e.detail())
     } catch(...){
         throw;
     }
-    return obj_return;
-}
-
-bool is_digital_string(const string s){
-    if (s.length() > 10 || s.length() == 0) //int max is 4294967295 can not over 10
-        return false;
-    for (auto c : s) {
-        if (!isdigit(c))
-            return false;
-    }
-    return true ;
-}
-
-bool is_regid(const string& s){
-    int len = s.length();
-    if (len >= 3) {
-        int pos = s.find('-');
-
-        if (pos > len - 1) {
-            return false;
-        }
-        string firstStr = s.substr(0, pos);
-        string endStr = s.substr(pos + 1);
-
-        return is_digital_string(firstStr) && is_digital_string(endStr) ;
-    }
-    return false;
 }
 
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
@@ -206,128 +182,73 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
     RESPONSE_RPC_HELP( fHelp || params.size() != 5 , wasm::rpc::call_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
-    EnsureWalletIsUnlocked();
+    try {
+        auto database_account = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
+        auto wallet = pWalletMain;
 
-    CKeyID sender;
-    if (!GetKeyId(params[0].get_str(), sender))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
-
-    // if (!GetKeyId(params[1].get_str(), recvKeyId)) {
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid app regid");
-    // }
-
-    wasm::name contract;
-    try{
-        contract = wasm::name(params[1].get_str());
-    } catch(wasm::exception& e){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
-    }
-
-   std::vector<char> abi;
-   if(wasm::wasmio == contract.value ) {
-
-        //contract = wasm::wasmio;
-        wasm::abi_def wasmio_abi = wasmio_contract_abi();
-        abi = wasm::pack<wasm::abi_def>(wasmio_abi);
-
-    } else {
-        // CRegID contractRegID(params[1].get_str());
-        // if (contractRegID.IsEmpty()) {
-        //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
-        // }
-        CNickID nick_name(contract.to_string());
-
-        // if (!pCdMan->pContractCache->HaveContract(nick_name)) {
-        //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Failed to get contract");
-        // }
-        //contract = wasm::RegID2Name(contractRegID);
-
-        CUniversalContract contractCode;
-        auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-        spCW->contractCache.GetContract(nick_name, *spCW.get(), contractCode);
-        if (contractCode.vm_type != VMType::WASM_VM)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
-
-        abi.insert(abi.end(), contractCode.abi.begin(), contractCode.abi.end());
-
-    }
-
-
-    // else{
-    //    throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid contract");
-    // }
-
-    uint64_t action = wasm::NAME(params[2].get_str().c_str());
-
-    string arguments = params[3].get_str();
-    if (arguments.empty() || arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments empty or the size out of range");
-    }
-
-    std::vector<char> data;
-    if (abi.size() > 0)
-        try {
-            data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), arguments,
-                                              max_serialization_time);
-        } catch (wasm::exception &e) {
-            throw JSONRPCError(e.code(), e.detail());
+        //serialize action data
+        std::vector<char> abi;
+        wasm::name contract_name = wasm::name(params[1].get_str());
+        if(wasm::wasmio == contract_name.value ) {
+            wasm::abi_def wasmio_abi = wasmio_contract_abi();
+            abi = wasm::pack<wasm::abi_def>(wasmio_abi);
+        } else {
+            CAccount contract;
+            CUniversalContract contract_store;
+            WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
+                        "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+            JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+            JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+            JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
+            JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
-    else {
-        data.insert(data.begin(), arguments.begin(), arguments.end());
+
+        EnsureWalletIsUnlocked();
+        CWasmContractTx tx;
+        {
+            uint64_t action = wasm::name(params[2].get_str()).value;
+            std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end() );
+            JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,  "Arguments empty or the size out of range")
+            if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), params[3].get_str(), max_serialization_time);
+
+            CAccount sender; //should be authorizer(s)
+            CKeyID sender_key_id;
+            CRegID sender_reg_id;
+            JSON_RPC_ASSERT(GetKeyId(params[0].get_str(), sender_key_id),             RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
+            JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                           RPC_WALLET_ERROR, "Sender address is not in wallet")
+            JSON_RPC_ASSERT(database_account->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
+            JSON_RPC_ASSERT(database_account->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
+            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                                 RPC_WALLET_ERROR, "Sender account is unregistered")
+
+            ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
+
+            tx.nTxType      = WASM_CONTRACT_TX;
+            tx.txUid        = sender_reg_id;
+            tx.valid_height = chainActive.Height();
+            tx.fee_symbol   = fee.symbol;
+            tx.llFees       = fee.GetSawiAmount();
+            tx.inlinetransactions.push_back({contract_name.value, action, std::vector<permission>{{wasm::N(sender), wasmio_owner}},
+                                             action_data});
+            // tx.symbol = amount.symbol;
+            // tx.amount = amount.GetSawiAmount();
+            JSON_RPC_ASSERT(wallet->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
+        }
+
+        std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx * ) & tx);
+        JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
+
+        Object obj_return;
+        json_spirit::Value v;
+        json_spirit::read_string(std::get<1>(ret), v);
+        json_spirit::Config::add(obj_return, "result",  v);
+        return obj_return;
+    } catch(wasm::exception &e){
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    } catch(...){
+        throw;
     }
-
-
-    ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
-
-    uint32_t height = chainActive.Height();
-
-    CPubKey sendPubKey;
-    if (!pWalletMain->GetPubKey(sender, sendPubKey)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Key not found in the local wallet.");
-    }
-
-    CUserID sendUserId;
-    CRegID sendRegId;
-    sendUserId = (pCdMan->pAccountCache->GetRegId(CUserID(sender), sendRegId) && sendRegId.IsMature(height + 1))
-                 ? CUserID(sendRegId)
-                 : CUserID(sendPubKey);
-
-    // CRegID recvRegId;
-    // if (!pCdMan->pAccountCache->GetRegId(CUserID(recvKeyId), recvRegId)) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid app regid");
-    // }
-
-    CWasmContractTx tx;
-    tx.nTxType = WASM_CONTRACT_TX;
-    tx.txUid = sendUserId;
-    tx.valid_height = height;
-    tx.fee_symbol = fee.symbol;
-    tx.llFees = fee.GetSawiAmount();
-
-    tx.inlinetransactions.push_back({contract.value,
-                                     action,
-                                     std::vector<permission>{{wasm::N(sender), wasmio_owner}},
-                                     data});
-
-    // tx.symbol = amount.symbol;
-    // tx.amount = amount.GetSawiAmount();
-
-    if (!pWalletMain->Sign(sender, tx.ComputeSignatureHash(), tx.signature)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
-    }
-
-    std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx * ) & tx);
-    if (!std::get<0>(ret)) {
-        throw JSONRPCError(RPC_WALLET_ERROR, std::get<1>(ret));
-    }
-
-    Object obj;
-
-    json_spirit::Value abi_v;
-    json_spirit::read_string(std::get<1>(ret), abi_v);
-    json_spirit::Config::add(obj, "result",  abi_v);
-
-    return obj;
 }
 
 Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
