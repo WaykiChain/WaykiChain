@@ -115,6 +115,7 @@ namespace wasm {
         trace.receiver = _receiver;
 
         auto native = find_native_handle(_receiver, trx.action);
+        //WASM_TRACE("%s", "ExecuteTx");
 
         try {
             if (native) {

@@ -12,7 +12,7 @@ namespace wasm {
         inline_transaction trx;
         //uint32_t block_height;
         //uint32_t block_time;
-        std::chrono::microseconds elapsed;
+        //std::chrono::microseconds elapsed;
         string console;
     };
 

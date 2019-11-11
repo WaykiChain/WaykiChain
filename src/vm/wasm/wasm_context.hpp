@@ -19,21 +19,7 @@ using namespace std;
 using namespace wasm;
 namespace wasm {
 
-   // struct wasm_exit {
-   //    int32_t code = 0;
-   // };
-
-    // static inline CRegID Name2RegID( uint64_t account ) {
-    //     uint32_t height = uint32_t(account);
-    //     uint16_t index = uint16_t(account >> 32);
-    //     return CRegID(height, index);
-    // }
-
-    // static inline uint64_t RegID2Name( CRegID regID ) {
-    //     uint64_t account = uint64_t(regID.GetIndex());
-    //     account = (account << 32) + uint64_t(regID.GetHeight());
-    //     return account;
-    // }
+    typedef CNickID nick_name;
 
     class wasm_context;
 
