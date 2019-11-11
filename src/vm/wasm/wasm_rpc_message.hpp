@@ -83,5 +83,47 @@ namespace wasm { namespace rpc{
     )=====";
 
 
+    // if (fHelp || params.size() < 2 || params.size() > 4) {
+    //     throw runtime_error(
+    //             "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "2.\"table\":   (string, required) table name\n"
+    //             "3.\"numbers\":   (numberic, optional) numbers\n"
+    //             "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
+    //             "\nResult:\n"
+    //             "\"rows\":        (string)\n"
+    //             "\"more\":        (bool)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("gettablewasmcontracttx",
+    //                            " \"411994-1\" \"stat\" 10") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("gettablewasmcontracttx",
+    //                            "\"411994-1\", \"stat\", 10"));
+    //     // 1.contract(id)
+    //     // 2.table
+    //     // 3.number
+    //     // 4.begin_key
+    // }
+
+    const char *get_table_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        gettablewasmcontracttx "contract" "table" "numbers" "begin_key"
+        1."contract": (string, required) contract name"
+        2."table":    (string, required) table name"
+        3."numbers":  (numberic, optional) numbers"
+        4."begin_key":(string, optional) smallest key in Hex"
+        Result:"
+        "rows":       (string)"
+        "more":       (bool)"
+        nExamples: 
+        > ./coind setcodewasmcontracttx "wasmio" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasmcontracttx", "params":["walker222222", "stat", "10"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+
+
+
 } // rpc
 } // wasm

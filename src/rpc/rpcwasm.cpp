@@ -252,124 +252,68 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
-        throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
-                "1.\"contract\": (string, required) contract name\n"
-                "2.\"table\":   (string, required) table name\n"
-                "3.\"numbers\":   (numberic, optional) numbers\n"
-                "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
-                "\nResult:\n"
-                "\"rows\":        (string)\n"
-                "\"more\":        (bool)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"stat\" 10") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"stat\", 10"));
-        // 1.contract(id)
-        // 2.table
-        // 3.number
-        // 4.begin_key
-    }
 
+    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::get_table_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type));
 
-    // std::cout << "rpccall gettablerowwasmcontracttx "
-    //           << " contract:" << params[0].get_str()
-    //           << " table:" << params[1].get_str()
-    //           << " numbers:" << params[2].get_str()
-    //           //<< " last_key:" << params[3].get_str()
-    //           << std::endl;
-
-    //EnsureWalletIsUnlocked();
-
-    // CRegID contractRegID(params[0].get_str());
-    // if (contractRegID.IsEmpty()) {
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
-    // }
-
-    // uint64_t contract = wasm::RegID2Name(contractRegID);
-
-    // CUniversalContract contractCode;
-    // if (!pCdMan->pContractCache->GetContract(contractRegID, contractCode))
-    //     throw JSONRPCError(READ_SCRIPT_FAIL, "can not get contract code");
-
-    wasm::name contract;
-    CNickID contract_nick_id;
-    CUniversalContract contractCode;
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
     try{
-        contract_nick_id = CNickID(params[0].get_str());
-        contract = wasm::name(params[0].get_str());
+        auto database_account = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
 
-        spCW->contractCache.GetContract(contract_nick_id, *spCW.get(), contractCode);
-        if (contractCode.vm_type != VMType::WASM_VM)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");   
+        wasm::name contract_name  = wasm::name(params[0].get_str());
+        wasm::name contract_table = wasm::name(params[1].get_str());
 
-    } catch(wasm::exception& e){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
+        CAccount contract;
+        CUniversalContract contract_store;
+        WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
+                    "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+        //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with name = %s", contract_name.to_string().c_str()))
+        JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with name = %s", contract_name.to_string().c_str()))
+        JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
+        JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
+
+        std::vector<char> abi;
+        abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+
+        uint64_t numbers = default_query_rows;
+        if (params.size() > 2) numbers = std::atoi(params[2].get_str().data());
+
+        std::vector<char> key_prefix = wasm::pack(std::tuple(contract_name.value, contract_table.value));
+        string search_key(key_prefix.data(),key_prefix.size());
+        string start_key = (params.size() > 3) ? FromHex(params[3].get_str()) : "";
+
+        //WASM_TRACE("%s %s",ToHex(search_key,"").c_str(), ToHex(start_key,"").c_str())
+
+        auto pGetter = database_contract->CreateContractDatasGetter(contract.regid, search_key, numbers, start_key);
+        JSON_RPC_ASSERT(pGetter && pGetter->Execute(), RPC_INVALID_PARAMS,  strprintf("cannot get contract table with name = %s", contract_name.to_string().c_str()))
+
+        json_spirit::Object object_return;
+        json_spirit::Array rows_json;
+        for (auto item : pGetter->data_list) {
+            const string &key   = pGetter->GetKey(item);
+            const string &value = pGetter->GetValue(item);
+
+            //unpack value in bytes to json
+            std::vector<char> value_bytes(value.begin(), value.end());
+            json_spirit::Value value_json    = wasm::abi_serializer::unpack(abi, contract_table.value, value_bytes, max_serialization_time);
+            json_spirit::Object &object_json = value_json.get_obj(); 
+
+            //append key and value 
+            object_json.push_back(Pair("key",   ToHex(key, "")));
+            object_json.push_back(Pair("value", ToHex(value, "")));
+
+            rows_json.push_back(value_json);
+        }
+
+        object_return.push_back(Pair("rows", rows_json));
+        object_return.push_back(Pair("more", pGetter->has_more));
+
+        return object_return;
+    } catch(wasm::exception &e){
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    } catch(...){
+        throw;
     }
-
-
-    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
-    if (abi.size() == 0)
-        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
-
-
-    uint64_t table = wasm::NAME(params[1].get_str().c_str());
-
-    uint64_t numbers = default_query_rows;
-    if (params.size() > 2)
-        numbers = std::atoi(params[2].get_str().data());
-
-    string keyPrefix;
-    std::vector<char> k = wasm::pack(std::tuple(contract, table));
-    keyPrefix.insert(keyPrefix.end(), k.begin(), k.end());
-
-    string lastKey = ""; // TODO: get last key
-    if (params.size() > 3) {
-        lastKey = FromHex(params[3].get_str());
-    }
-
-
-    //auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-    // auto pGetter =  spCW->contractCache.CreateContractDatasGetter(account, keyPrefix, numbers, lastKey);
-    // if (!pGetter || !pGetter->Execute()) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMS, "get contract datas error! contract_regid=%s, ");
-    // }
-
-    json_spirit::Object object;
-    // try {
-    //     json_spirit::Array vars;
-    //     string last_key;
-
-    //     for (auto item : pGetter->data_list) {
-    //         last_key = pGetter->GetKey(item);
-    //         const string &value = pGetter->GetValue(item);
-
-    //         std::vector<char> row(value.begin(), value.end());
-    //         //row.insert(row.end(), value.begin(), value.end());
-    //         json_spirit::Value v = wasm::abi_serializer::unpack(abi, table, row, max_serialization_time);
-
-    //         json_spirit::Object &obj = v.get_obj();
-    //         obj.push_back(Pair("key", ToHex(last_key, "")));
-    //         obj.push_back(Pair("value", ToHex(value, "")));
-
-    //         vars.push_back(v);
-    //     }
-
-    //     object.push_back(Pair("rows", vars));
-    //     object.push_back(Pair("more", pGetter->has_more));
-
-    // } catch (wasm::exception &e) {
-    //     throw JSONRPCError( e.code(), e.detail() );
-    // }
-
-    return object;
-
-
 }
 
 Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
