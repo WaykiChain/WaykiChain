@@ -4,14 +4,18 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
+#if defined(HAVE_CONFIG_H)
+#include "config/coin-config.h"
+#endif
 
-#include <util/time.h>
+#include "commons/util/time.h"
+#include "commons/tinyformat.h"
 
 #include <atomic>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread.hpp>
 #include <ctime>
-#include <tinyformat.h>
+
 
 static std::atomic<int64_t> nMockTime(0); //!< For unit testing
 
