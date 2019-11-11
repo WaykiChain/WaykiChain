@@ -185,6 +185,7 @@ void get_contract(CAccountDBCache* database_account, CContractDBCache* database_
     JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
     JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
     JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
+    //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
 }
 
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
@@ -408,50 +409,32 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() != 1 ) {
-        throw runtime_error(
-                "getcodewasmcontracttx \"contract\" \n"
-                "1.\"contract\": (string, required) contract name\n"
-                "\nResult:\n"
-                "\"code\":        (string)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("getcodewasmcontracttx",
-                               " \"411994-1\" ") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("getcodewasmcontracttx",
-                               "\"411994-1\""));
-        // 1.contract(id)
-    }
 
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
 
-    CNickID contract;
-    try{
-        contract = CNickID(params[0].get_str());
-    } catch(wasm::exception& e){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
+   try{
+        auto database_account  = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
+
+        wasm::name contract_name   = wasm::name(params[0].get_str());
+
+        CAccount contract;
+        CUniversalContract contract_store;
+        get_contract(database_account, database_contract, contract_name, contract, contract_store );
+
+        std::vector<char> abi(contract_store.abi.begin(), contract_store.abi.end());
+        abi_def abi_struct = wasm::unpack<wasm::abi_def>(abi);
+        json_spirit::Value abi_json;
+        wasm::to_variant(abi_struct, abi_json);
+
+        json_spirit::Object object_return;
+        object_return.push_back(Pair("abi", abi_json));
+        return object_return;
+    } catch(wasm::exception &e){
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    } catch(...){
+        throw;
     }
-
-    CUniversalContract contractCode;
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
-
-    if (contractCode.vm_type != VMType::WASM_VM)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
-
-    if (contractCode.code.size() == 0)
-        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set code");
-
-    json_spirit::Object object;
-
-
-    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
-    abi_def abi_d = wasm::unpack<wasm::abi_def>(abi);
-
-    json_spirit::Value v;
-    wasm::to_variant(abi_d, v);
-    object.push_back(Pair("abi", v));
-
-    return object;
 
 }

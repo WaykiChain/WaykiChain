@@ -217,5 +217,33 @@ namespace wasm { namespace rpc{
     )=====";
 
 
+    // if (fHelp || params.size() != 1 ) {
+    //     throw runtime_error(
+    //             "getcodewasmcontracttx \"contract\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "\nResult:\n"
+    //             "\"code\":        (string)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("getcodewasmcontracttx",
+    //                            " \"411994-1\" ") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("getcodewasmcontracttx",
+    //                            "\"411994-1\""));
+    //     // 1.contract(id)
+    // }
+    const char *get_abi_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        getabiwasmcontracttx "contract" 
+        1."contract": (string, required) contract name\n"
+        Result:
+        "code":        (string)
+        Examples:
+        > ./coind getabiwasmcontracttx "walker222222" 
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasmcontracttx", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+
 } // rpc
 } // wasm
