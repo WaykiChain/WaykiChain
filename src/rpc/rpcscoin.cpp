@@ -208,8 +208,7 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
             "2. \"cdp_id\":             (string, required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"repay_amount\":       (numeric, required) scoins (E.g. WUSD) to repay into the CDP, boosted by 10^8\n"
             "4. \"redeem_amount\":      (numeric, required) bcoins (E.g. WICC) to redeem from the CDP, boosted by 10^8\n"
-            "5. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is "
-            "WICC:100000:sawi\n"
+            "5. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +

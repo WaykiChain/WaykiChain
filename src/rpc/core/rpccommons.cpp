@@ -12,6 +12,7 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 
+#include <regex>
 #include <fstream>
 
 using namespace std;
@@ -31,29 +32,8 @@ std::vector<std::string> split(std::string strToSplit, char delimeter) {
 
 
 bool is_decimal(const string& s ){
-    int pointCount = 0 ;
-    if(s.size() ==0)
-        return false ;
-    unsigned int i = 0 ;
-    for( ; i< s.size();i++){
-        if(std::isdigit(s[i])){
-            continue ;
-        }
-        if(s[i] == '.'){
-            pointCount++;
-            continue;
-        }
-
-        else return false ;
-    }
-    if(pointCount !=1)
-        return false ;
-
-    if(s[0]=='.' || s[s.size()-1] =='.')
-        return false;
-
-    return true ;
-
+    std::regex r("([1-9][0-9]*|0)\\.[0-9]+");
+    return regex_match(s, r) ;
 }
 
 
