@@ -381,49 +381,29 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() != 1 ) {
-        throw runtime_error(
-                "getcodewasmcontracttx \"contract\" \n"
-                "1.\"contract\": (string, required) contract name\n"
-                "\nResult:\n"
-                "\"code\":        (string)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("getcodewasmcontracttx",
-                               " \"411994-1\" ") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("getcodewasmcontracttx",
-                               "\"411994-1\""));
-        // 1.contract(id)
-    }
 
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_code_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
 
-    // CRegID contractRegID(params[0].get_str());
-    // if (contractRegID.IsEmpty()) {
-    //     throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid contract address");
-    // }
-
-    CNickID contract;
     try{
-        contract = CNickID(params[0].get_str());
-    } catch(wasm::exception& e){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
+        auto database_account  = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
+
+        wasm::name contract_name   = wasm::name(params[0].get_str());
+
+        CAccount contract;
+        CUniversalContract contract_store;
+        get_contract(database_account, database_contract, contract_name, contract, contract_store );
+
+        json_spirit::Object object_return;
+        object_return.push_back(Pair("code", wasm::ToHex(contract_store.code,"")));
+
+        return object_return;
+    } catch(wasm::exception &e){
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    } catch(...){
+        throw;
     }
-
-    CUniversalContract contractCode;
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
-    if (contractCode.vm_type != VMType::WASM_VM)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
-
-    if (contractCode.code.size() == 0)
-        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set code");
-
-    json_spirit::Object object;
-
-    object.push_back(Pair("code", wasm::ToHex(contractCode.code,"")));
-
-    return object;
 
 }
 
