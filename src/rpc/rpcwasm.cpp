@@ -1,5 +1,5 @@
-// Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2017-2018 WaykiChain Developers
+// Copyright (c) 2019 xiaoyu
+// Copyright (c) 2017-2019 WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php
 
@@ -110,6 +110,29 @@ void read_and_validate_abi(const string& abi_file, string& abi){
     }  
 }
 
+void get_sender(CAccountDBCache* database, CWallet* wallet, const string& address, CAccount& sender ){
+
+    CKeyID sender_key_id;
+    CRegID sender_reg_id;
+    JSON_RPC_ASSERT(GetKeyId(address, sender_key_id),     RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
+    JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                   RPC_WALLET_ERROR, "Sender address is not in wallet")
+    JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
+    JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
+    JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                         RPC_WALLET_ERROR, "Sender account is unregistered")
+
+}
+
+void get_contract(CAccountDBCache* database_account, CContractDBCache* database_contract, const wasm::name& contract_name, CAccount& contract, CUniversalContract& contract_store){
+
+    WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
+                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+    JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+    JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
+    JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
+    //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
+}
+
 // set code and abi
 Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 
@@ -136,38 +159,32 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
         {
             auto contract = wasm::name(params[1].get_str()).value;
             string memo   = (params.size() > 5)?params[5].get_str():"";
+            JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE, RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
 
             CAccount sender;
-            CKeyID sender_key_id;
-            CRegID sender_reg_id;
-            JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE,             RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
-            JSON_RPC_ASSERT(GetKeyId(params[0].get_str(), sender_key_id),     RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
-            JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                   RPC_WALLET_ERROR, "Sender address is not in wallet")
-            JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
-            JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
-            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                         RPC_WALLET_ERROR, "Sender account is unregistered")
+            get_sender(database, wallet, params[0].get_str(), sender );
 
             const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
             RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
             tx.nTxType      = WASM_CONTRACT_TX;
-            tx.txUid        = sender_reg_id;
+            tx.txUid        = sender.regid;
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
             tx.valid_height = chainActive.Tip()->height;
             tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{wasmio, wasmio_owner}},
                                              wasm::pack(std::tuple(contract, code, abi, memo))});
             //tx.nRunStep = tx.data.size();
-            JSON_RPC_ASSERT(wallet->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
+            JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
         std::tuple<bool, string> r = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(r), RPC_WALLET_ERROR, std::get<1>(r))
 
         Object obj_return;
-        json_spirit::Value v;
-        json_spirit::read_string(std::get<1>(r), v);
-        json_spirit::Config::add(obj_return, "result",  v);
+        json_spirit::Value value_json;
+        json_spirit::read_string(std::get<1>(r), value_json);
+        json_spirit::Config::add(obj_return, "result",  value_json);
 
         return obj_return;
     } catch(wasm::exception &e){
@@ -177,16 +194,6 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     }
 }
 
-void get_contract(CAccountDBCache* database_account, CContractDBCache* database_contract, const wasm::name& contract_name, CAccount& contract, CUniversalContract& contract_store){
-    //CAccount contract;
-    WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
-                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
-    JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
-    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
-    JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
-    JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
-    //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
-}
 
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
 
@@ -214,41 +221,35 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         EnsureWalletIsUnlocked();
         CWasmContractTx tx;
         {
-            uint64_t action = wasm::name(params[2].get_str()).value;
+            wasm::name action = wasm::name(params[2].get_str());
             std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end() );
             JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,  "Arguments empty or the size out of range")
-            if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, wasm::name(action).to_string(), params[3].get_str(), max_serialization_time);
+            if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
             CAccount sender; //should be authorizer(s)
-            CKeyID sender_key_id;
-            CRegID sender_reg_id;
-            JSON_RPC_ASSERT(GetKeyId(params[0].get_str(), sender_key_id),             RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
-            JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                           RPC_WALLET_ERROR, "Sender address is not in wallet")
-            JSON_RPC_ASSERT(database_account->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
-            JSON_RPC_ASSERT(database_account->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
-            JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                                 RPC_WALLET_ERROR, "Sender account is unregistered")
+            get_sender(database_account, wallet, params[0].get_str(), sender );
 
             ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
 
             tx.nTxType      = WASM_CONTRACT_TX;
-            tx.txUid        = sender_reg_id;
+            tx.txUid        = sender.regid;
             tx.valid_height = chainActive.Height();
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
-            tx.inlinetransactions.push_back({contract_name.value, action, std::vector<permission>{{wasm::N(sender), wasmio_owner}},
+            tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{wasm::N(sender), wasmio_owner}},
                                              action_data});
             // tx.symbol = amount.symbol;
             // tx.amount = amount.GetSawiAmount();
-            JSON_RPC_ASSERT(wallet->Sign(sender_key_id, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
+            JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
         std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
         Object obj_return;
-        json_spirit::Value v;
-        json_spirit::read_string(std::get<1>(ret), v);
-        json_spirit::Config::add(obj_return, "result",  v);
+        json_spirit::Value value_json;
+        json_spirit::read_string(std::get<1>(ret), value_json);
+        json_spirit::Config::add(obj_return, "result",  value_json);
         return obj_return;
     } catch(wasm::exception &e){
         JSON_RPC_ASSERT(false, e.code(), e.detail())
@@ -413,7 +414,7 @@ Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
 
-   try{
+    try{
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
 
