@@ -547,6 +547,13 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
     CInv inv(MSG_TX, pBaseTx->GetHash());
     pFrom->AddInventoryKnown(inv);
 
+    if(IsInitialBlockDownload()){
+        RelayTransaction(pBaseTx.get(), inv.hash);
+        return true ;
+    }
+
+
+
     LOCK(cs_main);
     CValidationState state;
     if (AcceptToMemoryPool(mempool, state, pBaseTx.get(), true)) {
@@ -674,6 +681,11 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
             if (mempool.Exists(inv.hash)) {
                 LogPrint("net", "recv inv old data! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
                     GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
+                fAlreadyHave = true;
+            }
+            if(chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60){
+                LogPrint("net", "recv tx inv data when initialBlockDownload,reject it! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
+                         GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
                 fAlreadyHave = true;
             }
         } else if (inv.type == MSG_BLOCK) {
