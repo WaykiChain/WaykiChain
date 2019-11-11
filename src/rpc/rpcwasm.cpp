@@ -177,6 +177,16 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
     }
 }
 
+void get_contract(CAccountDBCache* database_account, CContractDBCache* database_contract, const wasm::name& contract_name, CAccount& contract, CUniversalContract& contract_store){
+    //CAccount contract;
+    WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
+                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+    JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+    JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
+    JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
+}
+
 Value callwasmcontracttx( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 5 , wasm::rpc::call_wasm_contract_tx_rpc_help_message)
@@ -196,12 +206,7 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
         } else {
             CAccount contract;
             CUniversalContract contract_store;
-            WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
-                        "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
-            JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
-            JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
-            JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
-            JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
+            get_contract(database_account, database_contract, contract_name, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
@@ -263,16 +268,10 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_table = wasm::name(params[1].get_str());
 
+        std::vector<char> abi;
         CAccount contract;
         CUniversalContract contract_store;
-        WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
-                    "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
-        JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with name = %s", contract_name.to_string().c_str()))
-        JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with name = %s", contract_name.to_string().c_str()))
-        JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
-        JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
-
-        std::vector<char> abi;
+        get_contract(database_account, database_contract, contract_name, contract, contract_store );
         abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
 
         uint64_t numbers = default_query_rows;
@@ -326,17 +325,12 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_action = wasm::name(params[1].get_str());
 
+        std::vector<char> abi;
         CAccount contract;
         CUniversalContract contract_store;
-        WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
-                    "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
-        JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with name = %s", contract_name.to_string().c_str()))
-        JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with name = %s", contract_name.to_string().c_str()))
-        JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
-        JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
-
-        std::vector<char> abi;
+        get_contract(database_account, database_contract, contract_name, contract, contract_store );
         abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+
         std::vector<char> action_data(params[2].get_str().begin(), params[2].get_str().end() );
         JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,  "Arguments empty or the size out of range")
         if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, contract_action.to_string(), params[2].get_str(), max_serialization_time);
