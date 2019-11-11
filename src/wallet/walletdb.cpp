@@ -7,6 +7,7 @@
 
 #include "walletdb.h"
 
+#include "logging.h"
 #include "commons/base58.h"
 #include "commons/serialize.h"
 #include "p2p/protocol.h"
@@ -386,7 +387,7 @@ void ThreadFlushWalletDB(const string& strFile) {
                     boost::this_thread::interruption_point();
                     map<string, int32_t>::iterator mi = bitdb.mapFileUseCount.find(strFile);
                     if (mi != bitdb.mapFileUseCount.end()) {
-                        LogPrint("db", "Flushing wallet.dat\n");
+                        LogPrint(BCLog::DB, "Flushing wallet.dat\n");
                         nLastFlushed   = CWalletDB::nWalletDBUpdated;
                         int64_t nStart = GetTimeMillis();
 
@@ -395,7 +396,7 @@ void ThreadFlushWalletDB(const string& strFile) {
                         bitdb.CheckpointLSN(strFile);
 
                         bitdb.mapFileUseCount.erase(mi++);
-                        LogPrint("db", "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
+                        LogPrint(BCLog::DB, "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
                     }
                 }
             }

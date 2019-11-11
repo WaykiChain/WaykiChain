@@ -30,30 +30,29 @@ struct CLogCategoryActive
     bool active;
 };
 
-namespace BCLog {
+namespace BCLog { //blockchain log
     enum LogFlags : uint32_t {
         NONE        = 0,
+        INFO        = (1 <<  4),
+        DEBUG       = (1 <<  5),
+        ERROR       = (1 <<  1),
         NET         = (1 <<  0),
-        TOR         = (1 <<  1),
-        MEMPOOL     = (1 <<  2),
+        VM          = (1 <<  0),
+        LOCK        = (1 <<  0),
         HTTP        = (1 <<  3),
-        BENCH       = (1 <<  4),
-        ZMQ         = (1 <<  5),
-        DB          = (1 <<  6),
         RPC         = (1 <<  7),
-        ESTIMATEFEE = (1 <<  8),
-        ADDRMAN     = (1 <<  9),
-        SELECTCOINS = (1 << 10),
         REINDEX     = (1 << 11),
-        CMPCTBLOCK  = (1 << 12),
-        RAND        = (1 << 13),
+        PROFIT      = (1 <<  8),
+        ADDRMAN     = (1 <<  9),
+        PRICEFEED   = (1 << 10),
+        CDP         = (1 << 12),
         PRUNE       = (1 << 14),
         PROXY       = (1 << 15),
         MEMPOOLREJ  = (1 << 16),
         LIBEVENT    = (1 << 17),
-        COINDB      = (1 << 18),
+        BDB         = (1 << 18),
+        LDB         = (1 << 20),
         QT          = (1 << 19),
-        LEVELDB     = (1 << 20),
         ALL         = ~(uint32_t)0,
     };
 

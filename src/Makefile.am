@@ -63,6 +63,7 @@ coin_CORE_H = \
   commons/leb128.h \
   commons/types.h \
   commons/util/util.h \
+  commons/util/threadnames.h \
   commons/util/time.h \
   commons/compat/byteswap.h \
   commons/compat/compat.h \
@@ -314,6 +315,7 @@ libcoin_common_a_SOURCES = \
   commons/uint256.cpp \
   commons/bloom.cpp \
   commons/util/util.cpp \
+  commons/util/threadnames.cpp \
   commons/util/time.cpp \
   crypto/hash.cpp \
   config/chainparams.cpp \
