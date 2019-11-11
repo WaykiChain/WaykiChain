@@ -268,11 +268,10 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_table = wasm::name(params[1].get_str());
 
-        std::vector<char> abi;
         CAccount contract;
         CUniversalContract contract_store;
         get_contract(database_account, database_contract, contract_name, contract, contract_store );
-        abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+         std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
 
         uint64_t numbers = default_query_rows;
         if (params.size() > 2) numbers = std::atoi(params[2].get_str().data());
@@ -325,15 +324,15 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_action = wasm::name(params[1].get_str());
 
-        std::vector<char> abi;
         CAccount contract;
         CUniversalContract contract_store;
         get_contract(database_account, database_contract, contract_name, contract, contract_store );
-        abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
 
-        std::vector<char> action_data(params[2].get_str().begin(), params[2].get_str().end() );
-        JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,  "Arguments empty or the size out of range")
-        if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, contract_action.to_string(), params[2].get_str(), max_serialization_time);
+        string arguments = params[2].get_str();
+        JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_INVALID_PARAMETER,  "Arguments empty or the size out of range")
+        std::vector<char> action_data(arguments.begin(), arguments.end() );
+        if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, contract_action.to_string(), arguments, max_serialization_time);
 
         json_spirit::Object object_return;
         object_return.push_back(Pair("data", wasm::ToHex(action_data,"")));
@@ -347,67 +346,37 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
 
 
 Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
-    if (fHelp || params.size() < 2 || params.size() > 4) {
-        throw runtime_error(
-                "gettablewasmcontracttx \"contract\" \"action\" \"data\" \n"
-                "1.\"contract\": (string, required) contract name\n"
-                "2.\"action\":   (string, required) action name\n"
-                "3.\"data\":   (binary hex string, required) action data\n"
-                "\nResult:\n"
-                "\"data\":        (string)\n"
-                "\nExamples:\n" +
-                HelpExampleCli("gettablewasmcontracttx",
-                               " \"411994-1\" \"transfer\"  \"000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b\" ") +
-                "\nAs json rpc call\n" +
-                HelpExampleRpc("gettablewasmcontracttx",
-                               "\"411994-1\", \"transfer\", \"000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b\" "));
-        // 1.contract(id)
-        // 2.action
-        // 3.data
-    }
 
+    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::abi_json_to_bin_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
-    CNickID contract;
     try{
-        contract = CNickID(params[0].get_str());
-    } catch(wasm::exception& e){
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, e.detail());
+        auto database_account  = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
+
+        wasm::name contract_name   = wasm::name(params[0].get_str());
+        wasm::name contract_action = wasm::name(params[1].get_str());
+
+        CAccount contract;
+        CUniversalContract contract_store;
+        get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+
+        string arguments = params[2].get_str();
+        JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_INVALID_PARAMETER,  "Arguments empty or the size out of range")
+      
+        string action_data_binary = FromHex(arguments);
+        std::vector<char> action_data(action_data_binary.begin(), action_data_binary.end() );
+
+        json_spirit::Object object_return;
+        json_spirit::Value value = wasm::abi_serializer::unpack(abi, contract_action.to_string(), action_data, max_serialization_time);
+        object_return.push_back(Pair("data", value));
+        return object_return;
+    } catch(wasm::exception &e){
+        JSON_RPC_ASSERT(false, e.code(), e.detail())
+    } catch(...){
+        throw;
     }
-
-    //uint64_t contract = wasm::RegID2Name(contractRegID);
-    uint64_t action = wasm::NAME(params[1].get_str().c_str());
-
-    string arguments = params[2].get_str();
-    if (arguments.empty() || arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Arguments empty or the size out of range");
-    }
-
-    CUniversalContract contractCode;
-    auto spCW = std::make_shared<CCacheWrapper>(pCdMan);
-    spCW->contractCache.GetContract(contract, *spCW.get(), contractCode);
-    if (contractCode.vm_type != VMType::WASM_VM)
-            throw JSONRPCError(RPC_INVALID_PARAMETER, "the vm type must be wasm");
-
-    std::vector<char> abi(contractCode.abi.begin(), contractCode.abi.end());
-    if (abi.size() == 0)
-        throw JSONRPCError(READ_SCRIPT_FAIL, "this contract didn't set abi");
-
-    json_spirit::Object object;
-    try {
-        string binary = FromHex(arguments);
-        std::vector<char> data(binary.begin(), binary.end());
-
-        json_spirit::Value v = wasm::abi_serializer::unpack(abi, wasm::name(action).to_string(), data, max_serialization_time);
-
-        object.push_back(Pair("data", v));
-
-    } catch (wasm::exception &e) {
-        throw JSONRPCError(e.code(), e.detail());
-    }
-
-
-    return object;
 
 }
 
