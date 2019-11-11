@@ -16,7 +16,7 @@
 #include "miner/miner.h"
 #include "net.h"
 #include "tx/merkletx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"

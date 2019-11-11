@@ -8,7 +8,7 @@
 
 #include "assert.h"
 #include "entities/key.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "configuration.h"
 #include "main.h"
 

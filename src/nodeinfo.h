@@ -9,7 +9,7 @@
 #define COIN_NODEINFO_H
 
 #include "main.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <string>
 

@@ -9,7 +9,7 @@
 #include "entities/id.h"
 #include "entities/key.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "vm/luavm/luavmrunenv.h"
 
 #include <stdint.h>

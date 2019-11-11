@@ -6,7 +6,7 @@
 #include "mulsigtx.h"
 
 #include "commons/serialize.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 #include "crypto/hash.h"
 #include "main.h"

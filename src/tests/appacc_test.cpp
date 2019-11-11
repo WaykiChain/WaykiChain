@@ -13,7 +13,7 @@
 #include  "../vm/appaccount.h"
 #include "../vm/luavmrunenv.h"
 #include "tx/tx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 using namespace std;
 

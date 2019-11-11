@@ -9,7 +9,7 @@
 #include "commons/serialize.h"
 #include "main.h"
 #include "persistence/block.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "vm/luavm/luavmrunenv.h"
 
 #include <algorithm>

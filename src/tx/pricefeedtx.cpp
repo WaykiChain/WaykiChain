@@ -11,7 +11,7 @@
 #include "miner/miner.h"
 #include "persistence/pricefeeddb.h"
 #include "tx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 
 bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {

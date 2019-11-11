@@ -6,7 +6,7 @@
 #include "main.h"
 #include "miner/miner.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 

@@ -7,7 +7,7 @@
 
 #include "commons/SafeInt3.hpp"
 #include "commons/serialize.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "crypto/hash.h"
 #include "main.h"
 #include "miner/miner.h"

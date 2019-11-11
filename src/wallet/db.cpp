@@ -2,13 +2,13 @@
 // Copyright (c) 2009-2014 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "db.h"
 
 #include "addrman.h"
 #include "crypto/hash.h"
 #include "p2p/protocol.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <stdint.h>
 

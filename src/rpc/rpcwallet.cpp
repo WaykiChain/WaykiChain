@@ -6,7 +6,7 @@
 #include "commons/base58.h"
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"

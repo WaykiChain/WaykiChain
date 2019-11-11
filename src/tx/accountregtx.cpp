@@ -9,7 +9,7 @@
 #include "commons/serialize.h"
 #include "tx.h"
 #include "crypto/hash.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 #include "main.h"
 #include "persistence/contractdb.h"

@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "main.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "commons/serialize.h"
 #include "config/version.h"
 #include "data/sighash.json.h"

@@ -8,7 +8,7 @@
 #include "netbase.h"
 #include "p2p/protocol.h"
 #include "sync.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <map>
 #include <set>

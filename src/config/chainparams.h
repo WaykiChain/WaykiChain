@@ -14,7 +14,7 @@
 #include "entities/id.h"
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/scoin.h"
 
 using namespace std;
