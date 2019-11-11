@@ -13,7 +13,7 @@
 #include "config/const.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
-#include "compat/compat.h"
+#include "commons/compat/compat.h"
 
 #include <stdarg.h>
 #include <stdint.h>

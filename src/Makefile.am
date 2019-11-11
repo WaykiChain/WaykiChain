@@ -313,7 +313,7 @@ libcoin_common_a_SOURCES = \
   commons/random.cpp  \
   commons/uint256.cpp \
   commons/bloom.cpp \
-  commons/util.cpp \
+  commons/util/util.cpp \
   commons/util/time.cpp \
   crypto/hash.cpp \
   config/chainparams.cpp \
