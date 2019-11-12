@@ -24,6 +24,7 @@
 #include "p2p/chainmessage.h"
 #include "p2p/processmessage.hpp"
 #include "p2p/sendmessage.hpp"
+#include "chain/blockdelegates.h"
 
 #include <sstream>
 #include <algorithm>
@@ -949,7 +950,7 @@ static bool FindUndoPos(CValidationState &state, int32_t nFile, CDiskBlockPos &p
     return true;
 }
 
-static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex) {
+static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValidationState &state) {
     cw.blockCache.SetBestBlock(pIndex->GetBlockHash());
     for (uint32_t i = 1; i < block.vptx.size(); i++) {
         if (block.vptx[i]->nTxType == BLOCK_REWARD_TX) {
@@ -1019,6 +1020,17 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
         }
     }
 
+    if (!cw.delegateCache.SetLastVoteHeight(block.GetHeight())) {
+        return state.DoS(100, ERRORMSG("%s(), save last vote height failed! block=%d:%s",
+            __FUNCTION__, block.GetHeight(), block.GetHash().ToString()),
+            REJECT_INVALID, "save-last-vote-height-failed");
+    }
+
+    if (!chain::ProcessBlockDelegates(block, cw, state)) {
+        return state.DoS(100, ERRORMSG("ConnectBlock() : process block delegates failed! block=%d:%s",
+            block.GetHeight(), block.GetHash().ToString()),
+            REJECT_INVALID, "process-block-delegates-failed");
+    }
     return true;
 }
 
@@ -1122,6 +1134,11 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
         }
     }
 
+    if (!cw.delegateCache.SetLastVoteHeight(currHeight)) {
+        return state.DoS(100, ERRORMSG("%s(), save last vote height error", __FUNCTION__),
+            UPDATE_ACCOUNT_FAIL, "bad-save-last-vote-height");
+    }
+
     return true;
 }
 
@@ -1147,7 +1164,11 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
     // Special case for the genesis block, skipping connection of its transactions.
     if (isGensisBlock) {
-        return ProcessGenesisBlock(block, cw, pIndex);
+        if (!ProcessGenesisBlock(block, cw, pIndex, state)) {
+            return state.DoS(100, ERRORMSG("ConnectBlock() : process genesis block error"),
+                REJECT_INVALID, "process genesis-block-error");
+        }
+        return true;
     }
 
     // In stable coin genesis, need to verify txid for every transaction in block.
@@ -1306,6 +1327,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     blockUndo.vtxundo.push_back(cw.txUndo);
+    // TODO: move the block delegates undo to block_undo
+
+    if (!chain::ProcessBlockDelegates(block, cw, state)) {
+        return state.DoS(100, ERRORMSG("ConnectBlock() : failed to process block delegates! block=%d:%s",
+            block.GetHeight(), block.GetHash().ToString()));
+    }
+
     cw.DisableTxUndoLog();
 
     if (pIndex->height - BLOCK_REWARD_MATURITY > 0) {
@@ -1501,9 +1529,6 @@ bool static DisconnectTip(CValidationState &state) {
         // Need to re-sync all to global cache layer.
         spCW->Flush();
 
-        // Attention: need to reload top N delegates.
-        pCdMan->pDelegateCache->LoadTopDelegateList();
-
         // Attention: need to reset the lastest block price median
         CBlockIndex *pPreBlockIndex = pIndexDelete->pprev;
         CBlock preBlock;
@@ -1566,8 +1591,6 @@ bool static ConnectTip(CValidationState &state, CBlockIndex *pIndexNew) {
 
         // Need to re-sync all to global cache layer.
         spCW->Flush();
-        // Attention: need to reload top N delegates.
-        pCdMan->pDelegateCache->LoadTopDelegateList();
     }
 
     if (SysCfg().IsBenchmark())
@@ -1872,9 +1895,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             pBlockIndex = pBlockIndex->pprev;
         }  // Rollback the active chain to the forked point.
 
-        // Attention: need to reload top N delegates.
-        spCW->delegateCache.LoadTopDelegateList();
-
         mapForkCache[pPreBlockIndex->GetBlockHash()] = spCW;
         forkChainTipBlockHash = pPreBlockIndex->GetBlockHash();
         forkChainTipFound     = true;
@@ -1934,9 +1954,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
             if (pConnBlockIndex->nStatus | BLOCK_FAILED_MASK) {
                 pConnBlockIndex->nStatus = BLOCK_VALID_TRANSACTIONS | BLOCK_HAVE_DATA;
             }
-
-            // Attention: need to reload top N delegates.
-            spNewForkCW->delegateCache.LoadTopDelegateList();
         }
 
         spNewForkCW->Flush();  // flush to spNewForkCW
@@ -1949,8 +1966,6 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         mapForkCache[iterBlock->GetHash()] = spCW;
     }
 
-    // Attention: need to reload top N delegates.
-    spCW->delegateCache.LoadTopDelegateList();
     if (!VerifyRewardTx(&block, *spCW, false))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
             block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
