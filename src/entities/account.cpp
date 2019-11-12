@@ -374,13 +374,12 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
     uint64_t newTotalVotes = 0;
     if (!candidateVotesInOut.empty()) {
-        if (featureForkVersion == MAJOR_VER_R1) {
-            newTotalVotes = candidateVotesInOut[0].GetVotedBcoins(); // one bcoin eleven votes
-
-        } else if (featureForkVersion == MAJOR_VER_R2) {
+         if (featureForkVersion >= MAJOR_VER_R2)  {
             for (const auto &vote : candidateVotesInOut) {
                 newTotalVotes += vote.GetVotedBcoins();         // one bcoin one vote
             }
+        } else { // featureForkVersion == MAJOR_VER_R1
+            newTotalVotes = candidateVotesInOut[0].GetVotedBcoins(); // one bcoin eleven votes
         }
     }
 
@@ -405,39 +404,33 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
     } // else newTotalVotes == lastTotalVotes // do nothing
 
     // collect inflated bcoins or fcoins
-    switch (featureForkVersion) {
-        case MAJOR_VER_R1: {  // for backward compatibility
-            uint64_t bcoinAmountToInflate = ComputeVoteBcoinInterest(lastTotalVotes, currHeight);
-            if (!IsBcoinWithinRange(bcoinAmountToInflate))
-                return false;
+    if (featureForkVersion >= MAJOR_VER_R2)  {
+        // only fcoins will be inflated for voters
+        uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currBlockTime);
 
-            if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate)) {
-                return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
+        if (fcoinAmountToInflate > 0) {
+            if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate)) {
+                return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
             }
-            receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
-
-            LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %llu\n",
-                    regid.ToString(), bcoinAmountToInflate);
-
-            break;
+            receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
         }
-        case MAJOR_VER_R2: {  // only fcoins will be inflated for voters
-            uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currBlockTime);
 
-            if (fcoinAmountToInflate > 0) {
-                if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate)) {
-                    return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
-                }
-                receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
-            }
-
-            LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %llu\n", regid.ToString(),
-                     fcoinAmountToInflate);
-
-            break;
-        }
-        default:
+        LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %llu\n", regid.ToString(),
+                    fcoinAmountToInflate);
+    } else { // featureForkVersion == MAJOR_VER_R1
+        // for backward compatibility
+        uint64_t bcoinAmountToInflate = ComputeVoteBcoinInterest(lastTotalVotes, currHeight);
+        if (!IsBcoinWithinRange(bcoinAmountToInflate))
             return false;
+
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate)) {
+            return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
+        }
+        receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
+
+        LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %llu\n",
+                regid.ToString(), bcoinAmountToInflate);
+
     }
 
     // Attention: update last vote height/last vote epoch after computing vote staking interest.

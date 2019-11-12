@@ -2133,11 +2133,11 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
     auto featureForkVersion = GetFeatureForkVersion(vmContext.height);
 
     lua_Integer blockTime = 0;
-    if (featureForkVersion == MAJOR_VER_R1) {
+    if (featureForkVersion >= MAJOR_VER_R2) {
+        blockTime = vmContext.block_time;
+    }else { //MAJOR_VER_R1
         // compact with old data
         blockTime = vmContext.prev_block_time;
-    } else {
-        blockTime = vmContext.block_time;
     }
 
     if (!lua_checkstack(L, sizeof(lua_Integer))) {

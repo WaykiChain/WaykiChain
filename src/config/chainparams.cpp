@@ -42,6 +42,7 @@ public:
         nBlockIntervalStableCoinRelease    = BLOCK_INTERVAL_STABLE_COIN_RELEASE;
         nFeatureForkHeight                 = IniCfg().GetFeatureForkHeight(MAIN_NET);
         nStableCoinGenesisHeight           = IniCfg().GetStableCoinGenesisHeight(MAIN_NET);
+        nVer3ForkHeight                    = IniCfg().GetVer3ForkHeight(MAIN_NET);
         assert(CreateGenesisBlockRewardTx(genesis.vptx, MAIN_NET));
         assert(CreateGenesisDelegateTx(genesis.vptx, MAIN_NET));
         genesis.SetPrevBlockHash(uint256());
@@ -113,6 +114,7 @@ public:
         strDataDir               = "testnet";
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
+        nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(TEST_NET);
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(TEST_NET));
@@ -146,6 +148,10 @@ public:
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(TEST_NET));
         nFeatureForkHeight       = std::max<uint32_t>(nStableCoinGenesisHeight + 1,
                                                 GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(TEST_NET)));
+
+        nVer3ForkHeight          = std::max<uint32_t>(nFeatureForkHeight + 1,
+                                                GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(TEST_NET)));
+
         fServer = true;
 
         return true;
@@ -165,6 +171,7 @@ public:
         strDataDir               = "regtest";
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
+        nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(REGTEST_NET);
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(REGTEST_NET));
         genesis.vptx.clear();
@@ -191,6 +198,9 @@ public:
         nStableCoinGenesisHeight = GetArg("-stablecoingenesisheight", IniCfg().GetStableCoinGenesisHeight(REGTEST_NET));
         nFeatureForkHeight       = std::max<uint32_t>(
             nStableCoinGenesisHeight + 1, GetArg("-featureforkheight", IniCfg().GetFeatureForkHeight(REGTEST_NET)));
+
+        nVer3ForkHeight          = std::max<uint32_t>(nFeatureForkHeight + 1,
+                                                GetArg("-ver3forkheight", IniCfg().GetVer3ForkHeight(REGTEST_NET)));
         fServer = true;
 
         return true;

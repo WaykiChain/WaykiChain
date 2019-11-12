@@ -2022,7 +2022,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     }
 
     // In stable coin release, every block should have one price median tx only.
-    if (GetFeatureForkVersion(block.GetHeight()) == MAJOR_VER_R2 && priceMedianTxCount != 1) {
+    if (GetFeatureForkVersion(block.GetHeight()) >= MAJOR_VER_R2 && priceMedianTxCount != 1) {
         return state.DoS(100, ERRORMSG("CheckBlock() : price median tx number error"), REJECT_INVALID,
                          "bad-price-median-tx-number");
     }
