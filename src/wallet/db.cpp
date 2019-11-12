@@ -2,9 +2,9 @@
 // Copyright (c) 2009-2014 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "commons/util/util.h"
 #include "db.h"
-
+#include "commons/util/util.h"
+#include "logging.h"
 #include "addrman.h"
 #include "crypto/hash.h"
 #include "p2p/protocol.h"
@@ -42,13 +42,13 @@ void CDBEnv::EnvShutdown()
     fDbEnvInit = false;
     int ret = dbenv->close(0);
     if (ret != 0)
-        LogPrint("CDB","CDBEnv::EnvShutdown: Error %d shutting down database environment: %s\n", ret, DbEnv::strerror(ret));
+        LogPrint(BCLog::CDB,"CDBEnv::EnvShutdown: Error %d shutting down database environment: %s\n", ret, DbEnv::strerror(ret));
     if (!fMockDb)
     {
     	string te = path.string();
     	ret= DbEnv(0).remove(te.c_str(), 0);
         if (ret != 0)
-            LogPrint("CDB","CDBEnv::remove: Error %d shutting down database environment: %s\n", ret, DbEnv::strerror(ret));
+            LogPrint(BCLog::CDB,"CDBEnv::remove: Error %d shutting down database environment: %s\n", ret, DbEnv::strerror(ret));
 
     }
 }
@@ -89,7 +89,7 @@ bool CDBEnv::Open(const boost::filesystem::path& pathIn)
     boost::filesystem::path pathLogDir = path / "database";
     TryCreateDirectory(pathLogDir);
     boost::filesystem::path pathErrorFile = path / "db.log";
-    LogPrint("CDB","CDBEnv::Open: LogDir=%s ErrorFile=%s\n", pathLogDir.string(), pathErrorFile.string());
+    LogPrint(BCLog::CDB,"CDBEnv::Open: LogDir=%s ErrorFile=%s\n", pathLogDir.string(), pathErrorFile.string());
 
     unsigned int nEnvFlags = 0;
     if (SysCfg().GetBoolArg("-privdb", true))
@@ -130,7 +130,7 @@ void CDBEnv::MakeMock()
 
     boost::this_thread::interruption_point();
 
-    LogPrint(BCLog::DB, "CDBEnv::MakeMock\n");
+    LogPrint(BCLog::CDB, "CDBEnv::MakeMock\n");
 
     dbenv->set_cachesize(1, 0, 1);
     dbenv->set_lg_bsize(10485760 * 4);
@@ -186,14 +186,14 @@ bool CDBEnv::Salvage(std::string strFile, bool fAggressive, std::vector<CDBEnv::
     Db db(dbenv, 0);
     int result = db.verify(strFile.c_str(), NULL, &strDump, flags);
     if (result == DB_VERIFY_BAD) {
-        LogPrint("CDB","CDBEnv::Salvage: Database salvage found errors, all data may not be recoverable.\n");
+        LogPrint(BCLog::CDB,"CDBEnv::Salvage: Database salvage found errors, all data may not be recoverable.\n");
         if (!fAggressive) {
-            LogPrint("CDB","CDBEnv::Salvage: Rerun with aggressive mode to ignore errors and continue.\n");
+            LogPrint(BCLog::CDB,"CDBEnv::Salvage: Rerun with aggressive mode to ignore errors and continue.\n");
             return false;
         }
     }
     if (result != 0 && result != DB_VERIFY_BAD) {
-        LogPrint("CDB","CDBEnv::Salvage: Database salvage failed with result %d.\n", result);
+        LogPrint(BCLog::CDB,"CDBEnv::Salvage: Database salvage failed with result %d.\n", result);
         return false;
     }
 
@@ -356,7 +356,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                 bitdb.mapFileUseCount.erase(strFile);
 
                 bool fSuccess = true;
-                LogPrint("CDB","CDB::Rewrite: Rewriting %s...\n", strFile);
+                LogPrint(BCLog::CDB,"CDB::Rewrite: Rewriting %s...\n", strFile);
                 string strFileRes = strFile + ".rewrite";
                 { // surround usage of db with extra {}
                     CDB db(strFile.c_str(), "r");
@@ -369,7 +369,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
                                             DB_CREATE,          // Flags
                                             0);
                     if (ret > 0) {
-                        LogPrint("CDB","CDB::Rewrite: Can't create database file %s\n", strFileRes);
+                        LogPrint(BCLog::CDB,"CDB::Rewrite: Can't create database file %s\n", strFileRes);
                         fSuccess = false;
                     }
 
@@ -418,7 +418,7 @@ bool CDB::Rewrite(const string& strFile, const char* pszSkip)
 						fSuccess = false;
 				}
                 if (!fSuccess)
-                    LogPrint("CDB","CDB::Rewrite: Failed to rewrite database file %s\n", strFileRes);
+                    LogPrint(BCLog::CDB,"CDB::Rewrite: Failed to rewrite database file %s\n", strFileRes);
                 return fSuccess;
             }
         }
@@ -432,7 +432,7 @@ void CDBEnv::Flush(bool fShutdown)
 {
     int64_t nStart = GetTimeMillis();
     // Flush log data to the actual data file on all files that are not in use
-    LogPrint(BCLog::DB, "CDBEnv::Flush: Flush(%s)%s\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " database not started");
+    LogPrint(BCLog::CDB, "CDBEnv::Flush: Flush(%s)%s\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " database not started");
     if (!fDbEnvInit)
         return;
     {
@@ -441,21 +441,21 @@ void CDBEnv::Flush(bool fShutdown)
         while (mi != mapFileUseCount.end()) {
             string strFile = (*mi).first;
             int nRefCount = (*mi).second;
-            LogPrint(BCLog::DB, "CDBEnv::Flush: Flushing %s (refcount = %d)...\n", strFile, nRefCount);
+            LogPrint(BCLog::CDB, "CDBEnv::Flush: Flushing %s (refcount = %d)...\n", strFile, nRefCount);
             if (nRefCount == 0) {
                 // Move log data to the dat file
                 CloseDb(strFile);
-                LogPrint(BCLog::DB, "CDBEnv::Flush: %s checkpoint\n", strFile);
+                LogPrint(BCLog::CDB, "CDBEnv::Flush: %s checkpoint\n", strFile);
                 dbenv->txn_checkpoint(0, 0, 0);
-                LogPrint(BCLog::DB, "CDBEnv::Flush: %s detach\n", strFile);
+                LogPrint(BCLog::CDB, "CDBEnv::Flush: %s detach\n", strFile);
                 if (!fMockDb)
                     dbenv->lsn_reset(strFile.c_str(), 0);
-                LogPrint(BCLog::DB, "CDBEnv::Flush: %s closed\n", strFile);
+                LogPrint(BCLog::CDB, "CDBEnv::Flush: %s closed\n", strFile);
                 mapFileUseCount.erase(mi++);
             } else
                 mi++;
         }
-        LogPrint(BCLog::DB, "CDBEnv::Flush: Flush(%s)%s took %15dms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " database not started", GetTimeMillis() - nStart);
+        LogPrint(BCLog::CDB, "CDBEnv::Flush: Flush(%s)%s took %15dms\n", fShutdown ? "true" : "false", fDbEnvInit ? "" : " database not started", GetTimeMillis() - nStart);
         if (fShutdown) {
             char** listp;
             if (mapFileUseCount.empty()) {

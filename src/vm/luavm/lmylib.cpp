@@ -28,16 +28,16 @@ static inline int32_t RetRstToLua(lua_State *L, const vector<uint8_t> &resultDat
     if (len > 0) {
         // check stack to avoid stack overflow
         if (lua_checkstack(L, len)) {
-            // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
+            // LogPrint(BCLog::LUAVM, "RetRstToLua value:%s\n", HexStr(resultData).c_str());
             for (int32_t i = 0; i < len; i++) {
                 lua_pushinteger(L, (lua_Integer)resultData[i]);
             }
             return len;
         } else {
-            LogPrint("vm", "%s\n", "RetRstToLua stack overflow");
+            LogPrint(BCLog::LUAVM, "%s\n", "RetRstToLua stack overflow");
         }
     } else {
-        LogPrint("vm", "RetRstToLua err len = %d\n", len);
+        LogPrint(BCLog::LUAVM, "RetRstToLua err len = %d\n", len);
     }
     return 0;
 }
@@ -52,16 +52,16 @@ static inline int32_t RetRstToLua(lua_State *L, const string &resultData, bool n
     if (len > 0) {
         // check stack to avoid stack overflow
         if (lua_checkstack(L, len)) {
-            // LogPrint("vm", "RetRstToLua value:%s\n", HexStr(resultData).c_str());
+            // LogPrint(BCLog::LUAVM, "RetRstToLua value:%s\n", HexStr(resultData).c_str());
             for (int32_t i = 0; i < len; i++) {
                 lua_pushinteger(L, (lua_Integer)uint8_t(resultData[i]));
             }
             return len;
         } else {
-            LogPrint("vm", "%s\n", "RetRstToLua stack overflow");
+            LogPrint(BCLog::LUAVM, "%s\n", "RetRstToLua stack overflow");
         }
     } else {
-        LogPrint("vm", "RetRstToLua err len = %d\n", len);
+        LogPrint(BCLog::LUAVM, "RetRstToLua err len = %d\n", len);
     }
     return 0;
 }
@@ -71,29 +71,29 @@ static inline int32_t RetRstToLua(lua_State *L, const string &resultData, bool n
 static inline int32_t RetRstBooleanToLua(lua_State *L, bool flag) {
     //检测栈空间是否够
     if (lua_checkstack(L, sizeof(int32_t))) {
-        // LogPrint("vm", "RetRstBooleanToLua value:%d\n", flag);
+        // LogPrint(BCLog::LUAVM, "RetRstBooleanToLua value:%d\n", flag);
         lua_pushboolean(L, (int32_t)flag);
         return 1;
     } else {
-        LogPrint("vm", "%s\n", "RetRstBooleanToLua stack overflow");
+        LogPrint(BCLog::LUAVM, "%s\n", "RetRstBooleanToLua stack overflow");
         return 0;
     }
 }
 
 static inline int32_t RetFalse(const string reason) {
-    LogPrint("vm", "%s\n", reason.c_str());
+    LogPrint(BCLog::LUAVM, "%s\n", reason.c_str());
     return 0;
 }
 
 static CLuaVMRunEnv *GetVmRunEnv(lua_State *L) {
     CLuaVMRunEnv *pVmRunEnv = nullptr;
     int32_t res             = lua_getglobal(L, "VmScriptRun");
-    // LogPrint("vm", "GetVmRunEnv lua_getglobal:%d\n", res);
+    // LogPrint(BCLog::LUAVM, "GetVmRunEnv lua_getglobal:%d\n", res);
 
     if (LUA_TLIGHTUSERDATA == res) {
         if (lua_islightuserdata(L, -1)) {
             pVmRunEnv = (CLuaVMRunEnv *)lua_topointer(L, -1);
-            // LogPrint("vm", "GetVmRunEnv lua_topointer:%p\n", pVmRunEnv);
+            // LogPrint(BCLog::LUAVM, "GetVmRunEnv lua_topointer:%p\n", pVmRunEnv);
         }
     }
     lua_pop(L, 1);
@@ -127,7 +127,7 @@ static bool GetArray(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>>
     //从栈里取变长的数组
     int32_t totallen = lua_gettop(L);
     if ((totallen <= 0) || (totallen > LUA_C_BUFFER_SIZE)) {
-        LogPrint("vm", "totallen error\n");
+        LogPrint(BCLog::LUAVM, "totallen error\n");
         return false;
     }
 
@@ -136,24 +136,24 @@ static bool GetArray(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>>
     for (int32_t i = 0; i < totallen; i++) {
         if (!lua_isnumber(L, i + 1))  // if(!lua_isnumber(L,-1 - i))
         {
-            LogPrint("vm", "%s\n", "data is not number");
+            LogPrint(BCLog::LUAVM, "%s\n", "data is not number");
             return false;
         }
         vBuf.insert(vBuf.end(), lua_tonumber(L, i + 1));
     }
     ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
-    // LogPrint("vm", "GetData:%s, len:%d\n", HexStr(vBuf).c_str(), vBuf.size());
+    // LogPrint(BCLog::LUAVM, "GetData:%s, len:%d\n", HexStr(vBuf).c_str(), vBuf.size());
     return true;
 }
 
 static bool GetDataInt(lua_State *L, int32_t &intValue) {
     //从栈里取int 高度
     if (!lua_isinteger(L, -1 - 0)) {
-        LogPrint("vm", "%s\n", "data is not integer");
+        LogPrint(BCLog::LUAVM, "%s\n", "data is not integer");
         return false;
     } else {
         int32_t value = (int32_t)lua_tointeger(L, -1 - 0);
-        // LogPrint("vm", "GetDataInt:%d\n", value);
+        // LogPrint(BCLog::LUAVM, "GetDataInt:%d\n", value);
         intValue = value;
         return true;
     }
@@ -162,7 +162,7 @@ static bool GetDataInt(lua_State *L, int32_t &intValue) {
 static bool GetDataString(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //从栈里取一串字符串
     if (!lua_isstring(L, -1 - 0)) {
-        LogPrint("vm", "%s\n", "data is not string");
+        LogPrint(BCLog::LUAVM, "%s\n", "data is not string");
         return false;
     }
     vector<uint8_t> vBuf;
@@ -174,10 +174,10 @@ static bool GetDataString(lua_State *L, vector<std::shared_ptr<std::vector<uint8
             vBuf.insert(vBuf.end(), pStr[i]);
         }
         ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
-        // LogPrint("vm", "GetDataString:%s\n", pStr);
+        // LogPrint(BCLog::LUAVM, "GetDataString:%s\n", pStr);
         return true;
     } else {
-        LogPrint("vm", "%s\n", "lua_tostring get fail");
+        LogPrint(BCLog::LUAVM, "%s\n", "lua_tostring get fail");
         return false;
     }
 }
@@ -188,7 +188,7 @@ static bool GetBoolInTable(lua_State *L, const char *pKey, bool &value) {
     lua_pushstring(L, pKey);
     lua_gettable(L, -2);  // get the table field by key in top of stack
     if (!lua_isboolean(L, -1)) {
-        LogPrint("vm", "get boolean field of table error! value=%s\n", lua_tostring(L, -1));
+        LogPrint(BCLog::LUAVM, "get boolean field of table error! value=%s\n", lua_tostring(L, -1));
         lua_pop(L, 1);  // pop the result of lua_gettable
         return false;
     }
@@ -203,7 +203,7 @@ static bool getIntegerInTable(lua_State *L, const char *pKey, lua_Integer &value
     lua_pushstring(L, pKey);
     lua_gettable(L, -2);  // get the table field by key in top of stack
     if (!lua_isinteger(L, -1)) {
-        LogPrint("vm", "get integer field of table error! value=%s\n", lua_tostring(L, -1));
+        LogPrint(BCLog::LUAVM, "get integer field of table error! value=%s\n", lua_tostring(L, -1));
         lua_pop(L, 1);  // pop the result of lua_gettable
         return false;
     }
@@ -219,12 +219,12 @@ static bool getNumberInTable(lua_State *L, const char* pKey, double &ret) {
     lua_pushstring(L, pKey);
     lua_gettable(L, -2);  //查找键值为key的元素，置于栈顶
     if (!lua_isnumber(L, -1)) {
-        LogPrint("vm", "num get error! %s\n", lua_tostring(L, -1));
+        LogPrint(BCLog::LUAVM, "num get error! %s\n", lua_tostring(L, -1));
         lua_pop(L, 1);  //删掉产生的查找结果
         return false;
     } else {
         ret = lua_tonumber(L, -1);
-        // LogPrint("vm", "getNumberInTable:%d\n", ret);
+        // LogPrint(BCLog::LUAVM, "getNumberInTable:%d\n", ret);
         lua_pop(L, 1);  //删掉产生的查找结果
         return true;
     }
@@ -238,17 +238,17 @@ static bool getStringInTable(lua_State *L, const char * pKey, string &strValue) 
     lua_pushstring(L, pKey);
     lua_gettable(L, -2);  //查找键值为key的元素，置于栈顶
     if (!lua_isstring(L, -1)) {
-        LogPrint("vm", "string get error! %s\n", lua_tostring(L, -1));
+        LogPrint(BCLog::LUAVM, "string get error! %s\n", lua_tostring(L, -1));
     } else {
         pStr = lua_tostring(L, -1);
         if (pStr && (strlen(pStr) <= LUA_C_BUFFER_SIZE)) {
             string res(pStr);
             strValue = res;
-            //          LogPrint("vm", "getStringInTable:%s\n", pStr);
+            //          LogPrint(BCLog::LUAVM, "getStringInTable:%s\n", pStr);
             lua_pop(L, 1);  //删掉产生的查找结果
             return true;
         } else {
-            LogPrint("vm", "%s\n", "lua_tostring get fail");
+            LogPrint(BCLog::LUAVM, "%s\n", "lua_tostring get fail");
         }
     }
     lua_pop(L, 1);  //删掉产生的查找结果
@@ -259,7 +259,7 @@ template <typename ArrayType>
 static bool getArrayInTable(lua_State *L, const char *pKey, uint16_t usLen, ArrayType &arrayOut) {
     // 在table里，取指定pKey对应的数组
     if ((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)) {
-        LogPrint("vm", "usLen error\n");
+        LogPrint(BCLog::LUAVM, "usLen error\n");
         return false;
     }
     uint8_t value = 0;
@@ -269,14 +269,14 @@ static bool getArrayInTable(lua_State *L, const char *pKey, uint16_t usLen, Arra
     lua_gettable(L, -2);
     if (!lua_istable(L, -1)) {
         lua_pop(L, 1);
-        LogPrint("vm", "getTableInTable is not table\n");
+        LogPrint(BCLog::LUAVM, "getTableInTable is not table\n");
         return false;
     }
     for (int32_t i = 0; i < usLen; ++i) {
         lua_pushnumber(L, i + 1);  //将索引入栈
         lua_gettable(L, -2);
         if (!lua_isnumber(L, -1)) {
-            LogPrint("vm", "getTableInTable is not number\n");
+            LogPrint(BCLog::LUAVM, "getTableInTable is not number\n");
             return false;
         }
         value = 0;
@@ -292,7 +292,7 @@ static bool getStringLogPrint(lua_State *L, char *pKey, uint16_t usLen, vector<u
     //从栈里取 table的值是一串字符串
     //该函数专用于写日志函数GetDataTableLogPrint，
     if ((usLen <= 0) || (usLen > LUA_C_BUFFER_SIZE)) {
-        LogPrint("vm", "usLen error\n");
+        LogPrint(BCLog::LUAVM, "usLen error\n");
         return false;
     }
 
@@ -305,7 +305,7 @@ static bool getStringLogPrint(lua_State *L, char *pKey, uint16_t usLen, vector<u
     lua_getfield(L, -2, pKey);
     // stackDump(L);
     if (!lua_isstring(L, -1) /*LUA_TSTRING != lua_type(L, -1)*/) {
-        LogPrint("vm", "getStringLogPrint is not string\n");
+        LogPrint(BCLog::LUAVM, "getStringLogPrint is not string\n");
         return false;
     }
     pStr = lua_tostring(L, -1 - 0);
@@ -313,11 +313,11 @@ static bool getStringLogPrint(lua_State *L, char *pKey, uint16_t usLen, vector<u
         for (size_t i = 0; i < usLen; i++) {
             vOut.insert(vOut.end(), pStr[i]);
         }
-        //      LogPrint("vm", "getfieldTableString:%s\n", pStr);
+        //      LogPrint(BCLog::LUAVM, "getfieldTableString:%s\n", pStr);
         lua_pop(L, 1);  //删掉产生的查找结果
         return true;
     } else {
-        LogPrint("vm", "%s\n", "getStringLogPrint get fail\n");
+        LogPrint(BCLog::LUAVM, "%s\n", "getStringLogPrint get fail\n");
         lua_pop(L, 1);  //删掉产生的查找结果
         return false;
     }
@@ -326,7 +326,7 @@ static bool getStringLogPrint(lua_State *L, char *pKey, uint16_t usLen, vector<u
 static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //取日志的key value
     if (!lua_istable(L, -1)) {
-        LogPrint("vm", "GetDataTableLogPrint is not table\n");
+        LogPrint(BCLog::LUAVM, "GetDataTableLogPrint is not table\n");
         return false;
     }
     uint16_t len = 0;
@@ -335,7 +335,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr<std::vecto
     int32_t key            = 0;
     double doubleValue = 0;
     if (!(getNumberInTable(L, "key", doubleValue))) {
-        LogPrint("vm", "key get fail\n");
+        LogPrint(BCLog::LUAVM, "key get fail\n");
         return false;
     } else {
         key = (int32_t)doubleValue;
@@ -346,7 +346,7 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr<std::vecto
 
     //取value的长度
     if (!(getNumberInTable(L, "length", doubleValue))) {
-        LogPrint("vm", "length get fail\n");
+        LogPrint(BCLog::LUAVM, "length get fail\n");
         return false;
     } else {
         len = (uint16_t)doubleValue;
@@ -356,14 +356,14 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr<std::vecto
         len = len > LUA_C_BUFFER_SIZE ? LUA_C_BUFFER_SIZE : len;
         if (key) {  // hex
             if (!getArrayInTable(L, (char *)"value", len, vBuf)) {
-                LogPrint("vm", "valueTable is not table\n");
+                LogPrint(BCLog::LUAVM, "valueTable is not table\n");
                 return false;
             } else {
                 ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
             }
         } else {  // string
             if (!getStringLogPrint(L, (char *)"value", len, vBuf)) {
-                LogPrint("vm", "valueString is not string\n");
+                LogPrint(BCLog::LUAVM, "valueString is not string\n");
                 return false;
             } else {
                 ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -371,14 +371,14 @@ static bool GetDataTableLogPrint(lua_State *L, vector<std::shared_ptr<std::vecto
         }
         return true;
     } else {
-        LogPrint("vm", "length error\n");
+        LogPrint(BCLog::LUAVM, "length error\n");
         return false;
     }
 }
 
 static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L, -1)) {
-        LogPrint("vm", "is not table\n");
+        LogPrint(BCLog::LUAVM, "is not table\n");
         return false;
     }
     double doubleValue = 0;
@@ -386,19 +386,19 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr<std::vector<uin
 
     int32_t dataLen = 0;
     if (!(getNumberInTable(L, (char *)"dataLen", doubleValue))) {
-        LogPrint("vm", "dataLen get fail\n");
+        LogPrint(BCLog::LUAVM, "dataLen get fail\n");
         return false;
     } else {
         dataLen = (uint32_t)doubleValue;
     }
 
     if (dataLen <= 0) {
-        LogPrint("vm", "dataLen <= 0\n");
+        LogPrint(BCLog::LUAVM, "dataLen <= 0\n");
         return false;
     }
 
     if (!getArrayInTable(L, (char *)"data", dataLen, vBuf)) {
-        LogPrint("vm", "data not table\n");
+        LogPrint(BCLog::LUAVM, "data not table\n");
         return false;
     } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -406,19 +406,19 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr<std::vector<uin
 
     int32_t keyLen = 0;
     if (!(getNumberInTable(L, (char *)"keyLen", doubleValue))) {
-        LogPrint("vm", "keyLen get fail\n");
+        LogPrint(BCLog::LUAVM, "keyLen get fail\n");
         return false;
     } else {
         keyLen = (uint32_t)doubleValue;
     }
 
     if (keyLen <= 0) {
-        LogPrint("vm", "keyLen <= 0\n");
+        LogPrint(BCLog::LUAVM, "keyLen <= 0\n");
         return false;
     }
 
     if (!getArrayInTable(L, (char *)"key", keyLen, vBuf)) {
-        LogPrint("vm", "key not table\n");
+        LogPrint(BCLog::LUAVM, "key not table\n");
         return false;
     } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -426,7 +426,7 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr<std::vector<uin
 
     int32_t nFlag = 0;
     if (!(getNumberInTable(L, (char *)"flag", doubleValue))) {
-        LogPrint("vm", "flag get fail\n");
+        LogPrint(BCLog::LUAVM, "flag get fail\n");
         return false;
     } else {
         nFlag = (uint32_t)doubleValue;
@@ -440,7 +440,7 @@ static bool GetDataTableDes(lua_State *L, vector<std::shared_ptr<std::vector<uin
 
 static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L, -1)) {
-        LogPrint("vm", "is not table\n");
+        LogPrint(BCLog::LUAVM, "is not table\n");
         return false;
     }
     double doubleValue = 0;
@@ -448,19 +448,19 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std
 
     int32_t dataLen = 0;
     if (!(getNumberInTable(L, (char *)"dataLen", doubleValue))) {
-        LogPrint("vm", "get dataLen failed\n");
+        LogPrint(BCLog::LUAVM, "get dataLen failed\n");
         return false;
     } else {
         dataLen = (uint32_t)doubleValue;
     }
 
     if (dataLen <= 0) {
-        LogPrint("vm", "dataLen <= 0\n");
+        LogPrint(BCLog::LUAVM, "dataLen <= 0\n");
         return false;
     }
 
     if (!getArrayInTable(L, (char *)"data", dataLen, vBuf)) {
-        LogPrint("vm", "get data failed\n");
+        LogPrint(BCLog::LUAVM, "get data failed\n");
         return false;
     } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -468,19 +468,19 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std
 
     int32_t pubKeyLen = 0;
     if (!(getNumberInTable(L, (char *)"pubKeyLen", doubleValue))) {
-        LogPrint("vm", "get pubKeyLen failed\n");
+        LogPrint(BCLog::LUAVM, "get pubKeyLen failed\n");
         return false;
     } else {
         pubKeyLen = (uint32_t)doubleValue;
     }
 
     if (pubKeyLen <= 0) {
-        LogPrint("vm", "error: pubKeyLen <= 0\n");
+        LogPrint(BCLog::LUAVM, "error: pubKeyLen <= 0\n");
         return false;
     }
 
     if (!getArrayInTable(L, (char *)"pubKey", pubKeyLen, vBuf)) {
-        LogPrint("vm", "get pubKey failed\n");
+        LogPrint(BCLog::LUAVM, "get pubKey failed\n");
         return false;
     } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -488,18 +488,18 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std
 
     int32_t signatureLen = 0;
     if (!(getNumberInTable(L, (char *)"signatureLen", doubleValue))) {
-        LogPrint("vm", "get signatureLen failed\n");
+        LogPrint(BCLog::LUAVM, "get signatureLen failed\n");
         return false;
     }
     signatureLen = (uint32_t)doubleValue;
 
     if (signatureLen <= 0) {
-        LogPrint("vm", "hashLen <= 0\n");
+        LogPrint(BCLog::LUAVM, "hashLen <= 0\n");
         return false;
     }
 
     if (!getArrayInTable(L, (char *)"signature", signatureLen, vBuf)) {
-        LogPrint("vm", "get signature failed\n");
+        LogPrint(BCLog::LUAVM, "get signature failed\n");
         return false;
     } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -514,12 +514,12 @@ static bool GetDataTableVerifySignature(lua_State *L, vector<std::shared_ptr<std
 static bool ParseUidTypeInTable(lua_State *L, const char *pKey, AccountType &uidType) {
     lua_Integer uidTypeInt;
     if (!(getIntegerInTable(L, pKey, uidTypeInt))) {
-        LogPrint("vm", "ParseUidTypeInTable(), get %s failed\n", pKey);
+        LogPrint(BCLog::LUAVM, "ParseUidTypeInTable(), get %s failed\n", pKey);
         return false;
     }
 
     if (uidTypeInt != AccountType::REGID && uidTypeInt != AccountType::BASE58ADDR) {
-        LogPrint("vm", "ParseUidTypeInTable(), invalid accountType: %d\n", uidTypeInt);
+        LogPrint(BCLog::LUAVM, "ParseUidTypeInTable(), invalid accountType: %d\n", uidTypeInt);
         return false;
     }
     uidType = (AccountType)uidTypeInt;
@@ -540,14 +540,14 @@ static bool ParseUidInTable(lua_State *L, const char *pKey, AccountType uidType,
 
     vector<uint8_t> accountBuf;
     if (!getArrayInTable(L, pKey, len, accountBuf)) {
-        LogPrint("vm","ParseUidInTable(), get %s failed\n", pKey);
+        LogPrint(BCLog::LUAVM,"ParseUidInTable(), get %s failed\n", pKey);
         return false;
     }
 
     if (uidType == AccountType::REGID) {
         CRegID regid(accountBuf);
         if (regid.IsEmpty()) {
-            LogPrint("vm","ParseUidInTable(), %s is invalid regid! value(hex)=%s\n", pKey, HexStr(accountBuf));
+            LogPrint(BCLog::LUAVM,"ParseUidInTable(), %s is invalid regid! value(hex)=%s\n", pKey, HexStr(accountBuf));
             return false;
         }
         uid = regid;
@@ -557,7 +557,7 @@ static bool ParseUidInTable(lua_State *L, const char *pKey, AccountType uidType,
         CCoinAddress coinAddress;
         string addrStr(accountBuf.begin(), accountBuf.end());
         if (!coinAddress.SetString(addrStr) || !coinAddress.GetKeyId(keyid) || keyid.IsEmpty()) {
-            LogPrint("vm","ParseUidInTable(), %s is invalid keyid! keyid=%s, hex=%s\n", pKey,
+            LogPrint(BCLog::LUAVM,"ParseUidInTable(), %s is invalid keyid! keyid=%s, hex=%s\n", pKey,
                 addrStr, HexStr(accountBuf));
         }
         uid = keyid;
@@ -845,7 +845,7 @@ int32_t ExVerifySignatureFunc(lua_State *L) {
 
     bool rlt = VerifySignature(dataHash, signature, pk);
     if (!rlt) {
-        LogPrint("INFO", "ExVerifySignatureFunc call VerifySignature verify signature failed!\n");
+        LogPrint(BCLog::INFO, "ExVerifySignatureFunc call VerifySignature verify signature failed!\n");
     }
 
     return RetRstBooleanToLua(L, rlt);
@@ -867,7 +867,7 @@ int32_t ExGetTxContractFunc(lua_State *L) {
     uint256 hash;
     ds >> hash;
 
-    LogPrint("vm", "ExGetTxContractFunc, hash: %s\n", hash.GetHex().c_str());
+    LogPrint(BCLog::LUAVM, "ExGetTxContractFunc, hash: %s\n", hash.GetHex().c_str());
 
     std::shared_ptr<CBaseTx> pBaseTx;
     int32_t len = 0;
@@ -912,9 +912,9 @@ int32_t ExLogPrintFunc(lua_State *L) {
     LUA_BurnFuncData(L, FUEL_CALL_LogPrint, pData.size(), 1, FUEL_DATA1_LogPrint, BURN_VER_R2);
 
     if (flag) {
-        LogPrint("vm", "%s\n", HexStr(pData).c_str());
+        LogPrint(BCLog::LUAVM, "%s\n", HexStr(pData).c_str());
     } else {
-        LogPrint("vm", "%s\n", pData.c_str());
+        LogPrint(BCLog::LUAVM, "%s\n", pData.c_str());
     }
 
     return 0;
@@ -942,7 +942,7 @@ int32_t ExGetTxRegIDFunc(lua_State *L) {
     uint256 hash;
     ds >> hash;
 
-    LogPrint("vm","ExGetTxRegIDFunc, hash: %s\n", hash.GetHex().c_str());
+    LogPrint(BCLog::LUAVM,"ExGetTxRegIDFunc, hash: %s\n", hash.GetHex().c_str());
 
     LUA_BurnFuncCall(L, FUEL_CALL_GetTxRegID, BURN_VER_R2);
     std::shared_ptr<CBaseTx> pBaseTx;
@@ -987,7 +987,7 @@ int32_t ExByteToIntegerFunc(lua_State *L) {
         uint32_t height;
         tep1 >> height;
 
-        // LogPrint("vm", "%d\n", height);
+        // LogPrint(BCLog::LUAVM, "%d\n", height);
         if (lua_checkstack(L, sizeof(lua_Integer))) {
             lua_pushinteger(L, (lua_Integer)height);
             return 1;
@@ -997,7 +997,7 @@ int32_t ExByteToIntegerFunc(lua_State *L) {
     } else {
         int64_t llValue = 0;
         tep1 >> llValue;
-        // LogPrint("vm", "%lld\n", llValue);
+        // LogPrint(BCLog::LUAVM, "%lld\n", llValue);
         if (lua_checkstack(L, sizeof(lua_Integer))) {
             lua_pushinteger(L, (lua_Integer)llValue);
             return 1;
@@ -1024,11 +1024,11 @@ int32_t ExIntegerToByte8Func(lua_State *L) {
     //把integer转换成8字节数组
     int64_t llValue = 0;
     if (!lua_isinteger(L, -1 - 0)) {
-        LogPrint("vm", "%s\n", "data is not integer");
+        LogPrint(BCLog::LUAVM, "%s\n", "data is not integer");
         return 0;
     } else {
         llValue = (int64_t)lua_tointeger(L, -1 - 0);
-        //      LogPrint("vm", "ExIntegerToByte8Func:%lld\n", llValue);
+        //      LogPrint(BCLog::LUAVM, "ExIntegerToByte8Func:%lld\n", llValue);
     }
 
     LUA_BurnFuncCall(L, FUEL_CALL_IntegerToByte8, BURN_VER_R2);
@@ -1127,7 +1127,7 @@ int32_t ExGetTxConfirmHeightFunc(lua_State *L) {
     }
 
     // uint256 hash1(*retdata.at(0));
-    // LogPrint("vm","ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
+    // LogPrint(BCLog::LUAVM,"ExGetTxContractsFunc1:%s",hash1.GetHex().c_str());
 
     // reverse hash value
     vector<uint8_t> vec_hash(retdata.at(0).get()->rbegin(), retdata.at(0).get()->rend());
@@ -1149,7 +1149,7 @@ int32_t ExGetTxConfirmHeightFunc(lua_State *L) {
             lua_pushnumber(L, (lua_Number)height);
             return 1;
         } else {
-            LogPrint("vm", "%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
+            LogPrint(BCLog::LUAVM, "%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
             return 0;
         }
     }
@@ -1185,7 +1185,7 @@ int32_t ExGetBlockHashFunc(lua_State *L) {
     CBlockIndex *pIndex = chainActive[height];
     uint256 blockHash   = pIndex->GetBlockHash();
 
-    //  LogPrint("vm","ExGetBlockHashFunc:%s",HexStr(blockHash).c_str());
+    //  LogPrint(BCLog::LUAVM,"ExGetBlockHashFunc:%s",HexStr(blockHash).c_str());
     CDataStream tep(SER_DISK, CLIENT_VERSION);
     tep << blockHash;
     vector<uint8_t> TMP(tep.begin(), tep.end());
@@ -1211,17 +1211,17 @@ int32_t ExGetCurRunEnvHeightFunc(lua_State *L) {
              lua_pushnumber(L,(lua_Number)height);
              return 1 ;
         }else{
-            LogPrint("vm","%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
+            LogPrint(BCLog::LUAVM,"%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
         }
         */
         if (lua_checkstack(L, sizeof(lua_Integer))) {
             lua_pushinteger(L, (lua_Integer)height);
             return 1;
         } else {
-            LogPrint("vm", "%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
+            LogPrint(BCLog::LUAVM, "%s\n", "ExGetCurRunEnvHeightFunc stack overflow");
         }
     } else {
-        LogPrint("vm", "ExGetCurRunEnvHeightFunc err height =%d\n", height);
+        LogPrint(BCLog::LUAVM, "ExGetCurRunEnvHeightFunc err height =%d\n", height);
     }
 
     return 0;
@@ -1230,7 +1230,7 @@ int32_t ExGetCurRunEnvHeightFunc(lua_State *L) {
 static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     //取写数据库的key value
     if (!lua_istable(L, -1)) {
-        LogPrint("vm", "GetDataTableWriteDataDB is not table\n");
+        LogPrint(BCLog::LUAVM, "GetDataTableWriteDataDB is not table\n");
         return false;
     }
     uint16_t len = 0;
@@ -1238,10 +1238,10 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr<std::ve
     //取key
     string key = "";
     if (!(getStringInTable(L, (char *)"key", key))) {
-        LogPrint("vm", "key get fail\n");
+        LogPrint(BCLog::LUAVM, "key get fail\n");
         return false;
     } else {
-        // LogPrint("vm", "key:%s\n", key);
+        // LogPrint(BCLog::LUAVM, "key:%s\n", key);
     }
     vBuf.clear();
     for (size_t i = 0; i < key.size(); i++) {
@@ -1252,23 +1252,23 @@ static bool GetDataTableWriteDataDB(lua_State *L, vector<std::shared_ptr<std::ve
     //取value的长度
     double doubleValue = 0;
     if (!(getNumberInTable(L, (char *)"length", doubleValue))) {
-        LogPrint("vm", "length get fail\n");
+        LogPrint(BCLog::LUAVM, "length get fail\n");
         return false;
     } else {
         len = (uint16_t)doubleValue;
-        // LogPrint("vm", "len =%d\n", len);
+        // LogPrint(BCLog::LUAVM, "len =%d\n", len);
     }
     if ((len > 0) && (len <= LUA_C_BUFFER_SIZE)) {
         if (!getArrayInTable(L, (char *)"value", len, vBuf)) {
-            LogPrint("vm", "value is not table\n");
+            LogPrint(BCLog::LUAVM, "value is not table\n");
             return false;
         } else {
-            // LogPrint("vm", "value:%s\n", HexStr(vBuf).c_str());
+            // LogPrint(BCLog::LUAVM, "value:%s\n", HexStr(vBuf).c_str());
             ret.insert(ret.end(), std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
         }
         return true;
     } else {
-        LogPrint("vm", "len overflow\n");
+        LogPrint(BCLog::LUAVM, "len overflow\n");
         return false;
     }
 }
@@ -1301,7 +1301,7 @@ int32_t ExWriteDataDBFunc(lua_State *L) {
     // TODO: get old data when set data ??
     scriptDB->GetContractData(contractRegId, key, oldValue);
     if (!scriptDB->SetContractData(contractRegId, key, value)) {
-        LogPrint("vm", "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
+        LogPrint(BCLog::LUAVM, "ExWriteDataDBFunc SetContractData failed, key:%s!\n",HexStr(key));
         lua_BurnStoreUnchanged(L, key.size(), value.size(), BURN_VER_R2);
         flag = false;
     } else {
@@ -1319,7 +1319,7 @@ int32_t ExDeleteDataDBFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
 
     if (!GetDataString(L, retdata) || retdata.size() != 1) {
-        LogPrint("vm", "ExDeleteDataDBFunc key err1");
+        LogPrint(BCLog::LUAVM, "ExDeleteDataDBFunc key err1");
         return RetFalse(string(__FUNCTION__) + "para  err !");
     }
     string key = string((*retdata.at(0)).begin(), (*retdata.at(0)).end());
@@ -1338,7 +1338,7 @@ int32_t ExDeleteDataDBFunc(lua_State *L) {
     scriptDB->GetContractData(contractRegId, key, oldValue);
 
     if (!scriptDB->EraseContractData(contractRegId, key)) {
-        LogPrint("vm", "ExDeleteDataDBFunc EraseContractData railed, key:%s!\n", HexStr(*retdata.at(0)));
+        LogPrint(BCLog::LUAVM, "ExDeleteDataDBFunc EraseContractData railed, key:%s!\n", HexStr(*retdata.at(0)));
         lua_BurnStoreUnchanged(L, key.size(), oldValue.size(), BURN_VER_R2);
         flag = false;
     } else {
@@ -1438,7 +1438,7 @@ int32_t ExModifyDataDBFunc(lua_State *L) {
 
 static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     if (!lua_istable(L,-1)) {
-        LogPrint("vm","WriteOutput(), param 1 must be table\n");
+        LogPrint(BCLog::LUAVM,"WriteOutput(), param 1 must be table\n");
         return false;
     }
 
@@ -1446,7 +1446,7 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     uint16_t len = 0;
     vector<uint8_t> vBuf ;
     if (!(getNumberInTable(L,(char *)"addrType",doubleValue))) {
-        LogPrint("vm", "WriteOutput(), get addrType failed\n");
+        LogPrint(BCLog::LUAVM, "WriteOutput(), get addrType failed\n");
         return false;
     } else {
         operate.accountType = (AccountType)doubleValue;
@@ -1457,19 +1457,19 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     } else if (operate.accountType == AccountType::BASE58ADDR){
        len = 34;
     } else {
-        LogPrint("vm", "WriteOutput(), invalid accountType: %d\n", operate.accountType);
+        LogPrint(BCLog::LUAVM, "WriteOutput(), invalid accountType: %d\n", operate.accountType);
         return false;
     }
 
     if (!getArrayInTable(L, "accountIdTbl", len, vBuf)) {
-        LogPrint("vm","WriteOutput(), get accountIdTbl failed\n");
+        LogPrint(BCLog::LUAVM,"WriteOutput(), get accountIdTbl failed\n");
         return false;
     } else {
        memcpy(operate.accountId,&vBuf[0],len);
     }
 
     if (!(getNumberInTable(L, "operatorType", doubleValue))) {
-        LogPrint("vm", "WriteOutput(),  get opType failed\n");
+        LogPrint(BCLog::LUAVM, "WriteOutput(),  get opType failed\n");
         return false;
 
     } else {
@@ -1477,14 +1477,14 @@ static bool GetDataTableWriteOutput(lua_State *L, CVmOperate &operate) {
     }
 
     if (!(getNumberInTable(L, "outHeight", doubleValue))) {
-        LogPrint("vm", "WriteOutput(),  get outheight failed\n");
+        LogPrint(BCLog::LUAVM, "WriteOutput(),  get outheight failed\n");
         return false;
     } else {
         operate.timeoutHeight = (uint32_t)doubleValue;
     }
 
     if (!getArrayInTable(L, "moneyTbl", sizeof(operate.money), vBuf)) {
-        LogPrint("vm","WriteOutput(), moneyTbl not table\n");
+        LogPrint(BCLog::LUAVM,"WriteOutput(), moneyTbl not table\n");
         return false;
     } else {
         memcpy(operate.money, &vBuf[0], sizeof(operate.money));
@@ -1526,14 +1526,14 @@ int32_t ExWriteOutputFunc(lua_State *L) {
 
 static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L,-1)) {
-        LogPrint("vm", "GetDataTableGetContractData is not table\n");
+        LogPrint(BCLog::LUAVM, "GetDataTableGetContractData is not table\n");
         return false;
     }
 
     vector<uint8_t> vBuf ;
     //取脚本id
     if (!getArrayInTable(L,(char *)"id",6,vBuf)) {
-        LogPrint("vm","idTbl not table\n");
+        LogPrint(BCLog::LUAVM,"idTbl not table\n");
         return false;
     } else {
        ret.insert(ret.end(),std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
@@ -1542,10 +1542,10 @@ static bool GetDataTableGetContractData(lua_State *L, vector<std::shared_ptr<std
     //取key
     string key = "";
     if (!(getStringInTable(L,(char *)"key",key))) {
-        LogPrint("vm","key get fail\n");
+        LogPrint(BCLog::LUAVM,"key get fail\n");
         return false;
     } else {
-        // LogPrint("vm", "key:%s\n", key);
+        // LogPrint(BCLog::LUAVM, "key:%s\n", key);
     }
 
     vBuf.clear();
@@ -1650,7 +1650,7 @@ int32_t ExGetCurTxPayAmountFunc(lua_State *L) {
 int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     vector<std::shared_ptr < vector<uint8_t> > > retdata;
     if (!lua_istable(L, -1)) {
-        LogPrint("vm", "is not table\n");
+        LogPrint(BCLog::LUAVM, "is not table\n");
         return 0;
     }
     double doubleValue = 0;
@@ -1658,18 +1658,18 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
     vector<uint8_t> accountId;
     memset(&accountId, 0, sizeof(accountId));
     if (!(getNumberInTable(L, "idLen", doubleValue))) {
-        LogPrint("vm", "get idlen failed\n");
+        LogPrint(BCLog::LUAVM, "get idlen failed\n");
         return 0;
     } else {
         idlen = (uint8_t)doubleValue;
     }
     if ((idlen < 1) || (idlen > CAppCFund::MAX_TAG_SIZE)) {
-        LogPrint("vm","idlen invalid\n");
+        LogPrint(BCLog::LUAVM,"idlen invalid\n");
         return 0;
     }
 
     if (!getArrayInTable(L, "idValueTbl", idlen, accountId)) {
-        LogPrint("vm", "idValueTbl not table\n");
+        LogPrint(BCLog::LUAVM, "idValueTbl not table\n");
         return 0;
     }
 
@@ -1694,7 +1694,7 @@ int32_t ExGetUserAppAccValueFunc(lua_State *L) {
 
 static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L, -1)) {
-        LogPrint("vm","is not table\n");
+        LogPrint(BCLog::LUAVM,"is not table\n");
         return false;
     }
     double doubleValue = 0;
@@ -1702,47 +1702,47 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr<std::
     CAppFundOperate temp;
     memset(&temp,0,sizeof(temp));
     if (!(getNumberInTable(L,(char *)"operatorType",doubleValue))) {
-        LogPrint("vm", "opType get fail\n");
+        LogPrint(BCLog::LUAVM, "opType get fail\n");
         return false;
     } else {
         temp.opType = (uint8_t)doubleValue;
     }
 
     if (!(getNumberInTable(L, (char *)"outHeight", doubleValue))) {
-        LogPrint("vm", "outHeight get fail\n");
+        LogPrint(BCLog::LUAVM, "outHeight get fail\n");
         return false;
     } else {
         temp.timeoutHeight = (uint32_t) doubleValue;
     }
 
     if (!getArrayInTable(L, (char *)"moneyTbl", sizeof(temp.mMoney), vBuf)) {
-        LogPrint("vm", "moneyTbl not table\n");
+        LogPrint(BCLog::LUAVM, "moneyTbl not table\n");
         return false;
     } else {
         memcpy(&temp.mMoney, &vBuf[0], sizeof(temp.mMoney));
     }
 
     if (!(getNumberInTable(L, (char *) "userIdLen", doubleValue))) {
-        LogPrint("vm", "appuserIDlen get fail\n");
+        LogPrint(BCLog::LUAVM, "appuserIDlen get fail\n");
         return false;
     } else {
         temp.appuserIDlen = (uint8_t) doubleValue;
     }
 
     if ((temp.appuserIDlen < 1) || (temp.appuserIDlen > sizeof(temp.vAppuser))) {
-        LogPrint("vm", "appuserIDlen is err\n");
+        LogPrint(BCLog::LUAVM, "appuserIDlen is err\n");
         return false;
     }
 
     if (!getArrayInTable(L,(char *)"userIdTbl",temp.appuserIDlen,vBuf)) {
-        LogPrint("vm", "useridTbl not table\n");
+        LogPrint(BCLog::LUAVM, "useridTbl not table\n");
         return false;
     } else {
         memcpy(temp.vAppuser,&vBuf[0],temp.appuserIDlen);
     }
 
     if (!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))) {
-        LogPrint("vm", "fundTagLen get fail\n");
+        LogPrint(BCLog::LUAVM, "fundTagLen get fail\n");
         return false;
     } else {
         temp.fundTagLen = (uint8_t)doubleValue;
@@ -1750,7 +1750,7 @@ static bool GetDataTableOutAppOperate(lua_State *L, vector<std::shared_ptr<std::
 
     if ((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
         if (!getArrayInTable(L, (char *)"fundTagTbl", temp.fundTagLen, vBuf)) {
-            LogPrint("vm", "FundTagTbl not table\n");
+            LogPrint(BCLog::LUAVM, "FundTagTbl not table\n");
             return false;
         } else {
             memcpy(temp.vFundTag, &vBuf[0], temp.fundTagLen);
@@ -1800,7 +1800,7 @@ int32_t ExGetUserAppAccFundWithTagFunc(lua_State *L) {
 
 static bool GetDataTableAssetOperate(lua_State *L, int32_t index, vector<std::shared_ptr<std::vector<uint8_t>>> &ret) {
     if (!lua_istable(L, index)) {
-        LogPrint("vm", "L is not table\n");
+        LogPrint(BCLog::LUAVM, "L is not table\n");
         return false;
     }
 
@@ -1810,29 +1810,29 @@ static bool GetDataTableAssetOperate(lua_State *L, int32_t index, vector<std::sh
     memset(&temp,0,sizeof(temp));
 
     if (!getArrayInTable(L,(char *)"toAddrTbl",34,vBuf)) {
-        LogPrint("vm","toAddrTbl not table\n");
+        LogPrint(BCLog::LUAVM,"toAddrTbl not table\n");
         return false;
     } else {
         ret.push_back(std::make_shared<vector<uint8_t>>(vBuf.begin(), vBuf.end()));
     }
 
     if (!(getNumberInTable(L, (char *) "outHeight", doubleValue))) {
-        LogPrint("vm", "get timeoutHeight failed\n");
+        LogPrint(BCLog::LUAVM, "get timeoutHeight failed\n");
         return false;
     } else {
         temp.timeoutHeight = (uint32_t) doubleValue;
-        LogPrint("vm", "height = %d", temp.timeoutHeight);
+        LogPrint(BCLog::LUAVM, "height = %d", temp.timeoutHeight);
     }
 
     if (!getArrayInTable(L, (char *) "moneyTbl", sizeof(temp.mMoney), vBuf)) {
-        LogPrint("vm", "moneyTbl not table\n");
+        LogPrint(BCLog::LUAVM, "moneyTbl not table\n");
         return false;
     } else {
        memcpy(&temp.mMoney,&vBuf[0],sizeof(temp.mMoney));
     }
 
     if (!(getNumberInTable(L,(char *)"fundTagLen",doubleValue))) {
-        LogPrint("vm", "fundTagLen get fail\n");
+        LogPrint(BCLog::LUAVM, "fundTagLen get fail\n");
         return false;
     } else {
         temp.fundTagLen = (uint8_t)doubleValue;
@@ -1840,7 +1840,7 @@ static bool GetDataTableAssetOperate(lua_State *L, int32_t index, vector<std::sh
 
     if ((temp.fundTagLen > 0) && (temp.fundTagLen <= sizeof(temp.vFundTag))) {
         if (!getArrayInTable(L,(char *)"fundTagTbl",temp.fundTagLen,vBuf)) {
-            LogPrint("vm","FundTagTbl not table\n");
+            LogPrint(BCLog::LUAVM,"FundTagTbl not table\n");
             return false;
         } else {
             memcpy(temp.vFundTag,&vBuf[0],temp.fundTagLen);
@@ -1910,7 +1910,7 @@ int32_t ExGetBase58AddrFunc(lua_State *L) {
     std::string recvaddr( recvKey.begin(), recvKey.end() );
 
     for(int32_t i = 0; i < recvKey.size(); i++)
-        LogPrint("vm", "==============%02X\n", recvKey[i]);
+        LogPrint(BCLog::LUAVM, "==============%02X\n", recvKey[i]);
 
     vector<uint8_t> tmp;
     for(int32_t i = recvKey.size() - 1; i >=0 ; i--)
@@ -1952,7 +1952,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
 
     std::string recvaddr( recvKey.begin(), recvKey.end() );
     if (addr == recvaddr) {
-        LogPrint("vm", "%s\n", "send addr and recv addr is same !");
+        LogPrint(BCLog::LUAVM, "%s\n", "send addr and recv addr is same !");
         return RetFalse(string(__FUNCTION__)+"send addr and recv addr is same !");
     }
 
@@ -1960,7 +1960,7 @@ int32_t ExTransferContractAsset(lua_State *L) {
     bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvKey, RecvKeyID);
     if (!bValid) {
         LUA_BurnAccount(L, FUEL_ACCOUNT_UNCHANGED, BURN_VER_R2);
-        LogPrint("vm", "%s\n", "recv addr is not valid !");
+        LogPrint(BCLog::LUAVM, "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
 
@@ -2062,14 +2062,14 @@ int32_t ExTransferSomeAsset(lua_State *L) {
 
     std::string recvaddr( recvKey.begin(), recvKey.end() );
     if (addr == recvaddr) {
-        LogPrint("vm", "%s\n", "send addr and recv addr is same !");
+        LogPrint(BCLog::LUAVM, "%s\n", "send addr and recv addr is same !");
         return RetFalse(string(__FUNCTION__)+"send addr and recv addr is same !");
     }
 
     CKeyID RecvKeyID;
     bool bValid = GetKeyId(*pVmRunEnv->GetCatchView(), recvKey, RecvKeyID);
     if (!bValid) {
-        LogPrint("vm", "%s\n", "recv addr is not valid !");
+        LogPrint(BCLog::LUAVM, "%s\n", "recv addr is not valid !");
         return RetFalse(string(__FUNCTION__)+"recv addr is not valid !");
     }
 
@@ -2123,7 +2123,7 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
 
     // only support to get current block time
     if (height != 0) {
-        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), the input height=%d must be 0\n", height);
+        LogPrint(BCLog::LUAVM, "[ERROR]ExGetBlockTimestamp(), the input height=%d must be 0\n", height);
         return 0;
     }
 
@@ -2141,7 +2141,7 @@ int32_t ExGetBlockTimestamp(lua_State *L) {
     }
 
     if (!lua_checkstack(L, sizeof(lua_Integer))) {
-        LogPrint("vm", "[ERROR]ExGetBlockTimestamp(), lua stack overflow! input_height=%d, curBlockHeight=%d\n",
+        LogPrint(BCLog::LUAVM, "[ERROR]ExGetBlockTimestamp(), lua stack overflow! input_height=%d, curBlockHeight=%d\n",
             height, vmContext.height);
         return 0;
     }
@@ -2191,7 +2191,7 @@ int32_t ExLuaPrint(lua_State *L) {
     }
 
     LUA_BurnFuncData(L, FUEL_CALL_LogPrint, str.size(), 1, FUEL_DATA1_LogPrint, BURN_VER_R2);
-    LogPrint("vm", "%s\n", str);
+    LogPrint(BCLog::LUAVM, "%s\n", str);
     return 0;
 }
 
@@ -2200,40 +2200,40 @@ int32_t ExLuaPrint(lua_State *L) {
 
 static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, AssetTransfer &transfer) {
     if (!lua_istable(L,-1)) {
-        LogPrint("vm","ParseAccountAssetTransfer(), transfer param must be table\n");
+        LogPrint(BCLog::LUAVM,"ParseAccountAssetTransfer(), transfer param must be table\n");
         return false;
     }
 
     if (!(GetBoolInTable(L, "isContractAccount", transfer.isContractAccount))) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), get isContractAccount failed\n");
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get isContractAccount failed\n");
         return false;
     }
 
     AccountType uidType;
     if (!(ParseUidTypeInTable(L, "toAddressType", uidType))) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), get toAddressType failed\n");
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get toAddressType failed\n");
         return false;
     }
 
     if (!ParseUidInTable(L, "toAddress", uidType, transfer.toUid)) {
-        LogPrint("vm","ParseAccountAssetTransfer(), get toAddress failed\n");
+        LogPrint(BCLog::LUAVM,"ParseAccountAssetTransfer(), get toAddress failed\n");
         return false;
     }
 
     if (!(getStringInTable(L, "tokenType", transfer.tokenType))) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), get tokenType failed\n");
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get tokenType failed\n");
         return false;
     }
 
     auto pErr = vmRunEnv.GetCw()->assetCache.CheckTransferCoinSymbol(transfer.tokenType);
     if (pErr) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), Invalid tokenType=%s! %s \n", transfer.tokenType, *pErr);
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), Invalid tokenType=%s! %s \n", transfer.tokenType, *pErr);
         return false;
     }
 
     vector<uint8_t> amountVector;
     if (!getArrayInTable(L, "tokenAmount", sizeof(uint64_t), amountVector)) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), get tokenAmount failed\n");
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), get tokenAmount failed\n");
         return false;
     };
     assert(amountVector.size() == sizeof(uint64_t));
@@ -2243,7 +2243,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
     ssAmount >> amount;
 
     if (amount == 0 || !CheckBaseCoinRange(amount) ) {
-        LogPrint("vm", "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", amount);
+        LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), tokenAmount=%lld is 0 or out of range\n", amount);
         return false;
     }
     transfer.tokenAmount = amount;
@@ -2254,18 +2254,18 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
 int32_t ExTransferAccountAssetFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv) {
-        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
         return 0;
     }
 
     AssetTransfer transfer;
     if (!ParseAccountAssetTransfer(L, *pVmRunEnv, transfer)) {
-        LogPrint("vm","[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
         return 0;
     }
 
     if (!pVmRunEnv->TransferAccountAsset(L, {transfer})) {
-        LogPrint("vm","[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
         return 0;
     }
 
@@ -2274,20 +2274,20 @@ int32_t ExTransferAccountAssetFunc(lua_State *L) {
 
 static bool ParseAccountAssetTransfers(lua_State *L, CLuaVMRunEnv &vmRunEnv, vector<AssetTransfer> &transfers) {
     if (!lua_istable(L, -1)) {
-        LogPrint("vm","[ERROR]%s(), transfers param must be table\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), transfers param must be table\n", __FUNCTION__);
         return false;
     }
     //默认栈顶是table，将key入栈
     size_t sz = lua_rawlen(L, -1);
     if (sz == 0) {
-        LogPrint("vm","ParseAccountAssetTransfers(), transfers param is empty table\n");
+        LogPrint(BCLog::LUAVM,"ParseAccountAssetTransfers(), transfers param is empty table\n");
         return false;
     }
     for (size_t i = 1; i <= sz; i++) {
         AssetTransfer transfer;
         lua_geti(L, -1, i);
         if (!ParseAccountAssetTransfer(L, vmRunEnv, transfer)) {
-            LogPrint("vm","ParseAccountAssetTransfers(), ParseAccountAssetTransfer[%d] failed\n", i);
+            LogPrint(BCLog::LUAVM,"ParseAccountAssetTransfers(), ParseAccountAssetTransfer[%d] failed\n", i);
             lua_pop(L, 1); // pop the read item
             return false;
         }
@@ -2302,19 +2302,19 @@ int32_t ExTransferAccountAssetsFunc(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv) {
-        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
         return 0;
     }
 
     // TODO: parse vector
     vector<AssetTransfer> transfers;
     if (!ParseAccountAssetTransfers(L, *pVmRunEnv, transfers)) {
-        LogPrint("vm","[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), parse params of TransferAccountAsset function failed", __FUNCTION__);
         return 0;
     }
 
     if (!pVmRunEnv->TransferAccountAsset(L, transfers)) {
-        LogPrint("vm","[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), execute pVmRunEnv->TransferAccountAsset() failed", __FUNCTION__);
         return 0;
     }
 
@@ -2335,13 +2335,13 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
 
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv) {
-        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
         return 0;
     }
 
     // check stack to avoid stack overflow
     if (!lua_checkstack(L, 2)) {
-        LogPrint("vm", "[ERROR] ExGetCurTxInputAssetFunc(), lua stack overflow\n");
+        LogPrint(BCLog::LUAVM, "[ERROR] ExGetCurTxInputAssetFunc(), lua stack overflow\n");
         return 0;
     }
 
@@ -2378,42 +2378,42 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
 int32_t ExGetAccountAssetFunc(lua_State *L) {
     CLuaVMRunEnv* pVmRunEnv = GetVmRunEnv(L);
     if (nullptr == pVmRunEnv) {
-        LogPrint("vm","[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), pVmRunEnv is nullptr", __FUNCTION__);
         return 0;
     }
 
     if (!lua_istable(L,-1)) {
-        LogPrint("vm","[ERROR]%s(), input param must be a table\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), input param must be a table\n", __FUNCTION__);
         return 0;
     }
 
     AccountType uidType;
     if (!(ParseUidTypeInTable(L, "addressType", uidType))) {
-        LogPrint("vm", "[ERROR]%s(), get addressType failed\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get addressType failed\n", __FUNCTION__);
         return 0;
     }
 
     CUserID uid;
     if (!ParseUidInTable(L, "address", uidType, uid)) {
-        LogPrint("vm","[ERROR]%s(), get address failed\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), get address failed\n", __FUNCTION__);
         return 0;
     }
 
     TokenSymbol tokenType;
     if (!(getStringInTable(L, "tokenType", tokenType))) {
-        LogPrint("vm", "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
         return 0;
     }
     auto pErr = pVmRunEnv->GetCw()->assetCache.CheckTransferCoinSymbol(tokenType);
     if (pErr) {
-        LogPrint("vm", "[ERROR]%s(), Invalid tokenType=%s! %s \n", __FUNCTION__, tokenType, *pErr);
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid tokenType=%s! %s \n", __FUNCTION__, tokenType, *pErr);
         return 0;
     }
     LUA_BurnAccount(L, FUEL_ACCOUNT_GET_VALUE, BURN_VER_R2);
 
     auto pAccount = make_shared<CAccount>();
     if (!pVmRunEnv->GetCw()->accountCache.GetAccount(uid, *pAccount)) {
-        LogPrint("vm", "[ERROR]%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), The account not exist! address=%s\n", __FUNCTION__, uid.ToDebugString());
         return 0;
     }
 
@@ -2424,7 +2424,7 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
 
     // check stack to avoid stack overflow
     if (!lua_checkstack(L, 2)) {
-        LogPrint("vm", "[ERROR] lua stack overflow\n");
+        LogPrint(BCLog::LUAVM, "[ERROR] lua stack overflow\n");
         return 0;
     }
     lua_createtable (L, 0, 2); // create table object with 2 field

@@ -26,7 +26,7 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
     if (!cw.delegateCache.GetTopVoteDelegates(topVoteDelegates) ||
         topVoteDelegates.size() != IniCfg().GetTotalDelegateNum()) {
 
-        LogPrint("ERROR", "[WARNING] %s, the got top vote delegates is invalid! block=%d:%s, got_num=%d, definitive_num=%d\n",
+        LogPrint(BCLog::ERROR, "[WARNING] %s, the got top vote delegates is invalid! block=%d:%s, got_num=%d, definitive_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString());
         // update counted_vote_height to skip invalid delegates to next count vote slot height
         return true;
@@ -34,14 +34,14 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
 
     DelegateVector activeDelegates;
     if (!cw.delegateCache.GetActiveDelegates(activeDelegates)) {
-        LogPrint("INFO", "%s() : active delegates do not exist, will be initialized soon! block=%d:%s\n",
+        LogPrint(BCLog::INFO, "%s() : active delegates do not exist, will be initialized soon! block=%d:%s\n",
             __FUNCTION__, block.GetHeight(), block.GetHash().ToString());
     }
 
     pendingDelegates.top_vote_delegates = topVoteDelegates;
 
     if (!activeDelegates.empty() && pendingDelegates.IsSameDelegates(activeDelegates)) {
-        LogPrint("INFO", "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
+        LogPrint(BCLog::INFO, "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
                 pendingDelegates.top_vote_delegates.size(), IniCfg().GetTotalDelegateNum());
         // update counted_vote_height and top_vote_delegates to skip unchanged delegates to next count vote slot height
@@ -107,7 +107,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
                 return state.DoS(100, ERRORMSG("%s() : save pending delegates failed! block=%d:%s",
                     __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
             }
-            LogPrint("INFO", "%s, activate new delegates! block=%d:%s, delegates=[%s]\n",
+            LogPrint(BCLog::INFO, "%s, activate new delegates! block=%d:%s, delegates=[%s]\n",
                     __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
                     ToString(activeDelegates));
         }

@@ -98,7 +98,7 @@ bool CMessageHeader::IsValid() const
     // Message size
     if (nMessageSize > MAX_SIZE)
     {
-        LogPrint("INFO","CMessageHeader::IsValid() : (%s, %u bytes) nMessageSize > MAX_SIZE\n", GetCommand(), nMessageSize);
+        LogPrint(BCLog::INFO,"CMessageHeader::IsValid() : (%s, %u bytes) nMessageSize > MAX_SIZE\n", GetCommand(), nMessageSize);
         return false;
     }
 
@@ -177,5 +177,5 @@ std::string CInv::ToString() const
 
 void CInv::Print() const
 {
-    LogPrint("INFO","CInv(%s)\n", ToString());
+    LogPrint(BCLog::INFO,"CInv(%s)\n", ToString());
 }

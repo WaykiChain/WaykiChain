@@ -196,7 +196,7 @@ public:
 		if(!ret)
 		{
 			addr = value.get_str();
-			LogPrint("test_miners","GetOneAddr:%s\r\n",addr.c_str());
+			LogPrint(BCLog::MINER,"GetOneAddr:%s\r\n",addr.c_str());
 			return true;
 		}
 		return false;
@@ -214,7 +214,7 @@ public:
 		{
 			Object &Oid = value.get_obj();
 			regscriptid = Oid[0].value_.get_str();
-			LogPrint("test_miners","GetOneAddr:%s\r\n",regscriptid.c_str());
+			LogPrint(BCLog::MINER,"GetOneAddr:%s\r\n",regscriptid.c_str());
 			return true;
 		}
 		return false;
@@ -231,7 +231,7 @@ public:
 		if (!ret)
 		{
 			addr = value.get_str();
-			LogPrint("test_miners","getnewaddr:%s\r\n",addr.c_str());
+			LogPrint(BCLog::MINER,"getnewaddr:%s\r\n",addr.c_str());
 			return true;
 		}
 		return false;
@@ -256,7 +256,7 @@ public:
 			accstate.dFreeMoney = roundint64(dfree*COIN);
 			accstate.dUnmatureMoney = roundint64(dmature*COIN);
 			accstate.dFrozenMoney = roundint64(dfrozen*COIN);
-			LogPrint("test_miners","addr:%s GetAccState FreeMoney:%0.8lf matureMoney:%0.8lf FrozenMoney:%0.8lf\r\n",
+			LogPrint(BCLog::MINER,"addr:%s GetAccState FreeMoney:%0.8lf matureMoney:%0.8lf FrozenMoney:%0.8lf\r\n",
 					addr.c_str(), dfree, dmature, dfrozen);
 			return true;
 		}
@@ -276,7 +276,7 @@ public:
 			Object obj = value.get_obj();
 
 			height = find_value(obj,"blocks").get_int();
-			LogPrint("test_miners","GetBlockHeight:%d\r\n",height);
+			LogPrint(BCLog::MINER,"GetBlockHeight:%d\r\n",height);
 			return true;
 		}
 		return false;
@@ -311,7 +311,7 @@ public:
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","CreateNormalTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"CreateNormalTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
@@ -346,7 +346,7 @@ public:
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","CreateFreezeTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"CreateFreezeTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
@@ -374,7 +374,7 @@ public:
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","RegisterSecureTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"RegisterSecureTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
@@ -408,7 +408,7 @@ public:
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","CallContractTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"CallContractTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
@@ -438,7 +438,7 @@ public:
 		Value value;
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret) {
-			LogPrint("test_miners","RegisterSecureTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"RegisterSecureTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 
@@ -488,7 +488,7 @@ public:
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","CreateSecureTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"CreateSecureTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
@@ -508,7 +508,7 @@ public:
 		int ret = CommandLineRPC_GetValue(argc, argv, value);
 		if (!ret)
 		{
-			LogPrint("test_miners","SignSecureTx:%s\r\n",value.get_str().c_str());
+			LogPrint(BCLog::MINER,"SignSecureTx:%s\r\n",value.get_str().c_str());
 			return true;
 		}
 		return false;
@@ -542,7 +542,7 @@ public:
 		if (!ret)
 		{
 			blockhash = value.get_str();
-			LogPrint("test_miners","GetBlockHash:%s\r\n",blockhash.c_str());
+			LogPrint(BCLog::MINER,"GetBlockHash:%s\r\n",blockhash.c_str());
 			return true;
 		}
 		return false;
@@ -562,7 +562,7 @@ public:
 		{
 			Array txs = find_value(value.get_obj(),"tx").get_array();
 			addr = find_value(txs[0].get_obj(),"addr").get_str();
-			LogPrint("test_miners","GetBlockMinerAddr:%s\r\n",addr.c_str());
+			LogPrint(BCLog::MINER,"GetBlockMinerAddr:%s\r\n",addr.c_str());
 			return true;
 		}
 		return false;
@@ -634,7 +634,7 @@ BOOST_FIXTURE_TEST_CASE(block_normaltx_and_regaccounttx,CMinerTest)
 		BOOST_REQUIRE(GetNewAddr(destaddr));
 		BOOST_REQUIRE(CreateNormalTx(srcaddr,destaddr,height));
 		totalfee += nCurFee;
-		LogPrint("test_miners","srcaddr:%s\r\ndestaddr:%s\r\nnCurFee:%I64d\r\n",
+		LogPrint(BCLog::MINER,"srcaddr:%s\r\ndestaddr:%s\r\nnCurFee:%I64d\r\n",
 				srcaddr.c_str(), destaddr.c_str(), nCurFee);
 		AccOperLog &operlog1 = mapAccOperLog[srcaddr];
 		AccOperLog &operlog2 = mapAccOperLog[destaddr];

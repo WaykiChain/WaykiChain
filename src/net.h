@@ -403,7 +403,7 @@ public:
             nRequestTime = it->second;
         else
             nRequestTime = 0;
-        LogPrint("net", "ask for %s %d (%s)\n", inv.ToString().c_str(), nRequestTime,
+        LogPrint(BCLog::NET, "ask for %s %d (%s)\n", inv.ToString().c_str(), nRequestTime,
                  DateTimeStrFormat("%H:%M:%S", nRequestTime / 1000000).c_str());
 
         // Make sure not to reuse time indexes to keep things in the same order
@@ -427,7 +427,7 @@ public:
         ENTER_CRITICAL_SECTION(cs_vSend);
         assert(ssSend.size() == 0);
         ssSend << CMessageHeader(pszCommand, 0);
-        LogPrint("net", "sending: %s\n", pszCommand);
+        LogPrint(BCLog::NET, "sending: %s\n", pszCommand);
     }
 
     // TODO: Document the precondition of this function.  Is cs_vSend locked?
@@ -436,7 +436,7 @@ public:
 
         LEAVE_CRITICAL_SECTION(cs_vSend);
 
-        LogPrint("net", "(aborted)\n");
+        LogPrint(BCLog::NET, "(aborted)\n");
     }
 
     // TODO: Document the precondition of this function.  Is cs_vSend locked?
@@ -445,7 +445,7 @@ public:
         // since they are only used during development to debug the networking code and are
         // not intended for end-users.
         if (SysCfg().IsArgCount("-dropmessagestest") && GetRand(SysCfg().GetArg("-dropmessagestest", 2)) == 0) {
-            LogPrint("net", "dropmessages DROPPING SEND MESSAGE\n");
+            LogPrint(BCLog::NET, "dropmessages DROPPING SEND MESSAGE\n");
             AbortMessage();
             return;
         }
@@ -466,7 +466,7 @@ public:
         assert(ssSend.size() >= CMessageHeader::CHECKSUM_OFFSET + sizeof(nChecksum));
         memcpy((char*)&ssSend[CMessageHeader::CHECKSUM_OFFSET], &nChecksum, sizeof(nChecksum));
 
-        LogPrint("net", "(%d bytes)\n", nSize);
+        LogPrint(BCLog::NET, "(%d bytes)\n", nSize);
 
         deque<CSerializeData>::iterator it = vSendMsg.insert(vSendMsg.end(), CSerializeData());
         ssSend.GetAndClear(*it);

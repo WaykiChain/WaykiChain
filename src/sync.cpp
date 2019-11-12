@@ -5,12 +5,13 @@
 
 #include "sync.h"
 #include "commons/util/util.h"
+#include "logging.h"
 
 #ifdef DEBUG_LOCKCONTENTION
 void PrintLockContention(const char* pszName, const char* pszFile, int nLine)
 {
-    LogPrint("INFO","LOCKCONTENTION: %s\n", pszName);
-    LogPrint("INFO","Locker: %s:%d\n", pszFile, nLine);
+    LogPrint(BCLog::INFO,"LOCKCONTENTION: %s\n", pszName);
+    LogPrint(BCLog::INFO,"Locker: %s:%d\n", pszFile, nLine);
 }
 #endif /* DEBUG_LOCKCONTENTION */
 
@@ -57,20 +58,20 @@ static boost::thread_specific_ptr<LockStack> lockstack;
 
 static void potential_deadlock_detected(const pair<void*, void*>& mismatch, const LockStack& s1, const LockStack& s2)
 {
-    LogPrint("INFO","POTENTIAL DEADLOCK DETECTED\n");
-    LogPrint("INFO","Previous lock order was:\n");
+    LogPrint(BCLog::INFO,"POTENTIAL DEADLOCK DETECTED\n");
+    LogPrint(BCLog::INFO,"Previous lock order was:\n");
     for (const auto& i : s2)
     {
-        if (i.first == mismatch.first) LogPrint("INFO"," (1)");
-        if (i.first == mismatch.second) LogPrint("INFO"," (2)");
-        LogPrint("INFO"," %s\n", i.second.ToString());
+        if (i.first == mismatch.first) LogPrint(BCLog::INFO," (1)");
+        if (i.first == mismatch.second) LogPrint(BCLog::INFO," (2)");
+        LogPrint(BCLog::INFO," %s\n", i.second.ToString());
     }
-    LogPrint("INFO","Current lock order is:\n");
+    LogPrint(BCLog::INFO,"Current lock order is:\n");
     for (const auto& i : s1)
     {
-        if (i.first == mismatch.first) LogPrint("INFO"," (1)");
-        if (i.first == mismatch.second) LogPrint("INFO"," (2)");
-        LogPrint("INFO"," %s\n", i.second.ToString());
+        if (i.first == mismatch.first) LogPrint(BCLog::INFO," (1)");
+        if (i.first == mismatch.second) LogPrint(BCLog::INFO," (2)");
+        LogPrint(BCLog::INFO," %s\n", i.second.ToString());
     }
 }
 
@@ -79,7 +80,7 @@ static void push_lock(void* c, const CLockLocation& locklocation, bool fTry)
     if (lockstack.get() == NULL)
         lockstack.reset(new LockStack);
 
-    LogPrint("lock", "Locking: %s\n", locklocation.ToString());
+    LogPrint(BCLog::LOCK, "Locking: %s\n", locklocation.ToString());
     dd_mutex.lock();
 
     (*lockstack).push_back(make_pair(c, locklocation));
@@ -109,7 +110,7 @@ static void pop_lock()
     if (fDebug)
     {
         const CLockLocation& locklocation = (*lockstack).rbegin()->second;
-        LogPrint("lock", "Unlocked: %s\n", locklocation.ToString());
+        LogPrint(BCLog::LOCK, "Unlocked: %s\n", locklocation.ToString());
     }
     dd_mutex.lock();
     (*lockstack).pop_back();

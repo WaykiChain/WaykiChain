@@ -147,7 +147,8 @@ coin_CORE_H = \
   tinyformat.h \
   uint256.h \
   wallet/wallet.h \
-  wallet/db.h
+  wallet/db.h \
+  logging.h
 
 JSON_H = \
   commons/json/json_spirit.h \
@@ -291,6 +292,7 @@ libcoin_server_a_SOURCES = \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
+  logging.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \

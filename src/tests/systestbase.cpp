@@ -3,7 +3,7 @@
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-
+#include "logging.h"
 #include "systestbase.h"
 
 void DetectShutdownThread(boost::thread_group *threadGroup) {
@@ -199,7 +199,7 @@ Value SysTestBase::CreateDelegateTx(const string &strAddress, const string &oper
     Value value;
 
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        LogPrint("test_miners", "CreateDelegateTx:%s\r\n", write_string(value, true));
+        LogPrint(BCLog::MINER, "CreateDelegateTx:%s\r\n", write_string(value, true));
         return value;
     }
     return value;
@@ -228,7 +228,7 @@ Value SysTestBase::CreateRegAppTx(const string &strAddress, const string &strScr
     Value value;
 
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        LogPrint("test_miners", "RegScriptTx:%s\r\n", write_string(value, true));
+        LogPrint(BCLog::MINER, "RegScriptTx:%s\r\n", write_string(value, true));
         return value;
     }
     return value;
@@ -251,7 +251,7 @@ Value SysTestBase::GetContractAccountInfo(const string &scriptId, const string &
 
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        LogPrint("test_miners", "GetContractAccountInfo:%s\r\n", write_string(value, true));
+        LogPrint(BCLog::MINER, "GetContractAccountInfo:%s\r\n", write_string(value, true));
         return value;
     }
     return value;
@@ -375,7 +375,7 @@ bool SysTestBase::GetBlockHeight(int &height) {
         Object obj = value.get_obj();
 
         height = find_value(obj, "blocks").get_int();
-        LogPrint("test_miners", "GetBlockHeight:%d\r\n", height);
+        LogPrint(BCLog::MINER, "GetBlockHeight:%d\r\n", height);
         return true;
     }
     return false;
@@ -397,7 +397,7 @@ Value SysTestBase::CreateNormalTx(const std::string &srcAddr, const std::string 
 
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        // LogPrint("test_miners", "CreateNormalTx:%s\r\n", value.get_str().c_str());
+        LogPrint(BCLog::MINER, "CreateNormalTx:%s\r\n", value.get_str().c_str());
         return value;
     }
     return value;
@@ -414,7 +414,7 @@ Value SysTestBase::CreateNormalTx(const std::string &desAddr, uint64_t nMoney) {
 
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        // LogPrint("test_miners", "CreateNormalTx:%s\r\n", value.get_str().c_str());
+        LogPrint(BCLog::MINER, "CreateNormalTx:%s\r\n", value.get_str().c_str());
         return value;
     }
     return value;
@@ -435,7 +435,7 @@ Value SysTestBase::RegisterAccountTx(const std::string &addr, const int nfee) {
 
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        //    LogPrint("test_miners", "RegisterSecureTx:%s\r\n", value.get_str().c_str());
+        LogPrint(BCLog::MINER, "RegisterSecureTx:%s\r\n", value.get_str().c_str());
         return value;
     }
     return value;
@@ -489,7 +489,7 @@ Value SysTestBase::SignSecureTx(const string &securetx) {
 
     Value value;
     if (CommandLineRPC_GetValue(argc, argv, value)) {
-        // LogPrint("test_miners", "SignSecureTx:%s\r\n", value.get_str().c_str());
+        LogPrint(BCLog::MINER, "SignSecureTx:%s\r\n", value.get_str().c_str());
         return value;
     }
     return value;
@@ -518,7 +518,7 @@ bool SysTestBase::GetBlockMinerAddr(const std::string &blockhash, std::string &a
     if (CommandLineRPC_GetValue(argc, argv, value)) {
         Array txs = find_value(value.get_obj(), "tx").get_array();
         addr      = find_value(txs[0].get_obj(), "addr").get_str();
-        LogPrint("test_miners", "GetBlockMinerAddr:%s\r\n", addr.c_str());
+        LogPrint(BCLog::MINER, "GetBlockMinerAddr:%s\r\n", addr.c_str());
         return true;
     }
     return false;
@@ -583,7 +583,7 @@ void SysTestBase::StartServer(int argc, const char *argv[]) {
 //    fRequestShutdown = true;
 //}
 void SysTestBase::StopServer() {
-    LogPrint("INFO", "Start to shutdown\n");
+    LogPrint(BCLog::INFO, "Start to shutdown\n");
     StartShutdown();
     assert(pThreadShutdown != NULL);
     if (pThreadShutdown) {

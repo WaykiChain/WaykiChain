@@ -6,12 +6,12 @@
 #ifndef PERSIST_LEVELDBWRAPPER_H
 #define PERSIST_LEVELDBWRAPPER_H
 
+#include "logging.h"
 #include "commons/json/json_spirit_value.h"
 #include "commons/serialize.h"
 #include "commons/util/util.h"
 #include "config/version.h"
 #include "dbconf.h"
-
 
 #include <boost/filesystem/path.hpp>
 #include <leveldb/db.h>
@@ -181,7 +181,7 @@ public:
         if (!status.ok()) {
             if (status.IsNotFound())
                 return false;
-            LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
+            LogPrint(BCLog::INFO,"LevelDB read failure: %s\n", status.ToString().c_str());
             ThrowError(status);
         }
         try {
@@ -207,7 +207,7 @@ public:
         if (!status.ok()) {
             if (status.IsNotFound())
                 return false;
-            LogPrint("INFO","LevelDB read failure: %s\n", status.ToString().c_str());
+            LogPrint(BCLog::INFO,"LevelDB read failure: %s\n", status.ToString().c_str());
             ThrowError(status);
         }
         return true;

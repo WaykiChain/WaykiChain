@@ -6,15 +6,16 @@
 #ifndef BITCOIN_LOGGING_H
 #define BITCOIN_LOGGING_H
 
-#include "fs.h"
-#include <tinyformat.h>
-
+#include "commons/tinyformat.h"
+#include <boost/filesystem.hpp>
 #include <atomic>
 #include <cstdint>
 #include <list>
 #include <mutex>
 #include <string>
 #include <vector>
+
+namespace fs = boost::filesystem;
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS        = false;
@@ -33,26 +34,27 @@ struct CLogCategoryActive
 namespace BCLog { //blockchain log
     enum LogFlags : uint32_t {
         NONE        = 0,
-        INFO        = (1 <<  4),
-        DEBUG       = (1 <<  5),
+        INFO        = (1 <<  0),
         ERROR       = (1 <<  1),
-        NET         = (1 <<  0),
-        VM          = (1 <<  0),
-        LOCK        = (1 <<  0),
-        HTTP        = (1 <<  3),
-        RPC         = (1 <<  7),
-        REINDEX     = (1 << 11),
-        PROFIT      = (1 <<  8),
-        ADDRMAN     = (1 <<  9),
-        PRICEFEED   = (1 << 10),
-        CDP         = (1 << 12),
-        PRUNE       = (1 << 14),
-        PROXY       = (1 << 15),
-        MEMPOOLREJ  = (1 << 16),
-        LIBEVENT    = (1 << 17),
-        BDB         = (1 << 18),
-        LDB         = (1 << 20),
-        QT          = (1 << 19),
+        DEBUG       = (1 <<  2),
+        NET         = (1 <<  3),
+        MINER       = (1 <<  4),
+        ALERT       = (1 <<  5),
+        CDB         = (1 <<  6),
+        BDB         = (1 <<  7),
+        LDB         = (1 <<  8),
+        LUAVM       = (1 <<  9),
+        WASM        = (1 << 10),
+        LOCK        = (1 << 11),
+        HTTP        = (1 << 12),
+        RPC         = (1 << 13),
+        REINDEX     = (1 << 14),
+        PROFIT      = (1 << 15),
+        ADDRMAN     = (1 << 16),
+        PRICEFEED   = (1 << 17),
+        CDP         = (1 << 18),
+        WALLET      = (1 << 19),
+        LIBEVENT    = (1 << 20),
         ALL         = ~(uint32_t)0,
     };
 

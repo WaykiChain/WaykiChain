@@ -182,7 +182,7 @@ inline uint32_t GetJumpHeightBySubsidy(const uint8_t targetSubsidyRate) {
     }
 
     // for (const auto& item : subsidyRate2BlockHeight) {
-    //     LogPrint("DEUBG", "subsidyRate -> blockHeight: %d -> %u\n", item.first, item.second);
+    //     LogPrint(BCLog::DEBUG, "subsidyRate -> blockHeight: %d -> %u\n", item.first, item.second);
     // }
 
     return subsidyRate2BlockHeight.at(targetSubsidyRate);
