@@ -39,19 +39,19 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
     if (iter != kTxFeeTable.end()) {
         FeatureForkVersionEnum version = GetFeatureForkVersion(height);
         if (symbol == SYMB::WICC) {
-            if (version == MAJOR_VER_R1) { // Prior-stablecoin Release
-                feeOut = std::get<1>(iter->second);
-                return true;
-            } else {
+            if (version >= MAJOR_VER_R2) {
                 feeOut = std::get<2>(iter->second);
+                return true;
+            } else { //MAJOR_VER_R1  //Prior-stablecoin Release
+                feeOut = std::get<1>(iter->second);
                 return true;
             }
         } else if (symbol == SYMB::WUSD) {
-            if (version == MAJOR_VER_R1) { // Prior-stablecoin Release
-                feeOut = std::get<3>(iter->second);
-                return true;
-            } else {
+            if (version >= MAJOR_VER_R2){
                 feeOut = std::get<4>(iter->second);
+                return true;
+            } { //MAJOR_VER_R1 //Prior-stablecoin Release
+                feeOut = std::get<3>(iter->second);
                 return true;
             }
         }

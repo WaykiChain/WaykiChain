@@ -62,7 +62,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
     }
 
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
         double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
         if (feePerKb < MIN_RELAY_TX_FEE) {
