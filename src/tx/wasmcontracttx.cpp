@@ -22,8 +22,6 @@
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
 
-//static CCacheWrapper *g_pCW = nullptr;//= std::make_shared<CCacheWrapper>(mempool.cw.get());
-
 static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
     json_spirit::Object obj;

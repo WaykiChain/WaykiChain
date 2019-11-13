@@ -124,8 +124,8 @@ void get_contract(CAccountDBCache* database_account, CContractDBCache* database_
 
     WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
                 "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
-    JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
-    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with regid = %s", contract.regid.ToString().c_str()))
+    JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("cannot get contract with nick_id = %s", contract_name.to_string().c_str()))
+    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,  strprintf("cannot get contract with nick_id = %s", contract_name.to_string().c_str()))
     JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      RPC_WALLET_ERROR,  "VM type must be wasm")
     JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  RPC_WALLET_ERROR,  "contract lose abi")
     //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")

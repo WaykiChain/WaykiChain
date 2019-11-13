@@ -33,7 +33,7 @@ namespace wasm {
         };
 
         ~wasm_context() { 
-            //wasm_alloc.free(); 
+            wasm_alloc.free(); 
         };
 
     public:
@@ -64,7 +64,7 @@ namespace wasm {
             CAccount contract_account; 
             wasm::name contract_name = wasm::name(contract);
             WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
-            "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+            "wasm_context.set_data, contract account does not exist, contract = %s",contract_name.to_string().c_str())
 
             return database.contractCache.SetContractData(contract_account.regid, k, v);
         }
@@ -72,7 +72,7 @@ namespace wasm {
             CAccount contract_account; 
             wasm::name contract_name = wasm::name(contract);
             WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
-            "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+            "wasm_context.get_data, contract account does not exist, contract = %s",contract_name.to_string().c_str())
 
             return database.contractCache.GetContractData(contract_account.regid, k, v);
         }
@@ -80,7 +80,7 @@ namespace wasm {
             CAccount contract_account; 
             wasm::name contract_name = wasm::name(contract);
             WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
-            "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+            "wasm_context.erase_data, contract account does not exist, contract = %s",contract_name.to_string().c_str())
                        
             return database.contractCache.EraseContractData(contract_account.regid, k);
         }
