@@ -60,13 +60,29 @@ namespace wasm {
         const char *get_action_data() { return trx.data.data(); }
         uint32_t get_action_data_size() { return trx.data.size(); }
         bool set_data( uint64_t contract, string k, string v ) {
-            return cache.contractCache.SetContractData(CNickID(wasm::name(contract).to_string()),cache, k, v);
+
+            CAccount contract_account; 
+            wasm::name contract_name = wasm::name(contract);
+            WASM_ASSERT(cache.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
+            "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+
+            return cache.contractCache.SetContractData(contract_account.regid, k, v);
         }
         bool get_data( uint64_t contract, string k, string &v ) {
-            return cache.contractCache.GetContractData(CNickID(wasm::name(contract).to_string()),cache, k, v);
+            CAccount contract_account; 
+            wasm::name contract_name = wasm::name(contract);
+            WASM_ASSERT(cache.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
+            "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+
+            return cache.contractCache.GetContractData(contract_account.regid, k, v);
         }
         bool erase_data( uint64_t contract, string k ) {
-            return cache.contractCache.EraseContractData(CNickID(wasm::name(contract).to_string()), cache, k);
+            CAccount contract_account; 
+            wasm::name contract_name = wasm::name(contract);
+            WASM_ASSERT(cache.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
+            "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
+                       
+            return cache.contractCache.EraseContractData(contract_account.regid, k);
         }
         bool contracts_console() { return true; } //should be set by console
         void console_append( string val ) {

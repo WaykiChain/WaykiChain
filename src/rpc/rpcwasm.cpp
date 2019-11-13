@@ -69,8 +69,6 @@ bool read_file_limit(const string& path, string& data, uint64_t max_size){
 
         f.seekg(pos);
         while (f.get(byte)) data.push_back(byte);
-        // size_t size = data.size();
-        // if (size == 0 || size > max_size) return false;
         return true;
     } catch (...) {
         return false;
@@ -178,12 +176,12 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
-        std::tuple<bool, string> r = wallet->CommitTx((CBaseTx * ) & tx);
-        JSON_RPC_ASSERT(std::get<0>(r), RPC_WALLET_ERROR, std::get<1>(r))
+        std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
+        JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
         Object obj_return;
         json_spirit::Value value_json;
-        json_spirit::read_string(std::get<1>(r), value_json);
+        json_spirit::read_string(std::get<1>(ret), value_json);
         json_spirit::Config::add(obj_return, "result",  value_json);
 
         return obj_return;
@@ -243,7 +241,7 @@ Value callwasmcontracttx( const Array &params, bool fHelp ) {
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
-        std::tuple<bool, string> ret = pWalletMain->CommitTx((CBaseTx * ) & tx);
+        std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
         Object obj_return;
@@ -349,7 +347,7 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
 
 Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::abi_json_to_bin_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::abi_bin_to_json_wasm_contract_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
