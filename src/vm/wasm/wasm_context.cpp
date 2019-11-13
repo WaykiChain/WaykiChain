@@ -13,16 +13,16 @@ using namespace wasm;
 
 namespace wasm {
     using nativeHandler = std::function<void(wasm_context & )>;
-    bool has_wasm_interface_inited = false;
-    map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
+    bool g_wasm_interface_inited = false;
+    map <pair<uint64_t, uint64_t>, nativeHandler> g_wasm_native_handlers;
 
     inline void register_native_handler(uint64_t receiver, uint64_t action, nativeHandler v) {
-        wasm_native_handlers[std::pair(receiver, action)] = v;
+        g_wasm_native_handlers[std::pair(receiver, action)] = v;
     }
 
     inline nativeHandler *find_native_handle(uint64_t receiver, uint64_t action) {
-        auto handler = wasm_native_handlers.find(std::pair(receiver, action));
-        if (handler != wasm_native_handlers.end()) {
+        auto handler = g_wasm_native_handlers.find(std::pair(receiver, action));
+        if (handler != g_wasm_native_handlers.end()) {
             return &handler->second;
         }
 
@@ -79,8 +79,8 @@ namespace wasm {
 
     void wasm_context::initialize() {
 
-        if (!has_wasm_interface_inited) {
-            has_wasm_interface_inited = true;
+        if (!g_wasm_interface_inited) {
+            g_wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
             register_native_handler(wasmio, N(setcode), wasm_native_setcode);
             register_native_handler(wasmio, N(transfer), wasm_native_transfer);
