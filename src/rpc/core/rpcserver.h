@@ -196,8 +196,8 @@ extern json_spirit::Value getasset(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value getassets(const json_spirit::Array& params, bool fHelp);
 
 
-extern json_spirit::Value setcodewasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value callwasmcontracttx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitwasmcontractdeploytx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value submitwasmcontractcalltx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gettablewasmcontracttx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value abijsontobinwasmcontracttx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value abibintojsonwasmcontracttx(const json_spirit::Array& params, bool fHelp);

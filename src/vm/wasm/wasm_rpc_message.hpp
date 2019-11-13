@@ -26,9 +26,9 @@ namespace wasm { namespace rpc{
     //                              "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
     // }
 
-    const char *set_code_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *submit_wasm_contract_deploy_tx_rpc_help_message = R"=====(
     {
-        setcodewasmcontracttx "sender" "contract" "wasm_file" "abi_file" ["memo"] [symbol:fee:unit]
+        submitwasmcontractdeploytx "sender" "contract" "wasm_file" "abi_file" ["memo"] [symbol:fee:unit]
         create a transaction of registering a contract app
         Arguments:
         1."sender":          (string required) contract owner address from this wallet
@@ -40,9 +40,9 @@ namespace wasm { namespace rpc{
         Result:
         "txhash":            (string)
         Examples:
-        > ./coind setcodewasmcontracttx "walker222222" "walker222222" "/tmp/myapp.wasm" "/tmp/myapp.bai"
+        > ./coind submitwasmcontractdeploytx "walker222222" "walker222222" "/tmp/myapp.wasm" "/tmp/myapp.bai"
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"setcodewasmcontracttx", "params":["walker222222", "/tmp/myapp.wasm", "/tmp/myapp.bai"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitwasmcontractdeploytx", "params":["walker222222", "/tmp/myapp.wasm", "/tmp/myapp.bai"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -65,18 +65,18 @@ namespace wasm { namespace rpc{
     //                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
     // }
 
-    const char *call_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(
     {
-        callwasmcontracttx "sender addr" "contract" "action" "data" "fee"
-        1."sender ":  (string, required) tx sender's base58 addr\
-        2."contract": (string, required) contract name\
+        submitwasmcontractcalltx "sender" "contract" "action" "data" "fee"
+        1."sender ":  (string, required) sender name
+        2."contract": (string, required) contract name
         3."action":   (string, required) action name
         4."data":     (json string, required) action data
         5."fee":      (numeric, required) pay to miner
         Result:
         "txid":       (string)
         Examples: 
-        > ./coind setcodewasmcontracttx "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind submitwasmcontractcalltx "xiaoyu111111" "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"setcodewasmcontracttx", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }

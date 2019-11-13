@@ -9,8 +9,8 @@
 using namespace std;
 using namespace json_spirit;
 
-extern Value setcodewasmcontracttx(const Array& params, bool fHelp);
-extern Value callwasmcontracttx(const Array& params, bool fHelp);
+extern Value submitwasmcontractdeploytx(const Array& params, bool fHelp);
+extern Value submitwasmcontractcalltx(const Array& params, bool fHelp);
 extern Value gettablerowwasmcontracttx(const Array& params, bool fHelp);
 
 #endif //RPC_VM_H

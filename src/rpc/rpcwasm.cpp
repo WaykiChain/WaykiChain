@@ -132,9 +132,9 @@ void get_contract(CAccountDBCache* database_account, CContractDBCache* database_
 }
 
 // set code and abi
-Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
+Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 7, wasm::rpc::set_code_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 7, wasm::rpc::submit_wasm_contract_deploy_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     //pack tx and commit
@@ -193,9 +193,9 @@ Value setcodewasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 
-Value callwasmcontracttx( const Array &params, bool fHelp ) {
+Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 5 , wasm::rpc::call_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 5 , wasm::rpc::submit_wasm_contract_call_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     try {
