@@ -61,7 +61,7 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
     double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
     interestOut               = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
 
-    LogPrint("CDP", "ComputeCDPInterest, currBlockHeight: %d, cdpLastBlockHeight: %d, loanedDays: %d, A: %llu, B: %llu, N: "
+    LogPrint(BCLog::CDP, "ComputeCDPInterest, currBlockHeight: %d, cdpLastBlockHeight: %d, loanedDays: %d, A: %llu, B: %llu, N: "
              "%llu, annualInterestRate: %f, interestOut: %llu\n",
              currBlockHeight, cdpLastBlockHeight, loanedDays, A, B, N, annualInterestRate, interestOut);
 
@@ -140,7 +140,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "global-collateral-ceiling-reached");
     }
 
-    LogPrint("CDP",
+    LogPrint(BCLog::CDP,
              "CCDPStakeTx::ExecuteTx, globalCollateralRatioMin: %llu, slideWindow: %llu, globalCollateralCeiling: %llu\n",
              globalCollateralRatioMin, slideWindow, globalCollateralCeiling);
 
@@ -465,13 +465,13 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
 
     //3. redeem in scoins and update cdp
     if (assetAmount > cdp.total_staked_bcoins) {
-        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
+        LogPrint(BCLog::CDP, "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
                         assetAmount, cdp.total_staked_bcoins);
         assetAmount = cdp.total_staked_bcoins;
     }
     uint64_t actualScoinsToRepay = scoins_to_repay;
     if (actualScoinsToRepay > cdp.total_owed_scoins) {
-        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
+        LogPrint(BCLog::CDP, "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
                         actualScoinsToRepay, cdp.total_staked_bcoins);
         actualScoinsToRepay = cdp.total_owed_scoins;
     }
@@ -493,11 +493,11 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         } else {
             if (SysCfg().GetArg("-persistclosedcdp", false)) {
                 if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, GetHash(), CDPCloseType::BY_REDEEM)) {
-                    LogPrint("ERROR", "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                    LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
 
                 if (!cw.closedCdpCache.AddClosedCdpTxIndex(GetHash(), oldCDP.cdpid, CDPCloseType::BY_REDEEM)) {
-                    LogPrint("ERROR", "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                    LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
             }
         }
@@ -832,11 +832,11 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         } else if (SysCfg().GetArg("-persistclosedcdp", false)) {
             if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, GetHash(), CDPCloseType::BY_MANUAL_LIQUIDATE)) {
-                LogPrint("ERROR", "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
             }
 
             if (!cw.closedCdpCache.AddClosedCdpTxIndex(GetHash(), oldCDP.cdpid, CDPCloseType::BY_MANUAL_LIQUIDATE)) {
-                LogPrint("ERROR", "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
             }
         }
 

@@ -6,7 +6,6 @@
 #include "wallet.h"
 
 #include "commons/base58.h"
-
 #include <openssl/rand.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -14,6 +13,8 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
+std::string test = boost::filesystem::basename("/opt/wicc");
+
 #include <boost/interprocess/sync/file_lock.hpp>
 #include "commons/random.h"
 #include "config/configuration.h"
@@ -22,12 +23,14 @@
 #include "net.h"
 #include "persistence/accountdb.h"
 #include "persistence/contractdb.h"
+#include "../logging.h"
 
 using namespace json_spirit;
 using namespace boost::assign;
 using namespace std;
 using namespace boost;
 
+namespace fs = boost::filesystem;
 string CWallet::defaultFileName("");
 
 bool CWallet::Unlock(const SecureString &strWalletPassphrase) {
@@ -83,7 +86,7 @@ bool CWallet::ChangeWalletPassphrase(const SecureString &strOldWalletPassphrase,
 
                 if (pMasterKey.second.nDeriveIterations < 25000) pMasterKey.second.nDeriveIterations = 25000;
 
-                LogPrint("INFO", "Wallet passphrase changed to an nDeriveIterations of %i\n",
+                LogPrint(BCLog::INFO, "Wallet passphrase changed to an nDeriveIterations of %i\n",
                          pMasterKey.second.nDeriveIterations);
 
                 if (!crypter.SetKeyFromPassphrase(strNewWalletPassphrase, pMasterKey.second.vchSalt,
@@ -195,7 +198,7 @@ void CWallet::ResendWalletTransactions() {
         auto ret                         = CommitTx(&(*pBaseTx.get()));
         if (!std::get<0>(ret)) {
             erase.push_back(te.first);
-            LogPrint("CWallet", "abort invalid tx %s reason:%s\n", te.second.get()->ToString(*pCdMan->pAccountCache),
+            LogPrint(BCLog::WALLET, "abort invalid tx %s reason:%s\n", te.second.get()->ToString(*pCdMan->pAccountCache),
                      std::get<1>(ret));
         }
     }
@@ -208,13 +211,13 @@ void CWallet::ResendWalletTransactions() {
 //// Call after CreateTransaction unless you want to abort
 std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     LOCK2(cs_main, cs_wallet);
-    LogPrint("INFO", "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
+    LogPrint(BCLog::INFO, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
     {
         CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
             // This must not fail. The transaction has already been signed and recorded.
-            LogPrint("INFO", "CommitTx() : invalid transaction %s\n", state.GetRejectReason());
+            LogPrint(BCLog::INFO, "CommitTx() : invalid transaction %s\n", state.GetRejectReason());
             return std::make_tuple(false, state.GetRejectReason());
         }
     }
@@ -284,7 +287,7 @@ bool CWallet::EncryptWallet(const SecureString &strWalletPassphrase) {
 
     if (kMasterKey.nDeriveIterations < 25000) kMasterKey.nDeriveIterations = 25000;
 
-    LogPrint("INFO", "Encrypting Wallet with an nDeriveIterations of %i\n", kMasterKey.nDeriveIterations);
+    LogPrint(BCLog::INFO, "Encrypting Wallet with an nDeriveIterations of %i\n", kMasterKey.nDeriveIterations);
 
     if (!crypter.SetKeyFromPassphrase(strWalletPassphrase, kMasterKey.vchSalt, kMasterKey.nDeriveIterations,
                                       kMasterKey.nDerivationMethod))
@@ -359,12 +362,12 @@ bool CWallet::SetMinVersion(enum WalletFeature nVersion, CWalletDB *pWalletDbIn)
 
 bool CWallet::StartUp(string &strWalletFile) {
     auto InitError = [](const string &str) {
-        LogPrint("ERROR", "%s\n", str);
+        LogPrint(BCLog::ERROR, "%s\n", str);
         return true;
     };
 
     auto InitWarning = [](const string &str) {
-        LogPrint("ERROR", "%s\n", str);
+        LogPrint(BCLog::ERROR, "%s\n", str);
         return true;
     };
 
@@ -378,16 +381,16 @@ bool CWallet::StartUp(string &strWalletFile) {
     if (strWalletFile == "") {
         strWalletFile = defaultFileName;
     }
-    LogPrint("INFO", "Using wallet %s\n", strWalletFile);
+    LogPrint(BCLog::INFO, "Using wallet %s\n", strWalletFile);
 
     if (!bitdb.Open(GetDataDir())) {
         // try moving the database env out of the way
-        boost::filesystem::path pathDatabase    = GetDataDir() / "database";
-        boost::filesystem::path pathDatabaseBak = GetDataDir() / strprintf("database.%d.bak", GetTime());
+        fs::path pathDatabase    = GetDataDir() / "database";
+        fs::path pathDatabaseBak = GetDataDir() / strprintf("database.%d.bak", GetTime());
         try {
-            boost::filesystem::rename(pathDatabase, pathDatabaseBak);
-            LogPrint("INFO", "Moved old %s to %s. Retrying.\n", pathDatabase.string(), pathDatabaseBak.string());
-        } catch (boost::filesystem::filesystem_error &error) {
+            fs::rename(pathDatabase, pathDatabaseBak);
+            LogPrint(BCLog::INFO, "Moved old %s to %s. Retrying.\n", pathDatabase.string(), pathDatabaseBak.string());
+        } catch (fs::filesystem_error &error) {
             // failure is ok (well, not really, but it's not worse than what we started with)
         }
 

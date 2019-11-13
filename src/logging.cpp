@@ -5,8 +5,9 @@
 
 #include "logging.h"
 
-#include <util/threadnames.h>
-#include <util/time.h>
+#include "fs.h"
+#include "commons/util/threadnames.h"
+#include "commons/util/time.h"
 
 #include <mutex>
 
@@ -132,31 +133,30 @@ struct CLogCategoryDesc
 
 const CLogCategoryDesc LogCategories[] =
 {
-    {BCLog::NONE, "0"},
-    {BCLog::NONE, "none"},
-    {BCLog::NET, "net"},
-    {BCLog::TOR, "tor"},
-    {BCLog::MEMPOOL, "mempool"},
-    {BCLog::HTTP, "http"},
-    {BCLog::BENCH, "bench"},
-    {BCLog::ZMQ, "zmq"},
-    {BCLog::DB, "db"},
-    {BCLog::RPC, "rpc"},
-    {BCLog::ESTIMATEFEE, "estimatefee"},
-    {BCLog::ADDRMAN, "addrman"},
-    {BCLog::SELECTCOINS, "selectcoins"},
-    {BCLog::REINDEX, "reindex"},
-    {BCLog::CMPCTBLOCK, "cmpctblock"},
-    {BCLog::RAND, "rand"},
-    {BCLog::PRUNE, "prune"},
-    {BCLog::PROXY, "proxy"},
-    {BCLog::MEMPOOLREJ, "mempoolrej"},
-    {BCLog::LIBEVENT, "libevent"},
-    {BCLog::COINDB, "coindb"},
-    {BCLog::QT, "qt"},
-    {BCLog::LEVELDB, "leveldb"},
-    {BCLog::ALL, "1"},
-    {BCLog::ALL, "all"},
+    {BCLog::NONE,       "0"         },
+    {BCLog::INFO,       "info"      },
+    {BCLog::ERROR,      "error"     },
+    {BCLog::DEBUG,      "debug"     },
+    {BCLog::NET,        "net"       },
+    {BCLog::MINER,      "miner"     },
+    {BCLog::ALERT,      "alert"     },
+    {BCLog::CDB,        "cdb"       },
+    {BCLog::BDB,        "bdb"       },
+    {BCLog::LDB,        "ldb"       },
+    {BCLog::LUAVM,      "luavm"     },
+    {BCLog::WASM,       "wasm"      },
+    {BCLog::LOCK,       "lock"      },
+    {BCLog::HTTP,       "http"      },
+    {BCLog::RPC,        "rpc"       },
+    {BCLog::REINDEX,    "reindex"   },
+    {BCLog::PROFIT,     "profit"    },
+    {BCLog::ADDRMAN,    "addrman"   },
+    {BCLog::PRICEFEED,  "pricefeed" },
+    {BCLog::CDP,        "cdp"       },
+    {BCLog::WALLET,     "wallet"    },
+    {BCLog::LIBEVENT,   "libevent"  },
+    {BCLog::ALL,        "1"         },
+    {BCLog::ALL,        "all"       },
 };
 
 bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str)

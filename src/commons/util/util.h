@@ -10,6 +10,7 @@
 #include "config/coin-config.h"
 #endif
 
+#include "../../logging.h"
 #include "config/const.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
@@ -113,30 +114,14 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 void SetupEnvironment();
 
-// bool GetBoolArg(const string& strArg, bool fDefault);
-
-// Get the LogFile iterator by category
-bool FindLogFile(const char* category, DebugLogFileIt& logFileIt);
-/* Return true if log accepts specified category */
-bool LogAcceptCategory(const char* category);
 /* Send a string to the log output */
 int LogPrintStr(const string& str);
 extern string GetLogHead(int line, const char* file, const char* category);
 int LogPrintStr(const char* category, const string& str);
 
-int LogPrintStr(const std::string& logName, DebugLogFile& logFile, const string& str);
-
 #define strprintf tfm::format
 
 #define ERRORMSG(...) error2(__LINE__, __FILE__, __VA_ARGS__)
-
-#define LogPrint(tag, ...)                                                                           \
-    {                                                                                                \
-        DebugLogFileIt __logFileIt;                                                                  \
-        if (FindLogFile(tag, __logFileIt)) {                                                         \
-            LogTrace(tag, __logFileIt->first, __logFileIt->second, __LINE__, __FILE__, __VA_ARGS__); \
-        }                                                                                            \
-    }
 
 #define MAKE_ERROR_AND_TRACE_FUNC(n)                                                                                 \
     /*   Print to debug.log if -debug=category switch is given OR category is NULL. */                               \
@@ -149,31 +134,25 @@ int LogPrintStr(const std::string& logName, DebugLogFile& logFile, const string&
     /*   Log error and return false */                                                                               \
     template <TINYFORMAT_ARGTYPES(n)>                                                                                \
     static inline bool error2(int line, const char* file, const char* format1, TINYFORMAT_VARARGS(n)) {              \
-        LogPrintStr("ERROR", GetLogHead(line, file, "ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)) + "\n"); \
+        LogPrintf("ERROR: %s \n", GetLogHead(line, file, "ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)));   \
         return false;                                                                                                \
     }
 
 TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_TRACE_FUNC)
 
-static inline bool error2(int line, const char* file, const char* format) {
-    //	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
-    LogPrintStr("ERROR", GetLogHead(line, file, "ERROR") + format + "\n");
+template<typename... Args>
+bool error(const char* fmt, const Args&... args)
+{
+    LogPrintf("ERROR: %s\n", tfm::format(fmt, args...));
     return false;
 }
 
-extern string GetLogHead(int line, const char* file, const char* category);
-
-static inline int32_t LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile, int32_t line,
-                               const char* file, const char* format) {
-    return LogPrintStr(logName, logFile, GetLogHead(line, file, category) + format);
+static inline bool error2(int line, const char* file, const char* format) {
+    //	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
+    LogPrintf("ERROR: %s %s\n", GetLogHead(line, file, "ERROR"), format);
+    return false;
 }
 
-// static inline bool errorTrace(const char* format) {
-//	LogPrintStr(string("ERROR: ") + format + "\n");
-//	return false;
-//}
-
-void LogException(std::exception* pex, const char* pszThread);
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 string FormatMoney(int64_t n, bool fPlus = false);
 bool ParseMoney(const string& str, int64_t& nRet);
@@ -438,14 +417,14 @@ template <typename Callable>
 void LoopForever(const char* name, Callable func, int64_t msecs) {
     string s = strprintf("coin-%s", name);
     RenameThread(s.c_str());
-    LogPrint("INFO", "%s thread start\n", name);
+    LogPrint(BCLog::INFO, "%s thread start\n", name);
     try {
         while (1) {
             MilliSleep(msecs);
             func();
         }
     } catch (boost::thread_interrupted) {
-        LogPrint("INFO", "%s thread stop\n", name);
+        LogPrint(BCLog::INFO, "%s thread stop\n", name);
         throw;
     } catch (std::exception& e) {
         PrintExceptionContinue(&e, name);
@@ -461,11 +440,11 @@ void TraceThread(const char* name, Callable func) {
     string s = strprintf("coin-%s", name);
     RenameThread(s.c_str());
     try {
-        LogPrint("INFO", "%s thread start\n", name);
+        LogPrint(BCLog::INFO, "%s thread start\n", name);
         func();
-        LogPrint("INFO", "%s thread exit\n", name);
+        LogPrint(BCLog::INFO, "%s thread exit\n", name);
     } catch (boost::thread_interrupted) {
-        LogPrint("INFO", "%s thread interrupt\n", name);
+        LogPrint(BCLog::INFO, "%s thread interrupt\n", name);
         throw;
     } catch (std::exception& e) {
         PrintExceptionContinue(&e, name);

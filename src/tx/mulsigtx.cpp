@@ -270,7 +270,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountCache) const {
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
         if (!accountCache.GetAccount(item.regid, account)) {
-            LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n", item.regid.ToString());
+            LogPrint(BCLog::ERROR, "CMulsigTx::ToJson, failed to get account info: %s\n", item.regid.ToString());
             continue;
         }
         pubKeys.insert(account.owner_pubkey);

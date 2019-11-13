@@ -5,6 +5,7 @@
 
 #include "random.h"
 
+#include "logging.h"
 #include "commons/support/cleanse.h"
 #ifdef WIN32
 #include "compat/compat.h" // for Windows API
@@ -72,11 +73,11 @@ void RandAddSeedPerfmon()
     if (ret == ERROR_SUCCESS) {
         RAND_add(begin_ptr(vData), nSize, nSize / 100.0);
         memory_cleanse(begin_ptr(vData), nSize);
-        LogPrint("rand", "%s: %lu bytes\n", __func__, nSize);
+        // LogPrint("rand", "%s: %lu bytes\n", __func__, nSize);
     } else {
         static bool warned = false; // Warn only once
         if (!warned) {
-            LogPrint("INFO", "%s: Warning: RegQueryValueExA(HKEY_PERFORMANCE_DATA) failed with code %i\n", __func__, ret);
+            LogPrint(BCLog::INFO, "%s: Warning: RegQueryValueExA(HKEY_PERFORMANCE_DATA) failed with code %i\n", __func__, ret);
             warned = true;
         }
     }
@@ -86,7 +87,7 @@ void RandAddSeedPerfmon()
 void GetRandBytes(unsigned char* buf, int num)
 {
     if (RAND_bytes(buf, num) != 1) {
-        LogPrint("INFO", "%s: OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
+        LogPrint(BCLog::INFO, "%s: OpenSSL RAND_bytes() failed with error: %s\n", __func__, ERR_error_string(ERR_get_error(), NULL));
         assert(false);
     }
 }

@@ -73,22 +73,22 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
             fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    vector<CRegID> delegateList;
-    if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get top delegate list failed"),
+    DelegateVector delegates;
+    if (!cw.delegateCache.GetActiveDelegates(delegates)) {
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, GetActiveDelegates failed"),
             REJECT_INVALID, "get-delegates-failed");
     }
-    assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
+    assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
 
-    for (size_t i = 0; i < delegateList.size(); i++) {
-        const CRegID &delegateRegid = delegateList[i];
+    for (size_t i = 0; i < delegates.size(); i++) {
+        const CRegID &delegateRegid = delegates[i];
         CAccount delegateAccount;
         if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, get delegate account info failed! delegate regid=%s",
                 delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        uint64_t minerUpdatedFee = minerTotalFee / delegateList.size();
-        if (i == 0) minerUpdatedFee += minerTotalFee % delegateList.size(); // give the dust amount to topmost miner
+        uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
+        if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
         if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",

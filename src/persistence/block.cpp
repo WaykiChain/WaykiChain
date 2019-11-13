@@ -93,7 +93,7 @@ map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
         }
     }
 
-    LogPrint("ERROR", "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
+    LogPrint(BCLog::ERROR, "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
              GetHash().GetHex());
     assert(false && "block does not have price median tx");
     return map<CoinPricePair, uint64_t>();
@@ -112,7 +112,7 @@ void CBlock::Print() const {
         medianPrices += strprintf("{%s/%s -> %llu}", std::get<0>(item.first), std::get<1>(item.first), item.second);
     }
 
-    LogPrint("DEBUG", "block height=%d, hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
+    LogPrint(BCLog::DEBUG, "block height=%d, hash=%s, ver=%d, hashPrevBlock=%s, merkleRootHash=%s, nTime=%u, nNonce=%u, vtx=%u, nFuel=%d, "
              "nFuelRate=%d, median prices: %s\n",
              height, GetHash().ToString(), nVersion, prevBlockHash.ToString(), merkleRootHash.ToString(), nTime, nNonce,
              vptx.size(), nFuel, nFuelRate, medianPrices);

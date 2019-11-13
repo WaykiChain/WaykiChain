@@ -6,15 +6,16 @@
 #ifndef BITCOIN_LOGGING_H
 #define BITCOIN_LOGGING_H
 
-#include "fs.h"
-#include <tinyformat.h>
-
+#include "commons/tinyformat.h"
+#include <boost/filesystem.hpp>
 #include <atomic>
 #include <cstdint>
 #include <list>
 #include <mutex>
 #include <string>
 #include <vector>
+
+namespace fs = boost::filesystem;
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
 static const bool DEFAULT_LOGIPS        = false;
@@ -30,30 +31,30 @@ struct CLogCategoryActive
     bool active;
 };
 
-namespace BCLog {
+namespace BCLog { //blockchain log
     enum LogFlags : uint32_t {
         NONE        = 0,
-        NET         = (1 <<  0),
-        TOR         = (1 <<  1),
-        MEMPOOL     = (1 <<  2),
-        HTTP        = (1 <<  3),
-        BENCH       = (1 <<  4),
-        ZMQ         = (1 <<  5),
-        DB          = (1 <<  6),
-        RPC         = (1 <<  7),
-        ESTIMATEFEE = (1 <<  8),
-        ADDRMAN     = (1 <<  9),
-        SELECTCOINS = (1 << 10),
-        REINDEX     = (1 << 11),
-        CMPCTBLOCK  = (1 << 12),
-        RAND        = (1 << 13),
-        PRUNE       = (1 << 14),
-        PROXY       = (1 << 15),
-        MEMPOOLREJ  = (1 << 16),
-        LIBEVENT    = (1 << 17),
-        COINDB      = (1 << 18),
-        QT          = (1 << 19),
-        LEVELDB     = (1 << 20),
+        INFO        = (1 <<  0),
+        ERROR       = (1 <<  1),
+        DEBUG       = (1 <<  2),
+        NET         = (1 <<  3),
+        MINER       = (1 <<  4),
+        ALERT       = (1 <<  5),
+        CDB         = (1 <<  6),
+        BDB         = (1 <<  7),
+        LDB         = (1 <<  8),
+        LUAVM       = (1 <<  9),
+        WASM        = (1 << 10),
+        LOCK        = (1 << 11),
+        HTTP        = (1 << 12),
+        RPC         = (1 << 13),
+        REINDEX     = (1 << 14),
+        PROFIT      = (1 << 15),
+        ADDRMAN     = (1 << 16),
+        PRICEFEED   = (1 << 17),
+        CDP         = (1 << 18),
+        WALLET      = (1 << 19),
+        LIBEVENT    = (1 << 20),
         ALL         = ~(uint32_t)0,
     };
 
