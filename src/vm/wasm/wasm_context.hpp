@@ -26,9 +26,9 @@ namespace wasm {
     class wasm_context : public wasm_context_interface {
 
     public:
-        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
+        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, 
                       uint32_t depth = 0 )
-                : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
+                : trx(t), control_trx(ctrl), database(cw), recurse_depth(depth) {
             reset_console();
         };
 
@@ -38,7 +38,7 @@ namespace wasm {
 
     public:
         std::vector <uint8_t> get_code( uint64_t account );
-        std::string get_abi( uint64_t account );
+        //std::string get_abi( uint64_t account );
         void execute_one( inline_transaction_trace &trace );
         void initialize();
         void execute( inline_transaction_trace &trace );
@@ -63,26 +63,26 @@ namespace wasm {
 
             CAccount contract_account; 
             wasm::name contract_name = wasm::name(contract);
-            WASM_ASSERT(cache.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
+            WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
             "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
 
-            return cache.contractCache.SetContractData(contract_account.regid, k, v);
+            return database.contractCache.SetContractData(contract_account.regid, k, v);
         }
         bool get_data( uint64_t contract, string k, string &v ) {
             CAccount contract_account; 
             wasm::name contract_name = wasm::name(contract);
-            WASM_ASSERT(cache.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
+            WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
             "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
 
-            return cache.contractCache.GetContractData(contract_account.regid, k, v);
+            return database.contractCache.GetContractData(contract_account.regid, k, v);
         }
         bool erase_data( uint64_t contract, string k ) {
             CAccount contract_account; 
             wasm::name contract_name = wasm::name(contract);
-            WASM_ASSERT(cache.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
+            WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
             "wasmnativecontract.Setcode, contract account does not exist, contract = %s",contract_name.to_string().c_str())
                        
-            return cache.contractCache.EraseContractData(contract_account.regid, k);
+            return database.contractCache.EraseContractData(contract_account.regid, k);
         }
         bool contracts_console() { return true; } //should be set by console
         void console_append( string val ) {
@@ -106,8 +106,8 @@ namespace wasm {
 
         inline_transaction &trx;
         CWasmContractTx &control_trx;
-        CCacheWrapper &cache;
-        CValidationState &state;
+        CCacheWrapper &database;
+        //CValidationState &state;
 
         uint32_t recurse_depth;
         vector <uint64_t> notified;

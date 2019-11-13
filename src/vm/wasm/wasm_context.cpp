@@ -60,24 +60,22 @@ namespace wasm {
         vector <uint8_t> code;
         CUniversalContract contract;
         CAccount contract_account ;
-        if(cache.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account)
-            && cache.contractCache.GetContract(contract_account.regid, contract)) {
-            code.insert(code.begin(), contract.code.begin(), contract.code.end());
+        if(database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account)
+            && database.contractCache.GetContract(contract_account.regid, contract)) {
+            //code.insert(code.begin(), contract.code.begin(), contract.code.end());
+            code = vector <uint8_t>(contract.code.begin(), contract.code.end());
         }
-
-
         return code;
     }
 
-    std::string wasm_context::get_abi(uint64_t account) {
+    // std::string wasm_context::get_abi(uint64_t account) {
 
-        CUniversalContract contract;
-        CAccount contract_account ;
-        cache.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account);
-        cache.contractCache.GetContract(contract_account.regid, contract);
-
-        return contract.abi;
-    }
+    //     CUniversalContract contract;
+    //     CAccount contract_account ;
+    //     database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account);
+    //     database.contractCache.GetContract(contract_account.regid, contract);
+    //     return contract.abi;
+    // }
 
     void wasm_context::initialize() {
 
@@ -109,8 +107,7 @@ namespace wasm {
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
-            control_trx.DispatchInlineTransaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
-                                                  state, recurse_depth + 1);
+            control_trx.DispatchInlineTransaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, database, recurse_depth + 1);
         }
 
     }

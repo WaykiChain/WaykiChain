@@ -18,7 +18,7 @@ using namespace wasm;
 namespace wasm {
 
     inline void sub_balance(CAccount& from, const wasm::asset& quantity, wasm_context &context){
-        auto &database    = context.cache.accountCache;
+        auto &database    = context.database.accountCache;
 
         string symbol     = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
@@ -39,7 +39,7 @@ namespace wasm {
     }
 
     inline void add_balance(CAccount& to, const wasm::asset& quantity, wasm_context &context){
-        auto &database    = context.cache.accountCache;
+        auto &database    = context.database.accountCache;
 
         string symbol     = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
@@ -61,8 +61,8 @@ namespace wasm {
 
     void wasm_native_setcode(wasm_context &context) {
 
-        auto &database_account         = context.cache.accountCache;
-        auto &database_contract        = context.cache.contractCache;
+        auto &database_account         = context.database.accountCache;
+        auto &database_contract        = context.database.contractCache;
         auto &control_trx   = context.control_trx;
 
         //charger fee
@@ -120,7 +120,7 @@ namespace wasm {
     
     void wasm_native_transfer(wasm_context &context) {
 
-        auto &database = context.cache.accountCache;
+        auto &database = context.database.accountCache;
 
         std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
         auto from     = std::get<0>(transfer);

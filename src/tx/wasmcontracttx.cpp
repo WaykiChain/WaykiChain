@@ -39,7 +39,7 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
 }
 
 
-static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &cw) {
+static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &database) {
 
     json_spirit::Object obj;
 
@@ -67,8 +67,8 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
         CUniversalContract contract;
 
         CAccount contract_account;
-        if(cw.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
-                    && cw.contractCache.GetContract(contract_account.regid, contract))
+        if(database.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
+                    && database.contractCache.GetContract(contract_account.regid, contract))
             abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
     }
 
@@ -90,7 +90,7 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
 }
 
 
-static inline void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &cw) {
+static inline void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
 
     json_spirit::Object obj;
 
@@ -104,7 +104,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
     to_variant(wasm::name(t.receiver), val);
     json_spirit::Config::add(obj, "receiver", val);
 
-    to_variant(t.trx, val, cw);
+    to_variant(t.trx, val, database);
     json_spirit::Config::add(obj, "trx", val);
 
     to_variant(t.console, val);
@@ -114,7 +114,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
         json_spirit::Array arr;
         for (const auto &trace :t.inline_traces) {
             json_spirit::Value tmp;
-            to_variant(trace, tmp, cw);
+            to_variant(trace, tmp, database);
             arr.push_back(tmp);
         }
 
@@ -127,7 +127,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
 }
 
 
-static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &cw ) {
+static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database ) {
 
     json_spirit::Object obj;
 
@@ -142,7 +142,7 @@ static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Va
         json_spirit::Array arr;
         for (const auto &trace :t.traces) {
             json_spirit::Value tmp;
-            to_variant(trace, tmp, cw);
+            to_variant(trace, tmp, database);
             arr.push_back(tmp);
         }
 
@@ -222,6 +222,9 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
 
+        auto &database         = *context.pCw;
+        auto execute_tx_return = context.pState;
+
         pseudo_start = system_clock::now();
 
         wasm::transaction_trace trx_trace;
@@ -231,14 +234,14 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         for (auto trx: inlinetransactions) {
             trx_trace.traces.emplace_back();
-            DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, *context.pCw, *context.pState, 0);
+            DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, database, 0);
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);        
 
         json_spirit::Value v;
-        to_variant(trx_trace, v, *context.pCw);
+        to_variant(trx_trace, v, database);
 
-        context.pState->SetReturn(json_spirit::write(v));
+        execute_tx_return->SetReturn(json_spirit::write(v));
 
     } catch (wasm::exception &e) {
         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
@@ -251,11 +254,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace &trace,
                                                  wasm::inline_transaction &trx,
                                                  uint64_t receiver,
-                                                 CCacheWrapper &cache,
-                                                 CValidationState &state,
+                                                 CCacheWrapper &database,
+                                                 //CValidationState &state,
                                                  uint32_t recurse_depth ) {
 
-    wasm_context ctx(*this, trx, cache, state, recurse_depth);
+    wasm_context ctx(*this, trx, database, recurse_depth);
     ctx._receiver = receiver;
     ctx.execute(trace);
 

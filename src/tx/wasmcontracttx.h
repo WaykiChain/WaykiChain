@@ -76,8 +76,8 @@ public:
     void DispatchInlineTransaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
-                                     CCacheWrapper &cache,
-                                     CValidationState &state,
+                                     CCacheWrapper &database,
+                                     //CValidationState &state,
                                      uint32_t recurse_depth);
 
 };
