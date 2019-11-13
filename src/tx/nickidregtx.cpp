@@ -44,7 +44,7 @@ bool CNickIdRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CAccount account;
     CKeyID keyId = txUid.get<CPubKey>().GetKeyId();
-    CNickID  nick = CNickID(nickId);
+    CNickID  nick = CNickID(nickId,(uint32_t)context.height);
 
     if (!cw.accountCache.GetAccount(txUid, account))
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, read source keyId %s account info error",

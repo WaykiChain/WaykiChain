@@ -4,6 +4,7 @@
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
+#include "entities/account.h"
 
 using namespace std;
 using namespace wasm;
@@ -58,8 +59,12 @@ namespace wasm {
 
         vector <uint8_t> code;
         CUniversalContract contract;
-        if(cache.contractCache.GetContract(CNickID(wasm::name(account).to_string()), cache, contract))
+        CAccount contract_account ;
+        if(cache.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account)
+            && cache.contractCache.GetContract(contract_account.regid, contract)) {
             code.insert(code.begin(), contract.code.begin(), contract.code.end());
+        }
+
 
         return code;
     }
@@ -67,7 +72,9 @@ namespace wasm {
     std::string wasm_context::get_abi(uint64_t account) {
 
         CUniversalContract contract;
-        cache.contractCache.GetContract(CNickID(wasm::name(account).to_string()), cache, contract);
+        CAccount contract_account ;
+        cache.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account);
+        cache.contractCache.GetContract(contract_account.regid, contract);
 
         return contract.abi;
     }

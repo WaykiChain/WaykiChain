@@ -109,7 +109,7 @@ private:
     // <prefix$RegID -> KeyID>
     CCompositeKVCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
     // <prefix$NickID -> KeyID>
-    CCompositeKVCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
+    CCompositeKVCache< dbk::NICKID_KEYID,         string,      std::pair<uint32_t,CKeyID>>   nickId2KeyIdCache;
     // <prefix$KeyID -> Account>
     CCompositeKVCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>        accountCache;
 

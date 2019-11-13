@@ -65,7 +65,10 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     } else {
         //should be lock
         CUniversalContract contract;
-        if(cw.contractCache.GetContract(CNickID(wasm::name(t.contract).to_string()), cw, contract))
+
+        CAccount contract_account;
+        if(cw.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
+                    && cw.contractCache.GetContract(contract_account.regid, contract))
             abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
     }
 
