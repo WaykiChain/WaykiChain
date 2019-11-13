@@ -57,23 +57,22 @@ struct CUserCDP {
     // Attention: NEVER use block_height as a comparative factor, as block_height may not change, i.e. liquidating
     // partially.
     bool operator<(const CUserCDP &cdp) const {
-        if (fabs(this->collateral_ratio_base - cdp.collateral_ratio_base) <= 1e-8) {
-            if (this->owner_regid == cdp.owner_regid) {
-                if (this->cdpid == cdp.cdpid) {
-                    if (this->total_staked_bcoins == cdp.total_staked_bcoins) {
-                        return this->total_owed_scoins < cdp.total_owed_scoins;
-                    } else {
-                        return this->total_staked_bcoins < cdp.total_staked_bcoins;
-                    }
-                } else {
-                    return this->cdpid < cdp.cdpid;
-                }
-            } else {
-                return this->owner_regid < cdp.owner_regid;
-            }
-        } else {
+
+
+        if(fabs(this->collateral_ratio_base - cdp.collateral_ratio_base) > 1e-8)
             return this->collateral_ratio_base < cdp.collateral_ratio_base;
-        }
+
+        if(this->owner_regid != cdp.owner_regid)
+            return this->owner_regid < cdp.owner_regid;
+
+        if(this->cdpid != cdp.cdpid)
+            return this->cdpid < cdp.cdpid;
+
+        if(this->total_staked_bcoins != cdp.total_staked_bcoins)
+            return this->total_staked_bcoins < cdp.total_staked_bcoins;
+
+        return this->total_owed_scoins < cdp.total_owed_scoins;
+
     }
 
     IMPLEMENT_SERIALIZE(
