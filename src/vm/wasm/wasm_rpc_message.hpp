@@ -76,12 +76,174 @@ namespace wasm { namespace rpc{
         Result:
         "txid":       (string)
         Examples: 
-        > ./coind setcodewasmcontracttx "wasmio" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind setcodewasmcontracttx "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"setcodewasmcontracttx", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
 
+    // if (fHelp || params.size() < 2 || params.size() > 4) {
+    //     throw runtime_error(
+    //             "gettablewasmcontracttx \"contract\" \"table\" \"numbers\" \"begin_key\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "2.\"table\":   (string, required) table name\n"
+    //             "3.\"numbers\":   (numberic, optional) numbers\n"
+    //             "4.\"begin_key\":   (string, optional) smallest key in Hex\n"
+    //             "\nResult:\n"
+    //             "\"rows\":        (string)\n"
+    //             "\"more\":        (bool)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("gettablewasmcontracttx",
+    //                            " \"411994-1\" \"stat\" 10") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("gettablewasmcontracttx",
+    //                            "\"411994-1\", \"stat\", 10"));
+    //     // 1.contract(id)
+    //     // 2.table
+    //     // 3.number
+    //     // 4.begin_key
+    // }
+
+    const char *get_table_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        gettablewasmcontracttx "contract" "table" "numbers" "begin_key"
+        1."contract": (string, required) contract name"
+        2."table":    (string, required) table name"
+        3."numbers":  (numberic, optional) numbers"
+        4."begin_key":(string, optional) smallest key in Hex"
+        Result:"
+        "rows":       (string)"
+        "more":       (bool)"
+        nExamples: 
+        > ./coind setcodewasmcontracttx "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasmcontracttx", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+
+    // if (fHelp || params.size() < 2 || params.size() > 4) {
+    //     throw runtime_error(
+    //             "gettablewasmcontracttx \"contract\" \"action\" \"data\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "2.\"action\":   (string, required) action name\n"
+    //             "3.\"data\":   (json string, required) action data\n"
+    //             "\nResult:\n"
+    //             "\"data\":        (string)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("gettablewasmcontracttx",
+    //                            " \"411994-1\" \"transfer\" \'[\"walk\",\"mark\",\"1000.0000 EOS\",\"transfer to mark\"]\' ") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("gettablewasmcontracttx",
+    //                            "\"411994-1\", \"transfer\", \'[\"walk\",\"mark\",\"1000.0000 EOS\",\"transfer to mark\"]\' "));
+    //     // 1.contract(id)
+    //     // 2.action
+    //     // 3.data
+    // }
+    const char *abi_json_to_bin_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        gettablewasmcontracttx \"contract\" \"action\" \"data\" \n"
+        1."contract": (string, required) contract name
+        2."action"  : (string, required) action name
+        3."data".   : (json string, required) action data
+        Result:
+        "data":       (string)
+        Examples: 
+        > ./coind abijsontobinwasmcontracttx "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abijsontobinwasmcontracttx", "params":["wasmio","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+    // if (fHelp || params.size() < 2 || params.size() > 4) {
+    //     throw runtime_error(
+    //             "gettablewasmcontracttx \"contract\" \"action\" \"data\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "2.\"action\":   (string, required) action name\n"
+    //             "3.\"data\":   (binary hex string, required) action data\n"
+    //             "\nResult:\n"
+    //             "\"data\":        (string)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("gettablewasmcontracttx",
+    //                            " \"411994-1\" \"transfer\"  \"000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b\" ") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("gettablewasmcontracttx",
+    //                            "\"411994-1\", \"transfer\", \"000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b\" "));
+    //     // 1.contract(id)
+    //     // 2.action
+    //     // 3.data
+    // }
+    const char *abi_bin_to_json_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        gettablewasmcontracttx "contract" "action" "data"
+        1."contract": (string, required) contract name
+        2."action"  : (string, required) action name
+        3."data"    : (binary hex string, required) action data
+        Result:
+        "data":       (string)
+        Examples: 
+        > ./coind abijsontobinwasmcontracttx "walker222222" "transfer" "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abijsontobinwasmcontracttx", "params":["wasmio","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+    // if (fHelp || params.size() != 1 ) {
+    //     throw runtime_error(
+    //             "getcodewasmcontracttx \"contract\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "\nResult:\n"
+    //             "\"code\":        (string)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("getcodewasmcontracttx",
+    //                            " \"411994-1\" ") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("getcodewasmcontracttx",
+    //                            "\"411994-1\""));
+    //     // 1.contract(id)
+    // }
+    const char *get_code_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        getcodewasmcontracttx "contract" 
+        1."contract": (string, required) contract name\n"
+        Result:
+        "code":        (string)
+        Examples:
+        > ./coind getcodewasmcontracttx "walker222222" 
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasmcontracttx", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+
+    // if (fHelp || params.size() != 1 ) {
+    //     throw runtime_error(
+    //             "getcodewasmcontracttx \"contract\" \n"
+    //             "1.\"contract\": (string, required) contract name\n"
+    //             "\nResult:\n"
+    //             "\"code\":        (string)\n"
+    //             "\nExamples:\n" +
+    //             HelpExampleCli("getcodewasmcontracttx",
+    //                            " \"411994-1\" ") +
+    //             "\nAs json rpc call\n" +
+    //             HelpExampleRpc("getcodewasmcontracttx",
+    //                            "\"411994-1\""));
+    //     // 1.contract(id)
+    // }
+    const char *get_abi_wasm_contract_tx_rpc_help_message = R"=====(
+    {
+        getabiwasmcontracttx "contract" 
+        1."contract": (string, required) contract name\n"
+        Result:
+        "code":        (string)
+        Examples:
+        > ./coind getabiwasmcontracttx "walker222222" 
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasmcontracttx", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    }
+    )=====";
+
+
 } // rpc
-}  // wasm
+} // wasm
