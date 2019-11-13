@@ -358,7 +358,7 @@ public:
         return strprintf("%d:%s", height, GetBlockHash().ToString());
     }
 
-    void Print() const { LogPrint("INFO", "%s\n", ToString()); }
+    void Print() const { LogPrint(BCLog::INFO, "%s\n", ToString()); }
 
     // Build the skiplist pointer for this entry.
     void BuildSkip();
@@ -430,7 +430,7 @@ public:
     }
 
     void Print() const {
-        LogPrint("INFO", "%s\n", ToString().c_str());
+        LogPrint(BCLog::INFO, "%s\n", ToString().c_str());
     }
 };
 

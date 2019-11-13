@@ -472,13 +472,7 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
      * |-------------------------------|-------------------|-------------------|
      */
     CRegID regid;
-    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) {
-        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
-            return CUserID(regid);
-        } else {
-            return *pUserId;
-        }
-    } else { // MAJOR_VER_R2
+    if (GetFeatureForkVersion(chainActive.Height()) >= MAJOR_VER_R2) {
         if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
             return CUserID(regid);
         } else {
@@ -491,6 +485,12 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
             } else {
                 return *pUserId;
             }
+        }
+    } else { // MAJOR_VER_R1
+        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
+            return CUserID(regid);
+        } else {
+            return *pUserId;
         }
     }
 }

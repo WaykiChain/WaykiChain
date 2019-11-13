@@ -62,7 +62,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
     }
 
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
         double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
         if (feePerKb < MIN_RELAY_TX_FEE) {
@@ -136,7 +136,7 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 uint64_t CLuaContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint("ERROR", "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
     }
 
@@ -261,7 +261,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
                         GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
 
-    LogPrint("vm", "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
+    LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), vmRunEnv.GetReceipts()))
         return state.DoS(
@@ -414,7 +414,7 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 uint64_t CUniversalContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint("ERROR", "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
     }
 
@@ -561,7 +561,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     receipts.insert(receipts.end(), vmRunEnv.GetReceipts().begin(), vmRunEnv.GetReceipts().end());
 
-    LogPrint("vm", "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
+    LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {

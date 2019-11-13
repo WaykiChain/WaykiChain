@@ -85,6 +85,11 @@ uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(const NET_TYPE type) const {
     return nStableScoinGenesisHeight[type];
 }
 
+uint32_t G_CONFIG_TABLE::GetVer3ForkHeight(const NET_TYPE type) const {
+    assert(type >= 0 && type < 3);
+    return nVer3ForkHeight[type];
+}
+
 vector<uint32_t> G_CONFIG_TABLE::GetSeedNodeIP() const { return pnSeed; }
 
 uint8_t* G_CONFIG_TABLE::GetMagicNumber(const NET_TYPE type) const {
@@ -272,3 +277,10 @@ uint32_t G_CONFIG_TABLE::nFeatureForkHeight[3] {
     4109588,    // mainnet: Wed Oct 16 2019 10:16:00 GMT+0800
     520,        // testnet
     10};        // regtest
+
+// Block height to enable feature fork version
+uint32_t G_CONFIG_TABLE::nVer3ForkHeight[3] {
+    8000000,    // mainnet:
+    2000000,        // testnet
+    500};        // regtest
+

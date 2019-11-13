@@ -42,6 +42,7 @@ config/version.o: config/build.h
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
+  chain/blockdelegates.h \
   entities/account.h \
   entities/assett.h \
   entities/cdp.h \
@@ -63,6 +64,7 @@ coin_CORE_H = \
   commons/leb128.h \
   commons/types.h \
   commons/util/util.h \
+  commons/util/threadnames.h \
   commons/util/time.h \
   commons/compat/byteswap.h \
   commons/compat/compat.h \
@@ -145,7 +147,8 @@ coin_CORE_H = \
   tinyformat.h \
   uint256.h \
   wallet/wallet.h \
-  wallet/db.h
+  wallet/db.h \
+  logging.h
 
 JSON_H = \
   commons/json/json_spirit.h \
@@ -243,6 +246,7 @@ liblua53_a_SOURCES = \
 
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
 libcoin_server_a_SOURCES = \
+  chain/blockdelegates.cpp \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
@@ -288,6 +292,7 @@ libcoin_server_a_SOURCES = \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
+  logging.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \
@@ -314,6 +319,7 @@ libcoin_common_a_SOURCES = \
   commons/uint256.cpp \
   commons/bloom.cpp \
   commons/util/util.cpp \
+  commons/util/threadnames.cpp \
   commons/util/time.cpp \
   crypto/hash.cpp \
   config/chainparams.cpp \

@@ -5,6 +5,7 @@
 
 
 #include "account.h"
+#include "../logging.h"
 #include "config/configuration.h"
 #include "config/const.h"
 #include "main.h"
@@ -122,7 +123,7 @@ uint64_t CAccount::ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, cons
         uint64_t holdHeight = endHeight - beginHeight;
         uint64_t interest   = (long double)votedBcoins * holdHeight * subsidy / yearHeight / 100;
 
-        LogPrint("profits",
+        LogPrint(BCLog::PROFIT,
                  "compute vote staking interest to voter: %s, current height: %u\n"
                  "interest = votedBcoins * (endHeight - beginHeight) * subsidy / yearHeight / 100\n"
                  "formula: %llu = 1.0 * %llu * (%llu - %llu) * %u / %u / 100\n",
@@ -172,7 +173,7 @@ uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, cons
 
     // interest = (1% * 21 billion) * (lastVotedBcoins/0.21 billion) * (duration / 365*24*3600)
     uint64_t interest = lastVotedBcoins * (duration / 31536000.0);
-    LogPrint("profits",
+    LogPrint(BCLog::PROFIT,
              "compute inflate interest to voter: %s, current time: %u\n"
              "interest = last_voted_bcoins * (epoch_last_vote - epoch_curr_vote) / yearTime\n"
              "formula: %llu = 1.0 * %llu * (%u - %u) / (365 * 24 * 3600)\n",
@@ -191,7 +192,7 @@ uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const 
     uint32_t delegateNum = IniCfg().GetTotalDelegateNum();
     uint64_t interest    = (long double)received_votes * delegateNum * holdHeight * subsidy / yearHeight / 100;
 
-    LogPrint("profits",
+    LogPrint(BCLog::PROFIT,
              "compute block inflate interest to miner: %s, current height: %u\n"
              "interest = received_votes * delegateNum * holdHeight * subsidy / yearHeight / 100\n"
              "formula: %llu = 1.0 * %llu * %u * %llu * %u / %u / 100\n",
@@ -292,7 +293,7 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
                                      const uint32_t currBlockTime, const CAccountDBCache &accountCache,
                                      vector<CReceipt> &receipts) {
     if (currHeight < last_vote_height) {
-        LogPrint("ERROR", "currHeight (%u) < last_vote_height (%llu)\n", currHeight, last_vote_height);
+        LogPrint(BCLog::ERROR, "currHeight (%u) < last_vote_height (%llu)\n", currHeight, last_vote_height);
         return false;
     }
 
@@ -374,13 +375,12 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
 
     uint64_t newTotalVotes = 0;
     if (!candidateVotesInOut.empty()) {
-        if (featureForkVersion == MAJOR_VER_R1) {
-            newTotalVotes = candidateVotesInOut[0].GetVotedBcoins(); // one bcoin eleven votes
-
-        } else if (featureForkVersion == MAJOR_VER_R2) {
+         if (featureForkVersion >= MAJOR_VER_R2)  {
             for (const auto &vote : candidateVotesInOut) {
                 newTotalVotes += vote.GetVotedBcoins();         // one bcoin one vote
             }
+        } else { // featureForkVersion == MAJOR_VER_R1
+            newTotalVotes = candidateVotesInOut[0].GetVotedBcoins(); // one bcoin eleven votes
         }
     }
 
@@ -405,39 +405,32 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
     } // else newTotalVotes == lastTotalVotes // do nothing
 
     // collect inflated bcoins or fcoins
-    switch (featureForkVersion) {
-        case MAJOR_VER_R1: {  // for backward compatibility
-            uint64_t bcoinAmountToInflate = ComputeVoteBcoinInterest(lastTotalVotes, currHeight);
-            if (!IsBcoinWithinRange(bcoinAmountToInflate))
-                return false;
+    if (featureForkVersion >= MAJOR_VER_R2)  {
+        // only fcoins will be inflated for voters
+        uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currBlockTime);
 
-            if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate)) {
-                return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
+        if (fcoinAmountToInflate > 0) {
+            if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate)) {
+                return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
             }
-            receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
-
-            LogPrint("profits", "Account(%s) received vote staking interest amount (bcoins): %llu\n",
-                    regid.ToString(), bcoinAmountToInflate);
-
-            break;
+            receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
         }
-        case MAJOR_VER_R2: {  // only fcoins will be inflated for voters
-            uint64_t fcoinAmountToInflate = ComputeVoteFcoinInterest(lastTotalVotes, currBlockTime);
 
-            if (fcoinAmountToInflate > 0) {
-                if (!OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinAmountToInflate)) {
-                    return ERRORMSG("ProcessCandidateVotes() : add fcoins to inflate failed");
-                }
-                receipts.emplace_back(nullId, regid, SYMB::WGRT, fcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
-            }
-
-            LogPrint("profits", "Account(%s) received vote staking interest amount (fcoins): %llu\n", regid.ToString(),
-                     fcoinAmountToInflate);
-
-            break;
-        }
-        default:
+        LogPrint(BCLog::PROFIT, "Account(%s) received vote staking interest amount (fcoins): %llu\n", regid.ToString(),
+                    fcoinAmountToInflate);
+    } else { // featureForkVersion == MAJOR_VER_R1
+        // for backward compatibility
+        uint64_t bcoinAmountToInflate = ComputeVoteBcoinInterest(lastTotalVotes, currHeight);
+        if (!IsBcoinWithinRange(bcoinAmountToInflate))
             return false;
+
+        if (!OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, bcoinAmountToInflate)) {
+            return ERRORMSG("ProcessCandidateVotes() : add bcoins to inflate failed");
+        }
+        receipts.emplace_back(nullId, regid, SYMB::WICC, bcoinAmountToInflate, ReceiptCode::DELEGATE_VOTE_INTEREST);
+
+        LogPrint(BCLog::PROFIT, "Account(%s) received vote staking interest amount (bcoins): %llu\n",
+                regid.ToString(), bcoinAmountToInflate);
     }
 
     // Attention: update last vote height/last vote epoch after computing vote staking interest.

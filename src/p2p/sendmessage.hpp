@@ -117,7 +117,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             if (pTo->fStartSync && !SysCfg().IsImporting() && !SysCfg().IsReindex()) {
                 pTo->fStartSync = false;
                 nSyncTipHeight  = pTo->nStartingHeight;
-                LogPrint("net", "start block sync lead to getblocks\n");
+                LogPrint(BCLog::NET, "start block sync lead to getblocks\n");
                 PushGetBlocks(pTo, chainActive.Tip(), uint256());
             }
 
@@ -133,10 +133,10 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         CNodeState &state = *State(pTo->GetId());
         if (state.fShouldBan) {
             if (pTo->addr.IsLocal()) {
-                LogPrint("INFO", "Warning: not banning local node %s!\n", pTo->addr.ToString());
+                LogPrint(BCLog::INFO, "Warning: not banning local node %s!\n", pTo->addr.ToString());
             }
             else {
-                LogPrint("INFO", "Warning: banned a remote node %s!\n", pTo->addr.ToString());
+                LogPrint(BCLog::INFO, "Warning: banned a remote node %s!\n", pTo->addr.ToString());
                 pTo->fDisconnect = true;
                 CNode::Ban(pTo->addr);
             }
@@ -198,7 +198,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         if (!pTo->fDisconnect && state.nBlocksInFlight &&
             state.nLastBlockReceive < state.nLastBlockProcess - BLOCK_DOWNLOAD_TIMEOUT * 1000000 &&
             state.vBlocksInFlight.front().nTime < state.nLastBlockProcess - 2 * BLOCK_DOWNLOAD_TIMEOUT * 1000000) {
-            LogPrint("INFO", "Peer %s is stalling block download, disconnecting\n", state.name.c_str());
+            LogPrint(BCLog::INFO, "Peer %s is stalling block download, disconnecting\n", state.name.c_str());
             pTo->fDisconnect = true;
         }
 
@@ -211,7 +211,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
             MarkBlockAsInFlight(hash, pTo->GetId());
-            LogPrint("net", "send MSG_BLOCK msg! time_ms=%lld, hash=%s, peer=%s, FlightBlocks=%d, index=%d\n",
+            LogPrint(BCLog::NET, "send MSG_BLOCK msg! time_ms=%lld, hash=%s, peer=%s, FlightBlocks=%d, index=%d\n",
                 GetTimeMillis(), hash.ToString(), state.name, state.nBlocksInFlight, index++);
             if (vGetData.size() >= 1000) {
                 pTo->PushMessage("getdata", vGetData);
@@ -226,7 +226,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         while (!pTo->fDisconnect && !pTo->mapAskFor.empty() && (*pTo->mapAskFor.begin()).first <= nNow) {
             const CInv &inv = (*pTo->mapAskFor.begin()).second;
             if (!AlreadyHave(inv)) {
-                LogPrint("net", "sending getdata: %s\n", inv.ToString());
+                LogPrint(BCLog::NET, "sending getdata: %s\n", inv.ToString());
                 vGetData.push_back(inv);
                 if (vGetData.size() >= 1000) {
                     pTo->PushMessage("getdata", vGetData);
