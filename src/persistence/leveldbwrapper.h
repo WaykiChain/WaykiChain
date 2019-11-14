@@ -6,7 +6,6 @@
 #ifndef PERSIST_LEVELDBWRAPPER_H
 #define PERSIST_LEVELDBWRAPPER_H
 
-#include "logging.h"
 #include "commons/json/json_spirit_value.h"
 #include "commons/serialize.h"
 #include "commons/util/util.h"

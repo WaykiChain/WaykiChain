@@ -80,6 +80,7 @@ coin_CORE_H = \
   wallet/crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
+  fs.h \
   init.h \
   limitedmap.h \
   main.h \
@@ -325,6 +326,7 @@ libcoin_common_a_SOURCES = \
   config/chainparams.cpp \
   config/configuration.cpp \
   config/version.cpp \
+  fs.cpp \
   netbase.cpp \
   p2p/protocol.cpp \
   persistence/block.cpp \
