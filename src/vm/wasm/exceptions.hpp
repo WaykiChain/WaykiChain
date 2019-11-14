@@ -75,4 +75,5 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(wasm_assert_code_exception,           5000019, "wasm assert code")
     WASM_DECLARE_EXCEPTION(wasm_execution_error,                 5000020, "wasm execution error")
     WASM_DECLARE_EXCEPTION(file_read_exception,                  5000021, "file read exception")
+    WASM_DECLARE_EXCEPTION(missing_auth_exception,               5000022, "missing auth exception")
 } //wasm

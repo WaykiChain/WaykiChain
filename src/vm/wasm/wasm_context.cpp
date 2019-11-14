@@ -50,9 +50,24 @@ namespace wasm {
         _pending_console_output = std::ostringstream();
     }
 
+    bool wasm_context::in_signatures(const permission& p){
+        return std::find(trx.authorization.begin(), trx.authorization.end(), p) != trx.authorization.end();
+    }
 
     void wasm_context::execute_inline(inline_transaction t) {
-        inline_transactions.push_back(t);
+
+       for(const auto p: t.authorization){
+         
+          if(p.account  == _receiver){ continue; }
+          if(t.contract == _receiver && in_signatures(p) ) { continue; }
+
+           WASM_ASSERT(false , 
+                       missing_auth_exception, 
+                       "Do not get the authority by account %s ", 
+                       wasm::name(p.account).to_string().c_str());     
+       }
+
+       inline_transactions.push_back(t);
     }
 
     std::vector <uint8_t> wasm_context::get_code(uint64_t account) {
@@ -175,5 +190,13 @@ namespace wasm {
 
     }
 
+    void wasm_context::require_auth( uint64_t account ){
+        for(auto p: trx.authorization){
+            if(p.account == account){
+                return;
+            }
+        }
+        WASM_ASSERT(false, missing_auth_exception, "missing authority of %s", wasm::name(account).to_string().c_str());
+    }
 
 }

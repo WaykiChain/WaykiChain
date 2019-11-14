@@ -21,6 +21,11 @@ namespace wasm {
         READWRITE(VARINT(perm));
         )
 
+        bool operator == ( const permission& p )
+        { 
+            return account == p.account && perm == p.perm;
+        }
+
     };
 
     struct inline_transaction {

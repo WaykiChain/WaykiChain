@@ -471,6 +471,7 @@ namespace wasm {
         void require_auth( uint64_t account ) {
             //std::cout << "require_auth:" << account << std::endl;
             //std::cout << "require_authorization" << std::endl;
+            pWasmContext->require_auth(account);
         }
 
         void require_auth2( uint64_t account, uint64_t permission ) {
