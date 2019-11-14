@@ -98,12 +98,12 @@ public:
     uint32_t regHeight;
     CNickID() {}
     CNickID(string nickIdIn) {
-        if (nickIdIn.size() != 12) throw ios_base::failure("Nickname ID length must be 12 !");
+        if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s.", nickId.c_str()));
         nickId = nickIdIn;
     }
 
     CNickID(string nickIdIn, uint32_t height) {
-        if (nickIdIn.size() != 12) throw ios_base::failure("Nickname ID length must be 12 !");
+        if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s.", nickId.c_str()));
         nickId = nickIdIn;
         regHeight = height ;
     }

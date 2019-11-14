@@ -158,7 +158,8 @@ namespace wasm {
                 throw wasm_exception(
                         tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
             else
-                throw wasm_exception("wasm exception");
+                //throw wasm_exception("wasm exception");
+                throw;
         }
 
         trace.trx_id = control_trx.GetHash();
@@ -197,6 +198,12 @@ namespace wasm {
             }
         }
         WASM_ASSERT(false, missing_auth_exception, "missing authority of %s", wasm::name(account).to_string().c_str());
+    }
+
+    bool wasm_context::is_account( uint64_t account ) { 
+
+        auto account_name = wasm::name(account);
+        return database.accountCache.HaveAccount(nick_name(account_name.to_string()));
     }
 
 }
