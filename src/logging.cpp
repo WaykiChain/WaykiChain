@@ -5,7 +5,6 @@
 
 #include "logging.h"
 
-#include "fs.h"
 #include "commons/util/threadnames.h"
 #include "commons/util/time.h"
 
