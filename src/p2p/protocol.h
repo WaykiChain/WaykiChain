@@ -291,11 +291,9 @@ public:
     CHandshake() ;
     CHandshake(uint32_t tipHeight):tipHeight(tipHeight) {};
 
-
     IMPLEMENT_SERIALIZE(
             READWRITE(tipHeight);
             )
-
 };
 
 /** inv message data */
