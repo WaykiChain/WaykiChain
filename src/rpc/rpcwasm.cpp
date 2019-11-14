@@ -156,8 +156,8 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE, RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
 
             CAccount sender;
-            auto sender_name = wasm::name(params[1].get_str());
-            WASM_ASSERT(database->GetAccount(nick_name(params[0].get_str()), sender), account_operation_exception,
+            auto sender_name = wasm::name(params[0].get_str());
+            WASM_ASSERT(database->GetAccount(nick_name(sender_name.to_string()), sender), account_operation_exception,
                 "RPC.submitwasmcontractdeploytx, sender account does not exist, sender = %s",sender_name.to_string().c_str())
 
             const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);

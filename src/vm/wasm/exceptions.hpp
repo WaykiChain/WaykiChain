@@ -33,7 +33,6 @@ using namespace std;
          throw wasm_assert_exception( str.c_str()); \
     }
 
-
 namespace wasm {
     struct exception : public std::exception {
         virtual const char *what() const throw() = 0;
@@ -42,7 +41,6 @@ namespace wasm {
         string msg;  
     };
 }
-
 
 #define WASM_DECLARE_EXCEPTION( name, _code, _what )                              \
    struct name : public wasm::exception {                                         \
