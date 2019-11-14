@@ -7,14 +7,6 @@
 
 #include "config/configuration.h"
 
-bool CDelegateDBCache::ExistDelegate(const CRegID &regid) {
-    DelegateVector delegates;
-    if (!GetActiveDelegates(delegates))
-        return false;
-
-    return std::find(delegates.begin(), delegates.end(), regid) != delegates.end();
-}
-
 bool CDelegateDBCache::GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates) {
 
     // votes{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
@@ -88,12 +80,33 @@ bool CDelegateDBCache::SetPendingDelegates(const PendingDelegates &delegates) {
 
 }
 
-bool CDelegateDBCache::GetActiveDelegates(DelegateVector &delegates) {
-    return active_delegates_cache.GetData(delegates);
+bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {
+    VoteDelegate delegate;
+
+    return GetActiveDelegate(regid, delegate);
 }
 
-bool CDelegateDBCache::SetActiveDelegates(const DelegateVector &delegates) {
-    return active_delegates_cache.SetData(delegates);
+bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &voteDelegate) {
+    VoteDelegateVector delegates;
+    if (!GetActiveDelegates(delegates))
+        return false;
+
+    auto it = std::find_if(delegates.begin(), delegates.end(), [&regid](const VoteDelegate &item){
+        return item.regid == regid;
+    });
+    if (it == delegates.end()) {
+        return false;
+    }
+    voteDelegate = *it;
+    return true;
+}
+
+bool CDelegateDBCache::GetActiveDelegates(VoteDelegateVector &voteDelegates) {
+    return active_delegates_cache.GetData(voteDelegates);
+}
+
+bool CDelegateDBCache::SetActiveDelegates(const VoteDelegateVector &voteDelegates) {
+    return active_delegates_cache.SetData(voteDelegates);
 }
 
 bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,

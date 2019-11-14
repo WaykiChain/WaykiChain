@@ -26,6 +26,12 @@ extern void SetMinerStatus(bool bStatus);
 // CoinMiner
 //
 
+struct Miner {
+    VoteDelegate delegate;
+    CAccount account;
+    CKey key;
+};
+
 uint64_t nLastBlockTx   = 0;
 uint64_t nLastBlockSize = 0;
 
@@ -103,36 +109,35 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
-bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const DelegateVector &delegates,
-                               CRegID &delegate) {
+bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
+                               VoteDelegate &delegate) {
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
     uint32_t index = slot % IniCfg().GetTotalDelegateNum();
     delegate       = delegates[index];
-    LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.ToString());
+    LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
 
     return true;
 }
 
-bool CreateBlockRewardTx(const CAccount &delegate, CAccountDBCache &accountCache,
-                         CBlock *pBlock, CKey &minerKey) {
+static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
 
     if (pBlock->vptx[0]->nTxType == BLOCK_REWARD_TX) {
         auto pRewardTx          = (CBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid        = delegate.regid;
+        pRewardTx->txUid        = miner.delegate.regid;
         pRewardTx->valid_height = pBlock->GetHeight();
 
     } else if (pBlock->vptx[0]->nTxType == UCOIN_BLOCK_REWARD_TX) {
         auto pRewardTx             = (CUCoinBlockRewardTx *)pBlock->vptx[0].get();
-        pRewardTx->txUid           = delegate.regid;
+        pRewardTx->txUid           = miner.delegate.regid;
         pRewardTx->valid_height    = pBlock->GetHeight();
-        pRewardTx->inflated_bcoins = delegate.ComputeBlockInflateInterest(pBlock->GetHeight());
+        pRewardTx->inflated_bcoins = miner.account.ComputeBlockInflateInterest(pBlock->GetHeight(), miner.delegate);
     }
 
     pBlock->SetNonce(GetRand(SysCfg().GetBlockMaxNonce()));
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
 
     vector<uint8_t> signature;
-    if (minerKey.Sign(pBlock->ComputeSignatureHash(), signature)) {
+    if (miner.key.Sign(pBlock->ComputeSignatureHash(), signature)) {
         pBlock->SetSignature(signature);
         return true;
     } else {
@@ -140,7 +145,7 @@ bool CreateBlockRewardTx(const CAccount &delegate, CAccountDBCache &accountCache
     }
 }
 
-void ShuffleDelegates(const int32_t nCurHeight, DelegateVector &delegates) {
+void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates) {
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
     string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
@@ -151,38 +156,38 @@ void ShuffleDelegates(const int32_t nCurHeight, DelegateVector &delegates) {
         for (uint32_t x = 0; x < 4 && i < totalDelegateNum; i++, x++) {
             memcpy(&newIndexSource, currentSeed.begin() + (x * 8), 8);
             uint32_t newIndex      = newIndexSource % totalDelegateNum;
-            CRegID regId           = delegates[newIndex];
+            VoteDelegate delegate = delegates[newIndex];
             delegates[newIndex] = delegates[i];
-            delegates[i]        = regId;
+            delegates[i]        = delegate;
         }
         ss << currentSeed;
         currentSeed = ss.GetHash();
     }
 }
 
-bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) {
+bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, VoteDelegate &curDelegateOut) {
     uint32_t maxNonce = SysCfg().GetBlockMaxNonce();
 
-    DelegateVector delegates;
+    VoteDelegateVector delegates;
     if (!cwIn.delegateCache.GetActiveDelegates(delegates))
         return false;
 
     ShuffleDelegates(pBlock->GetHeight(), delegates);
 
-    CRegID regId;
-    if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegates, regId))
+    if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegates, curDelegateOut))
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate");
 
-    CAccount curDelegate;
-    if (!cwIn.accountCache.GetAccount(regId, curDelegate)) {
+    CAccount delegateAccount;
+    if (!cwIn.accountCache.GetAccount(curDelegateOut.regid, delegateAccount)) {
         string delegatesStr;
         for (const auto & item : delegates) {
-            delegatesStr += strprintf("%s, ", item.ToString());
+            delegatesStr += strprintf("%s, ", item.regid.ToString());
         }
 
         LogPrint(BCLog::ERROR, "VerifyRewardTx() : delegate list: %s\n", delegatesStr);
 
-        return ERRORMSG("VerifyRewardTx() : failed to get current delegate's account, regId=%s", regId.ToString());
+        return ERRORMSG("VerifyRewardTx() : failed to get current delegate's account, regId=%s",
+            curDelegateOut.regid.ToString());
     }
 
     if (pBlock->GetNonce() > maxNonce)
@@ -205,16 +210,16 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx) 
                 previousBlock.vptx[0]->txUid.ToString());
 
         if (pBlock->GetBlockTime() - previousBlock.GetBlockTime() < GetBlockInterval(pBlock->GetHeight())) {
-            if (prevDelegateAcct.regid == curDelegate.regid)
+            if (prevDelegateAcct.regid == delegateAccount.regid)
                 return ERRORMSG("VerifyRewardTx() : one delegate can't produce more than one block at the same slot");
         }
     }
 
     CAccount account;
     if (spCW->accountCache.GetAccount(pBlock->vptx[0]->txUid, account)) {
-        if (curDelegate.regid != account.regid) {
+        if (delegateAccount.regid != account.regid) {
             return ERRORMSG("VerifyRewardTx() : delegate should be (%s) vs what we got (%s)",
-                            curDelegate.regid.ToString(), account.regid.ToString());
+                            delegateAccount.regid.ToString(), account.regid.ToString());
         }
 
         const auto &blockHash      = pBlock->ComputeSignatureHash();
@@ -559,9 +564,8 @@ bool CheckWork(CBlock *pBlock) {
     return true;
 }
 
-static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, CAccount &minerAccount,
-                     CKey &minerKey) {
-    DelegateVector delegates;
+static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &miner) {
+    VoteDelegateVector delegates;
     {
         LOCK(cs_main);
 
@@ -573,21 +577,24 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, CAccount 
         }
     }
 
-    //uint16_t index = 0;
-    // for (auto &delegate : delegateList)
-    //     LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
+    // uint16_t index = 0;
+    // for (auto &delegate : delegates)
+    //     LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.regid.ToString());
+
     ShuffleDelegates(blockHeight, delegates);
+
     // index = 0;
     // for (auto &delegate : delegates)
-    //     LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.ToString());
+    //     LogPrint("shuffle", "after shuffle: index=%d, regId=%s\n", index++, delegate.regid.ToString());
 
-    CRegID minerRegId;
-    GetCurrentDelegate(MillisToSecond(startMiningMs), blockHeight, delegates, minerRegId);
+    GetCurrentDelegate(MillisToSecond(startMiningMs), blockHeight, delegates, miner.delegate);
 
     {
-        if (!pCdMan->pAccountCache->GetAccount(minerRegId, minerAccount)) {
+        LOCK(cs_main);
+
+        if (!pCdMan->pAccountCache->GetAccount(miner.delegate.regid, miner.account)) {
             LogPrint(BCLog::MINER, "GetMiner() : fail to get miner account! height=%d, time_ms=%lld, regid=%s\n",
-                blockHeight, startMiningMs, minerRegId.ToString());
+                blockHeight, startMiningMs, miner.delegate.regid.ToString());
             return false;
         }
     }
@@ -595,21 +602,21 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, CAccount 
     {
         LOCK(pWalletMain->cs_wallet);
 
-        if (minerAccount.miner_pubkey.IsValid() && pWalletMain->GetKey(minerAccount.keyid, minerKey, true)) {
+        if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
             isMinerKey = true;
-        } else if (!pWalletMain->GetKey(minerAccount.keyid, minerKey)) {
+        } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
             LogPrint(BCLog::MINER, "GetMiner() : [ignore] miner key does not exist in wallet! height=%d, time_ms=%lld, "
                 "regid=%s, addr=%s\n",
-                blockHeight, startMiningMs, minerRegId.ToString(), minerAccount.keyid.ToAddress());
+                blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress());
             return false;
         }
     }
     LogPrint(BCLog::INFO, "GetMiner(), succeed to get the duty miner! height=%d, time_ms=%lld, regid=%s, addr=%s, use_miner_key=%d\n",
-        blockHeight, startMiningMs, minerRegId.ToString(), minerAccount.keyid.ToAddress(), isMinerKey);
+        blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress(), isMinerKey);
     return true;
 }
 
-static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, const CAccount &minerAccount, CKey &minerKey) {
+static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &miner) {
     int64_t lastTime    = 0;
     bool success        = false;
     int32_t blockHeight = 0;
@@ -631,7 +638,7 @@ static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, const CAcc
 
         if (!CheckPackBlockTime(startMiningMs, blockHeight)) {
             LogPrint(BCLog::MINER, "%s() : no time left to pack block! height=%d, start_ms=%lld, miner_regid=%s\n",
-                __FUNCTION__, blockHeight, startMiningMs, minerAccount.regid.ToString());
+                __FUNCTION__, blockHeight, startMiningMs, miner.account.regid.ToString());
             return false;
         }
 
@@ -650,35 +657,35 @@ static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, const CAcc
 
         if (!success) {
             LogPrint(BCLog::MINER, "MineBlock() : fail to create new block! height=%d, regid=%s, "
-                "used_time_ms=%lld\n", blockHeight, minerAccount.regid.ToString(),
+                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(),
                 GetTimeMillis() - lastTime);
             return false;
         }
         LogPrint(BCLog::MINER,
                  "MineBlock() : succeed to create new block! height=%d, regid=%s, tx_count=%u, "
-                 "used_time_ms=%lld\n", blockHeight, minerAccount.regid.ToString(),
+                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(),
                  pBlock->vptx.size(), GetTimeMillis() - lastTime);
 
         lastTime = GetTimeMillis();
-        success  = CreateBlockRewardTx(minerAccount, spCW->accountCache, pBlock.get(), minerKey);
+        success  = CreateBlockRewardTx(miner, pBlock.get());
         if (!success) {
             LogPrint(BCLog::MINER, "MineBlock() : fail to create block reward tx! height=%d, regid=%s, "
-                "used_time_ms=%lld\n", blockHeight, minerAccount.regid.ToString(), GetTimeMillis() - lastTime);
+                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
             return false;
         }
         LogPrint(BCLog::MINER, "MineBlock() : succeed to create block reward tx! height=%d, regid=%s, reward_txid=%s, "
-            "used_time_ms=%lld\n", blockHeight, minerAccount.regid.ToString(), pBlock->vptx[0]->GetHash().ToString(),
+            "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->vptx[0]->GetHash().ToString(),
             GetTimeMillis() - lastTime);
 
         lastTime = GetTimeMillis();
         success  = CheckWork(pBlock.get());
         if (!success) {
             LogPrint(BCLog::MINER, "MineBlock(), fail to check work for new block, height=%d, regid=%s, "
-                "used_time_ms=%lld\n", blockHeight, minerAccount.regid.ToString(), GetTimeMillis() - lastTime);
+                "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), GetTimeMillis() - lastTime);
             return false;
         }
         LogPrint(BCLog::MINER, "MineBlock(), succeed to check work of new block, height=%d, regid=%s, hash=%s, "
-            "used_time_ms=%lld\n", blockHeight, minerAccount.regid.ToString(), pBlock->GetHash().ToString(),
+            "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
             GetTimeMillis() - lastTime);
 
     }
@@ -691,7 +698,7 @@ static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, const CAcc
     }
 
     LogPrint(BCLog::INFO, "%s(), succeed to mine a new block, height=%d, regid=%s, hash=%s, "
-        "used_time_ms=%lld\n", __FUNCTION__, blockHeight, minerAccount.regid.ToString(), pBlock->GetHash().ToString(),
+        "used_time_ms=%lld\n", __FUNCTION__, blockHeight, miner.account.regid.ToString(), pBlock->GetHash().ToString(),
         GetTimeMillis() - startMiningMs);
     return true;
 }
@@ -760,9 +767,9 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
                 continue;
             }
 
-            CAccount minerAccount;
-            CKey minerKey;
-            if (!GetMiner(startMiningMs, blockHeight, minerAccount, minerKey)) {
+            shared_ptr<Miner> spMiner = make_shared<Miner>();
+
+            if (!GetMiner(startMiningMs, blockHeight, *spMiner)) {
                 needSleep = true;
                 mining     = false;
                 // miner key not exist in my wallet, skip to next slot time
@@ -772,7 +779,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             }
 
             mining     = true;
-            if (!MineBlock(startMiningMs, pIndexPrev, minerAccount, minerKey)) {
+            if (!MineBlock(startMiningMs, pIndexPrev, *spMiner)) {
                 continue;
             }
 

@@ -61,7 +61,7 @@ bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
     CRegID sendRegId = txUid.get<CRegID>();
-    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a delegate
+    if (!cw.delegateCache.IsActiveDelegate(sendRegId.ToString())) { // must be a delegate
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }

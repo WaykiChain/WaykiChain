@@ -258,7 +258,7 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("invalid blockTime=%lld <= 0\n", blockTime));
     }
 
-    DelegateVector delegates;
+    VoteDelegateVector delegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
         LogPrint(BCLog::ERROR, "%s() : GetActiveDelegates failed\n", __FUNCTION__);
         return false;
@@ -266,20 +266,21 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
 
     uint16_t index = 0;
     for (auto &delegate : delegates)
-        LogPrint(BCLog::DEBUG, "before shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.ToString());
+        LogPrint(BCLog::DEBUG, "before shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
 
     ShuffleDelegates(blockHeight, delegates);
 
     index = 0;
     for (auto &delegate : delegates)
-        LogPrint(BCLog::DEBUG, "after shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.ToString());
+        LogPrint(BCLog::DEBUG, "after shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
 
     CRegID regid;
-    GetCurrentDelegate(blockTime, blockHeight, delegates, regid);
+    VoteDelegate curDelegate;
+    GetCurrentDelegate(blockTime, blockHeight, delegates, curDelegate);
 
     index = 0;
     for (; index < delegates.size(); index++) {
-        if (delegates.at(index) == regid) {
+        if (delegates.at(index).regid == curDelegate.regid) {
             break;
         }
     }
@@ -288,13 +289,14 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
 
 
     CKeyID keyid;
-    if (!pCdMan->pAccountCache->GetKeyId(regid, keyid))
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get miner keyid failed! regid=%s\n", regid.ToString()));
+    if (!pCdMan->pAccountCache->GetKeyId(curDelegate.regid, keyid))
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("get miner keyid failed! regid=%s\n", curDelegate.regid.ToString()));
 
     Object obj;
-    obj.push_back(Pair("miner_regid",    regid.ToString()));
+    obj.push_back(Pair("miner_regid",    curDelegate.regid.ToString()));
     obj.push_back(Pair("miner_addr",     keyid.ToAddress()));
     obj.push_back(Pair("top_idx",        index));
+    obj.push_back(Pair("votes",          curDelegate.votes));
 
     return obj;
 }

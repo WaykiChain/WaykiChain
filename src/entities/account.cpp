@@ -182,21 +182,27 @@ uint64_t CAccount::ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, cons
     return interest;
 }
 
-uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight) const {
-    if (GetFeatureForkVersion(currHeight) == MAJOR_VER_R1)
+uint64_t CAccount::ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate) const {
+
+    FeatureForkVersionEnum version = GetFeatureForkVersion(currHeight);
+    if (version == MAJOR_VER_R1)
         return 0;
+    uint64_t activeVotes = received_votes;
+    if (version >= MAJOR_VER_R3) {
+        activeVotes = curDelegate.votes;
+    }
 
     uint8_t subsidy      = ::GetSubsidyRate(currHeight);
     uint64_t holdHeight  = 1;
     uint32_t yearHeight  = ::GetYearBlockCount(currHeight);
     uint32_t delegateNum = IniCfg().GetTotalDelegateNum();
-    uint64_t interest    = (long double)received_votes * delegateNum * holdHeight * subsidy / yearHeight / 100;
+    uint64_t interest    = (long double)activeVotes * delegateNum * holdHeight * subsidy / yearHeight / 100;
 
     LogPrint(BCLog::PROFIT,
              "compute block inflate interest to miner: %s, current height: %u\n"
-             "interest = received_votes * delegateNum * holdHeight * subsidy / yearHeight / 100\n"
+             "interest = activeVotes * delegateNum * holdHeight * subsidy / yearHeight / 100\n"
              "formula: %llu = 1.0 * %llu * %u * %llu * %u / %u / 100\n",
-             regid.ToString(), currHeight, interest, received_votes, delegateNum, holdHeight, subsidy, yearHeight);
+             regid.ToString(), currHeight, interest, activeVotes, delegateNum, holdHeight, subsidy, yearHeight);
 
     return interest;
 }

@@ -10,11 +10,11 @@
 
 using namespace std;
 
-static std::string ToString(const DelegateVector &activeDelegates) {
+static std::string ToString(const VoteDelegateVector &activeDelegates) {
     string s = "";
     for (const auto &item : activeDelegates) {
         if (s != "") s += ",";
-        s += item.ToString();
+        s += strprintf("{regid=%s, votes=%llu}", item.regid.ToString(), item.votes);
     }
     return strprintf("{count=%d, [%s]}", activeDelegates.size(), s);
 }
@@ -32,7 +32,7 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
         return true;
     };
 
-    DelegateVector activeDelegates;
+    VoteDelegateVector activeDelegates;
     if (!cw.delegateCache.GetActiveDelegates(activeDelegates)) {
         LogPrint(BCLog::INFO, "%s() : active delegates do not exist, will be initialized soon! block=%d:%s\n",
             __FUNCTION__, block.GetHeight(), block.GetHash().ToString());
@@ -40,7 +40,7 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
 
     pendingDelegates.top_vote_delegates = topVoteDelegates;
 
-    if (!activeDelegates.empty() && pendingDelegates.IsSameDelegates(activeDelegates)) {
+    if (!activeDelegates.empty() && pendingDelegates.top_vote_delegates == activeDelegates) {
         LogPrint(BCLog::INFO, "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
                 pendingDelegates.top_vote_delegates.size(), IniCfg().GetTotalDelegateNum());
@@ -96,7 +96,7 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
     if (pendingDelegates.state != VoteDelegateState::ACTIVATED) {
         // TODO: use the aBFT irreversible height to check
         if (block.GetHeight() - pendingDelegates.counted_vote_height >= (uint32_t)activateDelegateInterval) {
-            DelegateVector activeDelegates = pendingDelegates.GetDelegates();
+            VoteDelegateVector activeDelegates = pendingDelegates.top_vote_delegates;
             if (!cw.delegateCache.SetActiveDelegates(activeDelegates)) {
                 return state.DoS(100, ERRORMSG("%s() : SetActiveDelegates failed! block=%d:%s",
                     __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));

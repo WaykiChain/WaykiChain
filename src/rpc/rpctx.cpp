@@ -1308,22 +1308,22 @@ Value listdelegates(const Array& params, bool fHelp) {
                            strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
     }
 
-    DelegateVector delegates;
+    VoteDelegateVector delegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "get active delegates failed");
     }
 
-    delegates.resize(std::min(delegateNum, (int32_t)delegates.size()));
-
-    Object obj;
+        Object obj;
     Array delegateArray;
 
     CAccount account;
     for (const auto& delegate : delegates) {
-        if (!pCdMan->pAccountCache->GetAccount(delegate, account)) {
+        if (!pCdMan->pAccountCache->GetAccount(delegate.regid, account)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get account info");
         }
-        delegateArray.push_back(account.ToJsonObj());
+        Object accountObj = account.ToJsonObj();
+        accountObj.push_back(Pair("active_votes", delegate.votes));
+        delegateArray.push_back(accountObj);
     }
 
     obj.push_back(Pair("delegates", delegateArray));
