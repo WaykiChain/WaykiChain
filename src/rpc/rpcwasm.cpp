@@ -143,24 +143,30 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         auto wallet   = pWalletMain;
 
         //read and validate code, abi
-        string code_file = GetAbsolutePath(params[2].get_str()).string();
-        string abi_file  = GetAbsolutePath(params[3].get_str()).string();
-        JSON_RPC_ASSERT( !(code_file.empty() || abi_file.empty()), RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file name are both empty!")
+        // string code_file = GetAbsolutePath(params[2].get_str()).string();
+        // string abi_file  = GetAbsolutePath(params[3].get_str()).string();
+        // JSON_RPC_ASSERT( !(code_file.empty() || abi_file.empty()), RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file name are both empty!")
+        // string code, abi;
+        // read_and_validate_code(code_file, code);
+        // read_and_validate_abi(abi_file, abi);
         string code, abi;
-        read_and_validate_code(code_file, code);
-        read_and_validate_abi(abi_file, abi);
+        read_and_validate_code(GetAbsolutePath(params[2].get_str()).string(), code);
+        read_and_validate_abi(GetAbsolutePath(params[3].get_str()).string(), abi);
 
         JSON_RPC_ASSERT(wallet != NULL, RPC_WALLET_ERROR, "wallet error")
         EnsureWalletIsUnlocked();
  
         CWasmContractTx tx;
         {
-            auto contract = wasm::name(params[1].get_str()).value;
+            auto contract = wasm::name(params[1].get_str());
             string memo   = (params.size() > 5)?params[5].get_str():"";
             JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE, RPC_INVALID_PARAMETER, strprintf("Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
 
             CAccount sender;
-            get_sender(database, wallet, params[0].get_str(), sender );
+            auto sender_name = wasm::name(params[1].get_str());
+            //get_sender(database, wallet, params[0].get_str(), sender );
+            WASM_ASSERT(database->GetAccount(nick_name(params[0].get_str()), sender), account_operation_exception,
+                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",sender_name.to_string().c_str())
 
             const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
             RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -170,8 +176,8 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
             tx.valid_height = chainActive.Tip()->height;
-            tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{wasmio, wasmio_owner}},
-                                             wasm::pack(std::tuple(contract, code, abi, memo))});
+            tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{sender_name.value, wasm_owner}},
+                                             wasm::pack(std::tuple(contract.value, code, abi, memo))});
             //tx.nRunStep = tx.data.size();
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
@@ -225,7 +231,10 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
             CAccount sender; //should be authorizer(s)
-            get_sender(database_account, wallet, params[0].get_str(), sender );
+            auto sender_name = wasm::name(params[0].get_str());
+            //get_sender(database, wallet, params[0].get_str(), sender );
+            WASM_ASSERT(database_account->GetAccount(nick_name(sender_name.to_string()), sender), account_operation_exception,
+                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",sender_name.to_string().c_str())
 
             ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
 
@@ -234,8 +243,10 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.valid_height = chainActive.Height();
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
-            tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{wasm::N(sender), wasmio_owner}},
+            tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasm_owner}},
                                              action_data});
+            // tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasm_owner}},
+            //                                  action_data});
             // tx.symbol = amount.symbol;
             // tx.amount = amount.GetSawiAmount();
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")

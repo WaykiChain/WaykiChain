@@ -25,7 +25,6 @@ namespace wasm { namespace rpc{
     //             + HelpExampleRpc("setcodewasmcontracttx",
     //                              "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
     // }
-
     const char *submit_wasm_contract_deploy_tx_rpc_help_message = R"=====(
     {
         submitwasmcontractdeploytx "sender" "contract" "wasm_file" "abi_file" ["memo"] [symbol:fee:unit]
@@ -64,7 +63,6 @@ namespace wasm { namespace rpc{
     //             HelpExampleRpc("callcontracttx",
     //                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
     // }
-
     const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(
     {
         submitwasmcontractcalltx "sender" "contract" "action" "data" "fee"
@@ -81,7 +79,6 @@ namespace wasm { namespace rpc{
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"setcodewasmcontracttx", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
-
 
     // if (fHelp || params.size() < 2 || params.size() > 4) {
     //     throw runtime_error(
@@ -104,7 +101,6 @@ namespace wasm { namespace rpc{
     //     // 3.number
     //     // 4.begin_key
     // }
-
     const char *get_table_wasm_contract_tx_rpc_help_message = R"=====(
     {
         gettablewasmcontracttx "contract" "table" "numbers" "begin_key"
@@ -121,7 +117,6 @@ namespace wasm { namespace rpc{
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasmcontracttx", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
-
 
     // if (fHelp || params.size() < 2 || params.size() > 4) {
     //     throw runtime_error(
@@ -215,7 +210,6 @@ namespace wasm { namespace rpc{
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasmcontracttx", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
-
 
     // if (fHelp || params.size() != 1 ) {
     //     throw runtime_error(
