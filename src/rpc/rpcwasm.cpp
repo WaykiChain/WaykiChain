@@ -108,17 +108,17 @@ void read_and_validate_abi(const string& abi_file, string& abi){
     }  
 }
 
-void get_sender(CAccountDBCache* database, CWallet* wallet, const string& address, CAccount& sender ){
+// void get_sender(CAccountDBCache* database, CWallet* wallet, const string& address, CAccount& sender ){
 
-    CKeyID sender_key_id;
-    CRegID sender_reg_id;
-    JSON_RPC_ASSERT(GetKeyId(address, sender_key_id),     RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
-    JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                   RPC_WALLET_ERROR, "Sender address is not in wallet")
-    JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
-    JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
-    JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                         RPC_WALLET_ERROR, "Sender account is unregistered")
+//     CKeyID sender_key_id;
+//     CRegID sender_reg_id;
+//     JSON_RPC_ASSERT(GetKeyId(address, sender_key_id),     RPC_INVALID_ADDRESS_OR_KEY, "Invalid sender address")
+//     JSON_RPC_ASSERT(wallet->HaveKey(sender_key_id),                   RPC_WALLET_ERROR, "Sender address is not in wallet")
+//     JSON_RPC_ASSERT(database->GetRegId(sender_key_id, sender_reg_id), RPC_WALLET_ERROR, "Cannot get sender regid error")
+//     JSON_RPC_ASSERT(database->GetAccount(sender_key_id, sender),      RPC_WALLET_ERROR, "Cannot get sender account")
+//     JSON_RPC_ASSERT(sender.HaveOwnerPubKey(),                         RPC_WALLET_ERROR, "Sender account is unregistered")
 
-}
+// }
 
 void get_contract(CAccountDBCache* database_account, CContractDBCache* database_contract, const wasm::name& contract_name, CAccount& contract, CUniversalContract& contract_store){
 
@@ -157,9 +157,8 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
             CAccount sender;
             auto sender_name = wasm::name(params[1].get_str());
-            //get_sender(database, wallet, params[0].get_str(), sender );
             WASM_ASSERT(database->GetAccount(nick_name(params[0].get_str()), sender), account_operation_exception,
-                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",sender_name.to_string().c_str())
+                "RPC.submitwasmcontractdeploytx, sender account does not exist, sender = %s",sender_name.to_string().c_str())
 
             const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
             RPC_PARAM::CheckAccountBalance(sender, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -225,9 +224,8 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
             CAccount sender; //should be authorizer(s)
             auto sender_name = wasm::name(params[0].get_str());
-            //get_sender(database, wallet, params[0].get_str(), sender );
             WASM_ASSERT(database_account->GetAccount(nick_name(sender_name.to_string()), sender), account_operation_exception,
-                "wasmnativecontract.Setcode, contract account does not exist, contract = %s",sender_name.to_string().c_str())
+                "RPC.submitwasmcontractdeploytx, sender account does not exist, sender = %s",sender_name.to_string().c_str())
 
             ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
 
