@@ -5,7 +5,7 @@
 
 #include "leveldbwrapper.h"
 
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <leveldb/cache.h>
 #include <leveldb/env.h>
@@ -17,7 +17,7 @@
 void ThrowError(const leveldb::Status &status) {
     if (status.ok())
         return;
-    LogPrint("INFO", "%s\n", status.ToString());
+    LogPrint(BCLog::INFO, "%s\n", status.ToString());
     if (status.IsCorruption())
         throw leveldb_error("Database corrupted");
     if (status.IsIOError())
@@ -63,15 +63,15 @@ CLevelDBWrapper::CLevelDBWrapper(const boost::filesystem::path &path, size_t nCa
         options.env = penv;
     } else {
         if (fWipe) {
-            LogPrint("INFO", "Wiping LevelDB in %s\n", path.string());
+            LogPrint(BCLog::INFO, "Wiping LevelDB in %s\n", path.string());
             leveldb::DestroyDB(path.string(), options);
         }
         TryCreateDirectory(path);
-        LogPrint("INFO", "Opening LevelDB in %s\n", path.string());
+        LogPrint(BCLog::INFO, "Opening LevelDB in %s\n", path.string());
     }
     leveldb::Status status = leveldb::DB::Open(options, path.string(), &pdb);
     ThrowError(status);
-    LogPrint("INFO", "Opened LevelDB successfully\n");
+    LogPrint(BCLog::INFO, "Opened LevelDB successfully\n");
 }
 
 CLevelDBWrapper::~CLevelDBWrapper() {
@@ -103,7 +103,7 @@ int64_t CLevelDBWrapper::GetDbCount() {
             // leveldb::Slice slValue = pCursor->value();
             // CDataStream ssKey(slKey.data(), slKey.data() + slKey.size(), SER_DISK, CLIENT_VERSION);
             // CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-            // LogPrint("INFO", "Key:%s\n value:%s\n", HexStr(ssKey), HexStr(ssValue));
+            // LogPrint(BCLog::INFO, "Key:%s\n value:%s\n", HexStr(ssKey), HexStr(ssValue));
             pCursor->Next();
 
         } catch (std::exception &e) {

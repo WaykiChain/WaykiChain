@@ -12,7 +12,7 @@
 #include "init.h"
 #include "miner/miner.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include <boost/test/unit_test.hpp>
 #include "rpc/rpcclient.h"
 #include "tx/tx.h"

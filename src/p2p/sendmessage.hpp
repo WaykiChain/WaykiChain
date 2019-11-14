@@ -8,8 +8,9 @@
 
 #include "main.h"
 
-// Requires cs_main.
+// Requires cs_mapNodeState.
 void MarkBlockAsInFlight(const uint256 &hash, NodeId nodeId) {
+    AssertLockHeld(cs_mapNodeState);
     CNodeState *state = State(nodeId);
     assert(state != nullptr);
 
@@ -64,60 +65,78 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             // }
         }
 
-        TRY_LOCK(cs_main, lockMain);  // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
-        if (!lockMain)
-            return true;
+        {
+            TRY_LOCK(cs_main, lockMain);  // Acquire cs_main for IsInitialBlockDownload() and CNodeState()
+            if (!lockMain)
+                return true;
 
-        // Address refresh broadcast
-        static int64_t nLastRebroadcast;
-        if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60)) {
-            {
-                LOCK(cs_vNodes);
-                for (auto pNode : vNodes) {
-                    // Periodically clear setAddrKnown to allow refresh broadcasts
-                    if (nLastRebroadcast)
-                        pNode->setAddrKnown.clear();
+            // Address refresh broadcast
+            static int64_t nLastRebroadcast;
+            if (!IsInitialBlockDownload() && (GetTime() - nLastRebroadcast > 24 * 60 * 60)) {
+                {
+                    LOCK(cs_vNodes);
+                    for (auto pNode : vNodes) {
+                        // Periodically clear setAddrKnown to allow refresh broadcasts
+                        if (nLastRebroadcast)
+                            pNode->setAddrKnown.clear();
 
-                    // Rebroadcast our address
-                    if (!fNoListen) {
-                        CAddress addr = GetLocalAddress(&pNode->addr);
-                        if (addr.IsRoutable())
-                            pNode->PushAddress(addr);
+                        // Rebroadcast our address
+                        if (!fNoListen) {
+                            CAddress addr = GetLocalAddress(&pNode->addr);
+                            if (addr.IsRoutable())
+                                pNode->PushAddress(addr);
+                        }
                     }
                 }
+                nLastRebroadcast = GetTime();
             }
-            nLastRebroadcast = GetTime();
-        }
 
-        //
-        // Message: addr
-        //
-        if (fSendTrickle) {
-            vector<CAddress> vAddr;
-            vAddr.reserve(pTo->vAddrToSend.size());
-            for (const auto &addr : pTo->vAddrToSend) {
-                // returns true if wasn't already contained in the set
-                if (pTo->setAddrKnown.insert(addr).second) {
-                    vAddr.push_back(addr);
-                    // receiver rejects addr messages larger than 1000
-                    if (vAddr.size() >= 1000) {
-                        pTo->PushMessage("addr", vAddr);
-                        vAddr.clear();
+            //
+            // Message: addr
+            //
+            if (fSendTrickle) {
+                vector<CAddress> vAddr;
+                vAddr.reserve(pTo->vAddrToSend.size());
+                for (const auto &addr : pTo->vAddrToSend) {
+                    // returns true if wasn't already contained in the set
+                    if (pTo->setAddrKnown.insert(addr).second) {
+                        vAddr.push_back(addr);
+                        // receiver rejects addr messages larger than 1000
+                        if (vAddr.size() >= 1000) {
+                            pTo->PushMessage("addr", vAddr);
+                            vAddr.clear();
+                        }
                     }
                 }
+                pTo->vAddrToSend.clear();
+                if (!vAddr.empty())
+                    pTo->PushMessage("addr", vAddr);
             }
-            pTo->vAddrToSend.clear();
-            if (!vAddr.empty())
-                pTo->PushMessage("addr", vAddr);
+
+            // Start block sync
+            if (pTo->fStartSync && !SysCfg().IsImporting() && !SysCfg().IsReindex()) {
+                pTo->fStartSync = false;
+                nSyncTipHeight  = pTo->nStartingHeight;
+                LogPrint(BCLog::NET, "start block sync lead to getblocks\n");
+                PushGetBlocks(pTo, chainActive.Tip(), uint256());
+            }
+
+            // Resend wallet transactions that haven't gotten in a block yet
+            // Except during reindex, importing and IBD, when old wallet
+            // transactions become unconfirmed and spams other nodes.
+            if (!SysCfg().IsReindex() && !SysCfg().IsImporting() && !IsInitialBlockDownload()) {
+                g_signals.Broadcast();
+            }
         }
 
+        LOCK(cs_mapNodeState);
         CNodeState &state = *State(pTo->GetId());
         if (state.fShouldBan) {
             if (pTo->addr.IsLocal()) {
-                LogPrint("INFO", "Warning: not banning local node %s!\n", pTo->addr.ToString());
+                LogPrint(BCLog::INFO, "Warning: not banning local node %s!\n", pTo->addr.ToString());
             }
             else {
-                LogPrint("INFO", "Warning: banned a remote node %s!\n", pTo->addr.ToString());
+                LogPrint(BCLog::INFO, "Warning: banned a remote node %s!\n", pTo->addr.ToString());
                 pTo->fDisconnect = true;
                 CNode::Ban(pTo->addr);
             }
@@ -127,21 +146,6 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         for (const auto &reject : state.rejects)
             pTo->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.blockHash);
         state.rejects.clear();
-
-        // Start block sync
-        if (pTo->fStartSync && !SysCfg().IsImporting() && !SysCfg().IsReindex()) {
-            pTo->fStartSync = false;
-            nSyncTipHeight  = pTo->nStartingHeight;
-            LogPrint("net", "start block sync lead to getblocks\n");
-            PushGetBlocks(pTo, chainActive.Tip(), uint256());
-        }
-
-        // Resend wallet transactions that haven't gotten in a block yet
-        // Except during reindex, importing and IBD, when old wallet
-        // transactions become unconfirmed and spams other nodes.
-        if (!SysCfg().IsReindex() && !SysCfg().IsImporting() && !IsInitialBlockDownload()) {
-            g_signals.Broadcast();
-        }
 
         //
         // Message: inventory
@@ -194,7 +198,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         if (!pTo->fDisconnect && state.nBlocksInFlight &&
             state.nLastBlockReceive < state.nLastBlockProcess - BLOCK_DOWNLOAD_TIMEOUT * 1000000 &&
             state.vBlocksInFlight.front().nTime < state.nLastBlockProcess - 2 * BLOCK_DOWNLOAD_TIMEOUT * 1000000) {
-            LogPrint("INFO", "Peer %s is stalling block download, disconnecting\n", state.name.c_str());
+            LogPrint(BCLog::INFO, "Peer %s is stalling block download, disconnecting\n", state.name.c_str());
             pTo->fDisconnect = true;
         }
 
@@ -207,8 +211,8 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             uint256 hash = state.vBlocksToDownload.front();
             vGetData.push_back(CInv(MSG_BLOCK, hash));
             MarkBlockAsInFlight(hash, pTo->GetId());
-            LogPrint("net", "Requesting block [%d] %s from %s, nBlocksInFlight=%d\n", index++, hash.ToString().c_str(),
-                     state.name.c_str(), state.nBlocksInFlight);
+            LogPrint(BCLog::NET, "send MSG_BLOCK msg! time_ms=%lld, hash=%s, peer=%s, FlightBlocks=%d, index=%d\n",
+                GetTimeMillis(), hash.ToString(), state.name, state.nBlocksInFlight, index++);
             if (vGetData.size() >= 1000) {
                 pTo->PushMessage("getdata", vGetData);
                 vGetData.clear();
@@ -222,7 +226,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         while (!pTo->fDisconnect && !pTo->mapAskFor.empty() && (*pTo->mapAskFor.begin()).first <= nNow) {
             const CInv &inv = (*pTo->mapAskFor.begin()).second;
             if (!AlreadyHave(inv)) {
-                LogPrint("net", "sending getdata: %s\n", inv.ToString());
+                LogPrint(BCLog::NET, "sending getdata: %s\n", inv.ToString());
                 vGetData.push_back(inv);
                 if (vGetData.size() >= 1000) {
                     pTo->PushMessage("getdata", vGetData);

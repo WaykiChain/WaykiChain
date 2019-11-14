@@ -8,7 +8,7 @@
 
 #include "alert.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "main.h"
 #include "net.h"
 
@@ -83,11 +83,13 @@ struct CNodeState {
     }
 };
 
-// Map maintaining per-node state. Requires cs_main.
+// Map maintaining per-node state. Requires cs_mapNodeState.
 map<NodeId, CNodeState> mapNodeState;
+CCriticalSection cs_mapNodeState;
 
-// Requires cs_main.
+// Requires cs_mapNodeState.
 CNodeState *State(NodeId pNode) {
+    AssertLockHeld(cs_mapNodeState);
     map<NodeId, CNodeState>::iterator it = mapNodeState.find(pNode);
     if (it == mapNodeState.end())
         return nullptr;
@@ -95,8 +97,9 @@ CNodeState *State(NodeId pNode) {
     return &it->second;
 }
 
-// Requires cs_main.
+// Requires cs_mapNodeState.
 void MarkBlockAsReceived(const uint256 &hash, NodeId nodeFrom = -1) {
+    AssertLockHeld(cs_mapNodeState);
     auto itToDownload = mapBlocksToDownload.find(hash);
     if (itToDownload != mapBlocksToDownload.end()) {
         CNodeState *state = State(std::get<0>(itToDownload->second));
@@ -139,7 +142,7 @@ inline void ProcessGetData(CNode *pFrom) {
     while (it != pFrom->vRecvGetData.end()) {
         // Don't bother if send buffer is too full to respond anyway
         if (pFrom->nSendSize >= SendBufferSize()) {
-            LogPrint("net", "send buffer size: %d full for peer: %s\n", pFrom->nSendSize, pFrom->addr.ToString());
+            LogPrint(BCLog::NET, "send buffer size: %d full for peer: %s\n", pFrom->nSendSize, pFrom->addr.ToString());
             break;
         }
 
@@ -154,7 +157,7 @@ inline void ProcessGetData(CNode *pFrom) {
                 if (mi != mapBlockIndex.end()) {
                     send = true;
                 } else {
-                    LogPrint("net", "block %s not exist\n", inv.hash.GetHex());
+                    LogPrint(BCLog::NET, "block %s not exist\n", inv.hash.GetHex());
                 }
 
                 if (send) {
@@ -162,7 +165,7 @@ inline void ProcessGetData(CNode *pFrom) {
                     CBlock block;
                     ReadBlockFromDisk((*mi).second, block);
                     if (inv.type == MSG_BLOCK) {
-                        LogPrint("net", "send block[%u]: %s to peer %s\n", block.GetHeight(), block.GetHash().GetHex(),
+                        LogPrint(BCLog::NET, "send block[%u]: %s to peer %s\n", block.GetHeight(), block.GetHash().GetHex(),
                                  pFrom->addr.ToString());
                         pFrom->PushMessage("block", block);
                     }
@@ -195,7 +198,7 @@ inline void ProcessGetData(CNode *pFrom) {
                         vInv.push_back(CInv(MSG_BLOCK, chainActive.Tip()->GetBlockHash()));
                         pFrom->PushMessage("inv", vInv);
                         pFrom->hashContinue.SetNull();
-                        LogPrint("net", "reset node hashcontinue\n");
+                        LogPrint(BCLog::NET, "reset node hashcontinue\n");
                     }
                 }
             } else if (inv.IsKnownType()) {
@@ -273,13 +276,16 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
          (now - std::get<2>(mapBlocksToDownload[hash]) < blocksToDownloadTimeout * 1000000)) ||
         (mapBlocksInFlight.count(hash) &&
          (now - std::get<2>(mapBlocksInFlight[hash]) < blockInFlightTimeout * 1000000))) {
-        LogPrint("net", "block: %s is downloading from another peer, ignore\n", hash.GetHex());
+        LogPrint(BCLog::NET, "block is downloading from another peer, ignore! time_ms=%lld, hash=%s\n", GetTimeMillis(), hash.GetHex());
 
         return false;
     }
 
+    LOCK(cs_mapNodeState);
     CNodeState *state = State(nodeId);
     if (state == nullptr) {
+        LogPrint(BCLog::NET, "peer not found! time_ms=%lld, hash=%s peer_id=%d\n",
+            GetTimeMillis(), hash.ToString(), nodeId);
         return false;
     }
 
@@ -289,11 +295,12 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
     list<uint256>::iterator it = state->vBlocksToDownload.insert(state->vBlocksToDownload.end(), hash);
     state->nBlocksToDownload++;
     if (state->nBlocksToDownload > 5000) {
-        LogPrint("INFO", "Misbehaving: AddBlockToQueue download too many times, nMisbehavior add 10\n");
+        LogPrint(BCLog::INFO, "Misbehaving: AddBlockToQueue download too many times, nMisbehavior add 10\n");
         Misbehaving(nodeId, 10);
     }
 
-    LogPrint("net", "block: %s start to download from peer %s\n", hash.ToString(), state->name);
+    LogPrint(BCLog::NET, "start to download block! time_ms=%lld, hash=%s peer=%s\n",
+        GetTimeMillis(), hash.ToString(), state->name);
     mapBlocksToDownload[hash] = std::make_tuple(nodeId, it, GetTimeMicros());
 
     return true;
@@ -303,7 +310,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
     // Each connection can only send one version message
     if (pFrom->nVersion != 0) {
         pFrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
-        LogPrint("INFO", "Misbehaving: Duplicated version message, nMisbehavior add 1\n");
+        LogPrint(BCLog::INFO, "Misbehaving: Duplicated version message, nMisbehavior add 1\n");
         Misbehaving(pFrom->GetId(), 1);
         return false;
     }
@@ -315,7 +322,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
     vRecv >> pFrom->nVersion >> pFrom->nServices >> nTime >> addrMe;
     if (pFrom->nVersion < MIN_PEER_PROTO_VERSION) {
         // Disconnect from peers older than this proto version
-        LogPrint("INFO", "partner %s using obsolete version %i; disconnecting\n", pFrom->addr.ToString(),
+        LogPrint(BCLog::INFO, "partner %s using obsolete version %i; disconnecting\n", pFrom->addr.ToString(),
                  pFrom->nVersion);
         pFrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                            strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
@@ -348,7 +355,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
 
     // Disconnect if we connected to ourself
     if (nNonce == nLocalHostNonce && nNonce > 1) {
-        LogPrint("INFO", "connected to self at %s, disconnecting\n", pFrom->addr.ToString());
+        LogPrint(BCLog::INFO, "connected to self at %s, disconnecting\n", pFrom->addr.ToString());
         pFrom->fDisconnect = true;
         return 1;
     }
@@ -392,7 +399,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
 
     pFrom->fSuccessfullyConnected = true;
 
-    LogPrint("INFO", "receive version msg: %s: protocol_ver %d, blocks=%d, us=%s, them=%s, peer=%s\n",
+    LogPrint(BCLog::INFO, "receive version msg: %s: protocol_ver %d, blocks=%d, us=%s, them=%s, peer=%s\n",
              pFrom->cleanSubVer, pFrom->nVersion, pFrom->nStartingHeight, addrMe.ToString(), addrFrom.ToString(),
              pFrom->addr.ToString());
 
@@ -448,7 +455,7 @@ inline void ProcessPongMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 
     if (!(sProblem.empty())) {
-        LogPrint("net", "pong %s %s: %s, %x expected, %x received, %u bytes\n", pFrom->addr.ToString(),
+        LogPrint(BCLog::NET, "pong %s %s: %s, %x expected, %x received, %u bytes\n", pFrom->addr.ToString(),
                  pFrom->cleanSubVer, sProblem, pFrom->nPingNonceSent, nonce, nAvail);
     }
 
@@ -546,19 +553,19 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
         RelayTransaction(pBaseTx.get(), inv.hash);
         mapAlreadyAskedFor.erase(inv);
 
-        LogPrint("INFO", "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n", pFrom->addr.ToString(),
+        LogPrint(BCLog::INFO, "AcceptToMemoryPool: %s %s : accepted %s (poolsz %u)\n", pFrom->addr.ToString(),
                  pFrom->cleanSubVer, pBaseTx->GetHash().ToString(), mempool.memPoolTxs.size());
     }
 
     int32_t nDoS = 0;
     if (state.IsInvalid(nDoS)) {
-        LogPrint("INFO", "%s [%d] from %s %s was not accepted into the memory pool: %s\n",
+        LogPrint(BCLog::INFO, "%s [%d] from %s %s was not accepted into the memory pool: %s\n",
                 pBaseTx->GetHash().ToString(), pBaseTx->valid_height,
                 pFrom->addr.ToString(), pFrom->cleanSubVer, state.GetRejectReason());
 
         pFrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
         // if (nDoS > 0) {
-        //     LogPrint("INFO", "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d",
+        //     LogPrint(BCLog::INFO, "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d",
         //     pBaseTx->GetHash().GetHex(), nDoS); Misbehaving(pFrom->GetId(), nDoS);
         // }
     }
@@ -591,7 +598,7 @@ inline bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
     // We must use CBlocks, as CBlockHeaders won't include the 0x00 nTx count at the end
     vector<CBlock> vHeaders;
     int32_t nLimit = 2000;
-    LogPrint("NET", "getheaders %d to %s from peer %s\n", (pIndex ? pIndex->height : -1), hashStop.ToString(),
+    LogPrint(BCLog::NET, "getheaders %d to %s from peer %s\n", (pIndex ? pIndex->height : -1), hashStop.ToString(),
              pFrom->addr.ToString());
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         vHeaders.push_back(pIndex->GetBlockHeader());
@@ -611,28 +618,34 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     LOCK(cs_main);
 
     // Find the last block the caller has in the main chain
-    CBlockIndex *pIndex = chainActive.FindFork(locator);
+    CBlockIndex *pStartIndex = chainActive.FindFork(locator);
 
     // Send the rest of the chain
-    if (pIndex)
-        pIndex = chainActive.Next(pIndex);
+    if (pStartIndex)
+        pStartIndex = chainActive.Next(pStartIndex);
 
     int32_t nLimit = 500;
-    LogPrint("net", "recv getblocks %d to %s limit %d from peer %s\n", (pIndex ? pIndex->height : -1),
-             hashStop.ToString(), nLimit, pFrom->addr.ToString());
+    LogPrint(BCLog::NET, "recv getblocks msg! start_block=%s, end_block=%s, tip_block=%s, limit=%d, peer=%s\n",
+        (pStartIndex ? pStartIndex->GetIndentityString() : ""), hashStop.ToString(),
+        chainActive.Tip()->GetIndentityString(), nLimit, pFrom->addrName);
 
+    CBlockIndex *pIndex = pStartIndex;
     for (; pIndex; pIndex = chainActive.Next(pIndex)) {
         if (pIndex->GetBlockHash() == hashStop) {
-            LogPrint("net", "getblocks stopping at %d %s from peer %s\n", pIndex->height,
-                     pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
+            LogPrint(BCLog::NET, "processing getblocks stoped by hash_end! end_block=%s, peer=%s\n",
+                pIndex->GetIndentityString(), pFrom->addrName);
             break;
         }
-        pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()));
+
+        bool forced = false;
+        if (pIndex == pStartIndex || pIndex->pprev == pStartIndex)
+            forced = true;
+        pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), forced);
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.
-            LogPrint("net", "process getblocks stopping at limit %d %s from peer %s\n", pIndex->height,
-                     pIndex->GetBlockHash().ToString(), pFrom->addr.ToString());
+            LogPrint(BCLog::NET, "processing getblocks stopped by limit! end_block=%s, limit=%d, peer=%s\n",
+                pIndex->GetIndentityString(), 500, pFrom->addrName);
             pFrom->hashContinue = pIndex->GetBlockHash();
             break;
         }
@@ -644,7 +657,7 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
     vRecv >> vInv;
     if (vInv.size() > MAX_INV_SZ) {
         Misbehaving(pFrom->GetId(), 20);
-        return ERRORMSG("message inv size() = %u from peer %s", vInv.size(), pFrom->addr.ToString());
+        return ERRORMSG("message inv size() = %u from peer %s", vInv.size(), pFrom->addrName);
     }
 
     LOCK(cs_main);
@@ -654,38 +667,55 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
         boost::this_thread::interruption_point();
         pFrom->AddInventoryKnown(inv);
 
-        bool fAlreadyHave = AlreadyHave(inv);
-        if (fAlreadyHave) {
-            int32_t nBlockHeight = 0;
-            if (inv.type == MSG_BLOCK && mapBlockIndex.count(inv.hash))
-            nBlockHeight = mapBlockIndex[inv.hash]->height;
-            LogPrint("net", "got inv[%d]: %s h=%d peer=%d\n", i++, inv.ToString(), nBlockHeight, pFrom->GetId());
-        } else {
-            LogPrint("net", "got inv[%d]: %s new peer=%d\n", i++, inv.ToString(), pFrom->GetId());
+        bool fAlreadyHave = false;
+        const char* msgName = "UNKNOWN";
+        if (inv.type ==  MSG_TX) {
+            msgName = "MSG_TX";
+            if (mempool.Exists(inv.hash)) {
+                LogPrint(BCLog::NET, "recv inv old data! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
+                    GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
+                fAlreadyHave = true;
+            }
+        } else if (inv.type == MSG_BLOCK) {
+            msgName = "MSG_BLOCK";
+            auto blockIndexIt = mapBlockIndex.find(inv.hash);
+            if (blockIndexIt != mapBlockIndex.end()) {
+                LogPrint(BCLog::NET, "recv inv old data! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s, found_in=%s, height=%d\n",
+                    GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName, "BlockIndex", blockIndexIt->second->height);
+                fAlreadyHave = true;
+            } else {
+                auto orphanBlockIt = mapOrphanBlocks.find(inv.hash);
+                if (orphanBlockIt != mapOrphanBlocks.end()) {
+                    LogPrint(BCLog::NET, "recv inv old data! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s, found_in=%s, height=%d\n",
+                        GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName, "OrphanBlock", orphanBlockIt->second->height);
+                    fAlreadyHave = true;
+
+                    LogPrint(BCLog::NET, "recv orphan block and lead to getblocks! height=%d, hash=%s, "
+                             "tip_height=%d, tip_hash=%s, peer=%s\n",
+                             orphanBlockIt->second->height, inv.hash.GetHex(), chainActive.Height(),
+                             chainActive.Tip()->GetBlockHash().GetHex(), pFrom->addrName);
+                    PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
+                    // TODO: should get the headmost block of this fork from current peer
+                }
+            }
         }
 
-
         if (!fAlreadyHave) {
+            LogPrint(BCLog::NET, "recv inv new data! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
+                GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
             if (!SysCfg().IsImporting() && !SysCfg().IsReindex()) {
                 if (inv.type == MSG_BLOCK)
                     AddBlockToQueue(inv.hash, pFrom->GetId());
                 else
                     pFrom->AskFor(inv);  // MSG_TX
             }
-        } else if (inv.type == MSG_BLOCK && mapOrphanBlocks.count(inv.hash)) {
-            COrphanBlock *pOrphanBlock = mapOrphanBlocks[inv.hash];
-            LogPrint("net",
-                     "receive orphan block inv height=%d hash=%s from %s lead to getblocks, current block height=%d, "
-                     "current block hash=%s\n",
-                     pOrphanBlock->height, inv.hash.GetHex(), pFrom->addr.ToString(), chainActive.Height(),
-                     chainActive.Tip()->GetBlockHash().GetHex());
-            PushGetBlocksOnCondition(pFrom, chainActive.Tip(), GetOrphanRoot(inv.hash));
         }
 
         if (pFrom->nSendSize > (SendBufferSize() * 2)) {
             Misbehaving(pFrom->GetId(), 50);
             return ERRORMSG("send buffer size() = %u", pFrom->nSendSize);
         }
+        i++;
     }
     return true;
 }
@@ -699,10 +729,10 @@ inline bool ProcessGetDataMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 
     if ((vInv.size() != 1))
-        LogPrint("net", "received getdata (%u invsz) from peer %s\n", vInv.size(), pFrom->addr.ToString());
+        LogPrint(BCLog::NET, "received getdata (%u invsz) from peer %s\n", vInv.size(), pFrom->addr.ToString());
 
     if ((vInv.size() > 0) || (vInv.size() == 1))
-        LogPrint("net", "received getdata for: %s from peer %s\n", vInv[0].ToString(), pFrom->addr.ToString());
+        LogPrint(BCLog::NET, "received getdata for: %s from peer %s\n", vInv[0].ToString(), pFrom->addr.ToString());
 
     pFrom->vRecvGetData.insert(pFrom->vRecvGetData.end(), vInv.begin(), vInv.end());
     ProcessGetData(pFrom);
@@ -714,17 +744,21 @@ inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv) {
     CBlock block;
     vRecv >> block;
 
-    LogPrint("net", "received block %s from peer %s\n", block.GetHash().ToString(), pFrom->addr.ToString());
+    LogPrint(BCLog::NET, "recv block! time_ms=%lld, hash=%s, peer=%s\n", GetTimeMillis(),
+        block.GetHash().ToString(), pFrom->addr.ToString());
     // block.Print();
 
     CInv inv(MSG_BLOCK, block.GetHash());
     pFrom->AddInventoryKnown(inv);
 
-    LOCK(cs_main);
-    // Remember who we got this block from.
-    mapBlockSource[inv.hash] = pFrom->GetId();
-    MarkBlockAsReceived(inv.hash, pFrom->GetId());
+    {
+        // Remember who we got this block from.
+        LOCK(cs_mapNodeState);
+        mapBlockSource[inv.hash] = pFrom->GetId();
+        MarkBlockAsReceived(inv.hash, pFrom->GetId());
+    }
 
+    LOCK(cs_main);
     CValidationState state;
     ProcessBlock(state, pFrom, &block);
 }
@@ -783,7 +817,7 @@ inline void ProcessFilterLoadMessage(CNode *pFrom, CDataStream &vRecv) {
     vRecv >> filter;
 
     if (!filter.IsWithinSizeConstraints()) {
-        LogPrint("INFO", "Misebehaving: filter is not within size constraints, Misbehavior add 100");
+        LogPrint(BCLog::INFO, "Misebehaving: filter is not within size constraints, Misbehavior add 100");
         // There is no excuse for sending a too-large filter
         Misbehaving(pFrom->GetId(), 100);
     } else {
@@ -803,14 +837,14 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
     // and thus, the maximum size any matched object can have) in a filteradd message
     if (vData.size() > 520)  // MAX_SCRIPT_ELEMENT_SIZE)
     {
-        LogPrint("INFO", "Misbehaving: send a data item > 520 bytes, Misbehavior add 100");
+        LogPrint(BCLog::INFO, "Misbehaving: send a data item > 520 bytes, Misbehavior add 100");
         Misbehaving(pFrom->GetId(), 100);
     } else {
         LOCK(pFrom->cs_filter);
         if (pFrom->pFilter)
             pFrom->pFilter->insert(vData);
         else {
-            LogPrint("INFO", "Misbehaving: filter error, Misbehavior add 100");
+            LogPrint(BCLog::INFO, "Misbehaving: filter error, Misbehavior add 100");
             Misbehaving(pFrom->GetId(), 100);
         }
     }
@@ -836,7 +870,7 @@ inline void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv) {
         if (s.size() > 111)
             s.erase(111, string::npos);
 
-        LogPrint("net", "Reject %s from peer %s\n", SanitizeString(s), pFrom->addr.ToString());
+        LogPrint(BCLog::NET, "Reject %s from peer %s\n", SanitizeString(s), pFrom->addr.ToString());
     }
 }
 

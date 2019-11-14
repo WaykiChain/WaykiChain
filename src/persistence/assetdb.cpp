@@ -6,7 +6,7 @@
 #include "assetdb.h"
 
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <stdint.h>
 

@@ -74,10 +74,7 @@ vector<MinedBlockInfo> GetMinedBlocks(uint32_t count);
 /** Run the miner threads */
 void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t nThreads);
 
-bool CreateBlockRewardTx(const int64_t currentTime, const CAccount &delegate, CAccountDBCache &accountCache,
-                         CBlock *pBlock);
-
-bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx = false);
+bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, VoteDelegate &curDelegateOut);
 
 /** Check mined block */
 bool CheckWork(CBlock *pBlock);
@@ -87,9 +84,9 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
 
-void ShuffleDelegates(const int32_t nCurHeight, vector<CRegID> &delegateList);
+void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates);
 
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
-                        const vector<CRegID> &delegateList, CRegID &delegate);
+                        const VoteDelegateVector &delegates, VoteDelegate &delegate);
 
 #endif  // COIN_MINER_H

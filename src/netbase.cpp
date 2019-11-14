@@ -8,7 +8,7 @@
 #include "commons/uint256.h"
 #include "crypto/hash.h"
 #include "sync.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #ifndef WIN32
 #include <fcntl.h>
@@ -166,7 +166,7 @@ bool LookupNumeric(const char* pszName, CService& addr, int portDefault) {
 }
 
 bool static Socks4(const CService& addrDest, SOCKET& hSocket) {
-    LogPrint("INFO", "SOCKS4 connecting %s\n", addrDest.ToString());
+    LogPrint(BCLog::INFO, "SOCKS4 connecting %s\n", addrDest.ToString());
     if (!addrDest.IsIPv4()) {
         closesocket(hSocket);
         return ERRORMSG("Proxy destination is not IPv4");
@@ -195,15 +195,15 @@ bool static Socks4(const CService& addrDest, SOCKET& hSocket) {
     }
     if (pchRet[1] != 0x5a) {
         closesocket(hSocket);
-        if (pchRet[1] != 0x5b) LogPrint("INFO", "ERROR: Proxy returned error %d\n", pchRet[1]);
+        if (pchRet[1] != 0x5b) LogPrint(BCLog::INFO, "ERROR: Proxy returned error %d\n", pchRet[1]);
         return false;
     }
-    LogPrint("INFO", "SOCKS4 connected %s\n", addrDest.ToString());
+    LogPrint(BCLog::INFO, "SOCKS4 connected %s\n", addrDest.ToString());
     return true;
 }
 
 bool static Socks5(string strDest, int port, SOCKET& hSocket) {
-    LogPrint("INFO", "SOCKS5 connecting %s\n", strDest);
+    LogPrint(BCLog::INFO, "SOCKS5 connecting %s\n", strDest);
     if (strDest.size() > 255) {
         closesocket(hSocket);
         return ERRORMSG("Hostname too long");
@@ -303,7 +303,7 @@ bool static Socks5(string strDest, int port, SOCKET& hSocket) {
         closesocket(hSocket);
         return ERRORMSG("Error reading from proxy");
     }
-    LogPrint("INFO", "SOCKS5 connected %s\n", strDest);
+    LogPrint(BCLog::INFO, "SOCKS5 connected %s\n", strDest);
     return true;
 }
 
@@ -313,7 +313,7 @@ bool static ConnectSocketDirectly(const CService& addrConnect, SOCKET& hSocketRe
     struct sockaddr_storage sockaddr;
     socklen_t len = sizeof(sockaddr);
     if (!addrConnect.GetSockAddr((struct sockaddr*)&sockaddr, &len)) {
-        LogPrint("INFO", "Cannot connect to %s: unsupported network\n", addrConnect.ToString());
+        LogPrint(BCLog::INFO, "Cannot connect to %s: unsupported network\n", addrConnect.ToString());
         return false;
     }
 
@@ -350,12 +350,12 @@ bool static ConnectSocketDirectly(const CService& addrConnect, SOCKET& hSocketRe
             FD_SET(hSocket, &fdset);
             int nRet = select(hSocket + 1, nullptr, &fdset, nullptr, &timeout);
             if (nRet == 0) {
-                LogPrint("net", "connection to %s timeout\n", addrConnect.ToString());
+                LogPrint(BCLog::NET, "connection to %s timeout\n", addrConnect.ToString());
                 closesocket(hSocket);
                 return false;
             }
             if (nRet == SOCKET_ERROR) {
-                LogPrint("net", "select() for %s failed: %s\n", addrConnect.ToString(),
+                LogPrint(BCLog::NET, "select() for %s failed: %s\n", addrConnect.ToString(),
                          NetworkErrorString(WSAGetLastError()));
                 closesocket(hSocket);
                 return false;
@@ -367,13 +367,13 @@ bool static ConnectSocketDirectly(const CService& addrConnect, SOCKET& hSocketRe
             if (getsockopt(hSocket, SOL_SOCKET, SO_ERROR, &nRet, &nRetSize) == SOCKET_ERROR)
 #endif
             {
-                LogPrint("net", "getsockopt() for %s failed: %s\n", addrConnect.ToString(),
+                LogPrint(BCLog::NET, "getsockopt() for %s failed: %s\n", addrConnect.ToString(),
                          NetworkErrorString(WSAGetLastError()));
                 closesocket(hSocket);
                 return false;
             }
             if (nRet != 0) {
-                LogPrint("net", "connect() to %s failed after select(): %s\n", addrConnect.ToString(),
+                LogPrint(BCLog::NET, "connect() to %s failed after select(): %s\n", addrConnect.ToString(),
                          NetworkErrorString(nRet));
                 closesocket(hSocket);
                 return false;
@@ -385,7 +385,7 @@ bool static ConnectSocketDirectly(const CService& addrConnect, SOCKET& hSocketRe
         else
 #endif
         {
-            LogPrint("INFO", "connect() to %s failed: %s\n", addrConnect.ToString(),
+            LogPrint(BCLog::INFO, "connect() to %s failed: %s\n", addrConnect.ToString(),
                      NetworkErrorString(WSAGetLastError()));
             closesocket(hSocket);
             return false;
@@ -818,7 +818,7 @@ uint64_t CNetAddr::GetHash() const {
     return nRet;
 }
 
-void CNetAddr::Print() const { LogPrint("INFO", "CNetAddr(%s)\n", ToString()); }
+void CNetAddr::Print() const { LogPrint(BCLog::INFO, "CNetAddr(%s)\n", ToString()); }
 
 // private extensions to enum Network, only returned by GetExtNetwork,
 // and only used in GetReachabilityFrom
@@ -1026,7 +1026,7 @@ string CService::ToStringIPPort() const {
 
 string CService::ToString() const { return ToStringIPPort(); }
 
-void CService::Print() const { LogPrint("INFO", "CService(%s)\n", ToString()); }
+void CService::Print() const { LogPrint(BCLog::INFO, "CService(%s)\n", ToString()); }
 
 void CService::SetPort(unsigned short portIn) { port = portIn; }
 

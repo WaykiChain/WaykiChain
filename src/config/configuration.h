@@ -9,7 +9,7 @@
 #include "chainparams.h"
 #include "commons/arith_uint256.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "version.h"
 
 #include <map>
@@ -50,6 +50,7 @@ public:
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(const NET_TYPE type) const;
     uint32_t GetStableCoinGenesisHeight(const NET_TYPE type) const;
+    uint32_t GetVer3ForkHeight(const NET_TYPE type) const;
     const vector<string> GetStableCoinGenesisTxid(const NET_TYPE type) const;
 
 private:
@@ -114,15 +115,20 @@ private:
     /* Max Number of Delegate Candidate to Vote for by a single account */
     static uint32_t MaxVoteCandidateNum;
 
-    /* Block height to enable feature fork version */
+    /* Soft fork height to enable feature fork version */
 	static uint32_t nFeatureForkHeight[3];
 
-    /* Block height for stable coin genesis */
+    /* Soft fork height for stable coin genesis */
     static uint32_t nStableScoinGenesisHeight[3];
+
+    /* soft fork height for MAJOR_VER_R3 */
+    static uint32_t nVer3ForkHeight[3];
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
-    if (currBlockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
+    if (currBlockHeight >= (int32_t)SysCfg().GetVer3ForkHeight())
+        return MAJOR_VER_R3;
+    else if (currBlockHeight >= (int32_t)SysCfg().GetFeatureForkHeight())
         return MAJOR_VER_R2;
     else
         return MAJOR_VER_R1;
@@ -182,7 +188,7 @@ inline uint32_t GetJumpHeightBySubsidy(const uint8_t targetSubsidyRate) {
     }
 
     // for (const auto& item : subsidyRate2BlockHeight) {
-    //     LogPrint("DEUBG", "subsidyRate -> blockHeight: %d -> %u\n", item.first, item.second);
+    //     LogPrint(BCLog::DEBUG, "subsidyRate -> blockHeight: %d -> %u\n", item.first, item.second);
     // }
 
     return subsidyRate2BlockHeight.at(targetSubsidyRate);

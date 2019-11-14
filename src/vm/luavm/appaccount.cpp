@@ -7,7 +7,7 @@
 
 #include "commons/SafeInt3.hpp"
 #include "commons/serialize.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "crypto/hash.h"
 #include "main.h"
 #include "miner/miner.h"
@@ -179,18 +179,15 @@ bool CAppUserAccount::AddAppCFund(const vector<uint8_t>& tag, uint64_t val, int3
 
 bool CAppUserAccount::Operate(const vector<CAppFundOperate>& operate, vector<CReceipt> &receipts) {
     assert(operate.size() > 0);
-    // LogPrint("acc","before:%s",toString());
     for (auto const op : operate) {
         if (!Operate(op, receipts)) {
             return false;
         }
     }
-    // LogPrint("acc","after:%s",toString());
     return true;
 }
 
 bool CAppUserAccount::Operate(const CAppFundOperate& operate, vector<CReceipt> &receipts) {
-    // LogPrint("acc","operate:%s", operate.toString());
     if (operate.opType == ADD_FREE_OP) {
         // bcoins += operate.GetUint64Value();
         uint64_t tempValue = 0;

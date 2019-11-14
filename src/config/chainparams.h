@@ -14,7 +14,7 @@
 #include "entities/id.h"
 #include "commons/uint256.h"
 #include "commons/arith_uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/scoin.h"
 
 using namespace std;
@@ -199,6 +199,7 @@ public:
     uint32_t GetBlockIntervalStableCoinRelease() const { return nBlockIntervalStableCoinRelease; }
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
+    uint32_t GetVer3ForkHeight() const { return nVer3ForkHeight; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, 1); }
     CRegID GetDexMatchSvcRegId() const  { return CRegID(nStableCoinGenesisHeight, 3); }
     virtual uint64_t GetMaxFee() const { return 1000 * COIN; }
@@ -249,6 +250,7 @@ protected:
     string alartPKey;
     uint32_t nStableCoinGenesisHeight;
     uint32_t nFeatureForkHeight;
+    uint32_t nVer3ForkHeight;
     uint32_t nBlockIntervalPreStableCoinRelease;
     uint32_t nBlockIntervalStableCoinRelease;
     string strDataDir;

@@ -6,7 +6,7 @@
 #include "rpcclient.h"
 
 #include "commons/json/json_spirit_writer_template.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/chainparams.h"  // for Params().RPCPort()
 #include "config/configuration.h"
 #include "main.h"
@@ -135,6 +135,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "getblock"               && n > 1) ConvertTo<bool>(params[1]);
     if (strMethod == "getchaininfo"           && n > 0) ConvertTo<int32_t>(params[0]);
+    if (strMethod == "getchaininfo"           && n > 1) ConvertTo<int32_t>(params[1]);
     if (strMethod == "verifychain"            && n > 0) ConvertTo<int64_t>(params[0]);
     if (strMethod == "verifychain"            && n > 1) ConvertTo<int64_t>(params[1]);
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);

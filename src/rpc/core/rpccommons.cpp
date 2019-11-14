@@ -311,8 +311,10 @@ const char* JSON::GetValueTypeName(const Value_type &valueType) {
 
 Object JSON::ToJson(const CAccountDBCache &accountCache, const CReceipt &receipt) {
     CKeyID fromKeyId, toKeyId;
-    accountCache.GetKeyId(receipt.from_uid, fromKeyId);
-    accountCache.GetKeyId(receipt.to_uid, toKeyId);
+    if (!receipt.from_uid.IsEmpty())
+        accountCache.GetKeyId(receipt.from_uid, fromKeyId);
+    if (!receipt.to_uid.IsEmpty())
+        accountCache.GetKeyId(receipt.to_uid, toKeyId);
 
     Object obj;
     obj.push_back(Pair("from_addr",     fromKeyId.ToAddress()));
@@ -425,13 +427,7 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
      * |-------------------------------|-------------------|-------------------|
      */
     CRegID regid;
-    if (GetFeatureForkVersion(chainActive.Height()) == MAJOR_VER_R1) {
-        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
-            return CUserID(regid);
-        } else {
-            return *pUserId;
-        }
-    } else { // MAJOR_VER_R2
+    if (GetFeatureForkVersion(chainActive.Height()) >= MAJOR_VER_R2) {
         if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
             return CUserID(regid);
         } else {
@@ -444,6 +440,12 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
             } else {
                 return *pUserId;
             }
+        }
+    } else { // MAJOR_VER_R1
+        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
+            return CUserID(regid);
+        } else {
+            return *pUserId;
         }
     }
 }

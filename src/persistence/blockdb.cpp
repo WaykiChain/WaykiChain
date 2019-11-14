@@ -6,7 +6,7 @@
 #include "blockdb.h"
 #include "entities/key.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "main.h"
 
 #include <stdint.h>
@@ -149,7 +149,7 @@ bool CBlockDBCache::SetTxIndex(const uint256 &txid, const CDiskTxPos &pos) {
 
 bool CBlockDBCache::WriteTxIndexes(const vector<pair<uint256, CDiskTxPos> > &list) {
     for (auto it : list) {
-        LogPrint("DEBUG", "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
+        LogPrint(BCLog::DEBUG, "txid:%s dispos: nFile=%d, nPos=%d nTxOffset=%d\n",
                 it.first.GetHex(), it.second.nFile, it.second.nPos, it.second.nTxOffset);
 
         if (!txDiskPosCache.SetData(it.first, it.second))

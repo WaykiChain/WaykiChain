@@ -120,7 +120,7 @@ static const int32_t BLOCK_REWARD_MATURITY = 100;
 static const int32_t REG_ID_MATURITY = 100;
 
 static const uint16_t MAX_MINED_BLOCK_COUNT      = 100;        // maximun cache size for mined blocks
-static const int32_t MAX_RECENT_BLOCK_COUNT      = 1000;       // most recent block number limit
+static const int32_t MAX_RECENT_BLOCK_COUNT      = 10000;      // most recent block number limit
 static const uint32_t MAX_RPC_SIG_STR_LEN        = 65 * 1024;  // 65K max length of raw string to be signed via rpc call
 static const uint32_t MAX_SIGNATURE_SIZE         = 100;        // 100 bytes max size of tx or block signature
 static const uint32_t MAX_CONTRACT_CODE_SIZE     = 65536;      // 64 KB max for contract script size

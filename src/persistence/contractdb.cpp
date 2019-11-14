@@ -9,7 +9,7 @@
 #include "entities/id.h"
 #include "entities/key.h"
 #include "commons/uint256.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "vm/luavm/luavmrunenv.h"
 
 #include <stdint.h>
@@ -94,7 +94,7 @@ shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
 
     assert(contractDataCache.GetBasePtr() == nullptr && "only support top level cache");
     if (contractKeyPrefix.size() > CDBContractKey::MAX_KEY_SIZE) {
-        LogPrint("ERROR", "CContractDBCache::CreateContractDatasGetter() contractKeyPrefix.size()=%u "
+        LogPrint(BCLog::ERROR, "CContractDBCache::CreateContractDatasGetter() contractKeyPrefix.size()=%u "
                  "exceeded the max size=%u", contractKeyPrefix.size(), CDBContractKey::MAX_KEY_SIZE);
         return nullptr;
     }

@@ -5,7 +5,8 @@
 
 #include "alert.h"
 
-#include "commons/util.h"
+#include "logging.h"
+#include "commons/util/util.h"
 #include "entities/key.h"
 #include "main.h"
 #include "net.h"
@@ -77,7 +78,7 @@ string CUnsignedAlert::ToString() const {
         strStatusBar);
 }
 
-void CUnsignedAlert::Print() const { LogPrint("INFO", "%s", ToString()); }
+void CUnsignedAlert::Print() const { LogPrint(BCLog::INFO, "%s", ToString()); }
 
 void CAlert::SetNull() {
     CUnsignedAlert::SetNull();
@@ -178,10 +179,10 @@ bool CAlert::ProcessAlert(bool fThread) {
         for (map<uint256, CAlert>::iterator mi = mapAlerts.begin(); mi != mapAlerts.end();) {
             const CAlert& alert = (*mi).second;
             if (Cancels(alert)) {
-                LogPrint("alert", "cancelling alert %d\n", alert.nID);
+                LogPrint(BCLog::ALERT, "cancelling alert %d\n", alert.nID);
                 mapAlerts.erase(mi++);
             } else if (!alert.IsInEffect()) {
-                LogPrint("alert", "expiring alert %d\n", alert.nID);
+                LogPrint(BCLog::ALERT, "expiring alert %d\n", alert.nID);
                 mapAlerts.erase(mi++);
             } else {
                 mi++;
@@ -192,7 +193,7 @@ bool CAlert::ProcessAlert(bool fThread) {
         for (const auto &item : mapAlerts) {
             const CAlert& alert = item.second;
             if (alert.Cancels(*this)) {
-                LogPrint("alert", "alert already cancelled by %d\n", alert.nID);
+                LogPrint(BCLog::ALERT, "alert already cancelled by %d\n", alert.nID);
                 return false;
             }
         }
@@ -219,6 +220,6 @@ bool CAlert::ProcessAlert(bool fThread) {
         }
     }
 
-    LogPrint("alert", "accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());
+    LogPrint(BCLog::ALERT, "accepted alert %d, AppliesToMe()=%d\n", nID, AppliesToMe());
     return true;
 }

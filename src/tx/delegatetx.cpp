@@ -9,7 +9,7 @@
 #include "commons/serialize.h"
 #include "tx.h"
 #include "crypto/hash.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "main.h"
 #include "vm/luavm/luavmrunenv.h"
 #include "miner/miner.h"
@@ -47,7 +47,7 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, get account info error, address=%s",
                              vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
 
-        if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+        if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
             if (!candidateAcct.HaveOwnerPubKey()) {
                 return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, account is unregistered, address=%s",
                                  vote.GetCandidateUid().ToString()), REJECT_INVALID, "bad-read-accountdb");
@@ -55,7 +55,7 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
         }
     }
 
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
         CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
         IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
     }
@@ -130,6 +130,11 @@ bool CDelegateVoteTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save account id %s info error",
                             delegateUId.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
         }
+    }
+
+    if (!cw.delegateCache.SetLastVoteHeight(context.height)) {
+        return state.DoS(100, ERRORMSG("CDelegateVoteTx::ExecuteTx, save last vote height error"),
+            UPDATE_ACCOUNT_FAIL, "bad-save-last-vote-height");
     }
 
     cw.txReceiptCache.SetTxReceipts(GetHash(), receipts);

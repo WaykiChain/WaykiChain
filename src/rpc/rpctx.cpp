@@ -9,7 +9,7 @@
 #include "init.h"
 #include "net.h"
 #include "netbase.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "persistence/blockdb.h"
@@ -1308,22 +1308,22 @@ Value listdelegates(const Array& params, bool fHelp) {
                            strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
     }
 
-    vector<CRegID> delegatesList;
-    if (!pCdMan->pDelegateCache->GetTopDelegateList(delegatesList)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get delegates list");
+    VoteDelegateVector delegates;
+    if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "get active delegates failed");
     }
 
-    delegatesList.resize(std::min(delegateNum, (int32_t)delegatesList.size()));
-
-    Object obj;
+        Object obj;
     Array delegateArray;
 
     CAccount account;
-    for (const auto& delegate : delegatesList) {
-        if (!pCdMan->pAccountCache->GetAccount(delegate, account)) {
+    for (const auto& delegate : delegates) {
+        if (!pCdMan->pAccountCache->GetAccount(delegate.regid, account)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get account info");
         }
-        delegateArray.push_back(account.ToJsonObj());
+        Object accountObj = account.ToJsonObj();
+        accountObj.push_back(Pair("active_votes", delegate.votes));
+        delegateArray.push_back(accountObj);
     }
 
     obj.push_back(Pair("delegates", delegateArray));

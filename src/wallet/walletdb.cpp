@@ -7,6 +7,7 @@
 
 #include "walletdb.h"
 
+#include "logging.h"
 #include "commons/base58.h"
 #include "commons/serialize.h"
 #include "p2p/protocol.h"
@@ -119,7 +120,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pWallet) {
         // Get cursor
         Dbc* pCursor = GetCursor();
         if (!pCursor) {
-            LogPrint("INFO", "Error getting wallet database cursor\n");
+            LogPrint(BCLog::INFO, "Error getting wallet database cursor\n");
             return DB_CORRUPT;
         }
 
@@ -131,7 +132,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pWallet) {
             if (ret == DB_NOTFOUND)
                 break;
             else if (ret != 0) {
-                LogPrint("INFO", "Error reading next record from wallet database\n");
+                LogPrint(BCLog::INFO, "Error reading next record from wallet database\n");
                 return DB_CORRUPT;
             }
 
@@ -148,7 +149,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pWallet) {
                 }
             }
             if (!strErr.empty())
-                LogPrint("INFO", "%s\n", strErr);
+                LogPrint(BCLog::INFO, "%s\n", strErr);
         }
 
         pCursor->close();
@@ -167,7 +168,7 @@ DBErrors CWalletDB::LoadWallet(CWallet* pWallet) {
     if (result != DB_LOAD_OK)
         return result;
 
-    LogPrint("INFO", "nFileVersion = %d\n", GetMinVersion());
+    LogPrint(BCLog::INFO, "nFileVersion = %d\n", GetMinVersion());
 
     // // nTimeFirstKey is only reliable if all keys have metadata
     // if ((wss.nKeys + wss.nCKeys) != wss.nKeyMeta)
@@ -218,19 +219,19 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys) {
 
     int32_t result = dbenv.dbenv->dbrename(nullptr, filename.c_str(), nullptr, newFilename.c_str(), DB_AUTO_COMMIT);
     if (result == 0) {
-        LogPrint("INFO", "Renamed %s to %s\n", filename, newFilename);
+        LogPrint(BCLog::INFO, "Renamed %s to %s\n", filename, newFilename);
     } else {
-        LogPrint("INFO", "Failed to rename %s to %s\n", filename, newFilename);
+        LogPrint(BCLog::INFO, "Failed to rename %s to %s\n", filename, newFilename);
         return false;
     }
 
     vector<CDBEnv::KeyValPair> salvagedData;
     bool allOK = dbenv.Salvage(newFilename, true, salvagedData);
     if (salvagedData.empty()) {
-        LogPrint("INFO", "Salvage(aggressive) found no records in %s.\n", newFilename);
+        LogPrint(BCLog::INFO, "Salvage(aggressive) found no records in %s.\n", newFilename);
         return false;
     }
-    LogPrint("INFO", "Salvage(aggressive) found %u records\n", salvagedData.size());
+    LogPrint(BCLog::INFO, "Salvage(aggressive) found %u records\n", salvagedData.size());
 
     bool fSuccess = allOK;
     boost::scoped_ptr<Db> pdbCopy(new Db(dbenv.dbenv, 0));
@@ -241,7 +242,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys) {
                                 DB_CREATE,         // Flags
                                 0);
     if (ret > 0) {
-        LogPrint("INFO", "Cannot create database file %s\n", filename);
+        LogPrint(BCLog::INFO, "Cannot create database file %s\n", filename);
         return false;
     }
     DbTxn* ptxn = dbenv.TxnBegin();
@@ -254,7 +255,7 @@ bool CWalletDB::Recover(CDBEnv& dbenv, string filename, bool fOnlyKeys) {
             if (strType != "keystore")
                 continue;
             if (!fReadOK) {
-                LogPrint("INFO", "WARNING: CWalletDB::Recover skipping %s: %s\n", strType, strErr);
+                LogPrint(BCLog::INFO, "WARNING: CWalletDB::Recover skipping %s: %s\n", strType, strErr);
                 continue;
             }
         }
@@ -386,7 +387,7 @@ void ThreadFlushWalletDB(const string& strFile) {
                     boost::this_thread::interruption_point();
                     map<string, int32_t>::iterator mi = bitdb.mapFileUseCount.find(strFile);
                     if (mi != bitdb.mapFileUseCount.end()) {
-                        LogPrint("db", "Flushing wallet.dat\n");
+                        LogPrint(BCLog::CDB, "Flushing wallet.dat\n");
                         nLastFlushed   = CWalletDB::nWalletDBUpdated;
                         int64_t nStart = GetTimeMillis();
 
@@ -395,7 +396,7 @@ void ThreadFlushWalletDB(const string& strFile) {
                         bitdb.CheckpointLSN(strFile);
 
                         bitdb.mapFileUseCount.erase(mi++);
-                        LogPrint("db", "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
+                        LogPrint(BCLog::CDB, "Flushed wallet.dat %dms\n", GetTimeMillis() - nStart);
                     }
                 }
             }
@@ -411,7 +412,7 @@ void ThreadRelayTx(CWallet* pWallet) {
         for (; iterTx != pWallet->unconfirmedTx.end(); ++iterTx) {
             if (mempool.Exists(iterTx->first)) {
                 RelayTransaction(iterTx->second.get(), iterTx->first);
-                LogPrint("sendtx", "ThreadRelayTx resend tx hash:%s time:%ld\n", iterTx->first.GetHex(), GetTime());
+                LogPrint(BCLog::NET, "ThreadRelayTx resend tx hash:%s time:%ld\n", iterTx->first.GetHex(), GetTime());
             }
         }
     }
@@ -441,10 +442,10 @@ bool BackupWallet(const CWallet& wallet, const string& strDest) {
 #else
                     boost::filesystem::copy_file(pathSrc, pathDest);
 #endif
-                    LogPrint("INFO", "copied wallet.dat into %s\n", pathDest.string());
+                    LogPrint(BCLog::INFO, "copied wallet.dat into %s\n", pathDest.string());
                     return true;
                 } catch (const boost::filesystem::filesystem_error& e) {
-                    LogPrint("ERROR", "error copying wallet.dat into %s - %s\n", pathDest.string(), e.what());
+                    LogPrint(BCLog::ERROR, "error copying wallet.dat into %s - %s\n", pathDest.string(), e.what());
                     return false;
                 }
             }

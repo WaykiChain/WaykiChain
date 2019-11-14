@@ -10,7 +10,7 @@
 #include "netbase.h"
 #include "rpc/core/rpccommons.h"
 #include "rpc/core/rpcserver.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"

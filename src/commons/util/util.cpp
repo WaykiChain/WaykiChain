@@ -2,16 +2,18 @@
 // Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "commons/util.h"
+
+#include "./util.h"
+#include "commons/uint256.h"
+#include "logging.h"
 #include "config/chainparams.h"
 #include "config/configuration.h"
+#include "config/version.h"
 #include "netbase.h"
 #include "sync.h"
-#include "commons/uint256.h"
-#include "config/version.h"
 
+#include <fstream>
 #include <stdarg.h>
-
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #ifndef WIN32
@@ -78,6 +80,7 @@
 
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 bool fDaemon = false;
 string strMiscWarning;
@@ -176,7 +179,7 @@ public:
 // return hash;
 //}
 
-// LogPrint("INFO",) has been broken a couple of times now
+// LogPrint(BCLog::INFO,) has been broken a couple of times now
 // by well-meaning people adding mutexes in the most straightforward way.
 // It breaks because it may be called by global destructors during shutdown.
 // Since the order of destruction of static/global objects is undefined,
@@ -822,12 +825,12 @@ static string FormatException(exception* pex, const char* pszThread) {
 
 void LogException(exception* pex, const char* pszThread) {
     string message = FormatException(pex, pszThread);
-    LogPrint("INFO", "\n%s", message);
+    LogPrint(BCLog::INFO, "\n%s", message);
 }
 
 void PrintExceptionContinue(exception* pex, const char* pszThread) {
     string message = FormatException(pex, pszThread);
-    LogPrint("INFO", "\n\n************************\n%s\n", message);
+    LogPrint(BCLog::INFO, "\n\n************************\n%s\n", message);
     fprintf(stderr, "\n\n************************\n%s\n", message.c_str());
     strMiscWarning = message;
 }
@@ -874,7 +877,7 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 
     fs::path& path = pathCached[nNet];
 
-    // This can be called during exceptions by LogPrint("INFO",), so we cache the
+    // This can be called during exceptions by LogPrint(BCLog::INFO,), so we cache the
     // value so we don't have to do memory allocations after that.
     if (!path.empty()) return path;
 
@@ -900,26 +903,27 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 }
 
 void ClearDatadirCache() {
-    fill(&pathCached[0], &pathCached[NULL_NETWORK_TYPE + 1], boost::filesystem::path());
+    fill(&pathCached[0], &pathCached[NULL_NETWORK_TYPE + 1], fs::path());
 }
 
-boost::filesystem::path GetConfigFile() {
-    boost::filesystem::path pathConfigFile(
+fs::path GetConfigFile() {
+    fs::path pathConfigFile(
         CBaseParams::GetArg("-conf", IniCfg().GetCoinName() + ".conf"));
+
     if (!pathConfigFile.is_complete())
         pathConfigFile = GetDataDir(false) / pathConfigFile;
 
     return pathConfigFile;
 }
 
-boost::filesystem::path GetAbsolutePath(const string& path) {
+fs::path GetAbsolutePath(const string& path) {
     boost::system::error_code ec;
-    return canonical(boost::filesystem::path(path), ec);
+    return canonical(fs::path(path), ec);
 }
 
 void ReadConfigFile(map<string, string>& mapSettingsRet,
                     map<string, vector<string>>& mapMultiSettingsRet) {
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
+    fs::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good())
         return;  // No WaykiChain.conf file is OK
 
@@ -939,14 +943,15 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
     ClearDatadirCache();
 }
 
-boost::filesystem::path GetPidFile() {
-    boost::filesystem::path pathPidFile(SysCfg().GetArg("-pid", "coind.pid"));
+fs::path GetPidFile() {
+    fs::path pathPidFile(SysCfg().GetArg("-pid", "coind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
+
     return pathPidFile;
 }
 
 #ifndef WIN32
-void CreatePidFile(const boost::filesystem::path& path, pid_t pid) {
+void CreatePidFile(const fs::path& path, pid_t pid) {
     FILE* file = fopen(path.string().c_str(), "w");
     if (file) {
         fprintf(file, "%d\n", pid);
@@ -1092,15 +1097,6 @@ void ShrinkDebugFile() {
 //  - Median of other nodes clocks
 //  - The user (asking the user to fix the system clock if the first two disagree)
 //
-static int64_t nMockTime = 0;  // For unit testing
-
-int64_t GetTime() {
-    if (nMockTime) return nMockTime;
-
-    return time(NULL);
-}
-
-void SetMockTime(int64_t nMockTimeIn) { nMockTime = nMockTimeIn; }
 
 static CCriticalSection cs_nTimeOffset;
 static int64_t nTimeOffset = 0;
@@ -1124,7 +1120,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200, 0);
     vTimeOffsets.input(nOffsetSample);
-    LogPrint("INFO", "Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(),
+    LogPrint(BCLog::INFO, "Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(),
              nOffsetSample, nOffsetSample / 60);
 
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1) {
@@ -1150,12 +1146,12 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
                         _("Warning: Please check that your computer's date and time "
                         "are correct! If your clock is wrong Coin will not work properly.");
                     strMiscWarning = strMessage;
-                    LogPrint("INFO", "*** %s\n", strMessage);
+                    LogPrint(BCLog::INFO, "*** %s\n", strMessage);
                 }
             }
         }
 
-        LogPrint("INFO", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);
+        LogPrint(BCLog::INFO, "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);
     }
 }
 
@@ -1203,7 +1199,7 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate) {
         return fs::path(pszPath);
     }
 
-    LogPrint("INFO", "SHGetSpecialFolderPathA() failed, could not obtain requested path.\n");
+    LogPrint(BCLog::INFO, "SHGetSpecialFolderPathA() failed, could not obtain requested path.\n");
     return fs::path("");
 }
 #endif
@@ -1222,7 +1218,7 @@ boost::filesystem::path GetTempPath() {
     path = boost::filesystem::path("/tmp");
 #endif
     if (path.empty() || !boost::filesystem::is_directory(path)) {
-        LogPrint("INFO", "GetTempPath(): failed to find temp path\n");
+        LogPrint(BCLog::INFO, "GetTempPath(): failed to find temp path\n");
         return boost::filesystem::path("");
     }
     return path;
@@ -1232,7 +1228,7 @@ boost::filesystem::path GetTempPath() {
 void runCommand(string strCommand) {
     int nErr = ::system(strCommand.c_str());
     if (nErr)
-        LogPrint("INFO", "runCommand error: system(%s) returned %d\n", strCommand, nErr);
+        LogPrint(BCLog::INFO, "runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }
 
 void RenameThread(const char* name) {

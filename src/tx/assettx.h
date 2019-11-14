@@ -126,7 +126,7 @@ public:
             case NAME:          s << get<string>(); break;
             case MINT_AMOUNT:   s << VARINT(get<uint64_t>()); break;
             default: {
-                LogPrint("ERROR", "CAssetUpdateData::Serialize(), Invalid Asset update type=%d\n", type);
+                LogPrint(BCLog::ERROR, "CAssetUpdateData::Serialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
             }
         }
@@ -155,7 +155,7 @@ public:
                 break;
             }
             default: {
-                LogPrint("ERROR", "CAssetUpdateData::Unserialize(), Invalid Asset update type=%d\n", type);
+                LogPrint(BCLog::ERROR, "CAssetUpdateData::Unserialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
             }
         }

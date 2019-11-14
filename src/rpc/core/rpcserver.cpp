@@ -6,10 +6,11 @@
 #include "rpcserver.h"
 #include "rpc/rpctx.h"
 
+#include "logging.h"
 #include "commons/base58.h"
+#include "commons/util/util.h"
 #include "init.h"
 #include "main.h"
-#include "commons/util.h"
 
 #include <boost/algorithm/string.hpp>
 #include <memory>
@@ -366,10 +367,10 @@ CRPCTable::CRPCTable() {
 const CRPCCommand* CRPCTable::operator[](string name) const {
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
     if (it == mapCommands.end()) {
-        LogPrint("RPC", "Received an invalid request for rpc: %s\n", name);
+        LogPrint(BCLog::RPC, "Received an invalid request for rpc: %s\n", name);
         return nullptr;
     } else {
-        LogPrint("RPC", "Received a valid request for rpc: %s\n", name);
+        LogPrint(BCLog::RPC, "Received a valid request for rpc: %s\n", name);
     }
 
     return (*it).second;
@@ -421,7 +422,7 @@ static bool InitRPCAuthentication() {
             strWhatAmI = strprintf(_("To use the %s option"), "\"-daemon\"");
         }
 
-        LogPrint("ERROR", "%s, you must set a rpcpassword in the configuration file:\n"
+        LogPrint(BCLog::ERROR, "%s, you must set a rpcpassword in the configuration file:\n"
                   "%s\n"
                   "It is recommended you use the following random password:\n"
                   "rpcuser=wiccrpc\n"
@@ -443,7 +444,7 @@ static bool InitRPCAuthentication() {
 }
 
 bool StartRPCServer() {
-    LogPrint("INFO", "Starting HTTP RPC server\n");
+    LogPrint(BCLog::INFO, "Starting HTTP RPC server\n");
     if (!InitRPCAuthentication()) {
         return false;
     }
@@ -464,12 +465,12 @@ bool StartRPCServer() {
 }
 
 void InterruptRPCServer() {
-    LogPrint("INFO", "Interrupting HTTP RPC server\n");
+    LogPrint(BCLog::INFO, "Interrupting HTTP RPC server\n");
     InterruptHTTPServer();
 }
 
 void StopRPCServer() {
-    LogPrint("INFO", "Stopping HTTP RPC server\n");
+    LogPrint(BCLog::INFO, "Stopping HTTP RPC server\n");
     UnregisterHTTPHandler("/", true);
 
     if (httpRPCTimerInterface) {
@@ -485,7 +486,7 @@ void RPCRunLater(const std::string& name, std::function<void()> func, int64_t nS
 
     deadlineTimers.erase(name);
 
-    LogPrint("RPC", "queue run of timer %s in %i seconds (using %s)\n", name, nSeconds,
+    LogPrint(BCLog::RPC, "queue run of timer %s in %i seconds (using %s)\n", name, nSeconds,
              timerInterface->Name());
 
     deadlineTimers.emplace(name, std::unique_ptr<RPCTimerBase>(timerInterface->NewTimer(func, nSeconds * 1000)));
@@ -520,7 +521,7 @@ void JSONRequest::parse(const Value& valRequest) {
         throw JSONRPCError(RPC_INVALID_REQUEST, "Method must be a string");
 
     strMethod = valMethod.get_str();
-    LogPrint("rpc", "ThreadRPCServer method=%s\n", strMethod);
+    LogPrint(BCLog::RPC, "ThreadRPCServer method=%s\n", strMethod);
 
     // Parse params
     Value valParams = find_value(request, "params");
@@ -625,7 +626,7 @@ static bool JsonRPCHandler(HTTPRequest* req, const std::string&) {
     JSONRequest jreq;
 
     if (!HTTPAuthorized(authHeader.second)) {
-        LogPrint("RPC", "RPCServer incorrect password attempt from %s\n",
+        LogPrint(BCLog::RPC, "RPCServer incorrect password attempt from %s\n",
                  req->GetPeer().ToString());
 
         /* Deter brute-forcing

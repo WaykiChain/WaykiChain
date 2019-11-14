@@ -361,7 +361,11 @@ public:
                          merkleRootHash.ToString(), GetBlockHash().ToString(), nChainWork.ToString(), miner.ToString());
     }
 
-    void Print() const { LogPrint("INFO", "%s\n", ToString()); }
+    string GetIndentityString() const {
+        return strprintf("%d:%s", height, GetBlockHash().ToString());
+    }
+
+    void Print() const { LogPrint(BCLog::INFO, "%s\n", ToString()); }
 
     // Build the skiplist pointer for this entry.
     void BuildSkip();
@@ -435,7 +439,7 @@ public:
     }
 
     void Print() const {
-        LogPrint("INFO", "%s\n", ToString().c_str());
+        LogPrint(BCLog::INFO, "%s\n", ToString().c_str());
     }
 };
 

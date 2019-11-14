@@ -19,7 +19,7 @@
 #include "crypter.h"
 #include "entities/key.h"
 #include "entities/keystore.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "walletdb.h"
 #include "main.h"
 #include "commons/serialize.h"

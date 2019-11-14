@@ -10,7 +10,7 @@
 #include "netbase.h"
 #include "p2p/protocol.h"
 #include "sync.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "tx/blockrewardtx.h"
 
 #include "commons/json/json_spirit_value.h"
@@ -372,12 +372,13 @@ Value getnetworkinfo(const Array& params, bool fHelp) {
 }
 
 Value getchaininfo(const Array& params, bool fHelp) {
-    if (fHelp || params.size() != 1)
+    if (fHelp || params.size() < 1 || params.size() > 2)
         throw runtime_error(
-            "getchaininfo \"num\"\n"
-            "\nget the chain state by the most recent blocks.\n"
+            "getchaininfo \"count\" [height]\n"
+            "\nget the chain state of the most recent blocks.\n"
             "\nArguments:\n"
-            "1.\"num\":                 (numeric, required) The most _num_ recent blocks (shall not exceed 1000)\n"
+            "1.\"count\":                 (numeric, required) The count of the most recent blocks to get. MAX=10000\n"
+            "2.\"height\":              (numeric, optional) The tip height of blocks\n"
             "\nResult:\n"
             "[\n"
             "  {\n"
@@ -393,17 +394,24 @@ Value getchaininfo(const Array& params, bool fHelp) {
             "\nExamples:\n" +
             HelpExampleCli("getchaininfo", "5") + "\nAs json rpc call\n" + HelpExampleRpc("getchaininfo", "5"));
 
-    RPCTypeCheck(params, list_of(int_type));
+    int32_t count = params[0].get_int();
+    int32_t height = chainActive.Height();
+    if (params.size() > 1) {
+        height = params[1].get_int();
+        if (height > chainActive.Height()) {
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The height exceed the tip height! height=%d, tip_height=%d",
+                height, chainActive.Height()));
+        }
+    }
+    if (count < 1 || count > height || count > MAX_RECENT_BLOCK_COUNT)
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("The input count out of range! count=%d, height=%d, max_count=%d",
+            count, height, chainActive.Height(), MAX_RECENT_BLOCK_COUNT));
 
-    int32_t height = params[0].get_int();
-    if (height < 1 || height > chainActive.Height() || height > MAX_RECENT_BLOCK_COUNT)
-        throw runtime_error("Block number out of range.");
-
-    CBlockIndex* pBlockIndex = chainActive.Tip();
+    CBlockIndex* pBlockIndex = chainActive[height];
     Array array;
     CBlock block;
 
-    for (int32_t i = 0; (i < height) && (pBlockIndex != nullptr); i++) {
+    for (int32_t i = 0; (i < count) && (pBlockIndex != nullptr); i++) {
         Object object;
         object.push_back(Pair("height",     pBlockIndex->height));
         object.push_back(Pair("time",       pBlockIndex->GetBlockTime()));
