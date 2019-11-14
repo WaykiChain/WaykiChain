@@ -76,16 +76,18 @@ namespace wasm {
 
         //set contract code and abi
         std::tuple<uint64_t, string, string, string> set_code = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
-        auto contract_name = wasm::name(std::get<0>(set_code)).to_string();
+        auto contract_name = wasm::name(std::get<0>(set_code));
         auto code          = std::get<1>(set_code);
         auto abi           = std::get<2>(set_code);
         auto memo          = std::get<3>(set_code);
 
+        context.require_auth(contract_name.value); 
+
         CAccount contract;
-        WASM_ASSERT(database_account.GetAccount(nick_name(contract_name), contract),
+        WASM_ASSERT(database_account.GetAccount(nick_name(contract_name.to_string()), contract),
                     account_operation_exception,
                     "wasmnativecontract.Setcode, contract account does not exist, contract = %s",
-                    contract_name.c_str()) 
+                    contract_name.to_string().c_str()) 
 
         CUniversalContract contract_store;
         // WASM_ASSERT(!cw.contractCache.GetContract(contract.regid, contract_store),

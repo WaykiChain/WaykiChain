@@ -142,13 +142,6 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         auto database = pCdMan->pAccountCache;
         auto wallet   = pWalletMain;
 
-        //read and validate code, abi
-        // string code_file = GetAbsolutePath(params[2].get_str()).string();
-        // string abi_file  = GetAbsolutePath(params[3].get_str()).string();
-        // JSON_RPC_ASSERT( !(code_file.empty() || abi_file.empty()), RPC_SCRIPT_FILEPATH_NOT_EXIST, "Wasm code and abi file name are both empty!")
-        // string code, abi;
-        // read_and_validate_code(code_file, code);
-        // read_and_validate_abi(abi_file, abi);
         string code, abi;
         read_and_validate_code(GetAbsolutePath(params[2].get_str()).string(), code);
         read_and_validate_abi(GetAbsolutePath(params[3].get_str()).string(), abi);
@@ -245,8 +238,6 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.llFees       = fee.GetSawiAmount();
             tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasm_owner}},
                                              action_data});
-            // tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasm_owner}},
-            //                                  action_data});
             // tx.symbol = amount.symbol;
             // tx.amount = amount.GetSawiAmount();
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")

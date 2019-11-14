@@ -84,7 +84,7 @@ namespace wasm {
                        
             return database.contractCache.EraseContractData(contract_account.regid, k);
         }
-        bool contracts_console() { return true; } //should be set by console
+        bool contracts_console() { return false; } //should be set by console
         void console_append( string val ) {
             _pending_console_output << val;
         }
