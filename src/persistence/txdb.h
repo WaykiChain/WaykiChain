@@ -32,8 +32,8 @@ public:
     uint256 HaveTx(const uint256 &txid);
     bool IsContainBlock(const CBlock &block);
 
-    bool AddBlockToCache(const CBlock &block);
-    bool DeleteBlockFromCache(const CBlock &block);
+    bool AddBlockTx(const CBlock &block);
+    bool RemoveBlock(const CBlock &block);
 
     void Clear();
     void SetBaseViewPtr(CTxMemCache *pBaseIn) { pBase = pBaseIn; }

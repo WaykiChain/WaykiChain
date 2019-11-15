@@ -18,7 +18,7 @@ bool CTxMemCache::IsContainBlock(const CBlock &block) {
     return mapBlockTxHashSet.count(block.GetHash()) || (pBase ? pBase->IsContainBlock(block) : false);
 }
 
-bool CTxMemCache::AddBlockToCache(const CBlock &block) {
+bool CTxMemCache::AddBlockTx(const CBlock &block) {
     UnorderedHashSet txids;
     for (auto &ptx : block.vptx) {
         txids.insert(ptx->GetHash());
@@ -28,7 +28,7 @@ bool CTxMemCache::AddBlockToCache(const CBlock &block) {
     return true;
 }
 
-bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
+bool CTxMemCache::RemoveBlock(const CBlock &block) {
     if (IsContainBlock(block)) {
         UnorderedHashSet txids;
 		mapBlockTxHashSet[block.GetHash()] = txids;

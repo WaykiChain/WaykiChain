@@ -799,7 +799,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
             return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s",
                 pIndex->height, pIndex->GetBlockHash().ToString());
 
-        pCdMan->pTxCache->AddBlockToCache(block);
+        pCdMan->pTxCache->AddBlockTx(block);
         pIndex = chainActive.Next(pIndex);
     } while (nullptr != pIndex);
 

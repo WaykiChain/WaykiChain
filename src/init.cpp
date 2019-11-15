@@ -791,7 +791,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
 
-        if (!pCdMan->pTxCache->AddBlockToCache(block))
+        if (!pCdMan->pTxCache->AddBlockTx(block))
             return InitError("Failed to add block to transaction memory cache");
 
         pBlockIndex = pBlockIndex->pprev;
