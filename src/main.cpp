@@ -1729,15 +1729,12 @@ bool ActivateBestChain(CValidationState &state) {
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
-
             if (!DisconnectTip(state))
                 return false;
 
             if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())){
-                mempool.ReScanMemPoolTx(pCdMan);
+                mempool.ReScanMemPoolTx();
             }
-
-
         }
 
         // Connect new blocks.
@@ -1758,7 +1755,7 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan);
+                mempool.ReScanMemPoolTx();
             }
         }
     }

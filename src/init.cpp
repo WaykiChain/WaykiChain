@@ -692,7 +692,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 if (fReIndex)
                     pCdMan->pBlockCache->WriteReindexing(true);
 
-                mempool.SetMemPoolCache(pCdMan);
+                mempool.SetMemPoolCache();
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");

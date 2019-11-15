@@ -112,12 +112,12 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
     return true;
 }
 
-void CTxMemPool::SetMemPoolCache(CCacheDBManager *pCdManIn) {
-    cw.reset(new CCacheWrapper(pCdManIn));
+void CTxMemPool::SetMemPoolCache() {
+    cw.reset(new CCacheWrapper(pCdMan));
 }
 
-void CTxMemPool::ReScanMemPoolTx(CCacheDBManager *pCdManIn) {
-    cw.reset(new CCacheWrapper(pCdManIn));
+void CTxMemPool::ReScanMemPoolTx() {
+    cw.reset(new CCacheWrapper(pCdMan));
 
     LOCK(cs);
     CValidationState state;
