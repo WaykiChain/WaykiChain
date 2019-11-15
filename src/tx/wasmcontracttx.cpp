@@ -158,8 +158,8 @@ void CWasmContractTx::pause_billing_timer(){
 
   auto now = system_clock::now();
   billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
-  // std::cout << std::string("billed_time:")
-  //                 << billed_time.count() << std::endl;
+
+  WASM_TRACE("billed_time:%ld", billed_time.count())
 
 }
 
@@ -170,6 +170,11 @@ void CWasmContractTx::resume_billing_timer(){
   }
   auto now = system_clock::now();
   pseudo_start = now - billed_time;
+
+  WASM_TRACE("billed_time:%ld", std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start).count())
+
+  // std::cout << std::string("billed_time:")
+  //                 << std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start).count() << std::endl;
 
   billed_time = chrono::microseconds(0);
 
@@ -261,6 +266,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto execute_tx_return = context.pState;
 
         pseudo_start = system_clock::now();
+        system_clock::time_point start = pseudo_start;
 
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
@@ -271,7 +277,17 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
             trx_trace.traces.emplace_back();
             DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, database, 0);
         }
-        trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);        
+        trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start); 
+
+        system_clock::time_point end = system_clock::now();  
+
+
+        std::cout << std::string("start:")
+                  << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
+
+        std::cout << std::string("pseudo_start:")
+                  << std::chrono::duration_cast<std::chrono::microseconds>(end - pseudo_start).count() << std::endl;
+
 
         json_spirit::Value v;
         to_variant(trx_trace, v, database);

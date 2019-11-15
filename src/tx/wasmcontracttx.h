@@ -12,10 +12,10 @@ using std::chrono::system_clock;
 class CWasmContractTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inlinetransactions;
-    
+
 public:
     system_clock::time_point pseudo_start;
-    std::chrono::microseconds billed_time;
+    std::chrono::microseconds billed_time = chrono::microseconds(0);
 
     void pause_billing_timer();
     void resume_billing_timer();
@@ -33,12 +33,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
-        // READWRITE(contract);
-        // READWRITE(action);
-        // READWRITE(data);
         READWRITE(inlinetransactions);
-        // READWRITE(amount);
-        // READWRITE(symbol);
         READWRITE(VARINT(llFees));
         READWRITE(signature);)
 
@@ -46,7 +41,6 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-               //<< contract << action << data << amount << symbol
                 << inlinetransactions
                << VARINT(llFees);
             sigHash = ss.GetHash();
