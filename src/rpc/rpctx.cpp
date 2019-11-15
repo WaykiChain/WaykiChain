@@ -759,20 +759,8 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string)\n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, UnorderedHashSet> &mapBlockTxHashSet = pCdMan->pTxCache->GetTxHashCache();
 
-    Array retTxHashArray;
-    for (auto &item : mapBlockTxHashSet) {
-        Object blockObj;
-        Array txHashArray;
-        blockObj.push_back(Pair("blockhash", item.first.GetHex()));
-        for (auto &txid : item.second)
-            txHashArray.push_back(txid.GetHex());
-        blockObj.push_back(Pair("txcache", txHashArray));
-        retTxHashArray.push_back(blockObj);
-    }
-
-    return retTxHashArray;
+    return pCdMan->pTxCache->ToJsonObj();
 }
 
 Value reloadtxcache(const Array& params, bool fHelp) {

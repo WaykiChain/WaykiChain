@@ -88,7 +88,7 @@ bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &me
                              REJECT_INVALID, "tx-invalid-height");
 
     // is it already confirmed in block
-    if (cw->txCache.HaveTx(txid) != uint256())
+    if (cw->txCache.HaveTx(txid))
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s has been confirmed", txid.GetHex()), REJECT_INVALID,
                              "tx-duplicate-confirmed");
 

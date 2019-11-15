@@ -1250,7 +1250,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
-            if (cw.txCache.HaveTx((pBaseTx->GetHash())) != uint256())
+            if (cw.txCache.HaveTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
                                  REJECT_INVALID, "tx-duplicated");
 
