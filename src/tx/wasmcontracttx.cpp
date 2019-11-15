@@ -158,13 +158,15 @@ void CWasmContractTx::pause_billing_timer(){
 
   auto now = system_clock::now();
   billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
+  // std::cout << std::string("billed_time:")
+  //                 << billed_time.count() << std::endl;
 
 }
 
 void CWasmContractTx::resume_billing_timer(){
 
-  if(billed_time > chrono::microseconds(0)){
-       return;// already paused
+  if(billed_time == chrono::microseconds(0)){
+       return;// already release pause
   }
   auto now = system_clock::now();
   pseudo_start = now - billed_time;
@@ -192,12 +194,12 @@ void CWasmContractTx::contract_is_valid(CTxExecuteContext &context){
         CUniversalContract contract_store;
         WASM_ASSERT(database.contractCache.GetContract(contract.regid, contract_store), 
                     account_operation_exception,  
-                    "CWasmContractTx.contract_is_valid, cannot get contract with nick_id = %s", 
+                    "CWasmContractTx.contract_is_valid, cannot get contract with nick name = %s", 
                     contract_name.to_string().c_str())
 
         WASM_ASSERT(contract_store.code.size() > 0 && contract_store.abi.size() > 0 , 
                     account_operation_exception,  
-                    "CWasmContractTx.contract_is_valid, %s contract abi and code  doesnot exist", 
+                    "CWasmContractTx.contract_is_valid, %s contract abi or code  does not exist", 
                     contract_name.to_string().c_str())    
 
     }
@@ -234,6 +236,9 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         WASM_ASSERT( llFees > llFuel, account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, fee too litter to afford fuel")
 
+        // WASM_TRACE("llFuel:%ld", llFuel);
+        // WASM_TRACE("llFees:%ld", llFees);
+
         CAccount account;
         WASM_ASSERT( database.accountCache.GetAccount(txUid, account), account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, get account failed")
@@ -252,7 +257,6 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
 bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
-
         auto &database         = *context.pCw;
         auto execute_tx_return = context.pState;
 
