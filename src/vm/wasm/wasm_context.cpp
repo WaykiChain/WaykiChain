@@ -13,9 +13,6 @@ using namespace wasm;
 
 namespace wasm {
     using nativeHandler = std::function<void(wasm_context & )>;
-    //bool g_wasm_interface_inited = false;
-    //map <pair<uint64_t, uint64_t>, nativeHandler> g_wasm_native_handlers;
-
     map <pair<uint64_t, uint64_t>, nativeHandler>& get_wasm_native_handlers(){
         static map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
         return wasm_native_handlers;
@@ -83,7 +80,6 @@ namespace wasm {
         CAccount contract_account ;
         if(database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account)
             && database.contractCache.GetContract(contract_account.regid, contract)) {
-            //code.insert(code.begin(), contract.code.begin(), contract.code.end());
             code = vector <uint8_t>(contract.code.begin(), contract.code.end());
         }
         return code;
@@ -105,7 +101,7 @@ namespace wasm {
             wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
             register_native_handler(wasmio, N(setcode), wasm_native_setcode);
-            register_native_handler(wasmio, N(transfer), wasm_native_transfer);
+            register_native_handler(wasmio_bank, N(transfer), wasm_native_transfer);
         }
     }
 

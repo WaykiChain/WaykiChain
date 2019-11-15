@@ -61,9 +61,12 @@ namespace wasm {
 
     void wasm_native_setcode(wasm_context &context) {
 
+         WASM_ASSERT(context._receiver == wasmio, wasm_assert_exception, "exception comtract wasmio,but get %s", wasm::name(context._receiver).to_string().c_str());
+
+
         auto &database_account         = context.database.accountCache;
         auto &database_contract        = context.database.contractCache;
-        auto &control_trx   = context.control_trx;
+        auto &control_trx              = context.control_trx;
 
         //charger fee
         CAccount sender;
@@ -121,6 +124,8 @@ namespace wasm {
     }
     
     void wasm_native_transfer(wasm_context &context) {
+
+        WASM_ASSERT(context._receiver == wasmio_bank, wasm_assert_exception, "exception comtract wasmio_bank,but get %s", wasm::name(context._receiver).to_string().c_str());
 
         auto &database = context.database.accountCache;
 

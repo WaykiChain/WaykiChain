@@ -168,7 +168,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
             tx.valid_height = chainActive.Tip()->height;
-            tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{sender_name.value, wasm_owner}},
+            tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{sender_name.value, wasmio_owner}},
                                              wasm::pack(std::tuple(contract.value, code, abi, memo))});
             //tx.nRunStep = tx.data.size();
             tx.nRunStep = sizeof(tx.inlinetransactions);
@@ -205,10 +205,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         //serialize action data
         std::vector<char> abi;
         wasm::name contract_name = wasm::name(params[1].get_str());
-        if(wasm::wasmio == contract_name.value ) {
-            wasm::abi_def wasmio_abi = wasmio_contract_abi();
-            abi = wasm::pack<wasm::abi_def>(wasmio_abi);
-        } else {
+        if(!get_native_contract_abi(contract_name.value, abi)){
             CAccount contract;
             CUniversalContract contract_store;
             get_contract(database_account, database_contract, contract_name, contract, contract_store );
@@ -235,7 +232,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.valid_height = chainActive.Height();
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
-            tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasm_owner}},
+            tx.inlinetransactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasmio_owner}},
                                              action_data});
             // tx.symbol = amount.symbol;
             // tx.amount = amount.GetSawiAmount();

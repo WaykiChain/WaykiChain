@@ -57,10 +57,7 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
 
     std::vector<char> abi;
-    if(t.contract == wasm::wasmio){
-        wasm::abi_def wasmio_abi = wasmio_contract_abi();
-        abi = wasm::pack<wasm::abi_def>(wasmio_abi);
-    } else {
+    if(!get_native_contract_abi(t.contract, abi)){
         //should be lock
         CUniversalContract contract;
 
@@ -159,7 +156,7 @@ void CWasmContractTx::pause_billing_timer(){
   auto now = system_clock::now();
   billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
 
-  WASM_TRACE("billed_time:%ld", billed_time.count())
+  //WASM_TRACE("billed_time:%ld", billed_time.count())
 
 }
 
@@ -171,10 +168,7 @@ void CWasmContractTx::resume_billing_timer(){
   auto now = system_clock::now();
   pseudo_start = now - billed_time;
 
-  WASM_TRACE("billed_time:%ld", std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start).count())
-
-  // std::cout << std::string("billed_time:")
-  //                 << std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start).count() << std::endl;
+  //WASM_TRACE("billed_time:%ld", std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start).count())
 
   billed_time = chrono::microseconds(0);
 
@@ -241,9 +235,6 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         WASM_ASSERT( llFees > llFuel, account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, fee too litter to afford fuel")
 
-        // WASM_TRACE("llFuel:%ld", llFuel);
-        // WASM_TRACE("llFees:%ld", llFees);
-
         CAccount account;
         WASM_ASSERT( database.accountCache.GetAccount(txUid, account), account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, get account failed")
@@ -266,7 +257,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto execute_tx_return = context.pState;
 
         pseudo_start = system_clock::now();
-        system_clock::time_point start = pseudo_start;
+        //system_clock::time_point start = pseudo_start;
 
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
@@ -279,14 +270,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start); 
 
-        system_clock::time_point end = system_clock::now();  
-
-
-        std::cout << std::string("start:")
-                  << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-
-        std::cout << std::string("pseudo_start:")
-                  << std::chrono::duration_cast<std::chrono::microseconds>(end - pseudo_start).count() << std::endl;
+        // system_clock::time_point end = system_clock::now();  
+        // std::cout << std::string("start:")
+        //           << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
+        // std::cout << std::string("pseudo_start:")
+        //           << std::chrono::duration_cast<std::chrono::microseconds>(end - pseudo_start).count() << std::endl;
 
 
         json_spirit::Value v;

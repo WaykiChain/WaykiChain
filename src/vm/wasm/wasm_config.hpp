@@ -19,8 +19,9 @@ namespace wasm {
     const static uint16_t max_wasm_api_data_size = 4096;
 
     const static uint64_t wasmio = N(wasmio);
-    const static uint64_t wasm_code = N(wasm.code);
-    const static uint64_t wasm_owner = N(wasm.owner);
+    const static uint64_t wasmio_bank = N(wasmio.bank);
+    const static uint64_t wasmio_code = N(wasmio.code);
+    const static uint64_t wasmio_owner = N(wasmio.owner);
 
 
     namespace wasm_constraints {
