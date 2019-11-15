@@ -223,6 +223,12 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         auto &database         = *context.pCw;
         auto &state            = *context.pState;
 
+        WASM_ASSERT(inlinetransactions.size() > 0, 
+                    account_operation_exception,
+                    "%s",
+                    "CWasmContractTx.CheckTx, Tx must have at least 1 inline_transaction")
+
+
         IMPLEMENT_CHECK_TX_FEE;
         IMPLEMENT_CHECK_TX_REGID(txUid.type());
         contract_is_valid(context);
@@ -309,10 +315,6 @@ bool CWasmContractTx::GetInvolvedKeyIds( CCacheWrapper &cw, set <CKeyID> &keyIds
     return true;
 }
 
-// uint64_t CWasmContractTx::GetFuel( uint32_t nFuelRate ) {
-//     return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
-// }
-
 uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
@@ -325,37 +327,53 @@ uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
 
 
 string CWasmContractTx::ToString( CAccountDBCache &accountCache ) {
-    CKeyID senderKeyId;
-    accountCache.GetKeyId(txUid, senderKeyId);
 
-    // return strprintf("hash=%s, txType=%s, version=%d, contract=%s, senderuserid=%s, senderkeyid=%s, fee=%ld, valid_height=%d\n",
-    //                  GetTxType(nTxType), GetHash().ToString(), nVersion, contract, txUid.ToString(), senderKeyId.GetHex(), llFees,
-    //                  valid_height);
+    if(inlinetransactions.size() == 0){
+        return string("");
+    }
 
-    return strprintf("hash=%s, txType=%s, version=%d, senderuserid=%s, senderkeyid=%s, fee=%ld, valid_height=%d\n",
-                     GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), senderKeyId.GetHex(), llFees,
-                     valid_height);
+    inline_transaction trx = inlinetransactions[0];
+    CAccount sender;
+    if(!accountCache.GetAccount(txUid, sender)){
+        return string("");
+    }
+
+    return strprintf(
+        "txType=%s, hash=%s, ver=%d, sender=%s, llFees=%llu, contract=%s, action=%s, arguments=%s, "
+        "valid_height=%d",
+        GetTxType(nTxType), GetHash().ToString(), nVersion, sender.nickid.ToString(), llFees,
+        wasm::name(trx.contract).to_string(), wasm::name(trx.action).to_string(), 
+        HexStr(trx.data), valid_height);
 }
 
 Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
-    Object object;
 
-    CKeyID senderKeyId;
-    accountCache.GetKeyId(txUid, senderKeyId);
+    if(inlinetransactions.size() == 0){
+        return Object{};
+    }
 
-    object.push_back(Pair("hash", GetHash().GetHex()));
-    object.push_back(Pair("tx_type", GetTxType(nTxType)));
-    object.push_back(Pair("version", nVersion));
-    // object.push_back(Pair("contract", contract));
-    // object.push_back(Pair("action", wasm::name(action).to_string()));
-    // object.push_back(Pair("data", HexStr(data)));
-    //object.push_back(Pair("regId", txUid.get<CRegID>().ToString()));
-    //object.push_back(Pair("addr", senderKeyId.ToAddress()));
-    //object.push_back(Pair("script", "script_content"));
-    object.push_back(Pair("sender", senderKeyId.GetHex()));
+    if(inlinetransactions.size() > 0){
+        Object result = CBaseTx::ToJson(accountCache);
+        inline_transaction trx = inlinetransactions[0];
+        result.push_back(Pair("contract",       wasm::name(trx.contract).to_string()));
+        result.push_back(Pair("action",         wasm::name(trx.action).to_string()));
+        result.push_back(Pair("arguments",      HexStr(trx.data)));
+        return result;
+    }
+     
 
-    object.push_back(Pair("fees", llFees));
-    object.push_back(Pair("valid_height", valid_height));
-    return object;
+    // Object result = CBaseTx::ToJson(accountCache);
+    // json_spirit::Array arr;
+    // for (const auto &i :inlinetransactions) {
+    //         json_spirit::Value tmp;
+    //         to_variant(i, tmp, accountCache);
+    //         arr.push_back(tmp);
+    // }
+    // json_spirit::Config::add(result, "inline_transactions", json_spirit::Value(arr));
+
+    // return result;
+
+
+
 }
 
