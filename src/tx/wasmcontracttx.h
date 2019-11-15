@@ -11,20 +11,14 @@ using std::chrono::system_clock;
 
 class CWasmContractTx : public CBaseTx {
 public:
-    // uint64_t contract;
-    // uint64_t action;
-    // std::vector<uint64_t> permissions;
-    // std::vector<char> data;
     vector<wasm::inline_transaction> inlinetransactions;
+    
 public:
     system_clock::time_point pseudo_start;
     std::chrono::microseconds billed_time;
 
     void pause_billing_timer();
     void resume_billing_timer();
-
-    // uint64_t amount;
-    // TokenSymbol symbol;
 
 public:
     CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(WASM_CONTRACT_TX) {
@@ -63,7 +57,7 @@ public:
 
     virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CWasmContractTx>(*this); }
-    virtual uint64_t GetFuel(uint32_t nFuelRate);
+    virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
     virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
@@ -73,6 +67,8 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
+    void contract_is_valid(CTxExecuteContext &context);
+    void authorization_is_valid(uint64_t account);
     void DispatchInlineTransaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,

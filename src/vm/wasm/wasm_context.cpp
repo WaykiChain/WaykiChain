@@ -148,18 +148,20 @@ namespace wasm {
         } catch (wasm::exception &e) {
             std::ostringstream o;
             o << e.detail();
-            if (_pending_console_output.str().size() > 0)
+            if (_pending_console_output.str().size() > 0){
                 o << " , " << tfm::format("pending console output: %s",
                                           _pending_console_output.str().c_str());
+            }
             e.msg = o.str();
             throw;
         } catch (...) {
-            if (_pending_console_output.str().size() > 0)
+            if (_pending_console_output.str().size() > 0){
                 throw wasm_exception(
                         tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
-            else
-                //throw wasm_exception("wasm exception");
+            }
+            else{
                 throw;
+            }
         }
 
         trace.trx_id = control_trx.GetHash();

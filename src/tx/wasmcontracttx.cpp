@@ -173,45 +173,78 @@ void CWasmContractTx::resume_billing_timer(){
 
 }
 
+void CWasmContractTx::contract_is_valid(CTxExecuteContext &context){
+
+    auto &database         = *context.pCw;
+
+    for(auto i: inlinetransactions){
+
+        wasm::name contract_name     = wasm::name(i.contract);
+        //wasm::name contract_action   = wasm::name(i.action);
+        if(contract_name.value == wasmio) continue;
+
+        CAccount contract;
+        WASM_ASSERT(database.accountCache.GetAccount(nick_name(contract_name.to_string()), contract), 
+                    account_operation_exception,
+                   "CWasmContractTx.contract_is_valid, contract account does not exist, contract = %s",
+                    contract_name.to_string().c_str())
+
+        CUniversalContract contract_store;
+        WASM_ASSERT(database.contractCache.GetContract(contract.regid, contract_store), 
+                    account_operation_exception,  
+                    "CWasmContractTx.contract_is_valid, cannot get contract with nick_id = %s", 
+                    contract_name.to_string().c_str())
+
+        WASM_ASSERT(contract_store.code.size() > 0 && contract_store.abi.size() > 0 , 
+                    account_operation_exception,  
+                    "CWasmContractTx.contract_is_valid, %s contract abi and code  doesnot exist", 
+                    contract_name.to_string().c_str())    
+
+    }
+
+}
+
+void CWasmContractTx::authorization_is_valid(uint64_t account){
+
+    for(auto i: inlinetransactions){
+        for(auto p: i.authorization){
+            if(p.account != account){
+                WASM_ASSERT( false, 
+                             account_operation_exception,
+                             "CWasmContractTx.authorization_is_valid, authorization %s does not have signature",
+                             wasm::name(p.account).to_string().c_str())
+            }
+
+        }     
+    }
+
+}
+
 bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
-    // IMPLEMENT_CHECK_TX_FEE;
-    // IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-    // if (!contract.IsValid()) {
-    //     return state.DoS(100, ERRORMSG("CWasmContractTx::CheckTx, contract is invalid"),
-    //                      REJECT_INVALID, "vmscript-invalid");
-    // }
+    try {
+        auto &database         = *context.pCw;
+        auto &state            = *context.pState;
 
-    // uint64_t llFuel = GetFuel(GetFuelRate(cw.contractCache));
-    // if (llFees < llFuel) {
-    //     return state.DoS(100, ERRORMSG("CWasmContractTx::CheckTx, fee too litter to afford fuel "
-    //                      "(actual:%lld vs need:%lld)", llFees, llFuel),
-    //                      REJECT_INVALID, "fee-too-litter-to-afford-fuel");
-    // }
+        IMPLEMENT_CHECK_TX_FEE;
+        IMPLEMENT_CHECK_TX_REGID(txUid.type());
+        contract_is_valid(context);
 
-    // // If valid height range changed little enough(i.e. 3 blocks), remove it.
-    // if (GetFeatureForkVersion(height) == MAJOR_VER_R2) {
-    //     unsigned int nTxSize = ::GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
-    //     double dFeePerKb     = double(llFees - llFuel) / (double(nTxSize) / 1000.0);
-    //     if (dFeePerKb < CBaseTx::nMinRelayTxFee) {
-    //         return state.DoS(100, ERRORMSG("CWasmContractTx::CheckTx, fee too litter in fees/Kb "
-    //                          "(actual:%.4f vs need:%lld)", dFeePerKb, CBaseTx::nMinRelayTxFee),
-    //                          REJECT_INVALID, "fee-too-litter-in-fees/Kb");
-    //     }
-    // }
+        uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
+        WASM_ASSERT( llFees > llFuel, account_operation_exception, "%s",
+                    "CWasmContractTx.CheckTx, fee too litter to afford fuel")
 
-    // CAccount account;
-    // if (!cw.accountCache.GetAccount(txUid, account)) {
-    //     return state.DoS(100, ERRORMSG("CWasmContractTx::CheckTx, get account failed"),
-    //                      REJECT_INVALID, "bad-getaccount");
-    // }
-    // if (!account.HaveOwnerPubKey()) {
-    //     return state.DoS(
-    //         100, ERRORMSG("CWasmContractTx::CheckTx, account unregistered"),
-    //         REJECT_INVALID, "bad-account-unregistered");
-    // }
+        CAccount account;
+        WASM_ASSERT( database.accountCache.GetAccount(txUid, account), account_operation_exception, "%s",
+                    "CWasmContractTx.CheckTx, get account failed")
+        WASM_ASSERT( account.HaveOwnerPubKey(), account_operation_exception, "%s",
+                    "CWasmContractTx.CheckTx, account unregistered")
+        IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
+        authorization_is_valid(wasm::name(account.nickid.ToString()).value);
 
-    // IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
+     } catch (wasm::exception &e) {
+        return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
+     }
 
     return true;
 }
@@ -272,8 +305,18 @@ bool CWasmContractTx::GetInvolvedKeyIds( CCacheWrapper &cw, set <CKeyID> &keyIds
     return true;
 }
 
-uint64_t CWasmContractTx::GetFuel( uint32_t nFuelRate ) {
-    return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
+// uint64_t CWasmContractTx::GetFuel( uint32_t nFuelRate ) {
+//     return std::max(uint64_t((nRunStep / 100.0f) * nFuelRate), 1 * COIN);
+// }
+
+uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
+    uint64_t minFee = 0;
+    if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
+        LogPrint("ERROR", "CWasmContractTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        throw runtime_error("CWasmContractTx::GetFuel(), get min_fee failed");
+    }
+
+    return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
 }
 
 
