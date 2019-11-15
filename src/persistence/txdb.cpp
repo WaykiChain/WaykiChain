@@ -28,7 +28,7 @@ bool CTxMemCache::AddBlockTx(const CBlock &block) {
     return true;
 }
 
-bool CTxMemCache::RemoveBlock(const CBlock &block) {
+bool CTxMemCache::RemoveBlockTx(const CBlock &block) {
     if (IsContainBlock(block)) {
         UnorderedHashSet txids;
 		mapBlockTxHashSet[block.GetHash()] = txids;

@@ -872,7 +872,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     cw.blockCache.SetBestBlock(pIndex->pprev->GetBlockHash());
 
     // Delete the disconnected block's transactions from transaction memory cache.
-    if (!cw.txCache.RemoveBlock(block)) {
+    if (!cw.txCache.RemoveBlockTx(block)) {
         return state.Abort(_("DisconnectBlock() : failed to delete block from transaction memory cache"));
     }
 
@@ -1445,7 +1445,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.Abort(_("ConnectBlock() : failed to read block"));
         }
 
-        if (!cw.txCache.RemoveBlock(deleteBlock)) {
+        if (!cw.txCache.RemoveBlockTx(deleteBlock)) {
             return state.Abort(_("ConnectBlock() : failed delete block from transaction memory cache"));
         }
     }
