@@ -156,8 +156,6 @@ void CWasmContractTx::pause_billing_timer(){
   auto now = system_clock::now();
   billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
 
-  //WASM_TRACE("billed_time:%ld", billed_time.count())
-
 }
 
 void CWasmContractTx::resume_billing_timer(){
@@ -167,8 +165,6 @@ void CWasmContractTx::resume_billing_timer(){
   }
   auto now = system_clock::now();
   pseudo_start = now - billed_time;
-
-  //WASM_TRACE("billed_time:%ld", std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start).count())
 
   billed_time = chrono::microseconds(0);
 
@@ -182,7 +178,7 @@ void CWasmContractTx::contract_is_valid(CTxExecuteContext &context){
 
         wasm::name contract_name     = wasm::name(i.contract);
         //wasm::name contract_action   = wasm::name(i.action);
-        if(contract_name.value == wasmio) continue;
+        if(is_native_contract(contract_name.value)) continue;
 
         CAccount contract;
         WASM_ASSERT(database.accountCache.GetAccount(nick_name(contract_name.to_string()), contract), 

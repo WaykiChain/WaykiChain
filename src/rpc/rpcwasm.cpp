@@ -240,6 +240,8 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
+        WASM_TRACE("%s",contract_name.to_string().c_str())
+
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
