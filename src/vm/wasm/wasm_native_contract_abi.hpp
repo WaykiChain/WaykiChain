@@ -38,15 +38,11 @@ namespace wasm {
 
     static inline bool get_native_contract_abi(uint64_t contract, std::vector<char>& abi){
 
-        if(wasm::wasmio == contract ) {
+        if(wasm::wasmio == contract || wasm::wasmio_bank == contract) {
             wasm::abi_def wasmio_abi = wasmio_contract_abi();
             abi = wasm::pack<wasm::abi_def>(wasmio_abi);
             return true;
-        } else if(wasm::wasmio_bank == contract){
-            wasm::abi_def wasmio_bank_abi = wasmio_contract_abi();
-            abi = wasm::pack<wasm::abi_def>(wasmio_bank_abi);
-            return true;
-        }
+        } 
 
         return false;
 

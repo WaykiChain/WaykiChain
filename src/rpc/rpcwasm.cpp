@@ -240,7 +240,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
-        WASM_TRACE("%s",contract_name.to_string().c_str())
+        //WASM_TRACE("%s",contract_name.to_string().c_str())
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
@@ -268,6 +268,8 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_table = wasm::name(params[1].get_str());
+
+        JSON_RPC_ASSERT(!is_native_contract(contract_name.value), RPC_INVALID_PARAMS,  strprintf("cannot get contract table from native contract %s", contract_name.to_string().c_str()))
 
         CAccount contract;
         CUniversalContract contract_store;
@@ -325,10 +327,14 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_action = wasm::name(params[1].get_str());
 
+        
         CAccount contract;
-        CUniversalContract contract_store;
-        get_contract(database_account, database_contract, contract_name, contract, contract_store );
-        std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        std::vector<char> abi;
+        if(!get_native_contract_abi(contract_name.value, abi)){
+            CUniversalContract contract_store;
+            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        }
 
         string arguments = params[2].get_str();
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_INVALID_PARAMETER,  "Arguments empty or the size out of range")
@@ -359,9 +365,12 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_action = wasm::name(params[1].get_str());
 
         CAccount contract;
-        CUniversalContract contract_store;
-        get_contract(database_account, database_contract, contract_name, contract, contract_store );
-        std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        std::vector<char> abi;
+        if(!get_native_contract_abi(contract_name.value, abi)){
+            CUniversalContract contract_store;
+            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+            abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        }
 
         string arguments = params[2].get_str();
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_INVALID_PARAMETER,  "Arguments empty or the size out of range")
@@ -391,6 +400,7 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
         auto database_contract = pCdMan->pContractCache;
 
         wasm::name contract_name   = wasm::name(params[0].get_str());
+        JSON_RPC_ASSERT(!is_native_contract(contract_name.value), RPC_INVALID_PARAMS,  strprintf("cannot get contract code from native contract %s", contract_name.to_string().c_str()))
 
         CAccount contract;
         CUniversalContract contract_store;
@@ -420,10 +430,13 @@ Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
         wasm::name contract_name   = wasm::name(params[0].get_str());
 
         CAccount contract;
-        CUniversalContract contract_store;
-        get_contract(database_account, database_contract, contract_name, contract, contract_store );
+        std::vector<char> abi;
+        if(!get_native_contract_abi(contract_name.value, abi)){
+            CUniversalContract contract_store;
+            get_contract(database_account, database_contract, contract_name, contract, contract_store );
+            std::vector<char> abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
+        }
 
-        std::vector<char> abi(contract_store.abi.begin(), contract_store.abi.end());
         abi_def abi_struct = wasm::unpack<wasm::abi_def>(abi);
         json_spirit::Value abi_json;
         wasm::to_variant(abi_struct, abi_json);
