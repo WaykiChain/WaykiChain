@@ -81,17 +81,16 @@ void CTxMemPool::QueryHash(vector<uint256> &txids) {
 
 bool CTxMemPool::CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &memPoolEntry, CValidationState &state,
                                   bool bExecute) {
+    // is it within valid height
+    static int validHeight = SysCfg().GetTxCacheHeight();
+    if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Height(), validHeight))
+        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
+                             REJECT_INVALID, "tx-invalid-height");
+
     // is it already confirmed in block
     if (cw->txCache.HaveTx(txid) != uint256())
         return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s has been confirmed", txid.GetHex()), REJECT_INVALID,
                              "tx-duplicate-confirmed");
-
-    // is it within valid height
-    static int validHeight = SysCfg().GetTxCacheHeight();
-    if (!memPoolEntry.GetTransaction()->IsValidHeight(chainActive.Height(), validHeight)) {
-        return state.Invalid(ERRORMSG("CheckTxInMemPool() : txid: %s beyond the scope of valid height", txid.GetHex()),
-                             REJECT_INVALID, "tx-invalid-height");
-    }
 
     auto spCW = std::make_shared<CCacheWrapper>(cw.get());
 
