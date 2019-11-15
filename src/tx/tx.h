@@ -209,35 +209,48 @@ public:
     }
 };
 
-#define IMPLEMENT_CHECK_TX_MEMO                                                                    \
-    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                     \
-        return state.DoS(100, ERRORMSG("%s, memo's size too large", __FUNCTION__), REJECT_INVALID, \
+#define IMPLEMENT_DEFINE_CW_STATE                                                                               \
+    CCacheWrapper &cw       = *context.pCw;                                                                     \
+    CValidationState &state = *context.pState;
+
+#define IMPLEMENT_CHECK_TX_MEMO                                                                                 \
+    if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)                                                                  \
+        return state.DoS(100, ERRORMSG("%s, memo's size too large", __FUNCTION__), REJECT_INVALID,              \
                          "memo-size-toolarge");
 
-#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                    \
-    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                  \
-        return state.DoS(100, ERRORMSG("%s, arguments's size too large", __FUNCTION__), REJECT_INVALID, \
+#define IMPLEMENT_CHECK_TX_ARGUMENTS                                                                            \
+    if (arguments.size() > MAX_CONTRACT_ARGUMENT_SIZE)                                                          \
+        return state.DoS(100, ERRORMSG("%s, arguments's size too large", __FUNCTION__), REJECT_INVALID,         \
                          "arguments-size-toolarge");
 
-#define IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE                                                        \
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                              \
-        return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__), \
+#define IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE                                                            \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                                  \
+        return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__),     \
                          REJECT_INVALID, "unsupported-tx-type-pre-stable-coin-release");
 
-#define IMPLEMENT_CHECK_TX_FEE                                                                                 \
-    if (!CheckBaseCoinRange(llFees))                                                                           \
-        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,               \
-                         "bad-tx-fee-toolarge");                                                               \
-    if (!kFeeSymbolSet.count(fee_symbol))                                                                      \
-        return state.DoS(100,                                                                                  \
-                         ERRORMSG("%s, not support fee symbol=%s, only supports:%s", __FUNCTION__, fee_symbol, \
-                                  GetFeeSymbolSetStr()),                                                       \
-                         REJECT_INVALID, "bad-tx-fee-symbol");                                                 \
-    if (!CheckTxFeeSufficient(fee_symbol, llFees, context.height)) {                                           \
-        return state.DoS(100,                                                                                  \
-                         ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)", __FUNCTION__, \
-                                  context.height, fee_symbol, llFees),                                         \
-                         REJECT_INVALID, "bad-tx-fee-toosmall");                                               \
+#define IMPLEMENT_CHECK_TX_FEE                                                                                  \
+    if (!CheckBaseCoinRange(llFees))                                                                            \
+        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,                \
+                         "bad-tx-fee-toolarge");                                                                \
+    if (!kFeeSymbolSet.count(fee_symbol))                                                                       \
+        return state.DoS(100,                                                                                   \
+                         ERRORMSG("%s, not support fee symbol=%s, only supports:%s", __FUNCTION__, fee_symbol,  \
+                                  GetFeeSymbolSetStr()),                                                        \
+                         REJECT_INVALID, "bad-tx-fee-symbol");                                                  \
+    bool isPreV3Height = GetFeatureForkVersion(context.height) < MAJOR_VER_R3;                                  \
+    if (isPreV3Height || txUid.is<CRegID>()) {                                                                  \
+        if (!CheckTxFeeSufficient(fee_symbol, llFees, context.height))                                          \
+            return state.DoS(100,                                                                               \
+                         ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)", __FUNCTION__,  \
+                                  context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");  \
+    } else {                                                                                                    \
+        uint64_t minFee;                                                                                        \
+        if (!GetTxMinFee(UCOIN_TRANSFER_TX, context.height, fee_symbol, minFee))                                \
+            return state.DoS(100, ERRORMSG("GetTxMinFee failed"), REJECT_INVALID, "GetTxMinFee-failed");        \
+        if (llFees < 2 * minFee)                                                                                \
+            return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu,         \
+                            reqFee: %llu)", __FUNCTION__, context.height, fee_symbol, llFees, 2*minFee),        \
+                            REJECT_INVALID, "bad-tx-fee-toosmall");                                             \
     }
 
 #define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \

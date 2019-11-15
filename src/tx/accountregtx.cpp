@@ -19,8 +19,6 @@
 bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
-    IMPLEMENT_CHECK_TX_FEE;
-
     if (txUid.type() != typeid(CPubKey))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"), REJECT_INVALID,
                          "uid-type-error");
@@ -33,6 +31,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
                          REJECT_INVALID, "bad-tx-publickey");
 
+    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
 
     return true;
