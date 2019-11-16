@@ -7,6 +7,7 @@
 #define TX_PRICE_MEDIAN_H
 
 #include "tx.h"
+#include "entities/cdp.h"
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
@@ -56,6 +57,9 @@ public:
 
     map<CoinPricePair, uint64_t> GetMedianPrice() const;
 
+private:
+    uint256 GenOrderId(CTxExecuteContext &context, const CUserCDP &cdp,
+                             TokenSymbol assetSymbol, const uint32_t index);
 };
 
 #endif //TX_PRICE_MEDIAN_H

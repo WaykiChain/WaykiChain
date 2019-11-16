@@ -7,9 +7,17 @@
 #include "main.h"
 
 // Generally, index is an auto increment variable.
-static uint256 OrderIdGenerator(const uint256 &txid, const uint32_t index) {
+uint256 CBlockPriceMedianTx::GenOrderId(CTxExecuteContext &context, const CUserCDP &cdp,
+        TokenSymbol assetSymbol, const uint32_t index) {
+
     CHashWriter ss(SER_GETHASH, 0);
-    ss << txid << VARINT(index);
+    NET_TYPE netType = SysCfg().NetworkID();
+    if (netType == TEST_NET && context.height < 1800000) {
+            // TODO: remove me if reset testnet.
+        ss << GetHash() << VARINT(index);
+    } else {
+        ss << cdp.cdpid << assetSymbol;
+    }
 
     return ss.GetHash();
 }
@@ -149,7 +157,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             }
             auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
                 CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
-            uint256 bcoinSellMarketOrderId = OrderIdGenerator(GetHash(), orderIndex++);
+            uint256 bcoinSellMarketOrderId = GenOrderId(context, cdp, SYMB::WICC, orderIndex++);
             if (!cw.dexCache.CreateActiveOrder(bcoinSellMarketOrderId, *pBcoinSellMarketOrder)) {
                 return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed",
                                 pBcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -184,7 +192,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
                 auto pFcoinSellMarketOrder =
                     CDEXSysOrder::CreateSellMarketOrder(CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
-                uint256 fcoinSellMarketOrderId = OrderIdGenerator(GetHash(), orderIndex++);
+                uint256 fcoinSellMarketOrderId = GenOrderId(context, cdp, SYMB::WGRT, orderIndex++);
                 if (!cw.dexCache.CreateActiveOrder(fcoinSellMarketOrderId, *pFcoinSellMarketOrder)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed",
                             pFcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
