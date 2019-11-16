@@ -26,6 +26,7 @@
 #include "persistence/contractdb.h"
 #include "tx/tx.h"
 #include "commons/util/util.h"
+#include "commons/util/time.h"
 #ifdef USE_UPNP
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/miniwget.h>
@@ -452,8 +453,6 @@ bool AppInit(boost::thread_group &threadGroup) {
             for (const auto& cat : categories) {
                 if (!LogInstance().EnableCategory(cat)) {
                     fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
-                } else {
-                    fprintf(stdout, "Enabbled category: %s.\n", cat.c_str());
                 }
             }
         }
@@ -531,8 +530,17 @@ bool AppInit(boost::thread_group &threadGroup) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s. coin Core is probably already running."), strDataDir));
     }
 
+    if (!LogInstance().StartLogging()) {
+        return InitError(strprintf("Could not open debug log file %s",
+                        LogInstance().m_file_path.string()));
+    }
     // if (GetBoolArg("-shrinkdebugfile", !fDebug))
     //     ShrinkDebugFile();
+
+     if (!LogInstance().m_log_timestamps)
+        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrintf("Using data directory %s\n", GetDataDir().string());
 
     LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
     printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
@@ -884,4 +892,38 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     return !fRequestShutdown;
+}
+
+fs::path AbsPathForConfigVal(const fs::path& path, bool net_specific = true)
+{
+    if (path.is_absolute()) {
+        return path;
+    }
+    return fs::absolute(path, GetDataDir(net_specific));
+}
+
+/**
+ * Initialize global loggers.
+ *
+ * Note that this is called very early in the process lifetime, so you should be
+ * careful about what global state you rely on here.
+ */
+void InitLogging()
+{
+    LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
+    LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
+    LogInstance().m_print_to_console = SysCfg().GetBoolArg("-printtoconsole", !SysCfg().GetBoolArg("-daemon", false));
+    LogInstance().m_log_timestamps = SysCfg().GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
+    LogInstance().m_log_time_micros = SysCfg().GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+    LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
+
+    fLogIPs = SysCfg().GetBoolArg("-logips", DEFAULT_LOGIPS);
+
+    std::string version_string = FormatFullVersion();
+#ifdef DEBUG
+    version_string += " (debug build)";
+#else
+    version_string += " (release build)";
+#endif
+    LogPrintf(PACKAGE_NAME " version %s\n", version_string);
 }
