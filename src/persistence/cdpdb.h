@@ -17,6 +17,13 @@
 
 using namespace std;
 
+/*  CCompositeKVCache     prefixType        key                  value           variable  */
+/*  ----------------   --------------      -----------------    --------------   -----------*/
+// cdpr{Ratio}{$cdpid} -> CUserCDP
+typedef CCompositeKVCache<dbk::CDP_RATIO, pair<string, uint256>, CUserCDP>      RatioCDPIdCache;
+
+
+
 class CCdpDBCache {
 public:
     CCdpDBCache() {}
@@ -31,7 +38,7 @@ public:
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
 
     bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-                                     set<CUserCDP> &userCdps);
+                                     RatioCDPIdCache::Map &userCdps);
 
     inline uint64_t GetGlobalStakedBcoins() const;
     inline uint64_t GetGlobalOwedScoins() const;
@@ -69,7 +76,7 @@ private:
     // rcdp${CRegID} -> set<cdpid>
     CCompositeKVCache<      dbk::REGID_CDP, string,                     set<uint256>>       regId2CDPCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    CCompositeKVCache<      dbk::CDP_RATIO, std::pair<string, uint256>, CUserCDP>           ratioCDPIdCache;
+    RatioCDPIdCache           ratioCDPIdCache;
 };
 
 enum CDPCloseType: uint8_t {

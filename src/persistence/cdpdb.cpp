@@ -127,12 +127,14 @@ bool CCdpDBCache::CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsTo
 }
 
 bool CCdpDBCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-                                              set<CUserCDP> &userCdps) {
+                                              RatioCDPIdCache::Map &userCdps) {
     double ratio = (double(collateralRatio) / RATIO_BOOST) / (double(bcoinMedianPrice) / PRICE_BOOST);
     assert(uint64_t(ratio * CDP_BASE_RATIO_BOOST) < UINT64_MAX);
-    string strRatio = strprintf("%016x", uint64_t(ratio * CDP_BASE_RATIO_BOOST));
+    uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST) + 1;
+    string strRatio = strprintf("%016x", ratioBoost);
+    RatioCDPIdCache::KeyType endKey(strRatio, uint256());
 
-    return ratioCDPIdCache.GetAllElements(strRatio, userCdps);
+    return ratioCDPIdCache.GetAllElements(endKey, userCdps);
 }
 
 uint64_t CCdpDBCache::GetGlobalStakedBcoins() const {

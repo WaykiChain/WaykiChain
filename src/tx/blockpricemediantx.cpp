@@ -84,7 +84,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         // 2. get all CDPs to be force settled
-        set<CUserCDP> forceLiquidateCDPList;
+        RatioCDPIdCache::Map forceLiquidateCDPList;
         uint64_t forceLiquidateRatio = 0;
         if (!cw.sysParamCache.GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
             return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
@@ -104,8 +104,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             // TODO: remove me.
             LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, have %llu cdps to force settle, in detail:\n",
                      forceLiquidateCDPList.size());
-            for (const auto &cdp : forceLiquidateCDPList) {
-                LogPrint("CDP", "%s\n", cdp.ToString());
+            for (const auto &cdpKey : forceLiquidateCDPList) {
+                LogPrint("CDP", "%s\n", cdpKey.second.ToString());
             }
         }
 
@@ -118,7 +118,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
         cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
         uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
         uint32_t orderIndex            = 0;
-        for (auto cdp : forceLiquidateCDPList) {
+        for (auto &cdpKey : forceLiquidateCDPList) {
+            auto &cdp = cdpKey.second;
             if (++cdpIndex > FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK)
                 break;
 

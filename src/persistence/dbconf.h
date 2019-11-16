@@ -167,7 +167,7 @@ namespace dbk {
     bool ParseDbKey(const Slice& slice, PrefixType keyPrefixType, KeyElement &keyElement) {
         assert(slice.size() > 0);
         const string &prefix = GetKeyPrefix(keyPrefixType);
-        if (!prefix.empty() && !slice.starts_with(Slice(prefix))) {
+        if (prefix.empty() || !slice.starts_with(Slice(prefix))) {
             return false;
         }
 
