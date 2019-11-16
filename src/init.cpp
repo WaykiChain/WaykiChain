@@ -163,7 +163,7 @@ void Shutdown() {
     globalVerifyHandle.reset();
     ECC_Stop();
 
-    LogPrintf(BCLog::INFO, "Shutdown() : done\n");
+    LogPrint(BCLog::INFO, "Shutdown() : done\n");
 }
 
 //
@@ -542,25 +542,25 @@ bool AppInit(boost::thread_group &threadGroup) {
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", GetDataDir().string());
 
-    LogPrintf(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
-    LogPrintf(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
+    LogPrint(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef USE_LUA
-    LogPrintf(BCLog::INFO, "Using Lua version %s\n", LUA_RELEASE);
+    LogPrint(BCLog::INFO, "Using Lua version %s\n", LUA_RELEASE);
 #endif
     string boost_version = BOOST_LIB_VERSION;
     StringReplace(boost_version, "_", ".");
-    LogPrintf(BCLog::INFO, "Using Boost version %s\n", boost_version);
+    LogPrint(BCLog::INFO, "Using Boost version %s\n", boost_version);
     string leveldb_version = strprintf("%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-    LogPrintf(BCLog::INFO, "Using Level DB version %s\n", leveldb_version);
-    LogPrintf(BCLog::INFO, "Using Berkeley DB version %s\n", DB_VERSION_STRING);
+    LogPrint(BCLog::INFO, "Using Level DB version %s\n", leveldb_version);
+    LogPrint(BCLog::INFO, "Using Berkeley DB version %s\n", DB_VERSION_STRING);
 
 #ifdef USE_UPNP
-    LogPrintf(BCLog::INFO, "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
+    LogPrint(BCLog::INFO, "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
 #endif
-    LogPrintf(BCLog::INFO, "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
-    LogPrintf(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
-    LogPrintf(BCLog::INFO, "Using data directory %s\n", strDataDir);
-    LogPrintf(BCLog::INFO, "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
+    LogPrint(BCLog::INFO, "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+    LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrint(BCLog::INFO, "Using data directory %s\n", strDataDir);
+    LogPrint(BCLog::INFO, "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
 
     RegisterNodeSignals(GetNodeSignals());
 
