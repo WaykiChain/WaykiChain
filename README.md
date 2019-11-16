@@ -1,7 +1,7 @@
 Quick Access to Resources
 =====================================
 ## :: WaykiChain ```coind``` built by the Core Team
-[[Download WaykiChain Binary Releases]]
+https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases
 
 ## :: Developer Documentation
 
