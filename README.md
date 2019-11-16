@@ -1,19 +1,14 @@
 Quick Resource Access
 =====================================
 ## :: Download WaykiChain ```coind```
-[Download WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
-
-(built and uploaded by WaykiChain Core Team)
+* [WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
 
 ## :: Developer Documentation
 
-### English version (英文版):
-https://wicc-devbook.readthedocs.io/en/latest/
+* [English version (英文版)](https://wicc-devbook.readthedocs.io/en/latest)
+* [Chinese version (中文版)](https://wicc-devbook.readthedocs.io/zh_CN/latest)
 
-### Chinese version (中文版):
-https://wicc-devbook.readthedocs.io/zh_CN/latest/
-
-WaykiChain - Decentralized Economy Infrastructure Service Platform
+WaykiChain Introduction
 =====================================
 
 ## :: What is WaykiChain
