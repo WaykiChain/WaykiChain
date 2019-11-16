@@ -3,8 +3,6 @@ Quick Resource Access
 ## :: Download WaykiChain ```coind```
 [Download WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
 
-(built and uploaded by WaykiChain Core Team)
-
 ## :: Developer Documentation
 
 ### English version (英文版):
