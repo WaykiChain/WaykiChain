@@ -1,7 +1,9 @@
-Quick Access to Resources
+Quick Resource Access
 =====================================
-## :: WaykiChain ```coind``` built by the Core Team
-https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases
+## :: Download WaykiChain ```coind```
+[Download WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
+
+(built and uploaded by WaykiChain Core Team)
 
 ## :: Developer Documentation
 
