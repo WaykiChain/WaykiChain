@@ -53,7 +53,6 @@ coin_CORE_H = \
   entities/keystore.h \
   entities/receipt.h \
   entities/vote.h \
-  addrman.h \
   alert.h \
   allocators.h \
   base58.h \
@@ -84,6 +83,7 @@ coin_CORE_H = \
   init.h \
   limitedmap.h \
   main.h \
+  p2p/addrman.h \
   p2p/chainmessage.h \
   p2p/protocol.h \
   miner/miner.h \
@@ -255,7 +255,6 @@ libcoin_server_a_SOURCES = \
   entities/id.cpp \
   entities/key.cpp \
   entities/keystore.cpp \
-  addrman.cpp \
   alert.cpp \
   config/configuration.cpp \
   crypto/sha256.cpp \
@@ -263,6 +262,9 @@ libcoin_server_a_SOURCES = \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
+  p2p/addrman.cpp \
+  p2p/chainmessage.cpp \
+  p2p/protocol.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
   rpc/core/rpccommons.cpp \
