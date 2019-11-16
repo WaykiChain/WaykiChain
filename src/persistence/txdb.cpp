@@ -67,10 +67,3 @@ Object CTxMemCache::ToJsonObj() const {
     txCacheObj.push_back(Pair("tx_cache", txArray));
     return txCacheObj;
 }
-
-string CTxUndo::ToString() const {
-    string str;
-    str += "txid:" + txid.GetHex() + "\n";
-    str += "db_op_log_map:" + dbOpLogMap.ToString();
-    return str;
-}

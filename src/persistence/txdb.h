@@ -73,7 +73,12 @@ public:
         dbOpLogMap.Clear();
     }
 
-    string ToString() const;
+    string ToString() const {
+        string str;
+        str += "txid:" + txid.GetHex() + "\n";
+        str += "db_oplog_map:" + dbOpLogMap.ToString();
+        return str;
+    }
 };
 
 #endif // PERSIST_TXDB_H
