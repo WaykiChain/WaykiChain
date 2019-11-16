@@ -1,7 +1,7 @@
 Quick Resource Access
 =====================================
 ## :: Download WaykiChain ```coind```
-[WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
+* [WaykiChain coind Binary Releases](https://github.com/WaykiChain/WaykiChain/wiki/Download-WaykiChain-Binary-Releases)
 
 ## :: Developer Documentation
 
