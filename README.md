@@ -11,7 +11,7 @@ https://wicc-devbook.readthedocs.io/en/latest/
 ### Chinese version (中文版):
 https://wicc-devbook.readthedocs.io/zh_CN/latest/
 
-WaykiChain - Decentralized Economy Infrastructure Service Platform
+WaykiChain Introduction
 =====================================
 
 ## :: What is WaykiChain
