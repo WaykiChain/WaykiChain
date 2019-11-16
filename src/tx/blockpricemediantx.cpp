@@ -101,8 +101,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
         cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCDPList);
 
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
-                "forceLiquidateRatio: %llu, forceLiquidateCDPList: %llu\n",
+        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, tx_cord=%d-%d, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
+                "forceLiquidateRatio: %llu, forceLiquidateCDPList: %llu\n", context.height, context.index,
                 globalCollateralRatioFloor, bcoinMedianPrice, forceLiquidateRatio, forceLiquidateCDPList.size());
 
         // 3. force settle each cdp

@@ -253,8 +253,9 @@ public:
         KeyType key;
         ValueType value;
         shared_ptr<leveldb::Iterator> pCursor = NewIterator();
+        const string &prefixStr = dbk::GetKeyPrefix(prefixType);
 
-        for (pCursor->SeekToFirst(); pCursor->Valid(); pCursor->Next()) {
+        for (pCursor->Seek(prefixStr); pCursor->Valid(); pCursor->Next()) {
             boost::this_thread::interruption_point();
 
             try {
