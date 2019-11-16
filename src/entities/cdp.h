@@ -119,9 +119,17 @@ struct CUserCDP {
 
     bool IsFinished() const { return total_owed_scoins == 0 && total_staked_bcoins == 0; }
 
-    // FIXME: need to set other members empty?
     bool IsEmpty() const { return cdpid.IsEmpty(); }
-    void SetEmpty() { cdpid.SetEmpty(); }
+
+    void SetEmpty() {
+        cdpid.SetEmpty();
+        owner_regid.SetEmpty();
+        block_height = 0;
+        bcoin_symbol.clear();
+        scoin_symbol.clear();
+        total_staked_bcoins = 0;
+        total_owed_scoins = 0;
+    }
 };
 
 #endif //ENTITIES_CDP_H
