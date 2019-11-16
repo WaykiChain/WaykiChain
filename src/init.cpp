@@ -163,8 +163,7 @@ void Shutdown() {
     globalVerifyHandle.reset();
     ECC_Stop();
 
-    LogPrint(BCLog::INFO, "Shutdown() : done\n");
-    printf("Shutdown : done\n");
+    LogPrintf(BCLog::INFO, "Shutdown() : done\n");
 }
 
 //
@@ -539,39 +538,29 @@ bool AppInit(boost::thread_group &threadGroup) {
 
      if (!LogInstance().m_log_timestamps)
         LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+
     LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
     LogPrintf("Using data directory %s\n", GetDataDir().string());
 
-    LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
-    printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    LogPrint(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+    LogPrintf(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
+    LogPrintf(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef USE_LUA
-    LogPrint(BCLog::INFO, "Using Lua version %s\n", LUA_RELEASE);
-    printf("Using Lua version %s\n", LUA_RELEASE);
+    LogPrintf(BCLog::INFO, "Using Lua version %s\n", LUA_RELEASE);
 #endif
     string boost_version = BOOST_LIB_VERSION;
     StringReplace(boost_version, "_", ".");
-    LogPrint(BCLog::INFO, "Using Boost version %s\n", boost_version);
-    printf("Using Boost version %s\n", boost_version.c_str());
+    LogPrintf(BCLog::INFO, "Using Boost version %s\n", boost_version);
     string leveldb_version = strprintf("%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-    LogPrint(BCLog::INFO, "Using Level DB version %s\n", leveldb_version);
-    printf("Using Level DB version %s\n", leveldb_version.c_str());
-    LogPrint(BCLog::INFO, "Using Berkeley DB version %s\n", DB_VERSION_STRING);
-    printf("Using Berkeley DB version %s\n", DB_VERSION_STRING);
+    LogPrintf(BCLog::INFO, "Using Level DB version %s\n", leveldb_version);
+    LogPrintf(BCLog::INFO, "Using Berkeley DB version %s\n", DB_VERSION_STRING);
 
 #ifdef USE_UPNP
-    LogPrint(BCLog::INFO, "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
-    printf("Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
+    LogPrintf(BCLog::INFO, "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
 #endif
-    LogPrint(BCLog::INFO, "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
-    printf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
-    LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    LogPrint(BCLog::INFO, "Using data directory %s\n", strDataDir);
-    printf("Using data directory %s\n", strDataDir.c_str());
-    LogPrint(BCLog::INFO, "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
-    printf("Using at most %i connections (      %i file descriptors available)\n", nMaxConnections, nFD);
+    LogPrintf(BCLog::INFO, "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+    LogPrintf(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrintf(BCLog::INFO, "Using data directory %s\n", strDataDir);
+    LogPrintf(BCLog::INFO, "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
 
     RegisterNodeSignals(GetNodeSignals());
 
