@@ -442,6 +442,23 @@ bool AppInit(boost::thread_group &threadGroup) {
 #endif
 #endif
 
+    // ********************************************************* initialize logging
+    if (SysCfg().IsArgCount("-debug")) {
+        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
+        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
+
+        if (std::none_of(categories.begin(), categories.end(),
+            [](std::string cat) { return cat == "0" || cat == "none"; })) {
+            for (const auto& cat : categories) {
+                if (!LogInstance().EnableCategory(cat)) {
+                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
+                } else {
+                    fprintf(stdout, "Enabbled category: %s.\n", cat.c_str());
+                }
+            }
+        }
+    }
+
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
