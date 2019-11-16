@@ -263,7 +263,6 @@ libcoin_server_a_SOURCES = \
   miner/miner.cpp \
   net.cpp \
   p2p/addrman.cpp \
-  p2p/chainmessage.cpp \
   p2p/protocol.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
