@@ -8,7 +8,7 @@
 
 #include "logging.h"
 #include "entities/id.h"
-#include "addrman.h"
+#include "p2p/addrman.h"
 #include "alert.h"
 #include "config/chainparams.h"
 #include "config/configuration.h"

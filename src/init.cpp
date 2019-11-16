@@ -11,7 +11,7 @@
 #include "logging.h"
 #include "init.h"
 #include "config/configuration.h"
-#include "addrman.h"
+#include "p2p/addrman.h"
 
 #include "rpc/core/rpcserver.h"
 #include "vm/luavm/lua/lua.h"

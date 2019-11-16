@@ -8,7 +8,7 @@
 #endif
 
 #include "logging.h"
-#include "addrman.h"
+#include "p2p/addrman.h"
 #include "config/chainparams.h"
 #include "net.h"
 #include "nodeinfo.h"
