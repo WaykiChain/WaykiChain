@@ -47,7 +47,6 @@ bool BCLog::Logger::StartLogging()
     assert(m_buffering);
     assert(m_fileout == nullptr);
 
-    printf("m_file_path=%s\n\n", m_file_path.c_str());
     if (m_print_to_file) {
         assert(!m_file_path.empty());
         m_fileout = fsbridge::fopen(m_file_path, "a");
