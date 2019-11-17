@@ -114,23 +114,13 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 void SetupEnvironment();
 
-/* Send a string to the log output */
-int LogPrintStr(const string& str);
 extern string GetLogHead(int line, const char* file, const char* category);
-int LogPrintStr(const char* category, const string& str);
 
 #define strprintf tfm::format
 
 #define ERRORMSG(...) error2(__LINE__, __FILE__, __VA_ARGS__)
 
-#define MAKE_ERROR_AND_TRACE_FUNC(n)                                                                                 \
-    /*   Print to debug.log if -debug=category switch is given OR category is NULL. */                               \
-    template <TINYFORMAT_ARGTYPES(n)>                                                                                \
-    static inline int32_t LogTrace(const char* category, const std::string& logName, DebugLogFile& logFile,          \
-                                   int32_t line, const char* file, const char* format, TINYFORMAT_VARARGS(n)) {      \
-        return LogPrintStr(logName, logFile,                                                                         \
-                           GetLogHead(line, file, category) + tfm::format(format, TINYFORMAT_PASSARGS(n)));          \
-    }                                                                                                                \
+#define MAKE_ERROR_FUNC(n)                                                                                           \
     /*   Log error and return false */                                                                               \
     template <TINYFORMAT_ARGTYPES(n)>                                                                                \
     static inline bool error2(int line, const char* file, const char* format1, TINYFORMAT_VARARGS(n)) {              \
@@ -138,7 +128,7 @@ int LogPrintStr(const char* category, const string& str);
         return false;                                                                                                \
     }
 
-TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_AND_TRACE_FUNC)
+TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_FUNC)
 
 template<typename... Args>
 bool error(const char* fmt, const Args&... args)
