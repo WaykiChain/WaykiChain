@@ -221,6 +221,7 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
         }
 
         ret =  state.GetReturn();
+
     }
 
     uint256 txid        = pTx->GetHash();

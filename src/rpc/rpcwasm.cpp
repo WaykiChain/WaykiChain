@@ -166,9 +166,11 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
         Object obj_return;
-        json_spirit::Value value_json;
-        json_spirit::read_string(std::get<1>(ret), value_json);
-        json_spirit::Config::add(obj_return, "result",  value_json);
+        // json_spirit::Value value_json;
+        // json_spirit::read_string(std::get<1>(ret), value_json);
+        // json_spirit::Config::add(obj_return, "result",  value_json);
+
+        json_spirit::Config::add(obj_return, "result", std::get<1>(ret) );
 
         return obj_return;
     } catch(wasm::exception &e){
@@ -233,9 +235,11 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
         Object obj_return;
-        json_spirit::Value value_json;
-        json_spirit::read_string(std::get<1>(ret), value_json);
-        json_spirit::Config::add(obj_return, "result",  value_json);
+        // json_spirit::Value value_json;
+        // json_spirit::read_string(std::get<1>(ret), value_json);
+        // json_spirit::Config::add(obj_return, "result",  value_json);
+
+        json_spirit::Config::add(obj_return, "result", std::get<1>(ret) );
         return obj_return;
     } catch(wasm::exception &e){
         JSON_RPC_ASSERT(false, e.code(), e.detail())

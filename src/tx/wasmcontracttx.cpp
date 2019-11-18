@@ -281,6 +281,40 @@ static uint64_t get_fuel_limit(CBaseTx &tx, CTxExecuteContext &context) {
     return fuel_limit;
 }
 
+static void inline_trace_to_receipts(const wasm::inline_transaction_trace trace, vector<CReceipt>& receipts ){
+   
+    if(trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)){
+        CReceipt receipt;
+        receipt.code = TRANSFER_ACTUAL_COINS;
+
+        std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(trace.trx.data);
+        auto from     = std::get<0>(transfer);
+        auto to       = std::get<1>(transfer);
+        auto quantity = std::get<2>(transfer);
+        auto memo     = std::get<3>(transfer);
+
+        receipt.from_uid = CUserID(CNickID(wasm::name(from).to_string()));
+        receipt.from_uid = CUserID(CNickID(wasm::name(to).to_string()));
+
+        receipt.coin_symbol = quantity.sym.code().to_string();
+        receipt.coin_amount = quantity.amount;
+
+        receipts.push_back(receipt);
+    }
+
+    for(auto t: trace.inline_traces){
+        inline_trace_to_receipts(t, receipts);
+    }
+
+}
+
+static void trace_to_receipts(const wasm::transaction_trace trace, vector<CReceipt>& receipts ){
+    for(auto t: trace.traces){
+        inline_trace_to_receipts(t, receipts);
+    }
+
+}
+
 bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
@@ -317,18 +351,29 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         // WASM_TRACE("nRunStep:%ld", nRunStep)
         // WASM_TRACE("fee:%ld", fee)
 
-        WASM_ASSERT( fee > nRunStep, account_operation_exception, "%s",
+        WASM_ASSERT( fee > nRunStep, fuel_fee_exception, "%s",
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel")
 
-        json_spirit::Value v;
-        to_variant(trx_trace, v, database);
-        execute_tx_return->SetReturn(json_spirit::write(v));
+
+        //cache.save(trace)
+        vector<CReceipt> receipts;
+        trace_to_receipts(trx_trace, receipts);
+        WASM_ASSERT( database.txReceiptCache.SetTxReceipts(GetHash(), receipts), 
+                     wasm_exception, 
+                     "CWasmContractTx::ExecuteTx, set tx receipts failed! txid=%s",
+                     GetHash().ToString().c_str())   
+
+        // json_spirit::Value v;
+        // to_variant(trx_trace, v, database);
+        // execute_tx_return->SetReturn(json_spirit::write(v));    
+        execute_tx_return->SetReturn(GetHash().ToString());
+
+        //WASM_TRACE("%s", GetHash().ToString().c_str() )
 
     } catch (wasm::exception &e) {
         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
     }
 
-    //cache.save(trace)
     return true;
 }
 
