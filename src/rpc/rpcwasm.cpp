@@ -158,8 +158,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             tx.valid_height = chainActive.Tip()->height;
             tx.inlinetransactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{sender_name.value, wasmio_owner}},
                                              wasm::pack(std::tuple(contract.value, code, abi, memo))});
-            //tx.nRunStep = tx.data.size();
-            tx.nRunStep = sizeof(tx.inlinetransactions);
+            //tx.nRunStep = sizeof(tx.inlinetransactions);
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 
@@ -224,7 +223,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
                                              action_data});
             // tx.symbol = amount.symbol;
             // tx.amount = amount.GetSawiAmount();
-            tx.nRunStep = sizeof(tx.inlinetransactions);
+            //tx.nRunStep = sizeof(tx.inlinetransactions);
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "Sign failed")
         }
 

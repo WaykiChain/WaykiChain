@@ -181,7 +181,7 @@ namespace wasm {
 
 
         //database
-        int32_t db_store( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
+        int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
             WASM_ASSERT(key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "key size too big");
@@ -189,46 +189,39 @@ namespace wasm {
             WASM_ASSERT(val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "value size too big");
 
-            //const uint64_t payer = pWasmContext->Receiver();
-
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
             AddPrefix(pWasmContext->receiver(), k);
 
-            // WASM_TRACE("key:%s key_len:%d val:%s val_len:%d",
-            //            ToHex(k).c_str(), key_len, ToHex(v).c_str(), val_len)
-
-            //string oldValue;
-            //const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->receiver();
 
             wasm_assert(pWasmContext->set_data(contract, k, v), ("wasm db_store SetContractData failed, key:" +
                                                                 ToHex(k)).c_str());      //wasmContext.AppendUndo(contract, k, oldValue);
+            pWasmContext->update_storage_usage(payer, k.size() + v.size());
 
             return 1;
         }
 
-        int32_t db_remove( const void *key, uint32_t key_len ) {
+        int32_t db_remove( const uint64_t payer, const void *key, uint32_t key_len ) {
 
             WASM_ASSERT(key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "key size too big");
 
-            //const uint64_t payer = pWasmContext->Receiver();
-
             string k = string((const char *) key, key_len);
-
             AddPrefix(pWasmContext->receiver(), k);
-            //std::cout << "db_remove key: "<< ToHex(k)<<" key_len: "<<key_len << std::endl;
 
-            //string oldValue;
-            //const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->receiver();
+
+            // string v;
+            // wasm_assert(pWasmContext->get_data(contract, k, v),
+            //             ("wasm db_remove get_data key fail, key:" + ToHex(k, "")).c_str());
 
             wasm_assert(pWasmContext->erase_data(contract, k),
                         ("wasm db_remove EraseContractData failed, key:" + ToHex(k, " ")).c_str());
 
             //wasmContext.AppendUndo(contract, k, oldValue);
+            pWasmContext->update_storage_usage(payer, k.size());
 
             return 0;
         }
@@ -243,18 +236,12 @@ namespace wasm {
 
             //std::cout << "db_get" << std::endl;
             string k = string((const char *) key, key_len);
-
             AddPrefix(pWasmContext->receiver(), k);
 
-            //std::cout << "db_get" << " key: "<<ToHex(k,"")<<" key_len: "<<key_len << std::endl;
             string v;
-            //const uint64_t contract = wasmContext.receiver;
             const uint64_t contract = pWasmContext->receiver();
-            // if(! wasmContext.cache.GetContractData(contract, k, v))
-            //   return 0;
 
-            if (!pWasmContext->get_data(contract, k, v))
-                return 0;
+            if (!pWasmContext->get_data(contract, k, v)) return 0;
 
             auto size = v.size();
             if (val_len == 0)
@@ -263,10 +250,12 @@ namespace wasm {
             auto val_size = val_len > size ? size : val_len;
             memcpy(val, v.data(), val_size);
 
+            //pWasmContext->update_storage_usage(payer, k.size() + v.size());
+
             return val_size;
         }
 
-        int32_t db_update( const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
+        int32_t db_update( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
 
             WASM_ASSERT(key_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
@@ -280,13 +269,16 @@ namespace wasm {
 
             AddPrefix(pWasmContext->receiver(), k);
 
-            //const uint64_t payer = pWasmContext->Receiver();
-
-            //std::cout << "db_update key: "<<ToHex(k,"")<<" key_len:"<<key_len << " value: "<<ToHex(v,"")<<" value_len:"<<value_len <<std::endl;
-
             const uint64_t contract = pWasmContext->receiver();
+            // string old_value;
+            // wasm_assert(pWasmContext->get_data(contract, k, old_value),
+            //             ("wasm db_update db_get key fail, key:" + ToHex(k, "")).c_str());
             wasm_assert(pWasmContext->set_data(contract, k, v),
-                        ("wasm db_update SetContractData key fail, key:" + ToHex(k, "")).c_str());
+                        ("wasm db_update set_data key fail, key:" + ToHex(k, "")).c_str());
+
+            //pWasmContext->update_storage_usage(payer, v.size() - old_value.size());
+
+            pWasmContext->update_storage_usage(payer, k.size() + v.size());
 
             return 1;
         }

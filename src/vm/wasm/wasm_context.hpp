@@ -99,6 +99,7 @@ namespace wasm {
 
         vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
         std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+        void update_storage_usage(uint64_t account, int64_t size_in_bytes);
 
         void pause_billing_timer(){ control_trx.pause_billing_timer(); };
         void resume_billing_timer(){ control_trx.resume_billing_timer(); };

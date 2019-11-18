@@ -21,6 +21,7 @@
 #include "wasm/wasm_config.hpp"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
+#include "wasm/wasm_native_contract.hpp"
 
 static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
@@ -228,14 +229,17 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
                     "%s",
                     "CWasmContractTx.CheckTx, Tx must have at least 1 inline_transaction")
 
-
-        IMPLEMENT_CHECK_TX_FEE;
+        //IMPLEMENT_CHECK_TX_FEE;
         IMPLEMENT_CHECK_TX_REGID(txUid.type());
         contract_is_valid(context);
 
-        uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
-        WASM_ASSERT( llFees > llFuel, account_operation_exception, "%s",
-                    "CWasmContractTx.CheckTx, fee too litter to afford fuel")
+        // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
+
+        // WASM_TRACE("llFuel:%ld", llFuel)
+        // WASM_TRACE("llFees:%ld", llFees)
+
+        // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
+        //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
 
         CAccount account;
         WASM_ASSERT( database.accountCache.GetAccount(txUid, account), account_operation_exception, "%s",
@@ -252,14 +256,50 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 
+static uint64_t get_fuel_limit(CBaseTx &tx, CTxExecuteContext &context) {
+
+    uint64_t fuel_rate = context.fuel_rate;
+    WASM_ASSERT( fuel_rate > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel_rate cannot be 0")
+
+    uint64_t min_fee;
+    WASM_ASSERT( GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee), 
+                 fuel_fee_exception, "%s", "get_fuel_limit, get minFee failed")
+
+    assert(tx.llFees >= min_fee);
+
+    uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
+    uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
+
+    // WASM_TRACE("fee_for_miner:%ld", fee_for_miner)
+    // WASM_TRACE("fee_for_gas:%ld", fee_for_gas)
+
+    uint64_t fuel_limit = std::min<uint64_t>((fee_for_gas / fuel_rate) * 100, MAX_BLOCK_RUN_STEP);
+
+    //WASM_TRACE("fuel_limit:%ld", fuel_limit)
+    WASM_ASSERT( fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
+
+    return fuel_limit;
+}
+
 bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
         auto &database         = *context.pCw;
         auto execute_tx_return = context.pState;
 
+        //WASM_TRACE("nRunStep:%ld", nRunStep);
+        nRunStep = sizeof(inlinetransactions);
+
+        //charger fee
+        CAccount sender;
+        WASM_ASSERT(database.accountCache.GetAccount(txUid, sender),
+                    account_operation_exception,
+                    "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
+                    txUid.ToString().c_str())  
+        auto quantity = wasm::asset(llFees, wasm::symbol(SYMB::WICC, 0)); 
+        sub_balance(sender, quantity, database.accountCache);
+
         pseudo_start = system_clock::now();
-        //system_clock::time_point start = pseudo_start;
 
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
@@ -272,16 +312,16 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start); 
 
-        // system_clock::time_point end = system_clock::now();  
-        // std::cout << std::string("start:")
-        //           << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl;
-        // std::cout << std::string("pseudo_start:")
-        //           << std::chrono::duration_cast<std::chrono::microseconds>(end - pseudo_start).count() << std::endl;
+        uint64_t fee = get_fuel_limit(*this, context);
 
+        // WASM_TRACE("nRunStep:%ld", nRunStep)
+        // WASM_TRACE("fee:%ld", fee)
+
+        WASM_ASSERT( fee > nRunStep, account_operation_exception, "%s",
+                    "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel")
 
         json_spirit::Value v;
         to_variant(trx_trace, v, database);
-
         execute_tx_return->SetReturn(json_spirit::write(v));
 
     } catch (wasm::exception &e) {
@@ -352,14 +392,16 @@ Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
         return Object{};
     }
 
+    Object result;
     if(inlinetransactions.size() > 0){
-        Object result = CBaseTx::ToJson(accountCache);
+        result = CBaseTx::ToJson(accountCache);
         inline_transaction trx = inlinetransactions[0];
         result.push_back(Pair("contract",       wasm::name(trx.contract).to_string()));
         result.push_back(Pair("action",         wasm::name(trx.action).to_string()));
         result.push_back(Pair("arguments",      HexStr(trx.data)));
-        return result;
     }
+
+    return result;
      
 
     // Object result = CBaseTx::ToJson(accountCache);
@@ -372,8 +414,6 @@ Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
     // json_spirit::Config::add(result, "inline_transactions", json_spirit::Value(arr));
 
     // return result;
-
-
 
 }
 

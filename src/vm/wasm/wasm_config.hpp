@@ -11,17 +11,19 @@ namespace wasm {
     const static uint16_t default_query_rows = 10;
 
     const static auto max_serialization_time = microseconds(15 * 1000);
-    const static auto max_wasm_execute_time = 500;//in milliseconds
+    const static auto max_wasm_execute_time  = 500;//in milliseconds
     //const static auto max_serialization_time = microseconds(60 * 1000 * 1000);
     const static uint16_t max_inline_transaction_depth = 4;
-    const static uint16_t max_abi_array_size = 1024;
-    const static uint16_t max_inline_transaction_size = 4096;
-    const static uint16_t max_wasm_api_data_size = 4096;
+    const static uint16_t max_abi_array_size           = 1024;
+    const static uint16_t max_inline_transaction_size  = 4096;
+    const static uint16_t max_wasm_api_data_size       = 4096;
 
-    const static uint64_t wasmio = N(wasmio);
-    const static uint64_t wasmio_bank = N(wasmio.bank);
-    const static uint64_t wasmio_code = N(wasmio.code);
+    const static uint64_t wasmio       = N(wasmio);
+    const static uint64_t wasmio_bank  = N(wasmio.bank);
+    const static uint64_t wasmio_code  = N(wasmio.code);
     const static uint64_t wasmio_owner = N(wasmio.owner);
+
+    const static uint64_t fuel_store_fee_per_byte = 600;
 
 
     namespace wasm_constraints {

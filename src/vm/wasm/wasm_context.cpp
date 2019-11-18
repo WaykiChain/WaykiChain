@@ -61,8 +61,8 @@ namespace wasm {
 
        for(const auto p: t.authorization){
          
-          if(p.account  == _receiver){ continue; }
-          if(t.contract == _receiver && in_signatures(p) ) { continue; }
+          if(p.account  == _receiver){ continue; } //contract authority
+          if(t.contract == _receiver && in_signatures(p) ) { continue; } //same contract
 
            WASM_ASSERT(false , 
                        missing_auth_exception, 
@@ -86,7 +86,6 @@ namespace wasm {
     }
 
     // std::string wasm_context::get_abi(uint64_t account) {
-
     //     CUniversalContract contract;
     //     CAccount contract_account ;
     //     database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account);
@@ -100,8 +99,8 @@ namespace wasm {
         if (!wasm_interface_inited) {
             wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
-            register_native_handler(wasmio, N(setcode), wasm_native_setcode);
-            register_native_handler(wasmio_bank, N(transfer), wasm_native_transfer);
+            register_native_handler(wasmio, N(setcode), wasmio_native_setcode);
+            register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
         }
     }
 
@@ -208,6 +207,19 @@ namespace wasm {
 
         auto account_name = wasm::name(account);
         return database.accountCache.HaveAccount(nick_name(account_name.to_string()));
+    }
+
+    void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
+
+        int64_t disk_usage = control_trx.nRunStep;
+        disk_usage += size_in_bytes * fuel_store_fee_per_byte;
+        
+        // WASM_TRACE("size_in_bytes:%ld", size_in_bytes)
+        // WASM_TRACE("disk_usage:%ld", disk_usage)
+
+        if(disk_usage < 0) disk_usage = 0;
+        control_trx.nRunStep += disk_usage;
+
     }
 
 }
