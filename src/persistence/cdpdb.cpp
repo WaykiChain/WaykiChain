@@ -87,7 +87,8 @@ bool CCdpDBCache::SaveCDPToRatioDB(const CUserCDP &userCdp) {
     uint64_t boostedRatio = userCdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST;
     uint64_t ratio        = (boostedRatio < userCdp.collateral_ratio_base /* overflown */) ? UINT64_MAX : boostedRatio;
     string strRatio       = strprintf("%016x", ratio);
-    auto key              = std::make_pair(strRatio, userCdp.cdpid);
+    string heightStr      = strprintf("%016x", userCdp.block_height);
+    RatioCDPIdCache::KeyType key(strRatio, heightStr, userCdp.cdpid);
 
     ratioCDPIdCache.SetData(key, userCdp);
 
@@ -107,7 +108,8 @@ bool CCdpDBCache::EraseCDPFromRatioDB(const CUserCDP &userCdp) {
     uint64_t boostedRatio = userCdp.collateral_ratio_base * CDP_BASE_RATIO_BOOST;
     uint64_t ratio        = (boostedRatio < userCdp.collateral_ratio_base /* overflown */) ? UINT64_MAX : boostedRatio;
     string strRatio       = strprintf("%016x", ratio);
-    auto key              = std::make_pair(strRatio, userCdp.cdpid);
+    string heightStr      = strprintf("%016x", userCdp.block_height);
+    RatioCDPIdCache::KeyType key(strRatio, heightStr, userCdp.cdpid);
 
     ratioCDPIdCache.EraseData(key);
 
@@ -132,7 +134,8 @@ bool CCdpDBCache::GetCdpListByCollateralRatio(const uint64_t collateralRatio, co
     assert(uint64_t(ratio * CDP_BASE_RATIO_BOOST) < UINT64_MAX);
     uint64_t ratioBoost = uint64_t(ratio * CDP_BASE_RATIO_BOOST) + 1;
     string strRatio = strprintf("%016x", ratioBoost);
-    RatioCDPIdCache::KeyType endKey(strRatio, uint256());
+    string heightStr      = strprintf("%016x", 0);
+    RatioCDPIdCache::KeyType endKey(strRatio, heightStr, uint256());
 
     return ratioCDPIdCache.GetAllElements(endKey, userCdps);
 }

@@ -19,8 +19,8 @@ using namespace std;
 
 /*  CCompositeKVCache     prefixType        key                  value           variable  */
 /*  ----------------   --------------      -----------------    --------------   -----------*/
-// cdpr{Ratio}{$cdpid} -> CUserCDP
-typedef CCompositeKVCache<dbk::CDP_RATIO, pair<string, uint256>, CUserCDP>      RatioCDPIdCache;
+// cdpr{$Ratio}{$height}{$cdpid} -> CUserCDP
+typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<string, string, uint256>, CUserCDP>      RatioCDPIdCache;
 
 
 
