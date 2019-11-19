@@ -375,7 +375,7 @@ void CWasmContractTx::execute_inline_transaction( wasm::inline_transaction_trace
 
     //check timeout
     WASM_ASSERT(std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) < ctx.get_transaction_duration(),
-                timeout_exception, "%s", "timeout");
+                wasm_timeout_exception, "%s", "timeout");
 
     ctx._receiver = receiver;
     ctx.execute(trace);

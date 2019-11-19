@@ -53,6 +53,7 @@ namespace wasm {
                 _runtime->_bkend->timed_run(wd, fn);
             } catch (vm::timeout_exception &) {
                 //pContext->trx_pContext->checktime();
+                WASM_THROW(wasm_timeout_exception, "%s", "timeout exception");
                 //WASM_TRACE("receiver:%d contract:%d action:%d",pContext->receiver(), pContext->contract(), pContext->action() )
             } catch (vm::wasm_memory_exception &e) {
                 WASM_THROW(wasm_execution_error, "%s", "access violation");

@@ -75,4 +75,5 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(file_read_exception,                  5000021, "file read exception")
     WASM_DECLARE_EXCEPTION(missing_auth_exception,               5000022, "missing auth exception")
     WASM_DECLARE_EXCEPTION(fuel_fee_exception,                   5000023, "fuel fee exception")
+    WASM_DECLARE_EXCEPTION(wasm_timeout_exception,               5000024, "timeout exception")
 } //wasm
