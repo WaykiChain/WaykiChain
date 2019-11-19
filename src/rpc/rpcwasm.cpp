@@ -36,6 +36,7 @@
 #include "types/asset.hpp"
 #include "wasm_config.hpp"
 #include "wasm_native_contract_abi.hpp"
+#include "wasm_native_contract.hpp"
 #include "wasm_rpc_message.hpp"
 
 using namespace std;
@@ -333,7 +334,7 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
         string arguments = params[2].get_str();
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE, 
                         RPC_INVALID_PARAMETER, 
-                        "rpcwasm.abijsontobinwasmcontracttx, Arguments is empty or out of the size range")
+                        "rpcwasm.abijsontobinwasmcontracttx, Arguments is empty or out of size range")
         std::vector<char> action_data(arguments.begin(), arguments.end() );
         if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, contract_action.to_string(), arguments, max_serialization_time);
 
@@ -369,7 +370,7 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
         string arguments = params[2].get_str();
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE, 
                         RPC_INVALID_PARAMETER,  
-                        "rpcwasm.abibintojsonwasmcontracttx, Arguments is empty or out of the size range")
+                        "rpcwasm.abibintojsonwasmcontracttx, Arguments is empty or out of size range")
       
         string action_data_binary = FromHex(arguments);
         std::vector<char> action_data(action_data_binary.begin(), action_data_binary.end() );

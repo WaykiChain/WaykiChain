@@ -21,23 +21,12 @@ namespace wasm {
 
          WASM_ASSERT(context._receiver == wasmio, 
                      wasm_assert_exception, 
-                     "wasmio_native_setcode.setcode, Except contract wasmio, but get %s", wasm::name(context._receiver).to_string().c_str());
-
+                     "wasmio_native_setcode.setcode, Except contract wasmio, But get %s", wasm::name(context._receiver).to_string().c_str());
 
         auto &database_account         = context.database.accountCache;
         auto &database_contract        = context.database.contractCache;
         auto &control_trx              = context.control_trx;
 
-        //charger fee should move to tx.execute
-        // CAccount sender;
-        // WASM_ASSERT(database_account.GetAccount(control_trx.txUid, sender),
-        //             account_operation_exception,
-        //             "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
-        //             control_trx.txUid.ToString().c_str())  
-        // auto quantity = wasm::asset(control_trx.llFees, wasm::symbol(SYMB::WICC, 0)); 
-        // sub_balance(sender, quantity, context);
-
-        //set contract code and abi
         std::tuple<uint64_t, string, string, string> set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
         auto contract_name = wasm::name(std::get<0>(set_code_data));
         auto code          = std::get<1>(set_code_data);
@@ -52,7 +41,7 @@ namespace wasm {
                     "wasmio_native_setcode.setcode, Contract does not exist, contract = %s",contract_name.to_string().c_str()) 
 
         CUniversalContract contract_store;
-        // ban reset code
+        // ban code reset
         // WASM_ASSERT(!cw.contractCache.GetContract(contract.regid, contract_store),
         //             account_operation_exception,
         //             "wasmnativecontract.Setcode, can not reset code, contract = %s",
@@ -71,7 +60,7 @@ namespace wasm {
 
         WASM_ASSERT(context._receiver == wasmio_bank, 
                     wasm_assert_exception, 
-                    "wasmio_bank_native_transfer.transfer, Except contract wasmi.bank, But get %s", wasm::name(context._receiver).to_string().c_str());
+                    "wasmio_bank_native_transfer.transfer, Except contract wasmio.bank, But get %s", wasm::name(context._receiver).to_string().c_str());
 
         auto &database = context.database.accountCache;
 
@@ -80,12 +69,6 @@ namespace wasm {
         auto to       = std::get<1>(transfer_data);
         auto quantity = std::get<2>(transfer_data);
         auto memo     = std::get<3>(transfer_data);
-
-        // wasm::abi_def wasmio_abi = wasmio_contract_abi();
-        // std::vector<char> abi = wasm::pack<wasm::abi_def>(wasmio_abi);
-        // json_spirit::Value val = wasm::abi_serializer::unpack(abi, "transfer", context.trx.data,
-        //                                    max_serialization_time);
-        //WASM_TRACE("%s", json_spirit::write_formatted(val).c_str());
 
         WASM_ASSERT(from != to, 
                     wasm_assert_exception, 

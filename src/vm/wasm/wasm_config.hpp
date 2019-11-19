@@ -47,12 +47,5 @@ namespace wasm {
         static_assert(maximum_func_local_bytes>32                   , "maximum_func_local_bytes must be greater than 32");
     } // namespace  wasm_constraints
 
-    static inline bool is_native_contract(uint64_t contract){
-        if(contract == wasmio || 
-           contract == wasmio_bank )
-            return true;
-        return false;
-    }
-
 }  // wasm
 
