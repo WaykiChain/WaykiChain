@@ -278,7 +278,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
             "   }\n"
             "       ,...\n"
             " ]\n"
-            "3.\"fee\": (numeric required) pay fee to miner\n"
+            "3.\"fee\": (comboMoney string or numberic, required) pay fee to miner\n"
             "4.\"height\": (numeric optional) valid height. When not supplied, the tip block "
             "height in chainActive will be used.\n"
             "\nResult:\n"
