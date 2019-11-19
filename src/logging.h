@@ -6,6 +6,7 @@
 #ifndef BITCOIN_LOGGING_H
 #define BITCOIN_LOGGING_H
 
+#include "fs.h"
 #include "commons/tinyformat.h"
 #include <boost/filesystem.hpp>
 #include <atomic>

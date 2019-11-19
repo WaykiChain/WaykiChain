@@ -11,7 +11,7 @@
 #include "logging.h"
 #include "init.h"
 #include "config/configuration.h"
-#include "addrman.h"
+#include "p2p/addrman.h"
 
 #include "rpc/core/rpcserver.h"
 #include "vm/luavm/lua/lua.h"
@@ -26,6 +26,7 @@
 #include "persistence/contractdb.h"
 #include "tx/tx.h"
 #include "commons/util/util.h"
+#include "commons/util/time.h"
 #ifdef USE_UPNP
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/miniwget.h>
@@ -163,7 +164,6 @@ void Shutdown() {
     ECC_Stop();
 
     LogPrint(BCLog::INFO, "Shutdown() : done\n");
-    printf("Shutdown : done\n");
 }
 
 //
@@ -442,6 +442,21 @@ bool AppInit(boost::thread_group &threadGroup) {
 #endif
 #endif
 
+    // ********************************************************* initialize logging
+    if (SysCfg().IsArgCount("-debug")) {
+        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
+        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
+
+        if (std::none_of(categories.begin(), categories.end(),
+            [](std::string cat) { return cat == "0" || cat == "none"; })) {
+            for (const auto& cat : categories) {
+                if (!LogInstance().EnableCategory(cat)) {
+                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
+                }
+            }
+        }
+    }
+
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
@@ -514,39 +529,38 @@ bool AppInit(boost::thread_group &threadGroup) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s. coin Core is probably already running."), strDataDir));
     }
 
+    if (!LogInstance().StartLogging()) {
+        return InitError(strprintf("Could not open debug log file %s",
+                        LogInstance().m_file_path.string()));
+    }
     // if (GetBoolArg("-shrinkdebugfile", !fDebug))
     //     ShrinkDebugFile();
 
+     if (!LogInstance().m_log_timestamps)
+        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+
+    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrintf("Using data directory %s\n", GetDataDir().string());
+
     LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
-    printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     LogPrint(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef USE_LUA
     LogPrint(BCLog::INFO, "Using Lua version %s\n", LUA_RELEASE);
-    printf("Using Lua version %s\n", LUA_RELEASE);
 #endif
     string boost_version = BOOST_LIB_VERSION;
     StringReplace(boost_version, "_", ".");
     LogPrint(BCLog::INFO, "Using Boost version %s\n", boost_version);
-    printf("Using Boost version %s\n", boost_version.c_str());
     string leveldb_version = strprintf("%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
     LogPrint(BCLog::INFO, "Using Level DB version %s\n", leveldb_version);
-    printf("Using Level DB version %s\n", leveldb_version.c_str());
     LogPrint(BCLog::INFO, "Using Berkeley DB version %s\n", DB_VERSION_STRING);
-    printf("Using Berkeley DB version %s\n", DB_VERSION_STRING);
 
 #ifdef USE_UPNP
     LogPrint(BCLog::INFO, "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
-    printf("Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
 #endif
     LogPrint(BCLog::INFO, "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
-    printf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
     LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
     LogPrint(BCLog::INFO, "Using data directory %s\n", strDataDir);
-    printf("Using data directory %s\n", strDataDir.c_str());
     LogPrint(BCLog::INFO, "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
-    printf("Using at most %i connections (      %i file descriptors available)\n", nMaxConnections, nFD);
 
     RegisterNodeSignals(GetNodeSignals());
 
@@ -692,7 +706,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 if (fReIndex)
                     pCdMan->pBlockCache->WriteReindexing(true);
 
-                mempool.SetMemPoolCache(pCdMan);
+                mempool.SetMemPoolCache();
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
@@ -791,7 +805,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
 
-        if (!pCdMan->pTxCache->AddBlockToCache(block))
+        if (!pCdMan->pTxCache->AddBlockTx(block))
             return InitError("Failed to add block to transaction memory cache");
 
         pBlockIndex = pBlockIndex->pprev;
@@ -867,4 +881,38 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     return !fRequestShutdown;
+}
+
+fs::path AbsPathForConfigVal(const fs::path& path, bool net_specific = true)
+{
+    if (path.is_absolute()) {
+        return path;
+    }
+    return fs::absolute(path, GetDataDir(net_specific));
+}
+
+/**
+ * Initialize global loggers.
+ *
+ * Note that this is called very early in the process lifetime, so you should be
+ * careful about what global state you rely on here.
+ */
+void InitLogging()
+{
+    LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
+    LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
+    LogInstance().m_print_to_console = SysCfg().GetBoolArg("-logprinttoconsole", true);
+    LogInstance().m_log_timestamps = SysCfg().GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
+    LogInstance().m_log_time_micros = SysCfg().GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+    LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
+
+    fLogIPs = SysCfg().GetBoolArg("-logips", DEFAULT_LOGIPS);
+
+    std::string version_string = FormatFullVersion();
+#ifdef DEBUG
+    version_string += " (debug build)";
+#else
+    version_string += " (release build)";
+#endif
+    LogPrintf(PACKAGE_NAME " version %s\n", version_string);
 }

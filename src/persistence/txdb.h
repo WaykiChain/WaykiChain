@@ -29,11 +29,10 @@ public:
     CTxMemCache(CTxMemCache *pBaseIn) : pBase(pBaseIn) {}
 
 public:
-    uint256 HaveTx(const uint256 &txid);
-    bool IsContainBlock(const CBlock &block);
+    bool HaveTx(const uint256 &txid);
 
-    bool AddBlockToCache(const CBlock &block);
-    bool DeleteBlockFromCache(const CBlock &block);
+    bool AddBlockTx(const CBlock &block);
+    bool RemoveBlockTx(const CBlock &block);
 
     void Clear();
     void SetBaseViewPtr(CTxMemCache *pBaseIn) { pBase = pBaseIn; }
@@ -42,15 +41,13 @@ public:
     Object ToJsonObj() const;
     uint64_t GetSize();
 
-    const map<uint256, UnorderedHashSet> &GetTxHashCache();
-    void SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache);
-
 private:
     bool HaveBlock(const uint256 &blockHash) const;
-    void BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn);
+    bool HaveBlock(const CBlock &block);
+    void BatchWrite(const UnorderedHashSet &mapBlockTxHashSetIn);
 
 private:
-    map<uint256, UnorderedHashSet> mapBlockTxHashSet;  // map: BlockHash -> TxHashSet
+    UnorderedHashSet txids;
     CTxMemCache *pBase;
 };
 
@@ -76,7 +73,12 @@ public:
         dbOpLogMap.Clear();
     }
 
-    string ToString() const;
+    string ToString() const {
+        string str;
+        str += "txid:" + txid.GetHex() + "\n";
+        str += "db_oplog_map:" + dbOpLogMap.ToString();
+        return str;
+    }
 };
 
 #endif // PERSIST_TXDB_H

@@ -13,8 +13,6 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
-std::string test = boost::filesystem::basename("/opt/wicc");
-
 #include <boost/interprocess/sync/file_lock.hpp>
 #include "commons/random.h"
 #include "config/configuration.h"

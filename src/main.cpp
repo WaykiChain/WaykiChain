@@ -8,7 +8,7 @@
 
 #include "logging.h"
 #include "entities/id.h"
-#include "addrman.h"
+#include "p2p/addrman.h"
 #include "alert.h"
 #include "config/chainparams.h"
 #include "config/configuration.h"
@@ -232,6 +232,41 @@ CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
         pIndex                 = pIndex->pprev;
     }
     return pIndex;
+}
+bool CChain::UpdateFinalityBlock(){
+    set<CRegID> minerSet ;
+    uint32_t confirmMiners = FINALITY_BLOCK_CONFIRM_MINER_COUNT ;
+
+    if(SysCfg().NetworkID() == MAIN_NET && Height()< 3880000){
+        confirmMiners = 0 ;
+    }
+
+    if(SysCfg().NetworkID() == TEST_NET && Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
+        confirmMiners = 0 ;
+    }
+
+
+    auto pBlockIndex = Tip() ;
+    while(pBlockIndex->height > 0){
+
+        if(minerSet.size() >=confirmMiners ){
+
+            if( (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height) || !finalityBlockIndex ){
+
+                if(finalityBlockIndex)
+                    assert(Contains(finalityBlockIndex));
+
+                finalityBlockIndex = pBlockIndex ;
+            }
+            return true;
+        }
+        minerSet.insert(pBlockIndex->miner) ;
+        pBlockIndex = pBlockIndex->pprev ;
+    }
+    if(finalityBlockIndex == nullptr )
+        finalityBlockIndex = vChain[0] ;
+
+    return true ;
 }
 
 CBlockLocator CChain::GetLocator(const CBlockIndex *pIndex) const {
@@ -837,7 +872,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
     cw.blockCache.SetBestBlock(pIndex->pprev->GetBlockHash());
 
     // Delete the disconnected block's transactions from transaction memory cache.
-    if (!cw.txCache.DeleteBlockFromCache(block)) {
+    if (!cw.txCache.RemoveBlockTx(block)) {
         return state.Abort(_("DisconnectBlock() : failed to delete block from transaction memory cache"));
     }
 
@@ -854,7 +889,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
             return state.Abort(_("DisconnectBlock() : failed to read block"));
         }
 
-        if (!cw.txCache.AddBlockToCache(reLoadblock)) {
+        if (!cw.txCache.AddBlockTx(reLoadblock)) {
             return state.Abort(_("DisconnectBlock() : failed to add block into transaction memory cache"));
         }
     }
@@ -1189,7 +1224,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     }
 
-    if (!VerifyRewardTx(&block, cw, false))
+    VoteDelegate curDelegate;
+    if (!VerifyRewardTx(&block, cw, false, curDelegate))
         return state.DoS(100, ERRORMSG("ConnectBlock() : verify reward tx error"), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
@@ -1214,7 +1250,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
         for (int32_t index = 1; index < (int32_t)block.vptx.size(); ++index) {
             std::shared_ptr<CBaseTx> &pBaseTx = block.vptx[index];
-            if (cw.txCache.HaveTx((pBaseTx->GetHash())) != uint256())
+            if (cw.txCache.HaveTx((pBaseTx->GetHash())))
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s duplicated", pBaseTx->GetHash().GetHex()),
                                  REJECT_INVALID, "tx-duplicated");
 
@@ -1292,7 +1328,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
 
         // Verify profits
-        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight());
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate);
         if (pRewardTx->inflated_bcoins != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->inflated_bcoins, profits), REJECT_INVALID, "bad-reward-amount");
@@ -1393,7 +1429,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.Abort(_("ConnectBlock() : failed to write block index"));
     }
 
-    if (!cw.txCache.AddBlockToCache(block)) {
+    if (!cw.txCache.AddBlockTx(block)) {
         return state.Abort(_("ConnectBlock() : failed add block into transaction memory cache"));
     }
 
@@ -1409,12 +1445,12 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
             return state.Abort(_("ConnectBlock() : failed to read block"));
         }
 
-        if (!cw.txCache.DeleteBlockFromCache(deleteBlock)) {
+        if (!cw.txCache.RemoveBlockTx(deleteBlock)) {
             return state.Abort(_("ConnectBlock() : failed delete block from transaction memory cache"));
         }
     }
 
-    // Attention: should NOT to call AddBlockToCache() for price point memory cache, as everything
+    // Attention: should NOT to call AddBlock() for price point memory cache, as everything
     // is ready when executing transactions.
 
     // TODO: parameterize 11.
@@ -1677,13 +1713,28 @@ bool ActivateBestChain(CValidationState &state) {
         if (chainMostWork.Tip() == nullptr)
             break;
 
+        auto height = chainActive.Height() ;
+        while(height >= 0 ){
+            auto chainIndex = chainActive[height] ;
+            if( chainIndex &&!chainMostWork.Contains(chainIndex)){
+                if(height == chainActive.GetFinalityBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.GetFinalityBlockIndex()->GetBlockHash()){
+                    return false ;
+                }
+                height-- ;
+            }
+            if (chainIndex&& chainMostWork.Contains(chainIndex)){
+                break ;
+            }
+        }
+
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
             if (!DisconnectTip(state))
                 return false;
 
-            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip()))
-                mempool.ReScanMemPoolTx(pCdMan);
+            if (chainActive.Tip() && chainMostWork.Contains(chainActive.Tip())){
+                mempool.ReScanMemPoolTx();
+            }
         }
 
         // Connect new blocks.
@@ -1704,7 +1755,7 @@ bool ActivateBestChain(CValidationState &state) {
             }
 
             if (chainActive.Contains(chainMostWork.Tip())) {
-                mempool.ReScanMemPoolTx(pCdMan);
+                mempool.ReScanMemPoolTx();
             }
         }
     }
@@ -1715,6 +1766,8 @@ bool ActivateBestChain(CValidationState &state) {
             boost::replace_all(strCmd, "%s", chainActive.Tip()->GetBlockHash().GetHex());
             boost::thread t(runCommand, strCmd);  // thread runs free
         }
+
+        chainActive.UpdateFinalityBlock();
     }
 
     return true;
@@ -1728,6 +1781,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
 
     // Construct new block index object
     CBlockIndex *pIndexNew = new CBlockIndex(block);
+
     assert(pIndexNew);
     {
         LOCK(cs_nBlockSequenceId);
@@ -1742,6 +1796,11 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         pIndexNew->height = pIndexNew->pprev->height + 1;
         pIndexNew->BuildSkip();
     }
+
+    if(block.GetHeight() == 0 )
+        pIndexNew->miner = CRegID("0-1");
+    else
+        pIndexNew->miner = block.vptx[0]->txUid.get<CRegID>();
     pIndexNew->nTx        = block.vptx.size();
     pIndexNew->nChainWork = pIndexNew->height;
     pIndexNew->nChainTx   = (pIndexNew->pprev ? pIndexNew->pprev->nChainTx : 0) + pIndexNew->nTx;
@@ -1967,7 +2026,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         mapForkCache[iterBlock->GetHash()] = spCW;
     }
 
-    if (!VerifyRewardTx(&block, *spCW, false))
+    VoteDelegate curDelegate;
+    if (!VerifyRewardTx(&block, *spCW, false, curDelegate))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
             block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 
@@ -2261,7 +2321,10 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
+   if ( pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
+        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
+    }
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
@@ -2564,6 +2627,7 @@ bool static LoadBlockIndexDB() {
     }
 
     chainActive.SetTip(it->second);
+    chainActive.UpdateFinalityBlock();
     LogPrint(BCLog::INFO, "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));

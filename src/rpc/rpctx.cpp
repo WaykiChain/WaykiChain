@@ -759,20 +759,8 @@ Value listtxcache(const Array& params, bool fHelp) {
                 "\"txcache\"  (string)\n"
                 "\nExamples:\n" + HelpExampleCli("listtxcache", "")+ HelpExampleRpc("listtxcache", ""));
     }
-    const map<uint256, UnorderedHashSet> &mapBlockTxHashSet = pCdMan->pTxCache->GetTxHashCache();
 
-    Array retTxHashArray;
-    for (auto &item : mapBlockTxHashSet) {
-        Object blockObj;
-        Array txHashArray;
-        blockObj.push_back(Pair("blockhash", item.first.GetHex()));
-        for (auto &txid : item.second)
-            txHashArray.push_back(txid.GetHex());
-        blockObj.push_back(Pair("txcache", txHashArray));
-        retTxHashArray.push_back(blockObj);
-    }
-
-    return retTxHashArray;
+    return pCdMan->pTxCache->ToJsonObj();
 }
 
 Value reloadtxcache(const Array& params, bool fHelp) {
@@ -799,7 +787,7 @@ Value reloadtxcache(const Array& params, bool fHelp) {
             return ERRORMSG("reloadtxcache() : *** ReadBlockFromDisk failed at %d, hash=%s",
                 pIndex->height, pIndex->GetBlockHash().ToString());
 
-        pCdMan->pTxCache->AddBlockToCache(block);
+        pCdMan->pTxCache->AddBlockTx(block);
         pIndex = chainActive.Next(pIndex);
     } while (nullptr != pIndex);
 
@@ -1308,22 +1296,22 @@ Value listdelegates(const Array& params, bool fHelp) {
                            strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
     }
 
-    DelegateVector delegates;
+    VoteDelegateVector delegates;
     if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "get active delegates failed");
     }
 
-    delegates.resize(std::min(delegateNum, (int32_t)delegates.size()));
-
-    Object obj;
+        Object obj;
     Array delegateArray;
 
     CAccount account;
     for (const auto& delegate : delegates) {
-        if (!pCdMan->pAccountCache->GetAccount(delegate, account)) {
+        if (!pCdMan->pAccountCache->GetAccount(delegate.regid, account)) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Failed to get account info");
         }
-        delegateArray.push_back(account.ToJsonObj());
+        Object accountObj = account.ToJsonObj();
+        accountObj.push_back(Pair("active_votes", delegate.votes));
+        delegateArray.push_back(accountObj);
     }
 
     obj.push_back(Pair("delegates", delegateArray));

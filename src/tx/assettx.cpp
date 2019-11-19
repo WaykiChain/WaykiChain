@@ -73,7 +73,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
             fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    DelegateVector delegates;
+    VoteDelegateVector delegates;
     if (!cw.delegateCache.GetActiveDelegates(delegates)) {
         return state.DoS(100, ERRORMSG("ProcessAssetFee, GetActiveDelegates failed"),
             REJECT_INVALID, "get-delegates-failed");
@@ -81,7 +81,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
     assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
 
     for (size_t i = 0; i < delegates.size(); i++) {
-        const CRegID &delegateRegid = delegates[i];
+        const CRegID &delegateRegid = delegates[i].regid;
         CAccount delegateAccount;
         if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, get delegate account info failed! delegate regid=%s",
@@ -111,10 +111,10 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 // class CAssetIssueTx
 
 bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     auto symbolErr = CAsset::CheckSymbol(asset.symbol);
     if (symbolErr) {
@@ -326,10 +326,10 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",

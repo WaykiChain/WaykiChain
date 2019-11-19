@@ -5,8 +5,8 @@
 #include "db.h"
 #include "commons/util/util.h"
 #include "logging.h"
-#include "addrman.h"
 #include "crypto/hash.h"
+#include "p2p/addrman.h"
 #include "p2p/protocol.h"
 #include "commons/util/util.h"
 

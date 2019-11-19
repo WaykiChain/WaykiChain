@@ -82,7 +82,7 @@ public:
     virtual bool InitializeConfig() {
         fServer = GetBoolArg("-rpcserver", false);
 
-        m_mapMultiArgs["-debug"].push_back("ERROR");  // Enable ERROR logger by default
+        m_mapMultiArgs["-debug"].push_back("error");  // Enable ERROR logger by default
         fDebug = !m_mapMultiArgs["-debug"].empty();
         if (fDebug) {
             fDebugAll          = GetBoolArg("-logprintall", false);

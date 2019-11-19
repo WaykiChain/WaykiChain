@@ -161,4 +161,7 @@ static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^
 
 static const string EMPTY_STRING = "";
 
+static const int32_t FINALITY_BLOCK_CONFIRM_MINER_COUNT = 8 ;
+
+
 #endif //CONFIG_CONST_H

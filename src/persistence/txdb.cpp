@@ -14,119 +14,56 @@
 
 #include <algorithm>
 
-bool CTxMemCache::IsContainBlock(const CBlock &block) {
-    return mapBlockTxHashSet.count(block.GetHash()) || (pBase ? pBase->IsContainBlock(block) : false);
-}
-
-bool CTxMemCache::AddBlockToCache(const CBlock &block) {
-    UnorderedHashSet txids;
+bool CTxMemCache::AddBlockTx(const CBlock &block) {
     for (auto &ptx : block.vptx) {
         txids.insert(ptx->GetHash());
     }
-    mapBlockTxHashSet[block.GetHash()] = txids;
-
     return true;
 }
 
-bool CTxMemCache::DeleteBlockFromCache(const CBlock &block) {
-    if (IsContainBlock(block)) {
-        UnorderedHashSet txids;
-		mapBlockTxHashSet[block.GetHash()] = txids;
+bool CTxMemCache::RemoveBlockTx(const CBlock &block) {
+    for (auto &ptx : block.vptx) {
+        txids.erase(ptx->GetHash());
     }
-
-    // On starting node, the memory cache is empty, thus, can not find the
-    // specific block as expected.
     return true;
 }
 
-bool CTxMemCache::HaveBlock(const uint256 &blockHash) const {
-    if (blockHash == uint256()) {
-        return false;
-    }
-
-    if (mapBlockTxHashSet.empty()) {
+bool CTxMemCache::HaveTx(const uint256 &txid) {
+    bool found = txids.count(txid) > 0;
+    if (found)
         return true;
-    }
-
-    auto te = mapBlockTxHashSet.find(blockHash);
-    if (te != mapBlockTxHashSet.end()) {
-        return !te->second.empty();
-    }
-
-    return false;
+    else if (pBase == nullptr) {
+        return false;
+    } else
+        return pBase->HaveTx(txid);
 }
 
-uint256 CTxMemCache::HaveTx(const uint256 &txid) {
-    for (auto &item : mapBlockTxHashSet) {
-        if (item.second.find(txid) != item.second.end()) {
-            return item.first;
-        }
-    }
+void CTxMemCache::BatchWrite(const UnorderedHashSet &txidsIn) {
+    txids.clear();
 
-    if (pBase == nullptr) {
-        return uint256();
-    }
-
-    uint256 blockHash = pBase->HaveTx(txid);
-    if (HaveBlock(blockHash)) {
-        return blockHash;
-    }
-
-    return uint256();
-}
-
-void CTxMemCache::BatchWrite(const map<uint256, UnorderedHashSet> &mapBlockTxHashSetIn) {
-    // If the value is empty, delete it from cache.
-    for (const auto &item : mapBlockTxHashSetIn) {
-        if (item.second.empty()) {
-            mapBlockTxHashSet.erase(item.first);
-        } else {
-            mapBlockTxHashSet[item.first] = item.second;
-        }
+    for (const auto &txid : txidsIn) {
+        txids.insert(txid);
     }
 }
 
 void CTxMemCache::Flush() {
     assert(pBase);
 
-    pBase->BatchWrite(mapBlockTxHashSet);
-    mapBlockTxHashSet.clear();
+    pBase->BatchWrite(txids);
+    txids.clear();
 }
 
-void CTxMemCache::Clear() { mapBlockTxHashSet.clear(); }
+void CTxMemCache::Clear() { txids.clear(); }
 
-uint64_t CTxMemCache::GetSize() { return mapBlockTxHashSet.size(); }
+uint64_t CTxMemCache::GetSize() { return txids.size(); }
 
 Object CTxMemCache::ToJsonObj() const {
     Array txArray;
-    for (auto &item : mapBlockTxHashSet) {
-        Object obj;
-        obj.push_back(Pair("block_hash", item.first.ToString()));
-
-        Array txsObj;
-        for (const auto &itemTx : item.second) {
-            Object txObj;
-            txObj.push_back(Pair("tx_hash", itemTx.ToString()));
-            txsObj.push_back(txObj);
-        }
-        obj.push_back(Pair("txs", txsObj));
-        txArray.push_back(obj);
+    for (auto &txid : txids) {
+        txArray.push_back(txid.ToString());
     }
 
     Object txCacheObj;
     txCacheObj.push_back(Pair("tx_cache", txArray));
     return txCacheObj;
-}
-
-const map<uint256, UnorderedHashSet> &CTxMemCache::GetTxHashCache() { return mapBlockTxHashSet; }
-
-void CTxMemCache::SetTxHashCache(const map<uint256, UnorderedHashSet> &mapCache) {
-    mapBlockTxHashSet = mapCache;
-}
-
-string CTxUndo::ToString() const {
-    string str;
-    str += "txid:" + txid.GetHex() + "\n";
-    str += "db_op_log_map:" + dbOpLogMap.ToString();
-    return str;
 }

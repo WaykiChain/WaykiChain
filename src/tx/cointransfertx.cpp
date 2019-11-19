@@ -10,13 +10,11 @@
 
 /**################################ Base Coin (WICC) Transfer ########################################**/
 bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
-    IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_MEMO;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_MEMO;
 
     if (coin_amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", coin_amount,
@@ -103,13 +101,11 @@ Object CBaseCoinTransferTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE(fee_symbol);
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (transfers.empty() || transfers.size() > MAX_TRANSFER_SIZE) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers is empty or too large count=%d than %d",

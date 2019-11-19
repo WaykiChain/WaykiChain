@@ -57,6 +57,7 @@ bool CBlockIndexDB::LoadBlockIndexes() {
                 pIndexNew->nFuel          = diskIndex.nFuel;
                 pIndexNew->nFuelRate      = diskIndex.nFuelRate;
                 pIndexNew->vSignature     = diskIndex.vSignature;
+                pIndexNew->miner          = diskIndex.miner ;
 
                 if (!pIndexNew->CheckIndex())
                     return ERRORMSG("LoadBlockIndex() : CheckIndex failed: %s", pIndexNew->ToString());

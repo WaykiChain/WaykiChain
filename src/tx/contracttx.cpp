@@ -45,11 +45,9 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 // class CLuaContractDeployTx
 
 bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (!contract.IsValid()) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
@@ -165,13 +163,11 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CLuaContractInvokeTx
 
 bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_APPID(app_uid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
@@ -297,12 +293,10 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CUniversalContractDeployTx
 
 bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (contract.vm_type != VMType::LUA_VM) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
@@ -446,14 +440,12 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
 // class CUniversalContractInvokeTx
 
 bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_APPID(app_uid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
