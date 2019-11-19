@@ -19,7 +19,9 @@ namespace wasm {
 
     void wasmio_native_setcode(wasm_context &context) {
 
-         WASM_ASSERT(context._receiver == wasmio, wasm_assert_exception, "exception contract wasmio, but get %s", wasm::name(context._receiver).to_string().c_str());
+         WASM_ASSERT(context._receiver == wasmio, 
+                     wasm_assert_exception, 
+                     "wasmio_native_setcode.setcode, Except contract wasmio, but get %s", wasm::name(context._receiver).to_string().c_str());
 
 
         auto &database_account         = context.database.accountCache;
@@ -47,8 +49,7 @@ namespace wasm {
         CAccount contract;
         WASM_ASSERT(database_account.GetAccount(nick_name(contract_name.to_string()), contract),
                     account_operation_exception,
-                    "wasmio_native_setcode.Setcode, contract account does not exist, contract = %s",
-                    contract_name.to_string().c_str()) 
+                    "wasmio_native_setcode.setcode, Contract does not exist, contract = %s",contract_name.to_string().c_str()) 
 
         CUniversalContract contract_store;
         // ban reset code
@@ -61,14 +62,16 @@ namespace wasm {
         contract_store.abi  = abi;
         contract_store.memo = memo;
 
-        WASM_ASSERT(database_contract.SaveContract(contract.regid, contract_store), account_operation_exception,
-                    "%s",
-                    "wasmio_native_setcode.Setcode, save account info error")
+        WASM_ASSERT(database_contract.SaveContract(contract.regid, contract_store), 
+                    account_operation_exception,
+                    "%s","wasmio_native_setcode.setcode, Save account info error")
     }
     
     void wasmio_bank_native_transfer(wasm_context &context) {
 
-        WASM_ASSERT(context._receiver == wasmio_bank, wasm_assert_exception, "exception contract wasmio_bank, but get %s", wasm::name(context._receiver).to_string().c_str());
+        WASM_ASSERT(context._receiver == wasmio_bank, 
+                    wasm_assert_exception, 
+                    "wasmio_bank_native_transfer.transfer, Except contract wasmi.bank, But get %s", wasm::name(context._receiver).to_string().c_str());
 
         auto &database = context.database.accountCache;
 
@@ -84,24 +87,28 @@ namespace wasm {
         //                                    max_serialization_time);
         //WASM_TRACE("%s", json_spirit::write_formatted(val).c_str());
 
-        WASM_ASSERT(from != to, wasm_assert_exception, "%s", "cannot transfer to self");
+        WASM_ASSERT(from != to, 
+                    wasm_assert_exception, 
+                    "%s", "wasmio_bank_native_transfer.transfer, Cannot transfer to self");
         context.require_auth(from); //from auth
-        WASM_ASSERT(context.is_account(to), wasm_assert_exception, "%s", "to account does not exist");
+        WASM_ASSERT(context.is_account(to), 
+                    wasm_assert_exception, 
+                    "wasmio_bank_native_transfer.transfer, To account does not exist, to Id = %s", wasm::name(to).to_string().c_str() );
         auto sym = quantity.sym.code();
 
         context.require_recipient(from);
         context.require_recipient(to);
 
-        WASM_ASSERT(quantity.is_valid(), wasm_assert_exception, "%s", "invalid quantity");
-        WASM_ASSERT(quantity.amount > 0, wasm_assert_exception, "%s", "must transfer positive quantity");
+        WASM_ASSERT(quantity.is_valid(), wasm_assert_exception, "%s", "wasmio_bank_native_transfer.transfer, Invalid quantity");
+        WASM_ASSERT(quantity.amount > 0, wasm_assert_exception, "%s", "wasmio_bank_native_transfer.transfer, Must transfer positive quantity");
         //check( quantity.symbol == st.supply.symbol, "symbol precision mismatch" );
-        WASM_ASSERT(memo.size() <= 256, wasm_assert_exception, "%s", "memo has more than 256 bytes");
+        WASM_ASSERT(memo.size() <= 256, wasm_assert_exception, "%s", "wasmio_bank_native_transfer.transfer, Memo has more than 256 bytes");
 
         //auto payer = context.has_authorization(to) ? to : from;
         CAccount from_account;
         WASM_ASSERT(database.GetAccount(nick_name(wasm::name(from).to_string()), from_account),
                     account_operation_exception,
-                    "wasmio_bank_native_transfer.Transfer, from account does not exist, sender Id = %s",
+                    "wasmio_bank_native_transfer.Transfer, from account does not exist, from Id = %s",
                     wasm::name(from).to_string().c_str())
         sub_balance( from_account, quantity, database );
 
@@ -109,7 +116,7 @@ namespace wasm {
         CAccount to_account;
         WASM_ASSERT(database.GetAccount(nick_name(wasm::name(to).to_string()), to_account),
                     account_operation_exception,
-                    "wasmio_bank_native_transfer.Transfer, to account does not exist, sender Id = %s",
+                    "wasmio_bank_native_transfer.Transfer, to account does not exist, to Id = %s",
                     wasm::name(to).to_string().c_str())
         add_balance( to_account, quantity, database );
 
