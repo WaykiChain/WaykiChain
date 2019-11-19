@@ -73,22 +73,22 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, write fcoin genesis account info error, regid=%s",
             fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    vector<CRegID> delegateList;
-    if (!cw.delegateCache.GetTopDelegateList(delegateList)) {
-        return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, get top delegate list failed"),
+    VoteDelegateVector delegates;
+    if (!cw.delegateCache.GetActiveDelegates(delegates)) {
+        return state.DoS(100, ERRORMSG("ProcessAssetFee, GetActiveDelegates failed"),
             REJECT_INVALID, "get-delegates-failed");
     }
-    assert(delegateList.size() != 0 && delegateList.size() == IniCfg().GetTotalDelegateNum());
+    assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
 
-    for (size_t i = 0; i < delegateList.size(); i++) {
-        const CRegID &delegateRegid = delegateList[i];
+    for (size_t i = 0; i < delegates.size(); i++) {
+        const CRegID &delegateRegid = delegates[i].regid;
         CAccount delegateAccount;
         if (!cw.accountCache.GetAccount(CUserID(delegateRegid), delegateAccount)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, get delegate account info failed! delegate regid=%s",
                 delegateRegid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
         }
-        uint64_t minerUpdatedFee = minerTotalFee / delegateList.size();
-        if (i == 0) minerUpdatedFee += minerTotalFee % delegateList.size(); // give the dust amount to topmost miner
+        uint64_t minerUpdatedFee = minerTotalFee / delegates.size();
+        if (i == 0) minerUpdatedFee += minerTotalFee % delegates.size(); // give the dust amount to topmost miner
 
         if (!delegateAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, minerUpdatedFee)) {
             return state.DoS(100, ERRORMSG("ProcessAssetFee, add %s asset fee to miner failed, miner regid=%s",
@@ -111,10 +111,10 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 // class CAssetIssueTx
 
 bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     auto symbolErr = CAsset::CheckSymbol(asset.symbol);
     if (symbolErr) {
@@ -326,10 +326,10 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",

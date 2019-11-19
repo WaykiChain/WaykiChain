@@ -9,7 +9,7 @@
 #include <string>
 #include "config/chainparams.h"
 #include "main.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "wallet/wallet.h"
 
 using namespace std;

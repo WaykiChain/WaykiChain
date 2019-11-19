@@ -1,9 +1,9 @@
 dnl require autoconf 2.60 (AS_ECHO/AS_ECHO_N)
 AC_PREREQ([2.60])
 define(_CLIENT_VERSION_MAJOR,       2)
-define(_CLIENT_VERSION_MINOR,       1)
-define(_CLIENT_VERSION_REVISION,    2)
-define(_CLIENT_VERSION_BUILD,       2)
+define(_CLIENT_VERSION_MINOR,       2)
+define(_CLIENT_VERSION_REVISION,    1)
+define(_CLIENT_VERSION_BUILD,       1)
 define(_CLIENT_VERSION_IS_RELEASE,  true)
 define(_COPYRIGHT_YEAR, 2019)
 AC_INIT([Coin Core],[_CLIENT_VERSION_MAJOR._CLIENT_VERSION_MINOR._CLIENT_VERSION_REVISION],[info@waykichainhk.com],[Coin])
@@ -160,11 +160,11 @@ AC_ARG_ENABLE([debug],
 
 if test "x$enable_debug" = xyes; then
     if test "x$GCC" = xyes; then
-        CFLAGS="-g3 -O0 -DDEBUG"
+        CFLAGS="-g3 -O0"
     fi
 
     if test "x$GXX" = xyes; then
-        CXXFLAGS="-g3 -O0 -DDEBUG"
+        CXXFLAGS="-g3 -O0"
     fi
 fi
 

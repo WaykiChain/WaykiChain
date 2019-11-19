@@ -40,7 +40,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      item.first.second, item.second);
         }
 
-        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", context.height, pricePoints);
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", context.height, pricePoints);
 
         pricePoints.clear();
         for (const auto item : median_price_points) {
@@ -48,7 +48,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      item.first.second, item.second);
         }
 
-        LogPrint("ERROR", "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", context.height, pricePoints);
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", context.height, pricePoints);
 
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
                          "bad-median-price-points");
@@ -60,13 +60,13 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
         // TODO: multi stable coin
         uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
         if (bcoinMedianPrice == 0) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire bcoin median price\n");
+            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, failed to acquire bcoin median price\n");
             break;
         }
 
         uint64_t fcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(SYMB::WGRT, SYMB::USD));
         if (fcoinMedianPrice == 0) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
+            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
             break;
         }
 
@@ -79,7 +79,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
         // check global collateral ratio
         if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
+            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
             break;
         }
 
@@ -93,7 +93,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
         cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, forceLiquidateCDPList);
 
-        LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
+        LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
                 "forceLiquidateRatio: %llu, forceLiquidateCDPList: %llu\n",
                 globalCollateralRatioFloor, bcoinMedianPrice, forceLiquidateRatio, forceLiquidateCDPList.size());
 
@@ -102,10 +102,10 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             break;
         } else {
             // TODO: remove me.
-            LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, have %llu cdps to force settle, in detail:\n",
+            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, have %llu cdps to force settle, in detail:\n",
                      forceLiquidateCDPList.size());
             for (const auto &cdp : forceLiquidateCDPList) {
-                LogPrint("CDP", "%s\n", cdp.ToString());
+                LogPrint(BCLog::CDP, "%s\n", cdp.ToString());
             }
         }
 
@@ -122,7 +122,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             if (++cdpIndex > FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK)
                 break;
 
-            LogPrint("CDP",
+            LogPrint(BCLog::CDP,
                      "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
                      "index: %u\n",
                      cdp.ToString(), currRiskReserveScoins, cdpIndex);
@@ -130,7 +130,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
             // then skip the 120 cdp and settle the 30 and 50 cdp.
             if (currRiskReserveScoins < cdp.total_owed_scoins) {
-                LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
+                LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
                         currRiskReserveScoins, cdp.total_owed_scoins);
                 continue;
             }
@@ -159,7 +159,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
             uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / PRICE_BOOST);
             if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
-                LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
+                LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                     "Placed BcoinSellMarketOrder: %s, orderId: %s\n"
                     "No need to infate WGRT coins: %llu vs %llu\n"
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
@@ -191,7 +191,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
                 totalInflateFcoins += fcoinsToInflate;
 
-                LogPrint("CDP", "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
+                LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
                     "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
                     "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
                     "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
@@ -205,7 +205,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
             cw.cdpCache.EraseCDP(oldCDP, cdp);
             if (SysCfg().GetArg("-persistclosedcdp", false)) {
                 if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, uint256(), CDPCloseType::BY_FORCE_LIQUIDATE)) {
-                    LogPrint("ERROR", "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
+                    LogPrint(BCLog::ERROR, "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
             }
 

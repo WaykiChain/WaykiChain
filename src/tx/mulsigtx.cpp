@@ -6,7 +6,7 @@
 #include "mulsigtx.h"
 
 #include "commons/serialize.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 #include "crypto/hash.h"
 #include "main.h"
@@ -14,9 +14,7 @@
 #include "persistence/contractdb.h"
 
 bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
+    IMPLEMENT_DEFINE_CW_STATE
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -270,7 +268,7 @@ Object CMulsigTx::ToJson(const CAccountDBCache &accountCache) const {
     for (const auto &item : signaturePairs) {
         signatureArray.push_back(item.ToJson());
         if (!accountCache.GetAccount(item.regid, account)) {
-            LogPrint("ERROR", "CMulsigTx::ToJson, failed to get account info: %s\n", item.regid.ToString());
+            LogPrint(BCLog::ERROR, "CMulsigTx::ToJson, failed to get account info: %s\n", item.regid.ToString());
             continue;
         }
         pubKeys.insert(account.owner_pubkey);

@@ -184,7 +184,7 @@ public:
 
     uint64_t ComputeVoteBcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currHeight);
     uint64_t ComputeVoteFcoinInterest(const uint64_t lastVotedBcoins, const uint32_t currBlockTime);
-    uint64_t ComputeBlockInflateInterest(const uint32_t currHeight) const;
+    uint64_t ComputeBlockInflateInterest(const uint32_t currHeight, const VoteDelegate &curDelegate) const;
 
     bool HaveOwnerPubKey() const { return owner_pubkey.IsFullyValid(); }
     bool IsRegistered() const { return owner_pubkey.IsValid(); }

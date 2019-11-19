@@ -172,14 +172,14 @@ tuple<bool, string> CLuaVM::CheckScriptSyntax(const char *filePath) {
 
     std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
     if (!lua_state_ptr) {
-        LogPrint("vm", "CLuaVM::CheckScriptSyntax luaL_newstate() failed\n");
+        LogPrint(BCLog::LUAVM, "CLuaVM::CheckScriptSyntax luaL_newstate() failed\n");
         return std::make_tuple(false, string("CLuaVM::CheckScriptSyntax luaL_newstate() failed\n"));
     }
     lua_State *lua_state = lua_state_ptr.get();
     vm_openlibs(lua_state);
 
     if (!InitLuaLibsEx(lua_state)) {
-        LogPrint("vm", "CLuaVM::CheckScriptSyntax InitLuaLibsEx error\n");
+        LogPrint(BCLog::LUAVM, "CLuaVM::CheckScriptSyntax InitLuaLibsEx error\n");
         return std::make_tuple(-1, string("CLuaVM::CheckScriptSyntax InitLuaLibsEx error\n"));
     }
 
@@ -197,7 +197,7 @@ tuple<bool, string> CLuaVM::CheckScriptSyntax(const char *filePath) {
 static void ReportBurnState(lua_State *L, CLuaVMRunEnv *pVmRunEnv) {
 
     lua_burner_state *burnerState = lua_GetBurnerState(L);
-    LogPrint("vm", "contract run info: txid=%s,"
+    LogPrint(BCLog::LUAVM, "contract run info: txid=%s,"
              " version=%d,"
              " fuelLimit=%lld,"
              " burnedFuel=%lld,"
@@ -247,14 +247,14 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     // 1.创建Lua运行环境
     std::unique_ptr<lua_State, decltype(&lua_close)> lua_state_ptr(luaL_newstate(), &lua_close);
     if (!lua_state_ptr) {
-        LogPrint("vm", "CLuaVM::Run luaL_newstate() failed\n");
+        LogPrint(BCLog::LUAVM, "CLuaVM::Run luaL_newstate() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run luaL_newstate() failed\n"));
     }
     lua_State *lua_state = lua_state_ptr.get();
 
     //TODO: should get burner version from the block height
     if (!lua_StartBurner(lua_state, pVmRunEnv, fuelLimit, pVmRunEnv->GetBurnVersion())) {
-        LogPrint("vm", "CLuaVM::Run lua_StartBurner() failed\n");
+        LogPrint(BCLog::LUAVM, "CLuaVM::Run lua_StartBurner() failed\n");
         return std::make_tuple(-1, string("CLuaVM::Run lua_StartBurner() failed\n"));
     }
 
@@ -262,7 +262,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     vm_openlibs(lua_state);
 
     if (!InitLuaLibsEx(lua_state)) {
-        LogPrint("vm", "InitLuaLibsEx error\n");
+        LogPrint(BCLog::LUAVM, "InitLuaLibsEx error\n");
         return std::make_tuple(-1, string("InitLuaLibsEx error\n"));
     }
 
@@ -283,7 +283,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     // 传递pVmScriptRun指针，以便后面代码引用，去掉了使用全局变量保存该指针
     lua_pushlightuserdata(lua_state, pVmRunEnv);
     lua_setglobal(lua_state, "VmScriptRun");
-    LogPrint("vm", "pVmRunEnv=%p\n", pVmRunEnv);
+    LogPrint(BCLog::LUAVM, "pVmRunEnv=%p\n", pVmRunEnv);
 
     // 5. Load the contract script
     std::string strError;
@@ -298,7 +298,7 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     }
 
     if (luaStatus != LUA_OK) {
-        LogPrint("vm", "%s\n", strError);
+        LogPrint(BCLog::LUAVM, "%s\n", strError);
         ReportBurnState(lua_state, pVmRunEnv);
         return std::make_tuple(-1, strError);
     }
@@ -306,11 +306,11 @@ tuple<uint64_t, string> CLuaVM::Run(uint64_t fuelLimit, CLuaVMRunEnv *pVmRunEnv)
     // 6. account balance check setting: default is closed if not such setting in the script
     pVmRunEnv->SetCheckAccount(false);
     int res = lua_getglobal(lua_state, "gCheckAccount");
-    LogPrint("vm", "lua_getglobal:%d\n", res);
+    LogPrint(BCLog::LUAVM, "lua_getglobal:%d\n", res);
     if (LUA_TBOOLEAN == res) {
         if (lua_isboolean(lua_state, -1)) {
             bool bCheck = lua_toboolean(lua_state, -1);
-            LogPrint("vm", "lua_toboolean:%d\n", bCheck);
+            LogPrint(BCLog::LUAVM, "lua_toboolean:%d\n", bCheck);
             pVmRunEnv->SetCheckAccount(bCheck);
         }
     }

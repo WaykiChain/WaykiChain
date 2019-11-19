@@ -2,16 +2,18 @@
 // Copyright (c) 2009-2014 The WaykiChain developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-#include "commons/util.h"
+
+#include "./util.h"
+#include "commons/uint256.h"
+#include "logging.h"
 #include "config/chainparams.h"
 #include "config/configuration.h"
+#include "config/version.h"
 #include "netbase.h"
 #include "sync.h"
-#include "commons/uint256.h"
-#include "config/version.h"
 
+#include <fstream>
 #include <stdarg.h>
-
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #ifndef WIN32
@@ -78,6 +80,7 @@
 
 
 using namespace std;
+namespace fs = boost::filesystem;
 
 bool fDaemon = false;
 string strMiscWarning;
@@ -120,132 +123,7 @@ public:
     }
 } instance_of_cinit;
 
-// void RandAddSeed() {
-//// Seed with CPU performance counter
-// int64_t nCounter = GetPerformanceCounter();
-// RAND_add(&nCounter, sizeof(nCounter), 1.5);
-// memset(&nCounter, 0, sizeof(nCounter));
-//}
-
-// void RandAddSeedPerfmon() {
-// RandAddSeed();
-//
-//// This can take up to 2 seconds, so only do it every 10 minutes
-// static int64_t nLastPerfmon;
-// if (GetTime() < nLastPerfmon + 10 * 60)
-// return;
-// nLastPerfmon = GetTime();
-//
-//#ifdef WIN32
-//// Don't need this on Linux, OpenSSL automatically uses /dev/urandom
-//// Seed with the entire set of perfmon data
-// unsigned char pdata[250000];
-// memset(pdata, 0, sizeof(pdata));
-// unsigned long nSize = sizeof(pdata);
-// long ret = RegQueryValueExA(HKEY_PERFORMANCE_DATA, "Global", NULL, NULL, pdata, &nSize);
-// RegCloseKey(HKEY_PERFORMANCE_DATA);
-// if (ret == ERROR_SUCCESS) {
-// RAND_add(pdata, nSize, nSize / 100.0);
-// OPENSSL_cleanse(pdata, nSize);
-// LogPrint("rand", "RandAddSeed() %lu bytes\n", nSize);
-//}
-//#endif
-//}
-
-// uint64_t GetRand(uint64_t nMax) {
-// if (nMax == 0)
-// return 0;
-//
-//// The range of the random source must be a multiple of the modulus
-//// to give every possible output value an equal possibility
-// uint64_t nRange = (numeric_limits<uint64_t>::max() / nMax) * nMax;
-// uint64_t nRand = 0;
-// do
-// RAND_bytes((unsigned char*) &nRand, sizeof(nRand));
-// while (nRand >= nRange);
-// return (nRand % nMax);
-//}
-
-// int GetRandInt(int nMax) {
-// return GetRand(nMax);
-//}
-
-// uint256 GetRandHash() {
-// uint256 hash;
-// RAND_bytes((unsigned char*) &hash, sizeof(hash));
-// return hash;
-//}
-
-// LogPrint("INFO",) has been broken a couple of times now
-// by well-meaning people adding mutexes in the most straightforward way.
-// It breaks because it may be called by global destructors during shutdown.
-// Since the order of destruction of static/global objects is undefined,
-// defining a mutex as a global object doesn't work (the mutex gets
-// destroyed, and then some later destructor calls OutputDebugStringF,
-// maybe indirectly, and you get a core dump at shutdown trying to lock
-// the mutex).
-
-static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
-// We use boost::call_once() to make sure these are initialized in
-// in a thread-safe manner the first time it is called:
-// static FILE* fileout = NULL;
-// static boost::mutex* mutexDebugLog = NULL;
-
 static map<string, DebugLogFile> g_DebugLogs;
-
-static void DebugPrintInit() {
-    const vector<string>& categories = SysCfg().GetMultiArgs("-debug");
-    set<string> logfiles(categories.begin(), categories.end());
-
-    const vector<string>& nocategories = SysCfg().GetMultiArgs("-nodebug");
-    set<string> nologfiles(nocategories.begin(), nocategories.end());
-
-    if (SysCfg().IsDebugAll()) {
-        logfiles.clear();
-        logfiles = nologfiles;
-        logfiles.insert("debug");
-
-        for (auto& tmp : logfiles) {
-            g_DebugLogs[tmp];
-        }
-
-        {
-            FILE* fileout = NULL;
-            boost::filesystem::path pathDebug;
-            string file = "debug.log";
-            pathDebug   = GetDataDir() / file;
-            fileout     = fopen(pathDebug.string().c_str(), "a");
-            if (fileout) {
-                DebugLogFile& log = g_DebugLogs["debug"];
-                setbuf(fileout, NULL);  // unbuffered
-                log.m_fileout       = fileout;
-                log.m_mutexDebugLog = new boost::mutex();
-            }
-        }
-
-    } else {
-        for (auto& tmp : nologfiles) {
-            logfiles.erase(tmp);
-        }
-        logfiles.insert("debug");
-
-        for (auto& cat : logfiles) {
-            FILE* fileout = NULL;
-            boost::filesystem::path pathDebug;
-            string file = cat + ".log";
-            pathDebug   = GetDataDir() / file;
-            fileout     = fopen(pathDebug.string().c_str(), "a");
-            if (fileout) {
-                DebugLogFile& log = g_DebugLogs[cat];
-                setbuf(fileout, NULL);  // unbuffered
-                log.m_fileout       = fileout;
-                log.m_mutexDebugLog = new boost::mutex();
-            }
-        }
-    }
-}
-
-int LogPrintStr(const string& str) { return LogPrintStr(NULL, str); }
 
 string GetLogHead(int line, const char* file, const char* category) {
     string te(category != NULL ? category : "");
@@ -291,82 +169,6 @@ int LogFilePreProcess(const char* path, size_t len, FILE** stream) {
         }
     }
     return 1;
-}
-
-
-bool FindLogFile(const char* category, DebugLogFileIt &logFileIt) {
-
-    if (!SysCfg().IsDebug()) {
-        logFileIt = g_DebugLogs.end();
-        return false;
-    }
-
-    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-
-    if (SysCfg().IsDebugAll()) {
-        if (NULL != category) {
-            logFileIt = g_DebugLogs.find(category);
-            if (logFileIt != g_DebugLogs.end()) {
-                return true;
-            }
-        }
-        logFileIt = g_DebugLogs.find("debug");
-        return logFileIt != g_DebugLogs.end();
-    } else {
-        logFileIt = g_DebugLogs.find((NULL == category) ? ("debug") : (category));
-        return logFileIt != g_DebugLogs.end();
-    }
-}
-
-int LogPrintStr(const std::string &logName, DebugLogFile &logFile, const string& str) {
-
-    if (!SysCfg().IsDebug()) {
-        return 0;
-    }
-
-    int ret = 0;  // Returns total number of characters written
-
-    boost::call_once(&DebugPrintInit, debugPrintInitFlag);
-
-    if (SysCfg().IsPrintLogToConsole()) {
-        // print to console
-        ret = fwrite(str.data(), 1, str.size(), stdout);
-    }
-    if (SysCfg().IsPrintLogToFile()) {
-        DebugLogFile& log = logFile;
-        boost::mutex::scoped_lock scoped_lock(*log.m_mutexDebugLog);
-
-        boost::filesystem::path pathDebug;
-        string file = logName + ".log";   //  it->first.c_str() = "INFO"
-        pathDebug   = GetDataDir() / file;  // /home/share/bille/Coin_test/regtest/INFO.log
-        // Debug print useful for profiling
-        if (SysCfg().IsLogTimestamps() && log.m_newLine) {
-            string timeFormat = DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime());
-            LogFilePreProcess(pathDebug.string().c_str(), timeFormat.length() + 1 + str.size(),
-                              &log.m_fileout);
-            ret += fprintf(log.m_fileout, "%s ", timeFormat.c_str());
-            //			ret += fprintf(log.m_fileout, "%s ", DateTimeStrFormat("%Y-%m-%d %H:%M:%S",
-            //GetTime()).c_str());
-        }
-        if (!str.empty() && str[str.size() - 1] == '\n') {
-            log.m_newLine = true;
-        } else {
-            log.m_newLine = false;
-        }
-        LogFilePreProcess(pathDebug.string().c_str(), str.size(), &log.m_fileout);
-        ret = fwrite(str.data(), 1, str.size(), log.m_fileout);
-    }
-    return ret;
-}
-
-int LogPrintStr(const char* category, const string& str) {
-
-    DebugLogFileIt it;
-    if (!FindLogFile(category, it)) {
-        return 0;
-    }
-
-    return LogPrintStr(it->first, it->second, str);
 }
 
 string FormatMoney(int64_t n, bool fPlus) {
@@ -822,12 +624,12 @@ static string FormatException(exception* pex, const char* pszThread) {
 
 void LogException(exception* pex, const char* pszThread) {
     string message = FormatException(pex, pszThread);
-    LogPrint("INFO", "\n%s", message);
+    LogPrint(BCLog::INFO, "\n%s", message);
 }
 
 void PrintExceptionContinue(exception* pex, const char* pszThread) {
     string message = FormatException(pex, pszThread);
-    LogPrint("INFO", "\n\n************************\n%s\n", message);
+    LogPrint(BCLog::INFO, "\n\n************************\n%s\n", message);
     fprintf(stderr, "\n\n************************\n%s\n", message.c_str());
     strMiscWarning = message;
 }
@@ -874,7 +676,7 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 
     fs::path& path = pathCached[nNet];
 
-    // This can be called during exceptions by LogPrint("INFO",), so we cache the
+    // This can be called during exceptions by LogPrint(BCLog::INFO,), so we cache the
     // value so we don't have to do memory allocations after that.
     if (!path.empty()) return path;
 
@@ -900,26 +702,27 @@ const boost::filesystem::path& GetDataDir(bool fNetSpecific) {
 }
 
 void ClearDatadirCache() {
-    fill(&pathCached[0], &pathCached[NULL_NETWORK_TYPE + 1], boost::filesystem::path());
+    fill(&pathCached[0], &pathCached[NULL_NETWORK_TYPE + 1], fs::path());
 }
 
-boost::filesystem::path GetConfigFile() {
-    boost::filesystem::path pathConfigFile(
+fs::path GetConfigFile() {
+    fs::path pathConfigFile(
         CBaseParams::GetArg("-conf", IniCfg().GetCoinName() + ".conf"));
+
     if (!pathConfigFile.is_complete())
         pathConfigFile = GetDataDir(false) / pathConfigFile;
 
     return pathConfigFile;
 }
 
-boost::filesystem::path GetAbsolutePath(const string& path) {
+fs::path GetAbsolutePath(const string& path) {
     boost::system::error_code ec;
-    return canonical(boost::filesystem::path(path), ec);
+    return canonical(fs::path(path), ec);
 }
 
 void ReadConfigFile(map<string, string>& mapSettingsRet,
                     map<string, vector<string>>& mapMultiSettingsRet) {
-    boost::filesystem::ifstream streamConfig(GetConfigFile());
+    fs::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good())
         return;  // No WaykiChain.conf file is OK
 
@@ -939,14 +742,15 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
     ClearDatadirCache();
 }
 
-boost::filesystem::path GetPidFile() {
-    boost::filesystem::path pathPidFile(SysCfg().GetArg("-pid", "coind.pid"));
+fs::path GetPidFile() {
+    fs::path pathPidFile(SysCfg().GetArg("-pid", "coind.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
+
     return pathPidFile;
 }
 
 #ifndef WIN32
-void CreatePidFile(const boost::filesystem::path& path, pid_t pid) {
+void CreatePidFile(const fs::path& path, pid_t pid) {
     FILE* file = fopen(path.string().c_str(), "w");
     if (file) {
         fprintf(file, "%d\n", pid);
@@ -1092,15 +896,6 @@ void ShrinkDebugFile() {
 //  - Median of other nodes clocks
 //  - The user (asking the user to fix the system clock if the first two disagree)
 //
-static int64_t nMockTime = 0;  // For unit testing
-
-int64_t GetTime() {
-    if (nMockTime) return nMockTime;
-
-    return time(NULL);
-}
-
-void SetMockTime(int64_t nMockTimeIn) { nMockTime = nMockTimeIn; }
 
 static CCriticalSection cs_nTimeOffset;
 static int64_t nTimeOffset = 0;
@@ -1124,7 +919,7 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
     // Add data
     static CMedianFilter<int64_t> vTimeOffsets(200, 0);
     vTimeOffsets.input(nOffsetSample);
-    LogPrint("INFO", "Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(),
+    LogPrint(BCLog::INFO, "Added time data, samples %d, offset %+d (%+d minutes)\n", vTimeOffsets.size(),
              nOffsetSample, nOffsetSample / 60);
 
     if (vTimeOffsets.size() >= 5 && vTimeOffsets.size() % 2 == 1) {
@@ -1150,12 +945,12 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime) {
                         _("Warning: Please check that your computer's date and time "
                         "are correct! If your clock is wrong Coin will not work properly.");
                     strMiscWarning = strMessage;
-                    LogPrint("INFO", "*** %s\n", strMessage);
+                    LogPrint(BCLog::INFO, "*** %s\n", strMessage);
                 }
             }
         }
 
-        LogPrint("INFO", "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);
+        LogPrint(BCLog::INFO, "nTimeOffset = %+d  (%+d minutes)\n", nTimeOffset, nTimeOffset / 60);
     }
 }
 
@@ -1203,7 +998,7 @@ boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate) {
         return fs::path(pszPath);
     }
 
-    LogPrint("INFO", "SHGetSpecialFolderPathA() failed, could not obtain requested path.\n");
+    LogPrint(BCLog::INFO, "SHGetSpecialFolderPathA() failed, could not obtain requested path.\n");
     return fs::path("");
 }
 #endif
@@ -1222,7 +1017,7 @@ boost::filesystem::path GetTempPath() {
     path = boost::filesystem::path("/tmp");
 #endif
     if (path.empty() || !boost::filesystem::is_directory(path)) {
-        LogPrint("INFO", "GetTempPath(): failed to find temp path\n");
+        LogPrint(BCLog::INFO, "GetTempPath(): failed to find temp path\n");
         return boost::filesystem::path("");
     }
     return path;
@@ -1232,7 +1027,7 @@ boost::filesystem::path GetTempPath() {
 void runCommand(string strCommand) {
     int nErr = ::system(strCommand.c_str());
     if (nErr)
-        LogPrint("INFO", "runCommand error: system(%s) returned %d\n", strCommand, nErr);
+        LogPrint(BCLog::INFO, "runCommand error: system(%s) returned %d\n", strCommand, nErr);
 }
 
 void RenameThread(const char* name) {

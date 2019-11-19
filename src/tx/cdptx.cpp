@@ -61,7 +61,7 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
     double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
     interestOut               = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
 
-    LogPrint("CDP", "ComputeCDPInterest, currBlockHeight: %d, cdpLastBlockHeight: %d, loanedDays: %d, A: %llu, B: %llu, N: "
+    LogPrint(BCLog::CDP, "ComputeCDPInterest, currBlockHeight: %d, cdpLastBlockHeight: %d, loanedDays: %d, A: %llu, B: %llu, N: "
              "%llu, annualInterestRate: %f, interestOut: %llu\n",
              currBlockHeight, cdpLastBlockHeight, loanedDays, A, B, N, annualInterestRate, interestOut);
 
@@ -70,10 +70,10 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
 
 // CDP owner can redeem his or her CDP that are in liquidation list
 bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (assets_to_stake.size() != 1) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, only support to stake one asset!"),
@@ -140,7 +140,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "global-collateral-ceiling-reached");
     }
 
-    LogPrint("CDP",
+    LogPrint(BCLog::CDP,
              "CCDPStakeTx::ExecuteTx, globalCollateralRatioMin: %llu, slideWindow: %llu, globalCollateralCeiling: %llu\n",
              globalCollateralRatioMin, slideWindow, globalCollateralCeiling);
 
@@ -352,10 +352,10 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 
 /************************************<< CCDPRedeemTx >>***********************************************/
 bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -465,13 +465,13 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
 
     //3. redeem in scoins and update cdp
     if (assetAmount > cdp.total_staked_bcoins) {
-        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
+        LogPrint(BCLog::CDP, "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
                         assetAmount, cdp.total_staked_bcoins);
         assetAmount = cdp.total_staked_bcoins;
     }
     uint64_t actualScoinsToRepay = scoins_to_repay;
     if (actualScoinsToRepay > cdp.total_owed_scoins) {
-        LogPrint("CDP", "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
+        LogPrint(BCLog::CDP, "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
                         actualScoinsToRepay, cdp.total_staked_bcoins);
         actualScoinsToRepay = cdp.total_owed_scoins;
     }
@@ -493,11 +493,11 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         } else {
             if (SysCfg().GetArg("-persistclosedcdp", false)) {
                 if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, GetHash(), CDPCloseType::BY_REDEEM)) {
-                    LogPrint("ERROR", "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                    LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
 
                 if (!cw.closedCdpCache.AddClosedCdpTxIndex(GetHash(), oldCDP.cdpid, CDPCloseType::BY_REDEEM)) {
-                    LogPrint("ERROR", "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                    LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
                 }
             }
         }
@@ -620,10 +620,10 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
 
  /************************************<< CdpLiquidateTx >>***********************************************/
  bool CCDPLiquidateTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (scoins_to_liquidate == 0) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, invalid liquidate amount(0)"), REJECT_INVALID,
@@ -832,11 +832,11 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         } else if (SysCfg().GetArg("-persistclosedcdp", false)) {
             if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, GetHash(), CDPCloseType::BY_MANUAL_LIQUIDATE)) {
-                LogPrint("ERROR", "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
             }
 
             if (!cw.closedCdpCache.AddClosedCdpTxIndex(GetHash(), oldCDP.cdpid, CDPCloseType::BY_MANUAL_LIQUIDATE)) {
-                LogPrint("ERROR", "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
+                LogPrint(BCLog::ERROR, "persistclosedcdp AddClosedCdpTxIndex failed for redeemed cdpid (%s)", oldCDP.cdpid.GetHex());
             }
         }
 

@@ -8,6 +8,7 @@
 
 #include "entities/account.h"
 #include "entities/id.h"
+#include "entities/vote.h"
 #include "commons/serialize.h"
 #include "dbaccess.h"
 #include "dbconf.h"
@@ -21,19 +22,38 @@ using namespace std;
 class CDelegateDBCache {
 public:
     CDelegateDBCache() {}
-    CDelegateDBCache(CDBAccess *pDbAccess) : voteRegIdCache(pDbAccess), regId2VoteCache(pDbAccess) {}
+    CDelegateDBCache(CDBAccess *pDbAccess)
+        : voteRegIdCache(pDbAccess),
+          regId2VoteCache(pDbAccess),
+          last_vote_height_cache(pDbAccess),
+          pending_delegates_cache(pDbAccess),
+          active_delegates_cache(pDbAccess) {}
+
     CDelegateDBCache(CDelegateDBCache *pBaseIn)
-        : voteRegIdCache(pBaseIn->voteRegIdCache), regId2VoteCache(pBaseIn->regId2VoteCache) {}
+        : voteRegIdCache(pBaseIn->voteRegIdCache),
+        regId2VoteCache(pBaseIn->regId2VoteCache),
+        last_vote_height_cache(pBaseIn->last_vote_height_cache),
+        pending_delegates_cache(pBaseIn->pending_delegates_cache),
+        active_delegates_cache(pBaseIn->active_delegates_cache) {}
 
-    bool LoadTopDelegateList();
-    bool ExistDelegate(const CRegID &regId);
-    bool GetTopDelegateList(vector<CRegID> &delegatesList);
+    bool GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates);
 
-    bool SetDelegateVotes(const CRegID &regId, const uint64_t votes);
-    bool EraseDelegateVotes(const CRegID &regId, const uint64_t votes);
+    bool SetDelegateVotes(const CRegID &regid, const uint64_t votes);
+    bool EraseDelegateVotes(const CRegID &regid, const uint64_t votes);
 
-    bool SetCandidateVotes(const CRegID &regId, const vector<CCandidateReceivedVote> &candidateVotes);
-    bool GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes);
+    int32_t GetLastVoteHeight();
+    bool SetLastVoteHeight(int32_t height);
+
+    bool GetPendingDelegates(PendingDelegates &delegates);
+    bool SetPendingDelegates(const PendingDelegates &delegates);
+
+    bool IsActiveDelegate(const CRegID &regid);
+    bool GetActiveDelegate(const CRegID &regid, VoteDelegate &voteDelegate);
+    bool GetActiveDelegates(VoteDelegateVector &voteDelegates);
+    bool SetActiveDelegates(const VoteDelegateVector &voteDelegates);
+
+    bool SetCandidateVotes(const CRegID &regid, const vector<CCandidateReceivedVote> &candidateVotes);
+    bool GetCandidateVotes(const CRegID &regid, vector<CCandidateReceivedVote> &candidateVotes);
 
     // There’s no reason to worry about performance issues as it will used only in stable coin genesis height.
     bool GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote);
@@ -45,14 +65,26 @@ public:
     void SetBaseViewPtr(CDelegateDBCache *pBaseIn) {
         voteRegIdCache.SetBase(&pBaseIn->voteRegIdCache);
         regId2VoteCache.SetBase(&pBaseIn->regId2VoteCache);
+        last_vote_height_cache.SetBase(&pBaseIn->last_vote_height_cache);
+        pending_delegates_cache.SetBase(&pBaseIn->pending_delegates_cache);
+        active_delegates_cache.SetBase(&pBaseIn->active_delegates_cache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         voteRegIdCache.SetDbOpLogMap(pDbOpLogMapIn);
         regId2VoteCache.SetDbOpLogMap(pDbOpLogMapIn);
+        last_vote_height_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        pending_delegates_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        active_delegates_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() { return voteRegIdCache.UndoData() && regId2VoteCache.UndoData(); }
+    bool UndoData() {
+        return  voteRegIdCache.UndoData() &&
+                regId2VoteCache.UndoData() &&
+                last_vote_height_cache.UndoData() &&
+                pending_delegates_cache.UndoData() &&
+                active_delegates_cache.UndoData();
+    }
 
 private:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
@@ -60,6 +92,10 @@ private:
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
     CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
     CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateReceivedVote>> regId2VoteCache;
+
+    CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, uint32_t> last_vote_height_cache;
+    CSimpleKVCache<dbk::PENDING_DELEGATES, PendingDelegates> pending_delegates_cache;
+    CSimpleKVCache<dbk::ACTIVE_DELEGATES, VoteDelegateVector> active_delegates_cache;
 
     vector<CRegID> delegateRegIds;
 };

@@ -9,10 +9,10 @@
 #include "main.h"
 
 bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) {
-    LogPrint("net", "received: %s (%u bytes) from peer %s\n", strCommand, vRecv.size(), pFrom->addr.ToString());
+    LogPrint(BCLog::NET, "received: %s (%u bytes) from peer %s\n", strCommand, vRecv.size(), pFrom->addr.ToString());
     // RandAddSeedPerfmon();
     // if (GetRand(atoi(SysCfg().GetArg("-dropmessagestest", "0"))) == 0) {
-    //     LogPrint("INFO", "dropmessagestest DROPPING RECV MESSAGE\n");
+    //     LogPrint(BCLog::INFO, "dropmessagestest DROPPING RECV MESSAGE\n");
     //     return true;
     // }
 
@@ -147,7 +147,7 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
 // requires LOCK(cs_vRecvMsg)
 bool ProcessMessages(CNode *pFrom) {
     //if (fDebug)
-    //    LogPrint("INFO","ProcessMessages(%u messages)\n", pFrom->vRecvMsg.size());
+    //    LogPrint(BCLog::INFO,"ProcessMessages(%u messages)\n", pFrom->vRecvMsg.size());
 
     //
     // Message format
@@ -170,7 +170,7 @@ bool ProcessMessages(CNode *pFrom) {
     while (!pFrom->fDisconnect && it != pFrom->vRecvMsg.end()) {
         // Don't bother if send buffer is too full to respond anyway
         if (pFrom->nSendSize >= SendBufferSize()) {
-            LogPrint("net", "send buffer size: %d full for peer: %s\n", pFrom->nSendSize, pFrom->addr.ToString());
+            LogPrint(BCLog::NET, "send buffer size: %d full for peer: %s\n", pFrom->nSendSize, pFrom->addr.ToString());
             break;
         }
 
@@ -178,7 +178,7 @@ bool ProcessMessages(CNode *pFrom) {
         CNetMessage &msg = *it;
 
         //if (fDebug)
-        //    LogPrint("INFO","ProcessMessages(message %u msgsz, %u bytes, complete:%s)\n",
+        //    LogPrint(BCLog::INFO,"ProcessMessages(message %u msgsz, %u bytes, complete:%s)\n",
         //            msg.hdr.nMessageSize, msg.vRecv.size(),
         //            msg.complete() ? "Y" : "N");
 
@@ -191,7 +191,7 @@ bool ProcessMessages(CNode *pFrom) {
 
         // Scan for message start
         if (memcmp(msg.hdr.pchMessageStart, SysCfg().MessageStart(), MESSAGE_START_SIZE) != 0) {
-            LogPrint("INFO", "\n\nPROCESSMESSAGE: INVALID MESSAGESTART\n\n");
+            LogPrint(BCLog::INFO, "\n\nPROCESSMESSAGE: INVALID MESSAGESTART\n\n");
             fOk = false;
             break;
         }
@@ -199,7 +199,7 @@ bool ProcessMessages(CNode *pFrom) {
         // Read header
         CMessageHeader &hdr = msg.hdr;
         if (!hdr.IsValid()) {
-            LogPrint("INFO", "\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", hdr.GetCommand());
+            LogPrint(BCLog::INFO, "\n\nPROCESSMESSAGE: ERRORS IN HEADER %s\n\n\n", hdr.GetCommand());
             continue;
         }
         string strCommand = hdr.GetCommand();
@@ -213,7 +213,7 @@ bool ProcessMessages(CNode *pFrom) {
         uint32_t nChecksum = 0;
         memcpy(&nChecksum, &hash, sizeof(nChecksum));
         if (nChecksum != hdr.nChecksum) {
-            LogPrint("INFO", "ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
+            LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : CHECKSUM ERROR nChecksum=%08x hdr.nChecksum=%08x\n",
                      strCommand, nMessageSize, nChecksum, hdr.nChecksum);
             continue;
         }
@@ -227,11 +227,11 @@ bool ProcessMessages(CNode *pFrom) {
             pFrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));
             if (strstr(e.what(), "end of data")) {
                 // Allow exceptions from under-length message on vRecv
-                LogPrint("INFO", "ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
-                LogPrint("INFO", "ProcessMessages(%s, %u bytes) : %s\n", strCommand, nMessageSize, HexStr(vRecv.begin(), vRecv.end()).c_str());
+                LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());
+                LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : %s\n", strCommand, nMessageSize, HexStr(vRecv.begin(), vRecv.end()).c_str());
             } else if (strstr(e.what(), "size too large")) {
                 // Allow exceptions from over-long size
-                LogPrint("INFO", "ProcessMessages(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what());
+                LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : Exception '%s' caught\n", strCommand, nMessageSize, e.what());
             } else {
                 PrintExceptionContinue(&e, "ProcessMessages()");
             }
@@ -244,7 +244,7 @@ bool ProcessMessages(CNode *pFrom) {
         }
 
         if (!fRet)
-            LogPrint("INFO", "ProcessMessage(%s, %u bytes) FAILED\n", strCommand, nMessageSize);
+            LogPrint(BCLog::INFO, "ProcessMessage(%s, %u bytes) FAILED\n", strCommand, nMessageSize);
 
         break;
     }

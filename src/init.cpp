@@ -8,9 +8,10 @@
 #include "config/coin-config.h"
 #endif
 
+#include "logging.h"
 #include "init.h"
 #include "config/configuration.h"
-#include "addrman.h"
+#include "p2p/addrman.h"
 
 #include "rpc/core/rpcserver.h"
 #include "vm/luavm/lua/lua.h"
@@ -24,7 +25,8 @@
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "tx/tx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
+#include "commons/util/time.h"
 #ifdef USE_UPNP
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/miniwget.h>
@@ -119,7 +121,7 @@ bool ShutdownRequested() { return fRequestShutdown; }
 void Interrupt() { InterruptRPCServer(); }
 
 void Shutdown() {
-    LogPrint("INFO", "Shutdown() : In progress...\n");
+    LogPrint(BCLog::INFO, "Shutdown() : In progress...\n");
     static CCriticalSection cs_Shutdown;
     TRY_LOCK(cs_Shutdown, lockShutdown);
     if (!lockShutdown)
@@ -161,8 +163,7 @@ void Shutdown() {
     globalVerifyHandle.reset();
     ECC_Stop();
 
-    LogPrint("INFO", "Shutdown() : done\n");
-    printf("Shutdown : done\n");
+    LogPrint(BCLog::INFO, "Shutdown() : done\n");
 }
 
 //
@@ -177,7 +178,7 @@ void HandleSIGHUP(int32_t) {
 }
 
 bool static InitError(const string &str) {
-    LogPrint("ERROR", "%s\n", str);
+    LogPrint(BCLog::ERROR, "%s\n", str);
     return false;
 }
 
@@ -338,13 +339,13 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
             if (!file)
                 break;
 
-            LogPrint("INFO", "Reindexing block file blk%05u.dat...\n", (uint32_t)nFile);
+            LogPrint(BCLog::INFO, "Reindexing block file blk%05u.dat...\n", (uint32_t)nFile);
             LoadExternalBlockFile(file, &pos);
             nFile++;
         }
         pCdMan->pBlockCache->WriteReindexing(false);
         SysCfg().SetReIndex(false);
-        LogPrint("INFO", "Reindexing finished\n");
+        LogPrint(BCLog::INFO, "Reindexing finished\n");
         // To avoid ending up in a situation without genesis block, re-try initializing (no-op if reindexing worked):
         InitBlockIndex();
     }
@@ -356,11 +357,11 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
         if (file) {
             CImportingNow imp;
             filesystem::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
-            LogPrint("INFO", "Importing bootstrap.dat...\n");
+            LogPrint(BCLog::INFO, "Importing bootstrap.dat...\n");
             LoadExternalBlockFile(file);
             RenameOver(pathBootstrap, pathBootstrapOld);
         } else {
-            LogPrint("INFO", "Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
+            LogPrint(BCLog::INFO, "Warning: Could not open bootstrap file %s\n", pathBootstrap.string());
         }
     }
 
@@ -369,10 +370,10 @@ void ThreadImport(vector<boost::filesystem::path> vImportFiles) {
         FILE *file = fopen(path.string().c_str(), "rb");
         if (file) {
             CImportingNow imp;
-            LogPrint("INFO", "Importing blocks file %s...\n", path.string());
+            LogPrint(BCLog::INFO, "Importing blocks file %s...\n", path.string());
             LoadExternalBlockFile(file);
         } else {
-            LogPrint("INFO", "Warning: Could not open blocks file %s\n", path.string());
+            LogPrint(BCLog::INFO, "Warning: Could not open blocks file %s\n", path.string());
         }
     }
 }
@@ -441,47 +442,62 @@ bool AppInit(boost::thread_group &threadGroup) {
 #endif
 #endif
 
+    // ********************************************************* initialize logging
+    if (SysCfg().IsArgCount("-debug")) {
+        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
+        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
+
+        if (std::none_of(categories.begin(), categories.end(),
+            [](std::string cat) { return cat == "0" || cat == "none"; })) {
+            for (const auto& cat : categories) {
+                if (!LogInstance().EnableCategory(cat)) {
+                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
+                }
+            }
+        }
+    }
+
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
         if (SysCfg().SoftSetBoolArg("-listen", true))
-            LogPrint("INFO", "AppInit : parameter interaction: -bind set -> setting -listen=1\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -bind set -> setting -listen=1\n");
     }
 
     if (SysCfg().IsArgCount("-connect") && SysCfg().GetMultiArgs("-connect").size() > 0) {
         // when only connecting to trusted nodes, do not seed via DNS, or listen by default
         if (SysCfg().SoftSetBoolArg("-dnsseed", false))
-            LogPrint("INFO", "AppInit : parameter interaction: -connect set -> setting -dnsseed=0\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -connect set -> setting -dnsseed=0\n");
 
         if (SysCfg().SoftSetBoolArg("-listen", false))
-            LogPrint("INFO", "AppInit : parameter interaction: -connect set -> setting -listen=0\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -connect set -> setting -listen=0\n");
     }
 
     if (SysCfg().IsArgCount("-proxy")) {
         // to protect privacy, do not listen by default if a default proxy server is specified
         if (SysCfg().SoftSetBoolArg("-listen", false))
-            LogPrint("INFO", "AppInit : parameter interaction: -proxy set -> setting -listen=0\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -proxy set -> setting -listen=0\n");
     }
 
     if (!SysCfg().GetBoolArg("-listen", true)) {
         // do not map ports or try to retrieve public IP when not listening (pointless)
         if (SysCfg().SoftSetBoolArg("-upnp", false))
-            LogPrint("INFO", "AppInit : parameter interaction: -listen=0 -> setting -upnp=0\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -listen=0 -> setting -upnp=0\n");
 
         if (SysCfg().SoftSetBoolArg("-discover", false))
-            LogPrint("INFO", "AppInit : parameter interaction: -listen=0 -> setting -discover=0\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -listen=0 -> setting -discover=0\n");
     }
 
     if (SysCfg().IsArgCount("-externalip")) {
         // if an explicit public IP is specified, do not try to find others
         if (SysCfg().SoftSetBoolArg("-discover", false))
-            LogPrint("INFO", "AppInit : parameter interaction: -externalip set -> setting -discover=0\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -externalip set -> setting -discover=0\n");
     }
 
     if (SysCfg().GetBoolArg("-salvagewallet", false)) {
         // Rewrite just private keys: rescan to find transactions
         if (SysCfg().SoftSetBoolArg("-rescan", true))
-            LogPrint("INFO", "AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
+            LogPrint(BCLog::INFO, "AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
     }
 
     // Make sure enough file descriptors are available
@@ -513,39 +529,38 @@ bool AppInit(boost::thread_group &threadGroup) {
         return InitError(strprintf(_("Cannot obtain a lock on data directory %s. coin Core is probably already running."), strDataDir));
     }
 
+    if (!LogInstance().StartLogging()) {
+        return InitError(strprintf("Could not open debug log file %s",
+                        LogInstance().m_file_path.string()));
+    }
     // if (GetBoolArg("-shrinkdebugfile", !fDebug))
     //     ShrinkDebugFile();
 
-    LogPrint("INFO", "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
-    printf("%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE.c_str());
-    LogPrint("INFO", "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
-    printf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
+     if (!LogInstance().m_log_timestamps)
+        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+
+    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrintf("Using data directory %s\n", GetDataDir().string());
+
+    LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
+    LogPrint(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
 #ifdef USE_LUA
-    LogPrint("INFO", "Using Lua version %s\n", LUA_RELEASE);
-    printf("Using Lua version %s\n", LUA_RELEASE);
+    LogPrint(BCLog::INFO, "Using Lua version %s\n", LUA_RELEASE);
 #endif
     string boost_version = BOOST_LIB_VERSION;
     StringReplace(boost_version, "_", ".");
-    LogPrint("INFO", "Using Boost version %s\n", boost_version);
-    printf("Using Boost version %s\n", boost_version.c_str());
+    LogPrint(BCLog::INFO, "Using Boost version %s\n", boost_version);
     string leveldb_version = strprintf("%d.%d", leveldb::kMajorVersion, leveldb::kMinorVersion);
-    LogPrint("INFO", "Using Level DB version %s\n", leveldb_version);
-    printf("Using Level DB version %s\n", leveldb_version.c_str());
-    LogPrint("INFO", "Using Berkeley DB version %s\n", DB_VERSION_STRING);
-    printf("Using Berkeley DB version %s\n", DB_VERSION_STRING);
+    LogPrint(BCLog::INFO, "Using Level DB version %s\n", leveldb_version);
+    LogPrint(BCLog::INFO, "Using Berkeley DB version %s\n", DB_VERSION_STRING);
 
 #ifdef USE_UPNP
-    LogPrint("INFO", "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
-    printf("Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
+    LogPrint(BCLog::INFO, "Using miniupnpc version %s,API version %d\n", MINIUPNPC_VERSION, MINIUPNPC_API_VERSION);
 #endif
-    LogPrint("INFO", "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
-    printf("Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()).c_str());
-    LogPrint("INFO", "Default data directory %s\n", GetDefaultDataDir().string());
-    printf("Default data directory %s\n", GetDefaultDataDir().string().c_str());
-    LogPrint("INFO", "Using data directory %s\n", strDataDir);
-    printf("Using data directory %s\n", strDataDir.c_str());
-    LogPrint("INFO", "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
-    printf("Using at most %i connections (      %i file descriptors available)\n", nMaxConnections, nFD);
+    LogPrint(BCLog::INFO, "Startup time: %s\n", DateTimeStrFormat("%Y-%m-%d %H:%M:%S", GetTime()));
+    LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrint(BCLog::INFO, "Using data directory %s\n", strDataDir);
+    LogPrint(BCLog::INFO, "Using at most %i connections (%i file descriptors available)\n", nMaxConnections, nFD);
 
     RegisterNodeSignals(GetNodeSignals());
 
@@ -595,7 +610,7 @@ bool AppInit(boost::thread_group &threadGroup) {
     // -onion can override normal proxy, -noonion disables tor entirely
     // -tor here is a temporary backwards compatibility measure
     if (SysCfg().IsArgCount("-tor")) {
-        LogPrint("INFO", "Notice: option -tor has been replaced with -onion and will be removed in a later version.\n");
+        LogPrint(BCLog::INFO, "Notice: option -tor has been replaced with -onion and will be removed in a later version.\n");
     }
     if (!(SysCfg().GetArg("-onion", "") == "0") && !(SysCfg().GetArg("-tor", "") == "0") && (fProxy || SysCfg().IsArgCount("-onion") || SysCfg().IsArgCount("-tor"))) {
         CService addrOnion;
@@ -691,7 +706,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 if (fReIndex)
                     pCdMan->pBlockCache->WriteReindexing(true);
 
-                mempool.SetMemPoolCache(pCdMan);
+                mempool.SetMemPoolCache();
 
                 if (!LoadBlockIndex()) {
                     strLoadError = _("Error loading block database");
@@ -721,7 +736,7 @@ bool AppInit(boost::thread_group &threadGroup) {
                 }
 
             } catch (std::exception &e) {
-                LogPrint("INFO", "%s\n", e.what());
+                LogPrint(BCLog::INFO, "%s\n", e.what());
                 strLoadError = _("Error opening block database");
                 break;
             }
@@ -732,7 +747,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         if (!fLoaded) {
             // Rebuild the block database first.
             if (!fReset) {
-                LogPrint("INFO", "Need to rebuild the block database first.\n");
+                LogPrint(BCLog::INFO, "Need to rebuild the block database first.\n");
                 SysCfg().SetReIndex(true);
                 fRequestShutdown = false;
             } else {
@@ -745,11 +760,11 @@ bool AppInit(boost::thread_group &threadGroup) {
     // requested to kill the GUI during the last operation. If so, exit.
     // As the program has not fully started yet, Shutdown() is possibly overkill.
     if (fRequestShutdown) {
-        LogPrint("INFO", "Shutdown requested. Exiting.\n");
+        LogPrint(BCLog::INFO, "Shutdown requested. Exiting.\n");
         return false;
     }
 
-    LogPrint("INFO", "Build %lu block indexes into memory (%lldms)\n", mapBlockIndex.size(), GetTimeMillis() - nStart);
+    LogPrint(BCLog::INFO, "Build %lu block indexes into memory (%lldms)\n", mapBlockIndex.size(), GetTimeMillis() - nStart);
 
     if (SysCfg().GetBoolArg("-printblockindex", false) || SysCfg().GetBoolArg("-printblocktree", false)) {
         PrintBlockTree();
@@ -771,7 +786,7 @@ bool AppInit(boost::thread_group &threadGroup) {
             }
         }
         if (nFound == 0)
-            LogPrint("INFO", "No blocks matching %s were found\n", strMatch);
+            LogPrint(BCLog::INFO, "No blocks matching %s were found\n", strMatch);
 
         return false;
     }
@@ -790,13 +805,13 @@ bool AppInit(boost::thread_group &threadGroup) {
         if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
 
-        if (!pCdMan->pTxCache->AddBlockToCache(block))
+        if (!pCdMan->pTxCache->AddBlockTx(block))
             return InitError("Failed to add block to transaction memory cache");
 
         pBlockIndex = pBlockIndex->pprev;
         ++nCount;
     }
-    LogPrint("INFO", "Added the latest %d blocks to transaction memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
+    LogPrint(BCLog::INFO, "Added the latest %d blocks to transaction memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
 
     nStart       = GetTimeMillis();
     pBlockIndex  = chainActive.Tip();
@@ -820,7 +835,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         pBlockIndex = pBlockIndex->pprev;
         ++nCount;
     }
-    LogPrint("INFO", "Added the latest %d blocks to price point memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
+    LogPrint(BCLog::INFO, "Added the latest %d blocks to price point memory cache (%dms)\n", nCount, GetTimeMillis() - nStart);
 
     vector<boost::filesystem::path> vImportFiles;
     if (SysCfg().IsArgCount("-loadblock")) {
@@ -836,11 +851,11 @@ bool AppInit(boost::thread_group &threadGroup) {
     {
         CAddrDB adb;
         if (!adb.Read(addrman)) {
-            LogPrint("INFO", "Invalid or missing peers.dat; recreating\n");
+            LogPrint(BCLog::INFO, "Invalid or missing peers.dat; recreating\n");
         }
     }
 
-    LogPrint("INFO", "Loaded %i addresses from peers.dat (%dms)\n", addrman.size(), GetTimeMillis() - nStart);
+    LogPrint(BCLog::INFO, "Loaded %i addresses from peers.dat (%dms)\n", addrman.size(), GetTimeMillis() - nStart);
 
     if (!CheckDiskSpace())
         return false;
@@ -866,4 +881,38 @@ bool AppInit(boost::thread_group &threadGroup) {
     }
 
     return !fRequestShutdown;
+}
+
+fs::path AbsPathForConfigVal(const fs::path& path, bool net_specific = true)
+{
+    if (path.is_absolute()) {
+        return path;
+    }
+    return fs::absolute(path, GetDataDir(net_specific));
+}
+
+/**
+ * Initialize global loggers.
+ *
+ * Note that this is called very early in the process lifetime, so you should be
+ * careful about what global state you rely on here.
+ */
+void InitLogging()
+{
+    LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
+    LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
+    LogInstance().m_print_to_console = SysCfg().GetBoolArg("-logprinttoconsole", true);
+    LogInstance().m_log_timestamps = SysCfg().GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
+    LogInstance().m_log_time_micros = SysCfg().GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
+    LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
+
+    fLogIPs = SysCfg().GetBoolArg("-logips", DEFAULT_LOGIPS);
+
+    std::string version_string = FormatFullVersion();
+#ifdef DEBUG
+    version_string += " (debug build)";
+#else
+    version_string += " (release build)";
+#endif
+    LogPrintf(PACKAGE_NAME " version %s\n", version_string);
 }

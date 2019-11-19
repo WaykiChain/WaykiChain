@@ -76,6 +76,7 @@ config/version.o: config/build.h
 .PHONY: FORCE
 # waykichain core #
 coin_CORE_H = \
+  chain/blockdelegates.h \
   entities/account.h \
   entities/assett.h \
   entities/cdp.h \
@@ -86,7 +87,6 @@ coin_CORE_H = \
   entities/keystore.h \
   entities/receipt.h \
   entities/vote.h \
-  addrman.h \
   alert.h \
   allocators.h \
   base58.h \
@@ -96,7 +96,9 @@ coin_CORE_H = \
   commons/serialize.h \
   commons/leb128.h \
   commons/types.h \
-  commons/util.h \
+  commons/util/util.h \
+  commons/util/threadnames.h \
+  commons/util/time.h \
   commons/compat/byteswap.h \
   commons/compat/compat.h \
   commons/compat/endian.h \
@@ -111,9 +113,11 @@ coin_CORE_H = \
   wallet/crypter.h \
   crypto/sha256.h \
   crypto/hash.h \
+  fs.h \
   init.h \
   limitedmap.h \
   main.h \
+  p2p/addrman.h \
   p2p/chainmessage.h \
   p2p/protocol.h \
   miner/miner.h \
@@ -179,7 +183,8 @@ coin_CORE_H = \
   tinyformat.h \
   uint256.h \
   wallet/wallet.h \
-  wallet/db.h
+  wallet/db.h \
+  logging.h
 
 JSON_H = \
   commons/json/json_spirit.h \
@@ -299,6 +304,7 @@ liblua53_a_SOURCES = \
 
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) $(WASM_CPPFLAGS)
 libcoin_server_a_SOURCES = \
+  chain/blockdelegates.cpp \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
@@ -306,7 +312,6 @@ libcoin_server_a_SOURCES = \
   entities/id.cpp \
   entities/key.cpp \
   entities/keystore.cpp \
-  addrman.cpp \
   alert.cpp \
   config/configuration.cpp \
   crypto/sha256.cpp \
@@ -314,6 +319,8 @@ libcoin_server_a_SOURCES = \
   main.cpp \
   miner/miner.cpp \
   net.cpp \
+  p2p/addrman.cpp \
+  p2p/protocol.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
   rpc/core/rpccommons.cpp \
@@ -347,6 +354,7 @@ libcoin_server_a_SOURCES = \
   tx/tx.cpp \
   tx/txmempool.cpp \
   tx/wasmcontracttx.cpp \
+  logging.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \
@@ -374,11 +382,14 @@ libcoin_common_a_SOURCES = \
   commons/random.cpp  \
   commons/uint256.cpp \
   commons/bloom.cpp \
-  commons/util.cpp \
+  commons/util/util.cpp \
+  commons/util/threadnames.cpp \
+  commons/util/time.cpp \
   crypto/hash.cpp \
   config/chainparams.cpp \
   config/configuration.cpp \
   config/version.cpp \
+  fs.cpp \
   netbase.cpp \
   p2p/protocol.cpp \
   persistence/block.cpp \

@@ -73,6 +73,7 @@ extern map<uint256, CBlockIndex *> mapBlockIndex;
 extern uint64_t nLastBlockTx;
 extern uint64_t nLastBlockSize;
 extern const string strMessageMagic;
+extern bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) ;
 
 extern bool mining;     // could be changed due to vote change
 extern CKeyID minerKeyId;  // miner accout keyId
@@ -162,6 +163,7 @@ bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
 class CChain {
 private:
     vector<CBlockIndex *> vChain;
+    CBlockIndex* finalityBlockIndex = nullptr ;
 
 public:
     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
@@ -169,9 +171,15 @@ public:
         return vChain.size() > 0 ? vChain[0] : nullptr;
     }
 
+    CBlockIndex *GetFinalityBlockIndex(){
+        if(!finalityBlockIndex)
+            return chainActive[0] ;
+        return finalityBlockIndex ;
+    }
+
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[vChain.size() - 1] : nullptr;
+        return vChain.size() > 0 ? vChain[Height()] : nullptr;
     }
 
     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
@@ -184,7 +192,7 @@ public:
     /** Compare two chains efficiently. */
     friend bool operator==(const CChain &a, const CChain &b) {
         return a.vChain.size() == b.vChain.size() &&
-               a.vChain[a.vChain.size() - 1] == b.vChain[b.vChain.size() - 1];
+               a.vChain[a.Height()] == b.vChain[b.Height()];
     }
 
     /** Efficiently check whether a block is present in this chain. */
@@ -205,6 +213,8 @@ public:
         return vChain.size() - 1;
     }
 
+
+    bool UpdateFinalityBlock() ;
     /** Set/initialize a chain with a given tip. Returns the forking point. */
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 

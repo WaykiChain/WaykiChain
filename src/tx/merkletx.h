@@ -73,7 +73,7 @@ public:
             if (index == (int)pBlock->vptx.size()) {
                 vMerkleBranch.clear();
                 index = -1;
-                LogPrint("INFO", "ERROR: SetMerkleBranch() : couldn't find tx in block\n");
+                LogPrint(BCLog::INFO, "ERROR: SetMerkleBranch() : couldn't find tx in block\n");
                 return 0;
             }
 

@@ -5,10 +5,11 @@
 #ifndef _COIN_ADDRMAN
 #define _COIN_ADDRMAN 1
 
+#include "logging.h"
 #include "netbase.h"
 #include "p2p/protocol.h"
 #include "sync.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include <map>
 #include <set>
@@ -404,7 +405,7 @@ public:
             LOCK(cs);
             int err;
             if ((err=Check_()))
-                LogPrint("INFO","ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
+                LogPrint(BCLog::INFO,"ADDRMAN CONSISTENCY CHECK FAILED!!! err=%i\n", err);
         }
 #endif
     }
@@ -420,7 +421,7 @@ public:
             Check();
         }
         if (fRet)
-            LogPrint("addrman", "Added %s from %s: %i tried, %i new\n", addr.ToStringIPPort().c_str(), source.ToString(), nTried, nNew);
+            LogPrint(BCLog::ADDRMAN, "Added %s from %s: %i tried, %i new\n", addr.ToStringIPPort().c_str(), source.ToString(), nTried, nNew);
         return fRet;
     }
 
@@ -436,7 +437,8 @@ public:
             Check();
         }
         if (nAdd)
-            LogPrint("addrman", "Added %i addresses from %s: %i tried, %i new\n", nAdd, source.ToString(), nTried, nNew);
+            LogPrint(BCLog::ADDRMAN, "Added %i addresses from %s: %i tried, %i new\n", nAdd, source.ToString(), nTried, nNew);
+
         return nAdd > 0;
     }
 

@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "init.h"
 #include "rpc/core/rpcclient.h"
 #include "rpc/core/rpcprotocol.h"
@@ -24,7 +24,7 @@ static bool AppInitRPC(int argc, char* argv[])
 	CBaseParams::InitializeParams(argc, argv);
 	SysCfg().InitializeConfig();
 
-    if (argc<2 || SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
+    if (argc < 2 || SysCfg().IsArgCount("-?") || SysCfg().IsArgCount("--help")) {
         // First part of help message is specific to RPC client
         string strUsage = _("Coin Core RPC client version") + " " + FormatFullVersion() + "\n\n" +
             _("Usage:") + "\n" +

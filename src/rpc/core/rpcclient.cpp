@@ -6,7 +6,7 @@
 #include "rpcclient.h"
 
 #include "commons/json/json_spirit_writer_template.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/chainparams.h"  // for Params().RPCPort()
 #include "config/configuration.h"
 #include "main.h"

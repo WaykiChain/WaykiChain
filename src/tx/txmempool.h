@@ -75,8 +75,8 @@ public:
     void QueryHash(vector<uint256> &txids);
     bool CheckTxInMemPool(const uint256 &txid, const CTxMemPoolEntry &entry, CValidationState &state,
                           bool bExecute = true);
-    void SetMemPoolCache(CCacheDBManager *pCdManIn);
-    void ReScanMemPoolTx(CCacheDBManager *pCdManIn);
+    void SetMemPoolCache();
+    void ReScanMemPoolTx();
     void Clear();
 
     uint64_t Size();

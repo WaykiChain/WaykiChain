@@ -12,7 +12,7 @@
 #include "miner/miner.h"
 #include "persistence/contractdb.h"
 #include "persistence/txdb.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 #include "vm/luavm/luavmrunenv.h"
 
@@ -45,11 +45,9 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 // class CLuaContractDeployTx
 
 bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (!contract.IsValid()) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
@@ -62,7 +60,7 @@ bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
                         llFees, llFuel), REJECT_INVALID, "fee-too-small-to-cover-fuel");
     }
 
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R2) {
+    if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
         int32_t txSize  = ::GetSerializeSize(GetNewInstance(), SER_NETWORK, PROTOCOL_VERSION);
         double feePerKb = double(llFees - llFuel) / txSize * 1000.0;
         if (feePerKb < MIN_RELAY_TX_FEE) {
@@ -136,7 +134,7 @@ bool CLuaContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 uint64_t CLuaContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint("ERROR", "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
     }
 
@@ -165,13 +163,11 @@ Object CLuaContractDeployTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CLuaContractInvokeTx
 
 bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_APPID(app_uid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
@@ -261,7 +257,7 @@ bool CLuaContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::ExecuteTx, txid=%s run script error:%s",
                         GetHash().GetHex(), *pExecErr), UPDATE_ACCOUNT_FAIL, "run-script-error: " + *pExecErr);
 
-    LogPrint("vm", "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
+    LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), vmRunEnv.GetReceipts()))
         return state.DoS(
@@ -297,12 +293,10 @@ Object CLuaContractInvokeTx::ToJson(const CAccountDBCache &accountCache) const {
 // class CUniversalContractDeployTx
 
 bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (contract.vm_type != VMType::LUA_VM) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
@@ -414,7 +408,7 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
 uint64_t CUniversalContractDeployTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint("ERROR", "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        LogPrint(BCLog::ERROR, "CUniversalContractDeployTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CUniversalContractDeployTx::GetFuel(), get min_fee failed");
     }
 
@@ -446,14 +440,12 @@ Object CUniversalContractDeployTx::ToJson(const CAccountDBCache &accountCache) c
 // class CUniversalContractInvokeTx
 
 bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw       = *context.pCw;
-    CValidationState &state = *context.pState;
-
+    IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_APPID(app_uid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
@@ -561,7 +553,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
 
     receipts.insert(receipts.end(), vmRunEnv.GetReceipts().begin(), vmRunEnv.GetReceipts().end());
 
-    LogPrint("vm", "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
+    LogPrint(BCLog::LUAVM, "execute contract elapse: %lld, txid=%s\n", GetTimeMillis() - llTime, GetHash().GetHex());
 
     // If fees paid by WUSD, send the fuel to risk reserve pool.
     if (fee_symbol == SYMB::WUSD) {

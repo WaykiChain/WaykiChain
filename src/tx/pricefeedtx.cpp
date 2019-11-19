@@ -11,14 +11,14 @@
 #include "miner/miner.h"
 #include "persistence/pricefeeddb.h"
 #include "tx.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "config/version.h"
 
 bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
-    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    IMPLEMENT_DEFINE_CW_STATE
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
 
     if (price_points.size() == 0 || price_points.size() > 2) {  // FIXME: hardcode here
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, price points number not within 1..2"), REJECT_INVALID,
@@ -61,7 +61,7 @@ bool CPriceFeedTx::ExecuteTx(CTxExecuteContext &context) {
                         txUid.ToString()), PRICE_FEED_FAIL, "bad-read-accountdb");
 
     CRegID sendRegId = txUid.get<CRegID>();
-    if (!cw.delegateCache.ExistDelegate(sendRegId.ToString())) { // must be a delegate
+    if (!cw.delegateCache.IsActiveDelegate(sendRegId.ToString())) { // must be a delegate
         return state.DoS(100, ERRORMSG("CPriceFeedTx::ExecuteTx, txUid %s account is not a delegate error",
                         txUid.ToString()), PRICE_FEED_FAIL, "account-isn't-delegate");
     }

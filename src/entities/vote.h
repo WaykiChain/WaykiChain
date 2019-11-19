@@ -173,4 +173,69 @@ private:
 
 };
 
+typedef vector<CRegID> DelegateVector;
+
+struct VoteDelegate {
+    CRegID regid;       // the voted delegate regid
+    uint64_t votes = 0;     // the received votes
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(regid);
+        READWRITE(VARINT(votes));
+    )
+
+    friend bool operator==(const VoteDelegate &a, const VoteDelegate &b) {
+        return (a.regid == b.regid && a.votes == b.votes);
+    }
+};
+
+enum class VoteDelegateState: uint8_t {
+    NONE,           // none, init state
+    PENDING,        // pending, wait for activating vote delegates
+    ACTIVATED,      // activated, vote delegates is activated
+};
+
+typedef vector<VoteDelegate> VoteDelegateVector;
+struct PendingDelegates {
+    VoteDelegateState state = VoteDelegateState::NONE;  // state
+    uint32_t counted_vote_height = 0;                   // counting vote height
+    VoteDelegateVector top_vote_delegates;              // top vote delegates
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)state);
+        READWRITE(VARINT(counted_vote_height));
+        READWRITE(top_vote_delegates);
+    )
+
+    bool IsSameDelegates(const DelegateVector &delegates) const {
+        if (top_vote_delegates.size() != delegates.size())
+            return false;
+
+        for (size_t i = 0; i < top_vote_delegates.size(); i++)
+            if (top_vote_delegates[i].regid != delegates[i])
+                return false;
+
+        return true;
+    }
+
+    DelegateVector GetDelegates() const {
+        DelegateVector delegates;
+        delegates.resize(top_vote_delegates.size());
+        for (size_t i = 0; i < top_vote_delegates.size(); i++) {
+            delegates[i] = top_vote_delegates[i].regid;
+        }
+        return std::move(delegates);
+    }
+
+    bool IsEmpty() const {
+        return state == VoteDelegateState::NONE && counted_vote_height == 0 && top_vote_delegates.empty();
+    }
+
+    void SetEmpty() {
+        state = VoteDelegateState::NONE;
+        counted_vote_height = 0;
+        top_vote_delegates.clear();
+    }
+};
+
 #endif //ENTITIES_VOTE_H

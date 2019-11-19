@@ -6,7 +6,7 @@
 #include "commons/base58.h"
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 #include "init.h"
 #include "miner/miner.h"
 #include "net.h"
@@ -328,7 +328,10 @@ Value submitsendtx(const Array& params, bool fHelp) {
     int32_t height = chainActive.Height();
     std::shared_ptr<CBaseTx> pBaseTx;
 
-    if (GetFeatureForkVersion(height) == MAJOR_VER_R1) {
+    if (GetFeatureForkVersion(height) >= MAJOR_VER_R2) {
+        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
+            cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
+    } else { // MAJOR_VER_R1
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
                 "height=%u! current height=%d", SysCfg().GetFeatureForkHeight(), height));
@@ -339,9 +342,6 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
         pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetSawiAmount(),
             cmFee.GetSawiAmount(), memo);
-    } else {  // MAJOR_VER_R2
-        pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
-            cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
     }
 
     return SubmitTx(account.keyid, *pBaseTx);

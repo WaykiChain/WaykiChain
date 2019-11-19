@@ -430,12 +430,12 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint("DEBUG", "CommonTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize,
+        LogPrint(BCLog::DEBUG, "CommonTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize,
                  elapseTime);
         if (elapseTime < period) {
             MilliSleep(period - elapseTime);
         } else {
-            LogPrint("DEBUG", "CommonTxGenerator, need to slow down for overloading.\n");
+            LogPrint(BCLog::DEBUG, "CommonTxGenerator, need to slow down for overloading.\n");
         }
     }
 }
@@ -454,7 +454,7 @@ void static CommonTxSender() {
         if (generationQueue.get()->Pop(&tx)) {
             LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
-                LogPrint("ERROR", "CommonTxSender, accept to mempool failed: %s\n", state.GetRejectReason());
+                LogPrint(BCLog::ERROR, "CommonTxSender, accept to mempool failed: %s\n", state.GetRejectReason());
                 throw boost::thread_interrupted();
             }
         }
@@ -572,12 +572,12 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
         }
 
         int64_t elapseTime = GetTimeMillis() - nStart;
-        LogPrint("DEBUG", "ContractTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize,
+        LogPrint(BCLog::DEBUG, "ContractTxGenerator, batch generate transaction(s): %ld, elapse time: %ld ms.\n", batchSize,
                  elapseTime);
         if (elapseTime < period) {
             MilliSleep(period - elapseTime);
         } else {
-            LogPrint("DEBUG", "ContractTxGenerator, need to slow down for overloading.\n");
+            LogPrint(BCLog::DEBUG, "ContractTxGenerator, need to slow down for overloading.\n");
         }
     }
 }
@@ -596,7 +596,7 @@ void static ContractTxGenerator() {
         if (generationContractQueue.get()->Pop(&tx)) {
             LOCK(cs_main);
             if (!::AcceptToMemoryPool(mempool, state, (CBaseTx*)&tx, true)) {
-                LogPrint("ERROR", "ContractTxGenerator, accept to mempool failed: %s\n", state.GetRejectReason());
+                LogPrint(BCLog::ERROR, "ContractTxGenerator, accept to mempool failed: %s\n", state.GetRejectReason());
                 throw boost::thread_interrupted();
             }
         }

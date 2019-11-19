@@ -331,7 +331,7 @@ public:
         }
 
         if (invalidId || (!is<CNullID>() && ContentIsEmpty())) {
-            LogPrint("ERROR", "Invalid Unserialize CUserID\n");
+            LogPrint(BCLog::ERROR, "Invalid Unserialize CUserID\n");
             throw ios_base::failure("Unserialize CUserID error");
         }
     }

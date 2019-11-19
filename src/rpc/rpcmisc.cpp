@@ -10,7 +10,7 @@
 #include "netbase.h"
 #include "rpc/core/rpccommons.h"
 #include "rpc/core/rpcserver.h"
-#include "commons/util.h"
+#include "commons/util/util.h"
 
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
@@ -125,6 +125,9 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_hash",         chainActive.Tip()->GetBlockHash().ToString()));
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));
     obj.push_back(Pair("synblock_height",       nSyncTipHeight));
+    obj.push_back(Pair("finblock_height",       chainActive.GetFinalityBlockIndex()->height)) ;
+    obj.push_back(Pair("finblock_hash",         chainActive.GetFinalityBlockIndex()->GetBlockHash().GetHex())) ;
+
     obj.push_back(Pair("connections",           (int32_t)vNodes.size()));
     obj.push_back(Pair("errors",                GetWarnings("statusbar")));
 
