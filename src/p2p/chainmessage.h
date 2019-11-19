@@ -684,7 +684,7 @@ inline bool ProcessInvMessage(CNode *pFrom, CDataStream &vRecv) {
                 fAlreadyHave = true;
             }
             if(chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60){
-                LogPrint("net", "recv tx inv data when initialBlockDownload,reject it! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
+                LogPrint(BCLog::NET, "recv tx inv data when initialBlockDownload,reject it! time_ms=%lld, i=%d, msg=%s, hash=%s, peer=%s\n",
                          GetTimeMillis(), i, msgName, inv.ToString(), pFrom->addrName);
                 fAlreadyHave = true;
             }
