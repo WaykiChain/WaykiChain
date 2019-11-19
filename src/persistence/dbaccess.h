@@ -621,7 +621,7 @@ private:
     // map<string, ValueType>
     bool GetAllElements(const KeyType &endKey, Map &mapDataOut, set<KeyType> &expiredKeys) {
         if (!mapData.empty()) {
-            for (auto iter = mapData.end(); iter != mapData.end() && iter->first < endKey; iter++) {
+            for (auto iter = mapData.begin(); iter != mapData.end() && iter->first < endKey; iter++) {
                 if (!expiredKeys.count(iter->first) && !mapDataOut.count(iter->first)) { // check not got
                     if (db_util::IsEmpty(iter->second)) { // empty, will be deleted
                         expiredKeys.insert(iter->first);
