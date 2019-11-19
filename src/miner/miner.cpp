@@ -5,6 +5,7 @@
 
 #include "miner.h"
 
+#include "pbftcontext.h"
 #include "init.h"
 #include "main.h"
 #include "net.h"
@@ -15,12 +16,15 @@
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
+#include "p2p/protocol.h"
 
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 
 extern CWallet *pWalletMain;
+extern CPBFTContext pbftContext ;
 extern void SetMinerStatus(bool bStatus);
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // CoinMiner
@@ -38,6 +42,7 @@ uint64_t nLastBlockSize = 0;
 MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(MAX_MINED_BLOCK_COUNT);
 CCriticalSection csMinedBlocks;
+
 
 // check the time is not exceed the limit time (2s) for packing new block
 static bool CheckPackBlockTime(int64_t startMiningMs, int32_t blockHeight) {
@@ -109,6 +114,7 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
+
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
                                VoteDelegate &delegate) {
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
@@ -118,6 +124,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, con
 
     return true;
 }
+
 
 static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
 
@@ -614,6 +621,73 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
     LogPrint(BCLog::INFO, "GetMiner(), succeed to get the duty miner! height=%d, time_ms=%lld, regid=%s, addr=%s, use_miner_key=%d\n",
         blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress(), isMinerKey);
     return true;
+}
+
+static bool FindMiner(VoteDelegate delegate, Miner &miner){
+    {
+        LOCK(cs_main);
+
+        if (!pCdMan->pAccountCache->GetAccount(delegate.regid, miner.account)) {
+
+            return false;
+        }
+    }
+    bool isMinerKey = false;
+    {
+        LOCK(pWalletMain->cs_wallet);
+
+        if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
+            isMinerKey = true;
+        } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
+
+            return false;
+        }
+    }
+
+    return true;
+
+
+}
+
+
+bool BroadcastBlockConfirm(const CBlock block) {
+
+    if(!SysCfg().GetBoolArg("-genblock", false))
+        return false ;
+
+    VoteDelegateVector delegates;
+    {
+        LOCK(cs_main);
+
+        if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
+
+            return false;
+        }
+    }
+
+    CBlockIndex* index = chainActive[block.GetHeight()] ;
+    CBlockConfirmMessage msg(block.GetHeight(), block.GetHash());
+    if(pbftContext.confirmedBlockHashSet.count(block.GetHash()))
+        return true ;
+
+    {
+        LOCK(cs_vNodes);
+        for(auto delegate: delegates){
+
+            Miner miner ;
+            if(!FindMiner(delegate, miner))
+                continue ;
+            msg.miner = miner.account.regid ;
+
+            for (auto pNode : vNodes) {
+                pNode->PushMessage("confirmblock", msg) ;
+            }
+
+        }
+    }
+
+    pbftContext.confirmedBlockHashSet.insert(block.GetHash());
+    return true ;
 }
 
 static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &miner) {

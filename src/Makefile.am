@@ -87,6 +87,7 @@ coin_CORE_H = \
   p2p/chainmessage.h \
   p2p/protocol.h \
   miner/miner.h \
+  miner/pbftcontext.h \
   mruset.h \
   netbase.h \
   net.h \
@@ -261,6 +262,7 @@ libcoin_server_a_SOURCES = \
   init.cpp \
   main.cpp \
   miner/miner.cpp \
+  miner/pbftcontext.cpp \
   net.cpp \
   p2p/addrman.cpp \
   p2p/protocol.cpp \

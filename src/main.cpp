@@ -2185,11 +2185,15 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
 
     // Relay inventory, but don't relay old inventory during initial block download
     if (chainActive.Tip()->GetBlockHash() == blockHash) {
-        LOCK(cs_vNodes);
-        for (auto pNode : vNodes) {
-            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
-                pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
+        {
+            LOCK(cs_vNodes);
+            for (auto pNode : vNodes) {
+                if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
+                    pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
+            }
         }
+
+        BroadcastBlockConfirm(block) ;
     }
 
     return true;

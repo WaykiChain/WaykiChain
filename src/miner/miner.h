@@ -89,4 +89,5 @@ void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates);
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
                         const VoteDelegateVector &delegates, VoteDelegate &delegate);
 
+bool BroadcastBlockConfirm(const CBlock block) ;
 #endif  // COIN_MINER_H

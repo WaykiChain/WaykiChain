@@ -34,6 +34,7 @@ const char *FILTERLOAD="filterload";
 const char *FILTERADD="filteradd";
 const char *FILTERCLEAR="filterclear";
 const char *REJECT="reject";
+const char *CONFIRMBLOCK = "confirmblock";
 // const char *SENDHEADERS="sendheaders";
 // const char *FEEFILTER="feefilter";
 // const char *SENDCMPCT="sendcmpct";

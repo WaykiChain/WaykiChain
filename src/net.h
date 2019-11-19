@@ -251,6 +251,11 @@ public:
     CCriticalSection cs_inventory;
     multimap<int64_t, CInv> mapAskFor;  //向网络请求交易的时间, a priority queue
 
+    // blockConfirm base relay
+    vector<CBlockConfirmMessage> vBlockConfirmMsgToSend ;
+    mruset<CBlockConfirmMessage> setBlockConfirmMsgKnown ;
+    CCriticalSection cs_blockConfirm ;
+
     // Ping time measurement
     uint64_t nPingNonceSent;
     int64_t nPingUsecStart;

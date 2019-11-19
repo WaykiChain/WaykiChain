@@ -128,7 +128,11 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
 
     else if (strCommand == NetMsgType::REJECT) {
         ProcessRejectMessage(pFrom, vRecv);
-    } else {
+    }
+    else if (strCommand == NetMsgType::CONFIRMBLOCK) {
+        ProcessBlockConfirmMEssage(pFrom, vRecv) ;
+    }
+    else {
         // Ignore unknown commands for extensibility
     }
 

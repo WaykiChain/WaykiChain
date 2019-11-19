@@ -11,6 +11,7 @@
 #include "commons/util/util.h"
 #include "main.h"
 #include "net.h"
+#include "miner/pbftcontext.h"
 
 #include <string>
 #include <tuple>
@@ -27,7 +28,9 @@ class CNode;
 class CDataStream;
 class CInv;
 class COrphanBlock;
+class CBlockConfirmMessage;
 
+extern CPBFTContext cpbftContext ;
 extern CChain chainActive;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
@@ -850,6 +853,27 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 }
 
+bool CheckBlockConfirmMessage(const CBlockConfirmMessage& msg){
+
+    return true ;
+
+}
+bool ProcessBlockConfirmMEssage(CNode *pFrom, CDataStream &vRecv) {
+
+    CBlockConfirmMessage message ;
+    vRecv >> message;
+    LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s",
+            message.height, message.blockHash.GetHex(), message.miner.ToString());
+    if(!CheckBlockConfirmMessage(message))
+        return false ;
+
+
+
+
+    return true ;
+
+
+}
 inline void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv) {
     if (SysCfg().IsDebug()) {
         string message;

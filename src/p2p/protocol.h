@@ -244,6 +244,13 @@ extern const char *GETBLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *BLOCKTXN;
+
+/**
+ * the message must be send by miner,means the the
+ * miner had checked the block  and it's valid ;
+ * @since protocol version 70014 as described by BIP 152
+ */
+extern const char *CONFIRMBLOCK ;
 };
 
 /** A CService with information about it as peer */
@@ -307,6 +314,30 @@ class CInv
     public:
         int32_t type;
         uint256 hash;
+};
+
+
+class CBlockConfirmMessage{
+    public:
+        vector<unsigned char > vSignature ;
+        CRegID miner ;
+        uint32_t height ;
+        uint256 blockHash;
+
+        CBlockConfirmMessage(){}
+        CBlockConfirmMessage(const uint32_t height,
+                const uint256 blockHash):height(height),
+                blockHash(blockHash){}
+        bool SetSginature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
+
+        IMPLEMENT_SERIALIZE
+        (
+            READWRITE(vSignature) ;
+            READWRITE(miner);
+            READWRITE(height);
+            READWRITE(blockHash);
+        )
+
 };
 
 enum
