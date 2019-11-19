@@ -284,7 +284,8 @@ WASM_H = \
   vm/wasm/wasm_host_methods.hpp \
   vm/wasm/wasm_interface.hpp \
   vm/wasm/wasm_native_contract.hpp \
-  vm/wasm/wasm_trace.hpp
+  vm/wasm/wasm_trace.hpp \
+  vm/wasm/wasm_rpc_message.hpp
 
 WASM_CPP = \
   vm/wasm/abi_serializer.cpp \

@@ -10,34 +10,36 @@
 ./coind -datadir=/home/xiaoyu/src/data/ importprivkey Y8G5MwTFVsqj1FvkqFDEENzUBn4yu4Ds83HkeSYP9SkjLba7xQFX
 ./coind -datadir=/home/xiaoyu/src/data/ importprivkey YAq1NTUKiYPhV9wq3xBNCxYZfjGPMtZpEPA4sEoXPU1pppdjSAka
 ./coind -datadir=/home/xiaoyu/src/data/ importprivkey Y6J4aK6Wcs4A3Ex4HXdfjJ6ZsHpNZfjaS4B9w7xqEnmFEYMqQd13
+./coind -datadir=/home/xiaoyu/src/data/ importprivkey Y8wZxK1UDo5oZmZ9hwhXpNb3Q9WRuy61Dy39C4m2GTsFWyfjMnXk
+./coind -datadir=/home/xiaoyu/src/data/ importprivkey Y6tGgVufC3o7BP83Q9y83Rk8D9KDwFUjTCYshghzXTAzCCCMCUeR
 
 
 ## send money to miners
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-3 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-4 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-5 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-6 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-7 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-8 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-9 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-10 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-11 210000000010000 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-12 210000000010000 10000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-3 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-4 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-5 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-6 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-7 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-8 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-9 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-10 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-11 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 0-12 220000000000000 100000000
 
 ./coind -datadir=/home/xiaoyu/src/data/ setgenerate true 1
 sleep 2.5
 
 ## miners delegate to self
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-3" '[{"delegate":"0-3", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-4" '[{"delegate":"0-4", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-5" '[{"delegate":"0-5", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-6" '[{"delegate":"0-6", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-7" '[{"delegate":"0-7", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-8" '[{"delegate":"0-8", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-9" '[{"delegate":"0-9", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-10" '[{"delegate":"0-10", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-11" '[{"delegate":"0-11", "votes":210000000000000}]' 10000
-./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-12" '[{"delegate":"0-12", "votes":210000000000000}]' 10000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-3" '[{"delegate":"0-3", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-4" '[{"delegate":"0-4", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-5" '[{"delegate":"0-5", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-6" '[{"delegate":"0-6", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-7" '[{"delegate":"0-7", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-8" '[{"delegate":"0-8", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-9" '[{"delegate":"0-9", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-10" '[{"delegate":"0-10", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-11" '[{"delegate":"0-11", "votes":210000000000000}]' 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-12" '[{"delegate":"0-12", "votes":210000000000000}]' 100000000
 
 ## 0-1 undelegate miners except 0-2
 ./coind -datadir=/home/xiaoyu/src/data/ submitdelegatevotetx "0-1" '[
@@ -51,8 +53,13 @@ sleep 2.5
 {"delegate":"0-10", "votes":-210000000000000},
 {"delegate":"0-11", "votes":-210000000000000},
 {"delegate":"0-12", "votes":-210000000000000}
-]' 10000
+]' 100000000
+
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 waem4ZAtWToVZ1dD3QkbrSJgigQ7CNtUrN 220000000000000 100000000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx 0-1 wghDEbNXMBhpdBoETMHDT5rb9pkdAbrNSB 220000000000000 100000000
 ./coind -datadir=/home/xiaoyu/src/data/ setgenerate true 1
+./coind -datadir=/home/xiaoyu/src/data/ submitaccountregistertx waem4ZAtWToVZ1dD3QkbrSJgigQ7CNtUrN
+./coind -datadir=/home/xiaoyu/src/data/ submitaccountregistertx wghDEbNXMBhpdBoETMHDT5rb9pkdAbrNSB
 
 sleep 2.5
 
@@ -63,14 +70,14 @@ echo "wait for 13s ..." && sleep 13
 ./coind -datadir=/home/xiaoyu/src/data/ getinfo
 
 ## give mined fee to 0-2
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx "0-1" "0-2" 10000010000000 10000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx "0-1" "0-2" 10000010000000 100000000
 ## give mined fee to 8-2
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx "0-1" "8-2" 10000010000000 10000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx "0-1" "8-2" 10000010000000 100000000
 ./coind -datadir=/home/xiaoyu/src/data/ setgenerate true 1
 
 sleep 2.5
 ## give WGRT to 0-2 from 8-2
-./coind -datadir=/home/xiaoyu/src/data/ submitsendtx "8-2" "0-2" "WGRT:21000000000000" 10000
+./coind -datadir=/home/xiaoyu/src/data/ submitsendtx "8-2" "0-2" "WGRT:21000000000000" 100000000
 ./coind -datadir=/home/xiaoyu/src/data/ setgenerate true 1
 
 sleep 2.5
