@@ -334,7 +334,7 @@ namespace wasm {
          * @brief %asset to std::string
          */
         std::string to_string() const {
-            int64_t p = (int64_t) sym.precision();
+            uint8_t p =  sym.precision();
             int64_t p10 = 1;
             //bool negative = false;
             int64_t invert = 1;
@@ -343,9 +343,9 @@ namespace wasm {
                 p10 *= 10;
                 --p;
             }
-            p = (int64_t) sym.precision();
+            p =  sym.precision();
 
-            char fraction[p + 1];
+            char fraction[256];
             fraction[p] = '\0';
 
             if (amount < 0) {

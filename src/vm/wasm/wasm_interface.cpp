@@ -179,7 +179,6 @@ namespace wasm {
 
         }
 
-
         //database
         int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
 
@@ -277,7 +276,6 @@ namespace wasm {
                         ("wasm db_update set_data key fail, key:" + ToHex(k, "")).c_str());
 
             //pWasmContext->update_storage_usage(payer, v.size() - old_value.size());
-
             pWasmContext->update_storage_usage(payer, k.size() + v.size());
 
             return 1;
@@ -467,7 +465,9 @@ namespace wasm {
         }
 
         void require_auth2( uint64_t account, uint64_t permission ) {
-            std::cout << "require_auth2" << account << " " << permission << std::endl;
+
+            pWasmContext->require_auth(account);
+            //std::cout << "require_auth2" << account << " " << permission << std::endl;
             //std::cout << "account:"<< account << "permission" << permission << std::endl;
             //std::cout << "require_authorization" << std::endl;
             //return;
