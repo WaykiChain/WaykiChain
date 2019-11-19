@@ -26,10 +26,14 @@ namespace wasm {
     class wasm_context : public wasm_context_interface {
 
     public:
-        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, 
+        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, bool mining,
                       uint32_t depth = 0 )
                 : trx(t), control_trx(ctrl), database(cw), recurse_depth(depth) {
             reset_console();
+
+            if(mining){
+                transaction_duration_max = std::chrono::milliseconds(max_wasm_execute_time_mining);
+            }
         };
 
         ~wasm_context() { 
@@ -98,7 +102,7 @@ namespace wasm {
         uint64_t block_time() { return 0; }
 
         vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
-        std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+        std::chrono::milliseconds get_transaction_duration(){ return transaction_duration_max; }
         void update_storage_usage(uint64_t account, int64_t size_in_bytes);
 
         void pause_billing_timer(){ control_trx.pause_billing_timer(); };
@@ -118,6 +122,8 @@ namespace wasm {
 
         wasm::wasm_interface wasmif;
         vm::wasm_allocator  wasm_alloc;
+
+        std::chrono::milliseconds transaction_duration_max = std::chrono::milliseconds(max_wasm_execute_time_observe);
 
     private:
         std::ostringstream _pending_console_output;

@@ -42,6 +42,7 @@ public:
     uint32_t prev_block_time;
     CCacheWrapper *pCw;
     CValidationState *pState;
+    bool is_mining;
 
     CTxExecuteContext()
         : height(0),
@@ -50,18 +51,20 @@ public:
           block_time(0),
           prev_block_time(0),
           pCw(nullptr),
-          pState(nullptr) {}
+          pState(nullptr),
+          is_mining(false) {}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn)
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const bool mining = false)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
           block_time(blockTimeIn),
           prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
-          pState(pStateIn) {}
+          pState(pStateIn),
+          is_mining(mining){}
 };
 
 class CBaseTx {

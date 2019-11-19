@@ -14,6 +14,7 @@ public:
     vector<wasm::inline_transaction> inlinetransactions;
 
 public:
+    bool mining;
     system_clock::time_point pseudo_start;
     std::chrono::microseconds billed_time = chrono::microseconds(0);
 

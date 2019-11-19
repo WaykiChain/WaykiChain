@@ -234,10 +234,6 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         contract_is_valid(context);
 
         // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
-
-        // WASM_TRACE("llFuel:%ld", llFuel)
-        // WASM_TRACE("llFees:%ld", llFees)
-
         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
         //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
 
@@ -270,12 +266,8 @@ static uint64_t get_fuel_limit(CBaseTx &tx, CTxExecuteContext &context) {
     uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
 
-    // WASM_TRACE("fee_for_miner:%ld", fee_for_miner)
-    // WASM_TRACE("fee_for_gas:%ld", fee_for_gas)
-
     uint64_t fuel_limit = std::min<uint64_t>((fee_for_gas / fuel_rate) * 100, MAX_BLOCK_RUN_STEP);
 
-    //WASM_TRACE("fuel_limit:%ld", fuel_limit)
     WASM_ASSERT( fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
 
     return fuel_limit;
@@ -321,7 +313,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto &database         = *context.pCw;
         auto execute_tx_return = context.pState;
 
-        //WASM_TRACE("nRunStep:%ld", nRunStep);
+        mining  = context.is_mining;
         nRunStep = sizeof(inlinetransactions);
 
         //charger fee
@@ -348,14 +340,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         uint64_t fee = get_fuel_limit(*this, context);
 
-        // WASM_TRACE("nRunStep:%ld", nRunStep)
-        // WASM_TRACE("fee:%ld", fee)
-
         WASM_ASSERT( fee > nRunStep, fuel_fee_exception, "%s",
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel")
 
 
-        //cache.save(trace)
+        //database.save_trace(GetHash(),trace);
         vector<CReceipt> receipts;
         trace_to_receipts(trx_trace, receipts);
         WASM_ASSERT( database.txReceiptCache.SetTxReceipts(GetHash(), receipts), 
@@ -367,8 +356,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         // to_variant(trx_trace, v, database);
         // execute_tx_return->SetReturn(json_spirit::write(v));    
         execute_tx_return->SetReturn(GetHash().ToString());
-
-        //WASM_TRACE("%s", GetHash().ToString().c_str() )
 
     } catch (wasm::exception &e) {
         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
@@ -384,7 +371,7 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace 
                                                  //CValidationState &state,
                                                  uint32_t recurse_depth ) {
 
-    wasm_context ctx(*this, trx, database, recurse_depth);
+    wasm_context ctx(*this, trx, database, mining, recurse_depth);
     ctx._receiver = receiver;
     ctx.execute(trace);
 

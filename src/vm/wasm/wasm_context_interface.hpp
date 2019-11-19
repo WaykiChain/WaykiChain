@@ -42,7 +42,7 @@ namespace wasm {
         virtual bool has_authorization( uint64_t account ) const { return true; }
         virtual uint64_t block_time() { return 0; }
         virtual vm::wasm_allocator* get_wasm_allocator(){ return nullptr; }
-        virtual std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+        virtual std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time_observe); }
         virtual void update_storage_usage(uint64_t account, int64_t size_in_bytes){}
 
         virtual void pause_billing_timer(){};

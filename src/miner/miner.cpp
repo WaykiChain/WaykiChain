@@ -320,7 +320,7 @@ static bool CreateNewBlockPreStableCoinRelease(CCacheWrapper &cwIn, std::unique_
                 CValidationState state;
                 pBaseTx->nFuelRate = fuelRate;
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, true);
                 if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockPreStableCoinRelease() : failed to pack transaction, txid: %s\n",
                             pBaseTx->GetHash().GetHex());
@@ -480,7 +480,7 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                          pBaseTx->ToString(spCW->accountCache));
 
                 uint32_t prevBlockTime = pIndexPrev->GetBlockTime();
-                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state);
+                CTxExecuteContext context(height, index + 1, fuelRate, blockTime, prevBlockTime, spCW.get(), &state, true);
                 if (!pBaseTx->CheckTx(context) || !pBaseTx->ExecuteTx(context)) {
                     LogPrint("MINER", "CreateNewBlockStableCoinRelease() : failed to pack transaction: %s\n",
                              pBaseTx->ToString(spCW->accountCache));
