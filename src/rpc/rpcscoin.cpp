@@ -105,33 +105,34 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
             "submitcoinstaketx \"addr\" \"coin_symbol\" \"coin_amount\" [\"symbol:fee:unit\"]\n"
             "\nstake fcoins\n"
             "\nArguments:\n"
-            "1.\"addr\":            (string, required)\n"
-            "2.\"coin_symbol\":     (WICC|WUSD|WGRT, required)\n"
-            "2.\"coin_amount\":     (numeric, required) amount of coins to stake (positive) or unstake (negative)\n"
-            "3.\"symbol:fee:unit\": (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
+            "1.\"addr\":                (string, required)\n"
+            "2. \"stake_combo_money\":  (symbol:amount:unit, required) Combo Money to stake or unstake the CDP,"
+            " default symbol=WICC, default unit=sawi\n"
+            "3. \"stake_direction\":    (bool, required) stake or unstake: true stand for stake , false stand for unstake "
+            "4.\"symbol:fee:unit\":     (string:numeric:string, optional) fee paid to miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\"               (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC\" 200000000")
+            + HelpExampleCli("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\" \"WICC:0.1:wi\" true")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"WICC\", 200000000")
+            + HelpExampleRpc("submitcoinstaketx", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"WICC:0.1:wi\", true")
         );
     }
 
     EnsureWalletIsUnlocked();
 
     const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
-    string coinSymbol       = params[1].get_str();
-    int64_t coinAmount      = params[2].get_int64();
+
+    ComboMoney coinAmount   = RPC_PARAM::GetComboMoney(params[1]);
     ComboMoney cmFee        = RPC_PARAM::GetFee(params, 3, UCOIN_STAKE_TX);
     int32_t validHeight     = chainActive.Height();
-    BalanceOpType stakeType = coinAmount >= 0 ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
+    BalanceOpType stakeType = params[2].get_bool() ? BalanceOpType::STAKE : BalanceOpType::UNSTAKE;
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
 
-    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, coinSymbol, std::abs(coinAmount));
+    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), stakeType, coinAmount.symbol, coinAmount.GetSawiAmount());
     return SubmitTx(account.keyid, tx);
 }
 
@@ -207,8 +208,7 @@ Value submitcdpredeemtx(const Array& params, bool fHelp) {
             "2. \"cdp_id\":             (string, required) ID of existing CDP (tx hash of the first CDP Stake Tx)\n"
             "3. \"repay_amount\":       (numeric, required) scoins (E.g. WUSD) to repay into the CDP, boosted by 10^8\n"
             "4. \"redeem_amount\":      (numeric, required) bcoins (E.g. WICC) to redeem from the CDP, boosted by 10^8\n"
-            "5. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is "
-            "WICC:100000:sawi\n"
+            "5. \"symbol:fee:unit\":    (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi\n"
             "\nResult:\n"
             "\"txid\"                   (string) The transaction id.\n"
             "\nExamples:\n" +
@@ -489,23 +489,23 @@ Value getclosedcdp(const Array& params, bool fHelp) {
 
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 6) {
+    if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
             "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [symbol:fee:unit]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
-            "5.\"price\": (numeric, required) bidding price willing to buy\n"
-            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to buy \n "
+            "   default symbol is WICC, default unit is sawi.\n"
+            "4.\"price\": (numeric, required) bidding price willing to buy\n"
+            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\"  200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC\", 1000000, 200000000\n")
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\", 200000000\n")
         );
     }
 
@@ -513,42 +513,41 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
-    uint64_t assetAmount           = AmountToRawValue(params[3]);
-    uint64_t price                 = RPC_PARAM::GetPrice(params[4]);  // TODO: need to check price?
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_BUY_ORDER_TX);
+    ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    uint64_t price                 = RPC_PARAM::GetPrice(params[3]);  // TODO: need to check price?
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_LIMIT_BUY_ORDER_TX);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetAmount, price);
+    uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetInfo.GetSawiAmount(), price);
     RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
 
     int32_t validHeight = chainActive.Height();
     CDEXBuyLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
-                           assetSymbol, assetAmount, price);
+                           assetInfo.symbol, assetInfo.GetSawiAmount(), price);
     return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 5 || params.size() > 6) {
+    if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
             "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [symbol:fee:unit]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
-            "5.\"price\": (numeric, required) bidding price willing to buy\n"
-            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell \n "
+            "   default symbol is WICC, default unit is sawi.\n"
+            "4.\"price\": (numeric, required) bidding price willing to buy\n"
+            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC\" 1000000 200000000\n")
+            + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\" 200000000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC\", 1000000, 200000000\n")
+            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\", 200000000\n")
         );
     }
 
@@ -556,98 +555,96 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
-    uint64_t assetAmount           = AmountToRawValue(params[3]);
-    uint64_t price                 = RPC_PARAM::GetPrice(params[4]);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, DEX_LIMIT_SELL_ORDER_TX);
+    ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    uint64_t price                 = RPC_PARAM::GetPrice(params[3]);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_LIMIT_SELL_ORDER_TX);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, assetSymbol, FREEZE, assetAmount);
+    RPC_PARAM::CheckAccountBalance(account, assetInfo.symbol, FREEZE, assetInfo.GetSawiAmount());
 
     int32_t validHeight = chainActive.Height();
-    CDEXSellLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
-                            assetAmount, price);
+    CDEXSellLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
+                            assetInfo.GetSawiAmount(), price);
     return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 4 || params.size() > 5) {
+     if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
             "submitdexbuymarketordertx \"addr\" \"coin_symbol\" coin_amount \"asset_symbol\" [symbol:fee:unit]\n"
             "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
-            "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"coin_amount\": (numeric, required) amount of target coin to buy\n"
-            "4.\"asset_symbol\": (string required), asset type to buy\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "2.\"coin_symbol:coin_amount:unit\",(comboMoney,required) the target coin amount for buying asset \n "
+            "   default symbol is WUSD, default unit is sawi.\n"
+            "3.\"asset_symbol\": (string required), asset type to buy\n"
+            "4.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD\" 200000000 \"WICC\"\n")
+            + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD:200000000:sawi\"  \"WICC\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD\", 200000000, \"WICC\"\n")
+            + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD:200000000:sawi\", \"WICC\"\n")
         );
     }
 
     EnsureWalletIsUnlocked();
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
-    const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    uint64_t coinAmount            = AmountToRawValue(params[2]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[3]);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_BUY_ORDER_TX);
+    ComboMoney coinInfo            = RPC_PARAM::GetComboMoney(params[1], SYMB::WUSD);
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 3, DEX_MARKET_BUY_ORDER_TX);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinInfo.symbol, assetSymbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
+    RPC_PARAM::CheckAccountBalance(account, coinInfo.symbol, FREEZE, coinInfo.GetSawiAmount());
 
     int32_t validHeight = chainActive.Height();
-    CDEXBuyMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
-                            coinAmount);
+    CDEXBuyMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinInfo.symbol, assetSymbol,
+                            coinInfo.GetSawiAmount());
     return SubmitTx(account.keyid, tx);
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 4 || params.size() > 5) {
+    if (fHelp || params.size() < 3 || params.size() > 4) {
         throw runtime_error(
             "submitdexsellmarketordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount [symbol:fee:unit]\n"
             "\nsubmit a dex sell market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol\": (string required), asset type to buy\n"
-            "4.\"asset_amount\": (numeric, required) amount of target asset to buy\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell \n "
+            "   default symbol is WICC, default unit is sawi.\n"
+            "4.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC\" 200000000\n")
+            + HelpExampleCli("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC:200000000:sawi\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\", \"WUSD\", \"WICC\", 200000000\n")
+            + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\", \"WUSD\", \"WICC:200000000:sawi\"\n")
         );
     }
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
-    const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
-    uint64_t assetAmount           = AmountToRawValue(params[3]);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_MARKET_SELL_ORDER_TX);
+    ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetSymbol);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 3, DEX_MARKET_SELL_ORDER_TX);
+
+    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
     RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, assetSymbol, FREEZE, assetAmount);
+    RPC_PARAM::CheckAccountBalance(account, assetInfo.symbol, FREEZE, assetInfo.GetSawiAmount());
 
     int32_t validHeight = chainActive.Height();
-    CDEXSellMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetSymbol,
-                             assetAmount);
+    CDEXSellMarketOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
+                             assetInfo.GetSawiAmount());
     return SubmitTx(account.keyid, tx);
 }
 

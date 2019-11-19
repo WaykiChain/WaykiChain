@@ -180,14 +180,8 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     /* for dex */
     if (strMethod == "submitdexbuylimitordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexbuylimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
 
     if (strMethod == "submitdexselllimitordertx"    && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexselllimitordertx"    && n > 4) ConvertTo<int64_t>(params[4]);
-
-    if (strMethod == "submitdexbuymarketordertx"    && n > 2) ConvertTo<int64_t>(params[2]);
-
-    if (strMethod == "submitdexsellmarketordertx"   && n > 3) ConvertTo<int64_t>(params[3]);
 
     if (strMethod == "submitdexsettletx"            && n > 1) ConvertTo<Array>(params[1]);
 
@@ -206,7 +200,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     /* for cdp */
     if (strMethod == "submitpricefeedtx"        && n > 1) ConvertTo<Array>(params[1]);
 
-    if (strMethod == "submitcoinstaketx"        && n > 2) ConvertTo<int64_t>(params[2]);
+    if (strMethod == "submitcoinstaketx"        && n > 2) ConvertTo<bool>(params[2]);
 
     if (strMethod == "submitcdpredeemtx"        && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitcdpredeemtx"        && n > 3) ConvertTo<int64_t>(params[3]);

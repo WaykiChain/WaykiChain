@@ -289,6 +289,20 @@ class CAddress : public CService
         int64_t nLastTry;
 };
 
+class CHandshake {
+
+public:
+    uint32_t tipHeight ;
+
+public:
+    CHandshake() ;
+    CHandshake(uint32_t tipHeight):tipHeight(tipHeight) {};
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(tipHeight);
+            )
+};
+
 /** inv message data */
 class CInv
 {
