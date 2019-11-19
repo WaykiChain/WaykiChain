@@ -19,7 +19,7 @@ namespace wasm {
 
     void wasmio_native_setcode(wasm_context &context) {
 
-         WASM_ASSERT(context._receiver == wasmio, wasm_assert_exception, "exception comtract wasmio,but get %s", wasm::name(context._receiver).to_string().c_str());
+         WASM_ASSERT(context._receiver == wasmio, wasm_assert_exception, "exception contract wasmio, but get %s", wasm::name(context._receiver).to_string().c_str());
 
 
         auto &database_account         = context.database.accountCache;
@@ -68,7 +68,7 @@ namespace wasm {
     
     void wasmio_bank_native_transfer(wasm_context &context) {
 
-        WASM_ASSERT(context._receiver == wasmio_bank, wasm_assert_exception, "exception comtract wasmio_bank,but get %s", wasm::name(context._receiver).to_string().c_str());
+        WASM_ASSERT(context._receiver == wasmio_bank, wasm_assert_exception, "exception contract wasmio_bank, but get %s", wasm::name(context._receiver).to_string().c_str());
 
         auto &database = context.database.accountCache;
 

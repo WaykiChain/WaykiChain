@@ -64,12 +64,12 @@ public:
 public:
     void contract_is_valid(CTxExecuteContext &context);
     void authorization_is_valid(uint64_t account);
-    void DispatchInlineTransaction( wasm::inline_transaction_trace& trace,
-                                    wasm::inline_transaction& trx,
-                                     uint64_t receiver,
-                                     CCacheWrapper &database,
-                                     //CValidationState &state,
-                                     uint32_t recurse_depth);
+    void execute_inline_transaction( wasm::inline_transaction_trace& trace,
+                                      wasm::inline_transaction& trx,
+                                      uint64_t receiver,
+                                      CCacheWrapper &database,
+                                      //CValidationState &state,
+                                      uint32_t recurse_depth);
 
 };
 

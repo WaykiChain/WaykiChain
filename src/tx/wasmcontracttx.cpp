@@ -334,7 +334,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         for (auto trx: inlinetransactions) {
             trx_trace.traces.emplace_back();
-            DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, database, 0);
+            execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, database, 0);
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start); 
 
@@ -364,7 +364,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace &trace,
+void CWasmContractTx::execute_inline_transaction( wasm::inline_transaction_trace &trace,
                                                  wasm::inline_transaction &trx,
                                                  uint64_t receiver,
                                                  CCacheWrapper &database,
