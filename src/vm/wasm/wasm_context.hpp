@@ -32,7 +32,7 @@ namespace wasm {
             reset_console();
 
             if(mining){
-                transaction_duration_max = std::chrono::milliseconds(max_wasm_execute_time_mining);
+                transaction_duration_timeout = std::chrono::milliseconds(max_wasm_execute_time_mining);
             }
         };
 
@@ -102,7 +102,7 @@ namespace wasm {
         uint64_t block_time() { return 0; }
 
         vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
-        std::chrono::milliseconds get_transaction_duration(){ return transaction_duration_max; }
+        std::chrono::milliseconds get_transaction_duration(){ return transaction_duration_timeout; }
         void update_storage_usage(uint64_t account, int64_t size_in_bytes);
 
         void pause_billing_timer(){ control_trx.pause_billing_timer(); };
@@ -123,7 +123,7 @@ namespace wasm {
         wasm::wasm_interface wasmif;
         vm::wasm_allocator  wasm_alloc;
 
-        std::chrono::milliseconds transaction_duration_max = std::chrono::milliseconds(max_wasm_execute_time_observe);
+        std::chrono::milliseconds transaction_duration_timeout = std::chrono::milliseconds(max_wasm_execute_time_observe);
 
     private:
         std::ostringstream _pending_console_output;

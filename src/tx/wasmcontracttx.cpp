@@ -279,11 +279,11 @@ static void inline_trace_to_receipts(const wasm::inline_transaction_trace trace,
         CReceipt receipt;
         receipt.code = TRANSFER_ACTUAL_COINS;
 
-        std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(trace.trx.data);
-        auto from     = std::get<0>(transfer);
-        auto to       = std::get<1>(transfer);
-        auto quantity = std::get<2>(transfer);
-        auto memo     = std::get<3>(transfer);
+        std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(trace.trx.data);
+        auto from     = std::get<0>(transfer_data);
+        auto to       = std::get<1>(transfer_data);
+        auto quantity = std::get<2>(transfer_data);
+        auto memo     = std::get<3>(transfer_data);
 
         receipt.from_uid = CUserID(CNickID(wasm::name(from).to_string()));
         receipt.from_uid = CUserID(CNickID(wasm::name(to).to_string()));
@@ -372,6 +372,8 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace 
                                                  uint32_t recurse_depth ) {
 
     wasm_context ctx(*this, trx, database, mining, recurse_depth);
+
+    //check timeout
     WASM_ASSERT(std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) < ctx.get_transaction_duration(),
                 timeout_exception, "%s", "timeout");
 

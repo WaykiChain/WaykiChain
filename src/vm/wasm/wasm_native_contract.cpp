@@ -36,11 +36,11 @@ namespace wasm {
         // sub_balance(sender, quantity, context);
 
         //set contract code and abi
-        std::tuple<uint64_t, string, string, string> set_code = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
-        auto contract_name = wasm::name(std::get<0>(set_code));
-        auto code          = std::get<1>(set_code);
-        auto abi           = std::get<2>(set_code);
-        auto memo          = std::get<3>(set_code);
+        std::tuple<uint64_t, string, string, string> set_code_data = wasm::unpack<std::tuple<uint64_t, string, string, string>>(context.trx.data);
+        auto contract_name = wasm::name(std::get<0>(set_code_data));
+        auto code          = std::get<1>(set_code_data);
+        auto abi           = std::get<2>(set_code_data);
+        auto memo          = std::get<3>(set_code_data);
 
         context.require_auth(contract_name.value); 
 
@@ -72,11 +72,11 @@ namespace wasm {
 
         auto &database = context.database.accountCache;
 
-        std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
-        auto from     = std::get<0>(transfer);
-        auto to       = std::get<1>(transfer);
-        auto quantity = std::get<2>(transfer);
-        auto memo     = std::get<3>(transfer);
+        std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
+        auto from     = std::get<0>(transfer_data);
+        auto to       = std::get<1>(transfer_data);
+        auto quantity = std::get<2>(transfer_data);
+        auto memo     = std::get<3>(transfer_data);
 
         // wasm::abi_def wasmio_abi = wasmio_contract_abi();
         // std::vector<char> abi = wasm::pack<wasm::abi_def>(wasmio_abi);
