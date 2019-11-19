@@ -372,6 +372,9 @@ void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace 
                                                  uint32_t recurse_depth ) {
 
     wasm_context ctx(*this, trx, database, mining, recurse_depth);
+    WASM_ASSERT(std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) < ctx.get_transaction_duration(),
+                timeout_exception, "%s", "timeout");
+
     ctx._receiver = receiver;
     ctx.execute(trace);
 
@@ -390,7 +393,7 @@ bool CWasmContractTx::GetInvolvedKeyIds( CCacheWrapper &cw, set <CKeyID> &keyIds
 uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
-        LogPrint("ERROR", "CWasmContractTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
+        LogPrint(BCLog::ERROR, "CWasmContractTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
         throw runtime_error("CWasmContractTx::GetFuel(), get min_fee failed");
     }
 
