@@ -47,7 +47,7 @@ namespace wasm {
         CAccount contract;
         WASM_ASSERT(database_account.GetAccount(nick_name(contract_name.to_string()), contract),
                     account_operation_exception,
-                    "wasmnativecontract.Setcode, contract account does not exist, contract = %s",
+                    "wasmio_native_setcode.Setcode, contract account does not exist, contract = %s",
                     contract_name.to_string().c_str()) 
 
         CUniversalContract contract_store;
@@ -63,7 +63,7 @@ namespace wasm {
 
         WASM_ASSERT(database_contract.SaveContract(contract.regid, contract_store), account_operation_exception,
                     "%s",
-                    "wasmnativecontract.Setcode, save account info error")
+                    "wasmio_native_setcode.Setcode, save account info error")
     }
     
     void wasmio_bank_native_transfer(wasm_context &context) {
@@ -101,16 +101,16 @@ namespace wasm {
         CAccount from_account;
         WASM_ASSERT(database.GetAccount(nick_name(wasm::name(from).to_string()), from_account),
                     account_operation_exception,
-                    "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
-                    from_account.nickid.ToString().c_str())
+                    "wasmio_bank_native_transfer.Transfer, from account does not exist, sender Id = %s",
+                    wasm::name(from).to_string().c_str())
         sub_balance( from_account, quantity, database );
 
 
         CAccount to_account;
         WASM_ASSERT(database.GetAccount(nick_name(wasm::name(to).to_string()), to_account),
                     account_operation_exception,
-                    "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
-                    to_account.nickid.ToString().c_str())
+                    "wasmio_bank_native_transfer.Transfer, to account does not exist, sender Id = %s",
+                    wasm::name(to).to_string().c_str())
         add_balance( to_account, quantity, database );
 
     }
