@@ -313,7 +313,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto &database         = *context.pCw;
         auto execute_tx_return = context.pState;
 
-        mining  = context.is_mining;
+        mining   = context.is_mining;
         nRunStep = sizeof(inlinetransactions);
 
         //charger fee
