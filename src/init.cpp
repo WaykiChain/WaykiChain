@@ -537,10 +537,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     //     ShrinkDebugFile();
 
      if (!LogInstance().m_log_timestamps)
-        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+        LogPrint(BCLog::INFO, "Startup time: %s\n", FormatISO8601DateTime(GetTime()));
 
-    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
-    LogPrintf("Using data directory %s\n", GetDataDir().string());
+    LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrint(BCLog::INFO, "Using data directory %s\n", GetDataDir().string());
 
     LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
     LogPrint(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
@@ -914,5 +914,5 @@ void InitLogging()
 #else
     version_string += " (release build)";
 #endif
-    LogPrintf(PACKAGE_NAME " version %s\n", version_string);
+    LogPrint(BCLog::INFO, PACKAGE_NAME " version %s\n", version_string);
 }

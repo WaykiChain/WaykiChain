@@ -124,7 +124,7 @@ extern string GetLogHead(int line, const char* file, const char* category);
     /*   Log error and return false */                                                                               \
     template <TINYFORMAT_ARGTYPES(n)>                                                                                \
     static inline bool error2(int line, const char* file, const char* format1, TINYFORMAT_VARARGS(n)) {              \
-        LogPrintf("ERROR: %s \n", GetLogHead(line, file, "ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)));   \
+        LogPrintf(BCLog::ERROR, "%s \n", GetLogHead(line, file, "ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)));   \
         return false;                                                                                                \
     }
 
@@ -133,13 +133,13 @@ TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_FUNC)
 template<typename... Args>
 bool error(const char* fmt, const Args&... args)
 {
-    LogPrintf("ERROR: %s\n", tfm::format(fmt, args...));
+    LogPrintf(BCLog::ERROR, "ERROR: %s\n", tfm::format(fmt, args...));
     return false;
 }
 
 static inline bool error2(int line, const char* file, const char* format) {
     //	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
-    LogPrintf("ERROR: %s %s\n", GetLogHead(line, file, "ERROR"), format);
+    LogPrintf(BCLog::ERROR, "%s %s\n", GetLogHead(line, file, "ERROR"), format);
     return false;
 }
 
@@ -473,6 +473,14 @@ inline std::string StrToLower(const std::string &str) {
     std::string ret = str;
 	std::for_each(ret.begin(), ret.end(), [](char & c) {
 		c = ::tolower(c);
+	});
+    return ret;
+}
+
+inline std::string StrToUpper(const std::string &str) {
+    std::string ret = str;
+	std::for_each(ret.begin(), ret.end(), [](char & c) {
+		c = ::toupper(c);
 	});
     return ret;
 }

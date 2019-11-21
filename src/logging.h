@@ -94,7 +94,7 @@ namespace BCLog { //blockchain log
         std::atomic<bool> m_reopen_file{false};
 
         /** Send a string to the log output */
-        void LogPrintStr(const std::string& str);
+        void LogPrintStr(const BCLog::LogFlags& category, const std::string& str);
 
         /** Returns whether logs will be written to any output */
         bool Enabled() const
@@ -161,7 +161,7 @@ bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str);
 // peer can fill up a user's disk with debug.log entries.
 
 template <typename... Args>
-static inline void LogPrintf(const char* fmt, const Args&... args)
+static inline void LogPrintf(const BCLog::LogFlags& category, const char* fmt, const Args&... args)
 {
     if (LogInstance().Enabled()) {
         std::string log_msg;
@@ -171,7 +171,7 @@ static inline void LogPrintf(const char* fmt, const Args&... args)
             /* Original format string will have newline so don't add one here */
             log_msg = "Error \"" + std::string(fmterr.what()) + "\" while formatting log message: " + fmt;
         }
-        LogInstance().LogPrintStr(log_msg);
+        LogInstance().LogPrintStr(category, log_msg);
     }
 }
 
@@ -180,7 +180,7 @@ static inline void LogPrintf(const char* fmt, const Args&... args)
 #define LogPrint(category, ...)              \
     do {                                     \
         if (LogAcceptCategory((category))) { \
-            LogPrintf(__VA_ARGS__);          \
+            LogPrintf(category, __VA_ARGS__);          \
         }                                    \
     } while (0)
 

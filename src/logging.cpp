@@ -8,6 +8,7 @@
 #include "commons/util/threadnames.h"
 #include "commons/util/time.h"
 #include "commons/util/util.h"
+#include "commons/types.h"
 
 #include <mutex>
 
@@ -131,33 +132,42 @@ struct CLogCategoryDesc
     std::string category;
 };
 
-const CLogCategoryDesc LogCategories[] =
-{
+
+static const EnumTypeMap<BCLog::LogFlags, std::string, uint32_t> LOG_CATEGORY_MAP = {
     {BCLog::NONE,       "0"         },
-    {BCLog::INFO,       "info"      },
-    {BCLog::ERROR,      "error"     },
-    {BCLog::DEBUG,      "debug"     },
-    {BCLog::NET,        "net"       },
-    {BCLog::MINER,      "miner"     },
-    {BCLog::ALERT,      "alert"     },
-    {BCLog::CDB,        "cdb"       },
-    {BCLog::BDB,        "bdb"       },
-    {BCLog::LDB,        "ldb"       },
-    {BCLog::LUAVM,      "luavm"     },
-    {BCLog::WASM,       "wasm"      },
-    {BCLog::LOCK,       "lock"      },
-    {BCLog::HTTP,       "http"      },
-    {BCLog::RPC,        "rpc"       },
-    {BCLog::REINDEX,    "reindex"   },
-    {BCLog::PROFIT,     "profit"    },
-    {BCLog::ADDRMAN,    "addrman"   },
-    {BCLog::PRICEFEED,  "pricefeed" },
-    {BCLog::CDP,        "cdp"       },
-    {BCLog::WALLET,     "wallet"    },
-    {BCLog::LIBEVENT,   "libevent"  },
+    {BCLog::INFO,       "INFO"      },
+    {BCLog::ERROR,      "ERROR"     },
+    {BCLog::DEBUG,      "DEBUG"     },
+    {BCLog::NET,        "NET"       },
+    {BCLog::MINER,      "MINER"     },
+    {BCLog::ALERT,      "ALERT"     },
+    {BCLog::CDB,        "CDB"       },
+    {BCLog::BDB,        "BDB"       },
+    {BCLog::LDB,        "LDB"       },
+    {BCLog::LUAVM,      "LUAVM"     },
+    {BCLog::WASM,       "WASM"      },
+    {BCLog::LOCK,       "LOCK"      },
+    {BCLog::HTTP,       "HTTP"      },
+    {BCLog::RPC,        "RPC"       },
+    {BCLog::REINDEX,    "REINDEX"   },
+    {BCLog::PROFIT,     "PROFIT"    },
+    {BCLog::ADDRMAN,    "ADDRMAN"   },
+    {BCLog::PRICEFEED,  "PRICEFEED" },
+    {BCLog::CDP,        "CDP"       },
+    {BCLog::WALLET,     "WALLET"    },
+    {BCLog::LIBEVENT,   "LIBEVENT"  },
     {BCLog::ALL,        "1"         },
-    {BCLog::ALL,        "all"       },
+    {BCLog::ALL,        "ALL"       },
 };
+
+static const std::string LOG_CATEGORY_UNKOWN = "";
+
+const std::string& GetLogCategoryName(const BCLog::LogFlags& flag) {
+    auto it = LOG_CATEGORY_MAP.find(flag);
+    if (it != LOG_CATEGORY_MAP.end())
+        return it->second;
+    return LOG_CATEGORY_UNKOWN;
+}
 
 bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str)
 {
@@ -165,10 +175,10 @@ bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str)
         flag = BCLog::ALL;
         return true;
     }
-    const std::string &category = StrToLower(str);
-    for (const CLogCategoryDesc& category_desc : LogCategories) {
-        if (category_desc.category == category) {
-            flag = category_desc.flag;
+    const std::string &category = StrToUpper(str);
+    for (auto& categoryPair : LOG_CATEGORY_MAP) {
+        if (categoryPair.second == category) {
+            flag = categoryPair.first;
             return true;
         }
     }
@@ -179,11 +189,11 @@ std::string ListLogCategories()
 {
     std::string ret;
     int outcount = 0;
-    for (const CLogCategoryDesc& category_desc : LogCategories) {
+    for (auto& categoryPair : LOG_CATEGORY_MAP) {
         // Omit the special cases.
-        if (category_desc.flag != BCLog::NONE && category_desc.flag != BCLog::ALL) {
+        if (categoryPair.first != BCLog::NONE && categoryPair.first != BCLog::ALL) {
             if (outcount != 0) ret += ", ";
-            ret += category_desc.category;
+            ret += categoryPair.second;
             outcount++;
         }
     }
@@ -193,12 +203,12 @@ std::string ListLogCategories()
 std::vector<CLogCategoryActive> ListActiveLogCategories()
 {
     std::vector<CLogCategoryActive> ret;
-    for (const CLogCategoryDesc& category_desc : LogCategories) {
+    for (auto& categoryPair : LOG_CATEGORY_MAP) {
         // Omit the special cases.
-        if (category_desc.flag != BCLog::NONE && category_desc.flag != BCLog::ALL) {
+        if (categoryPair.first != BCLog::NONE && categoryPair.first != BCLog::ALL) {
             CLogCategoryActive catActive;
-            catActive.category = category_desc.category;
-            catActive.active = LogAcceptCategory(category_desc.flag);
+            catActive.category = categoryPair.second;
+            catActive.active = LogAcceptCategory(categoryPair.first);
             ret.push_back(catActive);
         }
     }
@@ -252,10 +262,12 @@ namespace BCLog {
     }
 }
 
-void BCLog::Logger::LogPrintStr(const std::string& str)
+void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const std::string& str)
 {
     std::lock_guard<std::mutex> scoped_lock(m_cs);
     std::string str_prefixed = LogEscapeMessage(str);
+
+    str_prefixed.insert(0, "[" + GetLogCategoryName(category) + "] ");
 
     if (m_log_threadnames && m_started_new_line) {
         str_prefixed.insert(0, "[" + util::ThreadGetInternalName() + "] ");
@@ -319,7 +331,7 @@ void BCLog::Logger::ShrinkDebugFile()
         // Restart the file with some of the end
         std::vector<char> vch(RECENT_DEBUG_HISTORY_SIZE, 0);
         if (fseek(file, -((long)vch.size()), SEEK_END)) {
-            LogPrintf("Failed to shrink debug log file: fseek(...) failed\n");
+            LogPrintf(ERROR, "Failed to shrink debug log file: fseek(...) failed\n");
             fclose(file);
             return;
         }
