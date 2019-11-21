@@ -187,4 +187,31 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, 
         }                                                         \
     } while (0)
 
+
+#define ERRORMSG(...) error2(__FILE__, __LINE__, __VA_ARGS__)
+
+#define MAKE_ERROR_FUNC(n)                                                                         \
+    /*   Log error and return false */                                                             \
+    template <TINYFORMAT_ARGTYPES(n)>                                                              \
+    static inline bool error2(const char* file, int line, const char* format1,                     \
+                              TINYFORMAT_VARARGS(n)) {                                             \
+        LogPrintf(BCLog::ERROR, file, line, "%s\n", tfm::format(format1, TINYFORMAT_PASSARGS(n))); \
+        return false;                                                                              \
+    }
+
+TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_FUNC)
+
+template<typename... Args>
+bool error(const char* fmt, const Args&... args)
+{
+    LogPrintf(BCLog::ERROR, __FILE__, __LINE__, "%s\n", tfm::format(fmt, args...));
+    return false;
+}
+
+static inline bool error2(const char* file, int line, const char* format) {
+    //	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
+    LogPrintf(BCLog::ERROR, file, line, "%s\n", format);
+    return false;
+}
+
 #endif // BITCOIN_LOGGING_H

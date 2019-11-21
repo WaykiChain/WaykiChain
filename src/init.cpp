@@ -442,21 +442,6 @@ bool AppInit(boost::thread_group &threadGroup) {
 #endif
 #endif
 
-    // ********************************************************* initialize logging
-    if (SysCfg().IsArgCount("-debug")) {
-        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
-        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
-
-        if (std::none_of(categories.begin(), categories.end(),
-            [](std::string cat) { return cat == "0" || cat == "none"; })) {
-            for (const auto& cat : categories) {
-                if (!LogInstance().EnableCategory(cat)) {
-                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
-                }
-            }
-        }
-    }
-
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
@@ -908,6 +893,26 @@ void InitLogging()
     LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
 
     fLogIPs = SysCfg().GetBoolArg("-logips", DEFAULT_LOGIPS);
+
+    // TODO: ...
+    // nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
+
+    // m_mapMultiArgs["-debug"].push_back("error");  // Enable ERROR logger by default
+
+    // ********************************************************* initialize logging
+    if (SysCfg().IsArgCount("-debug")) {
+        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
+        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
+
+        if (std::none_of(categories.begin(), categories.end(),
+            [](std::string cat) { return cat == "0" || cat == "none"; })) {
+            for (const auto& cat : categories) {
+                if (!LogInstance().EnableCategory(cat)) {
+                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
+                }
+            }
+        }
+    }
 
     std::string version_string = FormatFullVersion();
 #ifdef DEBUG
