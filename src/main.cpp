@@ -2321,10 +2321,13 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
+#if 0
+    // disable finality block check
    if ( pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
         return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
     }
+#endif
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
