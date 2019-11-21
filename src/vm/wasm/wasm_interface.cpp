@@ -90,6 +90,9 @@ namespace wasm {
     class wasm_host_methods {
 
     public:
+        wasm_context_interface *pWasmContext;
+        
+    public:
         wasm_host_methods( wasm_context_interface *pCtx ) {
             pWasmContext = pCtx;
             print_ignore = !pCtx->contracts_console();
@@ -98,12 +101,8 @@ namespace wasm {
 
         ~wasm_host_methods() {};
 
-
-        wasm_context_interface *pWasmContext;
-
         template<typename T>
         static void AddPrefix( T t, string &k ) {
-
             std::vector<char> key = wasm::pack(t);
             k = string((const char *) key.data(), key.size()) + k;
         }
@@ -114,24 +113,14 @@ namespace wasm {
         }
 
         void wasm_assert( uint32_t test, const void *msg ) {
-        //void wasm_assert( uint32_t test, const char *msg ) {
-            //std::cout << "wasm_assert:" << msg << std::endl;
-
-            //WASM_TRACE("%s", msg)
-
-            if (!test) {
-                //std::cout << msg << std::endl;
-                WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", (char *)msg)
-            }
+            WASM_ASSERT(test, wasm_assert_exception, "wasm-assert-fail:%s", (char *)msg)
         }
 
         void wasm_assert_code( uint32_t test, uint64_t code ) {
-            //std::cout << "eosio_assert_code:" << code << std::endl;
             if (!test) {
-                //std::cout << code << std::endl;
                 std::ostringstream o;
                 o << code;
-                WASM_ASSERT(false, wasm_assert_code_exception, "%s", o.str().c_str())
+                WASM_ASSERT(false, wasm_assert_code_exception, "wasm_assert_code:%s", o.str().c_str())
             }
         }
 
@@ -150,25 +139,18 @@ namespace wasm {
             if (buffer_size == 0) return s;
 
             uint32_t copy_size = std::min(buffer_size, s);
-
             std::memcpy(memory, pWasmContext->get_action_data(), copy_size);
 
-            //std::string data(pWasmContext->GetActionData(),copy_size);
-            //std::cout << "read_action_data:" << ToHex(data) << " copy_size:"<< copy_size <<std::endl;
             return copy_size;
         }
 
         uint32_t action_data_size() {
 
-            //auto size = wasmContext.trx.data.size();
             auto size = pWasmContext->get_action_data_size();
-            //std::cout << "action_data_size size:"<< size << std::endl;
-            //WASM_TRACE("%d",size)
             return size;
         }
 
         uint64_t current_receiver() {
-            //return wasmContext.receiver;
             return pWasmContext->receiver();
         }
 
@@ -192,7 +174,6 @@ namespace wasm {
             string v = string((const char *) val, val_len);
 
             AddPrefix(pWasmContext->receiver(), k);
-
             const uint64_t contract = pWasmContext->receiver();
 
             wasm_assert(pWasmContext->set_data(contract, k, v), ("wasm db_store SetContractData failed, key:" +
@@ -219,10 +200,9 @@ namespace wasm {
             wasm_assert(pWasmContext->erase_data(contract, k),
                         ("wasm db_remove EraseContractData failed, key:" + ToHex(k, " ")).c_str());
 
-            //wasmContext.AppendUndo(contract, k, oldValue);
             pWasmContext->update_storage_usage(payer, k.size());
 
-            return 0;
+            return 1;
         }
 
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
@@ -233,7 +213,6 @@ namespace wasm {
             WASM_ASSERT(val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "value size too big");
 
-            //std::cout << "db_get" << std::endl;
             string k = string((const char *) key, key_len);
             AddPrefix(pWasmContext->receiver(), k);
 
@@ -243,14 +222,12 @@ namespace wasm {
             if (!pWasmContext->get_data(contract, k, v)) return 0;
 
             auto size = v.size();
-            if (val_len == 0)
-                return size;
+            if (val_len == 0) return size;
 
             auto val_size = val_len > size ? size : val_len;
             memcpy(val, v.data(), val_size);
 
             //pWasmContext->update_storage_usage(payer, k.size() + v.size());
-
             return val_size;
         }
 
@@ -262,7 +239,7 @@ namespace wasm {
 
             WASM_ASSERT(val_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "value size too big");
-            //std::cout << "db_update" << std::endl;
+
             string k = string((const char *) key, key_len);
             string v = string((const char *) val, val_len);
 
@@ -291,12 +268,10 @@ namespace wasm {
         }
 
         void *memmove( void *dest, const void *src, int len ) {
-            //std::cout << "memmove" << std::endl;
             return (char *) std::memmove(dest, src, len);
         }
 
         int memcmp( const void *dest, const void *src, int len ) {
-            //std::cout << "memcmp" << std::endl;
             int ret = std::memcmp(dest, src, len);
             if (ret < 0)
                 return -1;
@@ -306,21 +281,16 @@ namespace wasm {
         }
 
         void *memset( void *dest, int val, int len ) {
-            //std::cout << "memset" << std::endl;
             return (char *) std::memset(dest, val, len);
         }
 
         void printn( uint64_t val ) {//should be name
-            //std::cout << "printn" << std::endl;
-            //std::cout << name_to_string(value);
             if (!print_ignore) {
                 pWasmContext->console_append(wasm::name(val).to_string());
             }
         }
 
         void printui( uint64_t val ) {
-            //std::cout << "printui" << std::endl;
-            //std::cout << value;
             if (!print_ignore) {
                 std::ostringstream o;
                 o << val;
@@ -329,8 +299,6 @@ namespace wasm {
         }
 
         void printi( int64_t val ) {
-            //std::cout << "printui" << std::endl;
-            //std::cout << value;
             if (!print_ignore) {
                 std::ostringstream o;
                 o << val;
@@ -341,11 +309,9 @@ namespace wasm {
         void prints( const void *str ) {
             WASM_ASSERT(strlen((const char*)str) < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "string size too big");
-            //std::cout << str ;
             if (!print_ignore) {
                 std::ostringstream o;
                 o << (const char*)str;
-                //WASM_TRACE("%s", str)
                 pWasmContext->console_append(o.str());
             }
         }
@@ -353,9 +319,7 @@ namespace wasm {
         void prints_l( const void *str, uint32_t str_len ) {
             WASM_ASSERT(str_len < max_wasm_api_data_size, wasm_api_data_too_big, "%s",
                         "string size too big");
-
             if (!print_ignore) {
-               // WASM_TRACE("%s", string(str, str_len).c_str())
                 pWasmContext->console_append(string((const char*)str, str_len));
             }
         }
@@ -459,38 +423,24 @@ namespace wasm {
 
         //authorization
         void require_auth( uint64_t account ) {
-            //std::cout << "require_auth:" << account << std::endl;
-            //std::cout << "require_authorization" << std::endl;
             pWasmContext->require_auth(account);
         }
 
         void require_auth2( uint64_t account, uint64_t permission ) {
-
             pWasmContext->require_auth(account);
-            //std::cout << "require_auth2" << account << " " << permission << std::endl;
-            //std::cout << "account:"<< account << "permission" << permission << std::endl;
-            //std::cout << "require_authorization" << std::endl;
-            //return;
         }
 
         bool has_authorization( uint64_t account ) const {
-            //std::cout << "has_authorization:" << account << std::endl;
             return true;
         }
 
         void require_recipient( uint64_t recipient ) {
-            //context.require_recipient( recipient );
-            //std::cout << "require_recipient:" << recipient << std::endl;
-            //wasmContext.RequireRecipient(recipient);
             pWasmContext->require_recipient(recipient);
 
         }
 
         bool is_account( uint64_t account ) {
             return pWasmContext->is_account(account);
-            //std::cout << "is_account:" << account << std::endl;
-            // std::cout << "account:"<< account << std::endl;
-            //return true;
         }
 
         //transaction
