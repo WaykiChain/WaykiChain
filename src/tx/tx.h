@@ -133,7 +133,16 @@ public:
     bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
     bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
+public:
+    static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
+        return pBaseTx->GetSerializeSize(nType, nVersion) + 1;
+    }
 
+    template<typename Stream>
+    static void SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
+
+    template<typename Stream>
+    static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;

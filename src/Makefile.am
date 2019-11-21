@@ -178,6 +178,7 @@ coin_CORE_H = \
   tx/pricefeedtx.h \
   tx/tx.h \
   tx/txmempool.h \
+  tx/txserializer.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
