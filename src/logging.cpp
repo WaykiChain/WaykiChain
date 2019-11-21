@@ -7,6 +7,7 @@
 
 #include "commons/util/threadnames.h"
 #include "commons/util/time.h"
+#include "commons/util/util.h"
 
 #include <mutex>
 
@@ -164,8 +165,9 @@ bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str)
         flag = BCLog::ALL;
         return true;
     }
+    const std::string &category = StrToLower(str);
     for (const CLogCategoryDesc& category_desc : LogCategories) {
-        if (category_desc.category == str) {
+        if (category_desc.category == category) {
             flag = category_desc.flag;
             return true;
         }

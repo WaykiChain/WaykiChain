@@ -146,6 +146,14 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+//class CNickID
+
+bool CNickID::IsMature(const uint32_t currHeight) const {
+
+    return currHeight > regHeight + NICK_ID_MATURITY ;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // class CUserID
 
 const CUserID CUserID::NULL_ID = {};
@@ -180,7 +188,11 @@ shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
     if (pubKey.IsFullyValid())
         return std::make_shared<CUserID>(pubKey);
 
-    // TODO: how to support nick name?
+    CNickID nickId(idStr) ;
+    if( pCdMan->pAccountCache->GetKeyId(nickId, keyId)){
+        return std::make_shared<CUserID>(keyId);
+    }
+
 
     return nullptr;
 }

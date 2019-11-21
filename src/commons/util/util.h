@@ -469,4 +469,12 @@ bool ParseInt32(const std::string& str, int32_t* out);
 
 inline string _(const char* str) { return string(str); }
 
+inline std::string StrToLower(const std::string &str) {
+    std::string ret = str;
+	std::for_each(ret.begin(), ret.end(), [](char & c) {
+		c = ::tolower(c);
+	});
+    return ret;
+}
+
 #endif

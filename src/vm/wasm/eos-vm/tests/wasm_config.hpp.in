@@ -1,0 +1,6 @@
+#pragma once
+
+namespace eosio { namespace vm {
+   static constexpr auto host_wasm = "${CMAKE_CURRENT_SOURCE_DIR}/host.wasm";
+   static constexpr auto wasm_directory = "${CMAKE_BINARY_DIR}/wasms/";
+}} // ns eosio::vm

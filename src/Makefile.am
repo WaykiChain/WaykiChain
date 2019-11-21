@@ -34,6 +34,40 @@ $(LIBSECP256K1): $(wildcard secp256k1/src/*.h) $(wildcard secp256k1/src/*.c) $(w
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
 
+# softloat
+include Makefile_softfloat
+
+#wasm
+include Makefile_wasm
+
+VM_PATH = $(srcdir)/vm
+WASM_PATH = $(VM_PATH)/wasm
+
+# WASM_INTERFACE_SRC = \
+# $(WASM_PATH)/wasminterface.cpp \
+# $(WASM_PATH)/wasminterface.hpp \
+# $(WASM_PATH)/wasmhostmethods.hpp \
+# $(WASM_PATH)/wasmcontextinterface.hpp
+
+# $(WASMLIB): $(WASM_INTERFACE_SRC)
+#   $(MAKE) -C $(srcdir)/vm/wasm
+
+
+WASM_VM_INCLUDE = $(WASM_PATH)/eos-vm/include
+WASM_COMPILER_BUILTINS = $(WASM_PATH)/eos-vm/external/compiler_builtins
+WASM_BERKELEY_SOFTFLOAT = $(srcdir)/external/softfloat/source/include
+
+WASM_OUTCOME_DIR = $(srcdir)/external/outcome/single-header
+
+WASM_CPPFLAGS = -std=gnu++1z -I$(VM_PATH) \
+                           -I$(WASM_PATH) \
+                           -I$(WASM_VM_INCLUDE) \
+                           -I$(WASM_OUTCOME_DIR) \
+                           -I$(WASM_COMPILER_BUILTINS) \
+                           -I$(WASM_BERKELEY_SOFTFLOAT)
+
+AM_CPPFLAGS +=   -I$(VM_PATH)
+
 config/build.h: FORCE
 	@$(top_srcdir)/share/genbuild.sh $(abs_top_builddir)/src/config/build.h $(abs_top_srcdir)
 
@@ -130,6 +164,7 @@ coin_CORE_H = \
   sigcache.h \
   tx/assettx.h \
   tx/accountregtx.h \
+  tx/nickidregtx.h \
   tx/blockrewardtx.h \
   tx/blockpricemediantx.h \
   tx/cdptx.h \
@@ -144,6 +179,7 @@ coin_CORE_H = \
   tx/pricefeedtx.h \
   tx/tx.h \
   tx/txmempool.h \
+  tx/txserializer.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
@@ -243,10 +279,32 @@ VM_CPP = \
   vm/luavm/lmylib.cpp \
   vm/luavm/luavm.cpp
 
+WASM_H = \
+  vm/wasm/abi_def.hpp \
+  vm/wasm/abi_serializer.hpp \
+  vm/wasm/datastream.hpp \
+  vm/wasm/exceptions.hpp \
+  vm/wasm/receipt.hpp \
+  vm/wasm/wasm_config.hpp \
+  vm/wasm/wasm_context.hpp \
+  vm/wasm/wasm_context_interface.hpp \
+  vm/wasm/wasm_host_methods.hpp \
+  vm/wasm/wasm_interface.hpp \
+  vm/wasm/wasm_native_contract.hpp \
+  vm/wasm/wasm_trace.hpp \
+  vm/wasm/wasm_rpc_message.hpp
+
+WASM_CPP = \
+  vm/wasm/abi_serializer.cpp \
+  vm/wasm/wasm_context.cpp \
+  vm/wasm/wasm_native_contract.cpp \
+  vm/wasm/abi_serializer.cpp
+
+
 liblua53_a_SOURCES = \
   $(VMLUA_C)
 
-libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
+libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) $(WASM_CPPFLAGS)
 libcoin_server_a_SOURCES = \
   chain/blockdelegates.cpp \
   entities/account.cpp \
@@ -280,9 +338,11 @@ libcoin_server_a_SOURCES = \
   rpc/rpctx.cpp \
   rpc/rpcvm.cpp \
   rpc/rpcwallet.cpp \
+  rpc/rpcwasm.cpp \
   sigcache.cpp \
   tx/assettx.cpp \
   tx/accountregtx.cpp \
+  tx/nickidregtx.cpp \
   tx/blockrewardtx.cpp \
   tx/blockpricemediantx.cpp \
   tx/cdptx.cpp \
@@ -296,12 +356,15 @@ libcoin_server_a_SOURCES = \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \
+  tx/wasmcontracttx.cpp \
   logging.cpp \
   $(VMLUA_H) \
   $(VM_CPP) \
   $(VM_H) \
   $(JSON_H) \
-  $(COIN_CORE_H)
+  $(COIN_CORE_H) \
+  $(WASM_H) \
+  $(WASM_CPP)
 
 libcoin_wallet_a_SOURCES = \
   entities/keystore.cpp \
@@ -373,9 +436,11 @@ coind_LDADD = \
   libcoin_cli.a \
   libcoin_common.a \
   liblua53.a \
+  $(WASMLIB) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
-  $(LIBSECP256K1)
+  $(LIBSECP256K1) \
+  $(LIBSOFTFLOAT)
 #if ENABLE_WALLET
 #coin_LDADD += libcoin_wallet.a
 #endif

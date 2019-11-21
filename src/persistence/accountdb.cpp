@@ -35,6 +35,17 @@ bool CAccountDBCache::GetAccount(const CRegID &regId, CAccount &account) const {
     return false;
 }
 
+bool CAccountDBCache::GetAccount(const CNickID &nickId,  CAccount &account) const{
+    if(nickId.IsEmpty())
+        return false ;
+
+    std::pair<uint32_t,CKeyID> regHeightAndKeyId ;
+    if(nickId2KeyIdCache.GetData(nickId.nickId, regHeightAndKeyId)){
+        return accountCache.GetData(regHeightAndKeyId.second, account) ;
+    }
+    return false ;
+}
+
 bool CAccountDBCache::GetAccount(const CUserID &userId, CAccount &account) const {
     bool ret = false;
     if (userId.type() == typeid(CRegID)) {
@@ -68,6 +79,15 @@ bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
     }
     return false;
 }
+bool CAccountDBCache::SetAccount(const CNickID &nickId,const CAccount &account){
+
+    std::pair<uint32_t, CKeyID> heightKeyID ;
+    if(nickId2KeyIdCache.GetData(nickId.nickId, heightKeyID)){
+        return accountCache.SetData(heightKeyID.second, account);
+    }
+    return false ;
+}
+
 
 bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
     return accountCache.HaveData(keyId);
@@ -90,6 +110,14 @@ bool CAccountDBCache::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
 
 bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
     return regId2KeyIdCache.GetData(regId.ToRawString(), keyId);
+}
+
+bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
+    std::pair<uint32_t, CKeyID> regHeightKeyID ;
+    bool getResult =  nickId2KeyIdCache.GetData(nickId.nickId, regHeightKeyID) ;
+    if(getResult)
+        keyId = regHeightKeyID.second;
+    return getResult ;
 }
 
 bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
@@ -115,11 +143,10 @@ bool CAccountDBCache::EraseKeyId(const CRegID &regId) {
 bool CAccountDBCache::SaveAccount(const CAccount &account) {
     regId2KeyIdCache.SetData(account.regid.ToRawString(), account.keyid);
     accountCache.SetData(account.keyid, account);
-    nickId2KeyIdCache.SetData(account.nickid, account.keyid);
-
+    auto heightKeyId = std::make_pair(account.nickid.regHeight,account.keyid);
+    nickId2KeyIdCache.SetData(account.nickid.nickId, heightKeyId);
     return true;
 }
-
 
 bool CAccountDBCache::GetUserId(const string &addr, CUserID &userId) const {
     CRegID regId(addr);
@@ -173,10 +200,16 @@ bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
 bool CAccountDBCache::SetAccount(const CUserID &userId, const CAccount &account) {
     if (userId.type() == typeid(CRegID)) {
         return SetAccount(userId.get<CRegID>(), account);
+
     } else if (userId.type() == typeid(CKeyID)) {
         return SetAccount(userId.get<CKeyID>(), account);
+
     } else if (userId.type() == typeid(CPubKey)) {
         return SetAccount(userId.get<CPubKey>().GetKeyId(), account);
+
+    } else if (userId.type() == typeid(CNickID)) {
+        return SetAccount(userId.get<CNickID>(), account);
+
     } else if (userId.type() == typeid(CNullID)) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");
     }
@@ -200,6 +233,11 @@ bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
     }
     return false;
 }
+
+bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
+    return nickId2KeyIdCache.HaveData(nickId.nickId);
+}
+
 
 bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {

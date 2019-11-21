@@ -91,17 +91,24 @@ private:
 };
 
 class CNickID {
-private:
-    string nickId;
+
 
 public:
+    string nickId;
+    uint32_t regHeight;
     CNickID() {}
     CNickID(string nickIdIn) {
-        if (nickIdIn.size() > 32) throw ios_base::failure("Nickname ID length > 32 not allowed!");
-
+        if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s", nickIdIn.c_str()));
         nickId = nickIdIn;
     }
 
+    CNickID(string nickIdIn, uint32_t height) {
+        if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s", nickIdIn.c_str()));
+        nickId = nickIdIn;
+        regHeight = height ;
+    }
+
+    bool IsMature(const uint32_t currHeight) const ;
     const string &GetNickIdRaw() const { return nickId; }
     bool IsEmpty() const { return (nickId.size() == 0); }
     void Clear() { nickId.clear(); }

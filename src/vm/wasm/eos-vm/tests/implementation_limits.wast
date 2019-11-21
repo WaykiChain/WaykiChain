@@ -1,0 +1,42 @@
+(module
+   (func $host.call (import "env" "host.call"))
+   (func $call (export "call") (param i32)
+      (if (local.get 0) (then
+         (local.get 0)
+         (i32.const -1)
+         (i32.add)
+         (call $call)
+      ))
+   )
+   (func $call-indirect (export "call.indirect") (param i32)
+      (if (local.get 0) (then
+         (local.get 0)
+         (i32.const -1)
+         (i32.add)
+         (i32.const 0)
+         (call_indirect (param i32))
+      ))
+   )
+   (func $call.host (export "call.host") (param i32)
+      (if (local.get 0) (then
+         (local.get 0)
+         (i32.const -1)
+         (i32.add)
+         (call $call.host))
+         (else
+         (call $host.call))
+      )
+   )
+   (func $call.indirect.host (export "call.indirect.host") (param i32)
+      (if (local.get 0) (then
+         (local.get 0)
+         (i32.const -1)
+         (i32.add)
+         (call $call.indirect.host))
+         (else
+         (i32.const 1)
+         (call_indirect))
+      )
+   )
+   (table anyfunc (elem $call-indirect $host.call))
+)

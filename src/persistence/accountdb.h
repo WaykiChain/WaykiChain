@@ -43,14 +43,17 @@ public:
     bool GetAccount(const CKeyID &keyId,    CAccount &account) const;
     bool GetAccount(const CRegID &regId,    CAccount &account) const;
     bool GetAccount(const CUserID &uid,     CAccount &account) const;
+    bool GetAccount(const CNickID &nickId,  CAccount &account) const;
 
     bool SetAccount(const CKeyID &keyId,    const CAccount &account);
     bool SetAccount(const CRegID &regId,    const CAccount &account);
     bool SetAccount(const CUserID &uid,     const CAccount &account);
+    bool SetAccount(const CNickID &nickId,     const CAccount &account);
     bool SaveAccount(const CAccount &account);
 
     bool HaveAccount(const CKeyID &keyId) const;
     bool HaveAccount(const CUserID &userId) const;
+    bool HaveAccount(const CNickID &nickId) const;
 
     bool EraseAccount(const CKeyID &keyId);
     bool EraseAccount(const CUserID &userId);
@@ -65,6 +68,7 @@ public:
     bool SetKeyId(const CUserID &uid,   const CKeyID &keyId);
     bool GetKeyId(const CRegID &regId,  CKeyID &keyId) const;
     bool GetKeyId(const CUserID &uid,   CKeyID &keyId) const;
+    bool GetKeyId(const CNickID &nickId, CKeyID &keyId) const;
 
     bool EraseKeyId(const CRegID &regId);
     bool EraseKeyId(const CUserID &userId);
@@ -105,7 +109,7 @@ private:
     // <prefix$RegID -> KeyID>
     CCompositeKVCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
     // <prefix$NickID -> KeyID>
-    CCompositeKVCache< dbk::NICKID_KEYID,         CNickID,      CKeyID>          nickId2KeyIdCache;
+    CCompositeKVCache< dbk::NICKID_KEYID,         string,      std::pair<uint32_t,CKeyID>>   nickId2KeyIdCache;
     // <prefix$KeyID -> Account>
     CCompositeKVCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>        accountCache;
 

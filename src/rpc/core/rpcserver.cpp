@@ -307,6 +307,8 @@ static const CRPCCommand vRPCCommands[] =
     /* basic tx */
     { "submitsendtx",           &submitsendtx,           false,     false,      true },
     { "submitaccountregistertx",&submitaccountregistertx,false,     false,      true },
+    { "submitnickidregistertx", &submitnickidregistertx, false,     false,      true },
+
     { "submitcontractdeploytx", &submitcontractdeploytx, false,     false,      true },
     { "submitcontractcalltx",   &submitcontractcalltx,   false,     false,      true },
     { "submitdelegatevotetx",   &submitdelegatevotetx,   false,     false,      true },
@@ -341,6 +343,15 @@ static const CRPCCommand vRPCCommands[] =
     { "submitassetupdatetx",        &submitassetupdatetx,        false,     false,      false },
     { "getasset",                   &getasset,                   true,      false,      false },
     { "getassets",                  &getassets,                  true,      false,      false },
+
+    /* for wasm */
+    { "submitwasmcontractdeploytx", &submitwasmcontractdeploytx,       true,      false,      true },  
+    { "submitwasmcontractcalltx",   &submitwasmcontractcalltx,          true,      false,      true }, 
+    { "gettablewasmcontracttx",     &gettablewasmcontracttx,      true,      false,      true },  
+    { "abijsontobinwasmcontracttx", &abijsontobinwasmcontracttx,  true,      false,      true },  
+    { "abibintojsonwasmcontracttx", &abibintojsonwasmcontracttx,  true,      false,      true }, 
+    { "getcodewasmcontracttx",      &getcodewasmcontracttx,       true,      false,      true },  
+    { "getabiwasmcontracttx",       &getabiwasmcontracttx,        true,      false,      true },   
 
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

@@ -4,6 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "contractdb.h"
+#include "entities/account.h"
+
 
 #include "entities/account.h"
 #include "entities/id.h"
@@ -87,6 +89,7 @@ uint32_t CContractDBCache::GetCacheSize() const {
         contractDataCache.GetCacheSize() +
         contractAccountCache.GetCacheSize();
 }
+
 
 shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
     const CRegID &contractRegid, const string &contractKeyPrefix, uint32_t count,

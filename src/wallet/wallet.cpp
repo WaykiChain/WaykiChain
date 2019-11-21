@@ -211,6 +211,8 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
     LOCK2(cs_main, cs_wallet);
     LogPrint(BCLog::INFO, "CommitTx() : %s\n", pTx->ToString(*pCdMan->pAccountCache));
 
+    string ret;
+
     {
         CValidationState state;
         if (!::AcceptToMemoryPool(mempool, state, pTx, true)) {
@@ -218,6 +220,9 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
             LogPrint(BCLog::INFO, "CommitTx() : invalid transaction %s\n", state.GetRejectReason());
             return std::make_tuple(false, state.GetRejectReason());
         }
+
+        ret =  state.GetReturn();
+
     }
 
     uint256 txid        = pTx->GetHash();
@@ -231,7 +236,12 @@ std::tuple<bool, string> CWallet::CommitTx(CBaseTx *pTx) {
 
     ::RelayTransaction(pTx, txid);
 
+    //xiaoyu 20191106
+    if(pTx->nTxType == WASM_CONTRACT_TX){
+        message = ret;
+    }
     return std::make_tuple(flag, message);
+
 }
 
 DBErrors CWallet::LoadWallet(bool fFirstRunRet) {

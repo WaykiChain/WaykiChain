@@ -97,7 +97,7 @@ namespace {
     }
 
     struct CBlockIndexWorkComparator {
-    bool operator()(CBlockIndex *pa, CBlockIndex *pb) {
+    bool operator()(CBlockIndex *pa, CBlockIndex *pb) const {
 
         // First sort by most total work, ...
         if (pa->nChainWork != pb->nChainWork) {
@@ -122,7 +122,7 @@ CBlockIndex *pIndexBestInvalid;
 set<CBlockIndex *, CBlockIndexWorkComparator> setBlockIndexValid;  //an ordered set sorted by height
 
 struct COrphanBlockComparator {
-    bool operator()(COrphanBlock *pa, COrphanBlock *pb) {
+    bool operator()(COrphanBlock *pa, COrphanBlock *pb) const{
         if (pa->height > pb->height)
             return false;
 
@@ -2325,10 +2325,13 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
+#if 0
+    // disable finality block check
    if ( pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
         return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
     }
+#endif
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
@@ -3013,6 +3016,7 @@ std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType) {
         case DEX_LIMIT_SELL_ORDER_TX: return std::make_shared<CDEXSellLimitOrderTx>();
         case DEX_MARKET_BUY_ORDER_TX: return std::make_shared<CDEXBuyMarketOrderTx>();
         case DEX_MARKET_SELL_ORDER_TX:return std::make_shared<CDEXSellMarketOrderTx>();
+        case NICKID_REGISTER_TX:      return std::make_shared<CNickIdRegisterTx>();
 
         default:
             ERRORMSG("CreateNewEmptyTransaction type error");

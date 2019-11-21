@@ -42,6 +42,7 @@ public:
     uint32_t prev_block_time;
     CCacheWrapper *pCw;
     CValidationState *pState;
+    bool is_mining;
 
     CTxExecuteContext()
         : height(0),
@@ -50,18 +51,20 @@ public:
           block_time(0),
           prev_block_time(0),
           pCw(nullptr),
-          pState(nullptr) {}
+          pState(nullptr),
+          is_mining(false) {}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn)
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const bool mining = false)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
           block_time(blockTimeIn),
           prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
-          pState(pStateIn) {}
+          pState(pStateIn),
+          is_mining(mining){}
 };
 
 class CBaseTx {
@@ -130,7 +133,16 @@ public:
     bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
     bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
+public:
+    static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
+        return pBaseTx->GetSerializeSize(nType, nVersion) + 1;
+    }
 
+    template<typename Stream>
+    static void SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
+
+    template<typename Stream>
+    static void UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion);
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;

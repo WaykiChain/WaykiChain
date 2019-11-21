@@ -60,6 +60,10 @@ enum TxType: uint8_t {
     DEX_CANCEL_ORDER_TX         = 88,   //!< dex cancel order Tx
     DEX_TRADE_SETTLE_TX         = 89,   //!< dex settle Tx
 
+    NICKID_REGISTER_TX          = 91,    //!< nickid register Tx
+
+    WASM_CONTRACT_TX         = 100,   //!< wasm contract tx
+
 };
 
 struct TxTypeHash {
@@ -137,6 +141,8 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
 
+{ NICKID_REGISTER_TX,       std::make_tuple("NICKID_REGISTER_TX",       0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
+{ WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,0.01*COIN,0.01*COIN ) }
 
 };
 

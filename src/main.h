@@ -36,22 +36,26 @@
 #include "persistence/pricefeeddb.h"
 #include "persistence/txdb.h"
 #include "sigcache.h"
-#include "tx/accountregtx.h"
-#include "tx/cointransfertx.h"
-#include "tx/blockpricemediantx.h"
-#include "tx/blockrewardtx.h"
-#include "tx/cdptx.h"
-#include "tx/coinrewardtx.h"
-#include "tx/cointransfertx.h"
-#include "tx/contracttx.h"
-#include "tx/delegatetx.h"
-#include "tx/dextx.h"
-#include "tx/coinstaketx.h"
-#include "tx/mulsigtx.h"
-#include "tx/pricefeedtx.h"
 #include "tx/tx.h"
-#include "tx/txmempool.h"
-#include "tx/assettx.h"
+#include "tx/txserializer.h"
+// #include "tx/accountregtx.h"
+// #include "tx/cointransfertx.h"
+// #include "tx/blockpricemediantx.h"
+// #include "tx/blockrewardtx.h"
+// #include "tx/cdptx.h"
+// #include "tx/coinrewardtx.h"
+// #include "tx/cointransfertx.h"
+// #include "tx/contracttx.h"
+// #include "tx/delegatetx.h"
+// #include "tx/dextx.h"
+// #include "tx/coinstaketx.h"
+// #include "tx/mulsigtx.h"
+// #include "tx/pricefeedtx.h"
+
+// #include "tx/txmempool.h"
+// #include "tx/assettx.h"
+// #include "tx/wasmcontracttx.h"
+// #include "tx/nickidregtx.h"
 
 // class CBlockIndex;
 class CBloomFilter;
@@ -553,6 +557,8 @@ private:
     uint8_t rejectCode;
     bool corruptionPossible;
 
+    string ret;
+
 public:
     CValidationState() : mode(MODE_VALID), nDoS(0), corruptionPossible(false) {}
     bool DoS(int32_t level, bool ret = false, uint8_t rejectCodeIn = 0, string rejectReasonIn = "",
@@ -592,6 +598,9 @@ public:
     bool CorruptionPossible() const { return corruptionPossible; }
     uint8_t GetRejectCode() const { return rejectCode; }
     string GetRejectReason() const { return rejectReason; }
+
+    void SetReturn(std::string r) {ret = r;}
+    std::string GetReturn() {return ret;}
 };
 
 /** The currently best known chain of headers (some of which may be invalid). */
@@ -717,228 +726,6 @@ bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
     return true;
 }
 
-// global overloadding fun
-inline uint32_t GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
-    return pa->GetSerializeSize(nType, nVersion) + 1;
-}
 
-template <typename Stream>
-void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
-    uint8_t nTxType = pa->nTxType;
-    Serialize(os, nTxType, nType, nVersion);
-    switch (pa->nTxType) {
-        case BLOCK_REWARD_TX:
-            Serialize(os, *((CBlockRewardTx *)(pa.get())), nType, nVersion); break;
-        case ACCOUNT_REGISTER_TX:
-            Serialize(os, *((CAccountRegisterTx *)(pa.get())), nType, nVersion); break;
-        case BCOIN_TRANSFER_TX:
-            Serialize(os, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion); break;
-        case LCONTRACT_INVOKE_TX:
-            Serialize(os, *((CLuaContractInvokeTx *)(pa.get())), nType, nVersion); break;
-        case LCONTRACT_DEPLOY_TX:
-            Serialize(os, *((CLuaContractDeployTx *)(pa.get())), nType, nVersion); break;
-        case DELEGATE_VOTE_TX:
-            Serialize(os, *((CDelegateVoteTx *)(pa.get())), nType, nVersion); break;
-
-        case UCOIN_TRANSFER_MTX:
-            Serialize(os, *((CMulsigTx *)(pa.get())), nType, nVersion); break;
-        case UCOIN_STAKE_TX:
-            Serialize(os, *((CCoinStakeTx *)(pa.get())), nType, nVersion); break;
-        case ASSET_ISSUE_TX:
-            Serialize(os, *((CAssetIssueTx *)(pa.get())), nType, nVersion); break;
-        case ASSET_UPDATE_TX:
-            Serialize(os, *((CAssetUpdateTx *)(pa.get())), nType, nVersion); break;
-
-        case UCOIN_TRANSFER_TX:
-            Serialize(os, *((CCoinTransferTx *)(pa.get())), nType, nVersion); break;
-        case UCOIN_REWARD_TX:
-            Serialize(os, *((CCoinRewardTx *)(pa.get())), nType, nVersion); break;
-        case UCOIN_BLOCK_REWARD_TX:
-            Serialize(os, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion); break;
-        case UCONTRACT_DEPLOY_TX:
-            Serialize(os, *((CUniversalContractDeployTx *)(pa.get())), nType, nVersion); break;
-        case UCONTRACT_INVOKE_TX:
-            Serialize(os, *((CUniversalContractInvokeTx *)(pa.get())), nType, nVersion); break;
-        case PRICE_FEED_TX:
-            Serialize(os, *((CPriceFeedTx *)(pa.get())), nType, nVersion); break;
-        case PRICE_MEDIAN_TX:
-            Serialize(os, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion); break;
-
-        case CDP_STAKE_TX:
-            Serialize(os, *((CCDPStakeTx *)(pa.get())), nType, nVersion); break;
-        case CDP_REDEEM_TX:
-            Serialize(os, *((CCDPRedeemTx *)(pa.get())), nType, nVersion); break;
-        case CDP_LIQUIDATE_TX:
-            Serialize(os, *((CCDPLiquidateTx *)(pa.get())), nType, nVersion); break;
-
-        case DEX_TRADE_SETTLE_TX:
-            Serialize(os, *((CDEXSettleTx *)(pa.get())), nType, nVersion); break;
-        case DEX_CANCEL_ORDER_TX:
-            Serialize(os, *((CDEXCancelOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_LIMIT_BUY_ORDER_TX:
-            Serialize(os, *((CDEXBuyLimitOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_LIMIT_SELL_ORDER_TX:
-            Serialize(os, *((CDEXSellLimitOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_MARKET_BUY_ORDER_TX:
-            Serialize(os, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion); break;
-        case DEX_MARKET_SELL_ORDER_TX:
-            Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
-
-        default:
-            throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.",
-                pa->nTxType, GetTxType(pa->nTxType)));
-            break;
-    }
-}
-
-
-template <typename Stream>
-void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
-    uint8_t nTxType;
-    is.read((char *)&(nTxType), sizeof(nTxType));
-    switch((TxType)nTxType) {
-        case BLOCK_REWARD_TX: {
-            pa = std::make_shared<CBlockRewardTx>();
-            Unserialize(is, *((CBlockRewardTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case ACCOUNT_REGISTER_TX: {
-            pa = std::make_shared<CAccountRegisterTx>();
-            Unserialize(is, *((CAccountRegisterTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case BCOIN_TRANSFER_TX: {
-            pa = std::make_shared<CBaseCoinTransferTx>();
-            Unserialize(is, *((CBaseCoinTransferTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case LCONTRACT_INVOKE_TX: {
-            pa = std::make_shared<CLuaContractInvokeTx>();
-            Unserialize(is, *((CLuaContractInvokeTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case LCONTRACT_DEPLOY_TX: {
-            pa = std::make_shared<CLuaContractDeployTx>();
-            Unserialize(is, *((CLuaContractDeployTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case DELEGATE_VOTE_TX: {
-            pa = std::make_shared<CDelegateVoteTx>();
-            Unserialize(is, *((CDelegateVoteTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case UCOIN_TRANSFER_MTX: {
-            pa = std::make_shared<CMulsigTx>();
-            Unserialize(is, *((CMulsigTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case UCOIN_STAKE_TX: {
-            pa = std::make_shared<CCoinStakeTx>();
-            Unserialize(is, *((CCoinStakeTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case ASSET_ISSUE_TX: {
-            pa = std::make_shared<CAssetIssueTx>();
-            Unserialize(is, *((CAssetIssueTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case ASSET_UPDATE_TX: {
-            pa = std::make_shared<CAssetUpdateTx>();
-            Unserialize(is, *((CAssetUpdateTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case UCOIN_TRANSFER_TX: {
-            pa = std::make_shared<CCoinTransferTx>();
-            Unserialize(is, *((CCoinTransferTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case UCOIN_REWARD_TX: {
-            pa = std::make_shared<CCoinRewardTx>();
-            Unserialize(is, *((CCoinRewardTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case UCOIN_BLOCK_REWARD_TX: {
-            pa = std::make_shared<CUCoinBlockRewardTx>();
-            Unserialize(is, *((CUCoinBlockRewardTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case UCONTRACT_DEPLOY_TX: {
-            pa = std::make_shared<CUniversalContractDeployTx>();
-            Unserialize(is, *((CUniversalContractDeployTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case UCONTRACT_INVOKE_TX: {
-            pa = std::make_shared<CUniversalContractInvokeTx>();
-            Unserialize(is, *((CUniversalContractInvokeTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case PRICE_FEED_TX: {
-            pa = std::make_shared<CPriceFeedTx>();
-            Unserialize(is, *((CPriceFeedTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case PRICE_MEDIAN_TX: {
-            pa = std::make_shared<CBlockPriceMedianTx>();
-            Unserialize(is, *((CBlockPriceMedianTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case CDP_STAKE_TX: {
-            pa = std::make_shared<CCDPStakeTx>();
-            Unserialize(is, *((CCDPStakeTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case CDP_REDEEM_TX: {
-            pa = std::make_shared<CCDPRedeemTx>();
-            Unserialize(is, *((CCDPRedeemTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case CDP_LIQUIDATE_TX: {
-            pa = std::make_shared<CCDPLiquidateTx>();
-            Unserialize(is, *((CCDPLiquidateTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-
-        case DEX_TRADE_SETTLE_TX: {
-            pa = std::make_shared<CDEXSettleTx>();
-            Unserialize(is, *((CDEXSettleTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case DEX_CANCEL_ORDER_TX: {
-            pa = std::make_shared<CDEXCancelOrderTx>();
-            Unserialize(is, *((CDEXCancelOrderTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case DEX_LIMIT_BUY_ORDER_TX: {
-            pa = std::make_shared<CDEXBuyLimitOrderTx>();
-            Unserialize(is, *((CDEXBuyLimitOrderTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case DEX_LIMIT_SELL_ORDER_TX: {
-            pa = std::make_shared<CDEXSellLimitOrderTx>();
-            Unserialize(is, *((CDEXSellLimitOrderTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case DEX_MARKET_BUY_ORDER_TX: {
-            pa = std::make_shared<CDEXBuyMarketOrderTx>();
-            Unserialize(is, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        case DEX_MARKET_SELL_ORDER_TX: {
-            pa = std::make_shared<CDEXSellMarketOrderTx>();
-            Unserialize(is, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion);
-            break;
-        }
-        default:
-            throw ios_base::failure(strprintf("Unserialize: nTxType(%d:%s) error.",
-                nTxType, GetTxType((TxType)nTxType)));
-    }
-    pa->nTxType = TxType(nTxType);
-}
 
 #endif

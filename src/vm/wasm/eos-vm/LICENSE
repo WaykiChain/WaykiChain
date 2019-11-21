@@ -1,0 +1,34 @@
+Copyright (c) 2017-2019 block.one and its contributors. All rights reserved.
+
+EOS VM LICENSE V1.0
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in the
+Software, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following
+conditions:
+1. The above copyright notice and this EOS VM License shall be included in all
+copies or substantial portions of the Software.
+2. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+3. Any person who creates or Conveys a Covered Work adapted for Other
+Blockchain Purposes shall make the corresponding source code of the created or
+Conveyed Covered Work publicly available free of charge under the terms of this
+EOS VM License without additional exclusion, alteration, limitation or
+restriction. Any Conveyance of a Covered Work will be deemed to include and be
+subject to this condition and each person Conveying a Covered Work shall inform
+recipients accordingly. No purported exclusion, alteration, limitation or
+restriction of this condition will be effective. For these purposes: "Covered
+Work" means the Software or any derivative work, adaptation or other work based on
+or incorporating all or part of the Software or a Covered Work; "Convey"; means
+publish, distribute, licence, sublicense, sell, furnish or any other form of
+making available; and "Other Blockchain Purposes" means use in connection with a
+blockchain, distributed ledger, decentralized application (DApp), token, smart
+contract, virtual machine or similar, or a tool, plugin, library, server, or other
+software designed for use with or development of any of the foregoing, where the
+underlying blockchain software is not an EOSIO distribution.

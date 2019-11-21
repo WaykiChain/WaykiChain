@@ -26,6 +26,8 @@ class CKeyID;
 class CRegID;
 class CAccount;
 class CContractDB;
+class CCacheWrapper;
+
 struct CDiskTxPos;
 
 typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
@@ -103,12 +105,14 @@ public:
 
     shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,
         const string &contractKeyPrefix, uint32_t count, const string &lastKey);
+
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
     // contract $RegId.ToRawString() -> Contract
     CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
+
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
