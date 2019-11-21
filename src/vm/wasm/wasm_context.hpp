@@ -41,7 +41,7 @@ namespace wasm {
         };
 
     public:
-        bool in_signatures(const permission& p);
+        bool has_permission_from_inline_transaction(const permission& p);
         std::vector <uint8_t> get_code( uint64_t account );
         //std::string get_abi( uint64_t account );
         void execute_one( inline_transaction_trace &trace );
@@ -98,7 +98,7 @@ namespace wasm {
         bool is_account( uint64_t account );
         void require_auth( uint64_t account );
         void require_auth2( uint64_t account, uint64_t permission ) {}
-        bool has_authorization( uint64_t account ) const { return true; }
+        bool has_authorization( uint64_t account ) const ;
         uint64_t block_time() { return 0; }
 
         vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
