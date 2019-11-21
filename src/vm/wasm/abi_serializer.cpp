@@ -38,13 +38,14 @@ namespace wasm {
     auto pack_unpack() {
         return std::make_pair<abi_serializer::unpack_function, abi_serializer::pack_function>(
                 []( wasm::datastream<const char *> &ds, bool is_array, bool is_optional ) -> json_spirit::Value {
-                    if (is_array)
-                        return variant_from_stream<vector < T>>
-                    (ds);
-                    else if (is_optional)
-                    return variant_from_stream<optional < T>>
-                    (ds);
-                    return variant_from_stream<T>(ds);
+                    if (is_array){
+                        return variant_from_stream<vector < T>>(ds);
+                    }
+                    else if (is_optional){
+                        return variant_from_stream<optional < T>>(ds);
+                    } else {
+                        return variant_from_stream<T>(ds);
+                    }
                 },
                 []( const json_spirit::Value &var, wasm::datastream<char *> &ds, bool is_array, bool is_optional ) {
                     if (is_array) {

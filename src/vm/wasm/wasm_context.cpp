@@ -132,7 +132,7 @@ namespace wasm {
     void wasm_context::execute_one(inline_transaction_trace &trace) {
 
         //auto start = system_clock::now();
-        trace.trx = trx;
+        trace.trx      = trx;
         trace.receiver = _receiver;
 
         auto native = find_native_handle(_receiver, trx.action);
@@ -159,15 +159,14 @@ namespace wasm {
             if (_pending_console_output.str().size() > 0){
                 throw wasm_exception(
                         tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
-            }
-            else{
+            } else {
                 throw;
             }
         }
 
         trace.trx_id = control_trx.GetHash();
-        //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
         trace.console = _pending_console_output.str();
+        //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
         // trace.block_height =
         // trace.block_time =
