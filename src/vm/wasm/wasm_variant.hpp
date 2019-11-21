@@ -265,7 +265,6 @@ namespace wasm {
         v = obj;
     }
 
-
     static inline void to_variant( const wasm::field_def &t, wasm::variant &v ) {
         wasm::object obj;
 
@@ -818,7 +817,7 @@ namespace wasm {
             }
         }
 
-        WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "%s", "abi parse fail ")
+        WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "%s", "abi parse fail")
     }
 
 

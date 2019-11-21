@@ -286,7 +286,7 @@ static void inline_trace_to_receipts(const wasm::inline_transaction_trace trace,
         auto memo     = std::get<3>(transfer_data);
 
         receipt.from_uid = CUserID(CNickID(wasm::name(from).to_string()));
-        receipt.from_uid = CUserID(CNickID(wasm::name(to).to_string()));
+        receipt.to_uid   = CUserID(CNickID(wasm::name(to).to_string()));
 
         receipt.coin_symbol = quantity.sym.code().to_string();
         receipt.coin_amount = quantity.amount;

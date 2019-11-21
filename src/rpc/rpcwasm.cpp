@@ -404,7 +404,6 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 
         json_spirit::Object object_return;
         object_return.push_back(Pair("code", wasm::ToHex(contract_store.code,"")));
-
         return object_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
