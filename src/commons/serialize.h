@@ -487,9 +487,9 @@ template<typename K, typename Pred, typename A> unsigned int GetSerializeSize(co
 template<typename Stream, typename K, typename Pred, typename A> void Serialize(Stream& os, const set<K, Pred, A>& m, int nType, int nVersion);
 template<typename Stream, typename K, typename Pred, typename A> void Unserialize(Stream& is, set<K, Pred, A>& m, int nType, int nVersion);
 
-extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
-template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+template<typename T> unsigned int GetSerializeSize(const std::shared_ptr<T> &sp, int nType, int nVersion);
+template<typename Stream, typename T> void Serialize(Stream& os, const std::shared_ptr<T> &sp, int nType, int nVersion);
+template<typename Stream, typename T> void Unserialize(Stream& is, std::shared_ptr<T> &sp, int nType, int nVersion);
 
 class CSerActionGetSerializeSize { };
 class CSerActionSerialize { };
@@ -833,6 +833,19 @@ void Unserialize(Stream& is, set<K, Pred, A>& m, int nType, int nVersion)
         Unserialize(is, key, nType, nVersion);
         it = m.insert(it, key);
     }
+}
+
+// share_ptr
+template<typename T> unsigned int GetSerializeSize(const std::shared_ptr<T> &sp, int nType, int nVersion) {
+    return T::GetSerializePtrSize(sp, nType, nVersion);
+}
+template<typename Stream, typename T>
+void Serialize(Stream& os, const std::shared_ptr<T> &sp, int nType, int nVersion) {
+    T::SerializePtr(os, sp, nType, nVersion);
+}
+template<typename Stream, typename T>
+void Unserialize(Stream& is, std::shared_ptr<T> &sp, int nType, int nVersion) {
+    T::UnserializePtr(is, sp, nType, nVersion);
 }
 
 
