@@ -260,14 +260,19 @@ namespace BCLog {
         }
         return ret;
     }
+
 }
 
-void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const std::string& str)
-{
+void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* file, int line,
+    const std::string& str) {
+
     std::lock_guard<std::mutex> scoped_lock(m_cs);
     std::string str_prefixed = LogEscapeMessage(str);
 
     str_prefixed.insert(0, "[" + GetLogCategoryName(category) + "] ");
+
+    if (m_print_file_line)
+        str_prefixed.insert(0, tfm::format("[%s:%d] ", file, line));
 
     if (m_log_threadnames && m_started_new_line) {
         str_prefixed.insert(0, "[" + util::ThreadGetInternalName() + "] ");
@@ -331,7 +336,7 @@ void BCLog::Logger::ShrinkDebugFile()
         // Restart the file with some of the end
         std::vector<char> vch(RECENT_DEBUG_HISTORY_SIZE, 0);
         if (fseek(file, -((long)vch.size()), SEEK_END)) {
-            LogPrintf(ERROR, "Failed to shrink debug log file: fseek(...) failed\n");
+            LogPrint(ERROR, "Failed to shrink debug log file: fseek(...) failed\n");
             fclose(file);
             return;
         }

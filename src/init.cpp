@@ -902,6 +902,7 @@ void InitLogging()
     LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
     LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
     LogInstance().m_print_to_console = SysCfg().GetBoolArg("-logprinttoconsole", true);
+    LogInstance().m_print_file_line  = SysCfg().GetBoolArg("-logprintfileline", false);
     LogInstance().m_log_timestamps = SysCfg().GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
     LogInstance().m_log_time_micros = SysCfg().GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
     LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);

@@ -125,13 +125,6 @@ public:
 
 static map<string, DebugLogFile> g_DebugLogs;
 
-string GetLogHead(int line, const char* file, const char* category) {
-    string te(category != NULL ? category : "");
-    if (SysCfg().IsDebug()) {
-        if (SysCfg().IsLogPrintLine()) return tfm::format("[%s:%d]%s: ", file, line, te);
-    }
-    return string("");
-}
 /**
  *  日志文件预处理。写日志文件前被调用，检测文件A是否超长
  *  当超长则先将原文件A重命名为Abak，再打开并创建A文件，删除重命名文件Abak，返回。

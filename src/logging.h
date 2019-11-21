@@ -85,6 +85,7 @@ namespace BCLog { //blockchain log
     public:
         bool m_print_to_console = false;
         bool m_print_to_file = false;
+        bool m_print_file_line = false;
 
         bool m_log_timestamps = DEFAULT_LOGTIMESTAMPS;
         bool m_log_time_micros = DEFAULT_LOGTIMEMICROS;
@@ -94,7 +95,8 @@ namespace BCLog { //blockchain log
         std::atomic<bool> m_reopen_file{false};
 
         /** Send a string to the log output */
-        void LogPrintStr(const BCLog::LogFlags& category, const std::string& str);
+        void LogPrintStr(const BCLog::LogFlags& category, const char* file, int line,
+            const std::string& str);
 
         /** Returns whether logs will be written to any output */
         bool Enabled() const
@@ -161,8 +163,9 @@ bool GetLogCategory(BCLog::LogFlags& flag, const std::string& str);
 // peer can fill up a user's disk with debug.log entries.
 
 template <typename... Args>
-static inline void LogPrintf(const BCLog::LogFlags& category, const char* fmt, const Args&... args)
-{
+static inline void LogPrintf(const BCLog::LogFlags& category, const char* file, int line,
+    const char* fmt, const Args&... args) {
+
     if (LogInstance().Enabled()) {
         std::string log_msg;
         try {
@@ -171,17 +174,17 @@ static inline void LogPrintf(const BCLog::LogFlags& category, const char* fmt, c
             /* Original format string will have newline so don't add one here */
             log_msg = "Error \"" + std::string(fmterr.what()) + "\" while formatting log message: " + fmt;
         }
-        LogInstance().LogPrintStr(category, log_msg);
+        LogInstance().LogPrintStr(category, file, line, log_msg);
     }
 }
 
 // Use a macro instead of a function for conditional logging to prevent
 // evaluating arguments when logging for the category is not enabled.
-#define LogPrint(category, ...)              \
-    do {                                     \
-        if (LogAcceptCategory((category))) { \
-            LogPrintf(category, __VA_ARGS__);          \
-        }                                    \
+#define LogPrint(category, ...)                                   \
+    do {                                                          \
+        if (LogAcceptCategory((category))) {                      \
+            LogPrintf(category, __FILE__, __LINE__, __VA_ARGS__); \
+        }                                                         \
     } while (0)
 
 #endif // BITCOIN_LOGGING_H
