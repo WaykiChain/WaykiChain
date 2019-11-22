@@ -77,6 +77,7 @@ config/version.o: config/build.h
 # waykichain core #
 coin_CORE_H = \
   chain/blockdelegates.h \
+  chain/chain.h \
   entities/account.h \
   entities/assett.h \
   entities/cdp.h \
@@ -306,6 +307,7 @@ liblua53_a_SOURCES = \
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) $(WASM_CPPFLAGS)
 libcoin_server_a_SOURCES = \
   chain/blockdelegates.cpp \
+  chain/chain.cpp \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \

@@ -25,6 +25,7 @@
 #include "config/chainparams.h"
 #include "config/const.h"
 #include "config/errorcode.h"
+#include "chain/chain.h"
 #include "net.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
@@ -38,32 +39,10 @@
 #include "sigcache.h"
 #include "tx/tx.h"
 #include "tx/txserializer.h"
-// #include "tx/accountregtx.h"
-// #include "tx/cointransfertx.h"
-// #include "tx/blockpricemediantx.h"
-// #include "tx/blockrewardtx.h"
-// #include "tx/cdptx.h"
-// #include "tx/coinrewardtx.h"
-// #include "tx/cointransfertx.h"
-// #include "tx/contracttx.h"
-// #include "tx/delegatetx.h"
-// #include "tx/dextx.h"
-// #include "tx/coinstaketx.h"
-// #include "tx/mulsigtx.h"
-// #include "tx/pricefeedtx.h"
 
-// #include "tx/txmempool.h"
-// #include "tx/assettx.h"
-// #include "tx/wasmcontracttx.h"
-// #include "tx/nickidregtx.h"
-
-// class CBlockIndex;
 class CBloomFilter;
 class CChain;
 class CInv;
-// class CSysParamDBCache;
-// class CBlockDBCache;
-// class CAccountDBCache;
 
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
@@ -158,72 +137,6 @@ struct CNodeStateStats {
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */
 bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
-
-/** An in-memory indexed chain of blocks. */
-class CChain {
-private:
-    vector<CBlockIndex *> vChain;
-    CBlockIndex* finalityBlockIndex = nullptr ;
-
-public:
-    /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
-    CBlockIndex *Genesis() const {
-        return vChain.size() > 0 ? vChain[0] : nullptr;
-    }
-
-    CBlockIndex *GetFinalityBlockIndex(){
-        if(!finalityBlockIndex)
-            return chainActive[0] ;
-        return finalityBlockIndex ;
-    }
-
-    /** Returns the index entry for the tip of this chain, or nullptr if none. */
-    CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[Height()] : nullptr;
-    }
-
-    /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
-    CBlockIndex *operator[](int32_t height) const {
-        if (height < 0 || height >= (int)vChain.size())
-            return nullptr;
-        return vChain[height];
-    }
-
-    /** Compare two chains efficiently. */
-    friend bool operator==(const CChain &a, const CChain &b) {
-        return a.vChain.size() == b.vChain.size() &&
-               a.vChain[a.Height()] == b.vChain[b.Height()];
-    }
-
-    /** Efficiently check whether a block is present in this chain. */
-    bool Contains(const CBlockIndex *pIndex) const {
-        return (*this)[pIndex->height] == pIndex;
-    }
-
-    /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
-    CBlockIndex *Next(const CBlockIndex *pIndex) const {
-        if (Contains(pIndex))
-            return (*this)[pIndex->height + 1];
-        else
-            return nullptr;
-    }
-
-    /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
-    int32_t Height() const {
-        return vChain.size() - 1;
-    }
-
-
-    bool UpdateFinalityBlock() ;
-    /** Set/initialize a chain with a given tip. Returns the forking point. */
-    CBlockIndex *SetTip(CBlockIndex *pIndex);
-
-    /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-    CBlockLocator GetLocator(const CBlockIndex *pIndex = nullptr) const;
-
-    /** Find the last common block between this chain and a locator. */
-    CBlockIndex *FindFork(const CBlockLocator &locator) const;
-}; //end of CChain
 
 class CCacheDBManager {
 public:
