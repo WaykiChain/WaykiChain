@@ -26,6 +26,7 @@
 #include "p2p/processmessage.hpp"
 #include "p2p/sendmessage.hpp"
 #include "chain/blockdelegates.h"
+#include "persistence/blockundo.h"
 
 #include <sstream>
 #include <algorithm>
@@ -2742,15 +2743,6 @@ class CMainCleanup {
     }
 } instance_of_cmaincleanup;
 
-string CBlockUndo::ToString() const {
-    string str;
-    vector<CTxUndo>::const_iterator iterUndo = vtxundo.begin();
-    for (; iterUndo != vtxundo.end(); ++iterUndo) {
-        str += iterUndo->ToString();
-    }
-    return str;
-}
-
 bool DisconnectBlockFromTip(CValidationState &state) {
     return DisconnectTip(state);
 }
@@ -2774,35 +2766,4 @@ bool IsInitialBlockDownload() {
     }
 
     return (GetTime() - nLastUpdate < 10 && chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
-}
-
-FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
-    if (pos.IsNull())
-        return nullptr;
-    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
-    boost::filesystem::create_directories(path.parent_path());
-    FILE *file = fopen(path.string().c_str(), "rb+");
-    if (!file && !fReadOnly)
-        file = fopen(path.string().c_str(), "wb+");
-    if (!file) {
-        LogPrint(BCLog::ERROR, "Unable to open file %s\n", path.string());
-        return nullptr;
-    }
-
-    if (pos.nPos) {
-        if (fseek(file, pos.nPos, SEEK_SET)) {
-            LogPrint(BCLog::ERROR, "Unable to seek to position %u of %s\n", pos.nPos, path.string());
-            fclose(file);
-            return nullptr;
-        }
-    }
-    return file;
-}
-
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "blk", fReadOnly);
-}
-
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "rev", fReadOnly);
 }

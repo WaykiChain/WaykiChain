@@ -132,6 +132,7 @@ coin_CORE_H = \
   persistence/accountdb.h \
   persistence/block.h \
   persistence/blockdb.h \
+  persistence/blockundo.h \
   persistence/cachewrapper.h \
   persistence/cdpdb.h \
   persistence/contractdb.h \
@@ -398,10 +399,12 @@ libcoin_common_a_SOURCES = \
   netbase.cpp \
   p2p/protocol.cpp \
   persistence/block.cpp \
+  persistence/blockdb.cpp \
+  persistence/blockundo.cpp \
   persistence/cdpdb.cpp \
+  persistence/disk.cpp \
   persistence/accountdb.cpp \
   persistence/assetdb.cpp \
-  persistence/blockdb.cpp \
   persistence/cachewrapper.cpp \
   persistence/contractdb.cpp \
   persistence/delegatedb.cpp \

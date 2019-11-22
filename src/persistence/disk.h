@@ -6,6 +6,8 @@
 #ifndef PERSIST_DISK_H
 #define PERSIST_DISK_H
 
+#include "commons/serialize.h"
+
 struct CDiskBlockPos {
     int32_t nFile;
     uint32_t nPos;
@@ -100,26 +102,15 @@ public:
         SetNull();
     }
 
-    string ToString() const {
-        return strprintf("CBlockFileInfo(blocks=%u, size=%u, heights=%u...%u, time=%s...%s)", nBlocks, nSize, nHeightFirst, nHeightLast, DateTimeStrFormat("%Y-%m-%d", nTimeFirst).c_str(), DateTimeStrFormat("%Y-%m-%d", nTimeLast).c_str());
-    }
+    string ToString() const;
 
     // update statistics (does not update nSize)
-    void AddBlock(uint32_t nHeightIn, uint64_t nTimeIn) {
-        if (nBlocks == 0 || nHeightFirst > nHeightIn)
-            nHeightFirst = nHeightIn;
-
-        if (nBlocks == 0 || nTimeFirst > nTimeIn)
-            nTimeFirst = nTimeIn;
-
-        nBlocks++;
-
-        if (nHeightIn > nHeightLast)
-            nHeightLast = nHeightIn;
-
-        if (nTimeIn > nTimeLast)
-            nTimeLast = nTimeIn;
-    }
+    void AddBlock(uint32_t nHeightIn, uint64_t nTimeIn);
 };
+
+FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly);
+
+/** Open a block file (blk?????.dat) */
+FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
 #endif //PERSIST_DISK_H

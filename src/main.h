@@ -289,78 +289,6 @@ public:
 
 bool IsInitialBlockDownload();
 
-/** Open an undo file (rev?????.dat) */
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-
-/** Undo information for a CBlock */
-class CBlockUndo {
-public:
-    vector<CTxUndo> vtxundo;
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(vtxundo);
-    )
-
-    bool WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash) {
-        // Open history file to append
-        CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
-        if (!fileout)
-            return ERRORMSG("CBlockUndo::WriteToDisk : OpenUndoFile failed");
-
-        // Write index header
-        uint32_t nSize = fileout.GetSerializeSize(*this);
-        fileout << FLATDATA(SysCfg().MessageStart()) << nSize;
-
-        // Write undo data
-        long fileOutPos = ftell(fileout);
-        if (fileOutPos < 0)
-            return ERRORMSG("CBlockUndo::WriteToDisk : ftell failed");
-        pos.nPos = (uint32_t)fileOutPos;
-        fileout << *this;
-
-        // calculate & write checksum
-        CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-        hasher << blockHash;
-        hasher << *this;
-
-        fileout << hasher.GetHash();
-
-        // Flush stdio buffers and commit to disk before returning
-        fflush(fileout);
-        if (!IsInitialBlockDownload())
-            FileCommit(fileout);
-
-        return true;
-    }
-
-    bool ReadFromDisk(const CDiskBlockPos &pos, const uint256 &blockHash) {
-        // Open history file to read
-        CAutoFile filein = CAutoFile(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
-        if (!filein)
-            return ERRORMSG("CBlockUndo::ReadFromDisk : OpenBlockFile failed");
-
-        // Read block
-        uint256 hashChecksum;
-        try {
-            filein >> *this;
-            filein >> hashChecksum;
-        } catch (std::exception &e) {
-            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-        }
-
-        // Verify checksum
-        CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-        hasher << blockHash;
-        hasher << *this;
-
-        if (hashChecksum != hasher.GetHash())
-            return ERRORMSG("CBlockUndo::ReadFromDisk : Checksum mismatch");
-        return true;
-    }
-
-    string ToString() const;
-};
-
 /** Capture information about block/transaction validation */
 class CValidationState {
 private:
@@ -468,9 +396,6 @@ bool DisconnectBlockFromTip(CValidationState &state);
 
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
-
-/** Open a block file (blk?????.dat) */
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
 
 /** Import blocks from an external file */
 bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = nullptr);
