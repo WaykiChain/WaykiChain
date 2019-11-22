@@ -66,7 +66,7 @@ CKeyID nodeKeyId;   // 1st keyId of the node
 map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
 map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
-
+extern CPBFTContext pbftContext ;
 const string strMessageMagic = "Coin Signed Message:\n";
 
 
@@ -1541,6 +1541,7 @@ bool ActivateBestChain(CValidationState &state) {
         if (chainMostWork.Tip() == nullptr)
             break;
 
+/*
         auto height = chainActive.Height() ;
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
@@ -1554,6 +1555,7 @@ bool ActivateBestChain(CValidationState &state) {
                 break ;
             }
         }
+*/
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
@@ -1595,7 +1597,7 @@ bool ActivateBestChain(CValidationState &state) {
             boost::thread t(runCommand, strCmd);  // thread runs free
         }
 
-        chainActive.UpdateFinalityBlock();
+       // chainActive.UpdateFinalityBlock();
     }
 
     return true;
@@ -2021,7 +2023,13 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
             }
         }
 
-        BroadcastBlockConfirm(block) ;
+        VoteDelegateVector delegates;
+        if (pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
+            pbftContext.SaveMinersByHash(blockHash, delegates);
+        }
+        BroadcastBlockConfirm(chainActive.Tip()) ;
+        chainActive.UpdateFinalityBlock(chainActive[chainActive.Height()]);
+
     }
 
     return true;
@@ -2153,13 +2161,11 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
-#if 0
-    // disable finality block check
-   if ( pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
-        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
+   if ( pBlock->GetHeight()>0 && pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
+        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",
+                pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
     }
-#endif
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
@@ -2324,7 +2330,7 @@ bool static LoadBlockIndexDB() {
     }
 
     chainActive.SetTip(it->second);
-    chainActive.UpdateFinalityBlock();
+  //  chainActive.UpdateFinalityBlock();
     LogPrint(BCLog::INFO, "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));
@@ -2696,4 +2702,35 @@ bool IsInitialBlockDownload() {
     }
 
     return (GetTime() - nLastUpdate < 10 && chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
+}
+
+FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
+    if (pos.IsNull())
+        return nullptr;
+    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
+    boost::filesystem::create_directories(path.parent_path());
+    FILE *file = fopen(path.string().c_str(), "rb+");
+    if (!file && !fReadOnly)
+        file = fopen(path.string().c_str(), "wb+");
+    if (!file) {
+        LogPrint(BCLog::ERROR, "Unable to open file %s\n", path.string());
+        return nullptr;
+    }
+
+    if (pos.nPos) {
+        if (fseek(file, pos.nPos, SEEK_SET)) {
+            LogPrint(BCLog::ERROR, "Unable to seek to position %u of %s\n", pos.nPos, path.string());
+            fclose(file);
+            return nullptr;
+        }
+    }
+    return file;
+}
+
+FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
+    return OpenDiskFile(pos, "blk", fReadOnly);
+}
+
+FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
+    return OpenDiskFile(pos, "rev", fReadOnly);
 }

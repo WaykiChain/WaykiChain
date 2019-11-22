@@ -11,19 +11,41 @@
 #include <set>
 #include "sync.h"
 #include "commons/uint256.h"
+#include "commons/limitedmap.h"
+#include "commons/mruset.h"
+#include "entities/vote.h"
 
 class CRegID ;
 class CBlockConfirmMessage ;
 
+
+
 class CPBFTContext {
 
+private:
+    CCriticalSection cs_pbftcontext ;
 public:
-    map<uint256, set<CRegID>> confirmMessages;
-    map<uint256, set<CRegID>> blockMiners ;
-    set<uint256> confirmedBlockHashSet ;
-    void PutConfirmMessage(CBlockConfirmMessage msg) ;
 
-    void PutConfirmedBlockHash(uint256 hash) ;
+    limitedmap<uint256, set<CBlockConfirmMessage>> blockConfirmedMessagesMap ;
+    limitedmap<uint256, set<CRegID>> blockMinerListMap ;
+    mruset<uint256> confirmedBlockHashSet ;
+    mruset<uint256> setConfirmMessageKnown ;
+    CPBFTContext(){
+        confirmedBlockHashSet.max_size(500);
+        setConfirmMessageKnown.max_size(500);
+    }
+
+    bool IsKownConfirmMessage(const CBlockConfirmMessage msg);
+
+    bool AddConfirmMessageKnown(const CBlockConfirmMessage msg);
+
+    bool SaveConfirmMessageByBlock(const CBlockConfirmMessage& msg) ;
+
+    bool GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>& delegates) ;
+
+    bool GetMessagesByBlockHash(const uint256 hash, set<CBlockConfirmMessage>& msgs) ;
+
+    bool SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates) ;
 };
 
 

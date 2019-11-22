@@ -159,6 +159,14 @@ bool operator<(const CInv& a, const CInv& b)
     return (a.type < b.type || (a.type == b.type && a.hash < b.hash));
 }
 
+bool operator<(const CBlockConfirmMessage& a , const CBlockConfirmMessage& b){
+    if(a.height != b.height)
+        return a.height < b.height ;
+    if(a.miner != b.miner)
+        return a.miner < b.miner ;
+    return a.blockHash < b.blockHash ;
+}
+
 bool CInv::IsKnownType() const
 {
     return (type >= 1 && type < (int32_t)ARRAYLEN(ppszTypeName));
@@ -179,4 +187,10 @@ std::string CInv::ToString() const
 void CInv::Print() const
 {
     LogPrint(BCLog::INFO,"CInv(%s)\n", ToString());
+}
+
+uint256 CBlockConfirmMessage::GetHash() const {
+    CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
+    ss << blockHash << height<< miner ;
+    return ss.GetHash();
 }

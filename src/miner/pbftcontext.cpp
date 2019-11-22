@@ -9,18 +9,57 @@
 
 CPBFTContext pbftContext ;
 
+bool CPBFTContext::SaveConfirmMessageByBlock(const CBlockConfirmMessage& msg) {
 
-void CPBFTContext::PutConfirmMessage(CBlockConfirmMessage msg){
-
-    auto it = confirmMessages.find(msg.blockHash) ;
-    if( it != confirmMessages.end()){
-        it->second.insert(msg.miner);
-    }else{
-        set<CRegID> ids ;
-        ids.insert(msg.miner) ;
+    LOCK(cs_pbftcontext);
+    auto it = blockConfirmedMessagesMap.find(msg.blockHash) ;
+    if(it == blockConfirmedMessagesMap.end()) {
+        set<CBlockConfirmMessage> messages ;
+        messages.insert(msg) ;
+        blockConfirmedMessagesMap.insert(std::make_pair(msg.blockHash, messages)) ;
+    } else {
+        set<CBlockConfirmMessage> v = blockConfirmedMessagesMap[msg.blockHash] ;
+        v.insert(msg);
+        blockConfirmedMessagesMap.update(it, v );
+        /*if(v.size()==8){
+            LogPrint(BCLog::NET, "received 8 confirmMessages, blockHash(%s)", msg.blockHash.GetHex()) ;
+            return true ;
+        }*/
     }
+    return true ;
 }
 
-void CPBFTContext::PutConfirmedBlockHash(uint256 hash) {
-    confirmedBlockHashSet.insert(hash);
+bool CPBFTContext::IsKownConfirmMessage(const CBlockConfirmMessage msg){
+    return setConfirmMessageKnown.count(msg.GetHash()) != 0  ;
+}
+
+bool CPBFTContext::AddConfirmMessageKnown(const CBlockConfirmMessage msg){
+    setConfirmMessageKnown.insert(msg.GetHash()) ;
+    return true;
+}
+
+bool CPBFTContext::GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>& miners) {
+
+    auto it = blockMinerListMap.find(blockHash) ;
+    if(it == blockMinerListMap.end())
+        return false;
+    miners = it->second ;
+    return true ;
+}
+
+bool CPBFTContext::GetMessagesByBlockHash(const uint256 hash, set<CBlockConfirmMessage>& msgs) {
+    auto it = blockConfirmedMessagesMap.find(hash) ;
+    if(it == blockConfirmedMessagesMap.end())
+        return false;
+    msgs = it->second ;
+    return true ;
+}
+
+bool CPBFTContext::SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates) {
+    set<CRegID> miners ;
+    for(auto delegate: delegates){
+        miners.insert(delegate.regid);
+    }
+    blockMinerListMap.insert(std::make_pair(blockhash, miners));
+    return true ;
 }

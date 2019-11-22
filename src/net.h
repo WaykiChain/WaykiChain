@@ -251,8 +251,7 @@ public:
     CCriticalSection cs_inventory;
     multimap<int64_t, CInv> mapAskFor;  //向网络请求交易的时间, a priority queue
 
-    // blockConfirm base relay
-    vector<CBlockConfirmMessage> vBlockConfirmMsgToSend ;
+
     mruset<CBlockConfirmMessage> setBlockConfirmMsgKnown ;
     CCriticalSection cs_blockConfirm ;
 
@@ -294,6 +293,7 @@ public:
         fGetAddr                 = false;
         fRelayTxes               = false;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
+        setBlockConfirmMsgKnown.max_size(200);
         pFilter        = new CBloomFilter();
         nPingNonceSent = 0;
         nPingUsecStart = 0;
@@ -367,6 +367,8 @@ public:
 
     void AddAddressKnown(const CAddress& addr) { setAddrKnown.insert(addr); }
 
+    void AddBlockConfirmMessageKnown(const CBlockConfirmMessage msg){ setBlockConfirmMsgKnown.insert(msg); }
+
     void PushAddress(const CAddress& addr) {
         // Known checking here is only to save space from duplicates.
         // SendMessages will filter it again for knowns that were added
@@ -392,6 +394,14 @@ public:
             LOCK(cs_inventory);
             if (forced || !setInventoryKnown.count(inv))
                 vInventoryToSend.push_back(inv);
+        }
+    }
+
+    void PushBlockConfirmMessage(const CBlockConfirmMessage& msg) {
+        LOCK(cs_blockConfirm);
+        if(!setBlockConfirmMsgKnown.count(msg)){
+            PushMessage("confirmblock", msg) ;
+            setBlockConfirmMsgKnown.insert(msg);
         }
     }
 

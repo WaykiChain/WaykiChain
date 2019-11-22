@@ -9,6 +9,8 @@
 
 #include "persistence/block.h"
 
+class CBlockConfirmMessage ;
+
 
 /** An in-memory indexed chain of blocks. */
 class CChain {
@@ -44,7 +46,11 @@ public:
     int32_t Height() const;
 
 
+    bool UpdateFinalityBlock(const uint32_t height);
     bool UpdateFinalityBlock() ;
+    bool UpdateFinalityBlock(const CBlockIndex* pIndex);
+    bool UpdateFinalityBlock(const CBlockConfirmMessage& msg);
+
     /** Set/initialize a chain with a given tip. Returns the forking point. */
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 

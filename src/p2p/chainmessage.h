@@ -30,7 +30,7 @@ class CInv;
 class COrphanBlock;
 class CBlockConfirmMessage;
 
-extern CPBFTContext cpbftContext ;
+extern CPBFTContext pbftContext ;
 extern CChain chainActive;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
@@ -866,24 +866,75 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
 
 bool CheckBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
-    return true ;
+    CAccount account ;
+    {
+        LOCK(cs_main) ;
+        if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
+            return false ;
+        }
+    }
+
+
+    uint256 messageHash = msg.GetHash();
+    if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
+        if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey))
+            return ERRORMSG("CheckBlockComfirmMessage() : verify signature error");
+    }
+
+  /*  CBlockIndex* blockIndex= chainActive[msg.height] ;
+    if(blockIndex == nullptr || blockIndex->GetBlockHash() != msg.blockHash){
+        return ERRORMSG("CheckBlockComfirmMessage() : don't have the block that need be confirmed on chinaActive,blockheight=%d, blockHash=%s\n",
+                msg.height, msg.blockHash.GetHex());
+    }
+
+    VoteDelegateVector vMiners ;
+    if(!pbftContext.GetMinerListByBlockHash(blockIndex->pprev->GetBlockHash(), vMiners)){
+
+        return ERRORMSG("CheckBlockComfirmMessage() : not find confirm miners,blockheight=%d, blockHash=%s\n",
+                        msg.height, msg.blockHash.GetHex());
+    }
+*/
+
+   return true ;
 
 }
-bool ProcessBlockConfirmMEssage(CNode *pFrom, CDataStream &vRecv) {
 
+bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
+
+    for(auto node:vNodes){
+        node->PushBlockConfirmMessage(msg);
+    }
+    return true ;
+}
+
+bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
+
+    if(IsInitialBlockDownload())
+        return false ;
     CBlockConfirmMessage message ;
     vRecv >> message;
-    LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s",
-            message.height, message.blockHash.GetHex(), message.miner.ToString());
-    if(!CheckBlockConfirmMessage(message))
+
+    LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
+             message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
+
+
+    pFrom->AddBlockConfirmMessageKnown(message) ;
+
+    if(pbftContext.IsKownConfirmMessage(message)){
+        LogPrint(BCLog::NET, "duplicate confirm message,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
         return false ;
+    }
 
+    if(!CheckBlockConfirmMessage(message)){
+        LogPrint(BCLog::NET, "duplicate confirm message 3");
+        return false ;
+    }
 
-
+    pbftContext.AddConfirmMessageKnown(message);
+    pbftContext.SaveConfirmMessageByBlock(message);
+    RelayBlockConfirmMessage(message) ;
 
     return true ;
-
-
 }
 inline void ProcessRejectMessage(CNode *pFrom, CDataStream &vRecv) {
     if (SysCfg().IsDebug()) {

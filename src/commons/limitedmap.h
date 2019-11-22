@@ -32,6 +32,10 @@ public:
         assert(nMaxSizeIn > 0);
         nMaxSize = nMaxSizeIn;
     }
+
+    limitedmap(){ nMaxSize = 500;}
+
+    V& operator[](const K& key){return map[key];}
     const_iterator begin() const { return map.begin(); }
     const_iterator end() const { return map.end(); }
     size_type size() const { return map.size(); }

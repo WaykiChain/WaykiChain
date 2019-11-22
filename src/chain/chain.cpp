@@ -4,7 +4,10 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chain.h"
+#include "p2p/protocol.h"
+#include "miner/pbftcontext.h"
 
+extern CPBFTContext pbftContext;
 //////////////////////////////////////////////////////////////////////////////
 //class CChain implementation
 
@@ -52,44 +55,6 @@ CBlockIndex* CChain::Next(const CBlockIndex *pIndex) const {
 /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
 int32_t CChain::Height() const {
     return vChain.size() - 1;
-}
-
-
-
-bool CChain::UpdateFinalityBlock(){
-    set<CRegID> minerSet ;
-    uint32_t confirmMiners = FINALITY_BLOCK_CONFIRM_MINER_COUNT ;
-
-    if(SysCfg().NetworkID() == MAIN_NET && Height()< 3880000){
-        confirmMiners = 0 ;
-    }
-
-    if(SysCfg().NetworkID() == TEST_NET && Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
-        confirmMiners = 0 ;
-    }
-
-
-    auto pBlockIndex = Tip() ;
-    while(pBlockIndex->height > 0){
-
-        if(minerSet.size() >=confirmMiners ){
-
-            if( (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height) || !finalityBlockIndex ){
-
-                if(finalityBlockIndex)
-                    assert(Contains(finalityBlockIndex));
-
-                finalityBlockIndex = pBlockIndex ;
-            }
-            return true;
-        }
-        minerSet.insert(pBlockIndex->miner) ;
-        pBlockIndex = pBlockIndex->pprev ;
-    }
-    if(finalityBlockIndex == nullptr )
-        finalityBlockIndex = vChain[0] ;
-
-    return true ;
 }
 
 CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
@@ -151,4 +116,99 @@ CBlockIndex* CChain::FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const 
     return Genesis();
 }
 
+
+
+bool CChain::UpdateFinalityBlock(const uint32_t height) {
+    finalityBlockIndex = vChain[height] ;
+    return true ;
+}
+
+bool CChain::UpdateFinalityBlock(const CBlockIndex* pIndex){
+
+
+    if(pIndex == nullptr|| pIndex->height==0)
+        return false ;
+    int32_t height = pIndex->height;
+
+    while(height > GetFinalityBlockIndex()->height&& height>0 &&height > pIndex->height-100){
+
+        CBlockIndex* pTemp = vChain[height] ;
+
+        set<CBlockConfirmMessage> messageSet ;
+        set<CRegID> miners;
+
+        if(pbftContext.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
+           && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
+            if(messageSet.size()>=8){
+
+                int count =0;
+                for(auto msg: messageSet){
+                    if(miners.count(msg.miner))
+                        count++ ;
+
+                    if(count>=8){
+                        finalityBlockIndex = vChain[height];
+                        return true ;
+                    }
+                }
+            }
+
+        }
+
+        height--;
+
+    }
+    return false ;
+}
+
+bool CChain::UpdateFinalityBlock(const CBlockConfirmMessage& msg){
+    CBlockIndex* fi = GetFinalityBlockIndex();
+    if((uint32_t)fi->height >= msg.height)
+        return false;
+    CBlockIndex* pIndex = vChain[msg.height];
+    if(pIndex == nullptr)
+        return false;
+    if(pIndex->GetBlockHash() != msg.blockHash)
+        return false;
+    UpdateFinalityBlock(msg.height) ;
+
+    return true;
+}
+
+
+bool CChain::UpdateFinalityBlock(){
+    set<CRegID> minerSet ;
+    uint32_t confirmMiners = FINALITY_BLOCK_CONFIRM_MINER_COUNT ;
+
+    if(SysCfg().NetworkID() == MAIN_NET && Height()< 3880000){
+        confirmMiners = 0 ;
+    }
+
+    if(SysCfg().NetworkID() == TEST_NET && Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
+        confirmMiners = 0 ;
+    }
+
+
+    auto pBlockIndex = Tip() ;
+    while(pBlockIndex->height > 0){
+
+        if(minerSet.size() >=confirmMiners ){
+
+            if( (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height) || !finalityBlockIndex ){
+
+                if(finalityBlockIndex)
+                    assert(Contains(finalityBlockIndex));
+
+                finalityBlockIndex = pBlockIndex ;
+            }
+            return true;
+        }
+        minerSet.insert(pBlockIndex->miner) ;
+        pBlockIndex = pBlockIndex->pprev ;
+    }
+    if(finalityBlockIndex == nullptr )
+        finalityBlockIndex = vChain[0] ;
+
+    return true ;
+}
 

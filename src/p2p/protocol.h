@@ -342,7 +342,7 @@ class CBlockConfirmMessage{
         CBlockConfirmMessage(const uint32_t height,
                 const uint256 blockHash):height(height),
                 blockHash(blockHash){}
-        bool SetSginature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
+        bool SetSignature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
 
         IMPLEMENT_SERIALIZE
         (
@@ -351,6 +351,9 @@ class CBlockConfirmMessage{
             READWRITE(height);
             READWRITE(blockHash);
         )
+
+        friend bool operator<(const CBlockConfirmMessage& a , const CBlockConfirmMessage& b);
+        uint256 GetHash() const ;
 
 };
 

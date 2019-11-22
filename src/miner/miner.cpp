@@ -623,21 +623,21 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
     return true;
 }
 
-static bool FindMiner(VoteDelegate delegate, Miner &miner){
+static bool FindMiner(CRegID delegate, Miner &miner){
     {
         LOCK(cs_main);
 
-        if (!pCdMan->pAccountCache->GetAccount(delegate.regid, miner.account)) {
+        if (!pCdMan->pAccountCache->GetAccount(delegate, miner.account)) {
 
             return false;
         }
     }
-    bool isMinerKey = false;
+
     {
         LOCK(pWalletMain->cs_wallet);
 
         if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
-            isMinerKey = true;
+            return true;
         } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
 
             return false;
@@ -650,25 +650,25 @@ static bool FindMiner(VoteDelegate delegate, Miner &miner){
 }
 
 
-bool BroadcastBlockConfirm(const CBlock block) {
+bool BroadcastBlockConfirm(const CBlockIndex* block) {
 
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false ;
 
-    VoteDelegateVector delegates;
-    {
-        LOCK(cs_main);
+    if(IsInitialBlockDownload())
+        return false ;
 
-        if (!pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
-
-            return false;
-        }
-    }
-
-    CBlockIndex* index = chainActive[block.GetHeight()] ;
-    CBlockConfirmMessage msg(block.GetHeight(), block.GetHash());
-    if(pbftContext.confirmedBlockHashSet.count(block.GetHash()))
+    if(pbftContext.confirmedBlockHashSet.count(block->GetBlockHash()))
         return true ;
+
+    //查找上一个区块执行过后的矿工列表
+    set<CRegID> delegates;
+
+    if(block->pprev == nullptr)
+        return false ;
+    pbftContext.GetMinerListByBlockHash(block->pprev->GetBlockHash(), delegates);
+
+    CBlockConfirmMessage msg(block->height, block->GetBlockHash());
 
     {
         LOCK(cs_vNodes);
@@ -678,17 +678,25 @@ bool BroadcastBlockConfirm(const CBlock block) {
             if(!FindMiner(delegate, miner))
                 continue ;
             msg.miner = miner.account.regid ;
+            vector<unsigned char > vSign ;
+            uint256 messageHash = msg.GetHash() ;
+
+            miner.key.Sign(messageHash, vSign);
+            msg.SetSignature(vSign);
 
             for (auto pNode : vNodes) {
-                pNode->PushMessage("confirmblock", msg) ;
+                pNode->PushBlockConfirmMessage(msg) ;
             }
+
+            pbftContext.SaveConfirmMessageByBlock(msg);
 
         }
     }
 
-    pbftContext.confirmedBlockHashSet.insert(block.GetHash());
+    pbftContext.confirmedBlockHashSet.insert(block->GetBlockHash());
     return true ;
 }
+
 
 static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &miner) {
     int64_t lastTime    = 0;
@@ -831,6 +839,10 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
                 LOCK(cs_main);
                 pIndexPrev = chainActive.Tip();
             }
+
+            if(pIndexPrev== nullptr)
+                continue ;
+
             int32_t blockHeight = pIndexPrev->height + 1;
 
             int64_t startMiningMs = GetTimeMillis();
@@ -863,7 +875,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
     } catch (...) {
         LogPrint(BCLog::INFO, "CoinMiner() : terminated\n");
         SetMinerStatus(false);
-        throw;
+        throw ;
     }
 }
 
