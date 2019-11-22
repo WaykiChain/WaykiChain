@@ -421,29 +421,6 @@ bool ActivateBestChain(CValidationState &state);
 
 /** Remove invalidity status from a block and its descendants. */
 bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
-/** Functions for disk access for blocks */
-bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
-bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
-bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
-
-
-bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx);
-
-template<typename TxType>
-bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
-    std::shared_ptr<CBaseTx> pBaseTx;
-    if (!ReadBaseTxFromDisk(txCord, pBaseTx)) {
-        return ERRORMSG("ReadTxFromDisk failed! txcord(%s)", txCord.ToString());
-    }
-    assert(pBaseTx);
-    pTx = dynamic_pointer_cast<TxType>(pBaseTx);
-    if (!pTx) {
-        return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s",
-            txCord.ToString(), typeid(TxType).name(), typeid(*pBaseTx).name());
-    }
-    return true;
-}
-
 
 
 #endif
