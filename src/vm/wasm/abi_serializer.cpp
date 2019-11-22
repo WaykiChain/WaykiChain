@@ -332,7 +332,7 @@ namespace wasm {
         return _binary_to_variant(type, ds, ctx);
     }
 
-    inline auto GetFieldVariant( const type_name &s, const json_spirit::Value &v, field_name field ) {
+    inline auto get_field_variant( const type_name &s, const json_spirit::Value &v, field_name field ) {
         if (v.type() == json_spirit::obj_type) {
             auto o = v.get_obj();
             for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
@@ -350,7 +350,7 @@ namespace wasm {
 
     }
 
-    inline auto GetFieldVariant( const type_name &s, const json_spirit::Value &v, uint32_t index ) {
+    inline auto get_field_variant( const type_name &s, const json_spirit::Value &v, uint32_t index ) {
         if (v.type() == json_spirit::array_type) {
             auto a = v.get_array();
             if (index > a.size() - 1) {
@@ -398,7 +398,7 @@ namespace wasm {
                     auto &vo = var.get_obj();
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
-                        auto v = GetFieldVariant(st.name, vo, field.name);
+                        auto v = get_field_variant(st.name, vo, field.name);
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else if (var.type() == json_spirit::array_type) {
@@ -413,7 +413,7 @@ namespace wasm {
 
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
-                        auto v = GetFieldVariant(st.name, var, i);
+                        auto v = get_field_variant(st.name, var, i);
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else {

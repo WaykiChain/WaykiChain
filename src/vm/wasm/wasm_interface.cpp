@@ -88,9 +88,6 @@ namespace wasm {
     }
 
     class wasm_host_methods {
-
-    public:
-        wasm_context_interface *pWasmContext;
         
     public:
         wasm_host_methods( wasm_context_interface *pCtx ) {
@@ -743,6 +740,9 @@ namespace wasm {
         static bool is_nan( const float128_t &f ) {
             return f128_is_nan(f);
         }
+
+    public:
+        wasm_context_interface *pWasmContext;
 
     private:
         bool print_ignore;
