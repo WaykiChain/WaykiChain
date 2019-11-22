@@ -16,6 +16,7 @@
 #include "sync.h"
 #include "disk.h"
 #include "entities/id.h"
+#include "tx/tx.h"
 
 
 #include <stdint.h>

@@ -78,6 +78,7 @@ config/version.o: config/build.h
 coin_CORE_H = \
   chain/blockdelegates.h \
   chain/chain.h \
+  chain/merkletree.h \
   entities/account.h \
   entities/assett.h \
   entities/cdp.h \
@@ -308,6 +309,7 @@ libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLA
 libcoin_server_a_SOURCES = \
   chain/blockdelegates.cpp \
   chain/chain.cpp \
+  chain/merkletree.cpp \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \

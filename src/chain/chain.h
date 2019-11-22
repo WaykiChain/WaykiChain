@@ -7,7 +7,7 @@
 #ifndef CHAIN_CHAIN_H
 #define CHAIN_CHAIN_H
 
-#include "persistence/cachewrapper.h"
+#include "persistence/block.h"
 
 
 /** An in-memory indexed chain of blocks. */
