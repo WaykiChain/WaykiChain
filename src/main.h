@@ -25,6 +25,8 @@
 #include "config/chainparams.h"
 #include "config/const.h"
 #include "config/errorcode.h"
+#include "chain/chain.h"
+#include "chain/merkletree.h"
 #include "net.h"
 #include "persistence/accountdb.h"
 #include "persistence/block.h"
@@ -38,32 +40,10 @@
 #include "sigcache.h"
 #include "tx/tx.h"
 #include "tx/txserializer.h"
-// #include "tx/accountregtx.h"
-// #include "tx/cointransfertx.h"
-// #include "tx/blockpricemediantx.h"
-// #include "tx/blockrewardtx.h"
-// #include "tx/cdptx.h"
-// #include "tx/coinrewardtx.h"
-// #include "tx/cointransfertx.h"
-// #include "tx/contracttx.h"
-// #include "tx/delegatetx.h"
-// #include "tx/dextx.h"
-// #include "tx/coinstaketx.h"
-// #include "tx/mulsigtx.h"
-// #include "tx/pricefeedtx.h"
 
-// #include "tx/txmempool.h"
-// #include "tx/assettx.h"
-// #include "tx/wasmcontracttx.h"
-// #include "tx/nickidregtx.h"
-
-// class CBlockIndex;
 class CBloomFilter;
 class CChain;
 class CInv;
-// class CSysParamDBCache;
-// class CBlockDBCache;
-// class CAccountDBCache;
 
 extern CCriticalSection cs_main;
 /** The currently-connected chain of blocks. */
@@ -150,8 +130,6 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
-std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType);
-
 struct CNodeStateStats {
     int32_t nMisbehavior;
 };
@@ -160,72 +138,6 @@ struct CNodeStateStats {
     @return True if all outputs (scriptPubKeys) use only standard transaction forms
 */
 bool IsStandardTx(CBaseTx *pBaseTx, string &reason);
-
-/** An in-memory indexed chain of blocks. */
-class CChain {
-private:
-    vector<CBlockIndex *> vChain;
-    CBlockIndex* finalityBlockIndex = nullptr ;
-
-public:
-    /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
-    CBlockIndex *Genesis() const {
-        return vChain.size() > 0 ? vChain[0] : nullptr;
-    }
-
-    CBlockIndex *GetFinalityBlockIndex(){
-        if(!finalityBlockIndex)
-            return chainActive[0] ;
-        return finalityBlockIndex ;
-    }
-
-    /** Returns the index entry for the tip of this chain, or nullptr if none. */
-    CBlockIndex *Tip() const {
-        return vChain.size() > 0 ? vChain[Height()] : nullptr;
-    }
-
-    /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */
-    CBlockIndex *operator[](int32_t height) const {
-        if (height < 0 || height >= (int)vChain.size())
-            return nullptr;
-        return vChain[height];
-    }
-
-    /** Compare two chains efficiently. */
-    friend bool operator==(const CChain &a, const CChain &b) {
-        return a.vChain.size() == b.vChain.size() &&
-               a.vChain[a.Height()] == b.vChain[b.Height()];
-    }
-
-    /** Efficiently check whether a block is present in this chain. */
-    bool Contains(const CBlockIndex *pIndex) const {
-        return (*this)[pIndex->height] == pIndex;
-    }
-
-    /** Find the successor of a block in this chain, or nullptr if the given index is not found or is the tip. */
-    CBlockIndex *Next(const CBlockIndex *pIndex) const {
-        if (Contains(pIndex))
-            return (*this)[pIndex->height + 1];
-        else
-            return nullptr;
-    }
-
-    /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
-    int32_t Height() const {
-        return vChain.size() - 1;
-    }
-
-
-    bool UpdateFinalityBlock() ;
-    /** Set/initialize a chain with a given tip. Returns the forking point. */
-    CBlockIndex *SetTip(CBlockIndex *pIndex);
-
-    /** Return a CBlockLocator that refers to a block in this chain (by default the tip). */
-    CBlockLocator GetLocator(const CBlockIndex *pIndex = nullptr) const;
-
-    /** Find the last common block between this chain and a locator. */
-    CBlockIndex *FindFork(const CBlockLocator &locator) const;
-}; //end of CChain
 
 class CCacheDBManager {
 public:
@@ -377,173 +289,6 @@ public:
 
 bool IsInitialBlockDownload();
 
-/** Open an undo file (rev?????.dat) */
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-
-/** Undo information for a CBlock */
-class CBlockUndo {
-public:
-    vector<CTxUndo> vtxundo;
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(vtxundo);
-    )
-
-    bool WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash) {
-        // Open history file to append
-        CAutoFile fileout = CAutoFile(OpenUndoFile(pos), SER_DISK, CLIENT_VERSION);
-        if (!fileout)
-            return ERRORMSG("CBlockUndo::WriteToDisk : OpenUndoFile failed");
-
-        // Write index header
-        uint32_t nSize = fileout.GetSerializeSize(*this);
-        fileout << FLATDATA(SysCfg().MessageStart()) << nSize;
-
-        // Write undo data
-        long fileOutPos = ftell(fileout);
-        if (fileOutPos < 0)
-            return ERRORMSG("CBlockUndo::WriteToDisk : ftell failed");
-        pos.nPos = (uint32_t)fileOutPos;
-        fileout << *this;
-
-        // calculate & write checksum
-        CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-        hasher << blockHash;
-        hasher << *this;
-
-        fileout << hasher.GetHash();
-
-        // Flush stdio buffers and commit to disk before returning
-        fflush(fileout);
-        if (!IsInitialBlockDownload())
-            FileCommit(fileout);
-
-        return true;
-    }
-
-    bool ReadFromDisk(const CDiskBlockPos &pos, const uint256 &blockHash) {
-        // Open history file to read
-        CAutoFile filein = CAutoFile(OpenUndoFile(pos, true), SER_DISK, CLIENT_VERSION);
-        if (!filein)
-            return ERRORMSG("CBlockUndo::ReadFromDisk : OpenBlockFile failed");
-
-        // Read block
-        uint256 hashChecksum;
-        try {
-            filein >> *this;
-            filein >> hashChecksum;
-        } catch (std::exception &e) {
-            return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
-        }
-
-        // Verify checksum
-        CHashWriter hasher(SER_GETHASH, PROTOCOL_VERSION);
-        hasher << blockHash;
-        hasher << *this;
-
-        if (hashChecksum != hasher.GetHash())
-            return ERRORMSG("CBlockUndo::ReadFromDisk : Checksum mismatch");
-        return true;
-    }
-
-    string ToString() const;
-};
-
-
-/** Data structure that represents a partial merkle tree.
- *
- * It respresents a subset of the txid's of a known block, in a way that
- * allows recovery of the list of txid's and the merkle root, in an
- * authenticated way.
- *
- * The encoding works as follows: we traverse the tree in depth-first order,
- * storing a bit for each traversed node, signifying whether the node is the
- * parent of at least one matched leaf txid (or a matched txid itself). In
- * case we are at the leaf level, or this bit is 0, its merkle node hash is
- * stored, and its children are not explorer further. Otherwise, no hash is
- * stored, but we recurse into both (or the only) child branch. During
- * decoding, the same depth-first traversal is performed, consuming bits and
- * hashes as they written during encoding.
- *
- * The serialization is fixed and provides a hard guarantee about the
- * encoded size:
- *
- *   SIZE <= 10 + ceil(32.25*N)
- *
- * Where N represents the number of leaf nodes of the partial tree. N itself
- * is bounded by:
- *
- *   N <= total_transactions
- *   N <= 1 + matched_transactions*tree_height
- *
- * The serialization format:
- *  - uint32     total_transactions (4 bytes)
- *  - varint     number of hashes   (1-3 bytes)
- *  - uint256[]  hashes in depth-first order (<= 32*N bytes)
- *  - varint     number of bytes of flag bits (1-3 bytes)
- *  - byte[]     flag bits, packed per 8 in a byte, least significant bit first (<= 2*N-1 bits)
- * The size constraints follow from this.
- */
-class CPartialMerkleTree {
-protected:
-    // the total number of transactions in the block
-    uint32_t nTransactions;
-
-    // node-is-parent-of-matched-txid bits
-    vector<bool> vBits;
-
-    // txids and internal hashes
-    vector<uint256> vHash;
-
-    // flag set when encountering invalid data
-    bool fBad;
-
-    // helper function to efficiently calculate the number of nodes at given height in the merkle tree
-    uint32_t CalcTreeWidth(int32_t height) {
-        return (nTransactions + (1 << height) - 1) >> height;
-    }
-
-    // calculate the hash of a node in the merkle tree (at leaf level: the txid's themself)
-    uint256 CalcHash(int32_t height, uint32_t pos, const vector<uint256> &vTxid);
-
-    // recursive function that traverses tree nodes, storing the data as bits and hashes
-    void TraverseAndBuild(int32_t height, uint32_t pos, const vector<uint256> &vTxid, const vector<bool> &vMatch);
-
-    // recursive function that traverses tree nodes, consuming the bits and hashes produced by TraverseAndBuild.
-    // it returns the hash of the respective node.
-    uint256 TraverseAndExtract(int32_t height, uint32_t pos, uint32_t &nBitsUsed, uint32_t &nHashUsed, vector<uint256> &vMatch);
-
-public:
-    // serialization implementation
-    IMPLEMENT_SERIALIZE(
-        READWRITE(nTransactions);
-        READWRITE(vHash);
-        vector<uint8_t> vBytes;
-        if (fRead) {
-            READWRITE(vBytes);
-            CPartialMerkleTree &us = *(const_cast<CPartialMerkleTree *>(this));
-            us.vBits.resize(vBytes.size() * 8);
-            for (uint32_t p = 0; p < us.vBits.size(); p++)
-                us.vBits[p] = (vBytes[p / 8] & (1 << (p % 8))) != 0;
-            us.fBad = false;
-        } else {
-            vBytes.resize((vBits.size() + 7) / 8);
-            for (uint32_t p = 0; p < vBits.size(); p++)
-                vBytes[p / 8] |= vBits[p] << (p % 8);
-            READWRITE(vBytes);
-        })
-
-    // Construct a partial merkle tree from a list of transaction id's, and a mask that selects a subset of them
-    CPartialMerkleTree(const vector<uint256> &vTxid, const vector<bool> &vMatch);
-
-    CPartialMerkleTree();
-
-    // extract the matching txid's represented by this partial merkle tree.
-    // returns the merkle root, or 0 in case of failure
-    uint256 ExtractMatches(vector<uint256> &vMatch);
-};
-
-
 /** Capture information about block/transaction validation */
 class CValidationState {
 private:
@@ -612,30 +357,6 @@ extern string externalIp;
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
-/** Used to relay blocks as header + vector<merkle branch>
- * to filtered nodes.
- */
-class CMerkleBlock {
-public:
-    // Public only for unit testing
-    CBlockHeader header;
-    CPartialMerkleTree txn;
-
-public:
-    // Public only for unit testing and relay testing
-    // (not relayed)
-    vector<pair<uint32_t, uint256> > vMatchedTxn;
-
-    // Create from a CBlock, filtering transactions according to filter
-    // Note that this will call IsRelevantAndUpdate on the filter for each transaction,
-    // thus the filter will likely be modified.
-    CMerkleBlock(const CBlock &block, CBloomFilter &filter);
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(header);
-        READWRITE(txn);)
-};
-
 class CWalletInterface {
 protected:
     virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) = 0;
@@ -676,9 +397,6 @@ bool DisconnectBlockFromTip(CValidationState &state);
 /** Mark a block as invalid. */
 bool InvalidateBlock(CValidationState &state, CBlockIndex *pIndex);
 
-/** Open a block file (blk?????.dat) */
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly = false);
-
 /** Import blocks from an external file */
 bool LoadExternalBlockFile(FILE *fileIn, CDiskBlockPos *dbp = nullptr);
 /** Initialize a new block tree database + block data on disk */
@@ -703,29 +421,6 @@ bool ActivateBestChain(CValidationState &state);
 
 /** Remove invalidity status from a block and its descendants. */
 bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
-/** Functions for disk access for blocks */
-bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos);
-bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block);
-bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block);
-
-
-bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx);
-
-template<typename TxType>
-bool ReadTxFromDisk(const CTxCord txCord, std::shared_ptr<TxType> &pTx) {
-    std::shared_ptr<CBaseTx> pBaseTx;
-    if (!ReadBaseTxFromDisk(txCord, pBaseTx)) {
-        return ERRORMSG("ReadTxFromDisk failed! txcord(%s)", txCord.ToString());
-    }
-    assert(pBaseTx);
-    pTx = dynamic_pointer_cast<TxType>(pBaseTx);
-    if (!pTx) {
-        return ERRORMSG("The expected tx(%s) type is %s, but read tx type is %s",
-            txCord.ToString(), typeid(TxType).name(), typeid(*pBaseTx).name());
-    }
-    return true;
-}
-
 
 
 #endif

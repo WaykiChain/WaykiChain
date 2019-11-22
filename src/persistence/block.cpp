@@ -127,3 +127,75 @@ std::tuple<bool, int> CBlock::GetTxIndex(const uint256& txid) const {
 
     return std::make_tuple(false, 0);
 }
+
+//////////////////////////////////////////////////////////////////////////////
+// global functions
+
+bool WriteBlockToDisk(CBlock &block, CDiskBlockPos &pos) {
+    // Open history file to append
+    CAutoFile fileout = CAutoFile(OpenBlockFile(pos), SER_DISK, CLIENT_VERSION);
+    if (!fileout)
+        return ERRORMSG("WriteBlockToDisk : OpenBlockFile failed");
+
+    // Write index header
+    uint32_t nSize = fileout.GetSerializeSize(block);
+    fileout << FLATDATA(SysCfg().MessageStart()) << nSize;
+
+    // Write block
+    int32_t fileOutPos = ftell(fileout);
+    if (fileOutPos < 0)
+        return ERRORMSG("WriteBlockToDisk : ftell failed");
+    pos.nPos = (uint32_t)fileOutPos;
+    fileout << block;
+
+    // Flush stdio buffers and commit to disk before returning
+    fflush(fileout);
+    if (!IsInitialBlockDownload())
+        FileCommit(fileout);
+
+    return true;
+}
+
+bool ReadBlockFromDisk(const CDiskBlockPos &pos, CBlock &block) {
+    block.SetNull();
+
+    // Open history file to read
+    CAutoFile filein = CAutoFile(OpenBlockFile(pos, true), SER_DISK, CLIENT_VERSION);
+    if (!filein)
+        return ERRORMSG("ReadBlockFromDisk : OpenBlockFile failed");
+
+    // Read block
+    try {
+        filein >> block;
+    } catch (std::exception &e) {
+        return ERRORMSG("%s : Deserialize or I/O error - %s", __func__, e.what());
+    }
+
+    return true;
+}
+
+bool ReadBlockFromDisk(const CBlockIndex *pIndex, CBlock &block) {
+    if (!ReadBlockFromDisk(pIndex->GetBlockPos(), block))
+        return false;
+
+    if (block.GetHash() != pIndex->GetBlockHash())
+        return ERRORMSG("ReadBlockFromDisk(CBlock&, CBlockIndex*) : GetHash() doesn't match");
+
+    return true;
+}
+
+bool ReadBaseTxFromDisk(const CTxCord txCord, std::shared_ptr<CBaseTx> &pTx) {
+    auto pBlock = std::make_shared<CBlock>();
+    const CBlockIndex* pBlockIndex = chainActive[ txCord.GetHeight() ];
+    if (pBlockIndex == nullptr) {
+        return ERRORMSG("ReadBaseTxFromDisk error, the height(%d) is exceed current best block height", txCord.GetHeight());
+    }
+    if (!ReadBlockFromDisk(pBlockIndex, *pBlock)) {
+        return ERRORMSG("ReadBaseTxFromDisk error, read the block at height(%d) failed!", txCord.GetHeight());
+    }
+    if (txCord.GetIndex() >= pBlock->vptx.size()) {
+        return ERRORMSG("ReadBaseTxFromDisk error, the tx(%s) index exceed the tx count of block", txCord.ToString());
+    }
+    pTx = pBlock->vptx.at(txCord.GetIndex())->GetNewInstance();
+    return true;
+}

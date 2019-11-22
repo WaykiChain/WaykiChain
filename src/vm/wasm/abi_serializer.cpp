@@ -121,7 +121,6 @@ namespace wasm {
 
     void abi_serializer::set_abi( const abi_def &abi, const microseconds &max_serialization_time ) {
         wasm::abi_traverse_context ctx(max_serialization_time);
-        //wasm::abi_traverse_context ctx(microseconds(60 * 1000 * 1000));
 
         WASM_ASSERT(boost::starts_with(abi.version, "wasm::abi/1."), unsupport_abi_version_exception, "%s",
                     "ABI has an unsupported version");
@@ -132,10 +131,8 @@ namespace wasm {
 
         for (const auto &st : abi.structs) {
             structs[st.name] = st;
-            //WASM_TRACE("%s", st.name.c_str())
         }
 
-        //WASM_TRACE("%d", abi.structs.size())
         wasm::abi_traverse_context ctx2(max_serialization_time);
         for (const auto &td : abi.types) {
             WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type '%s'",
@@ -226,10 +223,8 @@ namespace wasm {
 
     bool abi_serializer::_is_type( const type_name &rtype, wasm::abi_traverse_context &ctx ) const {
 
-        //WASM_TRACE("%s", rtype.c_str())
         ctx.check_deadline();
         auto type = fundamental_type(rtype);
-        //WASM_TRACE("%s", type.c_str())
 
         if (built_in_types.find(type) != built_in_types.end()) return true;
         if (typedefs.find(type) != typedefs.end()) return _is_type(typedefs.find(type)->second, ctx);
@@ -311,7 +306,7 @@ namespace wasm {
                 if (base.type() == json_spirit::obj_type) {
                     obj = base.get_obj();
                 } else {
-                    //base in array or single value
+                    //fixme:base in array or single value
                     json_spirit::Config::add(obj, st.base, base);
                 }
             }
@@ -380,7 +375,6 @@ namespace wasm {
     void abi_serializer::_variant_to_binary( const type_name &type, const json_spirit::Value &var,
                                              wasm::datastream<char *> &ds, wasm::abi_traverse_context &ctx ) const {
         ctx.check_deadline();
-        //std::cout << "[recursion_depth:" << ctx.recursion_depth <<" type:" << type << "]"<< std::endl ;
         ctx.recursion_depth++;
         try {
             type_name rtype = resolve_type(type);
@@ -513,7 +507,6 @@ namespace wasm {
                     while (current.base != type_name()) {
                         ctx.check_deadline();
                         const auto &base = get_struct(current.base); //<-- force struct to inherit from another struct
-                        //std::cout << "base:" << current.base << std::endl;
                         WASM_ASSERT(find(types_seen.begin(), types_seen.end(), base.name) == types_seen.end(),
                                     abi_circular_def_exception,
                                     "Circular reference in struct '%s'", s.second.name.c_str());

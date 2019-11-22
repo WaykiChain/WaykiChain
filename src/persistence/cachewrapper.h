@@ -18,6 +18,7 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
+#include "blockundo.h"
 
 class CCacheDBManager;
 class CBlockUndo;

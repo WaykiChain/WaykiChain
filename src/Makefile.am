@@ -77,6 +77,8 @@ config/version.o: config/build.h
 # waykichain core #
 coin_CORE_H = \
   chain/blockdelegates.h \
+  chain/chain.h \
+  chain/merkletree.h \
   entities/account.h \
   entities/assett.h \
   entities/cdp.h \
@@ -131,6 +133,7 @@ coin_CORE_H = \
   persistence/accountdb.h \
   persistence/block.h \
   persistence/blockdb.h \
+  persistence/blockundo.h \
   persistence/cachewrapper.h \
   persistence/cdpdb.h \
   persistence/contractdb.h \
@@ -307,6 +310,8 @@ liblua53_a_SOURCES = \
 libcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS) $(WASM_CPPFLAGS)
 libcoin_server_a_SOURCES = \
   chain/blockdelegates.cpp \
+  chain/chain.cpp \
+  chain/merkletree.cpp \
   entities/account.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
@@ -396,10 +401,12 @@ libcoin_common_a_SOURCES = \
   netbase.cpp \
   p2p/protocol.cpp \
   persistence/block.cpp \
+  persistence/blockdb.cpp \
+  persistence/blockundo.cpp \
   persistence/cdpdb.cpp \
+  persistence/disk.cpp \
   persistence/accountdb.cpp \
   persistence/assetdb.cpp \
-  persistence/blockdb.cpp \
   persistence/cachewrapper.cpp \
   persistence/contractdb.cpp \
   persistence/delegatedb.cpp \

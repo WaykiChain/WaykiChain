@@ -121,7 +121,7 @@ namespace wasm {
         vector <inline_transaction> inline_transactions;
 
         wasm::wasm_interface wasmif;
-        vm::wasm_allocator  wasm_alloc;
+        vm::wasm_allocator wasm_alloc;
 
         std::chrono::milliseconds transaction_duration_timeout = std::chrono::milliseconds(max_wasm_execute_time_observe);
 
