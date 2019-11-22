@@ -5,6 +5,9 @@
 
 #include "merkletree.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// class CPartialMerkleTree
+
 uint256 CPartialMerkleTree::CalcHash(int32_t height, uint32_t pos, const vector<uint256> &vTxid) {
     if (height == 0) {
         // hash at height 0 is the txids themself
@@ -119,4 +122,29 @@ uint256 CPartialMerkleTree::ExtractMatches(vector<uint256> &vMatch) {
     if (nHashUsed != vHash.size())
         return uint256();
     return merkleRootHash;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// class CMerkleBlock
+
+CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
+    header = block.GetBlockHeader();
+
+    vector<bool> vMatch;
+    vector<uint256> vHashes;
+
+    vMatch.reserve(block.vptx.size());
+    vHashes.reserve(block.vptx.size());
+
+    for (uint32_t i = 0; i < block.vptx.size(); i++) {
+        uint256 hash = block.vptx[i]->GetHash();
+        if (filter.contains(block.vptx[i]->GetHash())) {
+            vMatch.push_back(true);
+            vMatchedTxn.push_back(make_pair(i, hash));
+        } else
+            vMatch.push_back(false);
+        vHashes.push_back(hash);
+    }
+
+    txn = CPartialMerkleTree(vHashes, vMatch);
 }

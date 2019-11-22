@@ -2320,28 +2320,6 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     return true;
 }
 
-CMerkleBlock::CMerkleBlock(const CBlock &block, CBloomFilter &filter) {
-    header = block.GetBlockHeader();
-
-    vector<bool> vMatch;
-    vector<uint256> vHashes;
-
-    vMatch.reserve(block.vptx.size());
-    vHashes.reserve(block.vptx.size());
-
-    for (uint32_t i = 0; i < block.vptx.size(); i++) {
-        uint256 hash = block.vptx[i]->GetHash();
-        if (filter.contains(block.vptx[i]->GetHash())) {
-            vMatch.push_back(true);
-            vMatchedTxn.push_back(make_pair(i, hash));
-        } else
-            vMatch.push_back(false);
-        vHashes.push_back(hash);
-    }
-
-    txn = CPartialMerkleTree(vHashes, vMatch);
-}
-
 bool AbortNode(const string &strMessage) {
     strMiscWarning = strMessage;
     LogPrint(BCLog::ERROR, "Detect abort ERROR! *** %s\n", strMessage);

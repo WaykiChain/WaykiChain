@@ -429,30 +429,6 @@ extern string externalIp;
 
 bool EraseBlockIndexFromSet(CBlockIndex *pIndex);
 
-/** Used to relay blocks as header + vector<merkle branch>
- * to filtered nodes.
- */
-class CMerkleBlock {
-public:
-    // Public only for unit testing
-    CBlockHeader header;
-    CPartialMerkleTree txn;
-
-public:
-    // Public only for unit testing and relay testing
-    // (not relayed)
-    vector<pair<uint32_t, uint256> > vMatchedTxn;
-
-    // Create from a CBlock, filtering transactions according to filter
-    // Note that this will call IsRelevantAndUpdate on the filter for each transaction,
-    // thus the filter will likely be modified.
-    CMerkleBlock(const CBlock &block, CBloomFilter &filter);
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(header);
-        READWRITE(txn);)
-};
-
 class CWalletInterface {
 protected:
     virtual void SyncTransaction(const uint256 &hash, CBaseTx *pBaseTx, const CBlock *pBlock) = 0;
