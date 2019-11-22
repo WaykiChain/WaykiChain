@@ -530,19 +530,18 @@ inline bool ProcessAddrMessage(CNode *pFrom, CDataStream &vRecv) {
 }
 
 inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) {
-    std::shared_ptr<CBaseTx> pBaseTx = CreateNewEmptyTransaction(vRecv[0]);
-
-    if (pBaseTx == nullptr) {
+    std::shared_ptr<CBaseTx> pBaseTx;
+    try {
+        vRecv >> pBaseTx;
+    } catch(EInvalidTxType e) {
         // TODO: record the misebehaving or ban the peer node.
-        return ERRORMSG("Unknown transaction type from peer %s, ignore", pFrom->addr.ToString());
+        return ERRORMSG("Unknown transaction type from peer %s, ignore! %s", pFrom->addr.ToString(), e.what());
     }
 
     if (pBaseTx->IsBlockRewardTx() || pBaseTx->IsCoinRewardTx() || pBaseTx->IsPriceMedianTx()) {
         return ERRORMSG("Forbidden transaction from network from peer %s, raw: %s", pFrom->addr.ToString(),
                         HexStr(vRecv.begin(), vRecv.end()));
     }
-
-    vRecv >> pBaseTx;
 
     CInv inv(MSG_TX, pBaseTx->GetHash());
     pFrom->AddInventoryKnown(inv);

@@ -150,8 +150,6 @@ bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signatu
 bool AcceptToMemoryPool(CTxMemPool &pool, CValidationState &state, CBaseTx *pBaseTx,
                         bool fLimitFree, bool fRejectInsaneFee = false);
 
-std::shared_ptr<CBaseTx> CreateNewEmptyTransaction(uint8_t txType);
-
 struct CNodeStateStats {
     int32_t nMisbehavior;
 };
