@@ -123,54 +123,6 @@ public:
     }
 } instance_of_cinit;
 
-static map<string, DebugLogFile> g_DebugLogs;
-
-string GetLogHead(int line, const char* file, const char* category) {
-    string te(category != NULL ? category : "");
-    if (SysCfg().IsDebug()) {
-        if (SysCfg().IsLogPrintLine()) return tfm::format("[%s:%d]%s: ", file, line, te);
-    }
-    return string("");
-}
-/**
- *  日志文件预处理。写日志文件前被调用，检测文件A是否超长
- *  当超长则先将原文件A重命名为Abak，再打开并创建A文件，删除重命名文件Abak，返回。
- * @param path  	文件路径
- * @param len  		写入数据的长度
- * @param stream  	文件的句柄
- * @return
- */
-int LogFilePreProcess(const char* path, size_t len, FILE** stream) {
-    if ((NULL == path) || (len <= 0) || (NULL == *stream)) {
-        //    	assert(0);
-        return -1;
-    }
-    int lSize = ftell(*stream);                            // 当前文件长度
-    if (lSize + len > (size_t)SysCfg().GetLogMaxSize()) {  // 文件超长，关闭，删除，再创建
-        FILE* fileout = NULL;
-        //      cout<<"file name:" << path <<"free point:"<< static_cast<const void*>(*stream)<<
-        //      "lSize: "<< lSize << "len: " << len<<endl;
-        fclose(*stream);
-
-        string bkFile = strprintf("%sbak", path);
-        rename(path, bkFile.c_str());  // 原文件重命名
-        fileout = fopen(path, "a+");   // 重新打开， 类似于删除文件.
-        if (fileout) {
-            //		    cout << "file new:" <<static_cast<const void*>(fileout) << endl;
-            *stream = fileout;
-            if (remove(bkFile.c_str()) != 0)  // 删除重命名文件
-            {
-                //				 assert(0);
-                return -1;
-            }
-        } else {
-            //         cout<<"LogFilePreProcess create new file err"<<endl;
-            return -1;
-        }
-    }
-    return 1;
-}
-
 string FormatMoney(int64_t n, bool fPlus) {
     // Note: not using straight sprintf here because we do NOT want
     // localized number formatting.

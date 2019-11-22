@@ -57,12 +57,7 @@ typedef enum {
  */
 class CBaseParams {
 protected:
-    mutable bool fDebugAll;
     mutable bool fDebug;
-    mutable bool fPrintLogToConsole;
-    mutable bool fPrintLogToFile;
-    mutable bool fLogTimestamps;
-    mutable bool fLogPrintFileLine;
     mutable bool fServer;
     mutable bool fImporting;
     mutable bool fReindex;
@@ -73,7 +68,6 @@ protected:
     mutable int64_t nTimeBestReceived;
     mutable uint32_t nCacheSize;
     mutable int32_t nTxCacheHeight;
-    mutable uint32_t nLogMaxSize;  // to limit the maximum log file size in bytes
     mutable int32_t nMaxForkTime;  // to limit the maximum fork time in seconds.
 
 public:
@@ -81,18 +75,7 @@ public:
 
     virtual bool InitializeConfig() {
         fServer = GetBoolArg("-rpcserver", false);
-
-        m_mapMultiArgs["-debug"].push_back("error");  // Enable ERROR logger by default
         fDebug = !m_mapMultiArgs["-debug"].empty();
-        if (fDebug) {
-            fDebugAll          = GetBoolArg("-logprintall", false);
-            fPrintLogToConsole = GetBoolArg("-logprinttoconsole", false);
-            fLogTimestamps     = GetBoolArg("-logtimestamps", true);
-            fPrintLogToFile    = GetBoolArg("-logprinttofile", false);
-            fLogPrintFileLine  = GetBoolArg("-logprintfileline", false);
-        }
-
-        nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
         nMaxForkTime = GetArg("-maxforktime", 24 * 60 * 60);
 
         return true;
@@ -108,12 +91,8 @@ public:
                 te += strprintf("value:%s\n",tep3.c_str());
             }
         }
-        te += strprintf("fDebugAll:%s\n",                           fDebugAll);
+
         te += strprintf("fDebug:%s\n",                              fDebug);
-        te += strprintf("fPrintLogToConsole:%d\n",                  fPrintLogToConsole);
-        te += strprintf("fPrintLogToFile:%d\n",                     fPrintLogToFile);
-        te += strprintf("fLogTimestamps:%d\n",                      fLogTimestamps);
-        te += strprintf("fLogPrintFileLine:%d\n",                   fLogPrintFileLine);
         te += strprintf("fServer:%d\n",                             fServer);
         te += strprintf("fImporting:%d\n",                          fImporting);
         te += strprintf("fReindex:%d\n",                            fReindex);
@@ -125,7 +104,6 @@ public:
         te += strprintf("nBlockIntervalStableCoinRelease:%u\n",     nBlockIntervalStableCoinRelease);
         te += strprintf("nCacheSize:%u\n",                          nCacheSize);
         te += strprintf("nTxCacheHeight:%u\n",                      nTxCacheHeight);
-        te += strprintf("nLogMaxSize:%u\n",                         nLogMaxSize);
         te += strprintf("nMaxForkTime:%d\n",                        nMaxForkTime);
 
         return te;
@@ -168,11 +146,6 @@ public:
         return nConnectTimeout;
     }
     bool IsDebug() const { return fDebug; }
-    bool IsDebugAll() const { return fDebugAll; }
-    bool IsPrintLogToConsole() const { return fPrintLogToConsole; }
-    bool IsPrintLogToFile() const { return fPrintLogToFile; }
-    bool IsLogTimestamps() const { return fPrintLogToFile; }
-    bool IsLogPrintLine() const { return fLogPrintFileLine; }
     bool IsServer() const { return fServer; }
     bool IsImporting() const { return fImporting; }
     bool IsReindex() const { return fReindex; }
@@ -183,7 +156,6 @@ public:
     int64_t GetBestRecvTime() const { return nTimeBestReceived; }
     uint32_t GetCacheSize() const { return nCacheSize; }
     int32_t GetTxCacheHeight() const { return nTxCacheHeight; }
-    uint32_t GetLogMaxSize() const { return nLogMaxSize; }
     void SetImporting(bool flag) const { fImporting = flag; }
     void SetReIndex(bool flag) const { fReindex = flag; }
     void SetBenchMark(bool flag) const { fBenchmark = flag; }

@@ -10,7 +10,7 @@
 #include "config/coin-config.h"
 #endif
 
-#include "../../logging.h"
+#include "logging.h"
 #include "config/const.h"
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
@@ -114,34 +114,7 @@ void RandAddSeed();
 void RandAddSeedPerfmon();
 void SetupEnvironment();
 
-extern string GetLogHead(int line, const char* file, const char* category);
-
 #define strprintf tfm::format
-
-#define ERRORMSG(...) error2(__LINE__, __FILE__, __VA_ARGS__)
-
-#define MAKE_ERROR_FUNC(n)                                                                                           \
-    /*   Log error and return false */                                                                               \
-    template <TINYFORMAT_ARGTYPES(n)>                                                                                \
-    static inline bool error2(int line, const char* file, const char* format1, TINYFORMAT_VARARGS(n)) {              \
-        LogPrintf("ERROR: %s \n", GetLogHead(line, file, "ERROR") + tfm::format(format1, TINYFORMAT_PASSARGS(n)));   \
-        return false;                                                                                                \
-    }
-
-TINYFORMAT_FOREACH_ARGNUM(MAKE_ERROR_FUNC)
-
-template<typename... Args>
-bool error(const char* fmt, const Args&... args)
-{
-    LogPrintf("ERROR: %s\n", tfm::format(fmt, args...));
-    return false;
-}
-
-static inline bool error2(int line, const char* file, const char* format) {
-    //	LogPrintStr(tfm::format("[%s:%d]: ", file, line)+string("ERROR: ") + format + "\n");
-    LogPrintf("ERROR: %s %s\n", GetLogHead(line, file, "ERROR"), format);
-    return false;
-}
 
 void PrintExceptionContinue(std::exception* pex, const char* pszThread);
 string FormatMoney(int64_t n, bool fPlus = false);
@@ -473,6 +446,14 @@ inline std::string StrToLower(const std::string &str) {
     std::string ret = str;
 	std::for_each(ret.begin(), ret.end(), [](char & c) {
 		c = ::tolower(c);
+	});
+    return ret;
+}
+
+inline std::string StrToUpper(const std::string &str) {
+    std::string ret = str;
+	std::for_each(ret.begin(), ret.end(), [](char & c) {
+		c = ::toupper(c);
 	});
     return ret;
 }

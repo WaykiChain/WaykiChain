@@ -224,13 +224,13 @@ public:
             boost::this_thread::interruption_point();
 
             try {
-                leveldb::Slice slKey = pCursor->key();
+                const auto &slKey = pCursor->key();
                 if (!dbk::ParseDbKey(slKey, prefixType, key)) {
                     break;
                 }
 
                 // Got an valid element.
-                leveldb::Slice slValue = pCursor->value();
+                const auto &slValue = pCursor->value();
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
                 auto ret = elements.emplace(key, value);
@@ -244,91 +244,40 @@ public:
         return true;
     }
 
-    // map<string, ValueType>
-    template <typename ValueType>
-    bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix, set<string> &expiredKeys,
-                        map<string, ValueType> &elements) {
-        string key;
+    // GetAllElements
+    // support input end key
+    template <typename KeyType, typename ValueType>
+    bool GetAllElements(const dbk::PrefixType prefixType, const KeyType &endKey,
+                        map<KeyType, ValueType> &elements, set<KeyType> &expiredKeys) {
+
+        KeyType key;
         ValueType value;
         shared_ptr<leveldb::Iterator> pCursor = NewIterator();
+        const string &prefixStr = dbk::GetKeyPrefix(prefixType);
 
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
-        ssKey.write(keyPrefix.c_str(), keyPrefix.size());
-        ssKey.write(prefix.c_str(), prefix.size());
-        pCursor->Seek(ssKey.str());
-
-        for (; pCursor->Valid(); pCursor->Next()) {
+        for (pCursor->Seek(prefixStr); pCursor->Valid(); pCursor->Next()) {
             boost::this_thread::interruption_point();
 
             try {
                 leveldb::Slice slKey = pCursor->key();
-                if (!dbk::ParseDbKey(slKey, prefixType, key) || key.find(prefix, 0) != 0) {
+                if (!dbk::ParseDbKey(slKey, prefixType, key)) { // the rest key is other prefix type
                     break;
                 }
 
-                if (expiredKeys.count(key)) {
-                    continue;
-                } else if (elements.count(key)) {
-                    // skip it if the element existed in memory cache(upper level cache)
-                    continue;
-                } else {
-                    // Got an valid element.
-                    leveldb::Slice slValue = pCursor->value();
-                    CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
-                    ds >> value;
-                    auto ret = elements.emplace(key, value);
-                    if (!ret.second)
-                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
-                }
-            } catch (std::exception &e) {
-                return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
-            }
-        }
-
-        return true;
-    }
-
-    // map<std::pair<string, uint256>, ValueType>
-    template <typename ValueType>
-    bool GetAllElements(const dbk::PrefixType prefixType, const string &prefix,
-                        set<std::pair<string, uint256>> &expiredKeys,
-                        set<ValueType> &elements) {
-        std::pair<string, uint256> key;
-        ValueType value;
-        shared_ptr<leveldb::Iterator> pCursor = NewIterator();
-
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-        const string &keyPrefix = dbk::GetKeyPrefix(prefixType);
-        ssKey.write(keyPrefix.c_str(), keyPrefix.size());
-        pCursor->Seek(ssKey.str());
-
-        for (; pCursor->Valid(); pCursor->Next()) {
-            boost::this_thread::interruption_point();
-
-            try {
-                leveldb::Slice slKey = pCursor->key();
-                if (!dbk::ParseDbKey(slKey, prefixType, key) || std::get<0>(key) > prefix) {
+                if (endKey < key)
                     break;
-                }
 
-                if (expiredKeys.count(key)) {
+                if (expiredKeys.count(key) || elements.count(key)) // key exists in cache
                     continue;
-                }
 
+                // Got an valid element.
                 leveldb::Slice slValue = pCursor->value();
                 CDataStream ds(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
                 ds >> value;
+                auto ret = elements.emplace(key, value);
+                if (!ret.second)
+                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
 
-                if (elements.count(value)) {
-                    // skip it if the element existed in memory cache(upper level cache)
-                    continue;
-                } else {
-                    // Got an valid element.
-                    auto ret = elements.emplace(value);
-                    if (!ret.second)
-                        throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
-                }
             } catch (std::exception &e) {
                 return ERRORMSG("%s : Deserialize or I/O error - %s", __FUNCTION__, e.what());
             }
@@ -484,21 +433,9 @@ public:
     }
 
     // map<string, ValueType>
-    bool GetAllElements(const string &prefix, map<string, ValueType> &elements) {
-        set<string> expiredKeys;
-        if (!GetAllElements(prefix, expiredKeys, elements)) {
-            // TODO: log
-            return false;
-        }
-
-        return true;
-    }
-
-    // NOT a general implementation to acquire all elements from memory and LDB.
-    // map<std::pair<string, uint256>, ValueType>
-    bool GetAllElements(const string &prefix, set<ValueType> &elements) {
-        set<std::pair<string, uint256>> expiredKeys;
-        if (!GetAllElements(prefix, expiredKeys, elements)) {
+    bool GetAllElements(const KeyType &endKey, Map &elements) {
+        set<KeyType> expiredKeys;
+        if (!GetAllElements(endKey, elements, expiredKeys)) {
             // TODO: log
             return false;
         }
@@ -682,61 +619,23 @@ private:
     }
 
     // map<string, ValueType>
-    bool GetAllElements(const string &prefix, set<string> &expiredKeys, map<string, ValueType> &elements) {
+    bool GetAllElements(const KeyType &endKey, Map &mapDataOut, set<KeyType> &expiredKeys) {
         if (!mapData.empty()) {
-            auto boundary    = mapData.upper_bound(prefix);
-            size_t prefixLen = prefix.size();
-
-            if (boundary != mapData.end()) {
-                for (auto iter = boundary; iter != mapData.end(); ++ iter) {
-                    if (db_util::IsEmpty(iter->second)) {
+            for (auto iter = mapData.begin(); iter != mapData.end() && iter->first < endKey; iter++) {
+                if (!expiredKeys.count(iter->first) && !mapDataOut.count(iter->first)) { // check not got
+                    if (db_util::IsEmpty(iter->second)) { // empty, will be deleted
                         expiredKeys.insert(iter->first);
-                    } else if (expiredKeys.count(iter->first) || elements.count(iter->first)) {
-                        // TODO: log
-                        continue;
-                    } else if (iter->first.substr(0, prefixLen) != prefix) {
-                        // break the loop if prefix does not match.
-                        break;
-                    } else {
-                        // Got a valid element.
-                        elements.emplace(iter->first, iter->second);
+                    } else { // Got a valid element.
+                        mapDataOut.emplace(iter->first, iter->second);
                     }
                 }
             }
         }
 
         if (pBase != nullptr) {
-            return pBase->GetAllElements(prefix, expiredKeys, elements);
+            return pBase->GetAllElements(endKey, mapDataOut, expiredKeys);
         } else if (pDbAccess != nullptr) {
-            return pDbAccess->GetAllElements(PREFIX_TYPE, prefix, expiredKeys, elements);
-        }
-
-        return true;
-    }
-
-    // map<std::pair<string, uint256>, ValueType>
-    bool GetAllElements(const string &prefix, set<std::pair<string, uint256>> &expiredKeys, set<ValueType> &elements) {
-        if (!mapData.empty()) {
-            static uint256 dummy = uint256S("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-            auto boundary = mapData.upper_bound(std::make_pair(prefix, dummy));
-
-            for (auto iter = mapData.begin(); iter != boundary; ++iter) {
-                if (db_util::IsEmpty(iter->second)) {
-                    expiredKeys.insert(iter->first);
-                } else if (expiredKeys.count(iter->first) || elements.count(iter->second)) {
-                    // Skip
-                    continue;
-                } else {
-                    // Got a valid element.
-                    elements.emplace(iter->second);
-                }
-            }
-        }
-
-        if (pBase != nullptr) {
-            return pBase->GetAllElements(prefix, expiredKeys, elements);
-        } else if (pDbAccess != nullptr) {
-            return pDbAccess->GetAllElements(PREFIX_TYPE, prefix, expiredKeys, elements);
+            return pDbAccess->GetAllElements(PREFIX_TYPE, endKey, mapDataOut, expiredKeys);
         }
 
         return true;

@@ -427,17 +427,10 @@ CBaseParams::CBaseParams() {
     fBenchmark              = false;
     fTxIndex                = false;
     fLogFailures            = false;
-    nLogMaxSize             = 100 * 1024 * 1024;  // 100M
     nTxCacheHeight          = 500;
     nTimeBestReceived       = 0;
     nCacheSize              = 300 << 10;  // 300K bytes
     nDefaultPort            = 0;
-    fPrintLogToConsole      = 0;
-    fPrintLogToFile         = 0;
-    fLogTimestamps          = 0;
-    fLogPrintFileLine       = 0;
-    fDebug                  = 0;
-    fDebugAll               = 0;
     fServer                 = 0;
     fServer                 = 0;
     nRPCPort                = 0;

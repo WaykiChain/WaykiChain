@@ -442,21 +442,6 @@ bool AppInit(boost::thread_group &threadGroup) {
 #endif
 #endif
 
-    // ********************************************************* initialize logging
-    if (SysCfg().IsArgCount("-debug")) {
-        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
-        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
-
-        if (std::none_of(categories.begin(), categories.end(),
-            [](std::string cat) { return cat == "0" || cat == "none"; })) {
-            for (const auto& cat : categories) {
-                if (!LogInstance().EnableCategory(cat)) {
-                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
-                }
-            }
-        }
-    }
-
     if (SysCfg().IsArgCount("-bind")) {
         // when specifying an explicit binding address, you want to listen on it
         // even when -connect or -proxy is specified
@@ -537,10 +522,10 @@ bool AppInit(boost::thread_group &threadGroup) {
     //     ShrinkDebugFile();
 
      if (!LogInstance().m_log_timestamps)
-        LogPrintf("Startup time: %s\n", FormatISO8601DateTime(GetTime()));
+        LogPrint(BCLog::INFO, "Startup time: %s\n", FormatISO8601DateTime(GetTime()));
 
-    LogPrintf("Default data directory %s\n", GetDefaultDataDir().string());
-    LogPrintf("Using data directory %s\n", GetDataDir().string());
+    LogPrint(BCLog::INFO, "Default data directory %s\n", GetDefaultDataDir().string());
+    LogPrint(BCLog::INFO, "Using data directory %s\n", GetDataDir().string());
 
     LogPrint(BCLog::INFO, "%s version %s (%s)\n", IniCfg().GetCoinName().c_str(), FormatFullVersion().c_str(), CLIENT_DATE);
     LogPrint(BCLog::INFO, "Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
@@ -902,11 +887,32 @@ void InitLogging()
     LogInstance().m_print_to_file = !SysCfg().GetBoolArg("-debuglogfile", false);
     LogInstance().m_file_path = AbsPathForConfigVal(SysCfg().GetArg("-debuglogfile", DEFAULT_DEBUGLOGFILE));
     LogInstance().m_print_to_console = SysCfg().GetBoolArg("-logprinttoconsole", true);
+    LogInstance().m_print_file_line  = SysCfg().GetBoolArg("-logprintfileline", false);
     LogInstance().m_log_timestamps = SysCfg().GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
     LogInstance().m_log_time_micros = SysCfg().GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
     LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
 
     fLogIPs = SysCfg().GetBoolArg("-logips", DEFAULT_LOGIPS);
+
+    // TODO: ...
+    // nLogMaxSize = GetArg("-logmaxsize", 100) * 1024 * 1024;
+
+    // m_mapMultiArgs["-debug"].push_back("error");  // Enable ERROR logger by default
+
+    // ********************************************************* initialize logging
+    if (SysCfg().IsArgCount("-debug")) {
+        // Special-case: if -debug=0/-nodebug is set, turn off debugging messages
+        const std::vector<std::string> categories = SysCfg().GetMultiArgs("-debug");
+
+        if (std::none_of(categories.begin(), categories.end(),
+            [](std::string cat) { return cat == "0" || cat == "none"; })) {
+            for (const auto& cat : categories) {
+                if (!LogInstance().EnableCategory(cat)) {
+                    fprintf(stdout, "Unsupported logging category -debug=%s.\n", cat.c_str());
+                }
+            }
+        }
+    }
 
     std::string version_string = FormatFullVersion();
 #ifdef DEBUG
@@ -914,5 +920,5 @@ void InitLogging()
 #else
     version_string += " (release build)";
 #endif
-    LogPrintf(PACKAGE_NAME " version %s\n", version_string);
+    LogPrint(BCLog::INFO, PACKAGE_NAME " version %s\n", version_string);
 }
