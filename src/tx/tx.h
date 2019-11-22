@@ -11,8 +11,6 @@
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
-#include "persistence/contractdb.h"
-#include "persistence/blockdb.h"
 #include "config/configuration.h"
 #include "config/txbase.h"
 #include "config/scoin.h"

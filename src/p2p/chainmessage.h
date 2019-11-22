@@ -596,7 +596,7 @@ inline bool ProcessGetHeadersMessage(CNode *pFrom, CDataStream &vRecv) {
         pIndex = (*mi).second;
     } else {
         // Find the last block the caller has in the main chain
-        pIndex = chainActive.FindFork(locator);
+        pIndex = chainActive.FindFork(mapBlockIndex, locator);
         if (pIndex)
             pIndex = chainActive.Next(pIndex);
     }
@@ -624,7 +624,7 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
     LOCK(cs_main);
 
     // Find the last block the caller has in the main chain
-    CBlockIndex *pStartIndex = chainActive.FindFork(locator);
+    CBlockIndex *pStartIndex = chainActive.FindFork(mapBlockIndex, locator);
 
     // Send the rest of the chain
     if (pStartIndex)
