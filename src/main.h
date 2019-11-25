@@ -53,13 +53,8 @@ extern bool mining;     // could be changed due to vote change
 extern CKeyID minerKeyId;  // miner accout keyId
 extern CKeyID nodeKeyId;   // first keyId of the node
 
-static const string NetTypeNames[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
-
-class CTxUndo;
 class CValidationState;
 class CWalletInterface;
-class CTxMemCache;
-class CUserCDP;
 
 struct CNodeStateStats;
 

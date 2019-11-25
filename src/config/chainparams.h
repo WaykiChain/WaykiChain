@@ -38,6 +38,8 @@ typedef enum {
     NULL_NETWORK_TYPE   = 3
 } NET_TYPE;
 
+static const string NetTypeNames[] = { "MAIN_NET", "TEST_NET", "REGTEST_NET" };
+
 typedef enum {
     PUBKEY_ADDRESS,     //!< PUBKEY_ADDRESS
     SCRIPT_ADDRESS,     //!< SCRIPT_ADDRESS
