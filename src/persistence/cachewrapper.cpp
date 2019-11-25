@@ -110,17 +110,6 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     return *this;
 }
 
-void CCacheWrapper::EnableTxUndoLog(const TxID& txid) {
-    txUndo.Clear();
-
-    txUndo.SetTxID(txid);
-    SetDbOpLogMap(&txUndo.dbOpLogMap);
-}
-
-void CCacheWrapper::DisableTxUndoLog() {
-    SetDbOpLogMap(nullptr);
-}
-
 bool CCacheWrapper::UndoData(CBlockUndo &blockUndo) {
     for (auto it = blockUndo.vtxundo.rbegin(); it != blockUndo.vtxundo.rend(); it++) {
         // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
@@ -137,7 +126,7 @@ bool CCacheWrapper::UndoData(CBlockUndo &blockUndo) {
                     txReceiptCache.UndoData();
 
         if (!ret) {
-            return ERRORMSG("CCacheWrapper::UndoData() : undo data of tx failed! txUndo=%s", txUndo.ToString());
+            return ERRORMSG("CCacheWrapper::UndoData() : undo data of tx failed! txUndo=%s", it->ToString());
         }
     }
     return true;

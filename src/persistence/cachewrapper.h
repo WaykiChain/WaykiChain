@@ -37,8 +37,6 @@ public:
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
-
-    CTxUndo             txUndo;
 public:
     static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
 public:
@@ -63,17 +61,32 @@ public:
 
     void CopyFrom(CCacheDBManager* pCdMan);
 
-    void EnableTxUndoLog(const TxID& txidIn);
-    void DisableTxUndoLog();
-    const CTxUndo& GetTxUndo() const { return txUndo; }
     bool UndoData(CBlockUndo &blockUndo);
     void Flush();
 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 private:
     CCacheWrapper(const CCacheWrapper&) = delete;
     CCacheWrapper& operator=(const CCacheWrapper&) = delete;
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
+};
+
+class CTxUndoOpLogger {
+public:
+    CCacheWrapper &cw;
+    CBlockUndo &block_undo;
+    CTxUndo tx_undo;
+
+    CTxUndoOpLogger(CCacheWrapper& cwIn, const TxID& txidIn, CBlockUndo& blockUndoIn)
+        : cw(cwIn), block_undo(blockUndoIn) {
+
+        tx_undo.SetTxID(txidIn);
+        cw.SetDbOpLogMap(&tx_undo.dbOpLogMap);
+    }
+    ~CTxUndoOpLogger() {
+        block_undo.vtxundo.push_back(tx_undo);
+        cw.SetDbOpLogMap(nullptr);
+    }
 };
 
 #endif //PERSIST_CACHEWRAPPER_H

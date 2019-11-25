@@ -1087,22 +1087,18 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
                                  pBaseTx->GetHash().GetHex()), REJECT_INVALID, "tx-invalid-height");
 
             pBaseTx->nFuelRate = fuelRate;
-            cw.EnableTxUndoLog(pBaseTx->GetHash());
+            CTxUndoOpLogger opLogger(cw, pBaseTx->GetHash(), blockUndo);
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
             CTxExecuteContext context(pIndex->height, index, fuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
             if (!pBaseTx->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, pBaseTx->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
-                cw.DisableTxUndoLog();
                 return state.DoS(100, ERRORMSG("ConnectBlock() : txid=%s execute failed, in detail: %s",
                                  pBaseTx->GetHash().GetHex(), pBaseTx->ToString(cw.accountCache)), REJECT_INVALID, "tx-execute-failed");
             }
 
             vPos.push_back(make_pair(pBaseTx->GetHash(), pos));
-
-            blockUndo.vtxundo.push_back(cw.txUndo);
-            cw.DisableTxUndoLog();
 
             totalRunStep += pBaseTx->nRunStep;
             if (totalRunStep > MAX_BLOCK_RUN_STEP)
@@ -1163,43 +1159,38 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
     }
 
-    // Execute block reward transaction
-    uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
-    CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
-    cw.EnableTxUndoLog(block.vptx[0]->GetHash());
-    if (!block.vptx[0]->ExecuteTx(context)) {
-        pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
-                                          state.GetRejectReason());
-        cw.DisableTxUndoLog();
-        return state.DoS(100, ERRORMSG("ConnectBlock() : failed to execute reward transaction"));
-    }
+    {
+        // Execute block reward transaction
+        uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
+        CTxExecuteContext context(pIndex->height, 0, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
+        CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
+        if (!block.vptx[0]->ExecuteTx(context)) {
+            pCdMan->pLogCache->SetExecuteFail(pIndex->height, block.vptx[0]->GetHash(), state.GetRejectCode(),
+                                            state.GetRejectReason());
+            return state.DoS(100, ERRORMSG("ConnectBlock() : failed to execute reward transaction"));
+        }
 
-    if (pIndex->height + 1 == (int32_t)SysCfg().GetFeatureForkHeight() &&
-        !ComputeVoteStakingInterestAndRevokeVotes(pIndex->height, pIndex->nTime, cw, state)) {
-        return state.Abort(_("ConnectBlock() : failed to compute vote staking interest"));
-    }
+        if (pIndex->height + 1 == (int32_t)SysCfg().GetFeatureForkHeight() &&
+            !ComputeVoteStakingInterestAndRevokeVotes(pIndex->height, pIndex->nTime, cw, state)) {
+            return state.Abort(_("ConnectBlock() : failed to compute vote staking interest"));
+        }
 
-    if (!SaveTxIndex(block.vptx[0]->GetHash(), cw, state, rewardPos)) {
-        cw.DisableTxUndoLog();
-        return state.Abort(_("ConnectBlock() : failed to save tx index"));
-    }
-
-    for (const auto &item : vPos) {
-        if (!SaveTxIndex(item.first, cw, state, item.second)) {
-            cw.DisableTxUndoLog();
+        if (!SaveTxIndex(block.vptx[0]->GetHash(), cw, state, rewardPos)) {
             return state.Abort(_("ConnectBlock() : failed to save tx index"));
         }
+
+        for (const auto &item : vPos) {
+            if (!SaveTxIndex(item.first, cw, state, item.second)) {
+                return state.Abort(_("ConnectBlock() : failed to save tx index"));
+            }
+        }
+
+        // TODO: move the block delegates undo to block_undo
+        if (!chain::ProcessBlockDelegates(block, cw, state)) {
+            return state.DoS(100, ERRORMSG("ConnectBlock() : failed to process block delegates! block=%d:%s",
+                block.GetHeight(), block.GetHash().ToString()));
+        }
     }
-
-    blockUndo.vtxundo.push_back(cw.txUndo);
-    // TODO: move the block delegates undo to block_undo
-
-    if (!chain::ProcessBlockDelegates(block, cw, state)) {
-        return state.DoS(100, ERRORMSG("ConnectBlock() : failed to process block delegates! block=%d:%s",
-            block.GetHeight(), block.GetHash().ToString()));
-    }
-
-    cw.DisableTxUndoLog();
 
     if (pIndex->height - BLOCK_REWARD_MATURITY > 0) {
         // Deal mature block reward transaction
@@ -1216,16 +1207,13 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
 
             uint32_t prevBlockTime = pIndex->pprev != nullptr ? pIndex->pprev->GetBlockTime() : pIndex->GetBlockTime();
             CTxExecuteContext context(pIndex->height, -1, pIndex->nFuelRate, pIndex->nTime, prevBlockTime, &cw, &state);
-            cw.EnableTxUndoLog(matureBlock.vptx[0]->GetHash());
+            CTxUndoOpLogger rewardOpLogger(cw, block.vptx[0]->GetHash(), blockUndo);
             if (!matureBlock.vptx[0]->ExecuteTx(context)) {
                 pCdMan->pLogCache->SetExecuteFail(pIndex->height, matureBlock.vptx[0]->GetHash(), state.GetRejectCode(),
                                                   state.GetRejectReason());
-                cw.DisableTxUndoLog();
                 return state.DoS(100, ERRORMSG("ConnectBlock() : execute mature block reward tx error"));
             }
         }
-        blockUndo.vtxundo.push_back(cw.txUndo);
-        cw.DisableTxUndoLog();
     }
     int64_t nTime = GetTimeMicros() - nStart;
     if (SysCfg().IsBenchmark())
