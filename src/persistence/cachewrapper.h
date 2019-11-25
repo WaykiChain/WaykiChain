@@ -43,18 +43,6 @@ public:
 public:
     CCacheWrapper();
 
-    CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
-                  CBlockDBCache*  pBlockCacheIn,
-                  CAccountDBCache* pAccountCacheIn,
-                  CAssetDBCache* pAssetCache,
-                  CContractDBCache* pContractCacheIn,
-                  CDelegateDBCache* pDelegateCacheIn,
-                  CCdpDBCache* pCdpCacheIn,
-                  CClosedCdpDBCache* pClosedCdpCacheIn,
-                  CDexDBCache* pDexCacheIn,
-                  CTxReceiptDBCache* pReceiptCacheIn,
-                  CTxMemCache *pTxCacheIn,
-                  CPricePointMemCache *pPpCacheIn);
     CCacheWrapper(CCacheWrapper* cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 

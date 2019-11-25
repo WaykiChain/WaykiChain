@@ -17,33 +17,6 @@ std::shared_ptr<CCacheWrapper>CCacheWrapper::NewCopyFrom(CCacheDBManager* pCdMan
 
 CCacheWrapper::CCacheWrapper() {}
 
-CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
-                             CBlockDBCache*  pBlockCacheIn,
-                             CAccountDBCache* pAccountCacheIn,
-                             CAssetDBCache* pAssetCache,
-                             CContractDBCache* pContractCacheIn,
-                             CDelegateDBCache* pDelegateCacheIn,
-                             CCdpDBCache* pCdpCacheIn,
-                             CClosedCdpDBCache* pClosedCdpCacheIn,
-                             CDexDBCache* pDexCacheIn,
-                             CTxReceiptDBCache* pReceiptCacheIn,
-                             CTxMemCache* pTxCacheIn,
-                             CPricePointMemCache *pPpCacheIn) {
-    sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
-    blockCache.SetBaseViewPtr(pBlockCacheIn);
-    accountCache.SetBaseViewPtr(pAccountCacheIn);
-    assetCache.SetBaseViewPtr(pAssetCache);
-    contractCache.SetBaseViewPtr(pContractCacheIn);
-    delegateCache.SetBaseViewPtr(pDelegateCacheIn);
-    cdpCache.SetBaseViewPtr(pCdpCacheIn);
-    closedCdpCache.SetBaseViewPtr(pClosedCdpCacheIn);
-    dexCache.SetBaseViewPtr(pDexCacheIn);
-    txReceiptCache.SetBaseViewPtr(pReceiptCacheIn);
-
-    txCache.SetBaseViewPtr(pTxCacheIn);
-    ppCache.SetBaseViewPtr(pPpCacheIn);
-}
-
 CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     sysParamCache.SetBaseViewPtr(&cwIn->sysParamCache);
     blockCache.SetBaseViewPtr(&cwIn->blockCache);
