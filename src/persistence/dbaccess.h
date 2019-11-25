@@ -21,29 +21,19 @@ using namespace std;
  */
 namespace db_util {
 
+#define DEFINE_NUMERIC_EMPTY(type) \
+    inline bool IsEmpty(const type val) { return val == 0; } \
+    inline void SetEmpty(type &val) { val = 0; }
+
     // bool
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
-    // int32_t
-    inline bool IsEmpty(const int32_t val) { return val == false; }
-    inline void SetEmpty(int32_t &val) { val = false; }
-
-    // uint8_t
-    inline bool IsEmpty(const uint8_t val) { return val == 0; }
-    inline void SetEmpty(uint8_t &val) { val = 0; }
-
-    // uint16_t
-    inline bool IsEmpty(const uint16_t val) { return val == 0; }
-    inline void SetEmpty(uint16_t &val) { val = 0; }
-
-    // uint32_t
-    inline bool IsEmpty(const uint32_t val) { return val == 0; }
-    inline void SetEmpty(uint32_t &val) { val = 0; }
-
-    // uint64_t
-    inline bool IsEmpty(const uint64_t val) { return val == 0; }
-    inline void SetEmpty(uint64_t &val) { val = 0; }
+    DEFINE_NUMERIC_EMPTY(int32_t)
+    DEFINE_NUMERIC_EMPTY(uint8_t)
+    DEFINE_NUMERIC_EMPTY(uint16_t)
+    DEFINE_NUMERIC_EMPTY(uint32_t)
+    DEFINE_NUMERIC_EMPTY(uint64_t)
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);
@@ -150,9 +140,9 @@ namespace db_util {
 
 class CDBAccess {
 public:
-    CDBAccess(DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
+    CDBAccess(const boost::filesystem::path& dir, DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
               dbNameType(dbNameTypeIn),
-              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
+              db( dir / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>

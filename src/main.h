@@ -181,39 +181,40 @@ public:
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory) {
-        pSysParamDb     = new CDBAccess(DBNameType::SYSPARAM, false, fReIndex);
+        const boost::filesystem::path& dbDir = GetDataDir() / "blocks";
+        pSysParamDb     = new CDBAccess(dbDir, DBNameType::SYSPARAM, false, fReIndex);
         pSysParamCache  = new CSysParamDBCache(pSysParamDb);
 
-        pAccountDb      = new CDBAccess(DBNameType::ACCOUNT, false, fReIndex);
+        pAccountDb      = new CDBAccess(dbDir, DBNameType::ACCOUNT, false, fReIndex);
         pAccountCache   = new CAccountDBCache(pAccountDb);
 
-        pAssetDb        = new CDBAccess(DBNameType::ASSET, false, fReIndex);
+        pAssetDb        = new CDBAccess(dbDir, DBNameType::ASSET, false, fReIndex);
         pAssetCache     = new CAssetDBCache(pAssetDb);
 
-        pContractDb     = new CDBAccess(DBNameType::CONTRACT, false, fReIndex);
+        pContractDb     = new CDBAccess(dbDir, DBNameType::CONTRACT, false, fReIndex);
         pContractCache  = new CContractDBCache(pContractDb);
 
-        pDelegateDb     = new CDBAccess(DBNameType::DELEGATE, false, fReIndex);
+        pDelegateDb     = new CDBAccess(dbDir, DBNameType::DELEGATE, false, fReIndex);
         pDelegateCache  = new CDelegateDBCache(pDelegateDb);
 
-        pCdpDb          = new CDBAccess(DBNameType::CDP, false, fReIndex);
+        pCdpDb          = new CDBAccess(dbDir, DBNameType::CDP, false, fReIndex);
         pCdpCache       = new CCdpDBCache(pCdpDb);
 
-        pClosedCdpDb    = new CDBAccess(DBNameType::CLOSEDCDP, false, fReIndex);
+        pClosedCdpDb    = new CDBAccess(dbDir, DBNameType::CLOSEDCDP, false, fReIndex);
         pClosedCdpCache = new CClosedCdpDBCache(pClosedCdpDb);
 
-        pDexDb          = new CDBAccess(DBNameType::DEX, false, fReIndex);
+        pDexDb          = new CDBAccess(dbDir, DBNameType::DEX, false, fReIndex);
         pDexCache       = new CDexDBCache(pDexDb);
 
         pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
 
-        pBlockDb        = new CDBAccess(DBNameType::BLOCK, false, fReIndex);
+        pBlockDb        = new CDBAccess(dbDir, DBNameType::BLOCK, false, fReIndex);
         pBlockCache     = new CBlockDBCache(pBlockDb);
 
-        pLogDb          = new CDBAccess(DBNameType::LOG, false, fReIndex);
+        pLogDb          = new CDBAccess(dbDir, DBNameType::LOG, false, fReIndex);
         pLogCache       = new CLogDBCache(pLogDb);
 
-        pReceiptDb      = new CDBAccess(DBNameType::RECEIPT, false, fReIndex);
+        pReceiptDb      = new CDBAccess(dbDir, DBNameType::RECEIPT, false, fReIndex);
         pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
 
         // memory-only cache
