@@ -138,6 +138,9 @@ namespace db_util {
     }
 };
 
+typedef void(UndoDataFunc)(const CDbOpLogs &pDbOpLogs);
+typedef std::map<dbk::PrefixType, std::function<UndoDataFunc>> UndoDataFuncMap;
+
 class CDBAccess {
 public:
     CDBAccess(const boost::filesystem::path& dir, DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
@@ -519,19 +522,14 @@ public:
         mapData[key] = value;
     }
 
-    bool UndoData() {
-        if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (pDbOpLogs != nullptr) {
-                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
-                    UndoData(*it);
-                }
-            }
-            return true;
-        } else {
-            assert(false && "must set the pDbOpLogMap first");
-            return false;
+    void UndoDataList(const CDbOpLogs &dbOpLogs) {
+        for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); it++) {
+            UndoData(*it);
         }
+    }
+
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        undoDataFuncMap[GetPrefixType()] = std::bind(&CCompositeKVCache::UndoDataList, this, std::placeholders::_1);
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
@@ -783,23 +781,17 @@ public:
         dbOpLog.Get(*ptrData);
     }
 
-    bool UndoData() {
-        if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (pDbOpLogs != nullptr) {
-                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
-                    UndoData(*it);
-                }
-            }
-            return true;
-        } else {
-            assert(false && "Must set the pDbOpLogMap first");
-            return false;
+    void UndoDataList(const CDbOpLogs &dbOpLogs) {
+        for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); it++) {
+            UndoData(*it);
         }
     }
 
-    dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        undoDataFuncMap[GetPrefixType()] = std::bind(&CSimpleKVCache::UndoDataList, this, std::placeholders::_1);
+    }
 
+    dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 private:
     std::shared_ptr<ValueType> GetDataPtr() const {
 

@@ -35,8 +35,9 @@ public:
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { txReceiptCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
-    bool UndoData() { return txReceiptCache.UndoData(); }
-
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
+    }
 private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */

@@ -83,12 +83,12 @@ public:
         reindexCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() {
-        return txDiskPosCache.UndoData() &&
-               flagCache.UndoData() &&
-               bestBlockHashCache.UndoData() &&
-               lastBlockFileCache.UndoData() &&
-               reindexCache.UndoData();
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        txDiskPosCache.RegisterUndoFunc(undoDataFuncMap);
+        flagCache.RegisterUndoFunc(undoDataFuncMap);
+        bestBlockHashCache.RegisterUndoFunc(undoDataFuncMap);
+        lastBlockFileCache.RegisterUndoFunc(undoDataFuncMap);
+        reindexCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);

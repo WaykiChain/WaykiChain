@@ -18,11 +18,10 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
-#include "blockundo.h"
 #include "logdb.h"
 
 class CCacheDBManager;
-class CBlockUndo;
+
 class CCacheWrapper {
 public:
     CSysParamDBCache    sysParamCache;
@@ -50,8 +49,9 @@ public:
 
     void CopyFrom(CCacheDBManager* pCdMan);
 
-    bool UndoData(CBlockUndo &blockUndo);
     void Flush();
+
+    UndoDataFuncMap GetUndoDataFuncMap();
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 private:
@@ -59,7 +59,6 @@ private:
     CCacheWrapper& operator=(const CCacheWrapper&) = delete;
 
 };
-
 
 class CCacheDBManager {
 public:
@@ -108,23 +107,5 @@ public:
 
     bool Flush();
 };  // CCacheDBManager
-
-class CTxUndoOpLogger {
-public:
-    CCacheWrapper &cw;
-    CBlockUndo &block_undo;
-    CTxUndo tx_undo;
-
-    CTxUndoOpLogger(CCacheWrapper& cwIn, const TxID& txidIn, CBlockUndo& blockUndoIn)
-        : cw(cwIn), block_undo(blockUndoIn) {
-
-        tx_undo.SetTxID(txidIn);
-        cw.SetDbOpLogMap(&tx_undo.dbOpLogMap);
-    }
-    ~CTxUndoOpLogger() {
-        block_undo.vtxundo.push_back(tx_undo);
-        cw.SetDbOpLogMap(nullptr);
-    }
-};
 
 #endif //PERSIST_CACHEWRAPPER_H

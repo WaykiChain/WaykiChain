@@ -5,6 +5,7 @@
 
 #include "cachewrapper.h"
 #include "main.h"
+#include "logging.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // class CCacheWrapper
@@ -85,29 +86,6 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     return *this;
 }
 
-bool CCacheWrapper::UndoData(CBlockUndo &blockUndo) {
-    for (auto it = blockUndo.vtxundo.rbegin(); it != blockUndo.vtxundo.rend(); it++) {
-        // TODO: should use foreach(it->dbOpLogMap) to dispatch the DbOpLog to the cache (switch case)
-        SetDbOpLogMap(&it->dbOpLogMap);
-        bool ret =  sysParamCache.UndoData() &&
-                    blockCache.UndoData() &&
-                    accountCache.UndoData() &&
-                    assetCache.UndoData() &&
-                    contractCache.UndoData() &&
-                    delegateCache.UndoData() &&
-                    cdpCache.UndoData() &&
-                    closedCdpCache.UndoData() &&
-                    dexCache.UndoData() &&
-                    txReceiptCache.UndoData();
-
-        if (!ret) {
-            return ERRORMSG("CCacheWrapper::UndoData() : undo data of tx failed! txUndo=%s", it->ToString());
-        }
-    }
-    return true;
-}
-
-
 void CCacheWrapper::Flush() {
     sysParamCache.Flush();
     blockCache.Flush();
@@ -135,6 +113,21 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
+}
+
+UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
+    UndoDataFuncMap undoDataFuncMap;
+    sysParamCache.RegisterUndoFunc(undoDataFuncMap);
+    blockCache.RegisterUndoFunc(undoDataFuncMap);
+    accountCache.RegisterUndoFunc(undoDataFuncMap);
+    assetCache.RegisterUndoFunc(undoDataFuncMap);
+    contractCache.RegisterUndoFunc(undoDataFuncMap);
+    delegateCache.RegisterUndoFunc(undoDataFuncMap);
+    cdpCache.RegisterUndoFunc(undoDataFuncMap);
+    closedCdpCache.RegisterUndoFunc(undoDataFuncMap);
+    dexCache.RegisterUndoFunc(undoDataFuncMap);
+    txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
+    return undoDataFuncMap;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

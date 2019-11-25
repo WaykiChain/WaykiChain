@@ -692,8 +692,9 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
 
     if ((blockUndo.vtxundo.size() != block.vptx.size()) && (blockUndo.vtxundo.size() != (block.vptx.size() + 1)))
         return ERRORMSG("DisconnectBlock() : block and undo data inconsistent");
-    if (!cw.UndoData(blockUndo)) {
-        return ERRORMSG("DisconnectBlock() : Undo tx datas in block failed");
+    CBlockUndoExecutor undoExecutor(cw, blockUndo);
+    if (!undoExecutor.Execute()) {
+        return ERRORMSG("DisconnectBlock() : Undo all data in block failed");
     }
 
     // Set previous block as the best block
