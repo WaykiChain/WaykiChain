@@ -140,9 +140,9 @@ namespace db_util {
 
 class CDBAccess {
 public:
-    CDBAccess(DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
+    CDBAccess(const boost::filesystem::path& dir, DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
               dbNameType(dbNameTypeIn),
-              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
+              db( dir / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>
