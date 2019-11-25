@@ -6,6 +6,8 @@
 #include "cachewrapper.h"
 #include "main.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// class CCacheWrapper
 
 std::shared_ptr<CCacheWrapper>CCacheWrapper::NewCopyFrom(CCacheDBManager* pCdMan) {
     auto pNewCopy = make_shared<CCacheWrapper>();
@@ -160,4 +162,114 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// class CCacheDBManager
+
+CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
+    const boost::filesystem::path& dbDir = GetDataDir() / "blocks";
+    pSysParamDb     = new CDBAccess(dbDir, DBNameType::SYSPARAM, false, fReIndex);
+    pSysParamCache  = new CSysParamDBCache(pSysParamDb);
+
+    pAccountDb      = new CDBAccess(dbDir, DBNameType::ACCOUNT, false, fReIndex);
+    pAccountCache   = new CAccountDBCache(pAccountDb);
+
+    pAssetDb        = new CDBAccess(dbDir, DBNameType::ASSET, false, fReIndex);
+    pAssetCache     = new CAssetDBCache(pAssetDb);
+
+    pContractDb     = new CDBAccess(dbDir, DBNameType::CONTRACT, false, fReIndex);
+    pContractCache  = new CContractDBCache(pContractDb);
+
+    pDelegateDb     = new CDBAccess(dbDir, DBNameType::DELEGATE, false, fReIndex);
+    pDelegateCache  = new CDelegateDBCache(pDelegateDb);
+
+    pCdpDb          = new CDBAccess(dbDir, DBNameType::CDP, false, fReIndex);
+    pCdpCache       = new CCdpDBCache(pCdpDb);
+
+    pClosedCdpDb    = new CDBAccess(dbDir, DBNameType::CLOSEDCDP, false, fReIndex);
+    pClosedCdpCache = new CClosedCdpDBCache(pClosedCdpDb);
+
+    pDexDb          = new CDBAccess(dbDir, DBNameType::DEX, false, fReIndex);
+    pDexCache       = new CDexDBCache(pDexDb);
+
+    pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
+
+    pBlockDb        = new CDBAccess(dbDir, DBNameType::BLOCK, false, fReIndex);
+    pBlockCache     = new CBlockDBCache(pBlockDb);
+
+    pLogDb          = new CDBAccess(dbDir, DBNameType::LOG, false, fReIndex);
+    pLogCache       = new CLogDBCache(pLogDb);
+
+    pReceiptDb      = new CDBAccess(dbDir, DBNameType::RECEIPT, false, fReIndex);
+    pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
+
+    // memory-only cache
+    pTxCache        = new CTxMemCache();
+    pPpCache        = new CPricePointMemCache();
+}
+
+CCacheDBManager::~CCacheDBManager() {
+    delete pSysParamCache;  pSysParamCache = nullptr;
+    delete pAccountCache;   pAccountCache = nullptr;
+    delete pAssetCache;     pAssetCache = nullptr;
+    delete pContractCache;  pContractCache = nullptr;
+    delete pDelegateCache;  pDelegateCache = nullptr;
+    delete pCdpCache;       pCdpCache = nullptr;
+    delete pClosedCdpCache; pClosedCdpCache = nullptr;
+    delete pDexCache;       pDexCache = nullptr;
+    delete pBlockCache;     pBlockCache = nullptr;
+    delete pLogCache;       pLogCache = nullptr;
+    delete pReceiptCache;   pReceiptCache = nullptr;
+
+    delete pSysParamDb;     pSysParamDb = nullptr;
+    delete pAccountDb;      pAccountDb = nullptr;
+    delete pAssetDb;        pAssetDb = nullptr;
+    delete pContractDb;     pContractDb = nullptr;
+    delete pDelegateDb;     pDelegateDb = nullptr;
+    delete pCdpDb;          pCdpDb = nullptr;
+    delete pClosedCdpDb;    pClosedCdpDb = nullptr;
+    delete pDexDb;          pDexDb = nullptr;
+    delete pBlockIndexDb;   pBlockIndexDb = nullptr;
+    delete pBlockDb;        pBlockDb = nullptr;
+    delete pLogDb;          pLogDb = nullptr;
+    delete pReceiptDb;      pReceiptDb = nullptr;
+
+    // memory-only cache
+    delete pTxCache;        pTxCache = nullptr;
+    delete pPpCache;        pPpCache = nullptr;
+}
+
+bool CCacheDBManager::Flush() {
+    if (pSysParamCache) pSysParamCache->Flush();
+
+    if (pAccountCache) pAccountCache->Flush();
+
+    if (pAssetCache) pAssetCache->Flush();
+
+    if (pContractCache) pContractCache->Flush();
+
+    if (pDelegateCache) pDelegateCache->Flush();
+
+    if (pCdpCache) pCdpCache->Flush();
+
+    if (pClosedCdpCache) pClosedCdpCache->Flush();
+
+    if (pDexCache) pDexCache->Flush();
+
+    if (pBlockIndexDb) pBlockIndexDb->Flush();
+
+    if (pBlockCache) pBlockCache->Flush();
+
+    if (pLogCache) pLogCache->Flush();
+
+    if (pReceiptCache) pReceiptCache->Flush();
+
+    // Memory only cache, not bother to flush.
+    // if (pTxCache)
+    //     pTxCache->Flush();
+    // if (pPpCache)
+    //     pPpCache->Flush();
+
+    return true;
 }

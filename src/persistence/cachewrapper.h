@@ -19,6 +19,7 @@
 #include "txdb.h"
 #include "txreceiptdb.h"
 #include "blockundo.h"
+#include "logdb.h"
 
 class CCacheDBManager;
 class CBlockUndo;
@@ -70,6 +71,55 @@ private:
     CCacheWrapper& operator=(const CCacheWrapper&) = delete;
 
 };
+
+
+class CCacheDBManager {
+public:
+    CDBAccess           *pSysParamDb;
+    CSysParamDBCache    *pSysParamCache;
+
+    CDBAccess           *pAccountDb;
+    CAccountDBCache     *pAccountCache;
+
+    CDBAccess           *pAssetDb;
+    CAssetDBCache       *pAssetCache;
+
+    CDBAccess           *pContractDb;
+    CContractDBCache    *pContractCache;
+
+    CDBAccess           *pDelegateDb;
+    CDelegateDBCache    *pDelegateCache;
+
+    CDBAccess           *pCdpDb;
+    CCdpDBCache         *pCdpCache;
+
+    CDBAccess           *pClosedCdpDb;
+    CClosedCdpDBCache   *pClosedCdpCache;
+
+    CDBAccess           *pDexDb;
+    CDexDBCache         *pDexCache;
+
+    CBlockIndexDB       *pBlockIndexDb;
+
+    CDBAccess           *pBlockDb;
+    CBlockDBCache       *pBlockCache;
+
+    CDBAccess           *pLogDb;
+    CLogDBCache         *pLogCache;
+
+    CDBAccess           *pReceiptDb;
+    CTxReceiptDBCache   *pReceiptCache;
+
+    CTxMemCache         *pTxCache;
+    CPricePointMemCache *pPpCache;
+
+public:
+    CCacheDBManager(bool fReIndex, bool fMemory);
+
+    ~CCacheDBManager();
+
+    bool Flush();
+};  // CCacheDBManager
 
 class CTxUndoOpLogger {
 public:
