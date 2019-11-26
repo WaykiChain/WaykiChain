@@ -18,10 +18,10 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
-#include "blockundo.h"
+#include "logdb.h"
 
 class CCacheDBManager;
-class CBlockUndo;
+
 class CCacheWrapper {
 public:
     CSysParamDBCache    sysParamCache;
@@ -37,25 +37,11 @@ public:
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
-
-    CTxUndo             txUndo;
 public:
     static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
 public:
     CCacheWrapper();
 
-    CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
-                  CBlockDBCache*  pBlockCacheIn,
-                  CAccountDBCache* pAccountCacheIn,
-                  CAssetDBCache* pAssetCache,
-                  CContractDBCache* pContractCacheIn,
-                  CDelegateDBCache* pDelegateCacheIn,
-                  CCdpDBCache* pCdpCacheIn,
-                  CClosedCdpDBCache* pClosedCdpCacheIn,
-                  CDexDBCache* pDexCacheIn,
-                  CTxReceiptDBCache* pReceiptCacheIn,
-                  CTxMemCache *pTxCacheIn,
-                  CPricePointMemCache *pPpCacheIn);
     CCacheWrapper(CCacheWrapper* cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 
@@ -63,17 +49,63 @@ public:
 
     void CopyFrom(CCacheDBManager* pCdMan);
 
-    void EnableTxUndoLog(const TxID& txidIn);
-    void DisableTxUndoLog();
-    const CTxUndo& GetTxUndo() const { return txUndo; }
-    bool UndoData(CBlockUndo &blockUndo);
     void Flush();
 
+    UndoDataFuncMap GetUndoDataFuncMap();
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 private:
     CCacheWrapper(const CCacheWrapper&) = delete;
     CCacheWrapper& operator=(const CCacheWrapper&) = delete;
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap);
 };
+
+class CCacheDBManager {
+public:
+    CDBAccess           *pSysParamDb;
+    CSysParamDBCache    *pSysParamCache;
+
+    CDBAccess           *pAccountDb;
+    CAccountDBCache     *pAccountCache;
+
+    CDBAccess           *pAssetDb;
+    CAssetDBCache       *pAssetCache;
+
+    CDBAccess           *pContractDb;
+    CContractDBCache    *pContractCache;
+
+    CDBAccess           *pDelegateDb;
+    CDelegateDBCache    *pDelegateCache;
+
+    CDBAccess           *pCdpDb;
+    CCdpDBCache         *pCdpCache;
+
+    CDBAccess           *pClosedCdpDb;
+    CClosedCdpDBCache   *pClosedCdpCache;
+
+    CDBAccess           *pDexDb;
+    CDexDBCache         *pDexCache;
+
+    CBlockIndexDB       *pBlockIndexDb;
+
+    CDBAccess           *pBlockDb;
+    CBlockDBCache       *pBlockCache;
+
+    CDBAccess           *pLogDb;
+    CLogDBCache         *pLogCache;
+
+    CDBAccess           *pReceiptDb;
+    CTxReceiptDBCache   *pReceiptCache;
+
+    CTxMemCache         *pTxCache;
+    CPricePointMemCache *pPpCache;
+
+public:
+    CCacheDBManager(bool fReIndex, bool fMemory);
+
+    ~CCacheDBManager();
+
+    bool Flush();
+};  // CCacheDBManager
 
 #endif //PERSIST_CACHEWRAPPER_H

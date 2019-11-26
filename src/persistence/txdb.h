@@ -12,16 +12,13 @@
 #include "commons/json/json_spirit_value.h"
 #include "dbaccess.h"
 #include "dbconf.h"
-
+#include "block.h"
 
 #include <map>
 #include <vector>
 
 using namespace std;
 using namespace json_spirit;
-
-class CBlock;
-class CRegID;
 
 class CTxMemCache {
 public:
@@ -49,36 +46,6 @@ private:
 private:
     UnorderedHashSet txids;
     CTxMemCache *pBase;
-};
-
-class CTxUndo {
-public:
-    uint256 txid;
-    CDBOpLogMap dbOpLogMap; // dbName -> dbOpLogs
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(txid);
-        READWRITE(dbOpLogMap);
-	)
-
-public:
-    CTxUndo() {}
-
-    CTxUndo(const uint256 &txidIn): txid(txidIn) {}
-
-    void SetTxID(const TxID &txidIn) { txid = txidIn; }
-
-    void Clear() {
-        txid = uint256();
-        dbOpLogMap.Clear();
-    }
-
-    string ToString() const {
-        string str;
-        str += "txid:" + txid.GetHex() + "\n";
-        str += "db_oplog_map:" + dbOpLogMap.ToString();
-        return str;
-    }
 };
 
 #endif // PERSIST_TXDB_H

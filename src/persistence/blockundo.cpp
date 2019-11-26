@@ -12,6 +12,16 @@ FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// class CTxUndo
+
+string CTxUndo::ToString() const {
+    string str;
+    str += "txid:" + txid.GetHex() + "\n";
+    str += "db_oplog_map:" + dbOpLogMap.ToString();
+    return str;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // class CBlockUndo
 
 bool CBlockUndo::WriteToDisk(CDiskBlockPos &pos, const uint256 &blockHash) {
@@ -78,4 +88,30 @@ string CBlockUndo::ToString() const {
         str += iterUndo->ToString();
     }
     return str;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// class CBlockUndoExecutor
+
+bool CBlockUndoExecutor::Execute() {
+    // undoFuncMap
+    // RegisterUndoFunc();
+    const UndoDataFuncMap &undoDataFuncMap = cw.GetUndoDataFuncMap();
+
+    for (auto it = block_undo.vtxundo.rbegin(); it != block_undo.vtxundo.rend(); it++) {
+        for (const auto &opLogPair : it->dbOpLogMap.GetMap()) {
+            dbk::PrefixType prefixType = dbk::ParseKeyPrefixType(opLogPair.first);
+            if (prefixType == dbk::EMPTY)
+                return ERRORMSG("%s(), unkown prefix! prefix_type=%s", __FUNCTION__,
+                                opLogPair.first);
+            auto funcMapIt = undoDataFuncMap.find(prefixType);
+            if (funcMapIt == undoDataFuncMap.end()) {
+                return ERRORMSG("%s(), unfound prefix in db! prefix_type=%s", __FUNCTION__,
+                                opLogPair.first);
+            }
+            funcMapIt->second(opLogPair.second);
+        }
+    }
+    return true;
 }

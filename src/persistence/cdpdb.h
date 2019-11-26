@@ -51,7 +51,15 @@ public:
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
-    bool UndoData();
+
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        globalStakedBcoinsCache.RegisterUndoFunc(undoDataFuncMap);
+        globalOwedScoinsCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpCache.RegisterUndoFunc(undoDataFuncMap);
+        regId2CDPCache.RegisterUndoFunc(undoDataFuncMap);
+        ratioCDPIdCache.RegisterUndoFunc(undoDataFuncMap);
+    }
+
     uint32_t GetCacheSize() const;
     bool Flush();
 
@@ -130,8 +138,10 @@ public:
         closedTxCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() { return closedCdpTxCache.UndoData() && closedTxCdpCache.UndoData(); }
-
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        closedCdpTxCache.RegisterUndoFunc(undoDataFuncMap);
+        closedTxCdpCache.RegisterUndoFunc(undoDataFuncMap);
+    }
 private:
     /*  CCompositeKVCache     prefixType     key               value             variable  */
     /*  ----------------   --------------   ------------   --------------    ----- --------*/
