@@ -389,7 +389,7 @@ bool ProcessForkedChain(const CBlock &block, CValidationState &state);
 
 // Store block on disk
 // if dbp is provided, the file is known to already reside on disk
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = nullptr);
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp = nullptr, bool mining = false);
 
 //disconnect block for test
 bool DisconnectBlockFromTip(CValidationState &state);

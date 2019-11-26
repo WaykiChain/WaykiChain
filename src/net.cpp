@@ -13,6 +13,7 @@
 #include "net.h"
 #include "nodeinfo.h"
 #include "tx/tx.h"
+#include "commons/util/time.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -977,20 +978,51 @@ void ThreadSocketHandler() {
             //
             if (pNode->vSendMsg.empty())
                 pNode->nLastSendEmpty = GetTime();
-
-            if (GetTime() - pNode->nTimeConnected > 60) {
-                if (pNode->nLastRecv == 0 || pNode->nLastSend == 0) {
-                    LogPrint(BCLog::NET, "socket no message in first 60 seconds, %d %d\n", pNode->nLastRecv != 0,
-                             pNode->nLastSend != 0);
+            // p2p_xiaoyu_20191126
+            // if (GetTime() - pNode->nTimeConnected > 60) {
+            //     if (pNode->nLastRecv == 0 || pNode->nLastSend == 0) {
+            //         LogPrint(BCLog::NET, "socket no message in first 60 seconds, %d %d\n", pNode->nLastRecv != 0,
+            //                  pNode->nLastSend != 0);
+            //         pNode->fDisconnect = true;
+            //     } else if (GetTime() - pNode->nLastSend > 90 * 60 && GetTime() - pNode->nLastSendEmpty > 90 * 60) {
+            //         LogPrint(BCLog::INFO, "socket not sending\n");
+            //         pNode->fDisconnect = true;
+            //     } else if (GetTime() - pNode->nLastRecv > 90 * 60) {
+            //         LogPrint(BCLog::INFO, "socket inactivity timeout\n");
+            //         pNode->fDisconnect = true;
+            //     }
+            // }
+            int64_t nTime = GetSystemTimeInSeconds();
+            if (nTime - pNode->nTimeConnected > DEFAULT_PEER_CONNECT_TIMEOUT)
+            {
+                if (pNode->nLastRecv == 0 || pNode->nLastSend == 0)
+                {
+                    LogPrint(BCLog::NET, "socket no message in first %i seconds, %d %d from %d\n", DEFAULT_PEER_CONNECT_TIMEOUT, pNode->nLastRecv != 0, pNode->nLastSend != 0, pNode->GetId());
                     pNode->fDisconnect = true;
-                } else if (GetTime() - pNode->nLastSend > 90 * 60 && GetTime() - pNode->nLastSendEmpty > 90 * 60) {
-                    LogPrint(BCLog::INFO, "socket not sending\n");
+                }
+                else if (nTime - pNode->nLastSend > TIMEOUT_INTERVAL)
+                {
+                    LogPrint(BCLog::NET, "socket sending timeout: %is\n", nTime - pNode->nLastSend);
                     pNode->fDisconnect = true;
-                } else if (GetTime() - pNode->nLastRecv > 90 * 60) {
-                    LogPrint(BCLog::INFO, "socket inactivity timeout\n");
+                }
+                else if (nTime - pNode->nLastRecv > TIMEOUT_INTERVAL )
+                {
+                    LogPrint(BCLog::NET, "socket receive timeout: %is\n", nTime - pNode->nLastRecv);
+                    pNode->fDisconnect = true;
+                }
+                else if (pNode->nPingNonceSent && pNode->nPingUsecStart + TIMEOUT_INTERVAL * 1000000 < GetTimeMicros())
+                {
+                    LogPrint(BCLog::NET, "ping timeout: %fs\n", 0.000001 * (GetTimeMicros() - pNode->nPingUsecStart));
+                    pNode->fDisconnect = true;
+                }
+                else if (!pNode->fSuccessfullyConnected)
+                {
+                    LogPrint(BCLog::NET, "version handshake timeout from %d\n", pNode->GetId());
                     pNode->fDisconnect = true;
                 }
             }
+
+
         }
 
         {

@@ -1935,7 +1935,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     return true;
 }
 
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, bool mining) {
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
@@ -2015,7 +2015,12 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
     if (chainActive.Tip()->GetBlockHash() == blockHash) {
         LOCK(cs_vNodes);
         for (auto pNode : vNodes) {
-            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
+            //p2p_xiaoyu_20191116
+            if (mining) {
+                pNode->PushMessage("block", block); 
+                continue;
+            }
+            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0)) 
                 pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
         }
     }
@@ -2208,8 +2213,10 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     }
 
     int64_t llAcceptBlockTime = GetTimeMillis();
+
+    bool mining = (pFrom)?false:true;
     // Store to disk
-    if (!AcceptBlock(*pBlock, state, dbp)) {
+    if (!AcceptBlock(*pBlock, state, dbp, mining)) {
         LogPrint(BCLog::INFO, "AcceptBlock() elapse time: %lld ms\n", GetTimeMillis() - llAcceptBlockTime);
         return ERRORMSG("ProcessBlock() : AcceptBlock FAILED");
     }
