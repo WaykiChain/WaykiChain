@@ -38,8 +38,9 @@ public:
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { executeFailCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
-    bool UndoData() { return executeFailCache.UndoData(); }
-
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        executeFailCache.RegisterUndoFunc(undoDataFuncMap);
+    }
 private:
 /*  CCompositeKVCache    prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */

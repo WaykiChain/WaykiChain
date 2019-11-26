@@ -97,10 +97,10 @@ public:
         contractAccountCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() {
-        return contractCache.UndoData() &&
-               contractDataCache.UndoData() &&
-               contractAccountCache.UndoData();
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        contractCache.RegisterUndoFunc(undoDataFuncMap);
+        contractDataCache.RegisterUndoFunc(undoDataFuncMap);
+        contractAccountCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,

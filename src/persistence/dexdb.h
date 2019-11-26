@@ -119,9 +119,9 @@ public:
         blockOrdersCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() {
-        return activeOrderCache.UndoData() &&
-               blockOrdersCache.UndoData();
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        activeOrderCache.RegisterUndoFunc(undoDataFuncMap);
+        blockOrdersCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {

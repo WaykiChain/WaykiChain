@@ -85,6 +85,8 @@ typedef vector<CDbOpLog> CDbOpLogs;
 
 class CDBOpLogMap {
 public:
+    map<string, CDbOpLogs>& GetMap() { return mapDbOpLogs; }
+
     const CDbOpLogs* GetDbOpLogsPtr(dbk::PrefixType prefixType) const {
         assert(prefixType != dbk::EMPTY);
         const string& prefix = dbk::GetKeyPrefix(prefixType);

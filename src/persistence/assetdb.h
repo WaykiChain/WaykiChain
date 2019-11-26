@@ -68,10 +68,12 @@ public:
         assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() { return assetCache.UndoData() && assetTradingPairCache.UndoData(); }
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        assetCache.RegisterUndoFunc(undoDataFuncMap);
+        assetTradingPairCache.RegisterUndoFunc(undoDataFuncMap);
+    }
 
     shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() { return make_shared<CUserAssetsGetter>(assetCache); }
-
 private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */

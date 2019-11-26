@@ -21,29 +21,19 @@ using namespace std;
  */
 namespace db_util {
 
+#define DEFINE_NUMERIC_EMPTY(type) \
+    inline bool IsEmpty(const type val) { return val == 0; } \
+    inline void SetEmpty(type &val) { val = 0; }
+
     // bool
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
-    // int32_t
-    inline bool IsEmpty(const int32_t val) { return val == false; }
-    inline void SetEmpty(int32_t &val) { val = false; }
-
-    // uint8_t
-    inline bool IsEmpty(const uint8_t val) { return val == 0; }
-    inline void SetEmpty(uint8_t &val) { val = 0; }
-
-    // uint16_t
-    inline bool IsEmpty(const uint16_t val) { return val == 0; }
-    inline void SetEmpty(uint16_t &val) { val = 0; }
-
-    // uint32_t
-    inline bool IsEmpty(const uint32_t val) { return val == 0; }
-    inline void SetEmpty(uint32_t &val) { val = 0; }
-
-    // uint64_t
-    inline bool IsEmpty(const uint64_t val) { return val == 0; }
-    inline void SetEmpty(uint64_t &val) { val = 0; }
+    DEFINE_NUMERIC_EMPTY(int32_t)
+    DEFINE_NUMERIC_EMPTY(uint8_t)
+    DEFINE_NUMERIC_EMPTY(uint16_t)
+    DEFINE_NUMERIC_EMPTY(uint32_t)
+    DEFINE_NUMERIC_EMPTY(uint64_t)
 
     // string
     template<typename C> bool IsEmpty(const basic_string<C> &val);
@@ -148,11 +138,14 @@ namespace db_util {
     }
 };
 
+typedef void(UndoDataFunc)(const CDbOpLogs &pDbOpLogs);
+typedef std::map<dbk::PrefixType, std::function<UndoDataFunc>> UndoDataFuncMap;
+
 class CDBAccess {
 public:
-    CDBAccess(DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
+    CDBAccess(const boost::filesystem::path& dir, DBNameType dbNameTypeIn, bool fMemory, bool fWipe) :
               dbNameType(dbNameTypeIn),
-              db( GetDataDir() / "blocks" / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
+              db( dir / ::GetDbName(dbNameTypeIn), DBCacheSize[dbNameTypeIn], fMemory, fWipe ) {}
 
     int64_t GetDbCount() const { return db.GetDbCount(); }
     template<typename KeyType, typename ValueType>
@@ -529,19 +522,14 @@ public:
         mapData[key] = value;
     }
 
-    bool UndoData() {
-        if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (pDbOpLogs != nullptr) {
-                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
-                    UndoData(*it);
-                }
-            }
-            return true;
-        } else {
-            assert(false && "must set the pDbOpLogMap first");
-            return false;
+    void UndoDataList(const CDbOpLogs &dbOpLogs) {
+        for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); it++) {
+            UndoData(*it);
         }
+    }
+
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        undoDataFuncMap[GetPrefixType()] = std::bind(&CCompositeKVCache::UndoDataList, this, std::placeholders::_1);
     }
 
     dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
@@ -793,23 +781,17 @@ public:
         dbOpLog.Get(*ptrData);
     }
 
-    bool UndoData() {
-        if (pDbOpLogMap != nullptr){
-            const CDbOpLogs *pDbOpLogs = pDbOpLogMap->GetDbOpLogsPtr(PREFIX_TYPE);
-            if (pDbOpLogs != nullptr) {
-                for (auto it = pDbOpLogs->rbegin(); it != pDbOpLogs->rend(); it++) {
-                    UndoData(*it);
-                }
-            }
-            return true;
-        } else {
-            assert(false && "Must set the pDbOpLogMap first");
-            return false;
+    void UndoDataList(const CDbOpLogs &dbOpLogs) {
+        for (auto it = dbOpLogs.rbegin(); it != dbOpLogs.rend(); it++) {
+            UndoData(*it);
         }
     }
 
-    dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        undoDataFuncMap[GetPrefixType()] = std::bind(&CSimpleKVCache::UndoDataList, this, std::placeholders::_1);
+    }
 
+    dbk::PrefixType GetPrefixType() const { return PREFIX_TYPE; }
 private:
     std::shared_ptr<ValueType> GetDataPtr() const {
 

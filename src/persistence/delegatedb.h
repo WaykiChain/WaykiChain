@@ -78,14 +78,13 @@ public:
         active_delegates_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
-    bool UndoData() {
-        return  voteRegIdCache.UndoData() &&
-                regId2VoteCache.UndoData() &&
-                last_vote_height_cache.UndoData() &&
-                pending_delegates_cache.UndoData() &&
-                active_delegates_cache.UndoData();
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        voteRegIdCache.RegisterUndoFunc(undoDataFuncMap);
+        regId2VoteCache.RegisterUndoFunc(undoDataFuncMap);
+        last_vote_height_cache.RegisterUndoFunc(undoDataFuncMap);
+        pending_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
+        active_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
     }
-
 private:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
