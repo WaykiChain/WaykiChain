@@ -224,7 +224,7 @@ struct PendingDelegates {
         for (size_t i = 0; i < top_vote_delegates.size(); i++) {
             delegates[i] = top_vote_delegates[i].regid;
         }
-        return std::move(delegates);
+        return delegates;
     }
 
     bool IsEmpty() const {
