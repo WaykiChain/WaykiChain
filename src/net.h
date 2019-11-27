@@ -33,6 +33,15 @@ class CAddrMan;
 class CBlockIndex;
 class CNode;
 
+//p2p_xiaoyu_20191126
+/** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
+static const int PING_INTERVAL = 2 * 60;
+/** Time after which to disconnect, after waiting for a ping response (or inactivity). */
+static const int TIMEOUT_INTERVAL = 20 * 60;
+
+/** -peertimeout default */
+static const int64_t DEFAULT_PEER_CONNECT_TIMEOUT = 60;
+
 
 /** The maximum number of entries in an 'inv' protocol message */
 static const uint32_t MAX_INV_SZ = 50000;
@@ -248,6 +257,8 @@ public:
     // inventory based relay
     mruset<CInv> setInventoryKnown;  //存放已收到的inv
     vector<CInv> vInventoryToSend;   //待发送的inv
+    std::set<CInv> setForceToSend;   //强制发送的inv
+
     CCriticalSection cs_inventory;
     multimap<int64_t, CInv> mapAskFor;  //向网络请求交易的时间, a priority queue
 
@@ -392,8 +403,14 @@ public:
     void PushInventory(const CInv& inv, bool forced = false) {
         {
             LOCK(cs_inventory);
+
+            if(forced){
+                setForceToSend.insert(inv);
+            }
+
             if (forced || !setInventoryKnown.count(inv))
-                vInventoryToSend.push_back(inv);
+                vInventoryToSend.push_back(inv);   
+
         }
     }
 

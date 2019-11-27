@@ -575,8 +575,6 @@ namespace eosio { namespace vm {
          auto&                 current_mappings        = get_mappings<WAlloc>();
          current_mappings.named_mapping[{ mod, name }] = current_mappings.current_index++;
          current_mappings.functions.push_back(create_function<WAlloc, Cls, Cls2, Func, res_t, deduced_full_ts>(is));
-
-         //std::cout << mod << " " << name << std::endl;
       }
 
       template <typename Module>

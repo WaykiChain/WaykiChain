@@ -40,8 +40,9 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             // RPC ping request by user
             pingSend = true;
         }
-
-        if (pTo->nLastSend && GetTime() - pTo->nLastSend > 30 * 60 && pTo->vSendMsg.empty()) {
+        
+        //if (pTo->nLastSend && GetTime() - pTo->nLastSend > 30 * 60 && pTo->vSendMsg.empty()) {
+        if (pTo->nPingNonceSent == 0 && pTo->nPingUsecStart + PING_INTERVAL * 1000000 < GetTimeMicros()) {
             // Ping automatically sent as a keepalive
             pingSend = true;
         }
@@ -63,6 +64,8 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             //     pTo->nPingUsecStart = 0;
             //     pTo->PushMessage("ping");
             // }
+
+            //LogPrint(BCLog::NET, "send ping: %s\n", DateTimeStrFormat("YYYY-MM-DDTHH-MM-SS", pTo->nPingUsecStart).c_str());
         }
 
         {
@@ -157,6 +160,14 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             vInv.reserve(pTo->vInventoryToSend.size());
             vInvWait.reserve(pTo->vInventoryToSend.size());
             for (const auto &inv : pTo->vInventoryToSend) {
+
+                if(pTo->setForceToSend.count(inv)){
+                    pTo->setInventoryKnown.insert(inv);
+                    vInv.push_back(inv);
+                    pTo->setForceToSend.erase(inv);
+                    continue;
+                }
+
                 if (pTo->setInventoryKnown.count(inv))
                     continue;
 

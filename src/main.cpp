@@ -1530,7 +1530,6 @@ bool ActivateBestChain(CValidationState &state) {
         if (chainMostWork.Tip() == nullptr)
             break;
 
-/*
         auto height = chainActive.Height() ;
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
@@ -1544,7 +1543,6 @@ bool ActivateBestChain(CValidationState &state) {
                 break ;
             }
         }
-*/
 
         // Disconnect active blocks which are no longer in the best chain.
         while (chainActive.Tip() && !chainMostWork.Contains(chainActive.Tip())) {
@@ -1926,7 +1924,7 @@ bool CheckBlock(const CBlock &block, CValidationState &state, CCacheWrapper &cw,
     return true;
 }
 
-bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
+bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, bool mining) {
     AssertLockHeld(cs_main);
 
     uint256 blockHash = block.GetHash();
@@ -2007,6 +2005,11 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp) {
         {
             LOCK(cs_vNodes);
             for (auto pNode : vNodes) {
+                //p2p_xiaoyu_20191116
+                if (mining) {
+                    pNode->PushMessage("block", block);
+                    continue;
+                }
                 if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
                     pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
             }
@@ -2207,8 +2210,10 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     }
 
     int64_t llAcceptBlockTime = GetTimeMillis();
+
+    bool mining = (pFrom)?false:true;
     // Store to disk
-    if (!AcceptBlock(*pBlock, state, dbp)) {
+    if (!AcceptBlock(*pBlock, state, dbp, mining)) {
         LogPrint(BCLog::INFO, "AcceptBlock() elapse time: %lld ms\n", GetTimeMillis() - llAcceptBlockTime);
         return ERRORMSG("ProcessBlock() : AcceptBlock FAILED");
     }
@@ -2691,35 +2696,4 @@ bool IsInitialBlockDownload() {
     }
 
     return (GetTime() - nLastUpdate < 10 && chainActive.Tip()->GetBlockTime() < GetTime() - 24 * 60 * 60);
-}
-
-FILE *OpenDiskFile(const CDiskBlockPos &pos, const char *prefix, bool fReadOnly) {
-    if (pos.IsNull())
-        return nullptr;
-    boost::filesystem::path path = GetDataDir() / "blocks" / strprintf("%s%05u.dat", prefix, pos.nFile);
-    boost::filesystem::create_directories(path.parent_path());
-    FILE *file = fopen(path.string().c_str(), "rb+");
-    if (!file && !fReadOnly)
-        file = fopen(path.string().c_str(), "wb+");
-    if (!file) {
-        LogPrint(BCLog::ERROR, "Unable to open file %s\n", path.string());
-        return nullptr;
-    }
-
-    if (pos.nPos) {
-        if (fseek(file, pos.nPos, SEEK_SET)) {
-            LogPrint(BCLog::ERROR, "Unable to seek to position %u of %s\n", pos.nPos, path.string());
-            fclose(file);
-            return nullptr;
-        }
-    }
-    return file;
-}
-
-FILE *OpenBlockFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "blk", fReadOnly);
-}
-
-FILE *OpenUndoFile(const CDiskBlockPos &pos, bool fReadOnly) {
-    return OpenDiskFile(pos, "rev", fReadOnly);
 }

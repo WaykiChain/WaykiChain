@@ -646,10 +646,14 @@ inline void ProcessGetBlocksMessage(CNode *pFrom, CDataStream &vRecv) {
             break;
         }
 
-        bool forced = false;
+        // bool forced = false;
+        // if (pIndex == pStartIndex || pIndex->pprev == pStartIndex)
+        //     forced = true;
+        // pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), forced);
+        bool force_to_send_again = false;
         if (pIndex == pStartIndex || pIndex->pprev == pStartIndex)
-            forced = true;
-        pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), forced);
+            force_to_send_again = true;        
+        pFrom->PushInventory(CInv(MSG_BLOCK, pIndex->GetBlockHash()), force_to_send_again);
         if (--nLimit <= 0) {
             // When this block is requested, we'll send an inv that'll make them
             // getblocks the next batch of inventory.

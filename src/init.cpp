@@ -921,4 +921,7 @@ void InitLogging()
     version_string += " (release build)";
 #endif
     LogPrint(BCLog::INFO, PACKAGE_NAME " version %s\n", version_string);
+
+    // LogInstance().DisableCategory("INFO");
+    // LogInstance().EnableCategory("NET");
 }
