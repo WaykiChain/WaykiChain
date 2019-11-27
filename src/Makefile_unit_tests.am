@@ -12,13 +12,15 @@ unit_test_LDADD = \
   libcoin_cli.a \
   libcoin_common.a \
   liblua53.a \
+  $(WASMLIB) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
   $(BOOST_LIBS) \
   $(BOOST_UNIT_TEST_FRAMEWORK_LIB) \
   $(EVENT_PTHREADS_LIBS) \
   $(EVENT_LIBS) \
-  $(LIBSECP256K1)
+  $(LIBSECP256K1) \
+  $(LIBSOFTFLOAT)
 #if ENABLE_WALLET
 #unit_test_LDADD += $(LIBBITCOIN_WALLET)
 #endif
