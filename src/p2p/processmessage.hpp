@@ -131,6 +131,8 @@ bool static ProcessMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) 
     }
     else if (strCommand == NetMsgType::CONFIRMBLOCK) {
         ProcessBlockConfirmMessage(pFrom, vRecv) ;
+    } else if (strCommand == NetMsgType::FINALITYBLOCK) {
+        ProcessBlockFinalityMessage(pFrom, vRecv);
     }
     else {
         // Ignore unknown commands for extensibility

@@ -33,7 +33,7 @@ public:
         nMaxSize = nMaxSizeIn;
     }
 
-    limitedmap(){ nMaxSize = 500;}
+    limitedmap(){ }
 
     V& operator[](const K& key){return map[key];}
     const_iterator begin() const { return map.begin(); }

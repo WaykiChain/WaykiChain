@@ -27,6 +27,18 @@ CBlockIndex* CChain::GetFinalityBlockIndex(){
     return finalityBlockIndex ;
 }
 
+
+CBlockIndex* CChain::GetBestFinalityBlockIndex(){
+
+    if(!bestFinalityBlockIndex) {
+        if (vChain.size() > 0)
+            return vChain[0];
+        else
+            return nullptr;
+    }
+    return bestFinalityBlockIndex ;
+}
+
 /** Returns the index entry for the tip of this chain, or nullptr if none. */
 CBlockIndex* CChain::Tip() const {
     return vChain.size() > 0 ? vChain[Height()] : nullptr;
@@ -119,9 +131,38 @@ CBlockIndex* CChain::FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const 
 
 
 bool CChain::UpdateFinalityBlock(const uint32_t height) {
-    finalityBlockIndex = vChain[height] ;
-    return true ;
+    {
+        LOCK(cs_finblock);
+        CBlockIndex* oldFinblock = GetFinalityBlockIndex();
+        if(oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
+            return false;
+        CBlockIndex* pTemp = operator[](height) ;
+        if(pTemp== nullptr)
+            return false ;
+
+        finalityBlockIndex = pTemp;
+        return true ;
+    }
+
 }
+
+bool CChain::UpdateBestFinalityBlock(const uint32_t height) {
+    {
+        LOCK(cs_finblock);
+        CBlockIndex* oldFinblock = GetBestFinalityBlockIndex();
+        if(oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
+            return false;
+        CBlockIndex* pTemp = operator[](height) ;
+        if(pTemp== nullptr)
+            return false ;
+
+        bestFinalityBlockIndex = pTemp;
+        return true ;
+    }
+
+}
+
+
 
 bool CChain::UpdateFinalityBlock(const CBlockIndex* pIndex){
 
@@ -130,25 +171,23 @@ bool CChain::UpdateFinalityBlock(const CBlockIndex* pIndex){
         return false ;
     int32_t height = pIndex->height;
 
-    while(height > GetFinalityBlockIndex()->height&& height>0 &&height > pIndex->height-100){
+    while(height > GetFinalityBlockIndex()->height&& height>0 &&height > pIndex->height-50){
 
-        CBlockIndex* pTemp = vChain[height] ;
+        CBlockIndex* pTemp = operator[](height) ;
 
         set<CBlockConfirmMessage> messageSet ;
         set<CRegID> miners;
 
         if(pbftContext.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
            && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
-            if(messageSet.size()>=8){
 
+            if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
                 int count =0;
                 for(auto msg: messageSet){
                     if(miners.count(msg.miner))
                         count++ ;
-
-                    if(count>=8){
-                        finalityBlockIndex = vChain[height];
-                        return true ;
+                    if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                        return UpdateFinalityBlock( height) ;
                     }
                 }
             }
@@ -161,18 +200,112 @@ bool CChain::UpdateFinalityBlock(const CBlockIndex* pIndex){
     return false ;
 }
 
+
 bool CChain::UpdateFinalityBlock(const CBlockConfirmMessage& msg){
+
     CBlockIndex* fi = GetFinalityBlockIndex();
-    if((uint32_t)fi->height >= msg.height)
+
+    if(fi == nullptr ||(uint32_t)fi->height >= msg.height)
         return false;
-    CBlockIndex* pIndex = vChain[msg.height];
-    if(pIndex == nullptr)
+
+    CBlockIndex* pIndex = operator[](msg.height) ;
+    if(pIndex == nullptr || pIndex->pprev== nullptr)
         return false;
+
     if(pIndex->GetBlockHash() != msg.blockHash)
         return false;
-    UpdateFinalityBlock(msg.height) ;
 
-    return true;
+    set<CBlockConfirmMessage> messageSet ;
+    set<CRegID> miners;
+
+    if(pbftContext.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
+                                   && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
+        if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+            int count =0;
+            for(auto msg: messageSet){
+                if(miners.count(msg.miner))
+                    count++ ;
+                if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                    return UpdateFinalityBlock(pIndex->height) ;
+                }
+            }
+        }
+
+    }
+    return false;
+}
+
+
+
+bool CChain::UpdateBestFinalityBlock(const CBlockIndex* pIndex){
+
+
+    if(pIndex == nullptr|| pIndex->height==0)
+        return false ;
+    int32_t height = pIndex->height;
+
+    while(height > GetBestFinalityBlockIndex()->height&& height>0 &&height > pIndex->height-50){
+
+        CBlockIndex* pTemp = operator[](height) ;
+
+        set<CBlockFinalityMessage> messageSet ;
+        set<CRegID> miners;
+
+        if(pbftContext.GetFinalityMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
+           && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
+
+            if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                int count =0;
+                for(auto msg: messageSet){
+                    if(miners.count(msg.miner))
+                        count++ ;
+                    if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                        return UpdateBestFinalityBlock( height) ;
+                    }
+                }
+            }
+
+        }
+
+        height--;
+
+    }
+    return false ;
+}
+
+
+bool CChain::UpdateBestFinalityBlock(const CBlockFinalityMessage& msg){
+
+    CBlockIndex* fi = GetBestFinalityBlockIndex();
+
+    if(fi == nullptr ||(uint32_t)fi->height >= msg.height)
+        return false;
+
+    CBlockIndex* pIndex = operator[](msg.height) ;
+    if(pIndex == nullptr || pIndex->pprev== nullptr)
+        return false;
+
+    if(pIndex->GetBlockHash() != msg.blockHash)
+        return false;
+
+    set<CBlockFinalityMessage> messageSet ;
+    set<CRegID> miners;
+
+    if(pbftContext.GetFinalityMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
+       && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
+        if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+            int count =0;
+            for(auto msg: messageSet){
+                if(miners.count(msg.miner))
+                    count++ ;
+                if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                    return UpdateBestFinalityBlock(pIndex->height) ;
+                }
+            }
+        }
+
+    }
+    return false;
 }
 
 
@@ -187,8 +320,6 @@ bool CChain::UpdateFinalityBlock(){
     if(SysCfg().NetworkID() == TEST_NET && Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
         confirmMiners = 0 ;
     }
-
-
     auto pBlockIndex = Tip() ;
     while(pBlockIndex->height > 0){
 

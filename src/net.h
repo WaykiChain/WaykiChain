@@ -266,6 +266,9 @@ public:
     mruset<CBlockConfirmMessage> setBlockConfirmMsgKnown ;
     CCriticalSection cs_blockConfirm ;
 
+    mruset<CBlockFinalityMessage> setBlockFinalityMsgKnown ;
+    CCriticalSection cs_blockFinality ;
+
     // Ping time measurement
     uint64_t nPingNonceSent;
     int64_t nPingUsecStart;
@@ -379,6 +382,7 @@ public:
     void AddAddressKnown(const CAddress& addr) { setAddrKnown.insert(addr); }
 
     void AddBlockConfirmMessageKnown(const CBlockConfirmMessage msg){ setBlockConfirmMsgKnown.insert(msg); }
+    void AddBlockFinalityMessageKnown(const CBlockFinalityMessage msg){ setBlockFinalityMsgKnown.insert(msg); }
 
     void PushAddress(const CAddress& addr) {
         // Known checking here is only to save space from duplicates.
@@ -419,6 +423,14 @@ public:
         if(!setBlockConfirmMsgKnown.count(msg)){
             PushMessage("confirmblock", msg) ;
             setBlockConfirmMsgKnown.insert(msg);
+        }
+    }
+
+    void PushBlockFinalityMessage(const CBlockFinalityMessage& msg) {
+        LOCK(cs_blockFinality);
+        if(!setBlockFinalityMsgKnown.count(msg)){
+            PushMessage("finblock", msg) ;
+            setBlockFinalityMsgKnown.insert(msg);
         }
     }
 

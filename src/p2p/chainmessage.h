@@ -868,6 +868,26 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 }
 
+bool CheckBlockFinalityMessage(const CBlockFinalityMessage& msg){
+
+    CAccount account ;
+    {
+        LOCK(cs_main) ;
+        if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
+            return false ;
+        }
+    }
+    uint256 messageHash = msg.GetHash();
+    if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
+        if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey))
+            return ERRORMSG("CheckBlockFinalityMessage() : verify signature error");
+    }
+
+   return true ;
+
+}
+
+
 bool CheckBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
     CAccount account ;
@@ -885,21 +905,7 @@ bool CheckBlockConfirmMessage(const CBlockConfirmMessage& msg){
             return ERRORMSG("CheckBlockComfirmMessage() : verify signature error");
     }
 
-  /*  CBlockIndex* blockIndex= chainActive[msg.height] ;
-    if(blockIndex == nullptr || blockIndex->GetBlockHash() != msg.blockHash){
-        return ERRORMSG("CheckBlockComfirmMessage() : don't have the block that need be confirmed on chinaActive,blockheight=%d, blockHash=%s\n",
-                msg.height, msg.blockHash.GetHex());
-    }
-
-    VoteDelegateVector vMiners ;
-    if(!pbftContext.GetMinerListByBlockHash(blockIndex->pprev->GetBlockHash(), vMiners)){
-
-        return ERRORMSG("CheckBlockComfirmMessage() : not find confirm miners,blockheight=%d, blockHash=%s\n",
-                        msg.height, msg.blockHash.GetHex());
-    }
-*/
-
-   return true ;
+    return true ;
 
 }
 
@@ -907,6 +913,14 @@ bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
     for(auto node:vNodes){
         node->PushBlockConfirmMessage(msg);
+    }
+    return true ;
+}
+
+bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg){
+
+    for(auto node:vNodes){
+        node->PushBlockFinalityMessage(msg);
     }
     return true ;
 }
@@ -921,7 +935,6 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
     LogPrint(BCLog::NET, "received Block confirmedMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
              message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
 
-
     pFrom->AddBlockConfirmMessageKnown(message) ;
 
     if(pbftContext.IsKownConfirmMessage(message)){
@@ -930,13 +943,55 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 
     if(!CheckBlockConfirmMessage(message)){
-        LogPrint(BCLog::NET, "duplicate confirm message 3");
+        LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
         return false ;
     }
 
     pbftContext.AddConfirmMessageKnown(message);
-    pbftContext.SaveConfirmMessageByBlock(message);
+    int messageCount = pbftContext.SaveConfirmMessageByBlock(message);
+    bool updateFinalitySuccess = false ;
+    if(messageCount>= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+       updateFinalitySuccess = chainActive.UpdateFinalityBlock(message) ;
+    }
     RelayBlockConfirmMessage(message) ;
+
+    if(updateFinalitySuccess){
+        BroadcastBlockFinality(chainActive.GetFinalityBlockIndex());
+    }
+
+    return true ;
+}
+
+
+bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
+
+    if(IsInitialBlockDownload())
+        return false ;
+    CBlockFinalityMessage message ;
+    vRecv >> message;
+
+    LogPrint(BCLog::NET, "received Block FinalityMessage: blockHeight=%d, blockHash=%s, minerid =%s, signature=%s \n",
+             message.height, message.blockHash.GetHex(), message.miner.ToString(), HexStr<vector<unsigned char>>(message.vSignature));
+
+    pFrom->AddBlockFinalityMessageKnown(message) ;
+
+    if(pbftContext.IsKownFinalityMessage(message)){
+        LogPrint(BCLog::NET, "duplicate finality message,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
+        return false ;
+    }
+
+    if(!CheckBlockFinalityMessage(message)){
+        LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
+        return false ;
+    }
+
+    pbftContext.AddFinalityMessageKnown(message);
+    int messageCount = pbftContext.SaveFinalityMessageByBlock(message);
+    if(messageCount>= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+        chainActive.UpdateBestFinalityBlock(message) ;
+    }
+
+    RelayBlockFinalityMessage(message) ;
 
     return true ;
 }

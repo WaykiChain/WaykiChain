@@ -1534,7 +1534,8 @@ bool ActivateBestChain(CValidationState &state) {
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
-                if(height == chainActive.GetFinalityBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.GetFinalityBlockIndex()->GetBlockHash()){
+                CBlockIndex* finIndex = chainActive.GetFinalityBlockIndex();
+                if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     return false ;
                 }
                 height-- ;
@@ -2001,7 +2002,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     }
 
     // Relay inventory, but don't relay old inventory during initial block download
-    if (chainActive.Tip()->GetBlockHash() == blockHash) {
+    CBlockIndex* pTip = chainActive.Tip() ;
+    if (pTip->GetBlockHash() == blockHash) {
         {
             LOCK(cs_vNodes);
             for (auto pNode : vNodes) {
@@ -2019,8 +2021,12 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
         if (pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
             pbftContext.SaveMinersByHash(blockHash, delegates);
         }
-        BroadcastBlockConfirm(chainActive.Tip()) ;
-        chainActive.UpdateFinalityBlock(chainActive[chainActive.Height()]);
+
+        BroadcastBlockConfirm(pTip) ;
+        if(chainActive.UpdateFinalityBlock(pTip)){
+            BroadcastBlockFinality(pTip);
+            chainActive.UpdateBestFinalityBlock(pTip);
+        }
 
     }
 
@@ -2153,11 +2159,11 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
-   if ( pBlock->GetHeight()>0 && pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
+ /*  if ( pBlock->GetHeight()>0 && pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
         return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",
                 pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
-    }
+    }*/
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,

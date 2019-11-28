@@ -35,6 +35,7 @@ const char *FILTERADD="filteradd";
 const char *FILTERCLEAR="filterclear";
 const char *REJECT="reject";
 const char *CONFIRMBLOCK = "confirmblock";
+const char *FINALITYBLOCK = "finblock" ;
 // const char *SENDHEADERS="sendheaders";
 // const char *FEEFILTER="feefilter";
 // const char *SENDCMPCT="sendcmpct";
@@ -167,6 +168,14 @@ bool operator<(const CBlockConfirmMessage& a , const CBlockConfirmMessage& b){
     return a.blockHash < b.blockHash ;
 }
 
+bool operator<(const CBlockFinalityMessage& a , const CBlockFinalityMessage& b){
+    if(a.height != b.height)
+        return a.height < b.height ;
+    if(a.miner != b.miner)
+        return a.miner < b.miner ;
+    return a.blockHash < b.blockHash ;
+}
+
 bool CInv::IsKnownType() const
 {
     return (type >= 1 && type < (int32_t)ARRAYLEN(ppszTypeName));
@@ -190,6 +199,13 @@ void CInv::Print() const
 }
 
 uint256 CBlockConfirmMessage::GetHash() const {
+    CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
+    ss << blockHash << height<< miner ;
+    return ss.GetHash();
+}
+
+
+uint256 CBlockFinalityMessage::GetHash() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
     ss << blockHash << height<< miner ;
     return ss.GetHash();

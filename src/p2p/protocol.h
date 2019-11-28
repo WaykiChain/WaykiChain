@@ -251,6 +251,8 @@ extern const char *BLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *CONFIRMBLOCK ;
+
+extern const char *FINALITYBLOCK ;
 };
 
 /** A CService with information about it as peer */
@@ -354,6 +356,33 @@ class CBlockConfirmMessage{
 
         friend bool operator<(const CBlockConfirmMessage& a , const CBlockConfirmMessage& b);
         uint256 GetHash() const ;
+
+};
+
+
+class CBlockFinalityMessage{
+public:
+    vector<unsigned char > vSignature ;
+    CRegID miner ;
+    uint32_t height ;
+    uint256 blockHash;
+
+    CBlockFinalityMessage(){}
+    CBlockFinalityMessage(const uint32_t height,
+                         const uint256 blockHash):height(height),
+                                                  blockHash(blockHash){}
+    bool SetSignature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
+
+    IMPLEMENT_SERIALIZE
+    (
+            READWRITE(vSignature) ;
+            READWRITE(miner);
+            READWRITE(height);
+            READWRITE(blockHash);
+    )
+
+    friend bool operator<(const CBlockFinalityMessage& a , const CBlockFinalityMessage& b);
+    uint256 GetHash() const ;
 
 };
 

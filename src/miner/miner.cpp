@@ -649,7 +649,54 @@ static bool FindMiner(CRegID delegate, Miner &miner){
 
 }
 
+bool BroadcastBlockFinality(const CBlockIndex* block){
 
+
+    if(!SysCfg().GetBoolArg("-genblock", false))
+        return false ;
+
+    if(IsInitialBlockDownload())
+        return false ;
+
+    if(pbftContext.finalityBlockHashSet.count(block->GetBlockHash()))
+        return true ;
+
+    //查找上一个区块执行过后的矿工列表
+    set<CRegID> delegates;
+
+    if(block->pprev == nullptr)
+        return false ;
+    pbftContext.GetMinerListByBlockHash(block->pprev->GetBlockHash(), delegates);
+
+    CBlockFinalityMessage msg(block->height, block->GetBlockHash());
+
+    {
+        LOCK(cs_vNodes);
+        for(auto delegate: delegates){
+
+            Miner miner ;
+            if(!FindMiner(delegate, miner))
+                continue ;
+            msg.miner = miner.account.regid ;
+            vector<unsigned char > vSign ;
+            uint256 messageHash = msg.GetHash();
+
+            miner.key.Sign(messageHash, vSign);
+            msg.SetSignature(vSign);
+
+            for (auto pNode : vNodes) {
+                pNode->PushBlockFinalityMessage(msg) ;
+            }
+
+            pbftContext.SaveFinalityMessageByBlock(msg);
+
+        }
+    }
+
+    pbftContext.finalityBlockHashSet.insert(block->GetBlockHash());
+    return true ;
+
+}
 bool BroadcastBlockConfirm(const CBlockIndex* block) {
 
     if(!SysCfg().GetBoolArg("-genblock", false))
@@ -843,6 +890,10 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             if(pIndexPrev== nullptr)
                 continue ;
 
+            if(SysCfg().IsReindex()){
+                continue ;
+            }
+
             int32_t blockHeight = pIndexPrev->height + 1;
 
             int64_t startMiningMs = GetTimeMillis();
@@ -865,6 +916,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             }
 
             mining     = true;
+
             if (!MineBlock(startMiningMs, pIndexPrev, *spMiner)) {
                 continue;
             }
