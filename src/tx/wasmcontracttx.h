@@ -62,8 +62,8 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
-    void contract_is_valid(CTxExecuteContext &context);
-    void authorization_is_valid(uint64_t account);
+    void contract_validation(CTxExecuteContext &context);
+    void authorization_validation(const std::vector<uint64_t>& has_signature_accounts);
     void execute_inline_transaction( wasm::inline_transaction_trace& trace,
                                       wasm::inline_transaction& trx,
                                       uint64_t receiver,
