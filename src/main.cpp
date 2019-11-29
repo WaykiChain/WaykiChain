@@ -1536,13 +1536,15 @@ bool ActivateBestChain(CValidationState &state) {
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
                 CBlockIndex* finIndex = chainActive.GetFinalityBlockIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
-                    return false ;
+                    LogPrint(BCLog::INFO, "finality block can't be reverse");
+                    return true ;
                 }
                 height-- ;
             }
             if (chainIndex&& chainMostWork.Contains(chainIndex)){
                 break ;
-            }
+            }else if(chainIndex == nullptr)
+                return true ;
         }
 
         // Disconnect active blocks which are no longer in the best chain.

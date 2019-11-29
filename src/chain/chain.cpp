@@ -150,6 +150,9 @@ bool CChain::UpdateBestFinalityBlock(const uint32_t height) {
     {
         LOCK(cs_finblock);
         CBlockIndex* oldFinblock = GetBestFinalityBlockIndex();
+        CBlockIndex* localFinblock = GetFinalityBlockIndex() ;
+        if(localFinblock== nullptr ||height > localFinblock->height)
+            return false ;
         if(oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
             return false;
         CBlockIndex* pTemp = operator[](height) ;
