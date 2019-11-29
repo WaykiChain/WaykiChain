@@ -306,7 +306,12 @@ string CCDPStakeTx::ToString(CAccountDBCache &accountCache) {
 
 Object CCDPStakeTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("cdp_txid",           cdp_txid.ToString()));
+    TxID cdpId = cdp_txid;
+    if (cdpId.IsEmpty()) { // this is new cdp tx
+        cdpId = GetHash();
+    }
+
+    result.push_back(Pair("cdp_txid",           cdpId.ToString()));
     result.push_back(Pair("assets_to_stake",    cdp_util::ToJson(assets_to_stake)));
     result.push_back(Pair("scoin_symbol",       scoin_symbol));
     result.push_back(Pair("scoins_to_mint",     scoins_to_mint));
