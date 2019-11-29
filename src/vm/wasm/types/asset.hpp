@@ -335,14 +335,12 @@ namespace wasm {
          */
         std::string to_string() const {
             uint8_t p =  sym.precision();
-            int64_t p10 = 1;
+
             //bool negative = false;
             int64_t invert = 1;
 
-            while (p > 0) {
-                p10 *= 10;
-                --p;
-            }
+            int64_t p10 = sym.precision_in_10();
+
             p =  sym.precision();
 
             char fraction[256];
