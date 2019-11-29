@@ -539,7 +539,6 @@ public:
         if (pRet == nullptr && pBase != nullptr) {
             pRet = pBase->GetDbAccessPtr();
         }
-        assert(pRet != nullptr);
         return pRet;
     }
 

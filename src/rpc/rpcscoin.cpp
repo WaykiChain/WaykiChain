@@ -1122,19 +1122,20 @@ extern Value getassets(const Array& params, bool fHelp) {
         );
     }
 
-    auto pGetter = pCdMan->pAssetCache->CreateUserAssetsGetter();
-    if (!pGetter || !pGetter->Execute()) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, "get all user issued assets error!");
+    auto pAssetsIt = pCdMan->pAssetCache->CreateUserAssetsIterator();
+    if (!pAssetsIt) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, "get all user issued assets iterator error!");
     }
 
     Array assetArray;
-    for (auto &item : pGetter->data_list) {
-        const CAsset &asset = item.second;
-        assetArray.push_back(AssetToJson(*pCdMan->pAccountCache, asset));
+    // TODO: need page??
+    int64_t count = 0;
+    for (pAssetsIt->First(); pAssetsIt->IsValid(); pAssetsIt->Next(), count++) {
+        assetArray.push_back(AssetToJson(*pCdMan->pAccountCache, pAssetsIt->GetAsset()));
     }
 
     Object obj;
-    obj.push_back(Pair("count",     (int64_t)pGetter->data_list.size()));
+    obj.push_back(Pair("count",     count));
     obj.push_back(Pair("assets",    assetArray));
     return obj;
 }
