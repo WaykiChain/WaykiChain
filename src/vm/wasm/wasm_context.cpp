@@ -59,6 +59,13 @@ namespace wasm {
 
     void wasm_context::execute_inline(inline_transaction t) {
 
+       //ban inline except contract self and wasmio_bank
+       WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank , 
+                   wasm_assert_exception, 
+                   "%s",
+                   "inline transaction can be sent to/by contract self or wasmio.bank ");  
+
+       //check authorization
        for(const auto p: t.authorization){
          
           if(p.account  == _receiver){ continue; } //contract authority
