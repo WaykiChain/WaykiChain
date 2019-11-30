@@ -222,7 +222,8 @@ namespace dbk {
                 throw ios_base::failure("CDBTailKey::Unserialize size excceded max size");
             }
             // read key from s.begin() to s.end(), s.begin() is current read pos
-            key.insert(key.end(), s.begin(), s.end());
+            key.resize(s.size());
+            s.read(key.data(), s.size());
         }
 
         bool operator==(const CDBTailKey &other) {

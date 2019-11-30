@@ -64,7 +64,7 @@ public:
     bool First() {
         const string &prefix = dbk::GetKeyPrefix(CacheType::PREFIX_TYPE);
         p_db_it->Seek(prefix);
-        return Parse();
+        return ProcessData();
     }
 
     bool SeekUpper(const KeyType *pKey) {
@@ -76,15 +76,15 @@ public:
             p_db_it->Next(); // skip the last key
         }
 
-        return Parse();
+        return ProcessData();
     }
 
     bool Next() {
         p_db_it->Next();
-        return Parse();
+        return ProcessData();
     }
 private:
-    inline bool Parse() {
+    inline bool ProcessData() {
         const string& prefixStr = dbk::GetKeyPrefix(CacheType::PREFIX_TYPE);
         this->is_valid = false;
         if (!p_db_it->Valid() || !p_db_it->key().starts_with(prefixStr)) return false;
@@ -92,14 +92,14 @@ private:
         const leveldb::Slice &slKey = p_db_it->key();
         const leveldb::Slice &slValue = p_db_it->value();
         if (!ParseDbKey(slKey, CacheType::PREFIX_TYPE, *this->sp_key)) {
-            throw runtime_error(strprintf("CDBPrefixIterator::Parse db key error! key=%s", HexStr(slKey.ToString())));
+            throw runtime_error(strprintf("CDBAccessIterator::ProcessData db key error! key=%s", HexStr(slKey.ToString())));
         }
 
         try {
             CDataStream ssValue(slValue.data(), slValue.data() + slValue.size(), SER_DISK, CLIENT_VERSION);
             ssValue >> *this->sp_value;
         } catch(std::exception &e) {
-            throw runtime_error(strprintf("CDBPrefixIterator::Parse db value error! %s", HexStr(slValue.ToString())));
+            throw runtime_error(strprintf("CDBAccessIterator::ProcessData db value error! %s", HexStr(slValue.ToString())));
         }
         this->is_valid = true;
         return true;
