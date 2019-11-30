@@ -332,45 +332,14 @@ class CInv
         uint256 hash;
 };
 
-
-class CBlockConfirmMessage{
-    public:
-        vector<unsigned char > vSignature ;
-        CRegID miner ;
-        uint32_t height ;
-        uint256 blockHash;
-
-        CBlockConfirmMessage(){}
-        CBlockConfirmMessage(const uint32_t height,
-                const uint256 blockHash):height(height),
-                blockHash(blockHash){}
-        bool SetSignature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
-
-        IMPLEMENT_SERIALIZE
-        (
-            READWRITE(vSignature) ;
-            READWRITE(miner);
-            READWRITE(height);
-            READWRITE(blockHash);
-        )
-
-        friend bool operator<(const CBlockConfirmMessage& a , const CBlockConfirmMessage& b);
-        uint256 GetHash() const ;
-
-};
-
-
-class CBlockFinalityMessage{
+class CPBFTMessage{
 public:
     vector<unsigned char > vSignature ;
     CRegID miner ;
     uint32_t height ;
     uint256 blockHash;
 
-    CBlockFinalityMessage(){}
-    CBlockFinalityMessage(const uint32_t height,
-                         const uint256 blockHash):height(height),
-                                                  blockHash(blockHash){}
+
     bool SetSignature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
 
     IMPLEMENT_SERIALIZE
@@ -381,9 +350,28 @@ public:
             READWRITE(blockHash);
     )
 
-    friend bool operator<(const CBlockFinalityMessage& a , const CBlockFinalityMessage& b);
+    friend bool operator<(const CPBFTMessage& a , const CPBFTMessage& b);
     uint256 GetHash() const ;
 
+};
+
+class CBlockConfirmMessage: public CPBFTMessage{
+public:
+    CBlockConfirmMessage(){}
+    CBlockConfirmMessage(const uint32_t heightIn,
+                 const uint256 blockHashIn){
+        height = heightIn;
+        blockHash = blockHashIn ;
+    }
+};
+class CBlockFinalityMessage: public CPBFTMessage{
+public:
+    CBlockFinalityMessage(){}
+    CBlockFinalityMessage(const uint32_t heightIn,
+                         const uint256 blockHashIn){
+        height = heightIn;
+        blockHash = blockHashIn ;
+    }
 };
 
 enum

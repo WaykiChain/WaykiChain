@@ -658,7 +658,9 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
     if(IsInitialBlockDownload())
         return false ;
 
-    if(pbftContext.finalityBlockHashSet.count(block->GetBlockHash()))
+    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan;
+
+    if(msgMan.IsBroadcastedBlock(block->GetBlockHash()))
         return true ;
 
     //查找上一个区块执行过后的矿工列表
@@ -688,12 +690,12 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
                 pNode->PushBlockFinalityMessage(msg) ;
             }
 
-            pbftContext.SaveFinalityMessageByBlock(msg);
+            msgMan.SaveMessageByBlock(msg.blockHash, msg);
 
         }
     }
 
-    pbftContext.finalityBlockHashSet.insert(block->GetBlockHash());
+    msgMan.SaveBroadcastedBlock(block->GetBlockHash());
     return true ;
 
 }
@@ -709,9 +711,9 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     if(IsInitialBlockDownload())
         return false ;
 
+    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan ;
 
-
-    if(pbftContext.confirmedBlockHashSet.count(block->GetBlockHash()))
+    if(msgMan.IsBroadcastedBlock(block->GetBlockHash()))
         return true ;
 
     //查找上一个区块执行过后的矿工列表
@@ -741,12 +743,12 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
                 pNode->PushBlockConfirmMessage(msg) ;
             }
 
-            pbftContext.SaveConfirmMessageByBlock(msg);
+            msgMan.SaveMessageByBlock(msg.blockHash,msg);
 
         }
     }
 
-    pbftContext.confirmedBlockHashSet.insert(block->GetBlockHash());
+    msgMan.SaveBroadcastedBlock(block->GetBlockHash());
     return true ;
 }
 

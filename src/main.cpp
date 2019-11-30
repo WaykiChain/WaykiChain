@@ -1534,9 +1534,13 @@ bool ActivateBestChain(CValidationState &state) {
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
-                CBlockIndex* finIndex = chainActive.GetFinalityBlockIndex();
+                CBlockIndex* finIndex = chainActive.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     LogPrint(BCLog::INFO, "finality block can't be reverse");
+                    if(GetTime()-chainActive.GetLocalFinLastUpdate()>30){
+
+                    }
+
                     return true ;
                 }
                 height-- ;
@@ -2025,9 +2029,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
         }
 
         BroadcastBlockConfirm(pTip) ;
-        if(chainActive.UpdateFinalityBlock(pTip)){
+        if(chainActive.UpdateLocalFinBlock(pTip)){
             BroadcastBlockFinality(pTip);
-            chainActive.UpdateBestFinalityBlock(pTip);
+            chainActive.UpdateGlobalFinBlock(pTip);
         }
 
     }

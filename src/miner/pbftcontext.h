@@ -20,48 +20,93 @@ class CBlockConfirmMessage ;
 class CBlockFinalityMessage;
 
 
-class CPBFTContext {
+template <typename MsgType>
+class CPBFTMessageMan {
 
 private:
-    CCriticalSection cs_pbftcontext ;
+    CCriticalSection cs_pbftmessage;
+    limitedmap<uint256, set<MsgType>> blockMessagesMap ;
+    mruset<uint256> broadcastedBlockHashSet ;
+    mruset<MsgType> messageKnown ;
+
+public:
+    CPBFTMessageMan(){
+            blockMessagesMap.max_size(500) ;
+            broadcastedBlockHashSet.max_size(500) ;
+            messageKnown.max_size(500) ;
+    }
+
+    CPBFTMessageMan(const int maxSize){
+        blockMessagesMap.max_size(maxSize) ;
+        broadcastedBlockHashSet.max_size(maxSize) ;
+        messageKnown.max_size(maxSize) ;
+    }
 
 public:
 
-    limitedmap<uint256, set<CBlockConfirmMessage>> blockConfirmedMessagesMap ;
-    limitedmap<uint256, set<CBlockFinalityMessage>> blockFinalityMessagesMap ;
-    limitedmap<uint256, set<CRegID>> blockMinerListMap ;
-    mruset<uint256> confirmedBlockHashSet ;
-    mruset<uint256> finalityBlockHashSet ;
-    mruset<uint256> setConfirmMessageKnown ;
-    mruset<uint256> setFinalityMessageKnown ;
-
-    CPBFTContext(){
-        confirmedBlockHashSet.max_size(500);
-        setConfirmMessageKnown.max_size(500);
-        blockMinerListMap.max_size(500) ;
-        blockConfirmedMessagesMap.max_size(500) ;
-        blockFinalityMessagesMap.max_size(500) ;
+    bool IsBroadcastedBlock(uint256 blockHash){
+        return broadcastedBlockHashSet.count(blockHash) ;
     }
 
-    bool IsKownConfirmMessage(const CBlockConfirmMessage msg);
+    bool SaveBroadcastedBlock(uint256 blockHash){
+        broadcastedBlockHashSet.insert(blockHash) ;
+        return true ;
+    }
+    bool IsKnown(const MsgType msg) {
+        return messageKnown.count(msg) != 0 ;
+    }
 
-    bool AddConfirmMessageKnown(const CBlockConfirmMessage msg);
+    bool AddMessageKnown(const MsgType msg) {
+            LOCK(cs_pbftmessage);
+            messageKnown.insert(msg) ;
+            return true;
+    }
 
-    int SaveConfirmMessageByBlock(const CBlockConfirmMessage& msg) ;
+    int  SaveMessageByBlock(const uint256 blockHash,const MsgType& msg) {
 
-    bool IsKownFinalityMessage(const CBlockFinalityMessage msg);
+            LOCK(cs_pbftmessage);
+            auto it = blockMessagesMap.find(blockHash) ;
+            if(it == blockMessagesMap.end()) {
+                    set<MsgType> messages ;
+                    messages.insert(msg) ;
+                    blockMessagesMap.insert(std::make_pair(blockHash, messages)) ;
+                    return  1 ;
+            } else {
+                    set<MsgType> v = blockMessagesMap[blockHash] ;
+                    v.insert(msg);
+                    blockMessagesMap.update(it, v);
+                    return v.size();
+            }
+    }
 
-    bool AddFinalityMessageKnown(const CBlockFinalityMessage msg);
+    bool GetMessagesByBlockHash(const uint256 hash, set<MsgType>& msgs) {
+            auto it = blockMessagesMap.find(hash) ;
+            if(it == blockMessagesMap.end())
+                    return false;
+            msgs = it->second ;
+            return true ;
+    }
 
-    int SaveFinalityMessageByBlock(const CBlockFinalityMessage& msg) ;
+};
+
+class CPBFTContext {
+
+
+public:
+
+    CPBFTMessageMan<CBlockConfirmMessage> confirmMessageMan ;
+    CPBFTMessageMan<CBlockFinalityMessage> finalityMessageMan ;
+    limitedmap<uint256, set<CRegID>> blockMinerListMap ;
+
+    CPBFTContext(){
+        blockMinerListMap.max_size(500) ;
+
+    }
 
     bool GetMinerListByBlockHash(const uint256 blockHash, set<CRegID>& delegates) ;
 
-    bool GetMessagesByBlockHash(const uint256 hash, set<CBlockConfirmMessage>& msgs) ;
-
     bool SaveMinersByHash(uint256 blockhash, VoteDelegateVector delegates) ;
 
-    bool GetFinalityMessagesByBlockHash(const uint256 hash, set<CBlockFinalityMessage>& msgs);
 
 };
 

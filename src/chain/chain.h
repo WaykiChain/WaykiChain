@@ -16,15 +16,16 @@ class CBlockFinalityMessage ;
 class CChain {
 private:
     vector<CBlockIndex *> vChain;
-    CBlockIndex* finalityBlockIndex = nullptr ;
-    CBlockIndex* bestFinalityBlockIndex = nullptr ;
+    CBlockIndex* localFinIndex = nullptr ;
+    int64_t localFinLastUpdate = 0 ;
+    CBlockIndex* globalFinIndex = nullptr ;
     CCriticalSection cs_finblock ;
 public:
     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
     CBlockIndex *Genesis() const;
 
-    CBlockIndex *GetFinalityBlockIndex();
-    CBlockIndex *GetBestFinalityBlockIndex() ;
+    CBlockIndex *GetLocalFinIndex();
+    CBlockIndex *GetGlobalFinIndex() ;
 
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const;
@@ -50,10 +51,12 @@ public:
 
 
     bool UpdateFinalityBlock() ;
-    bool UpdateFinalityBlock(const CBlockIndex* pIndex);
-    bool UpdateFinalityBlock(const CBlockConfirmMessage& msg);
-    bool UpdateBestFinalityBlock(const CBlockIndex* pIndex);
-    bool UpdateBestFinalityBlock(const CBlockFinalityMessage& msg);
+    bool SetLocalFinTimeout() ;
+    bool UpdateLocalFinBlock(const CBlockIndex* pIndex);
+    bool UpdateLocalFinBlock(const CBlockConfirmMessage& msg);
+    bool UpdateGlobalFinBlock(const CBlockIndex* pIndex);
+    bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg);
+    int64_t  GetLocalFinLastUpdate() const ;
 
     /** Set/initialize a chain with a given tip. Returns the forking point. */
     CBlockIndex *SetTip(CBlockIndex *pIndex);
@@ -65,8 +68,8 @@ public:
     CBlockIndex *FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const CBlockLocator &locator) const;
 
 private:
-    bool UpdateFinalityBlock(const uint32_t height);
-    bool UpdateBestFinalityBlock(const uint32_t height);
+    bool UpdateLocalFinBlock(const uint32_t height);
+    bool UpdateGlobalFinBlock(const uint32_t height);
 }; //end of CChain
 
 
