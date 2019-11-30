@@ -702,8 +702,14 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     if(!SysCfg().GetBoolArg("-genblock", false))
         return false ;
 
+    //当矿工的区块落后较大时不发送确认消息， 防止消息过多，淹没网络
+    if(GetTime() - block->GetBlockTime() > 60)
+        return false;
+
     if(IsInitialBlockDownload())
         return false ;
+
+
 
     if(pbftContext.confirmedBlockHashSet.count(block->GetBlockHash()))
         return true ;
