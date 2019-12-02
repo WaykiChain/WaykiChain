@@ -253,9 +253,9 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
 }
 
-Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
+Value gettablewasm( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::get_table_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::get_table_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type));
 
     try{
@@ -315,9 +315,9 @@ Value gettablewasmcontracttx( const Array &params, bool fHelp ) {
 
 }
 
-Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
+Value jsontobinwasm( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::abi_json_to_bin_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::json_to_bin_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
@@ -352,9 +352,9 @@ Value abijsontobinwasmcontracttx( const Array &params, bool fHelp ) {
 }
 
 
-Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
+Value bintojsonwasm( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::abi_bin_to_json_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 2 || params.size() > 4 , wasm::rpc::bin_to_json_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
@@ -389,9 +389,9 @@ Value abibintojsonwasmcontracttx( const Array &params, bool fHelp ) {
 
 }
 
-Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
+Value getcodewasm( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_code_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_code_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
 
     try{
@@ -415,9 +415,9 @@ Value getcodewasmcontracttx( const Array &params, bool fHelp ) {
 
 }
 
-Value getabiwasmcontracttx( const Array &params, bool fHelp ) {
+Value getabiwasm( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_contract_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
 
     try{

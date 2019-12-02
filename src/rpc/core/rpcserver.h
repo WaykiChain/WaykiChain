@@ -198,11 +198,11 @@ extern json_spirit::Value getassets(const json_spirit::Array& params, bool fHelp
 
 extern json_spirit::Value submitwasmcontractdeploytx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitwasmcontractcalltx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value gettablewasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value abijsontobinwasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value abibintojsonwasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getcodewasmcontracttx(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getabiwasmcontracttx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gettablewasm(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value jsontobinwasm(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value bintojsonwasm(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getcodewasm(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getabiwasm(const json_spirit::Array& params, bool fHelp);
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

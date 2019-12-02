@@ -101,9 +101,9 @@ namespace wasm { namespace rpc{
     //     // 3.number
     //     // 4.begin_key
     // }
-    const char *get_table_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *get_table_wasm_rpc_help_message = R"=====(
     {
-        gettablewasmcontracttx "contract" "table" "numbers" "begin_key"
+        gettablewasm "contract" "table" "numbers" "begin_key"
         1."contract": (string, required) contract name"
         2."table":    (string, required) table name"
         3."numbers":  (numberic, optional) numbers"
@@ -112,9 +112,9 @@ namespace wasm { namespace rpc{
         "rows":       (string)"
         "more":       (bool)"
         nExamples: 
-        > ./coind setcodewasmcontracttx "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind gettablewasm "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasmcontracttx", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasm", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -136,18 +136,18 @@ namespace wasm { namespace rpc{
     //     // 2.action
     //     // 3.data
     // }
-    const char *abi_json_to_bin_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *json_to_bin_wasm_rpc_help_message = R"=====(
     {
-        gettablewasmcontracttx \"contract\" \"action\" \"data\" \n"
+        jsontobinwasm \"contract\" \"action\" \"data\" \n"
         1."contract": (string, required) contract name
         2."action"  : (string, required) action name
         3."data".   : (json string, required) action data
         Result:
         "data":       (string)
         Examples: 
-        > ./coind abijsontobinwasmcontracttx "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind jsontobinwasm "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abijsontobinwasmcontracttx", "params":["wasmio","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"jsontobinwasm", "params":["wasmio","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -169,18 +169,18 @@ namespace wasm { namespace rpc{
     //     // 2.action
     //     // 3.data
     // }
-    const char *abi_bin_to_json_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *bin_to_json_wasm_rpc_help_message = R"=====(
     {
-        gettablewasmcontracttx "contract" "action" "data"
+        bintojsonwasm "contract" "action" "data"
         1."contract": (string, required) contract name
         2."action"  : (string, required) action name
         3."data"    : (binary hex string, required) action data
         Result:
         "data":       (string)
         Examples: 
-        > ./coind abijsontobinwasmcontracttx "walker222222" "transfer" "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"
+        > ./coind bintojsonwasm "walker222222" "transfer" "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abijsontobinwasmcontracttx", "params":["wasmio","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["wasmio","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -198,16 +198,16 @@ namespace wasm { namespace rpc{
     //                            "\"411994-1\""));
     //     // 1.contract(id)
     // }
-    const char *get_code_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *get_code_wasm_rpc_help_message = R"=====(
     {
-        getcodewasmcontracttx "contract" 
+        getcodewasm "contract" 
         1."contract": (string, required) contract name\n"
         Result:
         "code":        (string)
         Examples:
-        > ./coind getcodewasmcontracttx "walker222222" 
+        > ./coind getcodewasm "walker222222" 
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasmcontracttx", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -225,16 +225,16 @@ namespace wasm { namespace rpc{
     //                            "\"411994-1\""));
     //     // 1.contract(id)
     // }
-    const char *get_abi_wasm_contract_tx_rpc_help_message = R"=====(
+    const char *get_abi_wasm_rpc_help_message = R"=====(
     {
-        getabiwasmcontracttx "contract" 
+        getabiwasm "contract" 
         1."contract": (string, required) contract name\n"
         Result:
         "code":        (string)
         Examples:
-        > ./coind getabiwasmcontracttx "walker222222" 
+        > ./coind getabiwasm "walker222222" 
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasmcontracttx", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getabiwasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
