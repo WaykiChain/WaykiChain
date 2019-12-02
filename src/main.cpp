@@ -1742,12 +1742,18 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         // FIXME: enable it to avoid forked chain attack.
         if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight(block.GetHeight()))
             return state.DoS(100, ERRORMSG(
-                "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
-                block.GetHash().GetHex(), block.GetHeight()));
+                    "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+                    block.GetHash().GetHex(), block.GetHeight()));
 
         if (mapBlockIndex.find(pPreBlockIndex->GetBlockHash()) == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
     }
+
+    // FIXME: enable it to avoid forked chain attack.
+    if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight(block.GetHeight()))
+        return state.DoS(100, ERRORMSG(
+                "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+                block.GetHash().GetHex(), block.GetHeight()));
 
     if (forkChainTipFound) {
         spCW = mapForkCache[forkChainTipBlockHash];
@@ -1937,6 +1943,8 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     uint256 blockHash = block.GetHash();
     LogPrint(BCLog::INFO, "AcceptBlock[%d]: %s, miner: %s, ts: %u\n", block.GetHeight(), blockHash.GetHex(),
              block.GetMinerUserID().ToString(), block.GetBlockTime());
+
+
 
     // Check for duplicated block
     if (mapBlockIndex.count(blockHash))
@@ -2165,11 +2173,8 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
- /*  if ( pBlock->GetHeight()>0 && pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
-        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",
-                pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
-    }*/
+
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,

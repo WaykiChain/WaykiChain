@@ -778,7 +778,16 @@ inline void ProcessBlockMessage(CNode *pFrom, CDataStream &vRecv) {
 
     LOCK(cs_main);
     CValidationState state;
-    ProcessBlock(state, pFrom, &block);
+
+    std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
+    pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);
+    if (  block.GetHeight() < (uint32_t)globalfinblock.first){
+        LogPrint(BCLog::NET,"ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",
+                                      block.GetHeight(), globalfinblock.first);
+    } else {
+        ProcessBlock(state, pFrom, &block);
+    }
+
 }
 
 inline void ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv) {
@@ -890,6 +899,18 @@ bool CheckBlockFinalityMessage(const CBlockFinalityMessage& msg){
 
 bool CheckPBFTMessage(const CPBFTMessage& msg){
 
+    //check height
+    if(msg.height - chainActive.Height()>500 || chainActive.Height() - msg.height >500){
+        return ERRORMSG("checkPBftMessage():: messagesHeight is out range");
+    }
+
+    //if block received,check whether on chainActive
+    CBlockIndex* pIndex = chainActive[msg.height] ;
+    if(pIndex != nullptr &&pIndex->GetBlockHash() != msg.blockHash){
+        return ERRORMSG("checkPbftMessage(): block not on chainActive") ;
+    }
+
+    //check signature
     CAccount account ;
     {
         LOCK(cs_main) ;
@@ -897,8 +918,6 @@ bool CheckPBFTMessage(const CPBFTMessage& msg){
             return false ;
         }
     }
-
-
     uint256 messageHash = msg.GetHash();
     if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
         if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey))
@@ -949,6 +968,7 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
         LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
         return false ;
     }
+
 
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);

@@ -623,12 +623,12 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
     return true;
 }
 
-static bool FindMiner(CRegID delegate, Miner &miner){
+static bool PbftFindMiner(CRegID delegate, Miner &miner){
     {
         LOCK(cs_main);
-
         if (!pCdMan->pAccountCache->GetAccount(delegate, miner.account)) {
-
+            LogPrint(BCLog::MINER, "PbftFindMiner() : fail to get miner account! regid=%s\n",
+                    miner.delegate.regid.ToString());
             return false;
         }
     }
@@ -639,7 +639,6 @@ static bool FindMiner(CRegID delegate, Miner &miner){
         if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
             return true;
         } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
-
             return false;
         }
     }
@@ -677,7 +676,7 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
         for(auto delegate: delegates){
 
             Miner miner ;
-            if(!FindMiner(delegate, miner))
+            if(!PbftFindMiner(delegate, miner))
                 continue ;
             msg.miner = miner.account.regid ;
             vector<unsigned char > vSign ;
@@ -730,7 +729,7 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
         for(auto delegate: delegates){
 
             Miner miner ;
-            if(!FindMiner(delegate, miner))
+            if(!PbftFindMiner(delegate, miner))
                 continue ;
             msg.miner = miner.account.regid ;
             vector<unsigned char > vSign ;
