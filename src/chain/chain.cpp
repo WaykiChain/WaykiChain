@@ -6,8 +6,11 @@
 #include "chain.h"
 #include "p2p/protocol.h"
 #include "miner/pbftcontext.h"
+#include "persistence/cachewrapper.h"
 
 extern CPBFTContext pbftContext;
+extern CCacheDBManager *pCdMan;
+extern CCriticalSection cs_main ;
 //////////////////////////////////////////////////////////////////////////////
 //class CChain implementation
 
@@ -162,8 +165,12 @@ bool CChain::UpdateGlobalFinBlock(const uint32_t height) {
         CBlockIndex* pTemp = operator[](height) ;
         if(pTemp== nullptr)
             return false ;
-
         globalFinIndex = pTemp;
+
+        {
+            LOCK(cs_main) ;
+            pCdMan->pBlockCache->WriteGlobalFinBlock(pTemp->height, pTemp->GetBlockHash()) ;
+        }
         return true ;
     }
 

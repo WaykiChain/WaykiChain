@@ -927,9 +927,11 @@ bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg){
 
 bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
-    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan ;
-    if(IsInitialBlockDownload())
+
+    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>60)
         return false ;
+
+    CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan ;
     CBlockConfirmMessage message ;
     vRecv >> message;
 
@@ -967,10 +969,12 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
 bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
-    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan ;
 
-    if(IsInitialBlockDownload())
+    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>60)
         return false ;
+
+
+    CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan ;
     CBlockFinalityMessage message ;
     vRecv >> message;
 

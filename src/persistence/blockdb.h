@@ -48,7 +48,8 @@ public:
         flagCache(pDbAccess),
         bestBlockHashCache(pDbAccess),
         lastBlockFileCache(pDbAccess),
-        reindexCache(pDbAccess) {
+        reindexCache(pDbAccess),
+        finalityBlockCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::BLOCK);
     };
 
@@ -57,7 +58,8 @@ public:
         flagCache(pBaseIn->flagCache),
         bestBlockHashCache(pBaseIn->bestBlockHashCache),
         lastBlockFileCache(pBaseIn->lastBlockFileCache),
-        reindexCache(pBaseIn->reindexCache) {};
+        reindexCache(pBaseIn->reindexCache),
+        finalityBlockCache(pBaseIn->finalityBlockCache){};
 
 public:
     bool Flush();
@@ -72,6 +74,7 @@ public:
         bestBlockHashCache.SetBase(&pBaseIn->bestBlockHashCache);
         lastBlockFileCache.SetBase(&pBaseIn->lastBlockFileCache);
         reindexCache.SetBase(&pBaseIn->reindexCache);
+        finalityBlockCache.SetBase(&pBaseIn->finalityBlockCache);
 
     };
 
@@ -81,6 +84,7 @@ public:
         bestBlockHashCache.SetDbOpLogMap(pDbOpLogMapIn);
         lastBlockFileCache.SetDbOpLogMap(pDbOpLogMapIn);
         reindexCache.SetDbOpLogMap(pDbOpLogMapIn);
+        finalityBlockCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -89,6 +93,7 @@ public:
         bestBlockHashCache.RegisterUndoFunc(undoDataFuncMap);
         lastBlockFileCache.RegisterUndoFunc(undoDataFuncMap);
         reindexCache.RegisterUndoFunc(undoDataFuncMap);
+        finalityBlockCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     bool ReadTxIndex(const uint256 &txid, CDiskTxPos &pos);
@@ -103,6 +108,9 @@ public:
 
     bool WriteFlag(const string &name, bool fValue);
     bool ReadFlag(const string &name, bool &fValue);
+
+    bool WriteGlobalFinBlock(const int32_t height, const uint256 hash);
+    bool ReadGlobalFinBlock(std::pair<int32_t,uint256>& block);
 
     uint256 GetBestBlockHash() const;
     bool SetBestBlock(const uint256 &blockHash);
@@ -121,7 +129,7 @@ private:
     CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      bestBlockHashCache;    // best blockHash
     CSimpleKVCache< dbk::LAST_BLOCKFILE,            int>          lastBlockFileCache;
     CSimpleKVCache< dbk::REINDEX,                   bool>         reindexCache;
-
+    CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finalityBlockCache ;
 };
 
 /** Create a new block index entry for a given block hash */
