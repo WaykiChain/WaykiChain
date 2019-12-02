@@ -421,7 +421,7 @@ public:
     void PushBlockConfirmMessage(const CBlockConfirmMessage& msg) {
         LOCK(cs_blockConfirm);
         if(!setBlockConfirmMsgKnown.count(msg)){
-            PushMessage("confirmblock", msg) ;
+            PushMessage(NetMsgType::CONFIRMBLOCK, msg);
             setBlockConfirmMsgKnown.insert(msg);
         }
     }
@@ -429,7 +429,7 @@ public:
     void PushBlockFinalityMessage(const CBlockFinalityMessage& msg) {
         LOCK(cs_blockFinality);
         if(!setBlockFinalityMsgKnown.count(msg)){
-            PushMessage("finblock", msg) ;
+            PushMessage(NetMsgType::FINALITYBLOCK, msg) ;
             setBlockFinalityMsgKnown.insert(msg);
         }
     }

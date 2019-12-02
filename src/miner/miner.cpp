@@ -114,11 +114,21 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
+inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
+
+    if(currHeight>223000)
+        return 6 ;
+    else
+        return 1 ;
+
+}
 
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
                                VoteDelegate &delegate) {
+
     uint32_t slot  = currentTime / GetBlockInterval(currHeight);
-    uint32_t index = slot % IniCfg().GetTotalDelegateNum();
+    uint32_t blockCount = GetContinuousBlockCount(currHeight) ;
+    uint32_t index = (slot % (IniCfg().GetTotalDelegateNum()*blockCount))/blockCount;
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
 
@@ -152,8 +162,11 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
     }
 }
 
-void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates) {
+void ShuffleDelegates(const int32_t curHeight, VoteDelegateVector &delegates) {
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
+    int32_t nCurHeight = curHeight - (curHeight%GetContinuousBlockCount(curHeight)) ;
+
+
     string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
     ss << seedSource;

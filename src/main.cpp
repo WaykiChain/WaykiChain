@@ -2023,7 +2023,7 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             for (auto pNode : vNodes) {
                 //p2p_xiaoyu_20191116
                 if (mining) {
-                    pNode->PushMessage("block", block);
+                    pNode->PushMessage(NetMsgType::BLOCK, block);
                     continue;
                 }
                 if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
@@ -2127,7 +2127,7 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     pNode->pIndexLastGetBlocksBegin = pIndexBegin;
     pNode->hashLastGetBlocksEnd     = hashEnd;
     CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
-    pNode->PushMessage("getblocks", blockLocator, hashEnd);
+    pNode->PushMessage(NetMsgType::GETBLOCKS, blockLocator, hashEnd);
     LogPrint(BCLog::NET, "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
 }
 
@@ -2146,7 +2146,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
             pNode->pIndexLastGetBlocksBegin = pIndexBegin;
             pNode->hashLastGetBlocksEnd     = hashEnd;
             CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
-            pNode->PushMessage("getblocks", blockLocator, hashEnd);
+            pNode->PushMessage(NetMsgType::GETBLOCKS, blockLocator, hashEnd);
             LogPrint(BCLog::NET, "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
         } else {
             if (count >= 5000) {
@@ -2158,7 +2158,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
         pNode->pIndexLastGetBlocksBegin = pIndexBegin;
         pNode->hashLastGetBlocksEnd     = hashEnd;
         CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
-        pNode->PushMessage("getblocks", blockLocator, hashEnd);
+        pNode->PushMessage(NetMsgType::GETBLOCKS, blockLocator, hashEnd);
         LogPrint(BCLog::NET, "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
     }
 }

@@ -230,7 +230,7 @@ bool ProcessMessages(CNode *pFrom) {
             fRet = ProcessMessage(pFrom, strCommand, vRecv);
             boost::this_thread::interruption_point();
         } catch (std::ios_base::failure &e) {
-            pFrom->PushMessage("reject", strCommand, REJECT_MALFORMED, string("error parsing message"));
+            pFrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_MALFORMED, string("error parsing message"));
             if (strstr(e.what(), "end of data")) {
                 // Allow exceptions from under-length message on vRecv
                 LogPrint(BCLog::INFO, "ProcessMessages(%s, %u bytes) : Exception '%s' caught, normally caused by a message being shorter than its stated length\n", strCommand, nMessageSize, e.what());

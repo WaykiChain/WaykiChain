@@ -550,7 +550,7 @@ void CNode::PushVersion() {
     LogPrint(BCLog::NET, "send version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", PROTOCOL_VERSION,
              nBestHeight, addrMe.ToString(), addrYou.ToString(), addr.ToString());
 
-    PushMessage("version", PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe, nLocalHostNonce,
+    PushMessage(NetMsgType::VERSION, PROTOCOL_VERSION, nLocalServices, nTime, addrYou, addrMe, nLocalHostNonce,
                 FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, comments), nBestHeight, true);
 }
 

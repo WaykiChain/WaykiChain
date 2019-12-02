@@ -170,7 +170,7 @@ inline void ProcessGetData(CNode *pFrom) {
                     if (inv.type == MSG_BLOCK) {
                         LogPrint(BCLog::NET, "send block[%u]: %s to peer %s\n", block.GetHeight(), block.GetHash().GetHex(),
                                  pFrom->addr.ToString());
-                        pFrom->PushMessage("block", block);
+                        pFrom->PushMessage(NetMsgType::BLOCK, block);
                     }
                     else  // MSG_FILTERED_BLOCK)
                     {
@@ -186,7 +186,7 @@ inline void ProcessGetData(CNode *pFrom) {
                             // always provide at least what the remote peer needs
                             for (auto &pair : merkleBlock.vMatchedTxn)
                                 if (!pFrom->setInventoryKnown.count(CInv(MSG_TX, pair.second)))
-                                    pFrom->PushMessage("tx", block.vptx[pair.first]);
+                                    pFrom->PushMessage(NetMsgType::TX, block.vptx[pair.first]);
                         }
                         // else
                         // no response
@@ -199,7 +199,7 @@ inline void ProcessGetData(CNode *pFrom) {
                         // wait for other stuff first.
                         vector<CInv> vInv;
                         vInv.push_back(CInv(MSG_BLOCK, chainActive.Tip()->GetBlockHash()));
-                        pFrom->PushMessage("inv", vInv);
+                        pFrom->PushMessage(NetMsgType::INV, vInv);
                         pFrom->hashContinue.SetNull();
                         LogPrint(BCLog::NET, "reset node hashcontinue\n");
                     }
@@ -221,7 +221,7 @@ inline void ProcessGetData(CNode *pFrom) {
                         CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
                         ss.reserve(1000);
                         ss << pBaseTx;
-                        pFrom->PushMessage("tx", ss);
+                        pFrom->PushMessage(NetMsgType::TX, ss);
                         pushed = true;
                     }
                 }
@@ -312,7 +312,7 @@ inline bool AddBlockToQueue(const uint256 &hash, NodeId nodeId) {
 inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStream &vRecv) {
     // Each connection can only send one version message
     if (pFrom->nVersion != 0) {
-        pFrom->PushMessage("reject", strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
+        pFrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_DUPLICATE, string("Duplicate version message"));
         LogPrint(BCLog::INFO, "Misbehaving: Duplicated version message, nMisbehavior add 1\n");
         Misbehaving(pFrom->GetId(), 1);
         return false;
@@ -327,7 +327,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
         // Disconnect from peers older than this proto version
         LogPrint(BCLog::INFO, "partner %s using obsolete version %i; disconnecting\n", pFrom->addr.ToString(),
                  pFrom->nVersion);
-        pFrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
+        pFrom->PushMessage(NetMsgType::REJECT, strCommand, REJECT_OBSOLETE,
                            strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
         pFrom->fDisconnect = true;
         return 0;
@@ -370,7 +370,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
     pFrom->fClient = !(pFrom->nServices & NODE_NETWORK);
 
     // Change version
-    pFrom->PushMessage("verack");
+    pFrom->PushMessage(NetMsgType::VERACK);
     pFrom->ssSend.SetVersion(min(pFrom->nVersion, PROTOCOL_VERSION));
 
     if (!pFrom->fInbound) {
@@ -383,7 +383,7 @@ inline int32_t ProcessVersionMessage(CNode *pFrom, string strCommand, CDataStrea
 
         // Get recent addresses
         if (pFrom->fOneShot || /*pFrom->nVersion >= CADDR_TIME_VERSION || */ addrman.size() < 1000) {
-            pFrom->PushMessage("getaddr");
+            pFrom->PushMessage(NetMsgType::GETADDR);
             pFrom->fGetAddr = true;
         }
         addrman.Good(pFrom->addr);
@@ -572,7 +572,7 @@ inline bool ProcessTxMessage(CNode *pFrom, string strCommand, CDataStream &vRecv
                 pBaseTx->GetHash().ToString(), pBaseTx->valid_height,
                 pFrom->addr.ToString(), pFrom->cleanSubVer, state.GetRejectReason());
 
-        pFrom->PushMessage("reject", strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
+        pFrom->PushMessage(NetMsgType::REJECT, strCommand, state.GetRejectCode(), state.GetRejectReason(), inv.hash);
         // if (nDoS > 0) {
         //     LogPrint(BCLog::INFO, "Misebehaving, add to tx hash %s mempool error, Misbehavior add %d",
         //     pBaseTx->GetHash().GetHex(), nDoS); Misbehaving(pFrom->GetId(), nDoS);
@@ -807,11 +807,11 @@ inline void ProcessMempoolMessage(CNode *pFrom, CDataStream &vRecv) {
             vInv.push_back(inv);
 
         if (vInv.size() == MAX_INV_SZ) {
-            pFrom->PushMessage("inv", vInv);
+            pFrom->PushMessage(NetMsgType::INV, vInv);
             vInv.clear();
         }
     }
-    if (vInv.size() > 0) pFrom->PushMessage("inv", vInv);
+    if (vInv.size() > 0) pFrom->PushMessage(NetMsgType::INV, vInv);
 }
 
 inline void ProcessAlertMessage(CNode *pFrom, CDataStream &vRecv) {
@@ -877,30 +877,13 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 }
 
-bool CheckBlockFinalityMessage(const CBlockFinalityMessage& msg){
-
-    CAccount account ;
-    {
-        LOCK(cs_main) ;
-        if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
-            return false ;
-        }
-    }
-    uint256 messageHash = msg.GetHash();
-    if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
-        if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey))
-            return ERRORMSG("CheckBlockFinalityMessage() : verify signature error");
-    }
-
-   return true ;
-
-}
-
 
 bool CheckPBFTMessage(const CPBFTMessage& msg){
 
     //check height
-    if(msg.height - chainActive.Height()>500 || chainActive.Height() - msg.height >500){
+
+    CBlockIndex* localFinBlock = chainActive.GetLocalFinIndex() ;
+    if(msg.height - chainActive.Height()>500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
         return ERRORMSG("checkPBftMessage():: messagesHeight is out range");
     }
 
@@ -947,7 +930,7 @@ bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg){
 bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
 
-    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>60)
+    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600)
         return false ;
 
     CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan ;
@@ -990,7 +973,7 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
 
-    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>60)
+    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600)
         return false ;
 
 
