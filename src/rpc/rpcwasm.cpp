@@ -183,7 +183,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         // json_spirit::Value value_json;
         // json_spirit::read_string(std::get<1>(ret), value_json);
         // json_spirit::Config::add(obj_return, "result",  value_json);
-        json_spirit::Config::add(obj_return, "result", std::get<1>(ret) );
+        json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -246,7 +246,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         // json_spirit::read_string(std::get<1>(ret), value_json);
         // json_spirit::Config::add(obj_return, "result",  value_json);
 
-        json_spirit::Config::add(obj_return, "result", std::get<1>(ret) );
+        json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
