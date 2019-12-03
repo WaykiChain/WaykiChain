@@ -26,7 +26,6 @@ namespace wasm { namespace rpc{
     //                              "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
     // }
     const char *submit_wasm_contract_deploy_tx_rpc_help_message = R"=====(
-    {
         submitwasmcontractdeploytx "sender" "contract" "wasm_file" "abi_file" ["memo"] [symbol:fee:unit]
         deploy code and abi to an account as contract
         Arguments:
@@ -42,7 +41,6 @@ namespace wasm { namespace rpc{
         > ./coind submitwasmcontractdeploytx "walker222222" "walker222222" "/tmp/myapp.wasm" "/tmp/myapp.abi"
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitwasmcontractdeploytx", "params":["walker222222", "walker222222", "/tmp/myapp.wasm", "/tmp/myapp.bai"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
     // if (fHelp || params.size() < 5 || params.size() > 6) {
@@ -64,7 +62,6 @@ namespace wasm { namespace rpc{
     //                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"411994-1\", \"01020304\", 10000, 10000, 100"));
     // }
     const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(
-    {
         submitwasmcontractcalltx "sender" "contract" "action" "data" "fee"
         1."sender ":  (string, required) sender name
         2."contract": (string, required) contract name
@@ -77,7 +74,6 @@ namespace wasm { namespace rpc{
         > ./coind submitwasmcontractcalltx "xiaoyu111111" "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"setcodewasmcontracttx", "params":["xiaoyu111111", "walker222222", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
     // if (fHelp || params.size() < 2 || params.size() > 4) {
@@ -102,7 +98,6 @@ namespace wasm { namespace rpc{
     //     // 4.begin_key
     // }
     const char *get_table_wasm_rpc_help_message = R"=====(
-    {
         gettablewasm "contract" "table" "numbers" "begin_key"
         1."contract": (string, required) contract name"
         2."table":    (string, required) table name"
@@ -115,7 +110,6 @@ namespace wasm { namespace rpc{
         > ./coind gettablewasm "walker222222" "accounts" 
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasm", "params":["walker222222", "accounts"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
     // if (fHelp || params.size() < 2 || params.size() > 4) {
@@ -137,7 +131,6 @@ namespace wasm { namespace rpc{
     //     // 3.data
     // }
     const char *json_to_bin_wasm_rpc_help_message = R"=====(
-    {
         jsontobinwasm "contract" "action" "data"
         1."contract": (string, required) contract name
         2."action"  : (string, required) action name
@@ -148,7 +141,6 @@ namespace wasm { namespace rpc{
         > ./coind jsontobinwasm "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"jsontobinwasm", "params":["walker222222","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
     // if (fHelp || params.size() < 2 || params.size() > 4) {
@@ -170,7 +162,6 @@ namespace wasm { namespace rpc{
     //     // 3.data
     // }
     const char *bin_to_json_wasm_rpc_help_message = R"=====(
-    {
         bintojsonwasm "contract" "action" "data"
         1."contract": (string, required) contract name
         2."action"  : (string, required) action name
@@ -181,7 +172,6 @@ namespace wasm { namespace rpc{
         > ./coind bintojsonwasm "walker222222" "transfer" "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["walker222222","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
     // if (fHelp || params.size() != 1 ) {
@@ -199,7 +189,6 @@ namespace wasm { namespace rpc{
     //     // 1.contract(id)
     // }
     const char *get_code_wasm_rpc_help_message = R"=====(
-    {
         getcodewasm "contract" 
         1."contract": (string, required) contract name
         Result:
@@ -208,7 +197,6 @@ namespace wasm { namespace rpc{
         > ./coind getcodewasm "walker222222" 
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
     // if (fHelp || params.size() != 1 ) {
@@ -226,7 +214,6 @@ namespace wasm { namespace rpc{
     //     // 1.contract(id)
     // }
     const char *get_abi_wasm_rpc_help_message = R"=====(
-    {
         getabiwasm "contract" 
         1."contract": (string, required) contract name
         Result:
@@ -235,7 +222,6 @@ namespace wasm { namespace rpc{
         > ./coind getabiwasm "walker222222" 
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getabiwasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
-    }
     )=====";
 
 

@@ -152,6 +152,11 @@ vector<unsigned char> ParseHexO(const Object& o, string strKey) {
 ///
 /// Note: This interface may still be subject to change.
 ///
+inline void message_ltrim(string& s, char c){
+    while(s[0] == c) {
+        s = s.substr(1, s.size() -1);
+    }
+}
 
 string CRPCTable::help(string strCommand) const {
     string strRet;
@@ -161,6 +166,8 @@ string CRPCTable::help(string strCommand) const {
         const CRPCCommand* pcmd = mi->second;
         string strMethod        = mi->first;
         // We already filter duplicates, but these deprecated screw up the sort order
+        // WASM_TRACE("help:%s", strMethod.c_str())
+
         if (strMethod.find("label") != string::npos)
             continue;
         if (strCommand != "" && strMethod != strCommand)
@@ -176,9 +183,14 @@ string CRPCTable::help(string strCommand) const {
         } catch (std::exception& e) {
             // Help text is returned in an exception
             string strHelp = string(e.what());
-            if (strCommand == "")
-                if (strHelp.find('\n') != string::npos)
-                    strHelp = strHelp.substr(0, strHelp.find('\n'));
+            message_ltrim(strHelp, '\n');
+            if (strCommand == ""){
+                if (strHelp.find('\n') != string::npos){ 
+                    message_ltrim(strHelp, ' ');                 
+                    strHelp = strHelp.substr(0, strHelp.find('\n'));   
+                }
+
+            }
             strRet += strHelp + "\n";
         }
     }
@@ -662,7 +674,6 @@ static bool JsonRPCHandler(HTTPRequest* req, const std::string&) {
         // singleton request
         if (valRequest.type() == obj_type) {
             jreq.parse(valRequest);
-
             Value result = tableRPC.execute(jreq.strMethod, jreq.params);
 
             // Send reply
