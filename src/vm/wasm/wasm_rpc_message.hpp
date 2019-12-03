@@ -112,9 +112,9 @@ namespace wasm { namespace rpc{
         "rows":       (string)"
         "more":       (bool)"
         nExamples: 
-        > ./coind gettablewasm "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind gettablewasm "walker222222" "accounts" 
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasm", "params":["wasmio", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasm", "params":["walker222222", "accounts"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -147,7 +147,7 @@ namespace wasm { namespace rpc{
         Examples: 
         > ./coind jsontobinwasm "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"jsontobinwasm", "params":["wasmio","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"jsontobinwasm", "params":["walker222222","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
@@ -180,7 +180,7 @@ namespace wasm { namespace rpc{
         Examples: 
         > ./coind bintojsonwasm "walker222222" "transfer" "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["wasmio","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["walker222222","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     }
     )=====";
 
