@@ -84,7 +84,7 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
 
-void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates);
+void ShuffleDelegates(const int32_t nCurHeight, const int64_t blockTime,VoteDelegateVector &delegates);
 
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
                         const VoteDelegateVector &delegates, VoteDelegate &delegate);

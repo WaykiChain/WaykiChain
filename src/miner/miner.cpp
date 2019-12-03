@@ -114,21 +114,15 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
-inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
-
-    if(currHeight>223000)
-        return 6 ;
-    else
-        return 1 ;
-
-}
 
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
                                VoteDelegate &delegate) {
 
-    uint32_t slot  = currentTime / GetBlockInterval(currHeight);
-    uint32_t blockCount = GetContinuousBlockCount(currHeight) ;
+    uint32_t oriSlot  = currentTime / GetBlockInterval(currHeight);
+    uint32_t blockCount = GetContinuousBlockCount(currHeight);
+    uint32_t  slot = oriSlot - (oriSlot % blockCount) ;
     uint32_t index = (slot % (IniCfg().GetTotalDelegateNum()*blockCount))/blockCount;
+
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
 
@@ -162,12 +156,21 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
     }
 }
 
-void ShuffleDelegates(const int32_t curHeight, VoteDelegateVector &delegates) {
+inline int64_t getOriginSeed(const int32_t curHeight, const int64_t blockTime ){
+    if (curHeight < (int32_t)SysCfg().GetContinuousProduceForkHeight()){
+        return curHeight ;
+    }else{
+        int64_t slot = blockTime/GetBlockInterval(curHeight) ;
+        return slot/ GetContinuousBlockCount(curHeight);
+    }
+}
+
+void ShuffleDelegates(const int32_t curHeight, const int64_t blockTime, VoteDelegateVector &delegates) {
+
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
-    int32_t nCurHeight = curHeight - (curHeight%GetContinuousBlockCount(curHeight)) ;
+    int64_t oriSeed =getOriginSeed( curHeight,blockTime );
 
-
-    string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
+    string seedSource = strprintf("%u", oriSeed / totalDelegateNum + (oriSeed % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
     ss << seedSource;
     uint256 currentSeed  = ss.GetHash();
@@ -192,7 +195,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, 
     if (!cwIn.delegateCache.GetActiveDelegates(delegates))
         return false;
 
-    ShuffleDelegates(pBlock->GetHeight(), delegates);
+    ShuffleDelegates(pBlock->GetHeight(),pBlock->GetTime(), delegates);
 
     if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegates, curDelegateOut))
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate");
@@ -601,7 +604,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
     // for (auto &delegate : delegates)
     //     LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.regid.ToString());
 
-    ShuffleDelegates(blockHeight, delegates);
+    ShuffleDelegates(blockHeight,MillisToSecond(startMiningMs), delegates);
 
     // index = 0;
     // for (auto &delegate : delegates)
