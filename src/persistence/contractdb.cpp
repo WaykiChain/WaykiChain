@@ -91,16 +91,13 @@ uint32_t CContractDBCache::GetCacheSize() const {
 }
 
 
-shared_ptr<CDBContractDatasGetter> CContractDBCache::CreateContractDatasGetter(
-    const CRegID &contractRegid, const string &contractKeyPrefix, uint32_t count,
-    const string &lastKey) {
+shared_ptr<CDBContractDataIterator> CContractDBCache::CreateContractDataIterator(const CRegID &contractRegid,
+        const string &contractKeyPrefix) {
 
-    assert(contractDataCache.GetBasePtr() == nullptr && "only support top level cache");
     if (contractKeyPrefix.size() > CDBContractKey::MAX_KEY_SIZE) {
         LogPrint(BCLog::ERROR, "CContractDBCache::CreateContractDatasGetter() contractKeyPrefix.size()=%u "
                  "exceeded the max size=%u", contractKeyPrefix.size(), CDBContractKey::MAX_KEY_SIZE);
         return nullptr;
     }
-    auto prefix = make_pair(contractRegid.ToRawString(), CDBContractKey(contractKeyPrefix));
-    return make_shared<CDBContractDatasGetter>(contractDataCache, prefix);
+    return make_shared<CDBContractDataIterator>(contractDataCache, contractRegid, contractKeyPrefix);
 }

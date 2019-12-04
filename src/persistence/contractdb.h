@@ -37,18 +37,26 @@ typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
     // pair<contractRegId, contractKey> -> contractData
 typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, CDBContractKey>, string>     DBContractDataCache;
 
-// prefix: pair<contractRegId, contractKey>, support to match part of cotractKey
-class CDBContractDatasGetter: public CDBListGetter<DBContractDataCache, pair<string, CDBContractKey>> {
+class CDBContractDataIterator: public CDBPrefixIterator<DBContractDataCache, DBContractDataCache::KeyType> {
+private:
+    typedef typename DBContractDataCache::KeyType KeyType;
+    typedef CDBPrefixIterator<DBContractDataCache, DBContractDataCache::KeyType> Base;
 public:
-    typedef CDBListGetter<DBContractDataCache, pair<string, CDBContractKey>> ListGetter;
-    using ListGetter::ListGetter;
-public:
-    const string& GetKey(const ListGetter::DataListItem &item) const {
-        return item.first.second.GetKey();
+    CDBContractDataIterator(DBContractDataCache &dbCache, const CRegID &regidIn,
+                            const string &contractKeyPrefix)
+        : Base(dbCache, KeyType(regidIn.ToRawString(), contractKeyPrefix)) {}
+
+    bool SeekUpper(const string *pLastContractKey) {
+        if (pLastContractKey == nullptr || db_util::IsEmpty(*pLastContractKey))
+            return First();
+        if (pLastContractKey->size() > CDBContractKey::MAX_KEY_SIZE)
+            return false;
+        KeyType lastKey(GetPrefixElement().first, *pLastContractKey);
+        return sp_it_Impl->SeekUpper(&lastKey);
     }
 
-    const string& GetValue(const ListGetter::DataListItem &item) {
-        return item.second;
+    const string& GetContractKey() const {
+        return GetKey().second.GetKey();
     }
 };
 
@@ -103,8 +111,8 @@ public:
         contractAccountCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    shared_ptr<CDBContractDatasGetter> CreateContractDatasGetter(const CRegID &contractRegid,
-        const string &contractKeyPrefix, uint32_t count, const string &lastKey);
+    shared_ptr<CDBContractDataIterator> CreateContractDataIterator(const CRegID &contractRegid,
+        const string &contractKeyPrefix);
 
 private:
 /*       type               prefixType               key                     value                 variable               */

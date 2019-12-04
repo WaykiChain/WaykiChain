@@ -171,7 +171,7 @@ void CWasmContractTx::resume_billing_timer(){
 
 }
 
-void CWasmContractTx::contract_is_valid(CTxExecuteContext &context){
+void CWasmContractTx::contract_validation(CTxExecuteContext &context){
 
     auto &database         = *context.pCw;
 
@@ -184,35 +184,40 @@ void CWasmContractTx::contract_is_valid(CTxExecuteContext &context){
         CAccount contract;
         WASM_ASSERT(database.accountCache.GetAccount(nick_name(contract_name.to_string()), contract), 
                     account_operation_exception,
-                   "CWasmContractTx.contract_is_valid, contract account does not exist, contract = %s",
+                   "CWasmContractTx.contract_validation, contract account does not exist, contract = %s",
                     contract_name.to_string().c_str())
 
         CUniversalContract contract_store;
         WASM_ASSERT(database.contractCache.GetContract(contract.regid, contract_store), 
                     account_operation_exception,  
-                    "CWasmContractTx.contract_is_valid, cannot get contract with nick name = %s", 
+                    "CWasmContractTx.contract_validation, cannot get contract with nick name = %s", 
                     contract_name.to_string().c_str())
 
         WASM_ASSERT(contract_store.code.size() > 0 && contract_store.abi.size() > 0 , 
                     account_operation_exception,  
-                    "CWasmContractTx.contract_is_valid, %s contract abi or code  does not exist", 
+                    "CWasmContractTx.contract_validation, %s contract abi or code  does not exist", 
                     contract_name.to_string().c_str())    
 
     }
 
 }
 
-void CWasmContractTx::authorization_is_valid(uint64_t account){
+void CWasmContractTx::authorization_validation(const std::vector<uint64_t>& has_signature_accounts){
 
+    //authorization in each inlinetransaction must be a subset of signatures from transaction
     for(auto i: inlinetransactions){
         for(auto p: i.authorization){
-            if(p.account != account){
-                WASM_ASSERT( false, 
-                             account_operation_exception,
-                             "CWasmContractTx.authorization_is_valid, authorization %s does not have signature",
-                             wasm::name(p.account).to_string().c_str())
-            }
-
+            auto itr = std::find(has_signature_accounts.begin(), has_signature_accounts.end(), p.account);
+            WASM_ASSERT( itr != has_signature_accounts.end(), 
+                         account_operation_exception,
+                         "CWasmContractTx.authorization_validation, authorization %s does not have signature",
+                         wasm::name(p.account).to_string().c_str())
+            // if(p.account != account){
+            //     WASM_ASSERT( false, 
+            //                  account_operation_exception,
+            //                  "CWasmContractTx.authorization_validation, authorization %s does not have signature",
+            //                  wasm::name(p.account).to_string().c_str())
+            // }
         }     
     }
 
@@ -231,7 +236,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
 
         //IMPLEMENT_CHECK_TX_FEE;
         IMPLEMENT_CHECK_TX_REGID(txUid.type());
-        contract_is_valid(context);
+        contract_validation(context);
 
         // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
@@ -243,7 +248,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         WASM_ASSERT( account.HaveOwnerPubKey(), account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, account unregistered")
         IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
-        authorization_is_valid(wasm::name(account.nickid.ToString()).value);
+        authorization_validation({wasm::name(account.nickid.ToString()).value});
 
      } catch (wasm::exception &e) {
         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());

@@ -26,8 +26,15 @@
     // <asset_tokenSymbol -> asset>
 typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DBAssetCache;
 
+class CUserAssetsIterator: public CDBIterator<DBAssetCache> {
+public:
+    typedef CDBIterator<DBAssetCache> Base;
+    using Base::Base;
 
-typedef CDBListGetter<DBAssetCache> CUserAssetsGetter;
+    const CAsset& GetAsset() const {
+        return GetValue();
+    }
+};
 
 class CAssetDBCache {
 public:
@@ -73,7 +80,9 @@ public:
         assetTradingPairCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    shared_ptr<CUserAssetsGetter> CreateUserAssetsGetter() { return make_shared<CUserAssetsGetter>(assetCache); }
+    shared_ptr<CUserAssetsIterator> CreateUserAssetsIterator() {
+        return make_shared<CUserAssetsIterator>(assetCache);
+    }
 private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */

@@ -202,8 +202,12 @@ namespace dbk {
 
         const string& GetKey() const { return key; }
 
+        inline bool StartWith(const string& prefix) const {
+            return key.compare(0, prefix.size(), prefix) == 0;
+        }
+
         inline bool StartWith(const CDBTailKey& prefix) const {
-            return key.compare(0, prefix.key.size(), prefix.key) == 0;
+            return StartWith(prefix.key);
         }
 
         inline uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const {
@@ -219,7 +223,8 @@ namespace dbk {
                 throw ios_base::failure("CDBTailKey::Unserialize size excceded max size");
             }
             // read key from s.begin() to s.end(), s.begin() is current read pos
-            key.insert(key.end(), s.begin(), s.end());
+            key.resize(s.size());
+            s.read(key.data(), s.size());
         }
 
         bool operator==(const CDBTailKey &other) {

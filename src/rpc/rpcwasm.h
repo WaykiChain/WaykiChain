@@ -11,6 +11,6 @@ using namespace json_spirit;
 
 extern Value submitwasmcontractdeploytx(const Array& params, bool fHelp);
 extern Value submitwasmcontractcalltx(const Array& params, bool fHelp);
-extern Value gettablerowwasmcontracttx(const Array& params, bool fHelp);
+extern Value gettablewasm(const Array& params, bool fHelp);
 
 #endif //RPC_VM_H
