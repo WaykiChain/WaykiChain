@@ -150,7 +150,6 @@ inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
 
 inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
 
-
     if (currHeight  < (int32_t)SysCfg().GetContinuousProduceForkHeight())
         return SysCfg().GetContinuousCountBeforeFork();
     else

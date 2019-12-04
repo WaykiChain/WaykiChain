@@ -291,20 +291,6 @@ class CAddress : public CService
         int64_t nLastTry;
 };
 
-class CHandshake {
-
-public:
-    uint32_t tipHeight ;
-
-public:
-    CHandshake() ;
-    CHandshake(uint32_t tipHeight):tipHeight(tipHeight) {};
-
-    IMPLEMENT_SERIALIZE(
-            READWRITE(tipHeight);
-            )
-};
-
 /** inv message data */
 class CInv
 {
@@ -357,7 +343,7 @@ public:
 
 class CBlockConfirmMessage: public CPBFTMessage{
 public:
-    CBlockConfirmMessage(){}
+    CBlockConfirmMessage() = default ;
     CBlockConfirmMessage(const uint32_t heightIn,
                  const uint256 blockHashIn){
         height = heightIn;
@@ -366,7 +352,7 @@ public:
 };
 class CBlockFinalityMessage: public CPBFTMessage{
 public:
-    CBlockFinalityMessage(){}
+    CBlockFinalityMessage() = default ;
     CBlockFinalityMessage(const uint32_t heightIn,
                          const uint256 blockHashIn){
         height = heightIn;

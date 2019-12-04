@@ -80,7 +80,7 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
     return nFeatureForkHeight[type];
 }
 uint32_t G_CONFIG_TABLE::GetCoutinuousProcduceForkHeight(const NET_TYPE type) const {
-    assert(type >=0 && type<3);
+    assert(type >= 0 && type < 3);
     return nContinuousProduceBlockForkHeight[type] ;
 }
 

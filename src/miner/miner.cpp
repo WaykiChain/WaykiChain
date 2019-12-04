@@ -156,7 +156,7 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
     }
 }
 
-inline int64_t getOriginSeed(const int32_t curHeight, const int64_t blockTime ){
+inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t blockTime ){
     if (curHeight < (int32_t)SysCfg().GetContinuousProduceForkHeight()){
         return curHeight ;
     }else{
@@ -168,7 +168,7 @@ inline int64_t getOriginSeed(const int32_t curHeight, const int64_t blockTime ){
 void ShuffleDelegates(const int32_t curHeight, const int64_t blockTime, VoteDelegateVector &delegates) {
 
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
-    int64_t oriSeed =getOriginSeed( curHeight,blockTime );
+    int64_t oriSeed =GetShuffleOriginSeed( curHeight,blockTime );
 
     string seedSource = strprintf("%u", oriSeed / totalDelegateNum + (oriSeed % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
