@@ -140,19 +140,21 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeigh
 }
 
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
-    if (currBlockHeight < (int32_t)SysCfg().GetFeatureForkHeight())
-        return SysCfg().GetContinuousCountBeforeFork();
+
+    if (currBlockHeight< (int32_t)SysCfg().GetFeatureForkHeight())
+        return SysCfg().GetBlockIntervalPreStableCoinRelease();
     else
-        return SysCfg().GetContinuousCountAfterFork();
+        return SysCfg().GetBlockIntervalStableCoinRelease();
 }
 
 
 inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
 
-    if (currHeight < (int32_t)SysCfg().GetContinuousProduceForkHeight())
-        return SysCfg().GetBlockIntervalPreStableCoinRelease();
+
+    if (currHeight  < (int32_t)SysCfg().GetContinuousProduceForkHeight())
+        return SysCfg().GetContinuousCountBeforeFork();
     else
-        return SysCfg().GetBlockIntervalStableCoinRelease();
+        return SysCfg().GetContinuousCountAfterFork();
 
 }
 
