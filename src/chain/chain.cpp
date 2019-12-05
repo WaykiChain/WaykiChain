@@ -10,12 +10,11 @@
 
 extern CPBFTContext pbftContext;
 extern CCacheDBManager *pCdMan;
-extern CCriticalSection cs_main ;
 //////////////////////////////////////////////////////////////////////////////
 //class CChain implementation
 
 /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
-    CBlockIndex* CChain::Genesis() const {
+CBlockIndex* CChain::Genesis() const {
     return vChain.size() > 0 ? vChain[0] : nullptr;
 }
 
@@ -166,11 +165,7 @@ bool CChain::UpdateGlobalFinBlock(const uint32_t height) {
         if(pTemp== nullptr)
             return false ;
         globalFinIndex = pTemp;
-
-        {
-            LOCK(cs_main) ;
-            pCdMan->pBlockCache->WriteGlobalFinBlock(pTemp->height, pTemp->GetBlockHash()) ;
-        }
+        pCdMan->pBlockCache->WriteGlobalFinBlock(pTemp->height, pTemp->GetBlockHash()) ;
         return true ;
     }
 
@@ -330,12 +325,9 @@ bool CChain::UpdateFinalityBlock(){
     while(pBlockIndex->height > 0){
 
         if(minerSet.size() >=confirmMiners ){
-
             if( (localFinIndex && localFinIndex->height< pBlockIndex->height) || !localFinIndex ){
-
                 if(localFinIndex)
                     assert(Contains(localFinIndex));
-
                 localFinIndex = pBlockIndex ;
             }
             return true;

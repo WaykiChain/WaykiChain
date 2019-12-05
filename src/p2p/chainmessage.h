@@ -929,9 +929,10 @@ bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg){
 
 bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
-
-    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600)
+    if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600){
+        LogPrint(BCLog::NET, "local tip's height is too low,drop the confirm message ") ;
         return false ;
+    }
 
     CPBFTMessageMan<CBlockConfirmMessage>& msgMan = pbftContext.confirmMessageMan ;
     CBlockConfirmMessage message ;
@@ -952,12 +953,11 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
         return false ;
     }
 
-
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
 
     bool updateFinalitySuccess = false ;
-    if(messageCount>= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+    if(messageCount >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
        updateFinalitySuccess = chainActive.UpdateLocalFinBlock(message) ;
     }
     RelayBlockConfirmMessage(message) ;
@@ -975,7 +975,6 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
     if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600)
         return false ;
-
 
     CPBFTMessageMan<CBlockFinalityMessage>& msgMan = pbftContext.finalityMessageMan ;
     CBlockFinalityMessage message ;

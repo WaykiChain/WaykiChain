@@ -36,7 +36,7 @@ public:
             messageKnown.max_size(500) ;
     }
 
-    CPBFTMessageMan(const int maxSize){
+    CPBFTMessageMan(const int maxSize) {
         blockMessagesMap.max_size(maxSize) ;
         broadcastedBlockHashSet.max_size(maxSize) ;
         messageKnown.max_size(maxSize) ;
@@ -44,11 +44,11 @@ public:
 
 public:
 
-    bool IsBroadcastedBlock(uint256 blockHash){
-        return broadcastedBlockHashSet.count(blockHash) ;
+    bool IsBroadcastedBlock(uint256 blockHash) {
+        return broadcastedBlockHashSet.count(blockHash) > 0;
     }
 
-    bool SaveBroadcastedBlock(uint256 blockHash){
+    bool SaveBroadcastedBlock(uint256 blockHash) {
         broadcastedBlockHashSet.insert(blockHash) ;
         return true ;
     }
@@ -82,7 +82,7 @@ public:
     bool GetMessagesByBlockHash(const uint256 hash, set<MsgType>& msgs) {
             auto it = blockMessagesMap.find(hash) ;
             if(it == blockMessagesMap.end())
-                    return false;
+                return false;
             msgs = it->second ;
             return true ;
     }

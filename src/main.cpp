@@ -1537,10 +1537,9 @@ bool ActivateBestChain(CValidationState &state) {
                 CBlockIndex* finIndex = chainActive.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     LogPrint(BCLog::INFO, "finality block can't be reverse");
-                    if(GetTime()-chainActive.GetLocalFinLastUpdate()>30){
-
+                    if(GetTime()-chainActive.GetLocalFinLastUpdate()>60){
+                        chainActive.SetLocalFinTimeout() ;
                     }
-
                     return true ;
                 }
                 height-- ;
@@ -1944,8 +1943,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     LogPrint(BCLog::INFO, "AcceptBlock[%d]: %s, miner: %s, ts: %u\n", block.GetHeight(), blockHash.GetHex(),
              block.GetMinerUserID().ToString(), block.GetBlockTime());
 
-
-
     // Check for duplicated block
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("AcceptBlock() : block already in mapBlockIndex"), 0, "duplicated");
@@ -2036,15 +2033,11 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             pbftContext.SaveMinersByHash(blockHash, delegates);
         }
 
-        if(pTip->height % 2 == 0){
-            BroadcastBlockConfirm(pTip) ;
-            if(chainActive.UpdateLocalFinBlock(pTip)){
-                BroadcastBlockFinality(pTip);
-                chainActive.UpdateGlobalFinBlock(pTip);
-            }
+        BroadcastBlockConfirm(pTip) ;
+        if(chainActive.UpdateLocalFinBlock(pTip)){
+            BroadcastBlockFinality(pTip);
+            chainActive.UpdateGlobalFinBlock(pTip);
         }
-
-
     }
 
     return true;
