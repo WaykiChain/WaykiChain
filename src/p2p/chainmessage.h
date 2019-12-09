@@ -878,7 +878,7 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
 }
 
 
-bool CheckPBFTMessage(const CPBFTMessage& msg){
+bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
 
     //check height
 
@@ -886,6 +886,10 @@ bool CheckPBFTMessage(const CPBFTMessage& msg){
     if(msg.height - chainActive.Height()>500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
         return ERRORMSG("checkPBftMessage():: messagesHeight is out range");
     }
+
+    //check message type ;
+    if(msg.msgType != msgType )
+        return ERRORMSG("checkPbftMessage(), msgType is illegal") ;
 
     //if block received,check whether on chainActive
     CBlockIndex* pIndex = chainActive[msg.height] ;
@@ -913,6 +917,7 @@ bool CheckPBFTMessage(const CPBFTMessage& msg){
 
 bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
+    LOCK(cs_vNodes) ;
     for(auto node:vNodes){
         node->PushBlockConfirmMessage(msg);
     }
@@ -921,6 +926,7 @@ bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
 
 bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg){
 
+    LOCK(cs_vNodes);
     for(auto node:vNodes){
         node->PushBlockFinalityMessage(msg);
     }
@@ -948,7 +954,7 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
         return false ;
     }
 
-    if(!CheckPBFTMessage(message)){
+    if(!CheckPBFTMessage(PBFTMsgType::CONFIRM_BLOCK,message)){
         LogPrint(BCLog::NET, "confirm message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
         return false ;
     }
@@ -990,7 +996,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
         return false ;
     }
 
-    if(!CheckPBFTMessage(message)){
+    if(!CheckPBFTMessage(PBFTMsgType::FINALITY_BLOCK,message)){
         LogPrint(BCLog::NET, "finality block message check failed,miner_id=%s, blockhash=%s \n",message.miner.ToString(), message.blockHash.GetHex());
         return false ;
     }

@@ -651,7 +651,6 @@ static bool PbftFindMiner(CRegID delegate, Miner &miner){
 
     {
         LOCK(pWalletMain->cs_wallet);
-
         if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
             return true;
         } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
@@ -660,8 +659,6 @@ static bool PbftFindMiner(CRegID delegate, Miner &miner){
     }
 
     return true;
-
-
 }
 
 bool BroadcastBlockFinality(const CBlockIndex* block){
@@ -688,7 +685,7 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
     CBlockFinalityMessage msg(block->height, block->GetBlockHash());
 
     {
-        LOCK(cs_vNodes);
+
         for(auto delegate: delegates){
 
             Miner miner ;
@@ -701,8 +698,11 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
             miner.key.Sign(messageHash, vSign);
             msg.SetSignature(vSign);
 
-            for (auto pNode : vNodes) {
-                pNode->PushBlockFinalityMessage(msg) ;
+            {
+                LOCK(cs_vNodes);
+                for (auto pNode : vNodes) {
+                    pNode->PushBlockFinalityMessage(msg) ;
+                }
             }
 
             msgMan.SaveMessageByBlock(msg.blockHash, msg);
@@ -741,9 +741,8 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     CBlockConfirmMessage msg(block->height, block->GetBlockHash());
 
     {
-        LOCK(cs_vNodes);
-        for(auto delegate: delegates){
 
+        for(auto delegate: delegates){
             Miner miner ;
             if(!PbftFindMiner(delegate, miner))
                 continue ;
@@ -754,10 +753,12 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
             miner.key.Sign(messageHash, vSign);
             msg.SetSignature(vSign);
 
-            for (auto pNode : vNodes) {
-                pNode->PushBlockConfirmMessage(msg) ;
+            {
+                LOCK(cs_vNodes);
+                for (auto pNode : vNodes) {
+                    pNode->PushBlockConfirmMessage(msg) ;
+                }
             }
-
             msgMan.SaveMessageByBlock(msg.blockHash,msg);
 
         }

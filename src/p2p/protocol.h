@@ -255,6 +255,13 @@ extern const char *CONFIRMBLOCK ;
 extern const char *FINALITYBLOCK ;
 };
 
+enum PBFTMsgType {
+
+    CONFIRM_BLOCK =1 ,
+    FINALITY_BLOCK =2 ,
+
+};
+
 /** A CService with information about it as peer */
 class CAddress : public CService
 {
@@ -324,12 +331,15 @@ public:
     CRegID miner ;
     uint32_t height ;
     uint256 blockHash;
+    int32_t msgType ;
+
 
 
     bool SetSignature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
 
     IMPLEMENT_SERIALIZE
     (
+            READWRITE(msgType) ;
             READWRITE(vSignature) ;
             READWRITE(miner);
             READWRITE(height);
@@ -346,6 +356,7 @@ public:
     CBlockConfirmMessage() = default ;
     CBlockConfirmMessage(const uint32_t heightIn,
                  const uint256 blockHashIn){
+        msgType = PBFTMsgType::CONFIRM_BLOCK ;
         height = heightIn;
         blockHash = blockHashIn ;
     }
@@ -355,6 +366,7 @@ public:
     CBlockFinalityMessage() = default ;
     CBlockFinalityMessage(const uint32_t heightIn,
                          const uint256 blockHashIn){
+        msgType = PBFTMsgType::FINALITY_BLOCK ;
         height = heightIn;
         blockHash = blockHashIn ;
     }
