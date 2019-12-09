@@ -30,15 +30,30 @@ namespace wasm {
         return str;
     }
 
+    inline bool valid_character_in_symbol_name(const char c){
+        if( c >= '0' && c <= '9' ) return true;
+        if( c >= 'A' && c <= 'Z' ) return true;
+        if( c == '-' ) return true;
+        if( c == '@' ) return true;
+
+        return false;
+
+    }
 
     static uint64_t string_to_symbol( uint8_t precision, const char *str ) {
         try {
             uint32_t len = 0;
             while (str[len]) ++len;
+
+            if (len > 7) {
+                check( false, "string is too long to be a valid symbol_code" );
+            }
+
             uint64_t result = 0;
             for (uint32_t i = 0; i < len; ++i) {
                 // All characters must be upper case alphabets
-                WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "%s", "invalid character in symbol name");
+                //WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "%s", "invalid character in symbol name");
+                check (valid_character_in_symbol_name(str[i]), "invalid character in symbol name");
                 result |= (uint64_t(str[i]) << (8 * (i + 1)));
             }
             result |= uint64_t(precision);
@@ -94,10 +109,11 @@ namespace wasm {
                 return;
             }
             for (auto itr = str.rbegin(); itr != str.rend(); ++itr) {
-                if (*itr < 'A' || *itr > 'Z') {
-                    check( false, "only uppercase letters allowed in symbol_code string" );
-                    return;
-                }
+                // if (*itr < 'A' || *itr > 'Z') {
+                //     check( false, "only uppercase letters allowed in symbol_code string" );
+                //     return;
+                // }
+                check (valid_character_in_symbol_name(*itr), "invalid character in symbol name");
                 value <<= 8;
                 value |= *itr;
             }
@@ -111,7 +127,8 @@ namespace wasm {
             auto sym = value;
             for (int i = 0; i < 7; i++) {
                 char c = (char) (sym & 0xFF);
-                if (!('A' <= c && c <= 'Z')) return false;
+                //if (!('A' <= c && c <= 'Z')) return false;
+                if(!valid_character_in_symbol_name(c)) return false;
                 sym >>= 8;
                 if (!(sym & 0xFF)) {
                     do {
