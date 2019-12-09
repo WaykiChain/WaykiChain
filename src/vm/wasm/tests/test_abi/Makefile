@@ -2,16 +2,17 @@
 WASM_DIR = ../..
 VM_DIR = ../../..
 WAYKI_SRC_DIR = ../../../..
+WAYKI_COMMONS = ${WAYKI_SRC_DIR}/commons
 WASM_TYPES_DIR = $(WASM_DIR)/types
 
 # C_DEFINES = -DSOFTFLOAT_FAST_INT64 -DSOFTFLOAT_ROUND_EVEN -DINLINE_LEVEL=5 -DSOFTFLOAT_FAST_DIV32TO16 -DSOFTFLOAT_FAST_DIV64TO32 -DLITTLEENDIAN
 JSON_SPIRIT_SRC = \
-${WAYKI_SRC_DIR}/json/json_spirit_reader.cpp \
-${WAYKI_SRC_DIR}/json/json_spirit_value.cpp \
-${WAYKI_SRC_DIR}/json/json_spirit_writer.cpp 
+${WAYKI_COMMONS}/json/json_spirit_reader.cpp \
+${WAYKI_COMMONS}/json/json_spirit_value.cpp \
+${WAYKI_COMMONS}/json/json_spirit_writer.cpp 
 
 WASM_EMPTY = 
-JSON_SPIRIT_INCLUDE = ${WAYKI_SRC_DIR}/json
+JSON_SPIRIT_INCLUDE = ${WAYKI_COMMONS}/json
 JSON_SPIRIT_OBJECTS = $(subst $(JSON_SPIRIT_INCLUDE)/, $(WASM_EMPTY), $(JSON_SPIRIT_SRC:.cpp=.o))
 
 
@@ -26,7 +27,7 @@ ${WASM_TYPES_DIR}/uint128.cpp
 WASM_UINT128_OBJECT = uint128.o
 
 
-CXXFLAGS = -std=c++17 -I. -lboost_system -pthread -lboost_unit_test_framework -I${WASM_DIR} -I${VM_DIR} -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR}
+CXXFLAGS = -std=c++17 -I. -lboost_system -pthread -lboost_unit_test_framework -I${WASM_DIR} -I${VM_DIR} -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR} -I${WAYKI_COMMONS}
 JSON_CXXFLAGS = -std=c++17 -I. -pthread -I${WASM_DIR} -I${VM_DIR}  -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR}
 
 test:json_spirit.a test_abi.cpp
