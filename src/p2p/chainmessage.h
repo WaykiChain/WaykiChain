@@ -902,7 +902,7 @@ bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
     {
         LOCK(cs_main) ;
         if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
-            return false ;
+            return ERRORMSG("checkPBftMessage() : the signature creator is not found!");
         }
     }
     uint256 messageHash = msg.GetHash();
