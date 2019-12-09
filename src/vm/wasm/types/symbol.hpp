@@ -46,7 +46,7 @@ namespace wasm {
             while (str[len]) ++len;
 
             if (len > 7) {
-                check( false, "string is too long to be a valid symbol_code" );
+                check( false, "the length of symbol_code must be <= 7" );
             }
 
             uint64_t result = 0;

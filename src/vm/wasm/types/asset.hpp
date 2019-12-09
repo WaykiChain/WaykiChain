@@ -375,18 +375,14 @@ namespace wasm {
 
                 // Find space in order to split amount and symbol
                 auto space_pos = s.find(' ');
-                //EOS_ASSERT((space_pos != string::npos), asset_type_exception, "Asset's amount and symbol should be separated with space");
-                //auto symbol_str = fc::trim(s.substr(space_pos + 1));
+                WASM_ASSERT((space_pos != string::npos), asset_type_exception, "Asset's amount and symbol should be separated with space");
                 auto symbol_str = wasm::trim(s.substr(space_pos + 1));
                 auto amount_str = s.substr(0, space_pos);
-
-
-                //std::cout << "symbol_str:" << symbol_str << "amount_str:"<<  amount_str << std::endl ;
 
                 // Ensure that if decimal point is used (.), decimal fraction is specified
                 auto dot_pos = amount_str.find('.');
                 if (dot_pos != string::npos) {
-                    //EOS_ASSERT((dot_pos != amount_str.size() - 1), asset_type_exception, "Missing decimal fraction after decimal point");
+                    WASM_ASSERT((dot_pos != amount_str.size() - 1), asset_type_exception, "Missing decimal fraction after decimal point");
                 }
 
                 // Parse symbol
@@ -395,7 +391,6 @@ namespace wasm {
                     //precision_digit_str = eosio::chain::to_string(amount_str.size() - dot_pos - 1);
 
                     char c[8];
-                    //itos(amount_str.size() - dot_pos - 1, c, 10);
                     sprintf(c, "%ld", amount_str.size() - dot_pos - 1);
 
                     precision_digit_str = string(c);
@@ -403,38 +398,24 @@ namespace wasm {
                     precision_digit_str = "0";
                 }
 
-                // std::cout << "precision_digit_str:" << precision_digit_str << std::endl ;
-
                 string symbol_part = precision_digit_str + ',' + symbol_str;
                 symbol sym = symbol::from_string(symbol_part);
-                // std::cout << "symbol_part:" << symbol_part << std::endl ;
-                // std::cout << "symbol:" << sym.to_string() << std::endl ;
 
                 // Parse amount
-                //safe<int64_t> int_part, fract_part;
                 int64_t int_part, fract_part = 0;
                 if (dot_pos != string::npos) {
-                    // int_part = fc::to_int64(amount_str.substr(0, dot_pos));
-                    // fract_part = fc::to_int64(amount_str.substr(dot_pos + 1));
-                    int_part = atoi(amount_str.substr(0, dot_pos).data());
+                    int_part   = atoi(amount_str.substr(0, dot_pos).data());
                     fract_part = atoi(amount_str.substr(dot_pos + 1).data());
                     if (amount_str[0] == '-') fract_part *= -1;
                 } else {
-                    //int_part = fc::to_int64(amount_str);
                     int_part = atoi(amount_str.data());
                 }
 
-                // std::cout << "int_part:" << int_part << std::endl ;
-                // std::cout << "fract_part:" << fract_part << std::endl ;
-
-                // safe<int64_t> amount = int_part;
                 int64_t amount = int_part;
-                // amount *= safe<int64_t>(sym.precision());
                 amount *= sym.precision_in_10();
                 amount += fract_part;
 
 
-                //std::cout << "amount:" << amount << std::endl ;
                 return asset(amount, sym);
             }
             WASM_CAPTURE_AND_RETHROW( "%s", from.c_str() )
