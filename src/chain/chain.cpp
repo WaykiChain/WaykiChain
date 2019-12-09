@@ -155,12 +155,21 @@ bool CChain::UpdateLocalFinBlock(const uint32_t height) {
 bool CChain::UpdateGlobalFinBlock(const uint32_t height) {
     {
         LOCK(cs_finblock);
-        CBlockIndex* oldFinblock = GetGlobalFinIndex();
+        CBlockIndex* oldGlobalFinblock = GetGlobalFinIndex();
         CBlockIndex* localFinblock = GetLocalFinIndex() ;
+
         if(localFinblock== nullptr ||height > (uint32_t)localFinblock->height)
             return false ;
-        if(oldFinblock != nullptr && (uint32_t)oldFinblock->height >= height)
+        if(oldGlobalFinblock != nullptr && (uint32_t)oldGlobalFinblock->height >= height)
             return false;
+
+        if(oldGlobalFinblock != nullptr ){
+            CBlockIndex* chainBlock = operator[](oldGlobalFinblock->height) ;
+            if(chainBlock != nullptr && chainBlock->GetBlockHash() != oldGlobalFinblock->GetBlockHash()){
+                return ERRORMSG("Global finality block changed");
+            }
+        }
+
         CBlockIndex* pTemp = operator[](height) ;
         if(pTemp== nullptr)
             return false ;

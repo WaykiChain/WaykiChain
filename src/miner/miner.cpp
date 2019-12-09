@@ -119,7 +119,7 @@ bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, con
                                VoteDelegate &delegate) {
 
     uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockCount(currHeight);
-    uint32_t index = slot % (IniCfg().GetTotalDelegateNum();
+    uint32_t index = slot % IniCfg().GetTotalDelegateNum();
 
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
