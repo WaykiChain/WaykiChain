@@ -118,10 +118,8 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
                                VoteDelegate &delegate) {
 
-    uint32_t oriSlot  = currentTime / GetBlockInterval(currHeight);
-    uint32_t blockCount = GetContinuousBlockCount(currHeight);
-    uint32_t  slot = oriSlot - (oriSlot % blockCount) ;
-    uint32_t index = (slot % (IniCfg().GetTotalDelegateNum()*blockCount))/blockCount;
+    uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockCount(currHeight);
+    uint32_t index = slot % (IniCfg().GetTotalDelegateNum();
 
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
