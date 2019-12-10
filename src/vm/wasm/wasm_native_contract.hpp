@@ -22,7 +22,7 @@ namespace wasm {
 
         string symbol     = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
-        WASM_ASSERT(precision == 0,
+        WASM_ASSERT(precision == 8,
                     account_operation_exception,
                     "wasmnativecontract.sub_balance, The precision of system coin %s must be %d",
                     symbol, 0) 
@@ -40,7 +40,7 @@ namespace wasm {
 
         string symbol     = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
-        WASM_ASSERT(precision == 0,
+        WASM_ASSERT(precision == 8,
                     account_operation_exception,
                     "wasmnativecontract.add_balance, The precision of system coin %s must be %d",
                     symbol, 0) 

@@ -37,7 +37,6 @@ namespace wasm {
  */
     struct abi_serializer {
         abi_serializer() { configure_built_in_types(); }
-
         abi_serializer( const abi_def &abi, const microseconds &max_serialization_time );
         void set_abi( const abi_def &abi, const microseconds &max_serialization_time );
         type_name resolve_type( const type_name &t ) const;
@@ -61,10 +60,14 @@ namespace wasm {
                                  microseconds max_serialization_time ) const;
         void variant_to_binary( const type_name &type, const json_spirit::Value &var, wasm::datastream<char *> &ds,
                                 microseconds max_serialization_time ) const;
+        
         typedef std::function<json_spirit::Value(wasm::datastream<const char *> & , bool, bool)> unpack_function;
         typedef std::function<void( const json_spirit::Value &, wasm::datastream<char *> &, bool, bool )> pack_function;
         void add_specialized_unpack_pack( const string &name,
                                           std::pair <abi_serializer::unpack_function, abi_serializer::pack_function> unpack_pack );
+
+        json_spirit::Value get_field_variant( const type_name &s, const json_spirit::Value &v, field_name field, bool is_optional ) const;
+        json_spirit::Value get_field_variant( const type_name &s, const json_spirit::Value &v, uint32_t index ) const;
 
         static std::vector<char>
         pack( const std::vector<char> &abi, const string &action, const string &params, microseconds max_serialization_time ) {

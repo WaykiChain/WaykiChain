@@ -31,6 +31,8 @@ namespace wasm {
         json_spirit::Value var;
         wasm::to_variant(temp, var);
 
+       // WASM_TRACE("var:%s",json_spirit::write_formatted(var).c_str() )
+
         return var;
     }
 
@@ -39,10 +41,10 @@ namespace wasm {
         return std::make_pair<abi_serializer::unpack_function, abi_serializer::pack_function>(
                 []( wasm::datastream<const char *> &ds, bool is_array, bool is_optional ) -> json_spirit::Value {
                     if (is_array){
-                        return variant_from_stream<vector < T>>(ds);
+                        return variant_from_stream<vector<T>>(ds);
                     }
                     else if (is_optional){
-                        return variant_from_stream<optional < T>>(ds);
+                        return variant_from_stream<optional<T>>(ds);
                     } else {
                         return variant_from_stream<T>(ds);
                     }
@@ -60,6 +62,7 @@ namespace wasm {
                         T t;
                         wasm::from_variant(var, t);
                         ds << t;
+
                     }
                 }
         );
@@ -314,7 +317,9 @@ namespace wasm {
             for (uint32_t i = 0; i < st.fields.size(); ++i) {
                 const auto &field = st.fields[i];
                 auto v = _binary_to_variant(_remove_bin_extension(field.type), ds, ctx);
-                json_spirit::Config::add(obj, field.name, v);
+                if(!v.is_null()){
+                    json_spirit::Config::add(obj, field.name, v);
+                }
             }
             return json_spirit::Value(std::move(obj));
         }
@@ -332,7 +337,7 @@ namespace wasm {
         return _binary_to_variant(type, ds, ctx);
     }
 
-    inline auto get_field_variant( const type_name &s, const json_spirit::Value &v, field_name field ) {
+   json_spirit::Value abi_serializer::get_field_variant( const type_name &s, const json_spirit::Value &v, field_name field, bool is_optional ) const {
         if (v.type() == json_spirit::obj_type) {
             auto o = v.get_obj();
             for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
@@ -343,14 +348,19 @@ namespace wasm {
             }
         }
 
-        WASM_THROW(pack_exception, "Missing field '%s' in input object while processing struct '%s'",
-                   field.c_str(), s.c_str());
+        WASM_TRACE("field:%s", field.c_str() );  
+        if(!is_optional){
+            WASM_THROW(pack_exception, "Missing field '%s' in input object while processing struct '%s'",
+                        field.c_str(), s.c_str());
+        }
         json_spirit::Value var;
+        WASM_TRACE("var:%s", json_spirit::Value_type_name[var.type()] );
+
         return var;
 
     }
 
-    inline auto get_field_variant( const type_name &s, const json_spirit::Value &v, uint32_t index ) {
+    json_spirit::Value abi_serializer::get_field_variant( const type_name &s, const json_spirit::Value &v, uint32_t index ) const {
         if (v.type() == json_spirit::array_type) {
             auto a = v.get_array();
             if (index > a.size() - 1) {
@@ -363,10 +373,12 @@ namespace wasm {
             return a[index];
         }
 
-
-        WASM_THROW(pack_exception,
-                   "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
+        //if(!is_optional(s)){
+            WASM_THROW(pack_exception,
+                        "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
+        //}
         json_spirit::Value var;
+
         return var;
 
 
@@ -398,7 +410,9 @@ namespace wasm {
                     auto &vo = var.get_obj();
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
-                        auto v = get_field_variant(st.name, vo, field.name);
+                        auto v = get_field_variant(st.name, vo, field.name, is_optional(field.type));
+
+                        //fixme::can direct write v to ds, while type is_optional and v is_null
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else if (var.type() == json_spirit::array_type) {

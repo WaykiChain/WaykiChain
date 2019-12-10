@@ -105,7 +105,6 @@ void verify_round_trip_conversion( const abi_serializer &abis, const type_name &
 
 BOOST_AUTO_TEST_SUITE( test_api )
 
-//void abi_cycle() {
 BOOST_AUTO_TEST_CASE( abi_cycle )
 {
 
@@ -172,7 +171,6 @@ BOOST_AUTO_TEST_CASE( abi_cycle )
 }
 
 
-//void abi_type_repeat() {
 BOOST_AUTO_TEST_CASE( abi_type_repeat ) {
 
     const char *repeat_abi = R"=====(
@@ -240,7 +238,6 @@ BOOST_AUTO_TEST_CASE( abi_type_repeat ) {
                          "abi_type_repeat")
 }
 
-//void abi_struct_repeat() {
 BOOST_AUTO_TEST_CASE( abi_struct_repeat ) {
 
     const char *repeat_abi = R"=====(
@@ -306,7 +303,6 @@ BOOST_AUTO_TEST_CASE( abi_struct_repeat ) {
 
 }
 
-//void abi_action_repeat() {
 BOOST_AUTO_TEST_CASE( abi_action_repeat ) {
 
     const char *repeat_abi = R"=====(
@@ -375,7 +371,7 @@ BOOST_AUTO_TEST_CASE( abi_action_repeat ) {
 
 }
 
-//void abi_table_repeat() {
+
 BOOST_AUTO_TEST_CASE( abi_table_repeat ) {
 
     const char *repeat_abi = R"=====(
@@ -446,7 +442,6 @@ BOOST_AUTO_TEST_CASE( abi_table_repeat ) {
                          "abi_table_repeat")
 }
 
-//void abi_type_def() {
 BOOST_AUTO_TEST_CASE( abi_type_def ) {
 
     const char *repeat_abi = R"=====(
@@ -511,7 +506,6 @@ BOOST_AUTO_TEST_CASE( abi_type_def ) {
 }
 
 
-//void abi_type_redefine() {
 BOOST_AUTO_TEST_CASE( abi_type_redefine ) {
 
     const char *repeat_abi = R"=====(
@@ -561,7 +555,7 @@ BOOST_AUTO_TEST_CASE( abi_type_redefine ) {
 
 }
 
-//void abi_type_redefine_to_name() {
+
 BOOST_AUTO_TEST_CASE( abi_type_redefine_to_name ) {
 
     const char *repeat_abi = R"=====(
@@ -592,7 +586,7 @@ BOOST_AUTO_TEST_CASE( abi_type_redefine_to_name ) {
 
 }
 
-//void abi_type_nested_in_vector() {
+
 BOOST_AUTO_TEST_CASE( abi_type_nested_in_vector ) {
 
     const char *repeat_abi = R"=====(
@@ -628,7 +622,7 @@ BOOST_AUTO_TEST_CASE( abi_type_nested_in_vector ) {
 }
 
 
-//void abi_large_array() {
+
 BOOST_AUTO_TEST_CASE( abi_large_array ) {
 
     const char *abi_str = R"=====(
@@ -672,7 +666,7 @@ BOOST_AUTO_TEST_CASE( abi_large_array ) {
 
 }
 
-//void abi_is_type_recursion() {
+
 BOOST_AUTO_TEST_CASE( abi_is_type_recursion ) {
 
     const char *abi_str = R"=====(
@@ -724,7 +718,7 @@ BOOST_AUTO_TEST_CASE( abi_is_type_recursion ) {
 
 }
 
-//void abi_recursive_structs() {
+
 BOOST_AUTO_TEST_CASE( abi_recursive_structs ) {
 
     const char *abi_str = R"=====(
@@ -798,7 +792,7 @@ BOOST_AUTO_TEST_CASE( abi_recursive_structs ) {
 
 }
 
-//void abi_very_deep_structs() {
+
 BOOST_AUTO_TEST_CASE( abi_very_deep_structs ) {
 
     bool passed = false;
@@ -819,7 +813,7 @@ BOOST_AUTO_TEST_CASE( abi_very_deep_structs ) {
 
 }
 
-//void abi_very_deep_structs_1us() {
+
 BOOST_AUTO_TEST_CASE( abi_very_deep_structs_1us ) {
 
     bool passed = false;
@@ -836,7 +830,7 @@ BOOST_AUTO_TEST_CASE( abi_very_deep_structs_1us ) {
 
 }
 
-//void abi_deep_structs_validate() {
+
 BOOST_AUTO_TEST_CASE( abi_deep_structs_validate ) {
 
     bool passed = false;
@@ -853,7 +847,7 @@ BOOST_AUTO_TEST_CASE( abi_deep_structs_validate ) {
 
 }
 
-//void version() {
+
 BOOST_AUTO_TEST_CASE( version ) {
 
     bool passed = false;
@@ -888,7 +882,7 @@ BOOST_AUTO_TEST_CASE( version ) {
 
 }
 
-//void abi_serialize_incomplete_json_array() {
+
 BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_array ) {
 
     auto abi = R"({
@@ -927,7 +921,7 @@ BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_array ) {
 
 }
 
-//void abi_serialize_incomplete_json_object() {
+
 BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_object ) {
 
     auto abi = R"({
@@ -967,7 +961,7 @@ BOOST_AUTO_TEST_CASE( abi_serialize_incomplete_json_object ) {
 
 }
 
-//void abi_serialize_json_mismatching_type() {
+
 BOOST_AUTO_TEST_CASE( abi_serialize_json_mismatching_type ) {
 
     auto abi = R"({
@@ -1002,7 +996,7 @@ BOOST_AUTO_TEST_CASE( abi_serialize_json_mismatching_type ) {
 }
 
 
-//void abi_serialize_json_empty_name() {
+
 BOOST_AUTO_TEST_CASE( abi_serialize_json_empty_name ) {
 
     auto abi = R"({
@@ -1032,7 +1026,7 @@ BOOST_AUTO_TEST_CASE( abi_serialize_json_empty_name ) {
 }
 
 
-//void general() {
+
 BOOST_AUTO_TEST_CASE( general ) {
     const char *my_abi = R"=====(
 {
@@ -1422,28 +1416,89 @@ BOOST_AUTO_TEST_CASE( general ) {
     )=====";
 
 
+
+    wasm::variant var_abi;
+    json_spirit::read_string(std::string(my_abi), var_abi);
+    wasm::abi_def def;
+    wasm::from_variant(var_abi, def);
+    auto abi = wasm::pack<wasm::abi_def>(def);
+
+
+    vector<char> data = wasm::abi_serializer::pack(abi, "A", my_other, max_serialization_time);
+    json_spirit::Value value = wasm::abi_serializer::unpack(abi, "A", data, max_serialization_time);
+    //WASM_TRACE("%s", json_spirit::write(value).c_str())
+
     json_spirit::Value v;
     json_spirit::read_string(string(my_other), v);
-
-    vector<char> data = wasm::abi_serializer::pack(my_abi, "A", my_other, max_serialization_time);
-    json_spirit::Value value = wasm::abi_serializer::unpack(my_abi, "A", data, max_serialization_time);
-
-    //WASM_TRACE("%s", json_spirit::write(value).c_str())
-    std::cout << json_spirit::write(v) << std::endl;
-    std::cout << json_spirit::write(value) << std::endl;
+    // std::cout << json_spirit::write(v) << std::endl;
+    // std::cout << json_spirit::write(value) << std::endl;
 
     WASM_TEST(json_spirit::write(v) == json_spirit::write(value), "general")
 }
 
+BOOST_AUTO_TEST_CASE( optional ) {
 
-//void abi_token() {
+    const char *my_abi = R"=====(
+    {
+        "version": "wasm::abi/1.0",
+        "types"  : [],
+        "structs":[{
+          "name"  : "transfer",
+          "fields": [{
+             "name": "from",
+             "type": "string"
+          },{
+             "name": "to",
+             "type": "string"
+          },{
+             "name": "amount",
+             "type": "uint64"
+          },{
+             "name": "memo",
+             "type": "string?"
+          }]
+       }],
+       "actions": [],
+       "tables": [],
+       "ricardian_clauses": [{"id":"clause A","body":"clause body A"},
+                  {"id":"clause B","body":"clause body B"}],
+       "abi_extensions": []
+    }
+    )=====";
+
+    string param = string(R"({"from":"walker","to":"xiaoyu","amount":1000,"memo":"transfer to xiaoyu"})");
+    WASM_TRACE("param:%s",param.c_str() )
+
+    wasm::variant var_abi;
+    json_spirit::read_string(std::string(my_abi), var_abi);
+    wasm::abi_def def;
+    wasm::from_variant(var_abi, def);
+    auto abi = wasm::pack<wasm::abi_def>(def);
+    //WASM_TRACE("var_abi:%s",json_spirit::write_formatted(var_abi).c_str() )
+
+    wasm::variant var = wasm::abi_serializer::unpack(abi,
+                                        "transfer",
+                                        wasm::abi_serializer::pack(abi, "transfer", param, max_serialization_time),
+                                        max_serialization_time);
+    WASM_TRACE("var:%s",json_spirit::write(var).c_str() )
+    WASM_TEST(param == json_spirit::write(var), "optional.transfer")
+
+
+}
+
 BOOST_AUTO_TEST_CASE( abi_token ) {
 
-    string abiJson;
+    string abi;
 
     char byte;
     ifstream f("token.abi", ios::binary);
-    while (f.get(byte)) abiJson.push_back(byte);
+    while (f.get(byte)) abi.push_back(byte);
+
+    wasm::variant var_abi;
+    json_spirit::read_string(abi, var_abi);
+    wasm::abi_def def;
+    wasm::from_variant(var_abi, def);
+    auto abiJson = wasm::pack<wasm::abi_def>(def);
 
     string param = string(R"({"issuer":"walker","maximum_supply":"100.00000000 BTC"})");
     wasm::variant var = wasm::abi_serializer::unpack(abiJson,

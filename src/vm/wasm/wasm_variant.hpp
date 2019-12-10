@@ -205,7 +205,7 @@ namespace wasm {
     template<typename T>
     static inline void to_variant( const std::optional <T> &t, wasm::variant &v ) {
         if (t.has_value()) {
-            to_variant(t, v);
+            to_variant(t.value(), v);
             return;
         }
         v = wasm::variant();
@@ -475,13 +475,15 @@ namespace wasm {
     template<typename T>
     static inline void from_variant( const wasm::variant &v, optional <T> &opt ) {
 
-        if (v.type() == json_spirit::null_type) {
+        if (v.is_null()) {
+            opt = std::nullopt;
             return;
         }
 
         T t;
         from_variant(v, t);
-        opt = t;
+        opt = t; 
+        //opt = std::optional<T>(t);   
     }
 
     // static inline void from_variant( const wasm::variant &v, std::time_point_sec &t ) {
