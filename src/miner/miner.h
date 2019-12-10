@@ -28,6 +28,17 @@ class CAccount;
 
 using namespace std;
 
+//////////////////////////////////////////////////////////////////////////////
+//
+// CoinMiner
+//
+
+struct Miner {
+    VoteDelegate delegate;
+    CAccount account;
+    CKey key;
+};
+
 struct TxPriority {
     double priority;
     double feePerKb;
@@ -89,7 +100,5 @@ void ShuffleDelegates(const int32_t nCurHeight, const int64_t blockTime,VoteDele
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
                         const VoteDelegateVector &delegates, VoteDelegate &delegate);
 
-bool BroadcastBlockConfirm(const CBlockIndex* block) ;
 
-bool BroadcastBlockFinality(const CBlockIndex* block) ;
 #endif  // COIN_MINER_H

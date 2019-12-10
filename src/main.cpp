@@ -62,6 +62,7 @@ CChain chainMostWork;
 bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
+extern CPBFTMan pbftMan;
 
 map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
@@ -1534,11 +1535,11 @@ bool ActivateBestChain(CValidationState &state) {
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
-                CBlockIndex* finIndex = chainActive.GetLocalFinIndex();
+                CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
                     LogPrint(BCLog::INFO, "finality block can't be reverse");
-                    if(GetTime()-chainActive.GetLocalFinLastUpdate()>60){
-                        chainActive.SetLocalFinTimeout() ;
+                    if(GetTime() - pbftMan.GetLocalFinLastUpdate()>60){
+                        pbftMan.SetLocalFinTimeout() ;
                     }
                     return true ;
                 }
@@ -2034,9 +2035,9 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
         }
 
         BroadcastBlockConfirm(pTip) ;
-        if(chainActive.UpdateLocalFinBlock(pTip)){
+        if(pbftMan.UpdateLocalFinBlock(pTip)){
             BroadcastBlockFinality(pTip);
-            chainActive.UpdateGlobalFinBlock(pTip);
+            pbftMan.UpdateGlobalFinBlock(pTip);
         }
     }
 

@@ -8,6 +8,7 @@
 #include "main.h"
 #include "net.h"
 #include "netbase.h"
+#include "miner/pbftmanager.h"
 #include "rpc/core/rpccommons.h"
 #include "rpc/core/rpcserver.h"
 #include "commons/util/util.h"
@@ -21,10 +22,13 @@
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
 
+
 using namespace std;
 using namespace boost;
 using namespace boost::assign;
 using namespace json_spirit;
+
+extern CPBFTMan pbftMan ;
 
 Value getcoinunitinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() > 1) {
@@ -126,7 +130,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("tipblock_height",       chainActive.Height()));
     obj.push_back(Pair("synblock_height",       nSyncTipHeight));
 
-    CBlockIndex* localFinIndex =chainActive.GetLocalFinIndex() ;
+    CBlockIndex* localFinIndex =pbftMan.GetLocalFinIndex() ;
     //CBlockIndex* globalFinIndex = chainActive.GetGlobalFinIndex() ;
     std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
     pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock);

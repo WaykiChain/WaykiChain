@@ -12,6 +12,7 @@
 #include "main.h"
 #include "net.h"
 #include "miner/pbftcontext.h"
+#include "miner/pbftmanager.h"
 
 #include <string>
 #include <tuple>
@@ -31,6 +32,7 @@ class COrphanBlock;
 class CBlockConfirmMessage;
 
 extern CPBFTContext pbftContext ;
+extern CPBFTMan pbftMan ;
 extern CChain chainActive;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
@@ -877,62 +879,6 @@ inline void ProcessFilterAddMessage(CNode *pFrom, CDataStream &vRecv) {
     }
 }
 
-
-bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
-
-    //check height
-
-    CBlockIndex* localFinBlock = chainActive.GetLocalFinIndex() ;
-    if(msg.height - chainActive.Height()>500 || (localFinBlock && msg.height < (uint32_t)localFinBlock->height) ) {
-        return ERRORMSG("checkPBftMessage():: messagesHeight is out range");
-    }
-
-    //check message type ;
-    if(msg.msgType != msgType )
-        return ERRORMSG("checkPbftMessage(), msgType is illegal") ;
-
-    //if block received,check whether on chainActive
-    CBlockIndex* pIndex = chainActive[msg.height] ;
-    if(pIndex != nullptr &&pIndex->GetBlockHash() != msg.blockHash){
-        return ERRORMSG("checkPbftMessage(): block not on chainActive") ;
-    }
-
-    //check signature
-    CAccount account ;
-    {
-        LOCK(cs_main) ;
-        if(!pCdMan->pAccountCache->GetAccount(msg.miner, account)) {
-            return ERRORMSG("checkPBftMessage() : the signature creator is not found!");
-        }
-    }
-    uint256 messageHash = msg.GetHash();
-    if (!VerifySignature(messageHash, msg.vSignature, account.owner_pubkey)) {
-        if (!VerifySignature(messageHash, msg.vSignature, account.miner_pubkey))
-            return ERRORMSG("checkPBftMessage() : verify signature error");
-    }
-
-    return true ;
-
-}
-
-bool RelayBlockConfirmMessage(const CBlockConfirmMessage& msg){
-
-    LOCK(cs_vNodes) ;
-    for(auto node:vNodes){
-        node->PushBlockConfirmMessage(msg);
-    }
-    return true ;
-}
-
-bool RelayBlockFinalityMessage(const CBlockFinalityMessage& msg){
-
-    LOCK(cs_vNodes);
-    for(auto node:vNodes){
-        node->PushBlockFinalityMessage(msg);
-    }
-    return true ;
-}
-
 bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
     if(SysCfg().IsReindex()|| GetTime()-chainActive.Tip()->GetBlockTime()>600){
@@ -964,12 +910,12 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
 
     bool updateFinalitySuccess = false ;
     if(messageCount >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
-       updateFinalitySuccess = chainActive.UpdateLocalFinBlock(message) ;
+       updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message) ;
     }
     RelayBlockConfirmMessage(message) ;
 
     if(updateFinalitySuccess){
-        BroadcastBlockFinality(chainActive.GetLocalFinIndex());
+        BroadcastBlockFinality(pbftMan.GetLocalFinIndex());
     }
 
     return true ;
@@ -1004,7 +950,7 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
     if(messageCount>= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
-        chainActive.UpdateGlobalFinBlock(message) ;
+        pbftMan.UpdateGlobalFinBlock(message) ;
     }
 
     RelayBlockFinalityMessage(message) ;

@@ -9,23 +9,15 @@
 
 #include "persistence/block.h"
 
-class CBlockConfirmMessage ;
-class CBlockFinalityMessage ;
-
 /** An in-memory indexed chain of blocks. */
 class CChain {
 private:
     vector<CBlockIndex *> vChain;
-    CBlockIndex* localFinIndex = nullptr ;
-    int64_t localFinLastUpdate = 0 ;
-    CBlockIndex* globalFinIndex = nullptr ;
-    CCriticalSection cs_finblock ;
+
 public:
     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
     CBlockIndex *Genesis() const;
 
-    CBlockIndex *GetLocalFinIndex();
-    CBlockIndex *GetGlobalFinIndex() ;
 
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const;
@@ -49,15 +41,6 @@ public:
     int32_t Height() const;
 
 
-
-    bool UpdateFinalityBlock() ;
-    bool SetLocalFinTimeout() ;
-    bool UpdateLocalFinBlock(const CBlockIndex* pIndex);
-    bool UpdateLocalFinBlock(const CBlockConfirmMessage& msg);
-    bool UpdateGlobalFinBlock(const CBlockIndex* pIndex);
-    bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg);
-    int64_t  GetLocalFinLastUpdate() const ;
-
     /** Set/initialize a chain with a given tip. Returns the forking point. */
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 
@@ -67,9 +50,6 @@ public:
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const CBlockLocator &locator) const;
 
-private:
-    bool UpdateLocalFinBlock(const uint32_t height);
-    bool UpdateGlobalFinBlock(const uint32_t height);
 }; //end of CChain
 
 
