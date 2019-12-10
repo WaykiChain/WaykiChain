@@ -330,7 +330,8 @@ public:
     vector<unsigned char > vSignature ;
     CRegID miner ;
     uint32_t height ;
-    uint256 blockHash;
+    uint256 blockHash ;
+    uint256 preBlockHash ;
     int32_t msgType ;
 
 
@@ -344,6 +345,7 @@ public:
             READWRITE(miner);
             READWRITE(height);
             READWRITE(blockHash);
+            READWRITE(preBlockHash);
     )
 
     friend bool operator<(const CPBFTMessage& a , const CPBFTMessage& b);
@@ -355,20 +357,22 @@ class CBlockConfirmMessage: public CPBFTMessage{
 public:
     CBlockConfirmMessage() = default ;
     CBlockConfirmMessage(const uint32_t heightIn,
-                 const uint256 blockHashIn){
+                 const uint256 blockHashIn, const uint256 preBlockHashIn){
         msgType = PBFTMsgType::CONFIRM_BLOCK ;
         height = heightIn;
         blockHash = blockHashIn ;
+        preBlockHash = preBlockHashIn ;
     }
 };
 class CBlockFinalityMessage: public CPBFTMessage{
 public:
     CBlockFinalityMessage() = default ;
     CBlockFinalityMessage(const uint32_t heightIn,
-                         const uint256 blockHashIn){
+                         const uint256 blockHashIn, const uint256 preBlockHashIn){
         msgType = PBFTMsgType::FINALITY_BLOCK ;
         height = heightIn;
         blockHash = blockHashIn ;
+        preBlockHash = preBlockHashIn ;
     }
 };
 

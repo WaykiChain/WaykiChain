@@ -191,6 +191,6 @@ bool operator<(const CPBFTMessage& a , const CPBFTMessage& b){
 
 uint256 CPBFTMessage::GetHash() const {
     CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
-    ss << msgType << blockHash << height<< miner ;
+    ss << msgType << blockHash << height<< miner << preBlockHash;
     return ss.GetHash();
 }

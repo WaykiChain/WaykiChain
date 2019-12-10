@@ -2034,11 +2034,14 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             pbftContext.SaveMinersByHash(blockHash, delegates);
         }
 
+
         BroadcastBlockConfirm(pTip) ;
         if(pbftMan.UpdateLocalFinBlock(pTip)){
             BroadcastBlockFinality(pTip);
             pbftMan.UpdateGlobalFinBlock(pTip);
         }
+
+
     }
 
     return true;

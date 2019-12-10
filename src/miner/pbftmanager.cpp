@@ -266,7 +266,10 @@ bool BroadcastBlockFinality(const CBlockIndex* block){
         return false ;
     pbftContext.GetMinerListByBlockHash(block->pprev->GetBlockHash(), delegates);
 
-    CBlockFinalityMessage msg(block->height, block->GetBlockHash());
+    uint256 preHash = block->pprev == nullptr? uint256(): block->pprev->GetBlockHash();
+
+
+    CBlockFinalityMessage msg(block->height, block->GetBlockHash(), preHash);
 
     {
 
@@ -322,7 +325,8 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
         return false ;
     pbftContext.GetMinerListByBlockHash(block->pprev->GetBlockHash(), delegates);
 
-    CBlockConfirmMessage msg(block->height, block->GetBlockHash());
+    uint256 preHash = block->pprev == nullptr? uint256(): block->pprev->GetBlockHash();
+    CBlockConfirmMessage msg(block->height, block->GetBlockHash(), preHash);
 
     {
 
@@ -352,7 +356,17 @@ bool BroadcastBlockConfirm(const CBlockIndex* block) {
     return true ;
 }
 
+bool CheckPBFTMessageSignaturer(const CPBFTMessage& msg) {
 
+    //查找上一个区块执行过后的矿工列表
+    set<CRegID> delegates;
+
+    if(pbftContext.GetMinerListByBlockHash(msg.preBlockHash, delegates)) {
+        if(delegates.count(msg.miner) > 0)
+            return true ;
+    }
+    return false ;
+}
 
 bool CheckPBFTMessage(const int32_t msgType ,const CPBFTMessage& msg){
 
