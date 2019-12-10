@@ -327,7 +327,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     account_operation_exception,
                     "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
                     txUid.ToString().c_str())  
-        auto quantity = wasm::asset(llFees, wasm::symbol(SYMB::WICC, 0)); 
+        auto quantity = wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)); 
         sub_balance(sender, quantity, database.accountCache);
 
         pseudo_start = system_clock::now();

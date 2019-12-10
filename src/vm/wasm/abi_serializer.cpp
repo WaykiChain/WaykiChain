@@ -55,12 +55,10 @@ namespace wasm {
                         wasm::from_variant(var, ts);
                         ds << ts;
                     } else if (is_optional) {
-                        //WASM_TRACE("optional var:%s",json_spirit::write_formatted(var).c_str() )
                         optional <T> opt;
                         wasm::from_variant(var, opt);
                         ds << opt;
                     } else {
-                        //WASM_TRACE("var:%s",json_spirit::write_formatted(var).c_str() )
                         T t;
                         wasm::from_variant(var, t);
                         ds << t;
@@ -414,7 +412,7 @@ namespace wasm {
                         const auto &field = st.fields[i];
                         auto v = get_field_variant(st.name, vo, field.name, is_optional(field.type));
 
-                        //WASM_TRACE("v:%s",json_spirit::write_formatted(v).c_str() )
+                        //fixme::can direct write v to ds, while type is_optional and v is_null
                         _variant_to_binary(_remove_bin_extension(field.type), v, ds, ctx);
                     }
                 } else if (var.type() == json_spirit::array_type) {
