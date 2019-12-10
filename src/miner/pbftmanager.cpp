@@ -10,12 +10,8 @@
 #include "wallet/wallet.h"
 
 CPBFTMan pbftMan;
-
-extern CChain chainActive ;
 extern CPBFTContext pbftContext;
-extern CCacheDBManager *pCdMan;
 extern CWallet *pWalletMain;
-extern CCriticalSection cs_main;
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
 
