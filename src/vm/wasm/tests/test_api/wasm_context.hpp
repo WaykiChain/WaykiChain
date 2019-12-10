@@ -123,7 +123,7 @@ public:
 
 
 
-    class wasm_context : public wasm_context_interface {
+class wasm_context : public wasm_context_interface {
 
     public:
         wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
