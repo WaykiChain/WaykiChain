@@ -10,18 +10,19 @@ using std::chrono::microseconds;
 using std::chrono::system_clock;
 
 namespace wasm {
-
-    using nativeHandler = std::function<void( wasm_context & )>;
-    bool has_wasm_interface_inited = false;
-    map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
-
-    inline void register_native_handler( uint64_t receiver, uint64_t action, nativeHandler v ) {
-        wasm_native_handlers[std::pair(receiver, action)] = v;
+    using nativeHandler = std::function<void(wasm_context & )>;
+    map <pair<uint64_t, uint64_t>, nativeHandler>& get_wasm_native_handlers(){
+        static map <pair<uint64_t, uint64_t>, nativeHandler> wasm_native_handlers;
+        return wasm_native_handlers;
     }
 
-    inline nativeHandler* find_native_handle( uint64_t receiver, uint64_t action ) {
-        auto handler = wasm_native_handlers.find(std::pair(receiver, action));
-        if (handler != wasm_native_handlers.end()) {
+    inline void register_native_handler(uint64_t receiver, uint64_t action, nativeHandler v) {
+        get_wasm_native_handlers()[std::pair(receiver, action)] = v;
+    }
+
+    inline nativeHandler *find_native_handle(uint64_t receiver, uint64_t action) {
+        auto handler = get_wasm_native_handlers().find(std::pair(receiver, action));
+        if (handler != get_wasm_native_handlers().end()) {
             return &handler->second;
         }
 
@@ -30,18 +31,18 @@ namespace wasm {
 
     bool CWasmContractTx::ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx){
         trx_trace.traces.emplace_back();   
-        DispatchInlineTransaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
+        execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         return true;
 
     };
-    void CWasmContractTx::DispatchInlineTransaction( wasm::inline_transaction_trace& trace,
+    void CWasmContractTx::execute_inline_transaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
                                      CValidationState &state,
                                      uint32_t recurse_depth){
 
-            wasm_context wasmContext(*this, trx, cache, state, recurse_depth);
+            wasm_context wasmContext(*this, trx, cache, state, false, recurse_depth);
             wasmContext._receiver = receiver;
             wasmContext.execute(trace);
     };
@@ -79,8 +80,9 @@ namespace wasm {
 
     void wasm_context::initialize() {
 
-        if (!has_wasm_interface_inited) {
-            has_wasm_interface_inited = true;
+        static bool wasm_interface_inited = false;
+        if (!wasm_interface_inited) {
+            wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
         }
         //RegisterNativeHandler(wasmio, N(setcode), WasmNativeSetcode);
@@ -107,7 +109,7 @@ namespace wasm {
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
-            control_trx.DispatchInlineTransaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
+            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
                                                   state, recurse_depth + 1);
         }
 
@@ -128,7 +130,7 @@ namespace wasm {
         WASM_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str().c_str() )
 
         //trace.trx_id = control_trx.GetHash();
-        trace.elapsed =  std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
+        //trace.elapsed =  std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
         trace.console = _pending_console_output.str();
         // trace.block_height =
         // trace.block_time =
