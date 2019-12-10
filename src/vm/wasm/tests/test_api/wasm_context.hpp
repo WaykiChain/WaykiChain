@@ -110,7 +110,7 @@ public:
 
     public:
     bool ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx);
-    void DispatchInlineTransaction( wasm::inline_transaction_trace& trace,
+    void execute_inline_transaction( wasm::inline_transaction_trace& trace,
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
@@ -127,6 +127,7 @@ public:
 
     public:
         wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
+                      bool mining = false,
                       uint32_t depth = 0 )
                 : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
             reset_console();
@@ -178,7 +179,12 @@ public:
         uint64_t block_time() { return 0; }
 
         vm::wasm_allocator* get_wasm_allocator(){ return &wasm_alloc; }
-        std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time); }
+        std::chrono::milliseconds get_transaction_duration(){ return std::chrono::milliseconds(wasm::max_wasm_execute_time_observe); }
+
+        void update_storage_usage(uint64_t account, int64_t size_in_bytes){};
+
+        void pause_billing_timer(){ };
+        void resume_billing_timer(){ };      
 
     public:
         uint64_t _receiver;
