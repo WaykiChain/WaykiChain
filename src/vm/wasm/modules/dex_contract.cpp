@@ -190,7 +190,7 @@ void dex::dex_operator_register(wasm_context &context) {
     } else {
         sp_owner_account = wasm_account::get_account(context.database, registrant_name, ERROR_TITLE("owner"));
     }
-    WASM_ASSERT(context.database.dexCache.HaveDexOperatorByOwner(owner_name), wasm_assert_exception,
+    WASM_ASSERT(!context.database.dexCache.HaveDexOperatorByOwner(owner_name), wasm_assert_exception,
         "the owner already has a dex operator! owner=%s", owner_name.ToString());
 
     nick_name matcher_name(wasm::name(matcher).to_string());

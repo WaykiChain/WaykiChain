@@ -16,6 +16,21 @@
 #include "wallet/walletdb.h"
 #include "tx/dextx.h"
 
+static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOperatorDetail &dexOperator) {
+    Object result;
+    CKeyID ownerKeyid;
+    accountCache.GetKeyId(dexOperator.owner, ownerKeyid);
+    CKeyID matcherKeyid;
+    accountCache.GetKeyId(dexOperator.matcher, matcherKeyid);
+    result.push_back(Pair("owner_nickid",   dexOperator.owner.ToString()));
+    result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
+    result.push_back(Pair("owner_nickid",   dexOperator.matcher.ToString()));
+    result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
+    result.push_back(Pair("asset_name",     dexOperator.portal_url));
+    result.push_back(Pair("memo",           dexOperator.memo));
+    result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
+    return result;
+}
 
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
@@ -429,5 +444,62 @@ extern Value getdexorders(const Array& params, bool fHelp) {
     obj.push_back(Pair("has_more", pGetter->has_more));
     obj.push_back(Pair("last_pos_info", HexStr(newLastPosInfo)));
     pGetter->ToJson(obj);
+    return obj;
+}
+
+
+extern Value getdexoperator(const Array& params, bool fHelp) {
+     if (fHelp || params.size() != 1) {
+        throw runtime_error(
+            "getdexoperator dex_operator_id\n"
+            "\nget dex operator by dex_operator_id.\n"
+            "\nArguments:\n"
+            "1.\"dex_operator_id\":  (numeric, required) dex operator id\n"
+            "\nResult: dex_operator detail\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexoperator", "10")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexoperator", "10")
+        );
+    }
+
+    uint32_t dexOrderId = params[0].get_int();
+    DexOperatorDetail dexOperator;
+    if (!pCdMan->pDexCache->GetDexOperator(dexOrderId, dexOperator))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("dex operator does not exist! dex_operator_id=%lu", dexOrderId));
+
+    Object obj = DexOperatorToJson(*pCdMan->pAccountCache, dexOperator);
+    obj.insert(obj.begin(), Pair("id", (uint64_t)dexOrderId));
+    return obj;
+}
+
+extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
+    if (fHelp || params.size() != 1) {
+        throw runtime_error(
+            "getdexoperatorbyowner owner_addr\n"
+            "\nget dex operator by dex_operator_id.\n"
+            "\nArguments:\n"
+            "1.\"owner_addr\":  (string, required) owner address\n"
+            "\nResult: dex_operator detail\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexoperatorbyowner", "10-1")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexoperatorbyowner", "10-1")
+        );
+    }
+
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    if (account.nickid.IsEmpty())
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("account does not have NickID! uid=%s", userId.ToDebugString()));
+
+    DexOperatorDetail dexOperator;
+    uint32_t dexOrderId = 0;
+    if (!pCdMan->pDexCache->GetDexOperatorByOwner(account.nickid, dexOrderId, dexOperator))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("the owner account dos not have a dex operator! uid=%s", userId.ToDebugString()));
+
+    Object obj = DexOperatorToJson(*pCdMan->pAccountCache, dexOperator);
+    obj.insert(obj.begin(), Pair("id", (uint64_t)dexOrderId));
     return obj;
 }

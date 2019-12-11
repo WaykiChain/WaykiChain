@@ -181,6 +181,8 @@ extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bo
 extern json_spirit::Value getdexorder(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexsysorders(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexorders(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexoperator(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexoperatorbyowner(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitcdpstaketx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitcdpredeemtx(const json_spirit::Array& params, bool fHelp);

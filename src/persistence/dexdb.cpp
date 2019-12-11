@@ -402,13 +402,17 @@ bool CDexDBCache::EraseActiveOrder(const uint256 &orderId, const CDEXOrderDetail
 }
 
 bool CDexDBCache::IncDexOperatorId(DexOperatorID &id) {
-    decltype(operator_last_id_cache)::ValueType idVarint;
-    operator_last_id_cache.GetData(idVarint);
-    DexOperatorID &newId = idVarint.get();
+    decltype(operator_last_id_cache)::ValueType idVariant;
+    operator_last_id_cache.GetData(idVariant);
+    DexOperatorID &newId = idVariant.get();
     if (newId == ULONG_MAX)
         return ERRORMSG("%s, dex operator id is inc to max! last_id=%ul\n", __func__, newId);
     newId++;
-    return operator_last_id_cache.SetData(idVarint);
+    if (operator_last_id_cache.SetData(idVariant)) {
+        id = newId;
+        return true;
+    }
+    return false;
 }
 
 bool CDexDBCache::GetDexOperator(const DexOperatorID &id, DexOperatorDetail& detail) {
@@ -416,8 +420,7 @@ bool CDexDBCache::GetDexOperator(const DexOperatorID &id, DexOperatorDetail& det
     return operator_detail_cache.GetData(idKey, detail);
 }
 
-bool CDexDBCache::GetDexOperatorByOwner(const CNickID &nickid, DexOperatorDetail& detail) {
-    DexOperatorID id;
+bool CDexDBCache::GetDexOperatorByOwner(const CNickID &nickid, DexOperatorID &id, DexOperatorDetail& detail) {
     if (operator_owner_map_cache.GetData(nickid, id)) {
         return GetDexOperator(id, detail);
     }

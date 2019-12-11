@@ -132,7 +132,7 @@ public:
 
     bool IncDexOperatorId(DexOperatorID &id);
     bool GetDexOperator(const DexOperatorID &id, DexOperatorDetail& detail);
-    bool GetDexOperatorByOwner(const CNickID &nickid, DexOperatorDetail& detail);
+    bool GetDexOperatorByOwner(const CNickID &nickid, DexOperatorID &id, DexOperatorDetail& detail);
     bool HaveDexOperator(const DexOperatorID &id);
     bool HaveDexOperatorByOwner(const CNickID &nickid);
     bool CreateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail);
