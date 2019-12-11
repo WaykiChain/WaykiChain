@@ -29,9 +29,17 @@ typedef uint32_t DexOperatorID;
 // dex operator
 struct DexOperatorDetail {
     CNickID owner;
+    string  name;
     CNickID matcher;
     string portal_url;
     string memo;
+    // TODO: state
+
+    DexOperatorDetail() {}
+
+    DexOperatorDetail(const CNickID &ownerIn, const string &nameIn, const CNickID &matcherIn,
+                      const string &portalUrlIn, const string &memoIn)
+        : owner(ownerIn), name(nameIn), matcher(matcherIn), portal_url(portalUrlIn), memo(memoIn) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(owner);
@@ -41,7 +49,7 @@ struct DexOperatorDetail {
     )
 
     bool IsEmpty() const {
-        return owner.IsEmpty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
+        return owner.IsEmpty() && name.empty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
     }
 
     void SetEmpty() {

@@ -32,11 +32,24 @@ namespace dex {
             {
                 "register",  "",   {    //field_name    type
                                         {"registrant",  "name"},
-                                        {"fee",  "asset"},
+                                        {"fee",         "asset"},
                                         {"owner",       "name"},
                                         {"matcher",     "name"},
+                                        {"name",        "string"},
                                         {"portal_url",  "string"},
                                         {"memo",        "string"}
+                                    }
+            },
+            {
+                "update",  "",      {    //field_name    type
+                                        {"registrant",  "name"},
+                                        {"fee",         "asset"},
+                                        {"id",          "uint32"},
+                                        {"owner",       "name?"},
+                                        {"name",        "string?"},
+                                        {"matcher",     "name?"},
+                                        {"portal_url",  "string?"},
+                                        {"memo",        "string?"}
                                     }
             }
         };
@@ -44,7 +57,8 @@ namespace dex {
         abi.actions = {
             //  name         type        ricardian_contract
             //------------  -----------  ------------------
-            {"register",    "register",  ""}
+            {"register",    "register",  ""},
+            {"update",      "update",  ""}
         };
         return abi;
 
@@ -52,5 +66,6 @@ namespace dex {
 
 
     void dex_operator_register( wasm_context & );
+    void dex_operator_update( wasm_context & );
 
 };
