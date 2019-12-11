@@ -28,24 +28,24 @@ typedef uint32_t DexOperatorID;
 
 // dex operator
 struct DexOperatorDetail {
-    CUserID owner_uid;
-    CUserID matcher_uid;
+    CNickID owner;
+    CNickID matcher;
     string portal_url;
     string memo;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(owner_uid);
-        READWRITE(matcher_uid);
+        READWRITE(owner);
+        READWRITE(matcher);
         READWRITE(portal_url);
         READWRITE(memo);
     )
 
     bool IsEmpty() const {
-        return owner_uid.IsEmpty() && matcher_uid.IsEmpty() && portal_url.empty() && memo.empty();
+        return owner.IsEmpty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
     }
 
     void SetEmpty() {
-        owner_uid.SetEmpty(); matcher_uid.SetEmpty(); portal_url = ""; memo = "";
+        owner.SetEmpty(); matcher.SetEmpty(); portal_url = ""; memo = "";
     }
 };
 
@@ -119,7 +119,9 @@ public:
         : activeOrderCache(pDbAccess),
           blockOrdersCache(pDbAccess),
           operator_detail_cache(pDbAccess),
+          operator_owner_map_cache(pDbAccess),
           operator_last_id_cache(pDbAccess){};
+
 
 public:
     bool GetActiveOrder(const uint256 &orderTxId, CDEXOrderDetail& activeOrder);
@@ -130,14 +132,18 @@ public:
 
     bool IncDexOperatorId(DexOperatorID &id);
     bool GetDexOperator(const DexOperatorID &id, DexOperatorDetail& detail);
+    bool GetDexOperatorByOwner(const CNickID &nickid, DexOperatorDetail& detail);
     bool HaveDexOperator(const DexOperatorID &id);
+    bool HaveDexOperatorByOwner(const CNickID &nickid);
     bool CreateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail);
-    bool UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail);
+    bool UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& old_detail,
+        const DexOperatorDetail& detail);
 
     bool Flush() {
         activeOrderCache.Flush();
         blockOrdersCache.Flush();
         operator_detail_cache.Flush(),
+        operator_owner_map_cache.Flush();
         operator_last_id_cache.Flush();
         return true;
     }
@@ -150,6 +156,7 @@ public:
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);
         blockOrdersCache.SetBase(&pBaseIn->blockOrdersCache);
         operator_detail_cache.SetBase(&pBaseIn->operator_detail_cache);
+        operator_owner_map_cache.SetBase(&pBaseIn->operator_owner_map_cache);
         operator_last_id_cache.SetBase(&pBaseIn->operator_last_id_cache);
     };
 
@@ -157,6 +164,7 @@ public:
         activeOrderCache.SetDbOpLogMap(pDbOpLogMapIn);
         blockOrdersCache.SetDbOpLogMap(pDbOpLogMapIn);
         operator_detail_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        operator_owner_map_cache.SetDbOpLogMap(pDbOpLogMapIn);
         operator_last_id_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
@@ -164,6 +172,7 @@ public:
         activeOrderCache.RegisterUndoFunc(undoDataFuncMap);
         blockOrdersCache.RegisterUndoFunc(undoDataFuncMap);
         operator_detail_cache.RegisterUndoFunc(undoDataFuncMap);
+        operator_owner_map_cache.RegisterUndoFunc(undoDataFuncMap);
         operator_last_id_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
@@ -187,7 +196,8 @@ private:
     // order tx id -> active order
     CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,          uint256,                     CDEXOrderDetail >     activeOrderCache;
     DEXBlockOrdersCache    blockOrdersCache;
-    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CFixedLeb128<DexOperatorID>, DexOperatorDetail >         operator_detail_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CFixedLeb128<DexOperatorID>, DexOperatorDetail >   operator_detail_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    CNickID,                     DexOperatorID >       operator_owner_map_cache;
 
     CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexOperatorID>> operator_last_id_cache;
 };

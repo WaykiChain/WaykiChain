@@ -183,7 +183,6 @@ void dex::dex_operator_register(wasm_context &context) {
     shared_ptr<CAccount> sp_registrant_account = wasm_account::get_account(context.database,
         registrant_name, ERROR_TITLE("registrant"));
 
-
     nick_name owner_name(wasm::name(owner).to_string());
     shared_ptr<CAccount> sp_owner_account = make_shared<CAccount>();
     if (sp_registrant_account->IsMyUid(owner_name)) {
@@ -191,6 +190,8 @@ void dex::dex_operator_register(wasm_context &context) {
     } else {
         sp_owner_account = wasm_account::get_account(context.database, registrant_name, ERROR_TITLE("owner"));
     }
+    WASM_ASSERT(context.database.dexCache.HaveDexOperatorByOwner(owner_name), wasm_assert_exception,
+        "the owner already has a dex operator! owner=%s", owner_name.ToString());
 
     nick_name matcher_name(wasm::name(matcher).to_string());
     if (!sp_registrant_account->IsMyUid(matcher_name) && sp_owner_account->IsMyUid(matcher_name))

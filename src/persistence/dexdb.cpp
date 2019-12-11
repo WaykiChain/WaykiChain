@@ -416,9 +416,21 @@ bool CDexDBCache::GetDexOperator(const DexOperatorID &id, DexOperatorDetail& det
     return operator_detail_cache.GetData(idKey, detail);
 }
 
+bool CDexDBCache::GetDexOperatorByOwner(const CNickID &nickid, DexOperatorDetail& detail) {
+    DexOperatorID id;
+    if (operator_owner_map_cache.GetData(nickid, id)) {
+        return GetDexOperator(id, detail);
+    }
+    return false;
+}
+
 bool CDexDBCache::HaveDexOperator(const DexOperatorID &id) {
     decltype(operator_detail_cache)::KeyType idKey(id);
     return operator_detail_cache.HaveData(idKey);
+}
+
+bool CDexDBCache::HaveDexOperatorByOwner(const CNickID &nickid) {
+    return operator_owner_map_cache.HaveData(nickid);
 }
 
 bool CDexDBCache::CreateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail) {
@@ -426,10 +438,22 @@ bool CDexDBCache::CreateDexOperator(const DexOperatorID &id, const DexOperatorDe
     if (operator_detail_cache.HaveData(idKey)) {
         return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
     }
-    return operator_detail_cache.SetData(idKey, detail);
+
+    if (operator_owner_map_cache.HaveData(detail.owner)) {
+        return ERRORMSG("%s, the owner already has a dex operator! owner=%s\n", __func__, detail.owner.ToString());
+    }
+
+    return  operator_detail_cache.SetData(idKey, detail) &&
+            operator_owner_map_cache.SetData(detail.owner, id);
 }
 
-bool CDexDBCache::UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail) {
+bool CDexDBCache::UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& old_detail,
+    const DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
+    if (old_detail.owner != detail.owner) {
+        if (!operator_owner_map_cache.EraseData(old_detail.owner) ||
+            !operator_owner_map_cache.SetData(detail.owner, id))
+            return false;
+    }
     return operator_detail_cache.SetData(idKey, detail);
 }
