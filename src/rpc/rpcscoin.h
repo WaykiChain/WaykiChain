@@ -17,16 +17,6 @@ using namespace json_spirit;
 extern Value submitpricefeedtx(const Array& params, bool fHelp);
 extern Value submitcoinstaketx(const Array& params, bool fHelp);
 
-extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
-extern Value submitdexselllimitordertx(const Array& params, bool fHelp);
-extern Value submitdexbuymarketordertx(const Array& params, bool fHelp);
-extern Value submitdexsellmarketordertx(const Array& params, bool fHelp);
-extern Value submitdexcancelordertx(const Array& params, bool fHelp);
-extern Value submitdexsettletx(const Array& params, bool fHelp);
-extern Value getdexorder(const Array& params, bool fHelp);
-extern Value getdexorders(const Array& params, bool fHelp);
-extern Value getdexsysorders(const Array& params, bool fHelp);
-
 extern Value submitcdpstaketx(const Array& params, bool fHelp);
 extern Value submitcdpredeemtx(const Array& params, bool fHelp);
 extern Value submitcdpliquidatetx(const Array& params, bool fHelp);
