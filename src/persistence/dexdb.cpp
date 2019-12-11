@@ -400,3 +400,36 @@ bool CDexDBCache::EraseActiveOrder(const uint256 &orderId, const CDEXOrderDetail
     return activeOrderCache.EraseData(orderId)
         && blockOrdersCache.EraseData(MakeBlockOrderKey(orderId, activeOrder));
 }
+
+bool CDexDBCache::IncDexOperatorId(DexOperatorID &id) {
+    decltype(operator_last_id_cache)::ValueType idVarint;
+    operator_last_id_cache.GetData(idVarint);
+    DexOperatorID &newId = idVarint.get();
+    if (newId == ULONG_MAX)
+        return ERRORMSG("%s, dex operator id is inc to max! last_id=%ul\n", __func__, newId);
+    newId++;
+    return operator_last_id_cache.SetData(idVarint);
+}
+
+bool CDexDBCache::GetDexOperator(const DexOperatorID &id, DexOperatorDetail& detail) {
+    decltype(operator_detail_cache)::KeyType idKey(id);
+    return operator_detail_cache.GetData(idKey, detail);
+}
+
+bool CDexDBCache::HaveDexOperator(const DexOperatorID &id) {
+    decltype(operator_detail_cache)::KeyType idKey(id);
+    return operator_detail_cache.HaveData(idKey);
+}
+
+bool CDexDBCache::CreateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail) {
+    decltype(operator_detail_cache)::KeyType idKey(id);
+    if (operator_detail_cache.HaveData(idKey)) {
+        return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
+    }
+    return operator_detail_cache.SetData(idKey, detail);
+}
+
+bool CDexDBCache::UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail) {
+    decltype(operator_detail_cache)::KeyType idKey(id);
+    return operator_detail_cache.SetData(idKey, detail);
+}

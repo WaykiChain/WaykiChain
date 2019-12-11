@@ -24,6 +24,31 @@ using namespace std;
     // block orders: height generate_type txid -> active order
 typedef CCompositeKVCache<dbk::DEX_BLOCK_ORDERS,  tuple<CFixedUInt32, uint8_t, uint256>, CDEXOrderDetail>     DEXBlockOrdersCache;
 
+typedef uint32_t DexOperatorID;
+
+// dex operator
+struct DexOperatorDetail {
+    CUserID owner_uid;
+    CUserID matcher_uid;
+    string portal_url;
+    string memo;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(owner_uid);
+        READWRITE(matcher_uid);
+        READWRITE(portal_url);
+        READWRITE(memo);
+    )
+
+    bool IsEmpty() const {
+        return owner_uid.IsEmpty() && matcher_uid.IsEmpty() && portal_url.empty() && memo.empty();
+    }
+
+    void SetEmpty() {
+        owner_uid.SetEmpty(); matcher_uid.SetEmpty(); portal_url = ""; memo = "";
+    }
+};
+
 // DEX_DB
 namespace DEX_DB {
     //block order key: height generate_type txid
@@ -90,7 +115,11 @@ public:
 class CDexDBCache {
 public:
     CDexDBCache() {}
-    CDexDBCache(CDBAccess *pDbAccess) : activeOrderCache(pDbAccess), blockOrdersCache(pDbAccess) {};
+    CDexDBCache(CDBAccess *pDbAccess)
+        : activeOrderCache(pDbAccess),
+          blockOrdersCache(pDbAccess),
+          operator_detail_cache(pDbAccess),
+          operator_last_id_cache(pDbAccess){};
 
 public:
     bool GetActiveOrder(const uint256 &orderTxId, CDEXOrderDetail& activeOrder);
@@ -99,9 +128,17 @@ public:
     bool UpdateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail& activeOrder);
     bool EraseActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail &activeOrder);
 
+    bool IncDexOperatorId(DexOperatorID &id);
+    bool GetDexOperator(const DexOperatorID &id, DexOperatorDetail& detail);
+    bool HaveDexOperator(const DexOperatorID &id);
+    bool CreateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail);
+    bool UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail);
+
     bool Flush() {
         activeOrderCache.Flush();
         blockOrdersCache.Flush();
+        operator_detail_cache.Flush(),
+        operator_last_id_cache.Flush();
         return true;
     }
 
@@ -112,16 +149,22 @@ public:
     void SetBaseViewPtr(CDexDBCache *pBaseIn) {
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);
         blockOrdersCache.SetBase(&pBaseIn->blockOrdersCache);
+        operator_detail_cache.SetBase(&pBaseIn->operator_detail_cache);
+        operator_last_id_cache.SetBase(&pBaseIn->operator_last_id_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         activeOrderCache.SetDbOpLogMap(pDbOpLogMapIn);
         blockOrdersCache.SetDbOpLogMap(pDbOpLogMapIn);
+        operator_detail_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        operator_last_id_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         activeOrderCache.RegisterUndoFunc(undoDataFuncMap);
         blockOrdersCache.RegisterUndoFunc(undoDataFuncMap);
+        operator_detail_cache.RegisterUndoFunc(undoDataFuncMap);
+        operator_last_id_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {
@@ -144,6 +187,9 @@ private:
     // order tx id -> active order
     CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,          uint256,                     CDEXOrderDetail >     activeOrderCache;
     DEXBlockOrdersCache    blockOrdersCache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CFixedLeb128<DexOperatorID>, DexOperatorDetail >         operator_detail_cache;
+
+    CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexOperatorID>> operator_last_id_cache;
 };
 
 #endif //PERSIST_DEX_H

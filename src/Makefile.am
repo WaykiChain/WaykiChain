@@ -296,13 +296,15 @@ WASM_H = \
   vm/wasm/wasm_interface.hpp \
   vm/wasm/wasm_native_contract.hpp \
   vm/wasm/wasm_trace.hpp \
-  vm/wasm/wasm_rpc_message.hpp
+  vm/wasm/wasm_rpc_message.hpp \
+  vm/wasm/modules/dex_contract.hpp
 
 WASM_CPP = \
   vm/wasm/abi_serializer.cpp \
   vm/wasm/wasm_context.cpp \
   vm/wasm/wasm_native_contract.cpp \
-  vm/wasm/abi_serializer.cpp
+  vm/wasm/abi_serializer.cpp \
+  vm/wasm/modules/dex_contract.cpp
 
 
 liblua53_a_SOURCES = \

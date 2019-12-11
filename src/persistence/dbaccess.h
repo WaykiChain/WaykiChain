@@ -668,9 +668,10 @@ private:
 };
 
 
-template<int32_t PREFIX_TYPE_VALUE, typename ValueType>
+template<int32_t PREFIX_TYPE_VALUE, typename __ValueType>
 class CSimpleKVCache {
 public:
+    typedef __ValueType ValueType;
     static const dbk::PrefixType PREFIX_TYPE = (dbk::PrefixType)PREFIX_TYPE_VALUE;
 public:
     /**
