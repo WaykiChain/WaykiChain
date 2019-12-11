@@ -62,16 +62,16 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
 
-    RPCTypeCheck(params, list_of(str_type)(int_type));
+
 
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    int64_t fee          = RPC_PARAM::GetWiccFee(params, 1, ACCOUNT_REGISTER_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 1, ACCOUNT_REGISTER_TX);
     int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
 
     if (account.HaveOwnerPubKey())
         throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
@@ -89,7 +89,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     CAccountRegisterTx tx;
     tx.txUid        = pubkey;
     tx.minerUid     = minerUid;
-    tx.llFees       = fee;
+    tx.llFees       = fee.GetSawiAmount();
     tx.valid_height = validHeight;
 
     return SubmitTx(account.keyid, tx);
@@ -103,7 +103,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
                             "\nArguments:\n"
                             "1.\"addr\":    (string, required)\n"
                             "2.\"nickid\":  (string, required) 12 chars in .12345abcdefghijklmnopqrstuvwxyz\n"
-                            "3.\"fee\":     (numeric, optional)\n"
+                            "3.\"fee\":     (combomoney, optional)\n"
                             "\nResult:\n"
                             "\"txid\":      (string) The transaction id.\n"
                             "\nExamples:\n"
@@ -111,17 +111,16 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
                             + "\nAs json rpc call\n"
                             + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type));
 
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string nickid        = params[1].get_str() ;
-    int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, NICKID_REGISTER_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, NICKID_REGISTER_TX);
     int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
 
     if(!account.nickid.IsEmpty()){
         throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
@@ -141,7 +140,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     CNickIdRegisterTx tx;
     tx.nickId       = nickid;
     tx.txUid        = pubkey;
-    tx.llFees       = fee;
+    tx.llFees       = fee.GetSawiAmount();
     tx.valid_height = validHeight;
 
     return SubmitTx(account.keyid, tx);
@@ -168,13 +167,13 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
                 "WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH, \"/tmp/lua/myapp.lua\", 100000000, 10000, \"Hello, WaykiChain!\""));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(int_type)(int_type)(str_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(str_type));
 
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid  = RPC_PARAM::GetUserId(params[0]);
     string contractScript = RPC_PARAM::GetLuaContractScript(params[1]);
-    int64_t fee           = RPC_PARAM::GetWiccFee(params, 2, LCONTRACT_DEPLOY_TX);
+    ComboMoney fee           = RPC_PARAM::GetFee(params, 2, LCONTRACT_DEPLOY_TX);
     int32_t validHegiht   = params.size() > 3 ? params[3].get_int() : chainActive.Height();
     string memo           = params.size() > 4 ? params[4].get_str() : "";
 
@@ -185,12 +184,12 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid does not exist or immature");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
 
     CLuaContractDeployTx tx;
     tx.txUid        = txUid;
     tx.contract     = CLuaContract(contractScript, memo);
-    tx.llFees       = fee;
+    tx.llFees       = fee.GetSawiAmount();
     tx.nRunStep     = tx.contract.GetContractSize();
     tx.valid_height = validHegiht;
 
@@ -219,7 +218,7 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
                            "\"wQWKaN4n7cr1HLqXY3eX65rdQMAL5R34k6\", \"100-1\", \"01020304\", 10000, 10000, 100"));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(int_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(int_type)(str_type)(int_type));
 
     EnsureWalletIsUnlocked();
 
@@ -241,19 +240,19 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
     }
 
     int64_t amount      = AmountToRawValue(params[3]);
-    int64_t fee         = RPC_PARAM::GetWiccFee(params, 4, LCONTRACT_INVOKE_TX);
+    ComboMoney fee         = RPC_PARAM::GetFee(params, 4, LCONTRACT_INVOKE_TX);
     int32_t validHegiht = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, amount);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
 
     CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = txUid;
     tx.app_uid      = appUid;
     tx.coin_amount  = amount;
-    tx.llFees       = fee;
+    tx.llFees       = fee.GetSawiAmount();
     tx.arguments    = arguments;
     tx.valid_height = validHegiht;
 
@@ -295,20 +294,20 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
                            "\"votes\":100000000}], 10000"));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(array_type)(int_type)(int_type));
+    RPCTypeCheck(params, list_of(str_type)(array_type)(str_type)(int_type));
 
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, DELEGATE_VOTE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, DELEGATE_VOTE_TX);
     int32_t validHegiht  = params.size() > 3 ? params[3].get_int() : chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
 
     CDelegateVoteTx delegateVoteTx;
     delegateVoteTx.txUid        = txUid;
-    delegateVoteTx.llFees       = fee;
+    delegateVoteTx.llFees       = fee.GetSawiAmount();
     delegateVoteTx.valid_height = validHegiht;
 
     Array arrVotes = params[1].get_array();
