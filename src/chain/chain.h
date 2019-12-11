@@ -9,18 +9,15 @@
 
 #include "persistence/block.h"
 
-
 /** An in-memory indexed chain of blocks. */
 class CChain {
 private:
     vector<CBlockIndex *> vChain;
-    CBlockIndex* finalityBlockIndex = nullptr ;
 
 public:
     /** Returns the index entry for the genesis block of this chain, or nullptr if none. */
     CBlockIndex *Genesis() const;
 
-    CBlockIndex *GetFinalityBlockIndex();
 
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const;
@@ -44,7 +41,6 @@ public:
     int32_t Height() const;
 
 
-    bool UpdateFinalityBlock() ;
     /** Set/initialize a chain with a given tip. Returns the forking point. */
     CBlockIndex *SetTip(CBlockIndex *pIndex);
 
@@ -53,6 +49,7 @@ public:
 
     /** Find the last common block between this chain and a locator. */
     CBlockIndex *FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const CBlockLocator &locator) const;
+
 }; //end of CChain
 
 

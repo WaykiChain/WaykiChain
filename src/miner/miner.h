@@ -28,6 +28,17 @@ class CAccount;
 
 using namespace std;
 
+//////////////////////////////////////////////////////////////////////////////
+//
+// CoinMiner
+//
+
+struct Miner {
+    VoteDelegate delegate;
+    CAccount account;
+    CKey key;
+};
+
 struct TxPriority {
     double priority;
     double feePerKb;
@@ -84,9 +95,10 @@ uint32_t GetElementForBurn(CBlockIndex *pIndex);
 
 void GetPriorityTx(vector<TxPriority> &vecPriority, int32_t nFuelRate);
 
-void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates);
+void ShuffleDelegates(const int32_t nCurHeight, const int64_t blockTime,VoteDelegateVector &delegates);
 
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight,
                         const VoteDelegateVector &delegates, VoteDelegate &delegate);
+
 
 #endif  // COIN_MINER_H

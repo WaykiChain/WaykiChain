@@ -34,6 +34,8 @@ const char *FILTERLOAD="filterload";
 const char *FILTERADD="filteradd";
 const char *FILTERCLEAR="filterclear";
 const char *REJECT="reject";
+const char *CONFIRMBLOCK = "confirmblock";
+const char *FINALITYBLOCK = "finblock" ;
 // const char *SENDHEADERS="sendheaders";
 // const char *FEEFILTER="feefilter";
 // const char *SENDCMPCT="sendcmpct";
@@ -105,8 +107,6 @@ bool CMessageHeader::IsValid() const
     return true;
 }
 
-
-
 CAddress::CAddress() : CService()
 {
     Init();
@@ -158,6 +158,7 @@ bool operator<(const CInv& a, const CInv& b)
     return (a.type < b.type || (a.type == b.type && a.hash < b.hash));
 }
 
+
 bool CInv::IsKnownType() const
 {
     return (type >= 1 && type < (int32_t)ARRAYLEN(ppszTypeName));
@@ -178,4 +179,18 @@ std::string CInv::ToString() const
 void CInv::Print() const
 {
     LogPrint(BCLog::INFO,"CInv(%s)\n", ToString());
+}
+
+bool operator<(const CPBFTMessage& a , const CPBFTMessage& b){
+    if(a.height != b.height)
+        return a.height < b.height ;
+    if(a.miner != b.miner)
+        return a.miner < b.miner ;
+    return a.blockHash < b.blockHash ;
+}
+
+uint256 CPBFTMessage::GetHash() const {
+    CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
+    ss << msgType << blockHash << height<< miner << preBlockHash;
+    return ss.GetHash();
 }

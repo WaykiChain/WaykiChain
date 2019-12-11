@@ -268,7 +268,7 @@ extern Value getminerbyblocktime(const Array& params, bool fHelp) {
     for (auto &delegate : delegates)
         LogPrint(BCLog::DEBUG, "before shuffle: height=%d, index=%d, regId=%s\n", blockHeight, index++, delegate.regid.ToString());
 
-    ShuffleDelegates(blockHeight, delegates);
+    ShuffleDelegates(blockHeight, blockTime, delegates);
 
     index = 0;
     for (auto &delegate : delegates)

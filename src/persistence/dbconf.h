@@ -74,6 +74,7 @@ namespace dbk {
         DEFINE( BLOCKFILE_NUM_INFO,   "bfni",   BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
         DEFINE( LAST_BLOCKFILE,       "ltbf",   BLOCK )         /* [prefix] --> $LastBlockFile */ \
         DEFINE( REINDEX,              "ridx",   BLOCK )         /* [prefix] --> $Reindex = 1 | 0 */ \
+        DEFINE( FINALITY_BLOCK,       "finb",   BLOCK )         /* [prefix] --> &globalfinblock height and hash */ \
         DEFINE( FLAG,                 "flag",   BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
         DEFINE( BEST_BLOCKHASH,       "bbkh",   BLOCK )         /* [prefix] --> $BestBlockHash */ \
         DEFINE( TXID_DISKINDEX,       "tidx",   BLOCK )      /* tidx{$txid} --> $DiskTxPos */ \

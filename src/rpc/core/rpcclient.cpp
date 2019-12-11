@@ -141,17 +141,13 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getrawmempool"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getnewaddr"             && n > 0) ConvertTo<bool>(params[0]);
 
-    if (strMethod == "submitaccountregistertx"      && n > 1) ConvertTo<int64_t>(params[1]);
 
     if (strMethod == "submitdelegatevotetx"         && n > 1) ConvertTo<Array>(params[1]);
-    if (strMethod == "submitdelegatevotetx"         && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitdelegatevotetx"         && n > 3) ConvertTo<int32_t>(params[3]);
 
-    if (strMethod == "submitcontractdeploytx"       && n > 2) ConvertTo<int64_t>(params[2]);
     if (strMethod == "submitcontractdeploytx"       && n > 3) ConvertTo<int32_t>(params[3]);
 
     if (strMethod == "submitcontractcalltx"         && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitcontractcalltx"         && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "submitcontractcalltx"         && n > 5) ConvertTo<int32_t>(params[5]);
 
     if (strMethod == "submitucontractdeploytx"  && n > 3) ConvertTo<int32_t>(params[3]);
@@ -213,7 +209,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);
 
-    if (strMethod == "submitnickidregistertx"   && n > 2) ConvertTo<int64_t>(params[2]);
 
     return params;
 }

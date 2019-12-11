@@ -49,6 +49,7 @@ public:
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(const NET_TYPE type) const;
+	uint32_t GetCoutinuousProcduceForkHeight(const NET_TYPE type) const ;
     uint32_t GetStableCoinGenesisHeight(const NET_TYPE type) const;
     uint32_t GetVer3ForkHeight(const NET_TYPE type) const;
     const vector<string> GetStableCoinGenesisTxid(const NET_TYPE type) const;
@@ -123,6 +124,8 @@ private:
 
     /* soft fork height for MAJOR_VER_R3 */
     static uint32_t nVer3ForkHeight[3];
+
+    static uint32_t nContinuousProduceBlockForkHeight[3] ;
 };
 
 inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeight) {
@@ -137,10 +140,21 @@ inline FeatureForkVersionEnum GetFeatureForkVersion(const int32_t currBlockHeigh
 }
 
 inline uint32_t GetBlockInterval(const int32_t currBlockHeight) {
-    if (currBlockHeight < (int32_t)SysCfg().GetFeatureForkHeight())
+
+    if (currBlockHeight< (int32_t)SysCfg().GetFeatureForkHeight())
         return SysCfg().GetBlockIntervalPreStableCoinRelease();
     else
         return SysCfg().GetBlockIntervalStableCoinRelease();
+}
+
+
+inline uint32_t GetContinuousBlockCount(const int32_t currHeight){
+
+    if (currHeight  < (int32_t)SysCfg().GetContinuousProduceForkHeight())
+        return SysCfg().GetContinuousCountBeforeFork();
+    else
+        return SysCfg().GetContinuousCountAfterFork();
+
 }
 
 inline uint32_t GetYearBlockCount(const int32_t currBlockHeight) {
