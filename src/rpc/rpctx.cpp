@@ -98,11 +98,11 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
 Value submitnickidregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2)
-        throw runtime_error("submitnickidregistertx \"addr\" [\"fee\"]\n"
+        throw runtime_error("submitnickidregistertx \"addr\" \"nickid\" [\"fee\"]\n"
                             "\nregister account to acquire its regid\n"
                             "\nArguments:\n"
                             "1.\"addr\":    (string, required)\n"
-                            "2.\"nickid\":  (string, required)\n"
+                            "2.\"nickid\":  (string, required) 12 chars in .12345abcdefghijklmnopqrstuvwxyz\n"
                             "3.\"fee\":     (numeric, optional)\n"
                             "\nResult:\n"
                             "\"txid\":      (string) The transaction id.\n"
