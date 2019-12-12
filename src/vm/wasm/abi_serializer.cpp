@@ -347,14 +347,12 @@ namespace wasm {
                 }
             }
         }
-
-        WASM_TRACE("field:%s", field.c_str() );  
+ 
         if(!is_optional){
             WASM_THROW(pack_exception, "Missing field '%s' in input object while processing struct '%s'",
                         field.c_str(), s.c_str());
         }
         json_spirit::Value var;
-        WASM_TRACE("var:%s", json_spirit::Value_type_name[var.type()] );
 
         return var;
 
@@ -373,10 +371,9 @@ namespace wasm {
             return a[index];
         }
 
-        //if(!is_optional(s)){
-            WASM_THROW(pack_exception,
+        WASM_THROW(pack_exception,
                         "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
-        //}
+
         json_spirit::Value var;
 
         return var;
