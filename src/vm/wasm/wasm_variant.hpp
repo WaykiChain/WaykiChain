@@ -362,22 +362,28 @@ namespace wasm {
     static inline void from_variant( const wasm::variant &v, std::string &t ) {
         if (v.type() == json_spirit::str_type) {
             t = v.get_str();
-            //std::cout << "-" << t << std::endl ;
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::name &t ) {
         if (v.type() == json_spirit::str_type) {
             t = wasm::name(v.get_str());
-            //std::cout << "-" << t.to_string() << std::endl ;
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::bytes &t ) {
         if (v.type() == json_spirit::str_type) {
             string str = v.get_str();
             t.insert(t.begin(), str.begin(), str.end());
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::int128_t &t ) {
@@ -390,10 +396,14 @@ namespace wasm {
                 str.substr(1, str.size() - 1);
             uint128 u(str);
             t = is_negative ? (-wasm::uint128_t(u)) : wasm::uint128_t(u);
+            return;
 
         } else if (v.type() == json_spirit::int_type) {
             t = static_cast< wasm::int128_t >(v.get_int64());
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or int")
 
     }
 
@@ -403,42 +413,48 @@ namespace wasm {
             string str = v.get_str();
             uint128 u(str);
             t = wasm::uint128_t(u);
+            return;
         } else if (v.type() == json_spirit::int_type) {
             t = static_cast< wasm::uint128_t >(v.get_uint64());
+            return;
         }
 
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or int")
     }
 
 
     static inline void from_variant( const wasm::variant &v, wasm::signed_int &t ) {
         if (v.type() == json_spirit::int_type) {
             t = static_cast< int32_t >(v.get_int64());
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::unsigned_int &t ) {
         if (v.type() == json_spirit::int_type) {
             t = static_cast< uint32_t >(v.get_int64());
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
 
     static inline void from_variant( const wasm::variant &v, bool &t ) {
         if (v.type() == json_spirit::bool_type) {
             t = v.get_bool();
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a boolean")
     }
 
     template<typename T, std::enable_if_t <std::is_floating_point<T>::value> * = nullptr>
     static inline void from_variant( const wasm::variant &v, T &t ) {
         if (v.type() == json_spirit::real_type) {
             t = v.get_real();
-
-            // std::ostringstream o;
-            // o.precision(std::numeric_limits<float>::digits10);
-            // o << t;
-            // WASM_TRACE("%s",o.str().c_str())
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a real (floating point)")
     }
 
 
@@ -446,15 +462,17 @@ namespace wasm {
     static inline void from_variant( const wasm::variant &v, T &t ) {
         if (v.type() == json_spirit::int_type) {
             t = v.get_int64();
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
     static inline void from_variant( const wasm::variant &v, system_clock::time_point &t ) {
         if (v.type() == json_spirit::str_type) {
-
             t = std::chrono::system_clock::from_time_t(ToTime(v.get_str()));
-
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     template<typename T>
@@ -467,8 +485,10 @@ namespace wasm {
                 from_variant(*i, t);
                 ts.push_back(t);
             }
-
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a array[]")
 
     }
 
@@ -495,28 +515,36 @@ namespace wasm {
     static inline void from_variant( const wasm::variant &v, wasm::checksum160_type &t ) {
         if (v.type() == json_spirit::str_type) {
             FromHex(v.get_str()).copy((char *) &t, sizeof(t));
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum256_type &t ) {
         if (v.type() == json_spirit::str_type) {
-            //WASM_TRACE("%s", v.get_str().c_str())
             FromHex(v.get_str()).copy((char *) &t, sizeof(t));
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
 
     static inline void from_variant( const wasm::variant &v, checksum512_type &t ) {
         if (v.type() == json_spirit::str_type) {
             FromHex(v.get_str()).copy((char *) &t, sizeof(t));
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
 
     static inline void from_variant( const wasm::variant &v, wasm::symbol_code &t ) {
         if (v.type() == json_spirit::str_type) {
             t = wasm::symbol_code(v.get_str());
+            return;
         }
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::symbol &t ) {
@@ -543,10 +571,14 @@ namespace wasm {
                 }
             }
             t = wasm::symbol(symbol_code, precision);
+            return;
 
         } else if (v.type() == json_spirit::str_type) {
             t = wasm::symbol::from_string(v.get_str());
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or object")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::asset &t ) {
@@ -570,17 +602,14 @@ namespace wasm {
                         break;
                 }
             }
-
-            //std::cout << "-" << t.to_string() << std::endl ;
-
-
+            return;
         } else if (v.type() == json_spirit::str_type) { //"100.0000 SYS"
-
             wasm::asset a;
             t = a.from_string(v.get_str());
-            //std::cout << "-" << t.to_string() << std::endl ;
-
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or object")
     }
 
 
@@ -593,27 +622,24 @@ namespace wasm {
                 switch (abi_key) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), field.name);
-                        //std::cout << field.name <<std::endl ;
-                        //WASM_TRACE("%s", field.name.c_str())
                         break;
                     }
                     case ID_Type : {
                         from_variant(Config_type::get_value(*i), field.type);
-                        //std::cout << field.type <<std::endl ;
-                        //WASM_TRACE("%s", field.type.c_str())
                         break;
                     }
                     default :
                         break;
                 }
-
             }
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
     }
 
     static inline void from_variant( const wasm::variant &v, struct_def &s ) {
         if (v.type() == json_spirit::obj_type) {
-
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
@@ -621,27 +647,24 @@ namespace wasm {
                 switch (abi_key) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), s.name);
-                        //std::cout << s.name <<std::endl ;
-                        //WASM_TRACE("%s", s.name.c_str())
                         break;
                     }
                     case ID_Base : {
                         from_variant(Config_type::get_value(*i), s.base);
-                        //std::cout << s.base <<std::endl ;
-                        //WASM_TRACE("%s", s.base.c_str())
                         break;
                     }
                     case ID_Fields : {
                         from_variant(Config_type::get_value(*i), s.fields);
-                        //std::cout << s.base <<std::endl ;
                         break;
                     }
                     default :
                         break;
                 }
             }
-
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
@@ -656,17 +679,14 @@ namespace wasm {
                 switch (abi_key) {
                     case ID_Name : {
                         from_variant(Config_type::get_value(*i), a.name);
-                        //std::cout << a.name <<std::endl ;
                         break;
                     }
                     case ID_Type : {
                         from_variant(Config_type::get_value(*i), a.type);
-                        //std::cout << a.type <<std::endl ;
                         break;
                     }
                     case ID_Ricardian_contract : {
                         from_variant(Config_type::get_value(*i), a.ricardian_contract);
-                        //std::cout << a.ricardian_contract <<std::endl ;
                         break;
                     }
                     default :
@@ -674,7 +694,11 @@ namespace wasm {
                 }
             }
 
+            return;
+
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
@@ -711,15 +735,16 @@ namespace wasm {
                         break;
                 }
             }
-
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
 
     static inline void from_variant( const wasm::variant &v, clause_pair &c ) {
         if (v.type() == json_spirit::obj_type) {
-
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
@@ -738,14 +763,16 @@ namespace wasm {
                 }
             }
 
+            return;
         }
+
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
 
     static inline void from_variant( const wasm::variant &v, type_def &type ) {
         if (v.type() == json_spirit::obj_type) {
-
             auto o = v.get_obj();
             for (wasm::Object::const_iterator i = o.begin(); i != o.end(); ++i) {
                 string key = Config_type::get_name(*i);
@@ -764,8 +791,10 @@ namespace wasm {
                 }
             }
 
+            return;
         }
 
+        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
     }
 
 
@@ -816,7 +845,10 @@ namespace wasm {
                             break;
                     }
                 }
+                return;
             }
+
+            WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
         }
 
         WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "%s", "abi parse fail")
