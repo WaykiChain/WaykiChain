@@ -12,6 +12,7 @@
 CPBFTMan pbftMan;
 extern CPBFTContext pbftContext;
 extern CWallet *pWalletMain;
+extern CCacheDBManager *pCdMan;
 
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
 
@@ -28,6 +29,26 @@ CBlockIndex* CPBFTMan::GetGlobalFinIndex(){
         return chainActive[0] ;
     }
     return globalFinIndex ;
+}
+
+uint256 CPBFTMan::GetGlobalFinBlockHash() {
+    if(!globalFinIndex) {
+        LogPrint(BCLog::DEBUG, "get global finblock from db\n") ;
+        if(globalFinHash != uint256())
+            return globalFinHash;
+
+        LOCK(cs_main);
+        std::pair<int32_t ,uint256> globalfinblock = std::make_pair(0,uint256());
+        if(pCdMan->pBlockCache->ReadGlobalFinBlock(globalfinblock)){
+            globalFinHash = globalfinblock.second ;
+        } else if(chainActive[0] != nullptr){
+            globalFinHash = chainActive[0]->GetBlockHash() ;
+        }
+        return globalFinHash ;
+    }
+    LogPrint(BCLog::DEBUG, "get global finblock from memory cache \n") ;
+    return globalFinIndex->GetBlockHash() ;
+
 }
 
 bool CPBFTMan::SetLocalFinTimeout(){
@@ -74,6 +95,7 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
         if(pTemp== nullptr)
             return false ;
         globalFinIndex = pTemp;
+        globalFinHash = pTemp->GetBlockHash() ;
         pCdMan->pBlockCache->WriteGlobalFinBlock(pTemp->height, pTemp->GetBlockHash()) ;
         return true ;
     }

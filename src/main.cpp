@@ -1518,11 +1518,33 @@ void static FindMostWorkChain() {
     chainMostWork.SetTip(pIndexNew);
 }
 
+bool connectBlockOnFinChain(CBlockIndex* pNewIndex, CValidationState& state){
+
+    if(pNewIndex && chainActive.Tip() == pNewIndex->pprev){
+        if (!ConnectTip(state, pNewIndex)) {
+            if (state.IsInvalid()) {
+                // The block violates a consensus rule.
+                if (!state.CorruptionPossible())
+                    InvalidChainFound(pNewIndex);
+                state     = CValidationState();
+
+            } else {
+                // A system error occurred (disk space, database error, ...).
+                return false;
+            }
+        }
+
+        mempool.ReScanMemPoolTx();
+    }
+    return true ;
+
+}
 // Try to activate to the most-work chain (thereby connecting it).
-bool ActivateBestChain(CValidationState &state) {
+bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex) {
     LOCK(cs_main);
     CBlockIndex *pIndexOldTip = chainActive.Tip();
     bool fComplete            = false;
+
     while (!fComplete) {
         FindMostWorkChain();
         fComplete = true;
@@ -1537,15 +1559,23 @@ bool ActivateBestChain(CValidationState &state) {
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
                 CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
                 if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
-                    LogPrint(BCLog::INFO, "finality block can't be reverse");
+                    LogPrint(BCLog::INFO, "finality block can't be reverse\n");
                     if(GetTime() - pbftMan.GetLocalFinLastUpdate()>60){
                         pbftMan.SetLocalFinTimeout() ;
+                    } else{
+                        LogPrint(BCLog::INFO, "connect block on fin chain\n") ;
+                        return connectBlockOnFinChain(pNewIndex, state) ;
                     }
-                    return true ;
                 }
+
+                uint256 globalFinIndexHash = pbftMan.GetGlobalFinBlockHash() ;
+                if( chainIndex->GetBlockHash() == globalFinIndexHash){
+                    LogPrint(BCLog::INFO, "globalfinality block can't be reverse\n");
+                    return connectBlockOnFinChain(pNewIndex, state) ;
+                }
+
                 height-- ;
-            }
-            if (chainIndex&& chainMostWork.Contains(chainIndex)){
+            }else if (chainIndex&& chainMostWork.Contains(chainIndex)){
                 break ;
             }else if(chainIndex == nullptr)
                 return true ;
@@ -1638,7 +1668,7 @@ bool AddToBlockIndex(CBlock &block, CValidationState &state, const CDiskBlockPos
         return state.Abort(_("Failed to write block index"));
     int64_t beginTime = GetTimeMillis();
     // New best?
-    if (!ActivateBestChain(state)) {
+    if (!ActivateBestChain(state, pIndexNew)) {
         LogPrint(BCLog::INFO, "ActivateBestChain() elapse time:%lld ms\n", GetTimeMillis() - beginTime);
         return false;
     }
@@ -2033,7 +2063,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
         if (pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
             pbftContext.SaveMinersByHash(blockHash, delegates);
         }
-
 
         BroadcastBlockConfirm(pTip) ;
         if(pbftMan.UpdateLocalFinBlock(pTip)){

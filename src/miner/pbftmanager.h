@@ -17,6 +17,7 @@ private:
     CBlockIndex* localFinIndex = nullptr ;
     int64_t localFinLastUpdate = 0 ;
     CBlockIndex* globalFinIndex = nullptr ;
+    uint256 globalFinHash = uint256();
     CCriticalSection cs_finblock ;
     bool UpdateLocalFinBlock(const uint32_t height);
     bool UpdateGlobalFinBlock(const uint32_t height);
@@ -25,6 +26,7 @@ public:
 
     CBlockIndex *GetLocalFinIndex();
     CBlockIndex *GetGlobalFinIndex() ;
+    uint256 GetGlobalFinBlockHash() ;
 //    bool UpdateFinalityBlock() ;
     bool SetLocalFinTimeout() ;
     bool UpdateLocalFinBlock(const CBlockIndex* pIndex);
