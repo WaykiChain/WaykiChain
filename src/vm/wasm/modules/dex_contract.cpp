@@ -128,13 +128,13 @@ static void process_dex_operator_fee(wasm_context &context, const wasm::asset &f
 
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegate_regid = delegates[i].regid;
-        shared_ptr<CAccount> sp_delegate_account = wasm_account::get_account(cw, delegate_regid, ERROR_TITLE("delegate"));
+        shared_ptr<CAccount> sp_delegate_account = wasm_account::get_account(context.database, delegate_regid, ERROR_TITLE("delegate"));
 
         uint64_t delegate_fee = total_delegate_fee / delegates.size();
         if (i == 0) delegate_fee += total_delegate_fee % delegates.size(); // give the dust amount to topmost miner
 
         wasm_account::add_free_balance(*sp_delegate_account, symbol, delegate_fee, ERROR_TITLE("delegate fee"));
-        wasm_account::save(cw, *sp_delegate_account, ERROR_TITLE("delegate"));
+        wasm_account::save(context.database, *sp_delegate_account, ERROR_TITLE("delegate"));
 
         if (action == ASSET_ACTION_ISSUE)
             context.receipts.emplace_back(registrant_account.nickid, delegate_regid, symbol, delegate_fee,
