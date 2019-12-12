@@ -93,6 +93,33 @@ bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
     return accountCache.HaveData(keyId);
 }
 
+bool CAccountDBCache::HaveAccount(const CRegID &regId) const{
+    return regId2KeyIdCache.HaveData(regId.ToRawString());
+}
+
+bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
+    return nickId2KeyIdCache.HaveData(nickId.nickId);
+}
+
+bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
+    if (userId.type() == typeid(CRegID)) {
+        return HaveAccount(userId.get<CRegID>());
+
+    } else if (userId.type() == typeid(CKeyID)) {
+        return HaveAccount(userId.get<CKeyID>());
+
+    } else if (userId.type() == typeid(CPubKey)) {
+        return HaveAccount(userId.get<CPubKey>().GetKeyId());
+
+    } else if (userId.type() == typeid(CNickID)) {
+        return HaveAccount(userId.get<CNickID>());
+
+    } else if (userId.type() == typeid(CNullID)) {
+        return ERRORMSG("SetAccount input userid can't be CNullID type");
+    }
+    return false;
+}
+
 bool CAccountDBCache::EraseAccount(const CKeyID &keyId) {
     return accountCache.EraseData(keyId);
 }
@@ -226,18 +253,6 @@ bool CAccountDBCache::EraseAccount(const CUserID &userId) {
     }
     return false;
 }
-
-bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
-    if (userId.type() == typeid(CKeyID)) {
-        return HaveAccount(userId.get<CKeyID>());
-    }
-    return false;
-}
-
-bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
-    return nickId2KeyIdCache.HaveData(nickId.nickId);
-}
-
 
 bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
     if (userId.type() == typeid(CRegID)) {

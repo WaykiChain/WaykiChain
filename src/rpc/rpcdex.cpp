@@ -24,9 +24,10 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     accountCache.GetKeyId(dexOperator.matcher, matcherKeyid);
     result.push_back(Pair("owner_nickid",   dexOperator.owner.ToString()));
     result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
-    result.push_back(Pair("owner_nickid",   dexOperator.matcher.ToString()));
-    result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
-    result.push_back(Pair("asset_name",     dexOperator.portal_url));
+    result.push_back(Pair("matcher_nickid", dexOperator.matcher.ToString()));
+    result.push_back(Pair("matcher_addr",   ownerKeyid.ToAddress()));
+    result.push_back(Pair("name",           dexOperator.name));
+    result.push_back(Pair("portal_url",     dexOperator.portal_url));
     result.push_back(Pair("memo",           dexOperator.memo));
     result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
     return result;

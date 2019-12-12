@@ -480,6 +480,8 @@ bool CAccount::IsMyUid(const CUserID &uid) {
         return !regid.IsEmpty() && regid == uid.get<CRegID>();
     } else if (uid.type() == typeid(CPubKey)) {
         return owner_pubkey.IsValid() && owner_pubkey == uid.get<CPubKey>();
+    } else if (uid.type() == typeid(CNickID)) {
+        return !nickid.IsEmpty() && nickid == uid.get<CNickID>();
     }
     return false;
 }
