@@ -134,7 +134,9 @@ namespace wasm {
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
-            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, database, recurse_depth + 1);
+            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx,
+                                                   inline_trx.contract, database, receipts,
+                                                   recurse_depth + 1);
         }
 
     }

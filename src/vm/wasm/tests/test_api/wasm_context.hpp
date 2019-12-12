@@ -15,6 +15,7 @@
 #include "wasm/wasm_context_interface.hpp"
 #include "wasm/wasm_trace.hpp"
 #include "eosio/vm/allocator.hpp"
+#include "entities/receipt.h"
 
 using namespace std;
 using namespace wasm;
@@ -46,7 +47,7 @@ public:
         	value = iter->second;
         	return true;
         }
-        
+
         return false;
     }
 
@@ -94,7 +95,7 @@ public:
     }
 
     void print() {
-    	for(auto iter = database.begin(); iter != database.end(); iter++) 
+    	for(auto iter = database.begin(); iter != database.end(); iter++)
            std::cout << "key:" << iter->first << " value:" << iter->second<<std::endl ;
     }
 
@@ -114,11 +115,12 @@ public:
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
+                                     vector<CReceipt> &receipts,
                                      CValidationState &state,
                                      uint32_t recurse_depth);
 
     CCacheWrapper cache;
-    CValidationState state;  
+    CValidationState state;
 };
 
 
@@ -126,10 +128,10 @@ public:
 class wasm_context : public wasm_context_interface {
 
     public:
-        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, CValidationState &s,
-                      bool mining = false,
-                      uint32_t depth = 0 )
-                : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
+        wasm_context(CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
+                     vector<CReceipt> &receipts, CValidationState &s, bool mining = false,
+                     uint32_t depth = 0)
+            : trx(t), control_trx(ctrl), cache(cw), state(s), recurse_depth(depth) {
             reset_console();
         };
 
@@ -172,7 +174,7 @@ class wasm_context : public wasm_context_interface {
             _pending_console_output << val;
         }
 
-        bool is_account(uint64_t account) { return true; } 
+        bool is_account(uint64_t account) { return true; }
         void require_auth( uint64_t account ) {}
         void require_auth2( uint64_t account, uint64_t permission ) {}
         bool has_authorization( uint64_t account ) const {return true;}
@@ -184,7 +186,7 @@ class wasm_context : public wasm_context_interface {
         void update_storage_usage(uint64_t account, int64_t size_in_bytes){};
 
         void pause_billing_timer(){ };
-        void resume_billing_timer(){ };      
+        void resume_billing_timer(){ };
 
     public:
         uint64_t _receiver;
@@ -193,6 +195,7 @@ class wasm_context : public wasm_context_interface {
         CWasmContractTx &control_trx;
         CCacheWrapper &cache;
         CValidationState &state;
+        vector<CReceipt> receipts;
 
         uint32_t recurse_depth;
         vector <uint64_t> notified;

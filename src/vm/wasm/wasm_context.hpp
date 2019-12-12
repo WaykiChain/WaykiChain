@@ -14,6 +14,7 @@
 #include "wasm/wasm_trace.hpp"
 #include "eosio/vm/allocator.hpp"
 #include "persistence/cachewrapper.h"
+#include "entities/receipt.h"
 
 using namespace std;
 using namespace wasm;
@@ -26,9 +27,9 @@ namespace wasm {
     class wasm_context : public wasm_context_interface {
 
     public:
-        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw, bool mining,
-                      uint32_t depth = 0 )
-                : trx(t), control_trx(ctrl), database(cw), recurse_depth(depth) {
+        wasm_context( CWasmContractTx &ctrl, inline_transaction &t, CCacheWrapper &cw,
+            vector<CReceipt> &receipts_in, bool mining, uint32_t depth = 0 )
+                : trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
             reset_console();
 
             if(mining){
@@ -36,8 +37,8 @@ namespace wasm {
             }
         };
 
-        ~wasm_context() { 
-            wasm_alloc.free(); 
+        ~wasm_context() {
+            wasm_alloc.free();
         };
 
     public:
@@ -66,7 +67,7 @@ namespace wasm {
         uint32_t get_action_data_size() { return trx.data.size(); }
         bool set_data( uint64_t contract, string k, string v ) {
 
-            CAccount contract_account; 
+            CAccount contract_account;
             wasm::name contract_name = wasm::name(contract);
             WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
             "wasm_context.set_data, contract account does not exist, contract = %s",contract_name.to_string().c_str())
@@ -74,7 +75,7 @@ namespace wasm {
             return database.contractCache.SetContractData(contract_account.regid, k, v);
         }
         bool get_data( uint64_t contract, string k, string &v ) {
-            CAccount contract_account; 
+            CAccount contract_account;
             wasm::name contract_name = wasm::name(contract);
             WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
             "wasm_context.get_data, contract account does not exist, contract = %s",contract_name.to_string().c_str())
@@ -82,11 +83,11 @@ namespace wasm {
             return database.contractCache.GetContractData(contract_account.regid, k, v);
         }
         bool erase_data( uint64_t contract, string k ) {
-            CAccount contract_account; 
+            CAccount contract_account;
             wasm::name contract_name = wasm::name(contract);
             WASM_ASSERT(database.accountCache.GetAccount(CNickID(contract_name.to_string()), contract_account), account_operation_exception,
             "wasm_context.erase_data, contract account does not exist, contract = %s",contract_name.to_string().c_str())
-                       
+
             return database.contractCache.EraseContractData(contract_account.regid, k);
         }
 
@@ -115,6 +116,7 @@ namespace wasm {
         CWasmContractTx &control_trx;
         CCacheWrapper &database;
         //CValidationState &state;
+        vector<CReceipt> &receipts;
 
         uint32_t recurse_depth;
         vector <uint64_t> notified;

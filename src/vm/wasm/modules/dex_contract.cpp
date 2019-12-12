@@ -95,34 +95,34 @@ static void check_dex_operator_fee(CCacheWrapper &cw, const SysParamType &param_
     WASM_ASSERT(fee.amount == default_fee, wasm_assert_exception, "fee.amount must be %d", default_fee);
 }
 
-static void process_dex_operator_fee(CCacheWrapper &cw, const wasm::asset &fee, const string &action,
-    CAccount &registrant_account, vector<CReceipt> &receipts) {
+static void process_dex_operator_fee(wasm_context &context, const wasm::asset &fee, const string &action,
+    CAccount &registrant_account) {
 
     const TokenSymbol &symbol = fee.sym.code().to_string();
     uint64_t amount = fee.amount;
 
     wasm_account::sub_free_balance(registrant_account, symbol, amount, ERROR_TITLE("registered fee"));
-    wasm_account::save(cw, registrant_account, ERROR_TITLE("registrant"));
+    wasm_account::save(context.database, registrant_account, ERROR_TITLE("registrant"));
 
     uint64_t risk_fee       = amount * DEX_OPERATOR_RISK_FEE_RATIO / RATIO_BOOST;
     uint64_t total_delegate_fee = amount - risk_fee;
 
     shared_ptr<CAccount> sp_risk_riserve_account = make_shared<CAccount>();
-    WASM_ASSERT(cw.accountCache.GetFcoinGenesisAccount(*sp_risk_riserve_account), wasm_assert_exception,
+    WASM_ASSERT(context.database.accountCache.GetFcoinGenesisAccount(*sp_risk_riserve_account), wasm_assert_exception,
         "%s(), risk riserve account does not existed", __func__);
 
     wasm_account::add_free_balance(*sp_risk_riserve_account, symbol, risk_fee, ERROR_TITLE("risk fee"));
-    wasm_account::save(cw, *sp_risk_riserve_account, ERROR_TITLE("risk riserve"));
+    wasm_account::save(context.database, *sp_risk_riserve_account, ERROR_TITLE("risk riserve"));
 
     if (action == ASSET_ACTION_ISSUE)
-        receipts.emplace_back(registrant_account.nickid, sp_risk_riserve_account->regid, symbol,
+        context.receipts.emplace_back(registrant_account.nickid, sp_risk_riserve_account->regid, symbol,
                               risk_fee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RISERVE);
     else
-        receipts.emplace_back(registrant_account.nickid, sp_risk_riserve_account->regid, symbol,
+        context.receipts.emplace_back(registrant_account.nickid, sp_risk_riserve_account->regid, symbol,
             risk_fee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RISERVE);
 
     VoteDelegateVector delegates;
-    WASM_ASSERT(cw.delegateCache.GetActiveDelegates(delegates), wasm_assert_exception,
+    WASM_ASSERT(context.database.delegateCache.GetActiveDelegates(delegates), wasm_assert_exception,
         "%s(), GetActiveDelegates failed", __func__);
     assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
 
@@ -137,10 +137,10 @@ static void process_dex_operator_fee(CCacheWrapper &cw, const wasm::asset &fee, 
         wasm_account::save(cw, *sp_delegate_account, ERROR_TITLE("delegate"));
 
         if (action == ASSET_ACTION_ISSUE)
-            receipts.emplace_back(registrant_account.nickid, delegate_regid, symbol, delegate_fee,
+            context.receipts.emplace_back(registrant_account.nickid, delegate_regid, symbol, delegate_fee,
                                   ReceiptCode::DEX_OPERATOR_REG_FEE_TO_MINER);
         else
-            receipts.emplace_back(registrant_account.nickid, delegate_regid, symbol, delegate_fee,
+            context.receipts.emplace_back(registrant_account.nickid, delegate_regid, symbol, delegate_fee,
                                   ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_MINER);
     }
 }
@@ -190,7 +190,7 @@ void dex::dex_operator_register(wasm_context &context) {
         wasm_account::check_account_existed(context.database, matcher_name, ERROR_TITLE("matcher"));
 
     vector<CReceipt> receipts; // TODO: receipts in wasm context
-    process_dex_operator_fee(context.database, fee, ASSET_ACTION_ISSUE, *sp_registrant_account, receipts);
+    process_dex_operator_fee(context, fee, ASSET_ACTION_ISSUE, *sp_registrant_account);
     DexOperatorDetail detail(owner_name, name, matcher_name, portal_url, memo);
     DexOperatorID new_id;
     WASM_ASSERT(context.database.dexCache.IncDexOperatorId(new_id), wasm_assert_exception, "increase dex operator id error");
@@ -273,8 +273,7 @@ void dex::dex_operator_update(wasm_context &context) {
         }
     }
 
-    vector<CReceipt> receipts; // TODO: receipts in wasm context
-    process_dex_operator_fee(context.database, fee, ASSET_ACTION_UPDATE, *sp_registrant_account, receipts);
+    process_dex_operator_fee(context, fee, ASSET_ACTION_UPDATE, *sp_registrant_account);
     WASM_ASSERT(context.database.dexCache.UpdateDexOperator(dex_operator_id, oldDexOperator, dexOperator),
         wasm_assert_exception, "update dex operator error");
 }
