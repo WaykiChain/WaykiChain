@@ -62,11 +62,12 @@ CChain chainMostWork;
 bool mining;        // could change from time to time due to vote change
 CKeyID minerKeyId;  // miner accout keyId
 CKeyID nodeKeyId;   // 1st keyId of the node
+extern CPBFTMan pbftMan;
 
 map<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocks;
 multimap<uint256/* blockhash */, COrphanBlock *> mapOrphanBlocksByPrev;
 map<uint256/* blockhash */, std::shared_ptr<CBaseTx> > mapOrphanTransactions;
-
+extern CPBFTContext pbftContext ;
 const string strMessageMagic = "Coin Signed Message:\n";
 
 
@@ -1534,14 +1535,20 @@ bool ActivateBestChain(CValidationState &state) {
         while(height >= 0 ){
             auto chainIndex = chainActive[height] ;
             if( chainIndex &&!chainMostWork.Contains(chainIndex)){
-                if(height == chainActive.GetFinalityBlockIndex()->height && chainIndex->GetBlockHash() == chainActive.GetFinalityBlockIndex()->GetBlockHash()){
-                    return false ;
+                CBlockIndex* finIndex = pbftMan.GetLocalFinIndex();
+                if(finIndex && chainIndex->GetBlockHash() == finIndex->GetBlockHash()){
+                    LogPrint(BCLog::INFO, "finality block can't be reverse");
+                    if(GetTime() - pbftMan.GetLocalFinLastUpdate()>60){
+                        pbftMan.SetLocalFinTimeout() ;
+                    }
+                    return true ;
                 }
                 height-- ;
             }
             if (chainIndex&& chainMostWork.Contains(chainIndex)){
                 break ;
-            }
+            }else if(chainIndex == nullptr)
+                return true ;
         }
 
         // Disconnect active blocks which are no longer in the best chain.
@@ -1584,7 +1591,7 @@ bool ActivateBestChain(CValidationState &state) {
             boost::thread t(runCommand, strCmd);  // thread runs free
         }
 
-        chainActive.UpdateFinalityBlock();
+       // chainActive.UpdateFinalityBlock();
     }
 
     return true;
@@ -1735,12 +1742,18 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
         // FIXME: enable it to avoid forked chain attack.
         if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight(block.GetHeight()))
             return state.DoS(100, ERRORMSG(
-                "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
-                block.GetHash().GetHex(), block.GetHeight()));
+                    "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+                    block.GetHash().GetHex(), block.GetHeight()));
 
         if (mapBlockIndex.find(pPreBlockIndex->GetBlockHash()) == mapBlockIndex.end())
             return state.DoS(10, ERRORMSG("ProcessForkedChain() : prev block not found"), 0, "bad-prevblk");
     }
+
+    // FIXME: enable it to avoid forked chain attack.
+    if (chainActive.Height() - pPreBlockIndex->height > SysCfg().GetMaxForkHeight(block.GetHeight()))
+        return state.DoS(100, ERRORMSG(
+                "ProcessForkedChain() : block at fork chain too earlier than tip block hash=%s block height=%d\n",
+                block.GetHash().GetHex(), block.GetHeight()));
 
     if (forkChainTipFound) {
         spCW = mapForkCache[forkChainTipBlockHash];
@@ -2001,17 +2014,34 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
     }
 
     // Relay inventory, but don't relay old inventory during initial block download
-    if (chainActive.Tip()->GetBlockHash() == blockHash) {
-        LOCK(cs_vNodes);
-        for (auto pNode : vNodes) {
-            //p2p_xiaoyu_20191116
-            if (mining) {
-                pNode->PushMessage("block", block); 
-                continue;
+    CBlockIndex* pTip = chainActive.Tip() ;
+    if (pTip->GetBlockHash() == blockHash) {
+        {
+            LOCK(cs_vNodes);
+            for (auto pNode : vNodes) {
+                //p2p_xiaoyu_20191116
+                if (mining) {
+                    pNode->PushMessage(NetMsgType::BLOCK, block);
+                    continue;
+                }
+                if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0))
+                    pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
             }
-            if (chainActive.Height() > (pNode->nStartingHeight != -1 ? pNode->nStartingHeight - 2000 : 0)) 
-                pNode->PushInventory(CInv(MSG_BLOCK, blockHash));
         }
+
+        VoteDelegateVector delegates;
+        if (pCdMan->pDelegateCache->GetActiveDelegates(delegates)) {
+            pbftContext.SaveMinersByHash(blockHash, delegates);
+        }
+
+
+        BroadcastBlockConfirm(pTip) ;
+        if(pbftMan.UpdateLocalFinBlock(pTip)){
+            BroadcastBlockFinality(pTip);
+            pbftMan.UpdateGlobalFinBlock(pTip);
+        }
+
+
     }
 
     return true;
@@ -2097,7 +2127,7 @@ void PushGetBlocks(CNode *pNode, CBlockIndex *pIndexBegin, uint256 hashEnd) {
     pNode->pIndexLastGetBlocksBegin = pIndexBegin;
     pNode->hashLastGetBlocksEnd     = hashEnd;
     CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
-    pNode->PushMessage("getblocks", blockLocator, hashEnd);
+    pNode->PushMessage(NetMsgType::GETBLOCKS, blockLocator, hashEnd);
     LogPrint(BCLog::NET, "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
 }
 
@@ -2116,7 +2146,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
             pNode->pIndexLastGetBlocksBegin = pIndexBegin;
             pNode->hashLastGetBlocksEnd     = hashEnd;
             CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
-            pNode->PushMessage("getblocks", blockLocator, hashEnd);
+            pNode->PushMessage(NetMsgType::GETBLOCKS, blockLocator, hashEnd);
             LogPrint(BCLog::NET, "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
         } else {
             if (count >= 5000) {
@@ -2128,7 +2158,7 @@ void PushGetBlocksOnCondition(CNode *pNode, CBlockIndex *pIndexBegin, uint256 ha
         pNode->pIndexLastGetBlocksBegin = pIndexBegin;
         pNode->hashLastGetBlocksEnd     = hashEnd;
         CBlockLocator blockLocator      = chainActive.GetLocator(pIndexBegin);
-        pNode->PushMessage("getblocks", blockLocator, hashEnd);
+        pNode->PushMessage(NetMsgType::GETBLOCKS, blockLocator, hashEnd);
         LogPrint(BCLog::NET, "getblocks from peer %s, hashEnd:%s\n", pNode->addr.ToString(), hashEnd.GetHex());
     }
 }
@@ -2143,13 +2173,8 @@ bool ProcessBlock(CValidationState &state, CNode *pFrom, CBlock *pBlock, CDiskBl
     if (mapBlockIndex.count(blockHash))
         return state.Invalid(ERRORMSG("ProcessBlock() : block [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
                              "duplicate");
-#if 0
-    // disable finality block check
-   if ( pBlock->GetHeight() <= (uint32_t)chainActive.GetFinalityBlockIndex()->height){
-        return state.Invalid(ERRORMSG("ProcessBlock() : this inbound block's height(%d) is irrreversible(%d)",pBlock->GetHeight(), chainActive.GetFinalityBlockIndex()->height), 0, "irrreversible");
 
-    }
-#endif
+
     if (mapOrphanBlocks.count(blockHash))
         return state.Invalid(
             ERRORMSG("ProcessBlock() : block (orphan) [%u]: %s exists", blockHeight, blockHash.ToString()), 0,
@@ -2316,7 +2341,7 @@ bool static LoadBlockIndexDB() {
     }
 
     chainActive.SetTip(it->second);
-    chainActive.UpdateFinalityBlock();
+  //  chainActive.UpdateFinalityBlock();
     LogPrint(BCLog::INFO, "LoadBlockIndexDB(): hashBestChain=%s height=%d date=%s\n",
              chainActive.Tip()->GetBlockHash().ToString(), chainActive.Height(),
              DateTimeStrFormat("%Y-%m-%d %H:%M:%S", chainActive.Tip()->GetBlockTime()));

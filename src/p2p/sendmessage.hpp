@@ -58,7 +58,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             // if (pTo->nVersion > BIP0031_VERSION) {
             // Take timestamp as close as possible before transmitting ping
             pTo->nPingUsecStart = GetTimeMicros();
-            pTo->PushMessage("ping", nonce);
+            pTo->PushMessage(NetMsgType::PING, nonce);
             // } else {
             //     // Peer is too old to support ping command with nonce, pong will never arrive, disable timing
             //     pTo->nPingUsecStart = 0;
@@ -106,14 +106,14 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
                         vAddr.push_back(addr);
                         // receiver rejects addr messages larger than 1000
                         if (vAddr.size() >= 1000) {
-                            pTo->PushMessage("addr", vAddr);
+                            pTo->PushMessage(NetMsgType::ADDR, vAddr);
                             vAddr.clear();
                         }
                     }
                 }
                 pTo->vAddrToSend.clear();
                 if (!vAddr.empty())
-                    pTo->PushMessage("addr", vAddr);
+                    pTo->PushMessage(NetMsgType::ADDR, vAddr);
             }
 
             // Start block sync
@@ -147,7 +147,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         }
 
         for (const auto &reject : state.rejects)
-            pTo->PushMessage("reject", (string) "block", reject.chRejectCode, reject.strRejectReason, reject.blockHash);
+            pTo->PushMessage(NetMsgType::REJECT, (string) "block", reject.chRejectCode, reject.strRejectReason, reject.blockHash);
         state.rejects.clear();
 
         //
@@ -191,7 +191,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
                 if (pTo->setInventoryKnown.insert(inv).second) {
                     vInv.push_back(inv);
                     if (vInv.size() >= 1000) {
-                        pTo->PushMessage("inv", vInv);
+                        pTo->PushMessage(NetMsgType::INV, vInv);
                         vInv.clear();
                     }
                 }
@@ -199,7 +199,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             pTo->vInventoryToSend = vInvWait;
         }
         if (!vInv.empty())
-            pTo->PushMessage("inv", vInv);
+            pTo->PushMessage(NetMsgType::INV, vInv);
 
         // Detect stalled peers. Require that blocks are in flight, we haven't
         // received a (requested) block in one minute, and that all blocks are
@@ -225,7 +225,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
             LogPrint(BCLog::NET, "send MSG_BLOCK msg! time_ms=%lld, hash=%s, peer=%s, FlightBlocks=%d, index=%d\n",
                 GetTimeMillis(), hash.ToString(), state.name, state.nBlocksInFlight, index++);
             if (vGetData.size() >= 1000) {
-                pTo->PushMessage("getdata", vGetData);
+                pTo->PushMessage(NetMsgType::GETDATA, vGetData);
                 vGetData.clear();
                 index = 0;
             }
@@ -240,7 +240,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
                 LogPrint(BCLog::NET, "sending getdata: %s\n", inv.ToString());
                 vGetData.push_back(inv);
                 if (vGetData.size() >= 1000) {
-                    pTo->PushMessage("getdata", vGetData);
+                    pTo->PushMessage(NetMsgType::GETDATA, vGetData);
                     vGetData.clear();
                 }
             }
@@ -248,7 +248,7 @@ bool SendMessages(CNode *pTo, bool fSendTrickle) {
         }
 
         if (!vGetData.empty())
-            pTo->PushMessage("getdata", vGetData);
+            pTo->PushMessage(NetMsgType::GETDATA, vGetData);
     }
 
     return true;

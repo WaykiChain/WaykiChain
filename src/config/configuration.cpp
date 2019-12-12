@@ -79,6 +79,10 @@ uint32_t G_CONFIG_TABLE::GetFeatureForkHeight(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
     return nFeatureForkHeight[type];
 }
+uint32_t G_CONFIG_TABLE::GetCoutinuousProcduceForkHeight(const NET_TYPE type) const {
+    assert(type >= 0 && type < 3);
+    return nContinuousProduceBlockForkHeight[type] ;
+}
 
 uint32_t G_CONFIG_TABLE::GetStableCoinGenesisHeight(const NET_TYPE type) const {
     assert(type >= 0 && type < 3);
@@ -283,3 +287,9 @@ uint32_t G_CONFIG_TABLE::nVer3ForkHeight[3] {
     8000000,    // mainnet:
     2000000,    // testnet
     500};       // regtest
+
+uint32_t G_CONFIG_TABLE::nContinuousProduceBlockForkHeight[3] {
+    8000000,    //mainnet
+    2000000,    //testnet
+    30          //regtest
+};

@@ -123,6 +123,8 @@ coin_CORE_H = \
   p2p/chainmessage.h \
   p2p/protocol.h \
   miner/miner.h \
+  miner/pbftcontext.h \
+  miner/pbftmanager.h \
   mruset.h \
   netbase.h \
   net.h \
@@ -155,6 +157,7 @@ coin_CORE_H = \
   rpc/core/rpcserver.h \
   rpc/rpcblockchain.h \
   rpc/rpcdump.h \
+  rpc/rpcdex.h \
   rpc/rpcmining.h \
   rpc/rpcmisc.h \
   rpc/rpcnet.h \
@@ -294,13 +297,15 @@ WASM_H = \
   vm/wasm/wasm_interface.hpp \
   vm/wasm/wasm_native_contract.hpp \
   vm/wasm/wasm_trace.hpp \
-  vm/wasm/wasm_rpc_message.hpp
+  vm/wasm/wasm_rpc_message.hpp \
+  vm/wasm/modules/dex_contract.hpp
 
 WASM_CPP = \
   vm/wasm/abi_serializer.cpp \
   vm/wasm/wasm_context.cpp \
   vm/wasm/wasm_native_contract.cpp \
-  vm/wasm/abi_serializer.cpp
+  vm/wasm/abi_serializer.cpp \
+  vm/wasm/modules/dex_contract.cpp
 
 
 liblua53_a_SOURCES = \
@@ -324,6 +329,8 @@ libcoin_server_a_SOURCES = \
   init.cpp \
   main.cpp \
   miner/miner.cpp \
+  miner/pbftcontext.cpp \
+  miner/pbftmanager.cpp \
   net.cpp \
   p2p/addrman.cpp \
   p2p/protocol.cpp \
@@ -333,6 +340,7 @@ libcoin_server_a_SOURCES = \
   rpc/core/rpcprotocol.cpp \
   rpc/core/rpcserver.cpp \
   rpc/rpcblockchain.cpp \
+  rpc/rpcdex.cpp \
   rpc/rpcdump.cpp \
   rpc/rpcmining.cpp \
   rpc/rpcmisc.cpp \

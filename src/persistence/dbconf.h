@@ -74,6 +74,7 @@ namespace dbk {
         DEFINE( BLOCKFILE_NUM_INFO,   "bfni",   BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
         DEFINE( LAST_BLOCKFILE,       "ltbf",   BLOCK )         /* [prefix] --> $LastBlockFile */ \
         DEFINE( REINDEX,              "ridx",   BLOCK )         /* [prefix] --> $Reindex = 1 | 0 */ \
+        DEFINE( FINALITY_BLOCK,       "finb",   BLOCK )         /* [prefix] --> &globalfinblock height and hash */ \
         DEFINE( FLAG,                 "flag",   BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
         DEFINE( BEST_BLOCKHASH,       "bbkh",   BLOCK )         /* [prefix] --> $BestBlockHash */ \
         DEFINE( TXID_DISKINDEX,       "tidx",   BLOCK )      /* tidx{$txid} --> $DiskTxPos */ \
@@ -109,6 +110,9 @@ namespace dbk {
         /**** dex db                                                                    */ \
         DEFINE( DEX_ACTIVE_ORDER,     "dato",   DEX )           /* [prefix]{txid} --> active order */ \
         DEFINE( DEX_BLOCK_ORDERS,     "dbos",   DEX )           /* [prefix]{height, generate_type, txid} --> active order */ \
+        DEFINE( DEX_OPERATOR_LAST_ID, "doli",   DEX )           /* [prefix] --> dex_operator_new_id */ \
+        DEFINE( DEX_OPERATOR_DETAIL,  "dode",   DEX )           /* [prefix]{dex_operator_id} --> dex_operator_detail */ \
+        DEFINE( DEX_OPERATOR_OWNER_MAP, "doom",   DEX )         /* [prefix]{owner_name} --> dex_operator_id */ \
         /**** log db                                                                    */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",   LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /**** tx receipt db                                                                    */ \

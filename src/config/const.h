@@ -156,6 +156,10 @@ static const uint64_t INITIAL_BASE_COIN_AMOUNT               = 210000000;  // 21
 static const uint32_t BLOCK_INTERVAL_PRE_STABLE_COIN_RELEASE = 10;         // 10 seconds
 static const uint32_t BLOCK_INTERVAL_STABLE_COIN_RELEASE     = 3;          // 3 seconds
 
+static const uint32_t CONTINUOUS_BLOCK_COUNT_BEFORE_FORK = 1 ;   //coutinuous produce block count
+static const uint32_t CONTINUOUS_BLOCK_COUNT_AFTER_FORK  = 2 ;
+
+
 static const uint64_t INITIAL_SUBSIDY_RATE = 5;  // Initial subsidy rate upon vote casting
 static const uint64_t FIXED_SUBSIDY_RATE   = 1;  // Eventual/lasting subsidy rate for vote casting
 

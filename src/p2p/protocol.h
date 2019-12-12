@@ -244,6 +244,22 @@ extern const char *GETBLOCKTXN;
  * @since protocol version 70014 as described by BIP 152
  */
 extern const char *BLOCKTXN;
+
+/**
+ * the message must be send by miner,means the the
+ * miner had checked the block  and it's valid ;
+ * @since protocol version 70014 as described by BIP 152
+ */
+extern const char *CONFIRMBLOCK ;
+
+extern const char *FINALITYBLOCK ;
+};
+
+enum PBFTMsgType {
+
+    CONFIRM_BLOCK =1 ,
+    FINALITY_BLOCK =2 ,
+
 };
 
 /** A CService with information about it as peer */
@@ -282,20 +298,6 @@ class CAddress : public CService
         int64_t nLastTry;
 };
 
-class CHandshake {
-
-public:
-    uint32_t tipHeight ;
-
-public:
-    CHandshake() ;
-    CHandshake(uint32_t tipHeight):tipHeight(tipHeight) {};
-
-    IMPLEMENT_SERIALIZE(
-            READWRITE(tipHeight);
-            )
-};
-
 /** inv message data */
 class CInv
 {
@@ -321,6 +323,57 @@ class CInv
     public:
         int32_t type;
         uint256 hash;
+};
+
+class CPBFTMessage{
+public:
+    vector<unsigned char > vSignature ;
+    CRegID miner ;
+    uint32_t height ;
+    uint256 blockHash ;
+    uint256 preBlockHash ;
+    int32_t msgType ;
+
+
+
+    bool SetSignature(const vector<unsigned char> signature) { vSignature = signature ;  return true ;};
+
+    IMPLEMENT_SERIALIZE
+    (
+            READWRITE(msgType) ;
+            READWRITE(vSignature) ;
+            READWRITE(miner);
+            READWRITE(height);
+            READWRITE(blockHash);
+            READWRITE(preBlockHash);
+    )
+
+    friend bool operator<(const CPBFTMessage& a , const CPBFTMessage& b);
+    uint256 GetHash() const ;
+
+};
+
+class CBlockConfirmMessage: public CPBFTMessage{
+public:
+    CBlockConfirmMessage() = default ;
+    CBlockConfirmMessage(const uint32_t heightIn,
+                 const uint256 blockHashIn, const uint256 preBlockHashIn){
+        msgType = PBFTMsgType::CONFIRM_BLOCK ;
+        height = heightIn;
+        blockHash = blockHashIn ;
+        preBlockHash = preBlockHashIn ;
+    }
+};
+class CBlockFinalityMessage: public CPBFTMessage{
+public:
+    CBlockFinalityMessage() = default ;
+    CBlockFinalityMessage(const uint32_t heightIn,
+                         const uint256 blockHashIn, const uint256 preBlockHashIn){
+        msgType = PBFTMsgType::FINALITY_BLOCK ;
+        height = heightIn;
+        blockHash = blockHashIn ;
+        preBlockHash = preBlockHashIn ;
+    }
 };
 
 enum

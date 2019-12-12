@@ -110,7 +110,8 @@ public:
 
     bool IsMature(const uint32_t currHeight) const ;
     const string &GetNickIdRaw() const { return nickId; }
-    bool IsEmpty() const { return (nickId.size() == 0); }
+    bool IsEmpty() const { return nickId.empty(); }
+    void SetEmpty() { nickId = ""; }
     void Clear() { nickId.clear(); }
     string ToString() const { return nickId; }
 

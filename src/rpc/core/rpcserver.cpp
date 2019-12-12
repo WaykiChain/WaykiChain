@@ -185,9 +185,9 @@ string CRPCTable::help(string strCommand) const {
             string strHelp = string(e.what());
             message_ltrim(strHelp, '\n');
             if (strCommand == ""){
-                if (strHelp.find('\n') != string::npos){ 
-                    message_ltrim(strHelp, ' ');                 
-                    strHelp = strHelp.substr(0, strHelp.find('\n'));   
+                if (strHelp.find('\n') != string::npos){
+                    message_ltrim(strHelp, ' ');
+                    strHelp = strHelp.substr(0, strHelp.find('\n'));
                 }
 
             }
@@ -349,6 +349,8 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexorder",                &getdexorder,                true,      false,      false },
     { "getdexsysorders",            &getdexsysorders,            true,      false,      false },
     { "getdexorders",               &getdexorders,               true,      false,      false },
+    { "getdexoperator",             &getdexoperator,             true,      false,      false },
+    { "getdexoperatorbyowner",      &getdexoperatorbyowner,      true,      false,      false },
 
     /* for asset */
     { "submitassetissuetx",         &submitassetissuetx,         false,     false,      false },
@@ -357,13 +359,13 @@ static const CRPCCommand vRPCCommands[] =
     { "getassets",                  &getassets,                  true,      false,      false },
 
     /* for wasm */
-    { "submitwasmcontractdeploytx", &submitwasmcontractdeploytx,       true,      false,      true },  
-    { "submitwasmcontractcalltx",   &submitwasmcontractcalltx,          true,      false,      true }, 
-    { "gettablewasm",               &gettablewasm,      true,      false,      true },  
-    { "jsontobinwasm",              &jsontobinwasm,     true,      false,      true },  
-    { "bintojsonwasm",              &bintojsonwasm,     true,      false,      true }, 
-    { "getcodewasm",                &getcodewasm,       true,      false,      true },  
-    { "getabiwasm",                 &getabiwasm,        true,      false,      true },   
+    { "submitwasmcontractdeploytx", &submitwasmcontractdeploytx,       true,      false,      true },
+    { "submitwasmcontractcalltx",   &submitwasmcontractcalltx,          true,      false,      true },
+    { "gettablewasm",               &gettablewasm,      true,      false,      true },
+    { "jsontobinwasm",              &jsontobinwasm,     true,      false,      true },
+    { "bintojsonwasm",              &bintojsonwasm,     true,      false,      true },
+    { "getcodewasm",                &getcodewasm,       true,      false,      true },
+    { "getabiwasm",                 &getabiwasm,        true,      false,      true },
 
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

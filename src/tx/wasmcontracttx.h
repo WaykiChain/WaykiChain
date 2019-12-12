@@ -68,6 +68,7 @@ public:
                                       wasm::inline_transaction& trx,
                                       uint64_t receiver,
                                       CCacheWrapper &database,
+                                      vector<CReceipt> &receipts,
                                       //CValidationState &state,
                                       uint32_t recurse_depth);
 

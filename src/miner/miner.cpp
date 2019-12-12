@@ -5,6 +5,7 @@
 
 #include "miner.h"
 
+#include "pbftcontext.h"
 #include "init.h"
 #include "main.h"
 #include "net.h"
@@ -15,22 +16,15 @@
 #include "persistence/txdb.h"
 #include "persistence/contractdb.h"
 #include "persistence/cachewrapper.h"
+#include "p2p/protocol.h"
 
 #include <algorithm>
 #include <boost/circular_buffer.hpp>
 
 extern CWallet *pWalletMain;
+extern CPBFTContext pbftContext ;
 extern void SetMinerStatus(bool bStatus);
-//////////////////////////////////////////////////////////////////////////////
-//
-// CoinMiner
-//
 
-struct Miner {
-    VoteDelegate delegate;
-    CAccount account;
-    CKey key;
-};
 
 uint64_t nLastBlockTx   = 0;
 uint64_t nLastBlockSize = 0;
@@ -38,6 +32,7 @@ uint64_t nLastBlockSize = 0;
 MinedBlockInfo miningBlockInfo;
 boost::circular_buffer<MinedBlockInfo> minedBlocks(MAX_MINED_BLOCK_COUNT);
 CCriticalSection csMinedBlocks;
+
 
 // check the time is not exceed the limit time (2s) for packing new block
 static bool CheckPackBlockTime(int64_t startMiningMs, int32_t blockHeight) {
@@ -109,15 +104,19 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
     }
 }
 
+
 bool GetCurrentDelegate(const int64_t currentTime, const int32_t currHeight, const VoteDelegateVector &delegates,
                                VoteDelegate &delegate) {
-    uint32_t slot  = currentTime / GetBlockInterval(currHeight);
+
+    uint32_t slot  = currentTime / GetBlockInterval(currHeight) / GetContinuousBlockCount(currHeight);
     uint32_t index = slot % IniCfg().GetTotalDelegateNum();
+
     delegate       = delegates[index];
     LogPrint(BCLog::DEBUG, "currentTime=%lld, slot=%d, index=%d, regId=%s\n", currentTime, slot, index, delegate.regid.ToString());
 
     return true;
 }
+
 
 static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
 
@@ -145,9 +144,21 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
     }
 }
 
-void ShuffleDelegates(const int32_t nCurHeight, VoteDelegateVector &delegates) {
+inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t blockTime ){
+    if (curHeight < (int32_t)SysCfg().GetContinuousProduceForkHeight()){
+        return curHeight ;
+    }else{
+        int64_t slot = blockTime/GetBlockInterval(curHeight) ;
+        return slot/ GetContinuousBlockCount(curHeight);
+    }
+}
+
+void ShuffleDelegates(const int32_t curHeight, const int64_t blockTime, VoteDelegateVector &delegates) {
+
     uint32_t totalDelegateNum = IniCfg().GetTotalDelegateNum();
-    string seedSource = strprintf("%u", nCurHeight / totalDelegateNum + (nCurHeight % totalDelegateNum > 0 ? 1 : 0));
+    int64_t oriSeed =GetShuffleOriginSeed( curHeight,blockTime );
+
+    string seedSource = strprintf("%u", oriSeed / totalDelegateNum + (oriSeed % totalDelegateNum > 0 ? 1 : 0));
     CHashWriter ss(SER_GETHASH, 0);
     ss << seedSource;
     uint256 currentSeed  = ss.GetHash();
@@ -172,7 +183,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, 
     if (!cwIn.delegateCache.GetActiveDelegates(delegates))
         return false;
 
-    ShuffleDelegates(pBlock->GetHeight(), delegates);
+    ShuffleDelegates(pBlock->GetHeight(),pBlock->GetTime(), delegates);
 
     if (!GetCurrentDelegate(pBlock->GetTime(), pBlock->GetHeight(), delegates, curDelegateOut))
         return ERRORMSG("VerifyRewardTx() : failed to get current delegate");
@@ -581,7 +592,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
     // for (auto &delegate : delegates)
     //     LogPrint("shuffle", "before shuffle: index=%d, regId=%s\n", index++, delegate.regid.ToString());
 
-    ShuffleDelegates(blockHeight, delegates);
+    ShuffleDelegates(blockHeight,MillisToSecond(startMiningMs), delegates);
 
     // index = 0;
     // for (auto &delegate : delegates)
@@ -615,6 +626,7 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
         blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress(), isMinerKey);
     return true;
 }
+
 
 static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &miner) {
     int64_t lastTime    = 0;
@@ -757,6 +769,14 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
                 LOCK(cs_main);
                 pIndexPrev = chainActive.Tip();
             }
+
+            if(pIndexPrev== nullptr)
+                continue ;
+
+            if(SysCfg().IsReindex()){
+                continue ;
+            }
+
             int32_t blockHeight = pIndexPrev->height + 1;
 
             int64_t startMiningMs = GetTimeMillis();
@@ -779,6 +799,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
             }
 
             mining     = true;
+
             if (!MineBlock(startMiningMs, pIndexPrev, *spMiner)) {
                 continue;
             }
@@ -789,7 +810,7 @@ void static CoinMiner(CWallet *pWallet, int32_t targetHeight) {
     } catch (...) {
         LogPrint(BCLog::INFO, "CoinMiner() : terminated\n");
         SetMinerStatus(false);
-        throw;
+        throw ;
     }
 }
 

@@ -13,16 +13,6 @@ CBlockIndex* CChain::Genesis() const {
     return vChain.size() > 0 ? vChain[0] : nullptr;
 }
 
-CBlockIndex* CChain::GetFinalityBlockIndex(){
-
-    if(!finalityBlockIndex) {
-        if (vChain.size() > 0)
-            return vChain[0];
-        else
-            return nullptr;
-    }
-    return finalityBlockIndex ;
-}
 
 /** Returns the index entry for the tip of this chain, or nullptr if none. */
 CBlockIndex* CChain::Tip() const {
@@ -52,44 +42,6 @@ CBlockIndex* CChain::Next(const CBlockIndex *pIndex) const {
 /** Return the maximal height in the chain. Is equal to chain.Tip() ? chain.Tip()->height : -1. */
 int32_t CChain::Height() const {
     return vChain.size() - 1;
-}
-
-
-
-bool CChain::UpdateFinalityBlock(){
-    set<CRegID> minerSet ;
-    uint32_t confirmMiners = FINALITY_BLOCK_CONFIRM_MINER_COUNT ;
-
-    if(SysCfg().NetworkID() == MAIN_NET && Height()< 3880000){
-        confirmMiners = 0 ;
-    }
-
-    if(SysCfg().NetworkID() == TEST_NET && Height() < (int32_t)SysCfg().GetStableCoinGenesisHeight()){
-        confirmMiners = 0 ;
-    }
-
-
-    auto pBlockIndex = Tip() ;
-    while(pBlockIndex->height > 0){
-
-        if(minerSet.size() >=confirmMiners ){
-
-            if( (finalityBlockIndex && finalityBlockIndex->height< pBlockIndex->height) || !finalityBlockIndex ){
-
-                if(finalityBlockIndex)
-                    assert(Contains(finalityBlockIndex));
-
-                finalityBlockIndex = pBlockIndex ;
-            }
-            return true;
-        }
-        minerSet.insert(pBlockIndex->miner) ;
-        pBlockIndex = pBlockIndex->pprev ;
-    }
-    if(finalityBlockIndex == nullptr )
-        finalityBlockIndex = vChain[0] ;
-
-    return true ;
 }
 
 CBlockIndex *CChain::SetTip(CBlockIndex *pIndex) {
@@ -150,5 +102,3 @@ CBlockIndex* CChain::FindFork(map<uint256, CBlockIndex *> &mapBlockIndex, const 
 
     return Genesis();
 }
-
-

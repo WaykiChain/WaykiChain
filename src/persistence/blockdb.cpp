@@ -109,7 +109,8 @@ uint32_t CBlockDBCache::GetCacheSize() const {
         flagCache.GetCacheSize() +
         bestBlockHashCache.GetCacheSize() +
         lastBlockFileCache.GetCacheSize() +
-        reindexCache.GetCacheSize();
+        reindexCache.GetCacheSize() +
+        finalityBlockCache.GetCacheSize() ;
 }
 
 bool CBlockDBCache::Flush() {
@@ -118,7 +119,7 @@ bool CBlockDBCache::Flush() {
     bestBlockHashCache.Flush();
     lastBlockFileCache.Flush();
     reindexCache.Flush();
-
+    finalityBlockCache.Flush();
     return true;
 }
 
@@ -173,4 +174,11 @@ bool CBlockDBCache::WriteFlag(const string &name, bool fValue) {
 }
 bool CBlockDBCache::ReadFlag(const string &name, bool &fValue) {
     return flagCache.GetData(name, fValue);
+}
+bool CBlockDBCache::WriteGlobalFinBlock(const int32_t height, const uint256 hash) {
+    finalityBlockCache.SetData(std::make_pair(height, hash)) ;
+    return true ;
+}
+bool CBlockDBCache::ReadGlobalFinBlock(std::pair<int32_t,uint256>& block) {
+    return finalityBlockCache.GetData(block) ;
 }

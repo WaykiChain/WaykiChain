@@ -430,6 +430,10 @@ public:
 
     I &get() { return n; }
     const I &get() const { return n; }
+
+    bool IsEmpty() const { return n == 0; }
+
+    void SetEmpty() { n = 0; }
 };
 
 template<typename I>
