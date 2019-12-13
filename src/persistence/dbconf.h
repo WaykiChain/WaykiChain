@@ -88,6 +88,7 @@ namespace dbk {
         DEFINE( CONTRACT_DATA,        "cdat",   CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
         DEFINE( CONTRACT_ITEM_NUM,    "citn",   CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
         DEFINE( CONTRACT_ACCOUNT,     "cacc",   CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
+        DEFINE( CONTRACT_TRACES,      "ctrs",   CONTRACT )      /* [prefix]{$txid} --> contract_traces */ \
         /**** delegate db                                                                      */ \
         DEFINE( VOTE,                 "vote",   DELEGATE )      /* "vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1 */ \
         DEFINE( LAST_VOTE_HEIGHT,     "lvht",   DELEGATE )      /* "[prefix] --> last_vote_height */ \
