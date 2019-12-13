@@ -95,7 +95,7 @@ class CNickID {
 
 public:
     string nickId;
-    uint32_t regHeight;
+    uint32_t regHeight = 0 ;
     CNickID() {}
     CNickID(string nickIdIn) {
         if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s", nickIdIn.c_str()));
