@@ -366,6 +366,7 @@ static const CRPCCommand vRPCCommands[] =
     { "bintojsonwasm",              &bintojsonwasm,     true,      false,      true },
     { "getcodewasm",                &getcodewasm,       true,      false,      true },
     { "getabiwasm",                 &getabiwasm,        true,      false,      true },
+    { "gettxtrace",                 &gettxtrace,        true,      false,      true },
 
     /* for test code */
     { "disconnectblock",        &disconnectblock,        true,      false,      true },

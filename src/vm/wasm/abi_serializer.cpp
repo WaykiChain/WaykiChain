@@ -373,7 +373,6 @@ namespace wasm {
 
         WASM_THROW(pack_exception,
                         "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
-
         json_spirit::Value var;
 
         return var;

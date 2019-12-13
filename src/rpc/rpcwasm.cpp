@@ -38,6 +38,7 @@
 #include "wasm_native_contract_abi.hpp"
 #include "wasm_native_contract.hpp"
 #include "wasm_rpc_message.hpp"
+#include "wasm_rpc_message.hpp"
 
 using namespace std;
 using namespace boost;
@@ -440,6 +441,36 @@ Value getabiwasm( const Array &params, bool fHelp ) {
 
         json_spirit::Object object_return;
         object_return.push_back(Pair("abi", abi_json));
+        return object_return;
+
+    } JSON_RPC_CAPTURE_AND_RETHROW;
+
+}
+
+
+Value gettxtrace( const Array &params, bool fHelp ) {
+
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_rpc_help_message)
+    RPCTypeCheck(params, list_of(str_type));
+
+    try{
+        auto database = std::make_shared<CCacheWrapper>(pCdMan);
+
+        uint256 trx_id = uint256S(params[0].get_str());
+        string trace;
+        WASM_ASSERT( database->contractCache.GetContractTraces(trx_id, trace),
+                     wasm_exception,
+                     "rpc::gettxtrace, set tx trace failed! txid=%s",
+                     trx_id.ToString().c_str())
+
+        std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
+        transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
+
+        json_spirit::Value v;
+        to_variant(t, v, *database);
+
+        json_spirit::Object object_return;
+        object_return.push_back(Pair("tx_trace", v));
         return object_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;

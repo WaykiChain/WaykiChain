@@ -23,7 +23,7 @@
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
 
-static inline void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
+void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
     json_spirit::Object obj;
 
@@ -38,7 +38,7 @@ static inline void to_variant( const wasm::permission &t, json_spirit::Value &v 
 }
 
 
-static inline void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &database) {
+void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &database) {
 
     json_spirit::Object obj;
 
@@ -86,7 +86,7 @@ static inline void to_variant( const wasm::inline_transaction &t, json_spirit::V
 }
 
 
-static inline void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
+void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
 
     json_spirit::Object obj;
 
@@ -122,8 +122,7 @@ static inline void to_variant( const wasm::inline_transaction_trace &t, json_spi
 
 }
 
-
-static inline void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database ) {
+void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database ) {
 
     json_spirit::Object obj;
 
@@ -350,6 +349,14 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel")
 
         //database.save_trace(GetHash(),trace);
+        std::vector<char> trace_bytes  = wasm::pack<transaction_trace>(trx_trace);
+        //transaction_trace t            = wasm::unpack<transaction_trace>(trace_bytes);
+        WASM_ASSERT( database.contractCache.SetContractTraces(GetHash(), std::string(trace_bytes.begin(),trace_bytes.end())),
+                     wasm_exception,
+                     "CWasmContractTx::ExecuteTx, set tx trace failed! txid=%s",
+                     GetHash().ToString().c_str())
+
+
         trace_to_receipts(trx_trace, receipts);
         WASM_ASSERT( database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
                      wasm_exception,
@@ -357,8 +364,8 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                      GetHash().ToString().c_str())
 
         // json_spirit::Value v;
-        // to_variant(trx_trace, v, database);
-        // execute_tx_return->SetReturn(json_spirit::write(v));
+        // to_variant(t, v, database);
+        // execute_tx_return->SetReturn(json_spirit::write_formatted(v));
         execute_tx_return->SetReturn(GetHash().ToString());
 
     } catch (wasm::exception &e) {
