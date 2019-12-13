@@ -15,7 +15,7 @@ namespace wasm {
     inline bool is_native_contract(uint64_t contract){
         if(contract == wasmio ||
            contract == wasmio_bank ||
-           contract == dex::wasmio_dex )
+           contract == dex::dex_operator )
             return true;
         return false;
     }

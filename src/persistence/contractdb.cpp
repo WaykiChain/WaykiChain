@@ -76,10 +76,19 @@ bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const stri
     return contractDataCache.EraseData(key);
 }
 
+bool CContractDBCache::GetContractTraces(const uint256 &txid, string &contractTraces) {
+    return contractTracesCache.GetData(txid, contractTraces);
+}
+
+bool CContractDBCache::SetContractTraces(const uint256 &txid, const string &contractTraces) {
+    return contractTracesCache.SetData(txid, contractTraces);
+}
+
 bool CContractDBCache::Flush() {
     contractCache.Flush();
     contractDataCache.Flush();
     contractAccountCache.Flush();
+    contractTracesCache.Flush();
 
     return true;
 }
@@ -87,7 +96,7 @@ bool CContractDBCache::Flush() {
 uint32_t CContractDBCache::GetCacheSize() const {
     return contractCache.GetCacheSize() +
         contractDataCache.GetCacheSize() +
-        contractAccountCache.GetCacheSize();
+        contractTracesCache.GetCacheSize();
 }
 
 

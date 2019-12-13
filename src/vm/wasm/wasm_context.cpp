@@ -110,7 +110,8 @@ namespace wasm {
             register_native_handler(wasmio, N(setcode), wasmio_native_setcode);
             register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
 
-            register_native_handler(dex::wasmio_dex, N(register), dex::dex_operator_register);
+            register_native_handler(dex::dex_operator, N(register), dex::dex_operator_register);
+            register_native_handler(dex::dex_operator, N(update), dex::dex_operator_update);
         }
     }
 

@@ -147,7 +147,7 @@ static void process_dex_operator_fee(wasm_context &context, const wasm::asset &f
 
 void dex::dex_operator_register(wasm_context &context) {
 
-    WASM_ASSERT(context._receiver == wasmio_dex, wasm_assert_exception,
+    WASM_ASSERT(context._receiver == dex_operator, wasm_assert_exception,
                 "%s(), Except contract wasmio.dex, But get %s", __func__, wasm::name(context._receiver).to_string().c_str());
 
     auto params = wasm::unpack<std::tuple<uint64_t, wasm::asset, uint64_t, uint64_t, string, string, string>>(context.trx.data);
@@ -162,7 +162,7 @@ void dex::dex_operator_register(wasm_context &context) {
 
     context.require_auth(registrant); //registrant auth
 
-    WASM_ASSERT(name.size() > NAME_SIZE_MAX, wasm_assert_exception, "name.size=%d is more than %d!",
+    WASM_ASSERT(name.size() <= NAME_SIZE_MAX, wasm_assert_exception, "name.size=%d is more than %d!",
         name.size(), NAME_SIZE_MAX);
     check_dex_operator_fee(context.database, DEX_OPERATOR_REGISTER_FEE, fee);
     WASM_ASSERT(check_url(portal_url), wasm_assert_exception, "portal_url invalid");
@@ -191,7 +191,7 @@ void dex::dex_operator_register(wasm_context &context) {
 
     vector<CReceipt> receipts; // TODO: receipts in wasm context
     process_dex_operator_fee(context, fee, ASSET_ACTION_ISSUE, *sp_registrant_account);
-    DexOperatorDetail detail(owner_name, name, matcher_name, portal_url, memo);
+    DexOperatorDetail detail(owner_name, matcher_name, name, portal_url, memo);
     DexOperatorID new_id;
     WASM_ASSERT(context.database.dexCache.IncDexOperatorId(new_id), wasm_assert_exception, "increase dex operator id error");
     WASM_ASSERT(context.database.dexCache.CreateDexOperator(new_id, detail), wasm_assert_exception, "save new dex operator error");
@@ -199,10 +199,10 @@ void dex::dex_operator_register(wasm_context &context) {
 
 void dex::dex_operator_update(wasm_context &context) {
 
-    WASM_ASSERT(context._receiver == wasmio_dex, wasm_assert_exception,
+    WASM_ASSERT(context._receiver == dex_operator, wasm_assert_exception,
                 "%s(), Except contract wasmio.dex, But get %s", __func__, wasm::name(context._receiver).to_string().c_str());
 
-    auto params = wasm::unpack<std::tuple<uint64_t, wasm::asset, uint64_t, wasm::optional<uint64_t>, wasm::optional<string>,
+    auto params = wasm::unpack<std::tuple<uint64_t, wasm::asset, uint32_t, wasm::optional<uint64_t>, wasm::optional<string>,
         wasm::optional<uint64_t>, wasm::optional<string>, wasm::optional<string>>>(context.trx.data);
 
     auto registrant      = std::get<0>(params);
@@ -223,16 +223,16 @@ void dex::dex_operator_update(wasm_context &context) {
         registrant_name, ERROR_TITLE("registrant"));
 
     DexOperatorDetail dexOperator;
-    WASM_ASSERT(!context.database.dexCache.GetDexOperator(dex_operator_id, dexOperator), wasm_assert_exception,
-        "the dex operator does not exist! owner=%ul", dex_operator_id);
+    WASM_ASSERT(context.database.dexCache.GetDexOperator(dex_operator_id, dexOperator), wasm_assert_exception,
+        "the dex operator does not exist! owner=%u", dex_operator_id);
 
     WASM_ASSERT(registrant_name == dexOperator.owner, wasm_assert_exception,
-        "the registrant is not owner of dex operator ! registrant=%ul", registrant_name.ToString())
+        "the registrant is not owner of dex operator! registrant=%u", registrant_name.ToString())
 
     DexOperatorDetail oldDexOperator = dexOperator;
 
     if (name && dexOperator.name != name.value()) {
-        WASM_ASSERT(name.value().size() > NAME_SIZE_MAX, wasm_assert_exception, "name.size=%d is more than %d!",
+        WASM_ASSERT(name.value().size() <= NAME_SIZE_MAX, wasm_assert_exception, "name.size=%d is more than %d!",
             name.value().size(), NAME_SIZE_MAX);
         dexOperator.name = name.value();
     }
