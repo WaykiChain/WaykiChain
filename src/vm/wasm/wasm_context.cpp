@@ -5,6 +5,7 @@
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
 #include "entities/account.h"
+#include "wasm/modules/dex_contract.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -60,21 +61,21 @@ namespace wasm {
     void wasm_context::execute_inline(inline_transaction t) {
 
        //ban inline except contract self and wasmio_bank
-       WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank , 
-                   wasm_assert_exception, 
+       WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank ,
+                   wasm_assert_exception,
                    "%s",
-                   "inline transaction can be sent to/by contract self or wasmio.bank ");  
+                   "inline transaction can be sent to/by contract self or wasmio.bank ");
 
        //check authorization
        for(const auto p: t.authorization){
-         
+
           if(p.account  == _receiver){ continue; } //contract authority
           if(t.contract == _receiver && has_permission_from_inline_transaction(p) ) { continue; } //same contract
 
-           WASM_ASSERT(false , 
-                       missing_auth_exception, 
-                       "Do not get the authority by account %s ", 
-                       wasm::name(p.account).to_string().c_str());     
+           WASM_ASSERT(false ,
+                       missing_auth_exception,
+                       "Do not get the authority by account %s ",
+                       wasm::name(p.account).to_string().c_str());
        }
 
        inline_transactions.push_back(t);
@@ -108,6 +109,8 @@ namespace wasm {
             wasmif.initialize(wasm::vm_type::eos_vm);
             register_native_handler(wasmio, N(setcode), wasmio_native_setcode);
             register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
+
+            register_native_handler(dex::wasmio_dex, N(register), dex::dex_operator_register);
         }
     }
 
@@ -131,7 +134,9 @@ namespace wasm {
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
-            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, database, recurse_depth + 1);
+            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx,
+                                                   inline_trx.contract, database, receipts,
+                                                   recurse_depth + 1);
         }
 
     }
@@ -219,7 +224,7 @@ namespace wasm {
         return false;
     }
 
-    bool wasm_context::is_account( uint64_t account ) { 
+    bool wasm_context::is_account( uint64_t account ) {
 
         auto account_name = wasm::name(account);
         return database.accountCache.HaveAccount(nick_name(account_name.to_string()));
@@ -229,7 +234,7 @@ namespace wasm {
 
         int64_t disk_usage = control_trx.nRunStep;
         disk_usage += size_in_bytes * fuel_store_fee_per_byte;
-        
+
         // WASM_TRACE("size_in_bytes:%ld", size_in_bytes)
         // WASM_TRACE("disk_usage:%ld", disk_usage)
 

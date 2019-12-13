@@ -1,5 +1,6 @@
 #pragma once
 #include "wasm/abi_def.hpp"
+#include "wasm/modules/dex_contract.hpp"
 
 namespace wasm {
 
@@ -55,6 +56,10 @@ namespace wasm {
             return true;
         } else if (wasm::wasmio_bank == contract){
             wasm::abi_def wasm_abi = wasmio_bank_contract_abi();
+            abi = wasm::pack<wasm::abi_def>(wasm_abi);
+            return true;
+        } else if (dex::wasmio_dex == contract){
+            wasm::abi_def wasm_abi = dex::get_abi();
             abi = wasm::pack<wasm::abi_def>(wasm_abi);
             return true;
         }

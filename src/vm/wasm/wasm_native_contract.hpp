@@ -2,6 +2,7 @@
 
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/asset.hpp"
+#include "wasm/modules/dex_contract.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -12,8 +13,9 @@ namespace wasm {
     void wasmio_bank_native_transfer( wasm_context & );
 
     inline bool is_native_contract(uint64_t contract){
-        if(contract == wasmio || 
-           contract == wasmio_bank )
+        if(contract == wasmio ||
+           contract == wasmio_bank ||
+           contract == dex::wasmio_dex )
             return true;
         return false;
     }
@@ -25,15 +27,15 @@ namespace wasm {
         WASM_ASSERT(precision == 8,
                     account_operation_exception,
                     "wasmnativecontract.sub_balance, The precision of system coin %s must be %d",
-                    symbol, 0) 
+                    symbol, 0)
 
         WASM_ASSERT(owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount),
                     account_operation_exception,
                     "wasmnativecontract.sub_balance, Operate account %s failed",
-                    owner.nickid.ToString().c_str())  
+                    owner.nickid.ToString().c_str())
 
         WASM_ASSERT(database.SetAccount(owner.regid, owner), account_operation_exception,
-                    "%s","wasmnativecontract.Setcode, Save account error")     
+                    "%s","wasmnativecontract.Setcode, Save account error")
     }
 
     inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
@@ -43,15 +45,15 @@ namespace wasm {
         WASM_ASSERT(precision == 8,
                     account_operation_exception,
                     "wasmnativecontract.add_balance, The precision of system coin %s must be %d",
-                    symbol, 0) 
+                    symbol, 0)
 
         WASM_ASSERT(owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount),
                     account_operation_exception,
                     "wasmnativecontract.add_balance, Operate account %s failed",
-                    owner.nickid.ToString().c_str()) 
+                    owner.nickid.ToString().c_str())
 
         WASM_ASSERT(database.SetAccount(owner.regid, owner), account_operation_exception,
-                    "%s","wasmnativecontract.Setcode, Save account error")          
+                    "%s","wasmnativecontract.Setcode, Save account error")
     }
 
 };

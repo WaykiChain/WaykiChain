@@ -30,8 +30,9 @@ namespace wasm {
     }
 
     bool CWasmContractTx::ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx){
-        trx_trace.traces.emplace_back();   
-        execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
+        trx_trace.traces.emplace_back();
+        vector<CReceipt> receipts;
+        execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, cache, receipts, state, 0);
         return true;
 
     };
@@ -39,10 +40,11 @@ namespace wasm {
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
+                                     vector<CReceipt> &receipts,
                                      CValidationState &state,
                                      uint32_t recurse_depth){
 
-            wasm_context wasmContext(*this, trx, cache, state, false, recurse_depth);
+            wasm_context wasmContext(*this, trx, cache, receipts, state, false, recurse_depth);
             wasmContext._receiver = receiver;
             wasmContext.execute(trace);
     };
@@ -110,7 +112,7 @@ namespace wasm {
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
             control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
-                                                  state, recurse_depth + 1);
+                                                  receipts, state, recurse_depth + 1);
         }
 
     }
@@ -124,7 +126,7 @@ namespace wasm {
 
         try {
             vector <uint8_t> code = get_code(_receiver);
-            if (code.size() > 0) 
+            if (code.size() > 0)
                 wasmif.execute(code, this);
         }
         WASM_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str().c_str() )
