@@ -122,6 +122,8 @@ coin_CORE_H = \
   p2p/addrman.h \
   p2p/chainmessage.h \
   p2p/protocol.h \
+  p2p/node.h \
+  p2p/netmessage.h \
   miner/miner.h \
   miner/pbftcontext.h \
   miner/pbftmanager.h \
@@ -334,6 +336,8 @@ libcoin_server_a_SOURCES = \
   net.cpp \
   p2p/addrman.cpp \
   p2p/protocol.cpp \
+  p2p/node.cpp \
+  p2p/netmessage.cpp \
   rpc/core/httpserver.cpp \
   rpc/core/rpcclient.cpp \
   rpc/core/rpccommons.cpp \

@@ -828,6 +828,7 @@ bool AppInit(boost::thread_group &threadGroup) {
         for (auto strFile : tmp) {
             vImportFiles.push_back(strFile);
         }
+
     }
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
 
