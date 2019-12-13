@@ -147,7 +147,7 @@ static void process_dex_operator_fee(wasm_context &context, const wasm::asset &f
 
 void dex::dex_operator_register(wasm_context &context) {
 
-    WASM_ASSERT(context._receiver == wasmio_dex, wasm_assert_exception,
+    WASM_ASSERT(context._receiver == dex_operator, wasm_assert_exception,
                 "%s(), Except contract wasmio.dex, But get %s", __func__, wasm::name(context._receiver).to_string().c_str());
 
     auto params = wasm::unpack<std::tuple<uint64_t, wasm::asset, uint64_t, uint64_t, string, string, string>>(context.trx.data);
@@ -199,7 +199,7 @@ void dex::dex_operator_register(wasm_context &context) {
 
 void dex::dex_operator_update(wasm_context &context) {
 
-    WASM_ASSERT(context._receiver == wasmio_dex, wasm_assert_exception,
+    WASM_ASSERT(context._receiver == dex_operator, wasm_assert_exception,
                 "%s(), Except contract wasmio.dex, But get %s", __func__, wasm::name(context._receiver).to_string().c_str());
 
     auto params = wasm::unpack<std::tuple<uint64_t, wasm::asset, uint32_t, wasm::optional<uint64_t>, wasm::optional<string>,

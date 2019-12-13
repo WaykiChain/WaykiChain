@@ -14,11 +14,9 @@ using namespace wasm;
 
 namespace dex {
 
+    const static uint64_t dex_operator     = N(dexoperator);
 
-    const static uint64_t wasmio_dex       = N(wasmio.dex);
-
-
-    inline wasm::abi_def get_abi() {
+    inline wasm::abi_def get_operator_abi() {
 
         wasm::abi_def abi;
 
