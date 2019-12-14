@@ -310,6 +310,7 @@ string HelpMessage() {
     strUsage += "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n";
     strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
 
+    strUsage += "  -rpcblacklist=<method>          " + _("Add Banned RPC method to black list ") + "\n";
     return strUsage;
 }
 
