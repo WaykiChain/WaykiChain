@@ -102,14 +102,14 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
                             "\nregister account to acquire its regid\n"
                             "\nArguments:\n"
                             "1.\"addr\":    (string, required)\n"
-                            "2.\"nickid\":  (string, required) 12 chars in .12345abcdefghijklmnopqrstuvwxyz\n"
+                            "2.\"nickid\":  (string, required) 12 chars in 12345abcdefghijklmnopqrstuvwxyz\n"
                             "3.\"fee\":     (combomoney, optional)\n"
                             "\nResult:\n"
                             "\"txid\":      (string) The transaction id.\n"
                             "\nExamples:\n"
-                            + HelpExampleCli("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 10000")
+                            + HelpExampleCli("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 1000000")
                             + "\nAs json rpc call\n"
-                            + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
+                            + HelpExampleRpc("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 1000000"));
 
 
     EnsureWalletIsUnlocked();
@@ -121,27 +121,27 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
-
     if(!account.nickid.IsEmpty()){
         throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
     }
 
+    if(nickid.find(".") != nickid.npos){
+        throw JSONRPCError(RPC_WALLET_ERROR, "nickid can't contain char dot ");
+    }
+
     try{
-        assert(wasm::name(nickid).value != 0) ;
+        if(wasm::name(nickid).value == 0) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "nickid's format is error");
+        }
     }catch (const wasm::exception& e ){
         throw JSONRPCError(RPC_WALLET_ERROR, e.detail());
     }catch(...){
         throw;
     }
 
-    CPubKey pubkey;
-    if (!pWalletMain->GetPubKey(account.keyid, pubkey))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in local wallet");
-
-
     CNickIdRegisterTx tx;
     tx.nickId       = nickid;
-    tx.txUid        = pubkey;
+    tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.valid_height = validHeight;
 
