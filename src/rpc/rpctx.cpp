@@ -130,6 +130,8 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
         assert(wasm::name(nickid).value != 0) ;
     }catch (const wasm::exception& e ){
         throw JSONRPCError(RPC_WALLET_ERROR, e.detail());
+    }catch(...){
+        throw;
     }
 
     CPubKey pubkey;

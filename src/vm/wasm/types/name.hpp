@@ -4,6 +4,7 @@
 #include <string_view>
 
 #include "check.hpp"
+#include "wasm/wasm_log.hpp"
 
 namespace wasm {
 
@@ -97,14 +98,25 @@ namespace wasm {
                 return;
             }
 
+            //WASM_TRACE("%s", string(str).c_str())
+            //std::cout <<"name:" << str << std::endl;
+
+            uint8_t dot = 0;
             auto n = std::min((uint32_t) str.size(), (uint32_t) 12u);
             for (decltype(n) i = 0; i < n; ++i) {
                 value <<= 5;
                 value |= char_to_value(str[i]);
+                if(str[i] == '.'){
+                    check( ++dot <= 1, "the amount of dot can not be > 1");
+                }
             }
             value <<= (4 + 5 * (12 - n));
             if (str.size() == 13) {
                 uint64_t v = char_to_value(str[12]);
+                if(str[12] == '.'){
+                    check( ++dot <= 1, "the amount of dot can not be > 1");
+                }
+
                 if (v > 0x0Full) {
                     check(false, "thirteenth character in name cannot be a letter that comes after j");
                 }
