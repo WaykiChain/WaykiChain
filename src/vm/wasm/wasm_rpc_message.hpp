@@ -224,6 +224,19 @@ namespace wasm { namespace rpc{
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getabiwasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
+    const char *get_tx_trace_rpc_help_message = R"=====(
+        gettxtrace "txid" 
+        1."txid": (string, required)  The hash of transaction
+        Result an object of the transaction detail
+        "nResult":
+        Examples:
+        > ./coind gettxtrace "wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W" 
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettxtrace", "params":"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W"}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    )=====";
+
+
+
 
 } // rpc
 } // wasm

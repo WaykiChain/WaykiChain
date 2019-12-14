@@ -450,7 +450,7 @@ Value getabiwasm( const Array &params, bool fHelp ) {
 
 Value gettxtrace( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_abi_wasm_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_tx_trace_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type));
 
     try{
