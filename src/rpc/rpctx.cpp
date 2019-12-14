@@ -101,7 +101,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
         throw runtime_error("submitnickidregistertx \"addr\" \"nickid\" [\"fee\"]\n"
                             "\nregister account to acquire its regid\n"
                             "\nArguments:\n"
-                            "1.\"addr\":    (string, required)\n"
+                            "1.\"addr or regid\":    (string, required)\n"
                             "2.\"nickid\":  (string, required) 12 chars in 12345abcdefghijklmnopqrstuvwxyz\n"
                             "3.\"fee\":     (combomoney, optional)\n"
                             "\nResult:\n"
