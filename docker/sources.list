@@ -9,7 +9,8 @@
 #deb-src http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse
 #deb-src http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse
 #deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse
-
+#
+#18.04
 deb http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
 deb-src http://mirrors.aliyun.com/ubuntu/ bionic main restricted universe multiverse
 deb http://mirrors.aliyun.com/ubuntu/ bionic-security main restricted universe multiverse
