@@ -82,6 +82,9 @@ namespace wasm {
                 json_spirit::read_string(params, data_v);
 
                 string action_type = abis.get_action_type(action);
+                if(action_type == string()){
+                    action_type = action;
+                }
                 //data = abis.variant_to_binary(action, data_v, max_serialization_time);
                 data = abis.variant_to_binary(action_type, data_v, max_serialization_time);
 
@@ -101,6 +104,9 @@ namespace wasm {
                 wasm::abi_serializer abis(def, max_serialization_time);
 
                 string action_type = abis.get_action_type(action);
+                if(action_type == string()){
+                    action_type = action;
+                }
                 //data_v = abis.binary_to_variant(action, data, max_serialization_time);
                 data_v = abis.binary_to_variant(action_type, data, max_serialization_time);
 
