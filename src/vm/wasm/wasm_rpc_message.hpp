@@ -26,7 +26,7 @@ namespace wasm { namespace rpc{
     //                              "\"10-3\" \"20-3\" \"/tmp/myapp.wasm\" \"/tmp/myapp.bai\""));
     // }
     const char *submit_wasm_contract_deploy_tx_rpc_help_message = R"=====(
-        submitwasmcontractdeploytx "sender" "contract" "wasm_file" "abi_file" ["memo"] [symbol:fee:unit]
+        submitwasmcontractdeploytx "sender" "contract" "wasm_file" "abi_file" [symbol:fee:unit]
         deploy code and abi to an account as contract
         Arguments:
         1."sender":          (string required) contract owner address from this wallet
@@ -34,7 +34,6 @@ namespace wasm { namespace rpc{
         3."wasm_file":       (string required), the file path of the contract wasm code
         4."abi_file":        (string required), the file path of the contract abi
         5."symbol:fee:unit": (string:numeric:string, optional) fee paid to miner, default is WICC:100000:sawi
-        6."memo":            (string optional) the memo of contract
         Result:
         "txhash":            (string)
         Examples:
@@ -63,11 +62,11 @@ namespace wasm { namespace rpc{
     // }
     const char *submit_wasm_contract_call_tx_rpc_help_message = R"=====(
         submitwasmcontractcalltx "sender" "contract" "action" "data" "fee"
-        1."sender ":  (string, required) sender name
-        2."contract": (string, required) contract name
-        3."action":   (string, required) action name
-        4."data":     (json string, required) action data
-        5."fee":      (numeric, required) pay to miner
+        1."sender ":         (string, required) sender name
+        2."contract":        (string, required) contract name
+        3."action":          (string, required) action name
+        4."data":            (json string, required) action data
+        5."symbol:fee:unit": (numeric, optional) pay to miner
         Result:
         "txid":       (string)
         Examples: 

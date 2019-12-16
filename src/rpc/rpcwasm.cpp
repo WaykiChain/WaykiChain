@@ -136,7 +136,7 @@ void get_contract(CAccountDBCache* database_account, CContractDBCache* database_
 // set code and abi
 Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 7, wasm::rpc::submit_wasm_contract_deploy_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5, wasm::rpc::submit_wasm_contract_deploy_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     //pack tx and commit
@@ -154,7 +154,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         CWasmContractTx tx;
         {
             auto contract = wasm::name(params[1].get_str());
-            string memo   = (params.size() > 5)?params[5].get_str():"";
+            string memo   ;//= (params.size() > 5)?params[5].get_str():"";
             JSON_RPC_ASSERT(memo.size() < MAX_CONTRACT_MEMO_SIZE, RPC_INVALID_PARAMETER,
                             strprintf("rpcwasm.submitwasmcontractdeploytx, Memo must less than %d bytes", MAX_CONTRACT_MEMO_SIZE))
 
@@ -193,7 +193,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
 Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 5 , wasm::rpc::submit_wasm_contract_call_tx_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() < 4 || params.size() > 5 , wasm::rpc::submit_wasm_contract_call_tx_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type)(str_type)(str_type));
 
     try {
