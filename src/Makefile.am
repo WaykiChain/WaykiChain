@@ -80,7 +80,7 @@ coin_CORE_H = \
   chain/chain.h \
   chain/merkletree.h \
   entities/account.h \
-  entities/assett.h \
+  entities/asset.h \
   entities/cdp.h \
   entities/contract.h \
   entities/dexorder.h \
@@ -319,6 +319,7 @@ libcoin_server_a_SOURCES = \
   chain/chain.cpp \
   chain/merkletree.cpp \
   entities/account.cpp \
+  entities/asset.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
   entities/dexorder.cpp \

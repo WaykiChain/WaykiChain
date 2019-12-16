@@ -229,6 +229,11 @@ namespace wasm {
         ctx.check_deadline();
         auto type = fundamental_type(rtype);
 
+        auto it = structs.find(type);
+        if (it != structs.end())
+            fprintf(stdin, "my it not exist\n");
+        else
+            fprintf(stdin, "ok! it name=%s", it->first.c_str());
         if (built_in_types.find(type) != built_in_types.end()) return true;
         if (typedefs.find(type) != typedefs.end()) return _is_type(typedefs.find(type)->second, ctx);
         if (structs.find(type) != structs.end()) return true;
@@ -347,7 +352,7 @@ namespace wasm {
                 }
             }
         }
- 
+
         if(!is_optional){
             WASM_THROW(pack_exception, "Missing field '%s' in input object while processing struct '%s'",
                         field.c_str(), s.c_str());
