@@ -16,6 +16,9 @@ CCriticalSection cs_nLastNodeId;
 uint64_t nLocalServices = NODE_NETWORK;
 uint64_t nLocalHostNonce         = 0;
 extern map<CNetAddr, LocalServiceInfo> mapLocalHost;
+// Map maintaining per-node state. Requires cs_mapNodeState.
+map<NodeId, CNodeState> mapNodeState;
+CCriticalSection cs_mapNodeState;
 
 NodeId nLastNodeId = 0;
 limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
@@ -25,6 +28,16 @@ CNode* pnodeSync = nullptr;
 // Signals for message handling
 CNodeSignals g_node_signals;
 CNodeSignals& GetNodeSignals() { return g_node_signals; }
+
+// Requires cs_mapNodeState.
+CNodeState *State(NodeId pNode) {
+    AssertLockHeld(cs_mapNodeState);
+    map<NodeId, CNodeState>::iterator it = mapNodeState.find(pNode);
+    if (it == mapNodeState.end())
+        return nullptr;
+
+    return &it->second;
+}
 
 // requires LOCK(cs_vSend)
 void CNode::SocketSendData() {

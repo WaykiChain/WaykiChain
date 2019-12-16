@@ -6,8 +6,6 @@
 #ifndef COIN_NET_H
 #define COIN_NET_H
 
-
-
 #include "commons/uint256.h"
 #include "commons/util/util.h"
 #include "crypto/hash.h"
@@ -24,7 +22,6 @@
 #include <openssl/rand.h>
 #include <boost/foreach.hpp>
 
-
 class CAddrMan;
 class CBlockIndex;
 class CNode;
@@ -38,10 +35,7 @@ static const int TIMEOUT_INTERVAL = 20 * 60;
 /** -peertimeout default */
 static const int64_t DEFAULT_PEER_CONNECT_TIMEOUT = 60;
 
-
 inline uint32_t ReceiveFloodSize() { return 1000 * SysCfg().GetArg("-maxreceivebuffer", 5 * 1000); }
-
-
 void AddOneShot(string strDest);
 bool RecvLine(SOCKET hSocket, string& strLine);
 bool GetMyExternalIP(CNetAddr& ipRet);
@@ -54,12 +48,6 @@ uint16_t GetListenPort();
 bool BindListenPort(const CService& bindAddr, string& strError = REF(string()));
 void StartNode(boost::thread_group& threadGroup);
 bool StopNode();
-
-
-
-
-
-
 
 enum {
     LOCAL_NONE,    // unknown
@@ -83,13 +71,10 @@ bool IsLocal(const CService& addr);
 bool IsReachable(const CNetAddr& addr);
 void SetReachable(enum Network net, bool fFlag = true);
 
-
 extern bool fDiscover;
-
 extern uint64_t nLocalHostNonce;
 extern CAddrMan addrman;
 extern int32_t nMaxConnections;
-
 extern vector<CNode*> vNodes;
 extern CCriticalSection cs_vNodes;
 extern map<CInv, CDataStream> mapRelay;
@@ -98,7 +83,6 @@ extern CCriticalSection cs_mapRelay;
 extern vector<string> vAddedNodes;
 extern CCriticalSection cs_vAddedNodes;
 extern map<CNetAddr, LocalServiceInfo> mapLocalHost;
-
 
 void RelayTransaction(CBaseTx* pBaseTx, const uint256& hash);
 void RelayTransaction(CBaseTx* pBaseTx, const uint256& hash, const CDataStream& ss);

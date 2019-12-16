@@ -37,13 +37,6 @@ extern CChain chainActive;
 extern uint256 GetOrphanRoot(const uint256 &hash);
 extern map<uint256, COrphanBlock *> mapOrphanBlocks;
 
-// Blocks that are in flight, and that are in the queue to be downloaded.
-// Protected by cs_main.
-struct QueuedBlock {
-    uint256 hash;
-    int64_t nTime;          // Time of "getdata" request in microseconds.
-    int32_t nQueuedBefore;  // Number of blocks in flight at the time of request.
-};
 namespace {
 map<uint256, tuple<NodeId, list<QueuedBlock>::iterator, int64_t>> mapBlocksInFlight;  // downloading blocks
 map<uint256, tuple<NodeId, list<uint256>::iterator, int64_t>> mapBlocksToDownload;    // blocks to be downloaded
@@ -52,55 +45,6 @@ map<uint256, tuple<NodeId, list<uint256>::iterator, int64_t>> mapBlocksToDownloa
 // them, if processing happens afterwards. Protected by cs_main.
 map<uint256, NodeId> mapBlockSource;  // Remember who we got this block from.
 
-struct CBlockReject {
-    uint8_t chRejectCode;
-    string strRejectReason;
-    uint256 blockHash;
-};
-
-// Maintain validation-specific state about nodes, protected by cs_main, instead
-// by CNode's own locks. This simplifies asynchronous operation, where
-// processing of incoming data is done after the ProcessMessage call returns,
-// and we're no longer holding the node's locks.
-struct CNodeState {
-    // Accumulated misbehaviour score for this peer.
-    int32_t nMisbehavior;
-    // Whether this peer should be disconnected and banned.
-    bool fShouldBan;
-    // String name of this peer (debugging/logging purposes).
-    string name;
-    // List of asynchronously-determined block rejections to notify this peer about.
-    vector<CBlockReject> rejects;
-    list<QueuedBlock> vBlocksInFlight;
-    int32_t nBlocksInFlight;          // maximun blocks downloading at the same time
-    list<uint256> vBlocksToDownload;  // blocks to be downloaded
-    int32_t nBlocksToDownload;        // blocks number to be downloaded
-    int64_t nLastBlockReceive;        // the latest receiving blocks time
-    int64_t nLastBlockProcess;        // the latest processing blocks time
-
-    CNodeState() {
-        nMisbehavior      = 0;
-        fShouldBan        = false;
-        nBlocksToDownload = 0;
-        nBlocksInFlight   = 0;
-        nLastBlockReceive = 0;
-        nLastBlockProcess = 0;
-    }
-};
-
-// Map maintaining per-node state. Requires cs_mapNodeState.
-map<NodeId, CNodeState> mapNodeState;
-CCriticalSection cs_mapNodeState;
-
-// Requires cs_mapNodeState.
-CNodeState *State(NodeId pNode) {
-    AssertLockHeld(cs_mapNodeState);
-    map<NodeId, CNodeState>::iterator it = mapNodeState.find(pNode);
-    if (it == mapNodeState.end())
-        return nullptr;
-
-    return &it->second;
-}
 
 // Requires cs_mapNodeState.
 void MarkBlockAsReceived(const uint256 &hash, NodeId nodeFrom = -1) {
