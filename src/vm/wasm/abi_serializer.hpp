@@ -80,7 +80,13 @@ namespace wasm {
 
                 json_spirit::Value data_v;
                 json_spirit::read_string(params, data_v);
-                data = abis.variant_to_binary(action, data_v, max_serialization_time);
+
+                string action_type = abis.get_action_type(action);
+                if(action_type == string()){
+                    action_type = action;
+                }
+                //data = abis.variant_to_binary(action, data_v, max_serialization_time);
+                data = abis.variant_to_binary(action_type, data_v, max_serialization_time);
 
             }
             WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params.c_str())
@@ -90,17 +96,22 @@ namespace wasm {
         }
 
         static json_spirit::Value
-        unpack( const std::vector<char>  &abi, const string &name, const bytes &data, microseconds max_serialization_time ) {
+        unpack( const std::vector<char>  &abi, const string &action, const bytes &data, microseconds max_serialization_time ) {
 
             json_spirit::Value data_v;
             try {
                 wasm::abi_def def = wasm::unpack<wasm::abi_def>(abi);
                 wasm::abi_serializer abis(def, max_serialization_time);
 
-                data_v = abis.binary_to_variant(name, data, max_serialization_time);
+                string action_type = abis.get_action_type(action);
+                if(action_type == string()){
+                    action_type = action;
+                }
+                //data_v = abis.binary_to_variant(action, data, max_serialization_time);
+                data_v = abis.binary_to_variant(action_type, data, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", name.c_str())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", action.c_str())
 
             return data_v;
         }

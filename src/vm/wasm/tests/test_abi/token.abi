@@ -31,7 +31,7 @@
             ]
         },
         {
-            "name": "create",
+            "name": "create2",
             "base": "",
             "fields": [
                 {
@@ -144,7 +144,7 @@
         },
         {
             "name": "create",
-            "type": "create",
+            "type": "create2",
             "ricardian_contract": "---\nspec_version: \"0.1.0\"\ntitle: Create New Token\nsummary: 'Create a new token'\nicon: @ICON_BASE_URL@/@TOKEN_ICON_URI@\n---\n\n{{$action.account}} agrees to create a new token with symbol {{asset_to_symbol_code maximum_supply}} to be managed by {{issuer}}.\n\nThis action will not result any any tokens being issued into circulation.\n\n{{issuer}} will be allowed to issue tokens into circulation, up to a maximum supply of {{maximum_supply}}."
         },
         {

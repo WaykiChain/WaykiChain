@@ -1458,7 +1458,11 @@ BOOST_AUTO_TEST_CASE( optional ) {
              "type": "string?"
           }]
        }],
-       "actions": [],
+       "actions": [        {
+            "name": "transfer",
+            "type": "transfer",
+            "ricardian_contract": ""
+        }],
        "tables": [],
        "ricardian_clauses": [{"id":"clause A","body":"clause body A"},
                   {"id":"clause B","body":"clause body B"}],
