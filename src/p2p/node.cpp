@@ -27,22 +27,22 @@ CNodeSignals g_node_signals;
 CNodeSignals& GetNodeSignals() { return g_node_signals; }
 
 // requires LOCK(cs_vSend)
-void SocketSendData(CNode* pNode) {
-    deque<CSerializeData>::iterator it = pNode->vSendMsg.begin();
+void CNode::SocketSendData() {
+    deque<CSerializeData>::iterator it = vSendMsg.begin();
 
-    while (it != pNode->vSendMsg.end()) {
+    while (it != vSendMsg.end()) {
         const CSerializeData& data = *it;
-        assert(data.size() > pNode->nSendOffset);
-        int32_t nBytes = send(pNode->hSocket, &data[pNode->nSendOffset], data.size() - pNode->nSendOffset,
+        assert(data.size() > nSendOffset);
+        int32_t nBytes = send(hSocket, &data[nSendOffset], data.size() - nSendOffset,
                               MSG_NOSIGNAL | MSG_DONTWAIT);
         if (nBytes > 0) {
-            pNode->nLastSend = GetTime();
-            pNode->nSendBytes += nBytes;
-            pNode->nSendOffset += nBytes;
-            pNode->RecordBytesSent(nBytes);
-            if (pNode->nSendOffset == data.size()) {
-                pNode->nSendOffset = 0;
-                pNode->nSendSize -= data.size();
+            nLastSend = GetTime();
+            nSendBytes += nBytes;
+            nSendOffset += nBytes;
+            RecordBytesSent(nBytes);
+            if (nSendOffset == data.size()) {
+                nSendOffset = 0;
+                nSendSize -= data.size();
                 it++;
             } else {
                 // could not send full message; stop sending more
@@ -54,7 +54,7 @@ void SocketSendData(CNode* pNode) {
                 int32_t nErr = WSAGetLastError();
                 if (nErr != WSAEWOULDBLOCK && nErr != WSAEMSGSIZE && nErr != WSAEINTR && nErr != WSAEINPROGRESS) {
                     LogPrint(BCLog::INFO, "socket send error %s\n", NetworkErrorString(nErr));
-                    pNode->CloseSocketDisconnect();
+                    CloseSocketDisconnect();
                 }
             }
             // couldn't send anything at all
@@ -62,11 +62,11 @@ void SocketSendData(CNode* pNode) {
         }
     }
 
-    if (it == pNode->vSendMsg.end()) {
-        assert(pNode->nSendOffset == 0);
-        assert(pNode->nSendSize == 0);
+    if (it == vSendMsg.end()) {
+        assert(nSendOffset == 0);
+        assert(nSendSize == 0);
     }
-    pNode->vSendMsg.erase(pNode->vSendMsg.begin(), it);
+    vSendMsg.erase(vSendMsg.begin(), it);
 }
 
 

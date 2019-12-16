@@ -55,7 +55,7 @@ struct CNodeSignals {
 inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
 
 CNodeSignals& GetNodeSignals();
-void SocketSendData(CNode* pNode);
+
 CAddress GetLocalAddress(const CNetAddr* paddrPeer = nullptr);
 bool GetLocal(CService& addr, const CNetAddr* paddrPeer = nullptr);
 
@@ -245,6 +245,7 @@ private:
 public:
     NodeId GetId() const { return id; }
 
+
     int32_t GetRefCount() {
         assert(nRefCount >= 0);
         return nRefCount;
@@ -413,7 +414,7 @@ public:
             nSendSize += (*it).size();
 
             // If write queue empty, attempt "optimistic write"
-            if (it == vSendMsg.begin()) SocketSendData(this);
+            if (it == vSendMsg.begin()) SocketSendData();
 
             LEAVE_CRITICAL_SECTION(cs_vSend);
     }
@@ -548,7 +549,7 @@ public:
     void CancelSubscribe(uint32_t nChannel);
     void CloseSocketDisconnect();
     void Cleanup();
-
+    void SocketSendData();
     // Denial-of-service detection/prevention
     // The idea is to detect peers that are behaving
     // badly and disconnect/ban them, but do it in a

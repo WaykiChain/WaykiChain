@@ -712,7 +712,7 @@ void ThreadSocketHandler() {
             if (FD_ISSET(pNode->hSocket, &fdsetSend)) {
                 TRY_LOCK(pNode->cs_vSend, lockSend);
                 if (lockSend)
-                    SocketSendData(pNode);
+                    pNode->SocketSendData();
             }
 
             //
