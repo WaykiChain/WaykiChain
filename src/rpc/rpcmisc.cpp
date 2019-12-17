@@ -116,7 +116,9 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("time_offset",           GetTimeOffset()));
 
     if (pWalletMain) {
-        obj.push_back(Pair("wallet_balance",    ValueFromAmount(pWalletMain->GetFreeBcoins())));
+        obj.push_back(Pair("WICC_balance",    ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WICC))));
+        obj.push_back(Pair("WUSD_balance",    ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WUSD))));
+        obj.push_back(Pair("WGRT_balance",    ValueFromAmount(pWalletMain->GetFreeCoins(SYMB::WGRT))));
         if (pWalletMain->IsEncrypted())
             obj.push_back(Pair("wallet_unlock_time", nWalletUnlockTime));
     }
