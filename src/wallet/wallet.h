@@ -89,6 +89,7 @@ public:
     int64_t GetFreeBcoins(bool isConfirmed = true) const;
 
     bool Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool isMiner = false) const;
+    bool SignCompact(const CKeyID &keyId, const uint256 &hash, vector<uint8_t> &signature, bool isMiner = false) const; 
     //! Adds an encrypted key to the store, and saves it to disk.
     bool AddCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);
     bool LoadCryptedKey(const CPubKey &vchPubKey, const std::vector<unsigned char> &vchCryptedSecret);

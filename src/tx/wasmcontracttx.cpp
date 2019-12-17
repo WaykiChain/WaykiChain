@@ -23,6 +23,26 @@
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
 
+
+map<UnsignedCharArray, uint64_t> &get_signatures_cache(){
+    //fixme:this map should be in maxsize to protect memory
+    static map<UnsignedCharArray, uint64_t> signatures_cache;
+    return signatures_cache;
+}
+
+inline void add_signature_to_cache(const UnsignedCharArray& signature, const uint64_t& account ){
+    get_signatures_cache()[signature] = account;
+}
+
+inline bool get_signature_from_cache(const UnsignedCharArray& signature, uint64_t& account){
+    auto itr = get_signatures_cache().find(signature);
+    if(itr != get_signatures_cache().end()){
+        account = itr->second;
+        return true;
+    }
+    return false;
+}
+
 void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
     json_spirit::Object obj;
@@ -149,24 +169,24 @@ void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCache
 
 void CWasmContractTx::pause_billing_timer(){
 
-  if(billed_time > chrono::microseconds(0)){
+    if(billed_time > chrono::microseconds(0)){
       return;// already paused
-  }
+    }
 
-  auto now = system_clock::now();
-  billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
+    auto now = system_clock::now();
+    billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
 
 }
 
 void CWasmContractTx::resume_billing_timer(){
 
-  if(billed_time == chrono::microseconds(0)){
+    if(billed_time == chrono::microseconds(0)){
        return;// already release pause
-  }
-  auto now = system_clock::now();
-  pseudo_start = now - billed_time;
+    }
+    auto now = system_clock::now();
+    pseudo_start = now - billed_time;
 
-  billed_time = chrono::microseconds(0);
+    billed_time = chrono::microseconds(0);
 
 }
 
@@ -201,13 +221,13 @@ void CWasmContractTx::contract_validation(CTxExecuteContext &context){
 
 }
 
-void CWasmContractTx::authorization_validation(const std::vector<uint64_t>& has_signature_accounts){
+void CWasmContractTx::authorization_validation(const std::vector<uint64_t>& authorization_accounts){
 
     //authorization in each inlinetransaction must be a subset of signatures from transaction
     for(auto i: inlinetransactions){
         for(auto p: i.authorization){
-            auto itr = std::find(has_signature_accounts.begin(), has_signature_accounts.end(), p.account);
-            WASM_ASSERT( itr != has_signature_accounts.end(),
+            auto itr = std::find(authorization_accounts.begin(), authorization_accounts.end(), p.account);
+            WASM_ASSERT( itr != authorization_accounts.end(),
                          account_operation_exception,
                          "CWasmContractTx.authorization_validation, authorization %s does not have signature",
                          wasm::name(p.account).to_string().c_str())
@@ -220,6 +240,37 @@ void CWasmContractTx::authorization_validation(const std::vector<uint64_t>& has_
         }
     }
 
+}
+
+//bool CWasmContractTx::validate_payer_signature(CTxExecuteContext &context)
+
+void CWasmContractTx::verify_accounts_from_signatures(CCacheWrapper &database, std::vector<uint64_t> &authorization_accounts){
+
+    TxID signature_hash = GetHash();
+ 
+    for(auto s:signatures){
+        uint64_t authorization_account;
+        if(get_signature_from_cache(s.signature, authorization_account)){
+            authorization_accounts.push_back(authorization_account);
+            continue;
+        }
+        
+        CAccount account;
+        WASM_ASSERT( database.accountCache.GetAccount(nick_name(wasm::name(s.account).to_string()), account), account_operation_exception, "%s",
+                    "CWasmContractTx.get_accounts_from_signature, can not get account from public key")
+
+        WASM_ASSERT(account.owner_pubkey.Verify(signature_hash, s.signature),
+            account_operation_exception,
+            "%s",
+            "CWasmContractTx::get_accounts_from_signature, can not get public key from signature")
+
+
+        authorization_account = wasm::name(account.nickid.ToString()).value;
+        add_signature_to_cache(s.signature, authorization_account);
+
+        authorization_accounts.push_back(authorization_account);
+    }
+    
 }
 
 bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
@@ -240,14 +291,20 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
         //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
+        std::vector<uint64_t> authorization_accounts;
+        verify_accounts_from_signatures(database, authorization_accounts);
+        authorization_validation(authorization_accounts);
 
-        CAccount account;
-        WASM_ASSERT( database.accountCache.GetAccount(txUid, account), account_operation_exception, "%s",
-                    "CWasmContractTx.CheckTx, get account failed")
-        WASM_ASSERT( account.HaveOwnerPubKey(), account_operation_exception, "%s",
-                    "CWasmContractTx.CheckTx, account unregistered")
-        IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
-        authorization_validation({wasm::name(account.nickid.ToString()).value});
+        //validate payer
+        CAccount payer;
+        WASM_ASSERT( database.accountCache.GetAccount(txUid, payer), account_operation_exception, "%s",
+                    "CWasmContractTx.CheckTx, get payer failed")
+        WASM_ASSERT( payer.HaveOwnerPubKey(), account_operation_exception, "%s",
+                    "CWasmContractTx.CheckTx, payer unregistered")
+        WASM_ASSERT( find(authorization_accounts.begin(), authorization_accounts.end(), wasm::name(payer.nickid.ToString()).value) != authorization_accounts.end(), 
+                    account_operation_exception, 
+                    "CWasmContractTx.CheckTx, can not find the signature by payer %s",
+                    payer.nickid.ToString().c_str())    
 
      } catch (wasm::exception &e) {
         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
@@ -255,6 +312,41 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
 
     return true;
 }
+
+// bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
+
+//     try {
+//         auto &database         = *context.pCw;
+//         auto &state            = *context.pState;
+
+//         WASM_ASSERT(inlinetransactions.size() > 0,
+//                     account_operation_exception,
+//                     "%s",
+//                     "CWasmContractTx.CheckTx, Tx must have at least 1 inline_transaction")
+
+//         //IMPLEMENT_CHECK_TX_FEE;
+//         IMPLEMENT_CHECK_TX_REGID(txUid.type());
+//         contract_validation(context);
+
+//         // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
+//         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
+//         //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
+
+//         CAccount account;
+//         WASM_ASSERT( database.accountCache.GetAccount(txUid, account), account_operation_exception, "%s",
+//                     "CWasmContractTx.CheckTx, get account failed")
+//         WASM_ASSERT( account.HaveOwnerPubKey(), account_operation_exception, "%s",
+//                     "CWasmContractTx.CheckTx, account unregistered")
+
+//         IMPLEMENT_CHECK_TX_SIGNATURE(account.owner_pubkey);
+//         authorization_validation({wasm::name(account.nickid.ToString()).value});
+
+//      } catch (wasm::exception &e) {
+//         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
+//      }
+
+//     return true;
+// }
 
 static uint64_t get_fuel_limit(CBaseTx &tx, CTxExecuteContext &context) {
 
@@ -321,13 +413,13 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         nRunStep = sizeof(inlinetransactions);
 
         //charger fee
-        CAccount sender;
-        WASM_ASSERT(database.accountCache.GetAccount(txUid, sender),
+        CAccount payer;
+        WASM_ASSERT(database.accountCache.GetAccount(txUid, payer),
                     account_operation_exception,
-                    "wasmnativecontract.Setcode, sender account does not exist, sender Id = %s",
-                    txUid.ToString().c_str())
+                    "wasmnativecontract.Setcode, payer does not exist, payer Id = %s",
+                    payer.nickid.ToString().c_str())
         auto quantity = wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8));
-        sub_balance(sender, quantity, database.accountCache);
+        sub_balance(payer, quantity, database.accountCache);
 
         pseudo_start = system_clock::now();
 
