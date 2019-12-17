@@ -190,7 +190,7 @@ void CWasmContractTx::resume_billing_timer(){
 
 }
 
-void CWasmContractTx::contract_validation(CTxExecuteContext &context){
+void CWasmContractTx::verify_contracts(CTxExecuteContext &context){
 
     auto &database         = *context.pCw;
 
@@ -221,7 +221,7 @@ void CWasmContractTx::contract_validation(CTxExecuteContext &context){
 
 }
 
-void CWasmContractTx::authorization_validation(const std::vector<uint64_t>& authorization_accounts){
+void CWasmContractTx::verify_authorization(const std::vector<uint64_t>& authorization_accounts){
 
     //authorization in each inlinetransaction must be a subset of signatures from transaction
     for(auto i: inlinetransactions){
@@ -286,14 +286,14 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
 
         //IMPLEMENT_CHECK_TX_FEE;
         IMPLEMENT_CHECK_TX_REGID(txUid.type());
-        contract_validation(context);
+        verify_contracts(context);
 
         // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
         //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
         std::vector<uint64_t> authorization_accounts;
         verify_accounts_from_signatures(database, authorization_accounts);
-        authorization_validation(authorization_accounts);
+        verify_authorization(authorization_accounts);
 
         //validate payer
         CAccount payer;

@@ -180,7 +180,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             // TxID tx_id = tx.GetHash();
             // WASM_TRACE("hash:%s signature:%s", wasm::ToHex(tx_id,"").c_str(), wasm::ToHex(tx.signature,"").c_str())
 
-            WASM_TRACE("signature:%s", wasm::ToHex(tx.signature,"").c_str())
+            //WASM_TRACE("signature:%s", wasm::ToHex(tx.signature,"").c_str())
 
             tx.signatures.push_back({sender_name.value, tx.signature});
         }

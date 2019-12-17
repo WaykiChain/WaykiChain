@@ -82,8 +82,10 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
-    void contract_validation(CTxExecuteContext &context);
-    void authorization_validation(const std::vector<uint64_t> &authorization_accounts);
+    void verify_contracts(CTxExecuteContext &context);
+    void verify_authorization(const std::vector<uint64_t> &authorization_accounts);
+    void verify_accounts_from_signatures(CCacheWrapper &database, 
+                                          std::vector<uint64_t> &authorization_accounts);
     void execute_inline_transaction( wasm::inline_transaction_trace &trace,
                                       wasm::inline_transaction &trx,
                                       uint64_t receiver,
@@ -91,8 +93,6 @@ public:
                                       vector<CReceipt> &receipts,
                                       //CValidationState &state,
                                       uint32_t recurse_depth);
-    void verify_accounts_from_signatures(CCacheWrapper &database, 
-                                          std::vector<uint64_t> &authorization_accounts);
 
 };
 
