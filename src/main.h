@@ -28,6 +28,7 @@
 #include "chain/chain.h"
 #include "chain/merkletree.h"
 #include "net.h"
+#include "p2p/node.h"
 #include "persistence/cachewrapper.h"
 #include "sigcache.h"
 #include "tx/tx.h"

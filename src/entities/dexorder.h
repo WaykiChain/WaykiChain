@@ -23,6 +23,10 @@ static const EnumTypeMap<OrderSide, string> ORDER_SIDE_NAMES = {
     {ORDER_BUY, "BUY"}, {ORDER_SELL, "SELL"}
 };
 
+inline bool CheckOrderSide(OrderSide orderSide) {
+    return ORDER_SIDE_NAMES.find(orderSide) != ORDER_SIDE_NAMES.end();
+}
+
 inline const std::string &GetOrderSideName(OrderSide orderSide) {
     auto it = ORDER_SIDE_NAMES.find(orderSide);
     if (it != ORDER_SIDE_NAMES.end())
@@ -39,6 +43,10 @@ enum OrderType: uint8_t {
 static const EnumTypeMap<OrderType, string> ORDER_TYPE_NAMES = {
     {ORDER_LIMIT_PRICE, "LIMIT_PRICE"}, {ORDER_MARKET_PRICE, "MARKET_PRICE"}
 };
+
+inline bool CheckOrderType(OrderType orderType) {
+    return ORDER_TYPE_NAMES.find(orderType) != ORDER_TYPE_NAMES.end();
+}
 
 inline const std::string &GetOrderTypeName(OrderType orderType) {
     auto it = ORDER_TYPE_NAMES.find(orderType);

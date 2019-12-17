@@ -20,14 +20,17 @@
 
 class CNode ;
 struct CNodeSignals;
-
+struct CNodeState ;
 
 typedef int32_t NodeId;
 extern CCriticalSection cs_nLastNodeId;
 extern NodeId nLastNodeId;
 extern uint64_t nLocalServices;
 extern CCriticalSection cs_mapLocalHost;
-extern CNodeSignals g_node_signals;
+
+extern map<NodeId, CNodeState> mapNodeState;
+extern CCriticalSection cs_mapNodeState;
+extern CNodeSignals& GetNodeSignals();
 
 /** The maximum number of entries in an 'inv' protocol message */
 static const uint32_t MAX_INV_SZ = 50000;
@@ -54,8 +57,8 @@ struct CNodeSignals {
 
 inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
 
-CNodeSignals& GetNodeSignals();
-void SocketSendData(CNode* pNode);
+
+
 CAddress GetLocalAddress(const CNetAddr* paddrPeer = nullptr);
 bool GetLocal(CService& addr, const CNetAddr* paddrPeer = nullptr);
 
@@ -78,6 +81,53 @@ public:
     double dPingWait;
     string addrLocal;
 };
+
+struct CBlockReject {
+    uint8_t chRejectCode;
+    string strRejectReason;
+    uint256 blockHash;
+};
+
+// Blocks that are in flight, and that are in the queue to be downloaded.
+// Protected by cs_main.
+struct QueuedBlock {
+    uint256 hash;
+    int64_t nTime;          // Time of "getdata" request in microseconds.
+    int32_t nQueuedBefore;  // Number of blocks in flight at the time of request.
+};
+
+// Maintain validation-specific state about nodes, protected by cs_main, instead
+// by CNode's own locks. This simplifies asynchronous operation, where
+// processing of incoming data is done after the ProcessMessage call returns,
+// and we're no longer holding the node's locks.
+struct CNodeState {
+    // Accumulated misbehaviour score for this peer.
+    int32_t nMisbehavior;
+    // Whether this peer should be disconnected and banned.
+    bool fShouldBan;
+    // String name of this peer (debugging/logging purposes).
+    string name;
+    // List of asynchronously-determined block rejections to notify this peer about.
+    vector<CBlockReject> rejects;
+    list<QueuedBlock> vBlocksInFlight;
+    int32_t nBlocksInFlight;          // maximun blocks downloading at the same time
+    list<uint256> vBlocksToDownload;  // blocks to be downloaded
+    int32_t nBlocksToDownload;        // blocks number to be downloaded
+    int64_t nLastBlockReceive;        // the latest receiving blocks time
+    int64_t nLastBlockProcess;        // the latest processing blocks time
+
+    CNodeState() {
+        nMisbehavior      = 0;
+        fShouldBan        = false;
+        nBlocksToDownload = 0;
+        nBlocksInFlight   = 0;
+        nLastBlockReceive = 0;
+        nLastBlockProcess = 0;
+    }
+};
+
+// Requires cs_mapNodeState.
+CNodeState *State(NodeId pNode) ;
 
 /** Information about a peer */
 class CNode {
@@ -244,6 +294,7 @@ private:
 
 public:
     NodeId GetId() const { return id; }
+
 
     int32_t GetRefCount() {
         assert(nRefCount >= 0);
@@ -413,7 +464,7 @@ public:
             nSendSize += (*it).size();
 
             // If write queue empty, attempt "optimistic write"
-            if (it == vSendMsg.begin()) SocketSendData(this);
+            if (it == vSendMsg.begin()) SocketSendData();
 
             LEAVE_CRITICAL_SECTION(cs_vSend);
     }
@@ -548,7 +599,7 @@ public:
     void CancelSubscribe(uint32_t nChannel);
     void CloseSocketDisconnect();
     void Cleanup();
-
+    void SocketSendData();
     // Denial-of-service detection/prevention
     // The idea is to detect peers that are behaving
     // badly and disconnect/ban them, but do it in a

@@ -31,21 +31,21 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
 
     try{
         if(wasm::name(nickId).value == 0){
-            return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, nickid is invalid,for zero"), REJECT_INVALID,
+            return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid,for zero"), REJECT_INVALID,
                              "bad-nickid");
         }
     }catch (const wasm::exception& e ){
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, nickid is invalid"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid"), REJECT_INVALID,
                          "bad-nickid");
     }
 
     if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, public key is invalid"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
     CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
