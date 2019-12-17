@@ -159,7 +159,10 @@ public:
 
     uint32_t GetCacheSize() const {
         return activeOrderCache.GetCacheSize() +
-            blockOrdersCache.GetCacheSize();
+            blockOrdersCache.GetCacheSize() +
+            operator_detail_cache.GetCacheSize() +
+            operator_owner_map_cache.GetCacheSize() +
+            operator_last_id_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CDexDBCache *pBaseIn) {
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);

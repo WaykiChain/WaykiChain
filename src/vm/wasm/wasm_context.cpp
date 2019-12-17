@@ -112,6 +112,7 @@ namespace wasm {
 
             register_native_handler(dex::dex_operator, N(register), dex::dex_operator_register);
             register_native_handler(dex::dex_operator, N(update), dex::dex_operator_update);
+            register_native_handler(dex::dex_order, N(create), dex::dex_order_create);
         }
     }
 
@@ -235,10 +236,8 @@ namespace wasm {
 
         int64_t disk_usage = control_trx.nRunStep;
         disk_usage += size_in_bytes * fuel_store_fee_per_byte;
-
         // WASM_TRACE("size_in_bytes:%ld", size_in_bytes)
         // WASM_TRACE("disk_usage:%ld", disk_usage)
-
         if(disk_usage < 0) disk_usage = 0;
         control_trx.nRunStep += disk_usage;
 

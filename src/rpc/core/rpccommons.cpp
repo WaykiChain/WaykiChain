@@ -12,6 +12,10 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 
+#include "datastream.hpp"
+#include "abi_serializer.hpp"
+#include "wasm_context.hpp"
+
 #include <regex>
 #include <fstream>
 
@@ -288,6 +292,19 @@ Object GetTxDetailJSON(const uint256& txid) {
                         pCdMan->pReceiptCache->GetTxReceipts(txid, receipts);
                         obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                     }
+
+                    string trace;
+                    auto database = std::make_shared<CCacheWrapper>(pCdMan);
+                    if(database->contractCache.GetContractTraces(txid, trace)){
+
+                        std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
+                        transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
+
+                        json_spirit::Value v;
+                        to_variant(t, v, *database);
+
+                        obj.push_back(Pair("tx_trace", v));
+                     }
 
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;

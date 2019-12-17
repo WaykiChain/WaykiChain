@@ -80,7 +80,7 @@ coin_CORE_H = \
   chain/chain.h \
   chain/merkletree.h \
   entities/account.h \
-  entities/assett.h \
+  entities/asset.h \
   entities/cdp.h \
   entities/contract.h \
   entities/dexorder.h \
@@ -300,7 +300,8 @@ WASM_H = \
   vm/wasm/wasm_native_contract.hpp \
   vm/wasm/wasm_trace.hpp \
   vm/wasm/wasm_rpc_message.hpp \
-  vm/wasm/modules/dex_contract.hpp
+  vm/wasm/modules/dex_contract.hpp \
+  vm/wasm/modules/native_contract_base.hpp
 
 WASM_CPP = \
   vm/wasm/abi_serializer.cpp \
@@ -319,6 +320,7 @@ libcoin_server_a_SOURCES = \
   chain/chain.cpp \
   chain/merkletree.cpp \
   entities/account.cpp \
+  entities/asset.cpp \
   entities/cdp.cpp \
   entities/contract.cpp \
   entities/dexorder.cpp \

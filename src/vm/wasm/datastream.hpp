@@ -1654,6 +1654,21 @@ namespace wasm {
     }
 
     /**
+     * Unpack data inside a fixed size buffer as T
+     *
+     * @brief Unpack data inside a fixed size buffer as T
+     * @tparam T - Type of the unpacked data
+     * @param buffer - Pointer to the buffer
+     * @param len - Length of the buffer
+     * @param T - The unpacked data
+     */
+    template<typename T>
+    void unpack( const char *buffer, size_t len, T &value ) {
+        datastream<const char *> ds(buffer, len);
+        ds >> value;
+    }
+
+    /**
      * Unpack data inside a variable size buffer as T
      *
      * @brief Unpack data inside a variable size buffer as T
@@ -1664,6 +1679,19 @@ namespace wasm {
     template<typename T>
     T unpack( const std::vector<char> &bytes ) {
         return unpack<T>(bytes.data(), bytes.size());
+    }
+
+    /**
+     * Unpack data inside a variable size buffer as T
+     *
+     * @brief Unpack data inside a variable size buffer as T
+     * @tparam T - Type of the unpacked data
+     * @param bytes - Buffer
+     * @return T - The unpacked data
+     */
+    template<typename T>
+    void unpack( const std::vector<char> &bytes, T &value ) {
+        unpack<T>(bytes.data(), bytes.size(), value);
     }
 
     /**

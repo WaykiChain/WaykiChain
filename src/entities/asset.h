@@ -186,4 +186,6 @@ public:
     }
 };
 
+bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount);
+
 #endif //ENTITIES_ASSET_H
