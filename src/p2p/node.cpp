@@ -25,9 +25,6 @@ limitedmap<CInv, int64_t> mapAlreadyAskedFor(MAX_INV_SZ);
 CNode* pnodeSync = nullptr;
 
 
-// Signals for message handling
-CNodeSignals g_node_signals;
-CNodeSignals& GetNodeSignals() { return g_node_signals; }
 
 // Requires cs_mapNodeState.
 CNodeState *State(NodeId pNode) {
@@ -138,7 +135,7 @@ void CNode::CloseSocketDisconnect() {
 void CNode::Cleanup() {}
 
 void CNode::PushVersion() {
-    int32_t nBestHeight = g_node_signals.GetHeight().get_value_or(0);
+    int32_t nBestHeight = GetNodeSignals().GetHeight().get_value_or(0);
 
 #ifdef WIN32
     string os("windows");

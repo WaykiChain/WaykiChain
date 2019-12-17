@@ -14,6 +14,7 @@
 #include "nodeinfo.h"
 #include "tx/tx.h"
 #include "commons/util/time.h"
+#include "p2p/node.h"
 
 #ifdef WIN32
 #include <string.h>
@@ -70,6 +71,10 @@ static vector<SOCKET> vhListenSocket;
 CAddrMan addrman;
 int32_t nMaxConnections = 125;
 string ipHost = "";
+
+// Signals for message handling
+static CNodeSignals g_node_signals;
+CNodeSignals& GetNodeSignals() { return g_node_signals; }
 
 vector<CNode*> vNodes;
 CCriticalSection cs_vNodes;
@@ -1145,7 +1150,7 @@ void static StartSync(const vector<CNode*>& vNodes) {
     CNode* pnodeNewSync = nullptr;
     int64_t nBestScore  = 0;
 
-    int32_t nBestHeight = g_node_signals.GetHeight().get_value_or(0);
+    int32_t nBestHeight = GetNodeSignals().GetHeight().get_value_or(0);
 
     // Iterate over all nodes
     for (auto pNode : vNodes) {
@@ -1204,7 +1209,7 @@ void ThreadMessageHandler() {
             {
                 TRY_LOCK(pNode->cs_vRecvMsg, lockRecv);
                 if (lockRecv) {
-                    if (!g_node_signals.ProcessMessages(pNode))
+                    if (!GetNodeSignals().ProcessMessages(pNode))
                         pNode->CloseSocketDisconnect();
 
                     if (pNode->nSendSize < SendBufferSize()) {
@@ -1221,7 +1226,7 @@ void ThreadMessageHandler() {
             {
                 TRY_LOCK(pNode->cs_vSend, lockSend);
                 if (lockSend)
-                    g_node_signals.SendMessages(pNode, pNode == pnodeTrickle);
+                    GetNodeSignals().SendMessages(pNode, pNode == pnodeTrickle);
             }
 
             boost::this_thread::interruption_point();

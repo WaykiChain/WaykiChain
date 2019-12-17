@@ -27,10 +27,10 @@ extern CCriticalSection cs_nLastNodeId;
 extern NodeId nLastNodeId;
 extern uint64_t nLocalServices;
 extern CCriticalSection cs_mapLocalHost;
-extern CNodeSignals g_node_signals;
 
 extern map<NodeId, CNodeState> mapNodeState;
 extern CCriticalSection cs_mapNodeState;
+extern CNodeSignals& GetNodeSignals();
 
 /** The maximum number of entries in an 'inv' protocol message */
 static const uint32_t MAX_INV_SZ = 50000;
@@ -57,7 +57,7 @@ struct CNodeSignals {
 
 inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
 
-CNodeSignals& GetNodeSignals();
+
 
 CAddress GetLocalAddress(const CNetAddr* paddrPeer = nullptr);
 bool GetLocal(CService& addr, const CNetAddr* paddrPeer = nullptr);

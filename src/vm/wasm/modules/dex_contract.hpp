@@ -85,7 +85,6 @@ namespace dex {
 //       ----------    ------------ -------------     ---------------    -------------------
 #define DEX_ORDER_CREATE(DEFINE, SEPARATOR, SEPARATOR_END) \
     DEFINE( from,           "name",      uint64_t)    SEPARATOR()       /* from name */ \
-    DEFINE( from_nonce,     "uint64",    uint64_t)    SEPARATOR()       /* from nonce  */ \
     DEFINE( exid,           "uint32",    uint32_t)    SEPARATOR()       /* exid  */ \
     DEFINE( fee_rate,       "uint64",    uint64_t)    SEPARATOR()       /* fee rate  */ \
     DEFINE( order_type,     "uint8",     uint8_t)     SEPARATOR()       /* order type  */ \
@@ -95,7 +94,16 @@ namespace dex {
     DEFINE( price,          "uint64",    uint64_t)    SEPARATOR()       /* price  */ \
     DEFINE( memo,           "string",    string)      SEPARATOR_END()   /* memo  */ \
 
+//       field_name       type_name     type             separator          description
+//       ----------    ------------ -------------     ---------------    -------------------
+#define DEX_ORDER_CANCEL(DEFINE, SEPARATOR, SEPARATOR_END) \
+    DEFINE( from,         "name",        uint64_t)          SEPARATOR()       /* from name */ \
+    DEFINE( exid,         "uint32",      uint32_t)          SEPARATOR()       /* exid  */ \
+    DEFINE( order_id,     "checksum256", wasm::checksum256_type) SEPARATOR()       /* exid  */ \
+    DEFINE( memo,         "string",      string)            SEPARATOR_END()   /* memo  */
+
     DEFINE_WASM_NATIVE_STRUCT(order_t, DEX_ORDER_CREATE)
+    DEFINE_WASM_NATIVE_STRUCT(order_cancel_t, DEX_ORDER_CANCEL)
 
     const static uint64_t dex_order     = N(dex.order);
 
@@ -107,21 +115,18 @@ namespace dex {
             abi.version = "wasm::abi/1.0";
         }
 
-        abi.structs = { struct_def("create",  "", order_t::get_abi_fields())};
-            //  name         base           fields
-            //------------  --------  -------------------------
-            // {
-            //     "order",  "",           order_t::get_abi_fields()
-            // }
-        // };
+        abi.structs = {
+            struct_def("create",  "", order_t::get_abi_fields()),
+            struct_def("cancel",  "", order_cancel_t::get_abi_fields())
+        };
 
         abi.actions = {
-            //  name         type        ricardian_contract
-            //------------  -----------  ------------------
-            {"create",   "create",    ""}
+            {"create",   "create",    ""},
+            {"cancel",   "cancel",    ""}
         };
         return abi;
     }
 
     void dex_order_create( wasm_context & );
+    void dex_order_cancel( wasm_context & );
 };

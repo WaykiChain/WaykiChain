@@ -72,6 +72,17 @@ public:
     void SetHex(const std::string& str);
     std::string ToString() const;
 
+    template<typename T>
+    void SetReverse(const T begin, const T end) {
+        if (end - begin == sizeof(data)) {
+            uint8_t* p = &data[sizeof(data) - 1]; T it = begin;
+            for (; it != end; it++, p--)
+                *p = *it;
+        } else {
+            assert(false);
+        }
+    };
+
     unsigned char* begin() { return &data[0]; }
 
     unsigned char* end() { return &data[WIDTH]; }

@@ -26,12 +26,6 @@ static bool check_url(const string &url) {
     return true;
 }
 
-// TODO: move to const header
-static const uint32_t NAME_SIZE_MAX = 32;
-static const uint32_t MEMO_SIZE_MAX = 256;
-
-static const uint8_t WICC_PRECISION = 8;
-
 static const string ASSET_ACTION_ISSUE = "register";
 static const string ASSET_ACTION_UPDATE = "update";
 
@@ -263,7 +257,7 @@ void dex::dex_operator_update(wasm_context &context) {
 }
 
 void check_order_amount_range(const TokenSymbol &symbol, const int64_t amount, const string &err_title) {
-    // TODO: should check the min amount of order by symbol
+
     static_assert(MIN_DEX_ORDER_AMOUNT < INT64_MAX, "minimum dex order amount out of range");
     WASM_ASSERT(amount >= (int64_t)MIN_DEX_ORDER_AMOUNT, wasm_assert_exception,
                 "%s, amount is too small, symbol=%s, amount=%llu, min_amount=%llu", err_title,
@@ -338,20 +332,20 @@ void dex::dex_order_create(wasm_context &context) {
                     GetOrderSideName(order_side));
     }
 
+    uint64_t asset_amount = args.asset().amount;
+    uint64_t coin_amount = args.coin().amount;
     if (order_side == ORDER_BUY) {
-        uint64_t coin_amount;
-        if (order_type == ORDER_MARKET_PRICE) {
-            coin_amount = args.coin().amount;
-        } else {
+        if (order_type == ORDER_LIMIT_PRICE) {
             coin_amount = calc_coin_amount(args.asset().amount, args.price());
         }
         WASM_ASSERT(sp_from_account->OperateBalance(coin_sym, FREEZE, coin_amount), wasm_assert_exception,
             "account has insufficient funds to freeze coin.amount! symbol=%s, amount=(%llu vs %llu)", coin_sym, coin_amount,
                 sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
     } else {
-        WASM_ASSERT(sp_from_account->OperateBalance(asset_sym, FREEZE, args.coin().amount), wasm_assert_exception,
+        WASM_ASSERT(sp_from_account->OperateBalance(asset_sym, FREEZE, asset_amount), wasm_assert_exception,
         "account has insufficient funds to freeze asset.amount! symbol=%s, amount=(%llu vs %llu)", coin_sym,
-            args.coin().amount, sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
+            asset_amount, sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
+        coin_amount = calc_coin_amount(args.asset().amount, args.price());
     }
 
     static const uint64_t DEX_PRICE_MAX = 1000000 * COIN;
@@ -361,16 +355,16 @@ void dex::dex_order_create(wasm_context &context) {
     WASM_ASSERT(args.memo().size() <= MEMO_SIZE_MAX, wasm_assert_exception, "memo.size=%d is more than %s",
             args.memo().size());
 
-    uint256 order_id = Hash(context.trx.data.begin(), context.trx.data.end());
+    uint256 order_id = context.control_trx.GetHash();
 
     auto sp_sys_order        = make_shared<CDEXOrderDetail>();
-    sp_sys_order->generate_type = SYSTEM_GEN_ORDER;
+    sp_sys_order->generate_type = USER_GEN_ORDER;
     sp_sys_order->order_type    = OrderType(args.order_type());
     sp_sys_order->order_side    = OrderSide(args.order_side());
     sp_sys_order->coin_symbol   = args.coin().sym.code().to_string();
     sp_sys_order->asset_symbol  = args.asset().sym.code().to_string();
-    sp_sys_order->coin_amount   = args.coin().amount;
-    sp_sys_order->asset_amount  = args.asset().amount;
+    sp_sys_order->coin_amount   = coin_amount;
+    sp_sys_order->asset_amount  = asset_amount;
     sp_sys_order->price         = args.price();
     // TODO:...
 //    sp_sys_order->tx_cord       = txCord;
@@ -380,3 +374,75 @@ void dex::dex_order_create(wasm_context &context) {
     wasm_account::save(context.database, *sp_from_account, ERROR_TITLE("from"));
 }
 
+static uint256 checksum_to_uint256(checksum256_type &checksum) {
+    static_assert(sizeof(checksum.hash) == uint256::WIDTH, "");
+    uint256 ret;
+    ret.SetReverse( &checksum.hash[0], &checksum.hash[sizeof(checksum.hash)] );
+    return ret;
+}
+
+void dex::dex_order_cancel(wasm_context &context) {
+
+    WASM_ASSERT(context._receiver == dex_order, wasm_assert_exception,
+                "%s(), Except contract dex.order, But get %s", __func__, wasm::name(context._receiver).to_string().c_str());
+
+    dex::order_cancel_t args;
+    args.unpack_from_bin(context.trx.data);
+
+    context.require_auth(args.from());
+
+    nick_name from_name(wasm::name(args.from()).to_string());
+    shared_ptr<CAccount> sp_from_account = wasm_account::get_account(context.database,
+        from_name, ERROR_TITLE("from"));
+
+    WASM_ASSERT(sp_from_account->IsRegistered(), wasm_assert_exception, "from account must be registered! from=%s",
+            from_name.ToString());
+
+    WASM_ASSERT(context.database.dexCache.HaveDexOperator(args.exid()), wasm_assert_exception,
+        "the dex operator does not exist! exid=%u", args.exid());
+
+    uint256 order_id = checksum_to_uint256(args.order_id());
+    CDEXOrderDetail active_order;
+    WASM_ASSERT(context.database.dexCache.GetActiveOrder(order_id, active_order), wasm_assert_exception,
+        "the order is inactive or not existed! order_id=%s", order_id.ToString());
+
+    WASM_ASSERT(active_order.generate_type == USER_GEN_ORDER, wasm_assert_exception,
+                "the order is not generate by tx of user, order_id=%s", order_id.ToString());
+
+    WASM_ASSERT(
+        !sp_from_account->regid.IsEmpty() && sp_from_account->regid == active_order.user_regid,
+        wasm_assert_exception, "can not cancel other user's order tx! order_id=%s, order_regid=%s",
+        order_id.ToString(), active_order.user_regid.ToString());
+
+    // get frozen money
+    vector<CReceipt> receipts;
+    TokenSymbol frozen_symbol;
+    uint64_t frozen_amount = 0;
+    if (active_order.order_side == ORDER_BUY) {
+        frozen_symbol = active_order.coin_symbol;
+        WASM_ASSERT(active_order.coin_amount >= active_order.total_deal_coin_amount,
+                    wasm_assert_exception,
+                    "invalid total_deal_coin_amount=%llu, order_coin_amount=%llu",
+                    active_order.total_deal_coin_amount, active_order.coin_amount);
+        frozen_amount = active_order.coin_amount - active_order.total_deal_coin_amount;
+
+        receipts.emplace_back(CUserID::NULL_ID, active_order.user_regid, frozen_symbol, frozen_amount,
+                              ReceiptCode::DEX_UNFREEZE_COIN_TO_BUYER);
+    } else if(active_order.order_side == ORDER_SELL) {
+        frozen_symbol = active_order.asset_symbol;
+        frozen_amount = active_order.asset_amount - active_order.total_deal_asset_amount;
+
+        receipts.emplace_back(CUserID::NULL_ID, active_order.user_regid, frozen_symbol, frozen_amount,
+                              ReceiptCode::DEX_UNFREEZE_ASSET_TO_SELLER);
+    } else {
+        WASM_ASSERT(false,  wasm_assert_exception, "Order side must be ORDER_BUY|ORDER_SELL");
+    }
+
+    WASM_ASSERT(sp_from_account->OperateBalance(frozen_symbol, UNFREEZE, frozen_amount), wasm_assert_exception,
+        "from account has insufficient frozen amount to unfreeze, from=%s", from_name.ToString());
+
+    wasm_account::save(context.database, *sp_from_account, ERROR_TITLE("from"));
+    WASM_ASSERT(context.database.dexCache.EraseActiveOrder(order_id, active_order), wasm_assert_exception,
+        "erase active order failed! order_id=%s", order_id.ToString());
+
+}
