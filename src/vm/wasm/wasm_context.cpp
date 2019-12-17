@@ -113,6 +113,7 @@ namespace wasm {
             register_native_handler(dex::dex_operator, N(register), dex::dex_operator_register);
             register_native_handler(dex::dex_operator, N(update), dex::dex_operator_update);
             register_native_handler(dex::dex_order, N(create), dex::dex_order_create);
+            register_native_handler(dex::dex_order, N(cancel), dex::dex_order_cancel);
         }
     }
 

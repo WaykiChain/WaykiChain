@@ -11,6 +11,11 @@
 
 using namespace std;
 
+static const uint32_t NAME_SIZE_MAX = 32;
+static const uint32_t MEMO_SIZE_MAX = 256;
+
+static const uint8_t WICC_PRECISION = 8;
+
 #define DEFINE_STRUCT_FIELD_ENUM(field_name, type_name, type) __enum_##field_name
 #define DEFINE_STRUCT_TYPE(field_name, type_name, type) type
 #define DEFINE_STRUCT_ABI_FIELD(field_name, type_name, type) \
