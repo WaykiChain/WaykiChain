@@ -9,8 +9,9 @@
 #include "commons/uint256.h"
 #include "commons/util/util.h"
 #include "crypto/hash.h"
+#include "sync.h"
 #include "netbase.h"
-#include "p2p/node.h"
+
 
 #include <stdint.h>
 #include <deque>
@@ -25,6 +26,8 @@
 class CAddrMan;
 class CBlockIndex;
 class CNode;
+class LocalServiceInfo ;
+class CInv;
 
 //p2p_xiaoyu_20191126
 /** Time between pings automatically sent out for latency probing and keepalive (in seconds). */
