@@ -300,7 +300,8 @@ WASM_H = \
   vm/wasm/wasm_native_contract.hpp \
   vm/wasm/wasm_trace.hpp \
   vm/wasm/wasm_rpc_message.hpp \
-  vm/wasm/modules/dex_contract.hpp
+  vm/wasm/modules/dex_contract.hpp \
+  vm/wasm/modules/native_contract_base.hpp
 
 WASM_CPP = \
   vm/wasm/abi_serializer.cpp \
