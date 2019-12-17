@@ -53,10 +53,6 @@ struct CNodeSignals {
     boost::signals2::signal<bool(CNode*, bool)> SendMessages;
     boost::signals2::signal<void(NodeId, const CNode*)> InitializeNode;
     boost::signals2::signal<void(NodeId)> FinalizeNode;
-
-    ~CNodeSignals(){
-      LogPrint(BCLog::DEBUG, "cnodesignals finalize") ;
-    }
 };
 
 inline uint32_t SendBufferSize() { return 1000 * SysCfg().GetArg("-maxsendbuffer", 1 * 1000); }
