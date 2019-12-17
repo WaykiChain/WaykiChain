@@ -318,26 +318,25 @@ void dex::dex_order_create(wasm_context &context) {
 
     OrderType order_type = OrderType(args.order_type());
     OrderSide order_side = OrderSide(args.order_side());
+    uint64_t asset_amount = args.asset().amount;
+    uint64_t coin_amount;
     if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY) {
-        WASM_ASSERT(args.asset().amount == 0, wasm_assert_exception,
+        WASM_ASSERT(asset_amount == 0, wasm_assert_exception,
                     "asset.amount=%llu must be 0 when order_type=%s, order_side=%s",
-                    args.asset().amount, GetOrderTypeName(order_type),
+                    asset_amount, GetOrderTypeName(order_type),
                     GetOrderSideName(order_side));
-        check_order_amount_range(coin_sym, args.coin().amount, ERROR_TITLE("order.coin"));
+        coin_amount = args.coin().amount;
+        check_order_amount_range(coin_sym, coin_amount, ERROR_TITLE("order.coin"));
     } else {
-        check_order_amount_range(asset_sym, args.asset().amount, ERROR_TITLE("order.asset"));
+        check_order_amount_range(asset_sym, asset_amount, ERROR_TITLE("order.asset"));
         WASM_ASSERT(args.coin().amount == 0, wasm_assert_exception,
                     "coin.amount of sell order must be 0 when order_type=%s, order_side=%s",
                     args.coin().amount, GetOrderTypeName(order_type),
                     GetOrderSideName(order_side));
+        coin_amount = calc_coin_amount(asset_amount, args.price());
     }
 
-    uint64_t asset_amount = args.asset().amount;
-    uint64_t coin_amount = args.coin().amount;
     if (order_side == ORDER_BUY) {
-        if (order_type == ORDER_LIMIT_PRICE) {
-            coin_amount = calc_coin_amount(args.asset().amount, args.price());
-        }
         WASM_ASSERT(sp_from_account->OperateBalance(coin_sym, FREEZE, coin_amount), wasm_assert_exception,
             "account has insufficient funds to freeze coin.amount! symbol=%s, amount=(%llu vs %llu)", coin_sym, coin_amount,
                 sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
@@ -345,7 +344,6 @@ void dex::dex_order_create(wasm_context &context) {
         WASM_ASSERT(sp_from_account->OperateBalance(asset_sym, FREEZE, asset_amount), wasm_assert_exception,
         "account has insufficient funds to freeze asset.amount! symbol=%s, amount=(%llu vs %llu)", coin_sym,
             asset_amount, sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
-        coin_amount = calc_coin_amount(args.asset().amount, args.price());
     }
 
     static const uint64_t DEX_PRICE_MAX = 1000000 * COIN;
