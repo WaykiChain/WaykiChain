@@ -238,7 +238,7 @@ DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
     return CWalletDB(strWalletFile, "cr+").LoadWallet(this);
 }
 
-int64_t CWallet::GetFreeBcoins(bool isConfirmed) const {
+int64_t CWallet::GetFreeCoins(TokenSymbol coinCymbol, bool isConfirmed) const {
     int64_t ret = 0;
     {
         LOCK2(cs_main, cs_wallet);
@@ -246,9 +246,9 @@ int64_t CWallet::GetFreeBcoins(bool isConfirmed) const {
         GetKeys(setKeyId);
         for (auto &keyId : setKeyId) {
             if (!isConfirmed)
-                ret += mempool.cw->accountCache.GetAccountFreeAmount(keyId, SYMB::WICC);
+                ret += mempool.cw->accountCache.GetAccountFreeAmount(keyId, coinCymbol);
             else
-                ret += pCdMan->pAccountCache->GetAccountFreeAmount(keyId, SYMB::WICC);
+                ret += pCdMan->pAccountCache->GetAccountFreeAmount(keyId, coinCymbol);
         }
     }
     return ret;
