@@ -84,7 +84,7 @@ public:
 public:
     void verify_contracts(CTxExecuteContext &context);
     void verify_authorization(const std::vector<uint64_t> &authorization_accounts);
-    void verify_accounts_from_signatures(CCacheWrapper &database, 
+    void get_accounts_from_signatures(CCacheWrapper &database, 
                                           std::vector<uint64_t> &authorization_accounts);
     void execute_inline_transaction( wasm::inline_transaction_trace &trace,
                                       wasm::inline_transaction &trx,

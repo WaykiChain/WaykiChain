@@ -58,28 +58,37 @@ namespace wasm {
         return std::find(trx.authorization.begin(), trx.authorization.end(), p) != trx.authorization.end();
     }
 
-    void wasm_context::execute_inline(inline_transaction t) {
+void wasm_context::execute_inline(inline_transaction t) {
 
-       //ban inline except contract self and wasmio_bank
-       WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank ,
-                   wasm_assert_exception,
-                   "%s",
-                   "inline transaction can be sent to/by contract self or wasmio.bank ");
+    //call other contract except contract-self or wasmio_bank
+    WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank ,
+                wasm_assert_exception,
+                "%s",
+                "Inline transaction can be sent to/by contract self or wasmio.bank ");
 
-       //check authorization
-       for(const auto p: t.authorization){
+    //check authorization
+    for(const auto p: t.authorization){
 
-          if(p.account  == _receiver){ continue; } //contract authority
-          if(t.contract == _receiver && has_permission_from_inline_transaction(p) ) { continue; } //same contract
+        //inline wasmio.bank 
+        if(t.contract == wasmio_bank && p.account != _receiver){
+            WASM_ASSERT(false,
+                        missing_auth_exception,
+                        "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
+                        wasm::name(_receiver).to_string().c_str(), wasm::name(p.account).to_string().c_str());
+        }
 
-           WASM_ASSERT(false ,
-                       missing_auth_exception,
-                       "Do not get the authority by account %s ",
-                       wasm::name(p.account).to_string().c_str());
-       }
-
-       inline_transactions.push_back(t);
+        //call contract-self
+        if(t.contract == _receiver && !has_permission_from_inline_transaction(p)){
+            WASM_ASSERT(false,
+                        missing_auth_exception,
+                        "Missing authorization by account %s in a new inline transaction",
+                        wasm::name(p.account).to_string().c_str());
     }
+
+}
+
+inline_transactions.push_back(t);
+}
 
     std::vector <uint8_t> wasm_context::get_code(uint64_t account) {
 

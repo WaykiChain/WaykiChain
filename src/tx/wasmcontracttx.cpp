@@ -59,6 +59,7 @@ void to_variant( const wasm::permission &t, json_spirit::Value &v ) {
 
 
 void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &database) {
+//void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , const std::vector<char>& abi) {
 
     json_spirit::Object obj;
 
@@ -107,7 +108,7 @@ void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCac
 
 
 void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
-
+//void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, const std::vector<char>& abi) {
     json_spirit::Object obj;
 
     json_spirit::Value val;
@@ -143,6 +144,7 @@ void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v,
 }
 
 void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database ) {
+//void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, const std::vector<char>& abi ) {
 
     json_spirit::Object obj;
 
@@ -166,6 +168,20 @@ void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCache
 
     v = obj;
 }
+
+// static void CWasmContractTx::get_abi( uint64_t contract, std::vector<char>& abi, CCacheWrapper &database ){
+
+//     if(!get_native_contract_abi(contract, abi)){
+//         //should be lock
+//         CUniversalContract contract_store;
+
+//         CAccount contract_account;
+//         if(database.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
+//                     && database.contractCache.GetContract(contract_account.regid, contract_store))
+//             abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
+//     }
+
+// }
 
 void CWasmContractTx::pause_billing_timer(){
 
@@ -244,7 +260,7 @@ void CWasmContractTx::verify_authorization(const std::vector<uint64_t>& authoriz
 
 //bool CWasmContractTx::validate_payer_signature(CTxExecuteContext &context)
 
-void CWasmContractTx::verify_accounts_from_signatures(CCacheWrapper &database, std::vector<uint64_t> &authorization_accounts){
+void CWasmContractTx::get_accounts_from_signatures(CCacheWrapper &database, std::vector<uint64_t> &authorization_accounts){
 
     TxID signature_hash = GetHash();
  
@@ -256,13 +272,14 @@ void CWasmContractTx::verify_accounts_from_signatures(CCacheWrapper &database, s
         }
         
         CAccount account;
-        WASM_ASSERT( database.accountCache.GetAccount(nick_name(wasm::name(s.account).to_string()), account), account_operation_exception, "%s",
-                    "CWasmContractTx.get_accounts_from_signature, can not get account from public key")
+        WASM_ASSERT( database.accountCache.GetAccount(nick_name(wasm::name(s.account).to_string()), account), 
+                     account_operation_exception, "%s",
+                     "CWasmContractTx.get_accounts_from_signature, can not get account from public key")
 
         WASM_ASSERT(account.owner_pubkey.Verify(signature_hash, s.signature),
-            account_operation_exception,
-            "%s",
-            "CWasmContractTx::get_accounts_from_signature, can not get public key from signature")
+                    account_operation_exception,
+                    "%s",
+                    "CWasmContractTx::get_accounts_from_signature, can not get public key from signature")
 
 
         authorization_account = wasm::name(account.nickid.ToString()).value;
@@ -292,7 +309,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
         //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
         std::vector<uint64_t> authorization_accounts;
-        verify_accounts_from_signatures(database, authorization_accounts);
+        get_accounts_from_signatures(database, authorization_accounts);
         verify_authorization(authorization_accounts);
 
         //validate payer
@@ -529,7 +546,7 @@ string CWasmContractTx::ToString( CAccountDBCache &accountCache ) {
 
 Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
 
-    if(inlinetransactions.size() == 0){
+    if(inlinetransactions.size() == 0){ 
         return Object{};
     }
 
