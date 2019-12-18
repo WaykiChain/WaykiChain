@@ -179,8 +179,8 @@ void dex::dex_operator_register(wasm_context &context) {
     vector<CReceipt> receipts; // TODO: receipts in wasm context
     process_dex_operator_fee(context, args.fee(), ASSET_ACTION_ISSUE, *sp_registrant_account);
     DexOperatorDetail detail(owner_name, matcher_name, args.name(), args.portal_url(), args.memo());
-    DexOperatorID new_id;
-    WASM_ASSERT(context.database.dexCache.IncDexOperatorId(new_id), wasm_assert_exception, "increase dex operator id error");
+    DexID new_id;
+    WASM_ASSERT(context.database.dexCache.IncDexID(new_id), wasm_assert_exception, "increase dex operator id error");
     WASM_ASSERT(context.database.dexCache.CreateDexOperator(new_id, detail), wasm_assert_exception, "save new dex operator error");
     context.require_recipient(args.registrant());
     context.require_recipient(args.owner());

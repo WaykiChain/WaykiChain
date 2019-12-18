@@ -14,6 +14,8 @@
 #include "commons/types.h"
 #include "commons/json/json_spirit.h"
 
+typedef uint32_t DexID;
+
 enum OrderSide: uint8_t {
     ORDER_BUY  = 1,
     ORDER_SELL = 2,
@@ -76,6 +78,7 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
 }
 
 struct CDEXOrderDetail {
+    DexID dex_id = 0;
     OrderGenerateType generate_type    = EMPTY_ORDER;       //!< generate type
     OrderType order_type               = ORDER_LIMIT_PRICE; //!< order type
     OrderSide order_side               = ORDER_BUY;         //!< order side
@@ -191,6 +194,38 @@ public:// create functions
 
     static shared_ptr<CDEXOrderDetail> CreateSellMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
         const TokenSymbol &assetSymbol, uint64_t assetAmountIn);
+};
+
+// dex operator
+struct DexOperatorDetail {
+    CNickID owner;
+    CNickID matcher;
+    string  name;
+    string portal_url;
+    string memo;
+    // TODO: state
+
+    DexOperatorDetail() {}
+
+    DexOperatorDetail(const CNickID &ownerIn, const CNickID &matcherIn, const string &nameIn,
+                      const string &portalUrlIn, const string &memoIn)
+        : owner(ownerIn), matcher(matcherIn), name(nameIn), portal_url(portalUrlIn), memo(memoIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(owner);
+        READWRITE(matcher);
+        READWRITE(name);
+        READWRITE(portal_url);
+        READWRITE(memo);
+    )
+
+    bool IsEmpty() const {
+        return owner.IsEmpty() && name.empty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
+    }
+
+    void SetEmpty() {
+        owner.SetEmpty(); matcher.SetEmpty(); name = ""; portal_url = ""; memo = "";
+    }
 };
 
 #endif //ENTITIES_DEX_ORDER_H
