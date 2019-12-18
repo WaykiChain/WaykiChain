@@ -122,6 +122,7 @@ void get_contract(CAccountDBCache* database_account, CContractDBCache* database_
     WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), account_operation_exception,
                 "rpcwasm.get_contract, Contract %s does not exist",contract_name.to_string().c_str())
     //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
+
     JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), RPC_WALLET_ERROR,
                     strprintf("rpcwasm.get_contract, Cannot get contract %s", contract_name.to_string().c_str()))
 

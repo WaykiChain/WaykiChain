@@ -226,7 +226,7 @@ void dex::dex_operator_update(wasm_context &context) {
                 args.memo().value().size());
         operator_detail.memo = args.memo().value();
     }
-    uint64_t old_owner = NAME(old_operator_detail.owner.nickId.c_str());
+    uint64_t old_owner = NAME(old_operator_detail.owner.ToString().c_str());
     shared_ptr<CAccount> sp_owner_account;
     if (args.owner() && args.owner().value() != old_owner) {
         nick_name owner_name(wasm::name(args.owner().value()).to_string());
@@ -242,7 +242,7 @@ void dex::dex_operator_update(wasm_context &context) {
         operator_detail.owner = owner_name;
     }
 
-    uint64_t old_matcher = NAME(old_operator_detail.matcher.nickId.c_str());
+    uint64_t old_matcher = NAME(old_operator_detail.matcher.ToString().c_str());
     if (args.matcher() && args.matcher().value() != old_matcher) {
         nick_name matcher_name(wasm::name(args.matcher().value()).to_string());
         if (operator_detail.matcher != matcher_name) {
@@ -381,7 +381,7 @@ void dex::dex_order_create(wasm_context &context) {
         wasm_assert_exception, "save active order error");
     wasm_account::save(context.database, *sp_from_account, ERROR_TITLE("from"));
     context.require_recipient(args.from());
-    uint64_t owner = NAME(operator_detail.owner.nickId.c_str());
+    uint64_t owner = NAME(operator_detail.owner.ToString().c_str());
     context.require_recipient(owner);
 }
 
@@ -457,6 +457,6 @@ void dex::dex_order_cancel(wasm_context &context) {
     WASM_ASSERT(context.database.dexCache.EraseActiveOrder(order_id, active_order), wasm_assert_exception,
         "erase active order failed! order_id=%s", order_id.ToString());
     context.require_recipient(args.from());
-    uint64_t owner = NAME(operator_detail.owner.nickId.c_str());
+    uint64_t owner = NAME(operator_detail.owner.ToString().c_str());
     context.require_recipient(owner);
 }
