@@ -245,6 +245,7 @@ Object CAccount::ToJsonObj() const {
     obj.push_back(Pair("address",           keyid.ToAddress()));
     obj.push_back(Pair("keyid",             keyid.ToString()));
     obj.push_back(Pair("nickid",            nickid.ToString()));
+    obj.push_back(Pair("nickid_mature",     nickid.IsMature(chainActive.Height())));
     obj.push_back(Pair("regid",             regid.ToString()));
     obj.push_back(Pair("regid_mature",      regid.IsMature(chainActive.Height())));
     obj.push_back(Pair("owner_pubkey",      owner_pubkey.ToString()));

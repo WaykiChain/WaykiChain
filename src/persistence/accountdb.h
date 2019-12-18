@@ -80,6 +80,9 @@ public:
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
     bool GetRegId(const CUserID &userId, CRegID &regId) const;
 
+    bool SetNickId(const CAccount account, const uint32_t height);
+    uint32_t GetNickIdHeight(uint64_t nickIdValue,uint32_t& regHeight) ;
+
     uint32_t GetCacheSize() const;
     Object ToJsonObj(dbk::PrefixType prefix = dbk::EMPTY);
 
@@ -110,7 +113,7 @@ private:
     // <prefix$RegID -> KeyID>
     CCompositeKVCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
     // <prefix$NickID -> KeyID>
-    CCompositeKVCache< dbk::NICKID_KEYID,         string,      std::pair<uint32_t,CKeyID>>   nickId2KeyIdCache;
+    CCompositeKVCache< dbk::NICKID_KEYID,         uint64_t,      std::pair<uint32_t,CKeyID>>   nickId2KeyIdCache;
     // <prefix$KeyID -> Account>
     CCompositeKVCache< dbk::KEYID_ACCOUNT,        CKeyID,       CAccount>        accountCache;
 

@@ -30,6 +30,9 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
     }
 
     try{
+        if (nickId.size() != 12)
+            return state.DoS(100,ERRORMSG("Nickname length must be 12, but %s length = %d", nickId, nickId.size()),
+                             REJECT_INVALID, "bad_nickid_length");
         if(wasm::name(nickId).value == 0){
             return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid,for zero"), REJECT_INVALID,
                              "bad-nickid");
@@ -79,14 +82,16 @@ bool CNickIdRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    CNickID  nick = CNickID(nickId,(uint32_t)context.height);
+    CNickID  nick = CNickID(wasm::string_to_name(nickId.c_str()));
     account.nickid       = nick;
-    if (!cw.accountCache.SaveAccount(account))
+    if (!cw.accountCache.SaveAccount(account) || !cw.accountCache.SetNickId(account, context.height))
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, write source addr %s account info error",
                                        nick.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     return true;
 }
+
+
 
 string CNickIdRegisterTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, nickId=%s, llFees=%ld, keyid=%s, valid_height=%d",
