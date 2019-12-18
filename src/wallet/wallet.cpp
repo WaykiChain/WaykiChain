@@ -513,6 +513,15 @@ bool CWallet::Sign(const CKeyID &keyId, const uint256 &hash, vector<uint8_t> &si
     return false;
 }
 
+bool CWallet::SignCompact(const CKeyID &keyId, const uint256 &hash, vector<uint8_t> &signature, bool isMiner) const {
+    CKey key;
+    if (GetKey(keyId, key, isMiner)) {
+        return (key.SignCompact(hash, signature));
+    }
+
+    return false;
+}
+
 bool CWallet::AddCryptedKey(const CPubKey &vchPubKey, const std::vector<uint8_t> &vchCryptedSecret) {
     if (!CCryptoKeyStore::AddCryptedKey(vchPubKey, vchCryptedSecret))
         return false;

@@ -182,6 +182,9 @@ void dex::dex_operator_register(wasm_context &context) {
     DexOperatorID new_id;
     WASM_ASSERT(context.database.dexCache.IncDexOperatorId(new_id), wasm_assert_exception, "increase dex operator id error");
     WASM_ASSERT(context.database.dexCache.CreateDexOperator(new_id, detail), wasm_assert_exception, "save new dex operator error");
+    context.require_recipient(args.registrant());
+    context.require_recipient(args.owner());
+    context.require_recipient(args.matcher());
 }
 
 void dex::dex_operator_update(wasm_context &context) {
@@ -200,60 +203,67 @@ void dex::dex_operator_update(wasm_context &context) {
     shared_ptr<CAccount> sp_registrant_account = wasm_account::get_account(context.database,
         registrant_name, ERROR_TITLE("registrant"));
 
-    DexOperatorDetail dexOperator;
-    WASM_ASSERT(context.database.dexCache.GetDexOperator(args.id(), dexOperator), wasm_assert_exception,
+    DexOperatorDetail operator_detail;
+    WASM_ASSERT(context.database.dexCache.GetDexOperator(args.id(), operator_detail), wasm_assert_exception,
         "the dex operator does not exist! exid=%u", args.id());
 
-    WASM_ASSERT(registrant_name == dexOperator.owner, wasm_assert_exception,
+    WASM_ASSERT(registrant_name == operator_detail.owner, wasm_assert_exception,
         "the registrant is not owner of dex operator! registrant=%u", registrant_name.ToString())
 
-    DexOperatorDetail oldDexOperator = dexOperator;
+    DexOperatorDetail old_operator_detail = operator_detail;
 
-    if (args.name() && dexOperator.name != args.name().value()) {
+    if (args.name() && operator_detail.name != args.name().value()) {
         WASM_ASSERT(args.name().value().size() <= NAME_SIZE_MAX, wasm_assert_exception, "name.size=%d is more than %d!",
             args.name().value().size(), NAME_SIZE_MAX);
-        dexOperator.name = args.name().value();
+        operator_detail.name = args.name().value();
     }
-    if (args.portal_url() && dexOperator.portal_url != args.portal_url().value()) {
+    if (args.portal_url() && operator_detail.portal_url != args.portal_url().value()) {
         WASM_ASSERT(check_url(args.portal_url().value()), wasm_assert_exception, "portal_url invalid");
-        dexOperator.portal_url = args.portal_url().value();
+        operator_detail.portal_url = args.portal_url().value();
     }
-    if (args.memo() && dexOperator.memo != args.memo().value()) {
+    if (args.memo() && operator_detail.memo != args.memo().value()) {
         WASM_ASSERT(args.memo().value().size() <= MEMO_SIZE_MAX, wasm_assert_exception, "memo.size=%d is more than %s",
                 args.memo().value().size());
-        dexOperator.memo = args.memo().value();
+        operator_detail.memo = args.memo().value();
     }
+    uint64_t old_owner = NAME(old_operator_detail.owner.nickId.c_str());
     shared_ptr<CAccount> sp_owner_account;
-    if (args.owner()) {
+    if (args.owner() && args.owner().value() != old_owner) {
         nick_name owner_name(wasm::name(args.owner().value()).to_string());
-        if (dexOperator.owner != owner_name) {
-            WASM_ASSERT(!owner_name.IsEmpty(), wasm_assert_exception, "owner is empty!");
-            sp_owner_account = make_shared<CAccount>();
-            if (sp_registrant_account->IsMyUid(owner_name)) {
-                sp_owner_account = sp_registrant_account;
-            } else {
-                sp_owner_account = wasm_account::get_account(context.database, registrant_name, ERROR_TITLE("owner"));
-            }
-            WASM_ASSERT(!context.database.dexCache.HaveDexOperatorByOwner(owner_name), wasm_assert_exception,
-                "the owner already has a dex operator! owner=%s", owner_name.ToString());
-            dexOperator.owner = owner_name;
+        WASM_ASSERT(!owner_name.IsEmpty(), wasm_assert_exception, "owner is empty!");
+        sp_owner_account = make_shared<CAccount>();
+        if (sp_registrant_account->IsMyUid(owner_name)) {
+            sp_owner_account = sp_registrant_account;
+        } else {
+            sp_owner_account = wasm_account::get_account(context.database, registrant_name, ERROR_TITLE("owner"));
         }
+        WASM_ASSERT(!context.database.dexCache.HaveDexOperatorByOwner(owner_name), wasm_assert_exception,
+            "the owner already has a dex operator! owner=%s", owner_name.ToString());
+        operator_detail.owner = owner_name;
     }
 
-    if (args.matcher()) {
+    uint64_t old_matcher = NAME(old_operator_detail.matcher.nickId.c_str());
+    if (args.matcher() && args.matcher().value() != old_matcher) {
         nick_name matcher_name(wasm::name(args.matcher().value()).to_string());
-        if (dexOperator.matcher != matcher_name) {
+        if (operator_detail.matcher != matcher_name) {
             WASM_ASSERT(!matcher_name.IsEmpty(), wasm_assert_exception, "matcher is empty!");
             if (!sp_registrant_account->IsMyUid(matcher_name) &&
                 (!sp_owner_account || !sp_owner_account->IsMyUid(matcher_name)))
                 wasm_account::check_account_existed(context.database, matcher_name, ERROR_TITLE("matcher"));
-            dexOperator.matcher = matcher_name;
+            operator_detail.matcher = matcher_name;
         }
     }
 
     process_dex_operator_fee(context, args.fee(), ASSET_ACTION_UPDATE, *sp_registrant_account);
-    WASM_ASSERT(context.database.dexCache.UpdateDexOperator(args.id(), oldDexOperator, dexOperator),
+    WASM_ASSERT(context.database.dexCache.UpdateDexOperator(args.id(), old_operator_detail, operator_detail),
         wasm_assert_exception, "update dex operator error");
+    context.require_recipient(args.registrant());
+    context.require_recipient(old_owner);
+    if (args.owner() && args.owner() != old_owner)
+        context.require_recipient(args.owner().value());
+    context.require_recipient(old_matcher);
+    if (args.matcher() && args.matcher().value() != old_matcher)
+        context.require_recipient(args.matcher().value());
 }
 
 void check_order_amount_range(const TokenSymbol &symbol, const int64_t amount, const string &err_title) {
@@ -304,8 +314,8 @@ void dex::dex_order_create(wasm_context &context) {
     WASM_ASSERT(CheckOrderSide(OrderSide(args.order_side())), wasm_assert_exception,
         "order_side=%d is invalid", args.order_side())
 
-    DexOperatorDetail dexOperator;
-    WASM_ASSERT(context.database.dexCache.GetDexOperator(args.exid(), dexOperator), wasm_assert_exception,
+    DexOperatorDetail operator_detail;
+    WASM_ASSERT(context.database.dexCache.GetDexOperator(args.exid(), operator_detail), wasm_assert_exception,
         "the dex operator does not exist! exid=%u", args.exid());
 
     static uint64_t ORDER_FEE_RATE_MAX = 50 * 10000;
@@ -318,26 +328,25 @@ void dex::dex_order_create(wasm_context &context) {
 
     OrderType order_type = OrderType(args.order_type());
     OrderSide order_side = OrderSide(args.order_side());
+    uint64_t asset_amount = args.asset().amount;
+    uint64_t coin_amount;
     if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY) {
-        WASM_ASSERT(args.asset().amount == 0, wasm_assert_exception,
+        WASM_ASSERT(asset_amount == 0, wasm_assert_exception,
                     "asset.amount=%llu must be 0 when order_type=%s, order_side=%s",
-                    args.asset().amount, GetOrderTypeName(order_type),
+                    asset_amount, GetOrderTypeName(order_type),
                     GetOrderSideName(order_side));
-        check_order_amount_range(coin_sym, args.coin().amount, ERROR_TITLE("order.coin"));
+        coin_amount = args.coin().amount;
+        check_order_amount_range(coin_sym, coin_amount, ERROR_TITLE("order.coin"));
     } else {
-        check_order_amount_range(asset_sym, args.asset().amount, ERROR_TITLE("order.asset"));
+        check_order_amount_range(asset_sym, asset_amount, ERROR_TITLE("order.asset"));
         WASM_ASSERT(args.coin().amount == 0, wasm_assert_exception,
                     "coin.amount of sell order must be 0 when order_type=%s, order_side=%s",
                     args.coin().amount, GetOrderTypeName(order_type),
                     GetOrderSideName(order_side));
+        coin_amount = calc_coin_amount(asset_amount, args.price());
     }
 
-    uint64_t asset_amount = args.asset().amount;
-    uint64_t coin_amount = args.coin().amount;
     if (order_side == ORDER_BUY) {
-        if (order_type == ORDER_LIMIT_PRICE) {
-            coin_amount = calc_coin_amount(args.asset().amount, args.price());
-        }
         WASM_ASSERT(sp_from_account->OperateBalance(coin_sym, FREEZE, coin_amount), wasm_assert_exception,
             "account has insufficient funds to freeze coin.amount! symbol=%s, amount=(%llu vs %llu)", coin_sym, coin_amount,
                 sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
@@ -345,7 +354,6 @@ void dex::dex_order_create(wasm_context &context) {
         WASM_ASSERT(sp_from_account->OperateBalance(asset_sym, FREEZE, asset_amount), wasm_assert_exception,
         "account has insufficient funds to freeze asset.amount! symbol=%s, amount=(%llu vs %llu)", coin_sym,
             asset_amount, sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
-        coin_amount = calc_coin_amount(args.asset().amount, args.price());
     }
 
     static const uint64_t DEX_PRICE_MAX = 1000000 * COIN;
@@ -372,6 +380,9 @@ void dex::dex_order_create(wasm_context &context) {
     WASM_ASSERT(context.database.dexCache.CreateActiveOrder(order_id, *sp_sys_order),
         wasm_assert_exception, "save active order error");
     wasm_account::save(context.database, *sp_from_account, ERROR_TITLE("from"));
+    context.require_recipient(args.from());
+    uint64_t owner = NAME(operator_detail.owner.nickId.c_str());
+    context.require_recipient(owner);
 }
 
 static uint256 checksum_to_uint256(checksum256_type &checksum) {
@@ -398,7 +409,8 @@ void dex::dex_order_cancel(wasm_context &context) {
     WASM_ASSERT(sp_from_account->IsRegistered(), wasm_assert_exception, "from account must be registered! from=%s",
             from_name.ToString());
 
-    WASM_ASSERT(context.database.dexCache.HaveDexOperator(args.exid()), wasm_assert_exception,
+    DexOperatorDetail operator_detail;
+    WASM_ASSERT(context.database.dexCache.GetDexOperator(args.exid(), operator_detail), wasm_assert_exception,
         "the dex operator does not exist! exid=%u", args.exid());
 
     uint256 order_id = checksum_to_uint256(args.order_id());
@@ -444,5 +456,7 @@ void dex::dex_order_cancel(wasm_context &context) {
     wasm_account::save(context.database, *sp_from_account, ERROR_TITLE("from"));
     WASM_ASSERT(context.database.dexCache.EraseActiveOrder(order_id, active_order), wasm_assert_exception,
         "erase active order failed! order_id=%s", order_id.ToString());
-
+    context.require_recipient(args.from());
+    uint64_t owner = NAME(operator_detail.owner.nickId.c_str());
+    context.require_recipient(owner);
 }

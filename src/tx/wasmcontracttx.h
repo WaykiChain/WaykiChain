@@ -9,6 +9,17 @@
 using std::chrono::microseconds;
 using std::chrono::system_clock;
 
+struct signature_type {
+    uint64_t          account;
+    UnsignedCharArray signature;
+
+    IMPLEMENT_SERIALIZE (
+    READWRITE(VARINT(account ));
+    READWRITE(signature);
+    )
+
+};
+
 void to_variant( const wasm::permission &t, json_spirit::Value &v ) ;
 void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &database) ;
 void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) ;
@@ -17,6 +28,8 @@ void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCache
 class CWasmContractTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inlinetransactions;
+    vector<signature_type>           signatures;
+    //uint64_t payer;
 
 public:
     bool mining;
@@ -40,8 +53,10 @@ public:
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
         READWRITE(inlinetransactions);
+        READWRITE(signatures);
         READWRITE(VARINT(llFees));
-        READWRITE(signature);)
+        READWRITE(signature);
+        )
 
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
@@ -67,10 +82,12 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
-    void contract_validation(CTxExecuteContext &context);
-    void authorization_validation(const std::vector<uint64_t>& has_signature_accounts);
-    void execute_inline_transaction( wasm::inline_transaction_trace& trace,
-                                      wasm::inline_transaction& trx,
+    void verify_contracts(CTxExecuteContext &context);
+    void verify_authorization(const std::vector<uint64_t> &authorization_accounts);
+    void verify_accounts_from_signatures(CCacheWrapper &database, 
+                                          std::vector<uint64_t> &authorization_accounts);
+    void execute_inline_transaction( wasm::inline_transaction_trace &trace,
+                                      wasm::inline_transaction &trx,
                                       uint64_t receiver,
                                       CCacheWrapper &database,
                                       vector<CReceipt> &receipts,
