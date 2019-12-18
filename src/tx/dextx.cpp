@@ -12,6 +12,11 @@
 
 using uint128_t = unsigned __int128;
 
+#define GetDealFeeRatio(dexDealFeeRatio) (\
+    cw.sysParamCache.GetParam(DEX_DEAL_FEE_RATIO, dexDealFeeRatio)? true : \
+        state.DoS(100, ERRORMSG("%s(), read DEX_DEAL_FEE_RATIO error", __FUNCTION__), \
+                        READ_SYS_PARAM_FAIL, "read-sysparamdb-error") ) \
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXBuyLimitOrderTx
 
@@ -140,6 +145,9 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXBuyLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+    uint64_t dexDealFeeRatio;
+    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
+
     assert(!srcAccount.regid.IsEmpty());
     const uint256 &txid = GetHash();
     CDEXOrderDetail orderDetail;
@@ -151,6 +159,7 @@ bool CDEXBuyLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     orderDetail.coin_amount   = CalcCoinAmount(asset_amount, bid_price);
     orderDetail.asset_amount  = asset_amount;
     orderDetail.price         = bid_price;
+    orderDetail.fee_ratio     = dexDealFeeRatio;
     orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid    = srcAccount.regid;
     // other fields keep the default value
@@ -232,6 +241,9 @@ bool CDEXSellLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+    uint64_t dexDealFeeRatio;
+    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
+
     assert(!srcAccount.regid.IsEmpty());
     const uint256 &txid = GetHash();
     CDEXOrderDetail orderDetail;
@@ -243,6 +255,7 @@ bool CDEXSellLimitOrderTx::ExecuteTx(CTxExecuteContext &context) {
     orderDetail.coin_amount   = CalcCoinAmount(asset_amount, ask_price);
     orderDetail.asset_amount  = asset_amount;
     orderDetail.price         = ask_price;
+    orderDetail.fee_ratio     = dexDealFeeRatio;
     orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid = srcAccount.regid;
     // other fields keep the default value
@@ -322,6 +335,9 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+    uint64_t dexDealFeeRatio;
+    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
+
     assert(!srcAccount.regid.IsEmpty());
     const uint256 &txid = GetHash();
     CDEXOrderDetail orderDetail;
@@ -333,6 +349,7 @@ bool CDEXBuyMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     orderDetail.coin_amount   = coin_amount;
     orderDetail.asset_amount  = 0; // unkown in buy market price order
     orderDetail.price         = 0; // unkown in buy market price order
+    orderDetail.fee_ratio     = dexDealFeeRatio;
     orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid = srcAccount.regid;
     // other fields keep the default value
@@ -413,6 +430,8 @@ bool CDEXSellMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+    uint64_t dexDealFeeRatio;
+    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
 
     assert(!srcAccount.regid.IsEmpty());
     const uint256 &txid = GetHash();
@@ -425,6 +444,7 @@ bool CDEXSellMarketOrderTx::ExecuteTx(CTxExecuteContext &context) {
     orderDetail.coin_amount   = 0; // unkown in sell market price order
     orderDetail.asset_amount  = asset_amount;
     orderDetail.price         = 0; // unkown in sell market price order
+    orderDetail.fee_ratio     = dexDealFeeRatio;
     orderDetail.tx_cord       = CTxCord(context.height, context.index);
     orderDetail.user_regid    = srcAccount.regid;
     // other fields keep the default value
@@ -561,6 +581,14 @@ string DEXDealItem::ToString() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
+
+static bool CheckOrderFeeRate(CTxExecuteContext &context, const uint256 &orderId, const CDEXOrderDetail &order) {
+    static_assert(DEX_ORDER_FEE_RATE_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
+    if (order.fee_ratio <= DEX_ORDER_FEE_RATE_MAX)
+        return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
+            __FUNCTION__, orderId.ToString(), order.fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
+}
+
 string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo="";
     for (const auto &item : dealItems) {
@@ -899,16 +927,12 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         // 9. calc deal fees
-        uint64_t dexDealFeeRatio;
-        if (!cw.sysParamCache.GetParam(DEX_DEAL_FEE_RATIO, dexDealFeeRatio)) {
-            return state.DoS(100, ERRORMSG("%s(), i[%d] read DEX_DEAL_FEE_RATIO error", __FUNCTION__, i),
-                                READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
-        }
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         // 9.1 buyer pay the fee from the received assets to settler
-        if (buyOrder.generate_type == USER_GEN_ORDER) {
+        if (buyOrder.fee_ratio != 0) {
+            if (!CheckOrderFeeRate(context, dealItem.buyOrderId, buyOrder)) return false;
 
-            uint64_t dealAssetFee = dealItem.dealAssetAmount * dexDealFeeRatio / RATIO_BOOST;
+            uint64_t dealAssetFee = dealItem.dealAssetAmount * buyOrder.fee_ratio / PRICE_BOOST;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // pay asset fee from seller to settler
             if (!pSrcAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
@@ -923,8 +947,9 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         }
         // 9.2 seller pay the fee from the received coins to settler
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
-        if (sellOrder.generate_type == USER_GEN_ORDER) {
-            uint64_t dealCoinFee = dealItem.dealCoinAmount * dexDealFeeRatio / RATIO_BOOST;
+        if (sellOrder.fee_ratio != 0) {
+            if (!CheckOrderFeeRate(context, dealItem.sellOrderId, sellOrder)) return false;
+            uint64_t dealCoinFee = dealItem.dealCoinAmount * sellOrder.fee_ratio / PRICE_BOOST;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // pay coin fee from buyer to settler
             if (!pSrcAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
