@@ -559,14 +559,17 @@ Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
         result.push_back(Pair("action",         wasm::name(trx.action).to_string()));
         result.push_back(Pair("arguments",      HexStr(trx.data)));
 
-        Array var;
-        for(auto s: signatures){
-            Object tmp;
-            tmp.push_back(Pair("account",       wasm::name(s.account).to_string()));
-            tmp.push_back(Pair("signature",     HexStr(s.signature)));
-            var.push_back(tmp);
+
+        if(signatures.size() > 1){
+            Array var;
+            for(auto s: signatures){
+                Object tmp;
+                tmp.push_back(Pair("account",       wasm::name(s.account).to_string()));
+                tmp.push_back(Pair("signature",     HexStr(s.signature)));
+                var.push_back(tmp);
+            }
+            result.push_back(Pair("signatures", var));
         }
-        result.push_back(Pair("signatures", var));
 
 
     }

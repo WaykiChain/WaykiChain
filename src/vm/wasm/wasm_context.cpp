@@ -199,13 +199,14 @@ namespace wasm {
 
         trace.trx_id = control_trx.GetHash();
         trace.console = _pending_console_output.str();
+
         //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
         // trace.block_height =
         // trace.block_time =
         reset_console();
 
-        if (contracts_console()) {
+        if (print_console()) {
             print_debug(_receiver, trace);
         }
 

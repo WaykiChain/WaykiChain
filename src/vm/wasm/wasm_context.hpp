@@ -54,7 +54,7 @@ namespace wasm {
         void reset_console();
         std::ostringstream &get_console_stream() { return _pending_console_output; }
         const std::ostringstream &get_console_stream() const { return _pending_console_output; }
-
+        bool print_console() { return SysCfg().GetBoolArg("-contracts_console", false) && control_trx.validating_tx_in_mem_pool;}
 //virtual
     public:
         void execute_inline( inline_transaction t );
@@ -91,7 +91,7 @@ namespace wasm {
             return database.contractCache.EraseContractData(contract_account.regid, k);
         }
 
-        bool contracts_console() { return SysCfg().GetBoolArg("-contracts_console", false) && control_trx.validating_tx_in_mem_pool;}
+        bool contracts_console() { return SysCfg().GetBoolArg("-contracts_console", false) ;}
         void console_append( string val ) {
             _pending_console_output << val;
         }

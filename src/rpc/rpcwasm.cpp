@@ -242,6 +242,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
                             "rpcwasm.submitwasmcontractcalltx, Sign failed")
 
             tx.signatures.push_back({sender_name.value, tx.signature});
+            // tx.signatures.push_back({sender_name.value, tx.signature});
         }
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
