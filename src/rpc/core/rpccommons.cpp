@@ -280,6 +280,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
+                    //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
                     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
 
                     obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));

@@ -91,7 +91,7 @@ namespace wasm {
             return database.contractCache.EraseContractData(contract_account.regid, k);
         }
 
-        bool contracts_console() { return SysCfg().GetBoolArg("-contracts_console", false);}
+        bool contracts_console() { return SysCfg().GetBoolArg("-contracts_console", false) && control_trx.validating_tx_in_mem_pool;}
         void console_append( string val ) {
             _pending_console_output << val;
         }

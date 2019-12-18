@@ -27,12 +27,13 @@ void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCache
 
 class CWasmContractTx : public CBaseTx {
 public:
-    vector<wasm::inline_transaction> inlinetransactions;
+    vector<wasm::inline_transaction> inline_transactions;
     vector<signature_type>           signatures;
     //uint64_t payer;
 
 public:
-    bool mining;
+    bool mining = false;
+    bool validating_tx_in_mem_pool = false;
     system_clock::time_point pseudo_start;
     std::chrono::microseconds billed_time = chrono::microseconds(0);
 
@@ -52,7 +53,7 @@ public:
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
-        READWRITE(inlinetransactions);
+        READWRITE(inline_transactions);
         READWRITE(signatures);
         READWRITE(VARINT(llFees));
         READWRITE(signature);
@@ -62,7 +63,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-                << inlinetransactions
+                << inline_transactions
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }
@@ -80,10 +81,11 @@ public:
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
+    virtual bool IsMultiSignSupport() const {return true;}
 
 public:
-    void verify_contracts(CTxExecuteContext &context);
-    void verify_authorization(const std::vector<uint64_t> &authorization_accounts);
+    void validate_contracts(CTxExecuteContext &context);
+    void validate_authorization(const std::vector<uint64_t> &authorization_accounts);
     void get_accounts_from_signatures(CCacheWrapper &database, 
                                           std::vector<uint64_t> &authorization_accounts);
     void execute_inline_transaction( wasm::inline_transaction_trace &trace,

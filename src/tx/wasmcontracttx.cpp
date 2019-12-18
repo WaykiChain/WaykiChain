@@ -206,11 +206,11 @@ void CWasmContractTx::resume_billing_timer(){
 
 }
 
-void CWasmContractTx::verify_contracts(CTxExecuteContext &context){
+void CWasmContractTx::validate_contracts(CTxExecuteContext &context){
 
     auto &database         = *context.pCw;
 
-    for(auto i: inlinetransactions){
+    for(auto i: inline_transactions){
 
         wasm::name contract_name     = wasm::name(i.contract);
         //wasm::name contract_action   = wasm::name(i.action);
@@ -237,10 +237,10 @@ void CWasmContractTx::verify_contracts(CTxExecuteContext &context){
 
 }
 
-void CWasmContractTx::verify_authorization(const std::vector<uint64_t>& authorization_accounts){
+void CWasmContractTx::validate_authorization(const std::vector<uint64_t>& authorization_accounts){
 
     //authorization in each inlinetransaction must be a subset of signatures from transaction
-    for(auto i: inlinetransactions){
+    for(auto i: inline_transactions){
         for(auto p: i.authorization){
             auto itr = std::find(authorization_accounts.begin(), authorization_accounts.end(), p.account);
             WASM_ASSERT( itr != authorization_accounts.end(),
@@ -296,21 +296,21 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
         auto &database         = *context.pCw;
         auto &state            = *context.pState;
 
-        WASM_ASSERT(inlinetransactions.size() > 0,
+        WASM_ASSERT(inline_transactions.size() > 0,
                     account_operation_exception,
                     "%s",
                     "CWasmContractTx.CheckTx, Tx must have at least 1 inline_transaction")
 
         //IMPLEMENT_CHECK_TX_FEE;
         IMPLEMENT_CHECK_TX_REGID(txUid.type());
-        verify_contracts(context);
+        validate_contracts(context);
 
         // uint64_t llFuel = GetFuel(context.height, context.fuel_rate);
         // WASM_ASSERT( llFees >= llFuel, fuel_fee_exception, "%s",
         //             "CWasmContractTx.CheckTx, fee is not enough to afford fuel")
         std::vector<uint64_t> authorization_accounts;
         get_accounts_from_signatures(database, authorization_accounts);
-        verify_authorization(authorization_accounts);
+        validate_authorization(authorization_accounts);
 
         //validate payer
         CAccount payer;
@@ -336,7 +336,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
 //         auto &database         = *context.pCw;
 //         auto &state            = *context.pState;
 
-//         WASM_ASSERT(inlinetransactions.size() > 0,
+//         WASM_ASSERT(inline_transactions.size() > 0,
 //                     account_operation_exception,
 //                     "%s",
 //                     "CWasmContractTx.CheckTx, Tx must have at least 1 inline_transaction")
@@ -426,8 +426,9 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto &database         = *context.pCw;
         auto execute_tx_return = context.pState;
 
-        mining   = context.is_mining;
-        nRunStep = sizeof(inlinetransactions);
+        mining                    = context.is_mining;
+        validating_tx_in_mem_pool = context.is_validating_tx_in_mem_pool;
+        nRunStep = sizeof(inline_transactions);
 
         //charger fee
         CAccount payer;
@@ -446,7 +447,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         //trx_trace.block_time =
         vector<CReceipt> receipts;
 
-        for (auto trx: inlinetransactions) {
+        for (auto trx: inline_transactions) {
             trx_trace.traces.emplace_back();
             execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, database, receipts, 0);
         }
@@ -526,11 +527,11 @@ uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
 
 string CWasmContractTx::ToString( CAccountDBCache &accountCache ) {
 
-    if(inlinetransactions.size() == 0){
+    if(inline_transactions.size() == 0){
         return string("");
     }
 
-    inline_transaction trx = inlinetransactions[0];
+    inline_transaction trx = inline_transactions[0];
     CAccount sender;
     if(!accountCache.GetAccount(txUid, sender)){
         return string("");
@@ -546,17 +547,28 @@ string CWasmContractTx::ToString( CAccountDBCache &accountCache ) {
 
 Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
 
-    if(inlinetransactions.size() == 0){ 
+    if(inline_transactions.size() == 0){ 
         return Object{};
     }
 
     Object result;
-    if(inlinetransactions.size() > 0){
+    if(inline_transactions.size() > 0){
         result = CBaseTx::ToJson(accountCache);
-        inline_transaction trx = inlinetransactions[0];
+        inline_transaction trx = inline_transactions[0];
         result.push_back(Pair("contract",       wasm::name(trx.contract).to_string()));
         result.push_back(Pair("action",         wasm::name(trx.action).to_string()));
         result.push_back(Pair("arguments",      HexStr(trx.data)));
+
+        Array var;
+        for(auto s: signatures){
+            Object tmp;
+            tmp.push_back(Pair("account",       wasm::name(s.account).to_string()));
+            tmp.push_back(Pair("signature",     HexStr(s.signature)));
+            var.push_back(tmp);
+        }
+        result.push_back(Pair("signatures", var));
+
+
     }
 
     return result;
@@ -564,7 +576,7 @@ Object CWasmContractTx::ToJson( const CAccountDBCache &accountCache ) const {
 
     // Object result = CBaseTx::ToJson(accountCache);
     // json_spirit::Array arr;
-    // for (const auto &i :inlinetransactions) {
+    // for (const auto &i :inline_transactions) {
     //         json_spirit::Value tmp;
     //         to_variant(i, tmp, accountCache);
     //         arr.push_back(tmp);
