@@ -296,8 +296,6 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
                            "\"votes\":100000000}], 10000"));
     }
 
-    RPCTypeCheck(params, list_of(str_type)(array_type)(str_type)(int_type));
-
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
@@ -596,6 +594,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             "  \"address\": \"xxxxx\",       (string) the address\n"
             "  \"keyid\": \"xxxxx\",         (string) the keyid referred to the address\n"
             "  \"nickid\": \"xxxxx\",        (string) the nickid referred to the address\n"
+            "  \"regid_mature\": true|false,   (bool) the nickid is mature or not\n"
             "  \"regid\": \"xxxxx\",         (string) the regid referred to the address\n"
             "  \"regid_mature\": true|false,   (bool) the regid is mature or not\n"
             "  \"owner_pubkey\": \"xxxxx\",  (string) the public key referred to the address\n"

@@ -150,7 +150,11 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 
 bool CNickID::IsMature(const uint32_t currHeight) const {
 
-    return currHeight > regHeight + NICK_ID_MATURITY ;
+    uint32_t regHeight = 0 ;
+    if(pCdMan->pAccountCache->GetNickIdHeight(value, regHeight) ){
+        return currHeight > regHeight + NICK_ID_MATURITY ;
+    }
+    return false ;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

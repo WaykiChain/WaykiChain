@@ -15,6 +15,7 @@
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
 #include "key.h"
+#include "vm/wasm/types/name.hpp"
 
 class CAccountDBCache;
 class CUserID;
@@ -94,33 +95,28 @@ class CNickID {
 
 
 public:
-    string nickId;
-    uint32_t regHeight = 0 ;
+    uint64_t value = 0 ;
     CNickID() {}
-    CNickID(string nickIdIn) {
-        if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s", nickIdIn.c_str()));
-        nickId = nickIdIn;
+    CNickID(uint64_t nickIdIn){
+        value = nickIdIn ;
     }
+    CNickID(string nickIdIn) {
 
-    CNickID(string nickIdIn, uint32_t height) {
-        if (nickIdIn.size() != 12) throw ios_base::failure(strprintf("Nickname length must be 12, but %s", nickIdIn.c_str()));
-        nickId = nickIdIn;
-        regHeight = height ;
+        value = wasm::string_to_name(nickIdIn.c_str());
     }
 
     bool IsMature(const uint32_t currHeight) const ;
-    const string &GetNickIdRaw() const { return nickId; }
-    bool IsEmpty() const { return nickId.empty(); }
-    void SetEmpty() { nickId = ""; }
-    void Clear() { nickId.clear(); }
-    string ToString() const { return nickId; }
+    bool IsEmpty() const { return value == 0; }
+    void SetEmpty() { value = 0; }
+    void Clear() { value = 0; }
+    string ToString() const { return wasm::name(value).to_string(); }
 
-    IMPLEMENT_SERIALIZE(READWRITE(nickId);)
+    IMPLEMENT_SERIALIZE(READWRITE(value);)
 
     // Comparator implementation.
-    friend bool operator==(const CNickID &a, const CNickID &b) { return a.nickId == b.nickId; }
+    friend bool operator==(const CNickID &a, const CNickID &b) { return a.value == b.value; }
     friend bool operator!=(const CNickID &a, const CNickID &b) { return !(a == b); }
-    friend bool operator<(const CNickID &a, const CNickID &b) { return a.nickId < b.nickId; }
+    friend bool operator<(const CNickID &a, const CNickID &b) { return a.value < b.value; }
 };
 
 class CUserID {
