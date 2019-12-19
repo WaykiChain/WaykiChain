@@ -15,6 +15,7 @@
 #include "datastream.hpp"
 #include "abi_serializer.hpp"
 #include "wasm_context.hpp"
+#include "wasm_variant_trace.hpp"
 
 #include <regex>
 #include <fstream>
@@ -301,8 +302,12 @@ Object GetTxDetailJSON(const uint256& txid) {
                         std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
                         transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
 
+                        // json_spirit::Value v;
+                        // to_variant(t, v, *database);
+
+                        auto resolver = make_resolver(database);
                         json_spirit::Value v;
-                        to_variant(t, v, *database);
+                        to_variant(t, v, resolver);
 
                         obj.push_back(Pair("tx_trace", v));
                      }

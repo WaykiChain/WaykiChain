@@ -38,7 +38,7 @@
 #include "wasm_native_contract_abi.hpp"
 #include "wasm_native_contract.hpp"
 #include "wasm_rpc_message.hpp"
-#include "wasm_rpc_message.hpp"
+#include "wasm_variant_trace.hpp"
 
 using namespace std;
 using namespace boost;
@@ -452,7 +452,6 @@ Value getabiwasm( const Array &params, bool fHelp ) {
 
 }
 
-
 Value gettxtrace( const Array &params, bool fHelp ) {
 
     RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::get_tx_trace_rpc_help_message)
@@ -471,8 +470,10 @@ Value gettxtrace( const Array &params, bool fHelp ) {
         std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
         transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
 
+        auto resolver = make_resolver(database);
+   
         json_spirit::Value v;
-        to_variant(t, v, *database);
+        to_variant(t, v, resolver);
 
         json_spirit::Object object_return;
         object_return.push_back(Pair("tx_trace", v));

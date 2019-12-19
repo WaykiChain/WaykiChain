@@ -43,131 +43,112 @@ inline bool get_signature_from_cache(const UnsignedCharArray &signature, uint64_
     return false;
 }
 
-void to_variant(const wasm::permission &t, json_spirit::Value &v) {
+// void to_variant(const wasm::inline_transaction &t, json_spirit::Value &v, CCacheWrapper &database) {
 
-    json_spirit::Object obj;
+//     json_spirit::Object obj;
 
-    json_spirit::Value val;
-    to_variant(wasm::name(t.account), val);
-    json_spirit::Config::add(obj, "account", val);
+//     json_spirit::Value val;
+//     to_variant(wasm::name(t.contract), val);
+//     json_spirit::Config::add(obj, "contract", val);
 
-    to_variant(wasm::name(t.perm), val);
-    json_spirit::Config::add(obj, "permission", val);
+//     to_variant(wasm::name(t.action), val);
+//     json_spirit::Config::add(obj, "action", val);
 
-    v = obj;
-}
+//     json_spirit::Array arr;
+//     for (const auto &auth :t.authorization) {
+//         json_spirit::Value tmp;
+//         to_variant(auth, tmp);
+//         arr.push_back(tmp);
+//     }
+//     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
 
+//     std::vector<char> abi;
+//     if (!get_native_contract_abi(t.contract, abi)) {
+//         //should be lock
+//         CUniversalContract contract;
 
-void to_variant(const wasm::inline_transaction &t, json_spirit::Value &v, CCacheWrapper &database) {
-//void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , const std::vector<char>& abi) {
+//         CAccount contract_account;
+//         if (database.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
+//             && database.contractCache.GetContract(contract_account.regid, contract))
+//             abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
+//     }
 
-    json_spirit::Object obj;
+//     if (abi.size() > 0 && t.action != wasm::N(setcode)) {
+//         if (t.data.size() > 0) {
+//             try {
+//                 val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
+//                                                    max_serialization_time);
+//             } catch (...) {
+//                 to_variant(ToHex(t.data, ""), val);
+//             }
+//         }
+//     } else
+//         to_variant(ToHex(t.data, ""), val);
 
-    json_spirit::Value val;
-    to_variant(wasm::name(t.contract), val);
-    json_spirit::Config::add(obj, "contract", val);
+//     json_spirit::Config::add(obj, "data", val);
 
-    to_variant(wasm::name(t.action), val);
-    json_spirit::Config::add(obj, "action", val);
+//     v = obj;
+// }
 
-    json_spirit::Array arr;
-    for (const auto &auth :t.authorization) {
-        json_spirit::Value tmp;
-        to_variant(auth, tmp);
-        arr.push_back(tmp);
-    }
-    json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
+// void to_variant(const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
+//     json_spirit::Object obj;
 
-    std::vector<char> abi;
-    if (!get_native_contract_abi(t.contract, abi)) {
-        //should be lock
-        CUniversalContract contract;
+//     json_spirit::Value val;
+//     to_variant(t.trx_id.ToString(), val);
+//     json_spirit::Config::add(obj, "trx_id", val);
 
-        CAccount contract_account;
-        if (database.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
-            && database.contractCache.GetContract(contract_account.regid, contract))
-            abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
-    }
+//     // to_variant(t.elapsed.count(), val);
+//     // json_spirit::Config::add(obj, "elapsed", val);
 
-    if (abi.size() > 0 && t.action != wasm::N(setcode)) {
-        if (t.data.size() > 0) {
-            try {
-                val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
-                                                   max_serialization_time);
-            } catch (...) {
-                to_variant(ToHex(t.data, ""), val);
-            }
-        }
-    } else
-        to_variant(ToHex(t.data, ""), val);
+//     to_variant(wasm::name(t.receiver), val);
+//     json_spirit::Config::add(obj, "receiver", val);
 
-    json_spirit::Config::add(obj, "data", val);
+//     to_variant(t.trx, val, database);
+//     json_spirit::Config::add(obj, "trx", val);
 
-    v = obj;
-}
+//     // to_variant(t.console, val);
+//     // json_spirit::Config::add(obj, "console", val);
 
+//     if (t.inline_traces.size() > 0) {
+//         json_spirit::Array arr;
+//         for (const auto &trace :t.inline_traces) {
+//             json_spirit::Value tmp;
+//             to_variant(trace, tmp, database);
+//             arr.push_back(tmp);
+//         }
 
-void to_variant(const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
-//void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, const std::vector<char>& abi) {
-    json_spirit::Object obj;
+//         json_spirit::Config::add(obj, "inline_traces", json_spirit::Value(arr));
 
-    json_spirit::Value val;
-    to_variant(t.trx_id.ToString(), val);
-    json_spirit::Config::add(obj, "trx_id", val);
+//     }
 
-    // to_variant(t.elapsed.count(), val);
-    // json_spirit::Config::add(obj, "elapsed", val);
+//     v = obj;
 
-    to_variant(wasm::name(t.receiver), val);
-    json_spirit::Config::add(obj, "receiver", val);
+// }
 
-    to_variant(t.trx, val, database);
-    json_spirit::Config::add(obj, "trx", val);
+// void to_variant(const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
 
-    // to_variant(t.console, val);
-    // json_spirit::Config::add(obj, "console", val);
+//     json_spirit::Object obj;
 
-    if (t.inline_traces.size() > 0) {
-        json_spirit::Array arr;
-        for (const auto &trace :t.inline_traces) {
-            json_spirit::Value tmp;
-            to_variant(trace, tmp, database);
-            arr.push_back(tmp);
-        }
+//     json_spirit::Value val;
+//     to_variant(t.trx_id.ToString(), val);
+//     json_spirit::Config::add(obj, "trx_id", val);
 
-        json_spirit::Config::add(obj, "inline_traces", json_spirit::Value(arr));
+//     to_variant(t.elapsed.count(), val);
+//     json_spirit::Config::add(obj, "elapsed", val);
 
-    }
+//     if (t.traces.size() > 0) {
+//         json_spirit::Array arr;
+//         for (const auto &trace :t.traces) {
+//             json_spirit::Value tmp;
+//             to_variant(trace, tmp, database);
+//             arr.push_back(tmp);
+//         }
 
-    v = obj;
+//         json_spirit::Config::add(obj, "traces", json_spirit::Value(arr));
+//     }
 
-}
-
-void to_variant(const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
-//void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, const std::vector<char>& abi ) {
-
-    json_spirit::Object obj;
-
-    json_spirit::Value val;
-    to_variant(t.trx_id.ToString(), val);
-    json_spirit::Config::add(obj, "trx_id", val);
-
-    to_variant(t.elapsed.count(), val);
-    json_spirit::Config::add(obj, "elapsed", val);
-
-    if (t.traces.size() > 0) {
-        json_spirit::Array arr;
-        for (const auto &trace :t.traces) {
-            json_spirit::Value tmp;
-            to_variant(trace, tmp, database);
-            arr.push_back(tmp);
-        }
-
-        json_spirit::Config::add(obj, "traces", json_spirit::Value(arr));
-    }
-
-    v = obj;
-}
+//     v = obj;
+// }
 
 // static void CWasmContractTx::get_abi( uint64_t contract, std::vector<char>& abi, CCacheWrapper &database ){
 

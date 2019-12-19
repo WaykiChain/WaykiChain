@@ -20,11 +20,6 @@ struct signature_type {
 
 };
 
-void to_variant( const wasm::permission &t, json_spirit::Value &v ) ;
-void to_variant( const wasm::inline_transaction &t, json_spirit::Value &v , CCacheWrapper &database) ;
-void to_variant( const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) ;
-void to_variant( const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database ) ;
-
 class CWasmContractTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inline_transactions;

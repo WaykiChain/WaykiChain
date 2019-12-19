@@ -28,7 +28,7 @@ namespace wasm {
         WASM_ASSERT(precision == 8,
                     account_operation_exception,
                     "wasmnativecontract.sub_balance, The precision of system coin %s must be %d",
-                    symbol, 0)
+                    symbol, 8)
 
         WASM_ASSERT(owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount),
                     account_operation_exception,
@@ -46,7 +46,7 @@ namespace wasm {
         WASM_ASSERT(precision == 8,
                     account_operation_exception,
                     "wasmnativecontract.add_balance, The precision of system coin %s must be %d",
-                    symbol, 0)
+                    symbol, 8)
 
         WASM_ASSERT(owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount),
                     account_operation_exception,
