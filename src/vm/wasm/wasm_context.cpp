@@ -77,11 +77,14 @@ namespace wasm {
                             wasm::name(_receiver).to_string().c_str(), wasm::name(p.account).to_string().c_str());
             }
 
+            //call contract-self and authorized by contract
+            if(t.contract == _receiver && p.account == _receiver ) continue;
+
             //call contract-self
-            if(t.contract == _receiver && !has_permission_from_inline_transaction(p)){
+            if(t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
                 WASM_ASSERT(false,
                             missing_auth_exception,
-                            "Missing authorization by account %s in a new inline transaction",
+                            "Missing authorization by account %s in a new inline  transaction",
                             wasm::name(p.account).to_string().c_str());
             }
 
@@ -199,14 +202,11 @@ namespace wasm {
 
         trace.trx_id = control_trx.GetHash();
         trace.console = _pending_console_output.str();
-
         //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
-        // trace.block_height =
-        // trace.block_time =
         reset_console();
 
-        if (print_console()) {
+        if (contracts_console()) {
             print_debug(_receiver, trace);
         }
 

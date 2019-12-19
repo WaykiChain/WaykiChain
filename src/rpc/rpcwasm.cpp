@@ -242,7 +242,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
                             "rpcwasm.submitwasmcontractcalltx, Sign failed")
 
             tx.signatures.push_back({sender_name.value, tx.signature});
-            // tx.signatures.push_back({sender_name.value, tx.signature});
+            //tx.signatures.push_back({sender_name.value, tx.signature});
         }
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
@@ -333,7 +333,6 @@ Value jsontobinwasm( const Array &params, bool fHelp ) {
 
         wasm::name contract_name  = wasm::name(params[0].get_str());
         wasm::name contract_action = wasm::name(params[1].get_str());
-
 
         CAccount contract;
         std::vector<char> abi;

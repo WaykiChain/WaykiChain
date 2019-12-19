@@ -29,7 +29,6 @@ namespace wasm {
     };
 
     struct inline_transaction {
-
         uint64_t contract;
         uint64_t action;
         std::vector <permission> authorization;

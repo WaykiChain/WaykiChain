@@ -14,9 +14,9 @@ struct signature_type {
     UnsignedCharArray signature;
 
     IMPLEMENT_SERIALIZE (
-    READWRITE(VARINT(account ));
-    READWRITE(signature);
-    )
+        READWRITE(VARINT(account ));
+        READWRITE(signature);
+        )
 
 };
 
