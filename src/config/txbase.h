@@ -50,6 +50,10 @@ enum TxType: uint8_t {
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
 
+    NICKID_REGISTER_TX          = 50,    //!< nickid register Tx
+
+    WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
+
     DEX_TRADEPAIR_PROPOSE_TX    = 81,   //!< Owner proposes a trade pair on DEX
     DEX_TRADEPAIR_LIST_TX       = 82,   //!< Owner lists a trade pair on DEX
     DEX_TRADEPAIR_DELIST_TX     = 83,   //!< Owner or validators delist a trade pair
@@ -60,9 +64,6 @@ enum TxType: uint8_t {
     DEX_CANCEL_ORDER_TX         = 88,   //!< dex cancel order Tx
     DEX_TRADE_SETTLE_TX         = 89,   //!< dex settle Tx
 
-    NICKID_REGISTER_TX          = 91,    //!< nickid register Tx
-
-    WASM_CONTRACT_TX         = 100,   //!< wasm contract tx
 
 };
 
