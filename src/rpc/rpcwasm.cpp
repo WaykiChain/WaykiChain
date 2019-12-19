@@ -237,6 +237,8 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.llFees       = fee.GetSawiAmount();
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasmio_owner}},
                                              action_data});
+            // tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{sender_name.value, wasmio_owner}},
+            //                                  action_data});
             //tx.nRunStep = sizeof(tx.inlinetransactions);
             JSON_RPC_ASSERT(wallet->Sign(sender.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR,
                             "rpcwasm.submitwasmcontractcalltx, Sign failed")

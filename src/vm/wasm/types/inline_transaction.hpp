@@ -12,6 +12,17 @@ using namespace std;
 
 namespace wasm {
 
+    struct signature_pair {
+        uint64_t          account;
+        vector<uint8_t> signature;
+
+        IMPLEMENT_SERIALIZE (
+            READWRITE(VARINT(account ));
+            READWRITE(signature);
+            )
+
+    };
+
     struct permission {
         uint64_t account;
         uint64_t perm;

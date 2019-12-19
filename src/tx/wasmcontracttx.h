@@ -9,21 +9,10 @@
 using std::chrono::microseconds;
 using std::chrono::system_clock;
 
-struct signature_type {
-    uint64_t          account;
-    UnsignedCharArray signature;
-
-    IMPLEMENT_SERIALIZE (
-        READWRITE(VARINT(account ));
-        READWRITE(signature);
-        )
-
-};
-
 class CWasmContractTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inline_transactions;
-    vector<signature_type>           signatures;
+    vector<wasm::signature_pair>     signatures;
     //uint64_t payer;
 
 public:

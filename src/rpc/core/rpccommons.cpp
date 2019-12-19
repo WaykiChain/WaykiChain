@@ -295,15 +295,16 @@ Object GetTxDetailJSON(const uint256& txid) {
                         obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                     }
 
+                    CDataStream ds(SER_DISK, CLIENT_VERSION);
+                    ds << pBaseTx;
+                    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
                     string trace;
                     auto database = std::make_shared<CCacheWrapper>(pCdMan);
                     if(database->contractCache.GetContractTraces(txid, trace)){
 
                         std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
                         transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
-
-                        // json_spirit::Value v;
-                        // to_variant(t, v, *database);
 
                         auto resolver = make_resolver(database);
                         json_spirit::Value v;
@@ -312,9 +313,6 @@ Object GetTxDetailJSON(const uint256& txid) {
                         obj.push_back(Pair("tx_trace", v));
                      }
 
-                    CDataStream ds(SER_DISK, CLIENT_VERSION);
-                    ds << pBaseTx;
-                    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
                 } catch (std::exception &e) {
                     throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }

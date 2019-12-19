@@ -22,6 +22,7 @@
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
+#include "wasm/wasm_variant_trace.hpp"
 
 
 map <UnsignedCharArray, uint64_t> &get_signatures_cache() {
@@ -42,127 +43,6 @@ inline bool get_signature_from_cache(const UnsignedCharArray &signature, uint64_
     }
     return false;
 }
-
-// void to_variant(const wasm::inline_transaction &t, json_spirit::Value &v, CCacheWrapper &database) {
-
-//     json_spirit::Object obj;
-
-//     json_spirit::Value val;
-//     to_variant(wasm::name(t.contract), val);
-//     json_spirit::Config::add(obj, "contract", val);
-
-//     to_variant(wasm::name(t.action), val);
-//     json_spirit::Config::add(obj, "action", val);
-
-//     json_spirit::Array arr;
-//     for (const auto &auth :t.authorization) {
-//         json_spirit::Value tmp;
-//         to_variant(auth, tmp);
-//         arr.push_back(tmp);
-//     }
-//     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
-
-//     std::vector<char> abi;
-//     if (!get_native_contract_abi(t.contract, abi)) {
-//         //should be lock
-//         CUniversalContract contract;
-
-//         CAccount contract_account;
-//         if (database.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
-//             && database.contractCache.GetContract(contract_account.regid, contract))
-//             abi.insert(abi.end(), contract.abi.begin(), contract.abi.end());
-//     }
-
-//     if (abi.size() > 0 && t.action != wasm::N(setcode)) {
-//         if (t.data.size() > 0) {
-//             try {
-//                 val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
-//                                                    max_serialization_time);
-//             } catch (...) {
-//                 to_variant(ToHex(t.data, ""), val);
-//             }
-//         }
-//     } else
-//         to_variant(ToHex(t.data, ""), val);
-
-//     json_spirit::Config::add(obj, "data", val);
-
-//     v = obj;
-// }
-
-// void to_variant(const wasm::inline_transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
-//     json_spirit::Object obj;
-
-//     json_spirit::Value val;
-//     to_variant(t.trx_id.ToString(), val);
-//     json_spirit::Config::add(obj, "trx_id", val);
-
-//     // to_variant(t.elapsed.count(), val);
-//     // json_spirit::Config::add(obj, "elapsed", val);
-
-//     to_variant(wasm::name(t.receiver), val);
-//     json_spirit::Config::add(obj, "receiver", val);
-
-//     to_variant(t.trx, val, database);
-//     json_spirit::Config::add(obj, "trx", val);
-
-//     // to_variant(t.console, val);
-//     // json_spirit::Config::add(obj, "console", val);
-
-//     if (t.inline_traces.size() > 0) {
-//         json_spirit::Array arr;
-//         for (const auto &trace :t.inline_traces) {
-//             json_spirit::Value tmp;
-//             to_variant(trace, tmp, database);
-//             arr.push_back(tmp);
-//         }
-
-//         json_spirit::Config::add(obj, "inline_traces", json_spirit::Value(arr));
-
-//     }
-
-//     v = obj;
-
-// }
-
-// void to_variant(const wasm::transaction_trace &t, json_spirit::Value &v, CCacheWrapper &database) {
-
-//     json_spirit::Object obj;
-
-//     json_spirit::Value val;
-//     to_variant(t.trx_id.ToString(), val);
-//     json_spirit::Config::add(obj, "trx_id", val);
-
-//     to_variant(t.elapsed.count(), val);
-//     json_spirit::Config::add(obj, "elapsed", val);
-
-//     if (t.traces.size() > 0) {
-//         json_spirit::Array arr;
-//         for (const auto &trace :t.traces) {
-//             json_spirit::Value tmp;
-//             to_variant(trace, tmp, database);
-//             arr.push_back(tmp);
-//         }
-
-//         json_spirit::Config::add(obj, "traces", json_spirit::Value(arr));
-//     }
-
-//     v = obj;
-// }
-
-// static void CWasmContractTx::get_abi( uint64_t contract, std::vector<char>& abi, CCacheWrapper &database ){
-
-//     if(!get_native_contract_abi(contract, abi)){
-//         //should be lock
-//         CUniversalContract contract_store;
-
-//         CAccount contract_account;
-//         if(database.accountCache.GetAccount(CNickID(wasm::name(t.contract).to_string()), contract_account)
-//                     && database.contractCache.GetContract(contract_account.regid, contract_store))
-//             abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
-//     }
-
-// }
 
 void CWasmContractTx::pause_billing_timer() {
 
@@ -390,8 +270,8 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         CAccount payer;
         WASM_ASSERT(database.accountCache.GetAccount(txUid, payer),
                     account_operation_exception,
-                    "wasmnativecontract.Setcode, payer does not exist, payer Id = %s",
-                    payer.nickid.ToString().c_str())
+                    "wasmnativecontract.Setcode, payer does not exist, payer uid = %s",
+                    txUid.ToString().c_str())
         auto quantity = wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8));
         sub_balance(payer, quantity, database.accountCache);
 
@@ -509,41 +389,65 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
         return Object{};
     }
 
+
+
     Object result;
     if (inline_transactions.size() > 0) {
-        result = CBaseTx::ToJson(accountCache);
-        inline_transaction trx = inline_transactions[0];
-        result.push_back(Pair("contract", wasm::name(trx.contract).to_string()));
-        result.push_back(Pair("action", wasm::name(trx.action).to_string()));
-        result.push_back(Pair("arguments", HexStr(trx.data)));
+        //result = CBaseTx::ToJson(accountCache);
 
-        if (signatures.size() > 1) {
-            Array var;
-            for (auto s: signatures) {
-                Object tmp;
-                tmp.push_back(Pair("account", wasm::name(s.account).to_string()));
-                tmp.push_back(Pair("signature", HexStr(s.signature)));
-                var.push_back(tmp);
-            }
-            result.push_back(Pair("signatures", var));
-        }
+        CAccount payer;
+        accountCache.GetAccount(txUid, payer);
+
+        result.push_back(Pair("txid",             GetHash().GetHex()));
+        result.push_back(Pair("tx_type",          GetTxType(nTxType)));
+        result.push_back(Pair("ver",              nVersion));
+        result.push_back(Pair("tx_payer",         payer.nickid.ToString()));
+        result.push_back(Pair("addr_payer", payer.keyid.ToAddress()));
+        result.push_back(Pair("fee_symbol",       fee_symbol));
+        result.push_back(Pair("fees",             llFees));
+        result.push_back(Pair("valid_height",     valid_height));
+
+
+        // inline_transaction trx = inline_transactions[0];
+        // result.push_back(Pair("contract", wasm::name(trx.contract).to_string()));
+        // result.push_back(Pair("action", wasm::name(trx.action).to_string()));
+        // result.push_back(Pair("arguments", HexStr(trx.data)));
+
+       if(inline_transactions.size() == 1){
+           Value tmp;
+           to_variant(inline_transactions[0], tmp);
+           result.push_back(Pair("inline_transaction", tmp));
+       } else if(inline_transactions.size() > 1) {
+           Value inline_transactions_arr;
+           to_variant(inline_transactions, inline_transactions_arr);
+           result.push_back(Pair("inline_transactions", inline_transactions_arr));
+       }
+
+       if(signatures.size() == 1){
+           Value tmp;
+           to_variant(signatures[0], tmp);
+           result.push_back(Pair("signature", tmp));
+       } else if(signatures.size() > 1) {
+           Value signatures_arr;
+           to_variant(signatures, signatures_arr);
+           result.push_back(Pair("signatures", signatures_arr));
+       }     
+
+
+
+        // Array var_signatures;
+        // for (auto s: signatures) {
+        //     Object tmp;
+        //     tmp.push_back(Pair("account", wasm::name(s.account).to_string()));
+        //     tmp.push_back(Pair("signature", HexStr(s.signature)));
+        //     var_signatures.push_back(tmp);
+        // }
+        // result.push_back(Pair("signatures", var_signatures));
 
 
     }
 
     return result;
-
-
-    // Object result = CBaseTx::ToJson(accountCache);
-    // json_spirit::Array arr;
-    // for (const auto &i :inline_transactions) {
-    //         json_spirit::Value tmp;
-    //         to_variant(i, tmp, accountCache);
-    //         arr.push_back(tmp);
-    // }
-    // json_spirit::Config::add(result, "inline_transactions", json_spirit::Value(arr));
-
-    // return result;
 
 }
 

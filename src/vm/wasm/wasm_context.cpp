@@ -248,8 +248,8 @@ namespace wasm {
 
     bool wasm_context::is_account( uint64_t account ) {
 
-        auto account_name = wasm::name(account);
-        return database.accountCache.HaveAccount(nick_name(account_name.to_string()));
+        //auto account_name = wasm::name(account);
+        return database.accountCache.HaveAccount(nick_name(account));
     }
 
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){

@@ -10,6 +10,7 @@
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
 #include "wasm_trace.hpp"
+#include "tx/wasmcontracttx.h"
 
 namespace wasm {
 
@@ -38,6 +39,20 @@ auto make_resolver(Api& api) {
     return resolver_factory<Api>::make(api);
 }
 
+static inline void to_variant(const signature_pair &t, json_spirit::Value &v) {
+
+    json_spirit::Object obj;
+
+    json_spirit::Value val;
+    to_variant(wasm::name(t.account), val);
+    json_spirit::Config::add(obj, "account", val);
+
+    to_variant(HexStr(t.signature), val);
+    json_spirit::Config::add(obj, "permission", val);
+
+    v = obj;
+}
+
 static inline void to_variant(const wasm::permission &t, json_spirit::Value &v) {
 
     json_spirit::Object obj;
@@ -51,6 +66,31 @@ static inline void to_variant(const wasm::permission &t, json_spirit::Value &v) 
 
     v = obj;
 }
+
+static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Value &v) {
+
+    json_spirit::Object obj;
+
+    json_spirit::Value val;
+    to_variant(wasm::name(t.contract), val);
+    json_spirit::Config::add(obj, "contract", val);
+
+    to_variant(wasm::name(t.action), val);
+    json_spirit::Config::add(obj, "action", val);
+
+    json_spirit::Array arr;
+    for (const auto &auth :t.authorization) {
+        json_spirit::Value tmp;
+        to_variant(auth, tmp);
+        arr.push_back(tmp);
+    }
+    json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
+    to_variant(ToHex(t.data, ""), val);
+    json_spirit::Config::add(obj, "data", val);
+
+    v = obj;
+}
+
 
 template<typename Resolver>
 static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Value &v, Resolver resolver) {
