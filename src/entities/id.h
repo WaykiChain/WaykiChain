@@ -111,11 +111,11 @@ public:
     void Clear() { value = 0; }
     string ToString() const { return wasm::name(value).to_string(); }
 
-    IMPLEMENT_SERIALIZE(READWRITE(value);)
+    IMPLEMENT_SERIALIZE(READWRITE(VARINT(value));)
 
     // Comparator implementation.
     friend bool operator==(const CNickID &a, const CNickID &b) { return a.value == b.value; }
-    friend bool operator!=(const CNickID &a, const CNickID &b) { return !(a == b); }
+    friend bool operator!=(const CNickID &a, const CNickID &b) { return a.value != b.value; }
     friend bool operator<(const CNickID &a, const CNickID &b) { return a.value < b.value; }
 };
 

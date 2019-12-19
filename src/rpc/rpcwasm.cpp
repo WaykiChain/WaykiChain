@@ -232,7 +232,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             CAccount sender; //should be authorizer(s)
             auto sender_name = wasm::name(params[0].get_str());
             WASM_ASSERT(database_account->GetAccount(nick_name(sender_name.to_string()), sender), account_operation_exception,
-                "rpcwasm.submitwasmcontractdeploytx, sender %s does not exist",sender_name.to_string().c_str())
+                "rpcwasm.submitwasmcontractcalltx, sender %s does not exist",sender_name.to_string().c_str())
 
             ComboMoney fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
 

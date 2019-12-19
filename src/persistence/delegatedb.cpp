@@ -60,14 +60,14 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
 
 
 int32_t CDelegateDBCache::GetLastVoteHeight() {
-    uint32_t height;
-    if (!last_vote_height_cache.GetData(height))
-        height = 0;
-    return (int32_t)height;
+    CVarIntValue<uint32_t> height;
+    if (last_vote_height_cache.GetData(height))
+            return (int32_t)(height.get());
+    return 0 ;
 }
 
 bool CDelegateDBCache::SetLastVoteHeight(int32_t height) {
-    return last_vote_height_cache.SetData((uint32_t)height);
+    return last_vote_height_cache.SetData(CVarIntValue<uint32_t>(height));
 }
 
 

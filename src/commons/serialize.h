@@ -434,6 +434,7 @@ public:
     bool IsEmpty() const { return n == 0; }
 
     void SetEmpty() { n = 0; }
+    friend bool operator<(const CVarIntValue&  c1 ,const CVarIntValue& c2) { return c1.n < c2.n; }
 };
 
 template<typename I>

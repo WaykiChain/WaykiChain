@@ -39,7 +39,7 @@ bool CAccountDBCache::GetAccount(const CNickID &nickId,  CAccount &account) cons
     if(nickId.IsEmpty())
         return false ;
 
-    std::pair<uint32_t,CKeyID> regHeightAndKeyId ;
+    std::pair<CVarIntValue<uint32_t>,CKeyID> regHeightAndKeyId ;
     if(nickId2KeyIdCache.GetData(nickId.value, regHeightAndKeyId)){
         return accountCache.GetData(regHeightAndKeyId.second, account) ;
     }
@@ -81,7 +81,7 @@ bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
 }
 bool CAccountDBCache::SetAccount(const CNickID &nickId,const CAccount &account){
 
-    std::pair<uint32_t, CKeyID> heightKeyID ;
+    std::pair<CVarIntValue<uint32_t>, CKeyID> heightKeyID ;
     if(nickId2KeyIdCache.GetData(nickId.value, heightKeyID)){
         return accountCache.SetData(heightKeyID.second, account);
     }
@@ -98,7 +98,7 @@ bool CAccountDBCache::HaveAccount(const CRegID &regId) const{
 }
 
 bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
-    return nickId2KeyIdCache.HaveData(nickId.value);
+    return nickId2KeyIdCache.HaveData(CVarIntValue<uint64_t >(nickId.value));
 }
 
 bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
@@ -140,7 +140,7 @@ bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
 }
 
 bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
-    std::pair<uint32_t, CKeyID> regHeightKeyID ;
+    std::pair<CVarIntValue<uint32_t>, CKeyID> regHeightKeyID ;
     bool getResult =  nickId2KeyIdCache.GetData(nickId.value, regHeightKeyID) ;
     if(getResult)
         keyId = regHeightKeyID.second;
@@ -178,11 +178,12 @@ bool CAccountDBCache::SetNickId(const CAccount account, const uint32_t height){
     nickId2KeyIdCache.SetData(account.nickid.value, heightKeyId);
     return true;
 }
-uint32_t CAccountDBCache::GetNickIdHeight(uint64_t nickIdValue, uint32_t& regHeight) {
-    std::pair<uint32_t, CKeyID> regHeightKeyID ;
+
+bool CAccountDBCache::GetNickIdHeight(uint64_t nickIdValue, uint32_t& regHeight) {
+    std::pair<CVarIntValue<uint32_t>, CKeyID> regHeightKeyID ;
     bool getResult =  nickId2KeyIdCache.GetData(nickIdValue, regHeightKeyID) ;
     if(getResult)
-        regHeight = regHeightKeyID.first;
+        regHeight = regHeightKeyID.first.get();
     return getResult;
 }
 

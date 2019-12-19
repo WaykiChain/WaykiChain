@@ -92,7 +92,7 @@ private:
     CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
     CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateReceivedVote>> regId2VoteCache;
 
-    CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, uint32_t> last_vote_height_cache;
+    CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, CVarIntValue<uint32_t>> last_vote_height_cache;
     CSimpleKVCache<dbk::PENDING_DELEGATES, PendingDelegates> pending_delegates_cache;
     CSimpleKVCache<dbk::ACTIVE_DELEGATES, VoteDelegateVector> active_delegates_cache;
 
