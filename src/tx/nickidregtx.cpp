@@ -77,7 +77,8 @@ bool CNickIdRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "nickid-exist");
     }
 
-    if (!account.OperateBalance(SYMB::WICC, BalanceOpType::SUB_FREE, llFees)) {
+
+    if (!account.OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::ExecuteTx, insufficient funds in account, txUid=%s",
                                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }

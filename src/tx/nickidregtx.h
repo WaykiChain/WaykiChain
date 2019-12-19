@@ -13,9 +13,8 @@ class CNickIdRegisterTx : public CBaseTx {
 public:
     string nickId ;
 
-public:
-    CNickIdRegisterTx(const CUserID &txUidIn, const string nickIdin, int64_t feesIn, int32_t validHeightIn) :
-            CBaseTx(NICKID_REGISTER_TX, txUidIn, validHeightIn, feesIn) {
+    CNickIdRegisterTx(const CUserID &txUidIn, const string nickIdin, int64_t feesIn, const TokenSymbol& feeSymbol, int32_t validHeightIn) :
+            CBaseTx(NICKID_REGISTER_TX, txUidIn, validHeightIn, feeSymbol, feesIn) {
         nickId = nickIdin ;
     }
     CNickIdRegisterTx(): CBaseTx(NICKID_REGISTER_TX) {}
@@ -27,7 +26,7 @@ public:
             nVersion = this->nVersion;
             READWRITE(VARINT(valid_height));
             READWRITE(txUid);
-
+            READWRITE(fee_symbol);
             READWRITE(nickId);
             READWRITE(VARINT(llFees));
             READWRITE(signature);)
