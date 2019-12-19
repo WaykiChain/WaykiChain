@@ -32,9 +32,13 @@ static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 10000.0;
 static const double PRICE_FEED_TRANSACTION_PRIORITY   = 20000.0;
 
 static const uint64_t ASSET_RISK_FEE_RATIO  = 4000;        // 40% * 10000, the ratio of asset fee into the risk riserve
-static const uint64_t DEX_OPERATOR_RISK_FEE_RATIO  = 4000; // 40% * 10000, the ratio of DEX operator fee into the risk riserve
 static const uint64_t MIN_DEX_ORDER_AMOUNT  = 0.1 * COIN;  // min amount of dex order limit
 static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex settle item limit.
+
+
+static const uint64_t DEX_OPERATOR_RISK_FEE_RATIO  = 4000; // 40% * 10000, the ratio of DEX operator fee into the risk riserve
+static const uint64_t DEX_ORDER_FEE_RATE_MAX = 50 * PRICE_BOOST;
+static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
@@ -75,7 +79,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,      std::make_tuple("C",    10)         },  // after 10 times continuous deviate limit penetration all deposit be deducted
     { PRICE_FEED_DEVIATE_RATIO_MAX,                 std::make_tuple("D",    3000)       },  // must be < 30% * 10000, otherwise penalized
     { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
-    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    4)          },  // 0.04% * 10000
+    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    40000)      },  // 0.04% * 100000000
     { SCOIN_RESERVE_FEE_RATIO,                      std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
     { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    52500000)   },  // 25% * 210000000
     { GLOBAL_COLLATERAL_RATIO_MIN,                  std::make_tuple("I",    8000)       },  // 80% * 10000
