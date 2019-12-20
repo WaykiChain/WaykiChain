@@ -30,9 +30,9 @@ namespace wasm {
                      vector <CReceipt> &receipts_in, bool mining, uint32_t depth = 0)
                 : trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
             reset_console();
-            if (mining) {
-                transaction_duration_timeout = std::chrono::milliseconds(max_wasm_execute_time_mining);
-            }
+            // if (mining) {
+            //     transaction_duration_timeout = std::chrono::milliseconds(max_wasm_execute_time_mining);
+            // }
         };
 
         ~wasm_context() {
@@ -110,7 +110,7 @@ namespace wasm {
         }
 
         vm::wasm_allocator*       get_wasm_allocator() { return &wasm_alloc; }
-        std::chrono::milliseconds get_transaction_duration() { return transaction_duration_timeout; }
+        std::chrono::milliseconds get_max_transaction_duration() { return control_trx.get_max_transaction_duration(); }
         void                      update_storage_usage(uint64_t account, int64_t size_in_bytes);
         void                      pause_billing_timer() { control_trx.pause_billing_timer(); };
         void                      resume_billing_timer() { control_trx.resume_billing_timer(); };
@@ -128,8 +128,8 @@ namespace wasm {
         vm::wasm_allocator         wasm_alloc;
         uint64_t                   _receiver;
 
-        std::chrono::milliseconds  transaction_duration_timeout = std::chrono::milliseconds(
-                max_wasm_execute_time_observe);
+        // std::chrono::milliseconds  transaction_duration_timeout = std::chrono::milliseconds(
+        //         max_wasm_execute_time_observe);
 
     private:
         std::ostringstream         _pending_console_output;

@@ -4,6 +4,7 @@
 #include "tx.h"
 #include "wasm/types/inline_transaction.hpp"
 #include "wasm/wasm_trace.hpp"
+#include "wasm/wasm_config.hpp"
 #include "chrono"
 
 using std::chrono::microseconds;
@@ -19,10 +20,12 @@ public:
     bool validating_tx_in_mem_pool = false;
 
     system_clock::time_point  pseudo_start;
-    std::chrono::microseconds billed_time = chrono::microseconds(0);
+    std::chrono::microseconds billed_time                  = chrono::microseconds(0);
+    std::chrono::milliseconds max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_observe);
 
-    void pause_billing_timer();
-    void resume_billing_timer();
+    void                      pause_billing_timer();
+    void                      resume_billing_timer();
+    std::chrono::milliseconds get_max_transaction_duration() { return max_transaction_duration; }
 
 public:
     CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(WASM_CONTRACT_TX) {

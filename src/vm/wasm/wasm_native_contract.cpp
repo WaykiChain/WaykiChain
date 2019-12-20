@@ -62,6 +62,8 @@ namespace wasm {
 
         auto &database = context.database.accountCache;
 
+        control_trx.nRunStep = control_trx.nRunStep + 16 + context.trx.data.size();//16 bytes are contract and action
+
         std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
         auto from     = std::get<0>(transfer_data);
         auto to       = std::get<1>(transfer_data);
