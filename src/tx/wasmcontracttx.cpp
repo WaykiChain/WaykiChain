@@ -31,17 +31,19 @@ map <UnsignedCharArray, uint64_t> &get_signatures_cache() {
     return signatures_cache;
 }
 
-inline void add_signature_to_cache(const UnsignedCharArray &signature, const uint64_t &account) {
+inline void add_signature_to_cache(const UnsignedCharArray& signature, const uint64_t& account) {
     get_signatures_cache()[signature] = account;
 }
 
-inline bool get_signature_from_cache(const UnsignedCharArray &signature, uint64_t &account) {
+inline bool get_signature_from_cache(const UnsignedCharArray& signature, uint64_t& account) {
+
     auto itr = get_signatures_cache().find(signature);
     if (itr != get_signatures_cache().end()) {
         account = itr->second;
         return true;
     }
     return false;
+
 }
 
 void CWasmContractTx::pause_billing_timer() {
@@ -50,7 +52,7 @@ void CWasmContractTx::pause_billing_timer() {
         return;// already paused
     }
 
-    auto now = system_clock::now();
+    auto now    = system_clock::now();
     billed_time = std::chrono::duration_cast<std::chrono::microseconds>(now - pseudo_start);
 
 }
@@ -60,14 +62,13 @@ void CWasmContractTx::resume_billing_timer() {
     if (billed_time == chrono::microseconds(0)) {
         return;// already release pause
     }
-    auto now = system_clock::now();
+    auto now     = system_clock::now();
     pseudo_start = now - billed_time;
-
-    billed_time = chrono::microseconds(0);
+    billed_time  = chrono::microseconds(0);
 
 }
 
-void CWasmContractTx::validate_contracts(CTxExecuteContext &context) {
+void CWasmContractTx::validate_contracts(CTxExecuteContext& context) {
 
     auto &database = *context.pCw;
 
@@ -88,7 +89,6 @@ void CWasmContractTx::validate_contracts(CTxExecuteContext &context) {
                     account_operation_exception,
                     "CWasmContractTx.contract_validation, cannot get contract with nick name = %s",
                     contract_name.to_string().c_str())
-
         WASM_ASSERT(contract_store.code.size() > 0 && contract_store.abi.size() > 0,
                     account_operation_exception,
                     "CWasmContractTx.contract_validation, %s contract abi or code  does not exist",
@@ -98,7 +98,7 @@ void CWasmContractTx::validate_contracts(CTxExecuteContext &context) {
 
 }
 
-void CWasmContractTx::validate_authorization(const std::vector <uint64_t> &authorization_accounts) {
+void CWasmContractTx::validate_authorization(const std::vector<uint64_t>& authorization_accounts) {
 
     //authorization in each inlinetransaction must be a subset of signatures from transaction
     for (auto i: inline_transactions) {
@@ -122,14 +122,14 @@ void CWasmContractTx::validate_authorization(const std::vector <uint64_t> &autho
 //bool CWasmContractTx::validate_payer_signature(CTxExecuteContext &context)
 
 void
-CWasmContractTx::get_accounts_from_signatures(CCacheWrapper &database, std::vector <uint64_t> &authorization_accounts) {
+CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vector <uint64_t>& authorization_accounts) {
 
     TxID signature_hash = GetHash();
 
-    map <UnsignedCharArray, uint64_t> duplicate_check;
+    map <UnsignedCharArray, uint64_t> signatures_duplicate_check;
 
     for (auto s:signatures) {
-        duplicate_check[s.signature] = s.account;
+        signatures_duplicate_check[s.signature] = s.account;
 
         uint64_t authorization_account;
         if (get_signature_from_cache(s.signature, authorization_account)) {
@@ -140,36 +140,32 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper &database, std::vect
         CAccount account;
         WASM_ASSERT(database.accountCache.GetAccount(nick_name(wasm::name(s.account).to_string()), account),
                     account_operation_exception, "%s",
-                    "CWasmContractTx.get_accounts_from_signature, can not get account from public key")
-
+                    "CWasmContractTx.get_accounts_from_signature, can not get account from public key")        
         WASM_ASSERT(account.owner_pubkey.Verify(signature_hash, s.signature),
                     account_operation_exception,
                     "%s",
                     "CWasmContractTx::get_accounts_from_signature, can not get public key from signature")
 
-
         authorization_account = wasm::name(account.nickid.ToString()).value;
         add_signature_to_cache(s.signature, authorization_account);
-
         authorization_accounts.push_back(authorization_account);
+
     }
 
-    WASM_ASSERT(duplicate_check.size() == authorization_accounts.size(),
+    WASM_ASSERT(signatures_duplicate_check.size() == authorization_accounts.size(),
                 account_operation_exception,
                 "%s",
                 "CWasmContractTx::get_accounts_from_signature, duplicate signatures")
 
 }
 
-bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
+bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
 
     try {
         auto &database = *context.pCw;
-        auto &state = *context.pState;
+        auto &state    = *context.pState;
 
-        WASM_ASSERT(inline_transactions.size() > 0,
-                    account_operation_exception,
-                    "%s",
+        WASM_ASSERT(inline_transactions.size() > 0, account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, Tx must have at least 1 inline_transaction")
 
         //IMPLEMENT_CHECK_TX_FEE;
@@ -202,42 +198,39 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 
-static uint64_t get_fuel_limit(CBaseTx &tx, CTxExecuteContext &context) {
+static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
 
-    uint64_t fuel_rate = context.fuel_rate;
+    uint64_t fuel_rate    = context.fuel_rate;
     WASM_ASSERT(fuel_rate > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel_rate cannot be 0")
 
     uint64_t min_fee;
     WASM_ASSERT(GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee),
                 fuel_fee_exception, "%s", "get_fuel_limit, get minFee failed")
-
     assert(tx.llFees >= min_fee);
 
     uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
     uint64_t fuel_limit    = std::min<uint64_t>((fee_for_gas / fuel_rate) * 100, MAX_BLOCK_RUN_STEP);
-
     WASM_ASSERT(fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
 
     return fuel_limit;
 }
 
-static void inline_trace_to_receipts(const wasm::inline_transaction_trace trace, vector <CReceipt> &receipts) {
+static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace, vector<CReceipt>& receipts) {
 
     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
         CReceipt receipt;
         receipt.code = TRANSFER_ACTUAL_COINS;
 
-        std::tuple < uint64_t, uint64_t, wasm::asset,
-                string > transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string
-                >> (trace.trx.data);
+        std::tuple < uint64_t, uint64_t, wasm::asset, string > transfer_data 
+                      = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
         auto from     = std::get<0>(transfer_data);
         auto to       = std::get<1>(transfer_data);
         auto quantity = std::get<2>(transfer_data);
         auto memo     = std::get<3>(transfer_data);
 
-        receipt.from_uid = CUserID(CNickID(wasm::name(from).to_string()));
-        receipt.to_uid = CUserID(CNickID(wasm::name(to).to_string()));
+        receipt.from_uid    = CUserID(CNickID(wasm::name(from).to_string()));
+        receipt.to_uid      = CUserID(CNickID(wasm::name(to).to_string()));
         receipt.coin_symbol = quantity.sym.code().to_string();
         receipt.coin_amount = quantity.amount;
 
@@ -250,7 +243,7 @@ static void inline_trace_to_receipts(const wasm::inline_transaction_trace trace,
 
 }
 
-static void trace_to_receipts(const wasm::transaction_trace trace, vector <CReceipt> &receipts) {
+static void trace_to_receipts(const wasm::transaction_trace& trace, vector<CReceipt>& receipts) {
     for (auto t: trace.traces) {
         inline_trace_to_receipts(t, receipts);
     }
@@ -259,12 +252,14 @@ static void trace_to_receipts(const wasm::transaction_trace trace, vector <CRece
 bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
-        auto &database = *context.pCw;
-        auto execute_tx_return = context.pState;
+        auto &database            = *context.pCw;
+        auto execute_tx_return    = context.pState;
 
-        mining = context.is_mining;
+        mining                    = context.is_mining;
         validating_tx_in_mem_pool = context.is_validating_tx_in_mem_pool;
-        nRunStep = sizeof(inline_transactions);
+
+        //init storage usage 
+        nRunStep                  = sizeof(inline_transactions);
 
         //charger fee
         CAccount payer;
@@ -272,16 +267,14 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     account_operation_exception,
                     "wasmnativecontract.Setcode, payer does not exist, payer uid = %s",
                     txUid.ToString().c_str())
-        auto quantity = wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8));
-        sub_balance(payer, quantity, database.accountCache);
+        sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache);
 
+        //pseudo start for reduce code compile duration
         pseudo_start = system_clock::now();
 
+        std::vector<CReceipt>   receipts;
         wasm::transaction_trace trx_trace;
         trx_trace.trx_id = GetHash();
-        //trx_trace.block_height = nHeight;
-        //trx_trace.block_time =
-        vector <CReceipt> receipts;
 
         for (auto trx: inline_transactions) {
             trx_trace.traces.emplace_back();
@@ -289,21 +282,20 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
 
-        uint64_t fee = get_fuel_limit(*this, context);
-
+        //check storage usage with the limited fuel
+        uint64_t fee    = get_fuel_limit(*this, context);
         WASM_ASSERT(fee > nRunStep, fuel_fee_exception, "%s",
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel")
 
-        //database.save_trace(GetHash(),trace);
+        //save trx trace
         std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);
-        //transaction_trace t            = wasm::unpack<transaction_trace>(trace_bytes);
         WASM_ASSERT(database.contractCache.SetContractTraces(GetHash(),
                                                              std::string(trace_bytes.begin(), trace_bytes.end())),
                     wasm_exception,
                     "CWasmContractTx::ExecuteTx, set tx trace failed! txid=%s",
                     GetHash().ToString().c_str())
 
-
+        //save receipts
         trace_to_receipts(trx_trace, receipts);
         WASM_ASSERT(database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
                     wasm_exception,
@@ -322,28 +314,28 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-void CWasmContractTx::execute_inline_transaction(wasm::inline_transaction_trace &trace,
-                                                 wasm::inline_transaction &trx,
-                                                 uint64_t receiver,
-                                                 CCacheWrapper &database,
-                                                 vector <CReceipt> &receipts,
-        //CValidationState &state,
-                                                 uint32_t recurse_depth) {
+void CWasmContractTx::execute_inline_transaction(wasm::inline_transaction_trace& trace,
+                                                 wasm::inline_transaction&       trx,
+                                                 uint64_t                        receiver,
+                                                 CCacheWrapper&                  database,
+                                                 vector <CReceipt>&              receipts,
+                                                 uint32_t                        recurse_depth) {
 
-    wasm_context ctx(*this, trx, database, receipts, mining, recurse_depth);
+    wasm_context wasm_execute_context(*this, trx, database, receipts, mining, recurse_depth);
 
     //check timeout
     WASM_ASSERT(std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start) <
-                ctx.get_transaction_duration(),
+                wasm_execute_context.get_transaction_duration(),
                 wasm_timeout_exception, "%s", "timeout");
 
-    ctx._receiver = receiver;
-    ctx.execute(trace);
+    wasm_execute_context._receiver = receiver;
+    wasm_execute_context.execute(trace);
 
 }
 
 
 bool CWasmContractTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &keyIds) {
+
     CKeyID senderKeyId;
     if (!cw.accountCache.GetKeyId(txUid, senderKeyId))
         return false;
@@ -353,6 +345,7 @@ bool CWasmContractTx::GetInvolvedKeyIds(CCacheWrapper &cw, set <CKeyID> &keyIds)
 }
 
 uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
+
     uint64_t minFee = 0;
     if (!GetTxMinFee(nTxType, height, fee_symbol, minFee)) {
         LogPrint(BCLog::ERROR, "CWasmContractTx::GetFuel(), get min_fee failed! fee_symbol=%s\n", fee_symbol);
@@ -365,11 +358,9 @@ uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
 
 string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
 
-    if (inline_transactions.size() == 0) {
-        return string("");
-    }
-
+    if (inline_transactions.size() == 0) return string("");
     inline_transaction trx = inline_transactions[0];
+
     CAccount sender;
     if (!accountCache.GetAccount(txUid, sender)) {
         return string("");
@@ -385,67 +376,40 @@ string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
 
 Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
 
-    if (inline_transactions.size() == 0) {
-        return Object{};
-    }
-
-
+    if (inline_transactions.size() == 0) return Object{};
+    
+    CAccount payer;
+    accountCache.GetAccount(txUid, payer);
 
     Object result;
-    if (inline_transactions.size() > 0) {
-        //result = CBaseTx::ToJson(accountCache);
+    result.push_back(Pair("txid",             GetHash().GetHex()));
+    result.push_back(Pair("tx_type",          GetTxType(nTxType)));
+    result.push_back(Pair("ver",              nVersion));
+    result.push_back(Pair("tx_payer",         payer.nickid.ToString()));
+    result.push_back(Pair("addr_payer",       payer.keyid.ToAddress()));
+    result.push_back(Pair("fee_symbol",       fee_symbol));
+    result.push_back(Pair("fees",             llFees));
+    result.push_back(Pair("valid_height",     valid_height));
 
-        CAccount payer;
-        accountCache.GetAccount(txUid, payer);
-
-        result.push_back(Pair("txid",             GetHash().GetHex()));
-        result.push_back(Pair("tx_type",          GetTxType(nTxType)));
-        result.push_back(Pair("ver",              nVersion));
-        result.push_back(Pair("tx_payer",         payer.nickid.ToString()));
-        result.push_back(Pair("addr_payer", payer.keyid.ToAddress()));
-        result.push_back(Pair("fee_symbol",       fee_symbol));
-        result.push_back(Pair("fees",             llFees));
-        result.push_back(Pair("valid_height",     valid_height));
-
-
-        // inline_transaction trx = inline_transactions[0];
-        // result.push_back(Pair("contract", wasm::name(trx.contract).to_string()));
-        // result.push_back(Pair("action", wasm::name(trx.action).to_string()));
-        // result.push_back(Pair("arguments", HexStr(trx.data)));
-
-       if(inline_transactions.size() == 1){
-           Value tmp;
-           to_variant(inline_transactions[0], tmp);
-           result.push_back(Pair("inline_transaction", tmp));
-       } else if(inline_transactions.size() > 1) {
-           Value inline_transactions_arr;
-           to_variant(inline_transactions, inline_transactions_arr);
-           result.push_back(Pair("inline_transactions", inline_transactions_arr));
-       }
-
-       if(signatures.size() == 1){
-           Value tmp;
-           to_variant(signatures[0], tmp);
-           result.push_back(Pair("signature", tmp));
-       } else if(signatures.size() > 1) {
-           Value signatures_arr;
-           to_variant(signatures, signatures_arr);
-           result.push_back(Pair("signatures", signatures_arr));
-       }     
-
-
-
-        // Array var_signatures;
-        // for (auto s: signatures) {
-        //     Object tmp;
-        //     tmp.push_back(Pair("account", wasm::name(s.account).to_string()));
-        //     tmp.push_back(Pair("signature", HexStr(s.signature)));
-        //     var_signatures.push_back(tmp);
-        // }
-        // result.push_back(Pair("signatures", var_signatures));
-
-
+    if(inline_transactions.size() == 1){
+        Value tmp;
+        to_variant(inline_transactions[0], tmp);
+        result.push_back(Pair("inline_transaction", tmp));
+    } else if(inline_transactions.size() > 1) {
+        Value inline_transactions_arr;
+        to_variant(inline_transactions, inline_transactions_arr);
+        result.push_back(Pair("inline_transactions", inline_transactions_arr));
     }
+
+    if(signatures.size() == 1){
+        Value tmp;
+        to_variant(signatures[0], tmp);
+        result.push_back(Pair("signature", tmp));
+    } else if(signatures.size() > 1) {
+        Value signatures_arr;
+        to_variant(signatures, signatures_arr);
+        result.push_back(Pair("signatures", signatures_arr));
+    }     
 
     return result;
 

@@ -13,12 +13,12 @@ class CWasmContractTx : public CBaseTx {
 public:
     vector<wasm::inline_transaction> inline_transactions;
     vector<wasm::signature_pair>     signatures;
-    //uint64_t payer;
 
 public:
-    bool mining = false;
+    bool mining                    = false;
     bool validating_tx_in_mem_pool = false;
-    system_clock::time_point pseudo_start;
+
+    system_clock::time_point  pseudo_start;
     std::chrono::microseconds billed_time = chrono::microseconds(0);
 
     void pause_billing_timer();
@@ -46,8 +46,11 @@ public:
     uint256 ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-                << inline_transactions
+            ss << VARINT(nVersion) 
+               << uint8_t(nTxType) 
+               << VARINT(valid_height) 
+               << txUid
+               << inline_transactions
                << VARINT(llFees);
             sigHash = ss.GetHash();
         }
@@ -55,17 +58,18 @@ public:
         return sigHash;
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CWasmContractTx>(*this); }
-    virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
+    virtual uint256                    GetHash() const { return ComputeSignatureHash(); }
+    virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CWasmContractTx>(*this); }
+    virtual uint64_t                   GetFuel(int32_t height, uint32_t fuelRate);
+    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }\
+    virtual bool                       GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
-    virtual bool GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
+
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
-    virtual bool IsMultiSignSupport() const {return true;}
+
 
 public:
     void validate_contracts(CTxExecuteContext &context);

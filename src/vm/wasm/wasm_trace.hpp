@@ -20,7 +20,7 @@ namespace wasm {
     };
 
 
-    struct transaction_trace {
+    struct transaction_trace {       
         uint256 trx_id;
         std::chrono::microseconds elapsed;
         vector <inline_transaction_trace> traces;
