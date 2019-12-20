@@ -356,7 +356,6 @@ namespace wasm {
                 o.precision(std::numeric_limits<float>::digits10);
                 o << val;
 
-
                 pWasmContext->console_append(o.str());
             }
         }
@@ -432,6 +431,10 @@ namespace wasm {
         }
 
         void require_recipient( uint64_t recipient ) {
+
+            WASM_ASSERT(is_account(recipient), account_operation_exception, "can not send a receipt to a non-exist account '%s'",
+                            wasm::name(recipient).to_string().c_str());
+
             pWasmContext->require_recipient(recipient);
 
         }
@@ -448,7 +451,6 @@ namespace wasm {
             pWasmContext->execute_inline(trx);
 
         }
-
 
         //llvm compiler builtins rt apis( GCC low-level runtime library ), eg. std:string in contract
         void __ashlti3( __int128 &ret, uint64_t low, uint64_t high, uint32_t shift ) {

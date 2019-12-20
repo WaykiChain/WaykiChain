@@ -106,7 +106,7 @@ namespace wasm {
         vector <uint8_t> code;
         CUniversalContract contract;
         CAccount contract_account ;
-        if(database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account)
+        if(database.accountCache.GetAccount(CNickID(account), contract_account)
             && database.contractCache.GetContract(contract_account.regid, contract)) {
             code = vector <uint8_t>(contract.code.begin(), contract.code.end());
         }

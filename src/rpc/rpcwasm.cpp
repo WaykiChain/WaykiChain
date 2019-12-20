@@ -269,11 +269,11 @@ Value gettablewasm( const Array &params, bool fHelp ) {
     RPCTypeCheck(params, list_of(str_type)(str_type));
 
     try{
-        auto database_account = pCdMan->pAccountCache;
+        auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
 
-        wasm::name contract_name  = wasm::name(params[0].get_str());
-        wasm::name contract_table = wasm::name(params[1].get_str());
+        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_table    = wasm::name(params[1].get_str());
 
         JSON_RPC_ASSERT(!is_native_contract(contract_name.value), RPC_INVALID_PARAMS,
                         strprintf("rpcwasm.gettablewasmcontracttx, Cannot get table from native contract %s", contract_name.to_string().c_str()))
@@ -294,9 +294,9 @@ Value gettablewasm( const Array &params, bool fHelp ) {
         JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,
                         strprintf("rpcwasm.gettablewasmcontracttx, Cannot get table from contract %s", contract_name.to_string().c_str()))
 
+        bool                hasMore = false;
         json_spirit::Object object_return;
-        json_spirit::Array rows_json;
-        bool hasMore = false;
+        json_spirit::Array  rows_json;
         for (pContractDataIt->SeekUpper(&start_key); pContractDataIt->IsValid(); pContractDataIt->Next()) {
             if (pContractDataIt->GotCount() > numbers) {
                 hasMore = true;
@@ -331,16 +331,16 @@ Value jsontobinwasm( const Array &params, bool fHelp ) {
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
-        auto database_account = pCdMan->pAccountCache;
+        auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
 
-        wasm::name contract_name  = wasm::name(params[0].get_str());
-        wasm::name contract_action = wasm::name(params[1].get_str());
+        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_action   = wasm::name(params[1].get_str());
 
-        CAccount contract;
-        std::vector<char> abi;
+        std::vector<char>  abi;
+        CAccount           contract;
+        CUniversalContract contract_store;
         if(!get_native_contract_abi(contract_name.value, abi)){
-            CUniversalContract contract_store;
             get_contract(database_account, database_contract, contract_name, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
@@ -370,27 +370,25 @@ Value bintojsonwasm( const Array &params, bool fHelp ) {
         auto database_account      = pCdMan->pAccountCache;
         auto database_contract     = pCdMan->pContractCache;
 
-        wasm::name contract_name   = wasm::name(params[0].get_str());
-        wasm::name contract_action = wasm::name(params[1].get_str());
+        auto contract_name         = wasm::name(params[0].get_str());
+        auto contract_action       = wasm::name(params[1].get_str());
 
-        CAccount contract;
-        std::vector<char> abi;
+        std::vector<char>  abi;
+        CAccount           contract;
+        CUniversalContract contract_store;
         if(!get_native_contract_abi(contract_name.value, abi)){
-            CUniversalContract contract_store;
             get_contract(database_account, database_contract, contract_name, contract, contract_store );
             abi = std::vector<char>(contract_store.abi.begin(), contract_store.abi.end());
         }
 
-        string arguments = params[2].get_str();
+        string arguments = FromHex(params[2].get_str());
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                         RPC_INVALID_PARAMETER,
                         "rpcwasm.abibintojsonwasmcontracttx, Arguments is empty or out of size range")
 
-        string action_data_binary = FromHex(arguments);
-        std::vector<char> action_data(action_data_binary.begin(), action_data_binary.end() );
-
         json_spirit::Object object_return;
-        json_spirit::Value value = wasm::abi_serializer::unpack(abi, contract_action.to_string(), action_data, max_serialization_time);
+        std::vector<char>   action_data(arguments.begin(), arguments.end() );
+        json_spirit::Value  value = wasm::abi_serializer::unpack(abi, contract_action.to_string(), action_data, max_serialization_time);
         object_return.push_back(Pair("data", value));
         return object_return;
 
@@ -407,12 +405,12 @@ Value getcodewasm( const Array &params, bool fHelp ) {
         auto database_account  = pCdMan->pAccountCache;
         auto database_contract = pCdMan->pContractCache;
 
-        wasm::name contract_name   = wasm::name(params[0].get_str());
+        auto contract_name     = wasm::name(params[0].get_str());
         JSON_RPC_ASSERT(!is_native_contract(contract_name.value),
                         RPC_INVALID_PARAMS,
                         strprintf("rpcwasm.getcodewasmcontracttx, Cannot get code from native contract %s", contract_name.to_string().c_str()))
 
-        CAccount contract;
+        CAccount           contract;
         CUniversalContract contract_store;
         get_contract(database_account, database_contract, contract_name, contract, contract_store );
 
@@ -432,7 +430,7 @@ Value getabiwasm( const Array &params, bool fHelp ) {
     try{
         auto               database_account  = pCdMan->pAccountCache;
         auto               database_contract = pCdMan->pContractCache;
-        
+
         auto               contract_name     = wasm::name(params[0].get_str());
 
         vector<char>       abi;
