@@ -39,6 +39,13 @@ class CValidationState;
 string GetTxType(const TxType txType);
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut);
 
+inline const string& GetTxTypeName(TxType txType) {
+    auto it = kTxFeeTable.find(txType);
+    if (it != kTxFeeTable.end())
+        return std::get<0>(it->second);
+    return EMPTY_STRING;
+}
+
 class CTxExecuteContext {
 public:
     int32_t                       height;
@@ -139,6 +146,8 @@ public:
     bool IsPriceMedianTx() { return nTxType == PRICE_MEDIAN_TX; }
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
     bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
+
+    const string& GetTxTypeName() { return ::GetTxTypeName(nTxType); }
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
         return pBaseTx->GetSerializeSize(nType, nVersion) + 1;

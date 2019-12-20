@@ -16,6 +16,8 @@
 
 typedef uint32_t DexID;
 
+static const DexID DEX_RESERVED_ID = 0;
+
 enum OrderSide: uint8_t {
     ORDER_BUY  = 1,
     ORDER_SELL = 2,
