@@ -5,7 +5,6 @@
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
 #include "entities/account.h"
-#include "wasm/modules/dex_contract.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -69,7 +68,7 @@ namespace wasm {
         //check authorization
         for(const auto p: t.authorization){
 
-            //inline wasmio.bank 
+            //inline wasmio.bank
             if(t.contract == wasmio_bank && p.account != _receiver){
                 WASM_ASSERT(false,
                             missing_auth_exception,
@@ -129,11 +128,6 @@ namespace wasm {
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
             register_native_handler(wasmio, N(setcode), wasmio_native_setcode);
             register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
-
-            register_native_handler(dex::dex_operator, N(register), dex::dex_operator_register);
-            register_native_handler(dex::dex_operator, N(update), dex::dex_operator_update);
-            register_native_handler(dex::dex_order, N(create), dex::dex_order_create);
-            register_native_handler(dex::dex_order, N(cancel), dex::dex_order_cancel);
         }
     }
 

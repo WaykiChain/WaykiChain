@@ -200,33 +200,33 @@ public:// create functions
 
 // dex operator
 struct DexOperatorDetail {
-    CNickID owner;
-    CNickID matcher;
-    string  name;
-    string portal_url;
-    string memo;
+    CRegID owner_regid;                   // owner uid of exchange
+    CRegID match_regid;                   // match uid
+    string name              = "";       // domain name
+    string portal_url        = "";
+    uint64_t maker_fee_ratio = 0;
+    uint64_t taker_fee_ratio = 0;
+    string memo              = "";
     // TODO: state
 
-    DexOperatorDetail() {}
-
-    DexOperatorDetail(const CNickID &ownerIn, const CNickID &matcherIn, const string &nameIn,
-                      const string &portalUrlIn, const string &memoIn)
-        : owner(ownerIn), matcher(matcherIn), name(nameIn), portal_url(portalUrlIn), memo(memoIn) {}
-
     IMPLEMENT_SERIALIZE(
-        READWRITE(owner);
-        READWRITE(matcher);
+        READWRITE(owner_regid);
+        READWRITE(match_regid);
         READWRITE(name);
         READWRITE(portal_url);
+        READWRITE(VARINT(maker_fee_ratio));
+        READWRITE(VARINT(taker_fee_ratio));
         READWRITE(memo);
     )
 
     bool IsEmpty() const {
-        return owner.IsEmpty() && name.empty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
+        return owner_regid.IsEmpty() && match_regid.IsEmpty() && name.empty() && portal_url.empty() &&
+               maker_fee_ratio == 0 && taker_fee_ratio == 0 && memo.empty();
     }
 
     void SetEmpty() {
-        owner.SetEmpty(); matcher.SetEmpty(); name = ""; portal_url = ""; memo = "";
+        owner_regid.SetEmpty(); match_regid.SetEmpty(); name = ""; portal_url = ""; maker_fee_ratio = 0;
+        taker_fee_ratio = 0; memo = "";
     }
 };
 
