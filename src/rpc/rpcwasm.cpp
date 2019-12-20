@@ -242,7 +242,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
 
-            //for(int i = 0; i < 1000 ; i++)
+            //for(int i = 0; i < 2000 ; i++)
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{payer_name.value, wasmio_owner}}, action_data});
 
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR,

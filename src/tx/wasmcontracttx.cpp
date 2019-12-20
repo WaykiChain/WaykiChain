@@ -168,8 +168,8 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
         WASM_ASSERT(signatures.size() > 0 && signatures.size() <= max_signatures_size, account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, Signatures size must be <= %s", max_signatures_size)
 
-        WASM_ASSERT(inline_transactions.size() > 0 && inline_transactions.size() <= max_inline_transactions_size, account_operation_exception, "%s",
-                    "CWasmContractTx.CheckTx, Inline_transactions size must be <= %s", max_inline_transactions_size)
+        // WASM_ASSERT(inline_transactions.size() > 0 && inline_transactions.size() <= max_inline_transactions_size, account_operation_exception, 
+        //             "CWasmContractTx.CheckTx, Inline_transactions size must be <= %s", max_inline_transactions_size)
 
         //IMPLEMENT_CHECK_TX_FEE;
         IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -213,7 +213,7 @@ static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
-    uint64_t fuel_limit    = std::min<uint64_t>((fee_for_gas / fuel_rate) * 100, MAX_BLOCK_RUN_STEP);
+    uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate , max_wasm_transaction_runstep);
     WASM_ASSERT(fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
 
     return fuel_limit;
@@ -265,7 +265,10 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
             max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
         }
         //init storage usage 
-        nRunStep                     = GetSerializeSize(SER_DISK, CLIENT_VERSION);
+        nRunStep                     = GetSerializeSize(SER_DISK, CLIENT_VERSION) * fuel_store_fee_per_byte;
+        // if(validating_tx_in_mem_pool)
+        //     std::cout << std::string("nRunStep storage:")
+        //               << nRunStep << std::endl;
 
         //charger fee
         CAccount payer;
@@ -288,6 +291,12 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
 
+        // if(validating_tx_in_mem_pool)
+        //     std::cout << std::string("wasm duration:")
+        //               << trx_trace.elapsed.count() 
+        //               << "\n"
+        //               << std::string("nRunStep storage:")
+        //               << nRunStep << std::endl;
 
         if(validating_tx_in_mem_pool){
              WASM_ASSERT(trx_trace.elapsed.count() < max_wasm_execute_time_mining * 1000,
@@ -301,16 +310,9 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     "CWasmContractTx::ExecuteTx, Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
                     max_transaction_duration * 1000, trx_trace.elapsed.count())                   
 
-        // if(validating_tx_in_mem_pool)
-        //     std::cout << std::string("wasm duration:")
-        //               << trx_trace.elapsed.count() << std::endl;
-
-        // if(validating_tx_in_mem_pool)
-        //     std::cout << std::string("size storage:")
-        //               << nRunStep << std::endl;
-
         //check storage usage with the limited fuel
         uint64_t fee    = get_fuel_limit(*this, context);
+
         WASM_ASSERT(fee > nRunStep, fuel_fee_exception, "%s",
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel")
 

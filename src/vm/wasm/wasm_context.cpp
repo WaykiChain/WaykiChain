@@ -254,8 +254,8 @@ namespace wasm {
 
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
 
-        int64_t disk_usage    = control_trx.nRunStep;
-        disk_usage           += size_in_bytes * fuel_store_fee_per_byte;
+        //int64_t disk_usage    = control_trx.nRunStep;
+        int64_t disk_usage    = size_in_bytes * fuel_store_fee_per_byte;
         control_trx.nRunStep += (disk_usage < 0) ? 0 : disk_usage;
 
     }
