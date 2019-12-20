@@ -301,16 +301,14 @@ Object GetTxDetailJSON(const uint256& txid) {
 
                     string trace;
                     auto database = std::make_shared<CCacheWrapper>(pCdMan);
+                    auto resolver = make_resolver(database);
                     if(database->contractCache.GetContractTraces(txid, trace)){
 
-                        std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
-                        transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
-
-                        auto resolver = make_resolver(database);
-                        json_spirit::Value v;
-                        to_variant(t, v, resolver);
-
-                        obj.push_back(Pair("tx_trace", v));
+                        json_spirit::Value value_json;
+                        std::vector<char>  trace_bytes = std::vector<char>(trace.begin(), trace.end());
+                        transaction_trace  trace       = wasm::unpack<transaction_trace>(trace_bytes);
+                        to_variant(trace, value_json, resolver);
+                        obj.push_back(Pair("tx_trace", value_json));
                      }
 
                 } catch (std::exception &e) {
