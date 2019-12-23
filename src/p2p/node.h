@@ -296,6 +296,12 @@ public:
     NodeId GetId() const { return id; }
 
 
+
+
+    // for now, use a very simple selection metric: the node from which we received
+    // most recently
+    int64_t NodeSyncScore() { return nLastRecv; }
+
     int32_t GetRefCount() {
         assert(nRefCount >= 0);
         return nRefCount;
