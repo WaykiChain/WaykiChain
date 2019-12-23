@@ -597,26 +597,58 @@ struct DEXDealItem  {
     string ToString() const;
 };
 
-class CDEXSettleTx: public CBaseTx {
+class CDEXSettleBaseTx: public CBaseTx {
 
 public:
-    CDEXSettleTx() : CBaseTx(DEX_TRADE_SETTLE_TX) {}
+    CDEXSettleBaseTx(TxType nTxTypeIn) : CBaseTx(nTxTypeIn) {}
+
+    CDEXSettleBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
+                     const TokenSymbol &feeSymbol, uint64_t fees, DexID dexIdIn,
+                     const vector<DEXDealItem> &dealItemsIn, const string &memoIn)
+        : CBaseTx(nTxTypeIn, txUidIn, validHeightIn, feeSymbol, fees), dex_id(dexIdIn),
+          dealItems(dealItemsIn), memo(memoIn) {}
+
+    void AddDealItem(const DEXDealItem& item) {
+        dealItems.push_back(item);
+    }
+
+    vector<DEXDealItem>& GetDealItems() { return dealItems; }
+
+    virtual string ToString(CAccountDBCache &accountCache); //logging usage
+    virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
+
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
+
+protected:
+    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
+        const OrderSide orderSide, CDEXOrderDetail &dealOrder);
+    bool CheckDexId(CTxExecuteContext &context, uint32_t i, uint32_t buyDexId, uint32_t sellDexId);
+
+protected:
+    DexID   dex_id;
+    vector<DEXDealItem> dealItems;
+    string memo;
+};
+
+class CDEXSettleTx: public CDEXSettleBaseTx {
+
+public:
+    CDEXSettleTx() : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX) {}
 
     CDEXSettleTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                  uint64_t fees, const vector<DEXDealItem> &dealItemsIn)
-        : CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees),
-          dealItems(dealItemsIn) {}
-
-    ~CDEXSettleTx() {}
+        : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees,
+                           DEX_RESERVED_ID, dealItemsIn, "") {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
         nVersion = this->nVersion;
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
-
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
+
         READWRITE(dealItems);
 
         READWRITE(signature);
@@ -625,33 +657,61 @@ public:
     TxID ComputeSignatureHash(bool recalculate = false) const {
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << dealItems;
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
+               << fee_symbol << VARINT(llFees) << dealItems;
             sigHash = ss.GetHash();
         }
 
         return sigHash;
     }
 
-    void AddDealItem(const DEXDealItem& item) {
-        dealItems.push_back(item);
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
+
+    // TODO: check tx
+    //virtual bool CheckTx(CTxExecuteContext &context);
+};
+
+class CDEXSettleExTx: public CDEXSettleBaseTx {
+
+public:
+    CDEXSettleExTx() : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX) {}
+
+    CDEXSettleExTx(const CUserID &txUidIn, int32_t validHeightIn,
+                     const TokenSymbol &feeSymbol, uint64_t fees, DexID dexIdIn,
+                     const vector<DEXDealItem> &dealItemsIn, const string &memoIn)
+        : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees, dexIdIn,
+                           dealItemsIn, memoIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(valid_height));
+        READWRITE(txUid);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(llFees));
+
+        READWRITE(VARINT(dex_id));
+        READWRITE(dealItems);
+        READWRITE(memo);
+
+        READWRITE(signature);
+    )
+
+    TxID ComputeSignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
+               << fee_symbol << VARINT(llFees) << dealItems;
+            sigHash = ss.GetHash();
+        }
+
+        return sigHash;
     }
 
-    vector<DEXDealItem>& GetDealItems() { return dealItems; }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleExTx>(*this); }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
-    virtual string ToString(CAccountDBCache &accountCache); //logging usage
-    virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
-
-    virtual bool CheckTx(CTxExecuteContext &context);
-    virtual bool ExecuteTx(CTxExecuteContext &context);
-
-private:
-    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
-        const OrderSide orderSide, CDEXOrderDetail &dealOrder);
-
-private:
-    vector<DEXDealItem> dealItems;
+    // TODO: check tx
+    //virtual bool CheckTx(CTxExecuteContext &context);
 };
 
 #endif  // TX_DEX_H

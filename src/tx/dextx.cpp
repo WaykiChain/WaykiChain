@@ -631,7 +631,7 @@ static bool CheckOrderFeeRate(CTxExecuteContext &context, const uint256 &orderId
     return true;
 }
 
-string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
+string CDEXSettleBaseTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo="";
     for (const auto &item : dealItems) {
         dealInfo += "{" + item.ToString() + "},";
@@ -643,7 +643,7 @@ string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
         dealInfo);
 }
 
-Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Array arrayItems;
     for (const auto &item : dealItems) {
         Object subItem;
@@ -661,7 +661,7 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
+bool CDEXSettleBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -703,6 +703,32 @@ bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 
+static bool GetAccount(CTxExecuteContext &context, const CRegID &regid,
+                       map<CRegID, shared_ptr<CAccount>> &accountMap,
+                       shared_ptr<CAccount> &pAccount) {
+
+    auto accountIt = accountMap.find(regid);
+    if (accountIt != accountMap.end()) {
+        pAccount = accountIt->second;
+    } else {
+        pAccount = make_shared<CAccount>();
+        if (!context.pCw->accountCache.GetAccount(regid, *pAccount)) {
+            return context.pState->DoS(100, ERRORMSG("%s(), read account info error! regid=%s",
+                __func__, regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+        accountMap[regid] = pAccount;
+    }
+    return true;
+}
+
+static bool GetDexOperator(CTxExecuteContext &context, const DexID &dexId,
+    shared_ptr<DexOperatorDetail> &spOperatorDetail) {
+    spOperatorDetail = make_shared<DexOperatorDetail>();
+    if (!context.pCw->dexCache.GetDexOperator(dexId, *spOperatorDetail))
+        return context.pState->DoS(100, ERRORMSG("%s(), the dex operator does not exist! dex_id=%u", __func__, dexId),
+            REJECT_INVALID, "dex_operator_not_existed");
+    return true;
+}
 
 /* process flow for settle tx
 1. get and check buyDealOrder and sellDealOrder
@@ -792,20 +818,29 @@ bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
             update active order to dex db
         }
 */
-bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
+bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
 
     shared_ptr<CAccount> pSrcAccount = make_shared<CAccount>();
    if (!cw.accountCache.GetAccount(txUid, *pSrcAccount)) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, read source addr account info error"),
+        return state.DoS(100, ERRORMSG("%s(), read source addr account info error", __func__),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     if (!pSrcAccount->OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, account has insufficient funds"),
+        return state.DoS(100, ERRORMSG("%s(), account has insufficient funds", __func__),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
+
+    shared_ptr<DexOperatorDetail> pSettleOperatorDetail;
+    if (!GetDexOperator(context, dex_id, pSettleOperatorDetail)) return false;
+
+    if (!pSrcAccount->IsMyUid(pSettleOperatorDetail->match_regid))
+        return state.DoS(100, ERRORMSG("%s(), tx account is not the matcher of dex operator! dex_id=%u, "
+            "tx_uid=%s, match_regid=%s", __func__, dex_id, txUid.ToDebugString(),
+            pSettleOperatorDetail->match_regid.ToString()),
+            REJECT_INVALID, "invalid_dex_operator_matcher");
 
     map<CRegID, shared_ptr<CAccount>> accountMap = {
         {pSrcAccount->regid, pSrcAccount}
@@ -822,31 +857,31 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
 
         // 2. get account of order
         shared_ptr<CAccount> pBuyOrderAccount = nullptr;
-        auto buyOrderAccountIt = accountMap.find(buyOrder.user_regid);
-        if (buyOrderAccountIt != accountMap.end()) {
-            pBuyOrderAccount = buyOrderAccountIt->second;
-        } else {
-            pBuyOrderAccount = make_shared<CAccount>();
-            if (!cw.accountCache.GetAccount(buyOrder.user_regid, *pBuyOrderAccount)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] read buy order account info error! order_id=%s, regid=%s",
-                    __FUNCTION__, i, dealItem.buyOrderId.ToString(), buyOrder.user_regid.ToString()),
-                    READ_ACCOUNT_FAIL, "bad-read-accountdb");
-            }
-            accountMap[pBuyOrderAccount->regid] = pBuyOrderAccount;
-        }
+        if (!GetAccount(context, buyOrder.user_regid, accountMap, pBuyOrderAccount)) return false;
 
         shared_ptr<CAccount> pSellOrderAccount = nullptr;
-        auto sellOrderAccountIt = accountMap.find(sellOrder.user_regid);
-        if (sellOrderAccountIt != accountMap.end()) {
-            pSellOrderAccount = sellOrderAccountIt->second;
+        if (!GetAccount(context, sellOrder.user_regid, accountMap, pSellOrderAccount)) return false;
+
+        // check dex_id
+        uint32_t buyDexId = buyOrder.dex_id;
+        uint32_t sellDexId = sellOrder.dex_id;
+        if (!CheckDexId(context, i, buyDexId, sellDexId)) return false;
+
+        shared_ptr<DexOperatorDetail> pBuyOperatorDetail, pSellOperatorDetail;
+        shared_ptr<CAccount> pBuyMatchAccount, pSellMatchAccount;
+        if (buyDexId == dex_id) {
+            pBuyOperatorDetail = pSettleOperatorDetail;
+            pBuyMatchAccount = pSrcAccount;
         } else {
-            pSellOrderAccount = make_shared<CAccount>();
-            if (!cw.accountCache.GetAccount(sellOrder.user_regid, *pSellOrderAccount)) {
-            return state.DoS(100, ERRORMSG("%s(), i[%d] read sell order account info error! order_id=%s, regid=%s",
-                __FUNCTION__, i, dealItem.sellOrderId.ToString(), sellOrder.user_regid.ToString()),
-                READ_ACCOUNT_FAIL, "bad-read-accountdb");
-            }
-            accountMap[pSellOrderAccount->regid] = pSellOrderAccount;
+            if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail)) return false;
+            if (!GetAccount(context, pBuyOperatorDetail->match_regid, accountMap, pBuyMatchAccount)) return false;
+        }
+        if (sellDexId == dex_id) {
+            pSellOperatorDetail = pSettleOperatorDetail;
+            pSellMatchAccount = pSrcAccount;
+        } else {
+            if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail)) return false;
+            if (!GetAccount(context, pSellOperatorDetail->match_regid, accountMap, pSellMatchAccount)) return false;
         }
 
         // 3. check coin type match
@@ -977,14 +1012,14 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             uint64_t dealAssetFee = dealItem.dealAssetAmount * buyOrder.fee_ratio / PRICE_BOOST;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // pay asset fee from seller to settler
-            if (!pSrcAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] pay asset fee from buyer to settler failed!"
-                    " deal_info={%s}, asset_symbol=%s, asset_fee=%llu",
-                    __FUNCTION__, i, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee),
+            if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
+                return state.DoS(100, ERRORMSG("%s(), i[%d] pay asset fee from buyer to operator matcher failed!"
+                    " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
+                    __FUNCTION__, i, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
                     REJECT_INVALID, "operate-account-failed");
             }
 
-            receipts.emplace_back(pBuyOrderAccount->regid, pSrcAccount->regid, buyOrder.asset_symbol,
+            receipts.emplace_back(pBuyOrderAccount->regid, pBuyMatchAccount->regid, buyOrder.asset_symbol,
                                dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
         }
         // 9.2 seller pay the fee from the received coins to settler
@@ -995,9 +1030,9 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // pay coin fee from buyer to settler
             if (!pSrcAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
-                return state.DoS(100, ERRORMSG("%s(), i[%d] pay coin fee from seller to settler failed!"
-                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu",
-                    __FUNCTION__, i, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee),
+                return state.DoS(100, ERRORMSG("%s(), i[%d] pay coin fee from seller to operator matcher failed!"
+                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_match_regid=%s",
+                    __FUNCTION__, i, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee, pSellMatchAccount->regid.ToString()),
                     REJECT_INVALID, "operate-account-failed");
             }
             receipts.emplace_back(pSellOrderAccount->regid, pSrcAccount->regid, sellOrder.coin_symbol,
@@ -1052,13 +1087,13 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
             // erase active order
             if (!cw.dexCache.EraseActiveOrder(dealItem.sellOrderId, sellOrder)) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] finish active sell order failed! deal_info={%s}",
-                    __FUNCTION__, i, dealItem.ToString()),
+                    __func__, i, dealItem.ToString()),
                     REJECT_INVALID, "write-dexdb-failed");
             }
         } else {
             if (!cw.dexCache.UpdateActiveOrder(dealItem.sellOrderId, sellOrder)) {
                 return state.DoS(100, ERRORMSG("%s(), i[%d] update active sell order failed! deal_info={%s}",
-                    __FUNCTION__, i, dealItem.ToString()),
+                    __func__, i, dealItem.ToString()),
                     REJECT_INVALID, "write-dexdb-failed");
             }
         }
@@ -1068,30 +1103,50 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
     for (auto accountItem : accountMap) {
         auto pAccount = accountItem.second;
         if (!cw.accountCache.SetAccount(pAccount->keyid, *pAccount))
-            return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set account info error! regid=%s, addr=%s",
-                pAccount->regid.ToString(), pAccount->keyid.ToAddress()),
+            return state.DoS(100, ERRORMSG("%s(), set account info error! regid=%s, addr=%s",
+                __func__, pAccount->regid.ToString(), pAccount->keyid.ToAddress()),
                 WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
     }
 
     if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::ExecuteTx, set tx receipts failed!! txid=%s",
+        return state.DoS(100, ERRORMSG("%s(), set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
 
-bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
+bool CDEXSettleBaseTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(orderId, dealOrder))
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, get active order failed! i=%d, orderId=%s",
+        return state.DoS(100, ERRORMSG("%s(), get active order failed! i=%d, orderId=%s", __func__,
             index, orderId.ToString()), REJECT_INVALID,
             strprintf("get-active-order-failed, i=%d, order_id=%s", index, orderId.ToString()));
 
     if (dealOrder.order_side != orderSide)
-        return state.DoS(100, ERRORMSG("CDEXSettleTx::GetDealOrder, expected order_side=%s "
-                "but got order_side=%s! i=%d, orderId=%s", GetOrderSideName(orderSide),
+        return state.DoS(100, ERRORMSG("%s(), expected order_side=%s "
+                "but got order_side=%s! i=%d, orderId=%s", __func__, GetOrderSideName(orderSide),
                 GetOrderSideName(dealOrder.order_side), index, orderId.ToString()),
                 REJECT_INVALID,
                 strprintf("order-side-unmatched, i=%d, order_id=%s", index, orderId.ToString()));
 
+    return true;
+}
+
+bool CDEXSettleBaseTx::CheckDexId(CTxExecuteContext &context, uint32_t i, uint32_t buyDexId, uint32_t sellDexId) {
+    if (buyDexId != dex_id && sellDexId != dex_id) {
+        return context.pState->DoS(100, ERRORMSG("%s(), i[%d] can not settle the other operator' orders! settle_dex_id=%u, "
+            "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
+            REJECT_INVALID, "dex-id-unmatch");
+    } else if (buyDexId != sellDexId) {
+        // Only orders from dex operator 0 can be shared
+        if (buyDexId == dex_id && sellDexId != DEX_RESERVED_ID) {
+            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the sell order is not shared! settle_dex_id=%u, "
+                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
+                REJECT_INVALID, "dex-id-unmatch");
+        } else if (sellDexId == dex_id && buyDexId != DEX_RESERVED_ID) {
+            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the buy order is not shared! settle_dex_id=%u, "
+                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
+                REJECT_INVALID, "dex-id-unmatch");
+        }
+    }
     return true;
 }
