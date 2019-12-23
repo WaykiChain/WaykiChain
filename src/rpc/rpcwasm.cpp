@@ -164,9 +164,9 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         CWasmContractTx tx;
         {
             CAccount payer;
-            auto contract         = wasm::name(params[1].get_str());
-            auto payer_name       = wasm::name(params[0].get_str());
-            const ComboMoney &fee = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
+            auto              contract   = wasm::name(params[1].get_str());
+            auto              payer_name = wasm::name(params[0].get_str());
+            const ComboMoney& fee        = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
 
             WASM_ASSERT(database->GetAccount(nick_name(payer_name.value), payer), 
                         account_operation_exception,
@@ -211,7 +211,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
         //get abi
         std::vector<char> abi;
-        wasm::name contract_name = wasm::name(params[1].get_str());
+        wasm::name        contract_name = wasm::name(params[1].get_str());
         if(!get_native_contract_abi(contract_name.value, abi)){
             CAccount           contract;
             CUniversalContract contract_store;
@@ -222,11 +222,11 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         EnsureWalletIsUnlocked();
         CWasmContractTx tx;
         {      
-            CAccount          payer; 
-            auto              payer_name   = wasm::name(params[0].get_str());
-            wasm::name        action       = wasm::name(params[2].get_str());
+            CAccount payer; 
+            auto     payer_name   = wasm::name(params[0].get_str());
+            auto     action       = wasm::name(params[2].get_str());
             WASM_ASSERT(database_account->GetAccount(nick_name(payer_name.value), payer), account_operation_exception,
-                "rpcwasm.submitwasmcontractdeploytx, payer %s does not exist",payer_name.to_string().c_str())
+                "rpcwasm.submitwasmcontractcalltx, payer %s does not exist",payer_name.to_string().c_str())
 
             std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end());
             JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,
@@ -242,7 +242,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
 
-            //for(int i = 0; i < 2000 ; i++)
+            //for(int i = 0; i < 10000 ; i++)
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{payer_name.value, wasmio_owner}}, action_data});
 
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR,
