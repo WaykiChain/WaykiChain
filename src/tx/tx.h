@@ -25,6 +25,14 @@
 
 using namespace std;
 
+namespace wasm{
+  enum class transaction_status_type {
+    mining     = 0,
+    validating = 1,
+    syncing    = 2,
+  };
+}
+
 class CCacheWrapper;
 class CValidationState;
 
@@ -33,15 +41,14 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
 
 class CTxExecuteContext {
 public:
-    int32_t height;
-    int32_t index;
-    uint32_t fuel_rate;
-    uint32_t block_time;
-    uint32_t prev_block_time;
-    CCacheWrapper *pCw;
-    CValidationState *pState;
-    bool is_mining;
-    bool is_validating_tx_in_mem_pool;
+    int32_t                       height;
+    int32_t                       index;
+    uint32_t                      fuel_rate;
+    uint32_t                      block_time;
+    uint32_t                      prev_block_time;
+    CCacheWrapper*                pCw;
+    CValidationState*             pState;
+    wasm::transaction_status_type transaction_status;
 
     CTxExecuteContext()
         : height(0),
@@ -51,12 +58,11 @@ public:
           prev_block_time(0),
           pCw(nullptr),
           pState(nullptr),
-          is_mining(false),
-          is_validating_tx_in_mem_pool(false){}
+          transaction_status(wasm::transaction_status_type::syncing){}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const bool mining = false, const bool validating_tx_in_mem_pool = false)
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const wasm::transaction_status_type trx_status = wasm::transaction_status_type::syncing)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),
@@ -64,8 +70,7 @@ public:
           prev_block_time(preBlockTimeIn),
           pCw(pCwIn),
           pState(pStateIn),
-          is_mining(mining),
-          is_validating_tx_in_mem_pool(validating_tx_in_mem_pool){}
+          transaction_status(trx_status){}
 };
 
 class CBaseTx {

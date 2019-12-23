@@ -90,7 +90,7 @@ void read_and_validate_code(const string& path, string& code){
     try {
         WASM_ASSERT(read_file_limit(path, code, MAX_CONTRACT_CODE_SIZE),
                     file_read_exception,
-                    "rpcwasm.read_and_validate_code, Wasm code file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
+                    "rpcwasm.read_and_validate_code, wasm code file is empty or larger than max limited '%d' bytes", MAX_CONTRACT_CODE_SIZE)
         vector <uint8_t> c;
         c.insert(c.begin(), code.begin(), code.end());
         wasm_interface wasmif;
@@ -105,7 +105,7 @@ void read_and_validate_abi(const string& abi_file, string& abi){
     try {
         WASM_ASSERT(read_file_limit(abi_file, abi, MAX_CONTRACT_CODE_SIZE),
                     file_read_exception,
-                    "rpcwasm.read_and_validate_abi, Wasm abi file is empty or larger than max limited %d bytes", MAX_CONTRACT_CODE_SIZE)
+                    "rpcwasm.read_and_validate_abi, wasm abi file is empty or larger than max limited '%d' bytes", MAX_CONTRACT_CODE_SIZE)
         json_spirit::Value abi_json;
         json_spirit::read_string(abi, abi_json);
 
@@ -128,19 +128,19 @@ void get_contract(CAccountDBCache*   database_account,
 
     WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), 
                 account_operation_exception,
-                "rpcwasm.get_contract, Contract %s does not exist",
+                "rpcwasm.get_contract, contract '%s' does not exist",
                 contract_name.to_string().c_str())
     //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
     JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), 
                     RPC_WALLET_ERROR,
-                    strprintf("rpcwasm.get_contract, Cannot get contract %s", 
+                    strprintf("rpcwasm.get_contract, cannot get contract '%s'", 
                     contract_name.to_string().c_str()))
     JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      
                     RPC_WALLET_ERROR,
-                    "rpcwasm.get_contract, Must be wasm VM")
+                    "rpcwasm.get_contract, must be wasm VM")
     JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  
                     RPC_WALLET_ERROR,
-                    "rpcwasm.get_contract, Contract lose abi")
+                    "rpcwasm.get_contract, contract lose abi")
     //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
 }
 
@@ -158,7 +158,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         read_and_validate_code(GetAbsolutePath(params[2].get_str()).string(), code);
         read_and_validate_abi (GetAbsolutePath(params[3].get_str()).string(), abi );
 
-        JSON_RPC_ASSERT(wallet != NULL, RPC_WALLET_ERROR, "rpcwasm.submitwasmcontractdeploytx, Wallet error")
+        JSON_RPC_ASSERT(wallet != NULL, RPC_WALLET_ERROR, "rpcwasm.submitwasmcontractdeploytx, wallet error")
         EnsureWalletIsUnlocked();
 
         CWasmContractTx tx;
@@ -170,7 +170,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
 
             WASM_ASSERT(database->GetAccount(nick_name(payer_name.value), payer), 
                         account_operation_exception,
-                        "rpcwasm.submitwasmcontractdeploytx, Sender %s does not exist ",
+                        "rpcwasm.submitwasmcontractdeploytx, sender '%s' does not exist ",
                         payer_name.to_string().c_str())
             RPC_PARAM::CheckAccountBalance(payer, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
@@ -183,7 +183,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature),
-                           RPC_WALLET_ERROR, "rpcwasm.submitwasmcontractdeploytx, Sign failed")
+                           RPC_WALLET_ERROR, "rpcwasm.submitwasmcontractdeploytx, sign failed")
 
             tx.signatures.push_back({payer_name.value, tx.signature});
         }
@@ -226,11 +226,11 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             auto     payer_name   = wasm::name(params[0].get_str());
             auto     action       = wasm::name(params[2].get_str());
             WASM_ASSERT(database_account->GetAccount(nick_name(payer_name.value), payer), account_operation_exception,
-                "rpcwasm.submitwasmcontractcalltx, payer %s does not exist",payer_name.to_string().c_str())
+                "rpcwasm.submitwasmcontractcalltx, payer '%s' does not exist",payer_name.to_string().c_str())
 
             std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end());
             JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,
-                            "rpcwasm.submitwasmcontractcalltx, Arguments is empty or out of size range")
+                            "rpcwasm.submitwasmcontractcalltx, arguments is empty or out of size range")
             if( abi.size() > 0 ) 
                 action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
@@ -246,7 +246,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{payer_name.value, wasmio_owner}}, action_data});
 
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR,
-                            "rpcwasm.submitwasmcontractcalltx, Sign failed")
+                            "rpcwasm.submitwasmcontractcalltx, sign failed")
 
             tx.signatures.push_back({payer_name.value, tx.signature});
         }
@@ -278,7 +278,7 @@ Value gettablewasm( const Array &params, bool fHelp ) {
         auto contract_table    = wasm::name(params[1].get_str());
 
         JSON_RPC_ASSERT(!is_native_contract(contract_name.value), RPC_INVALID_PARAMS,
-                        strprintf("rpcwasm.gettablewasmcontracttx, Cannot get table from native contract %s", contract_name.to_string().c_str()))
+                        strprintf("rpcwasm.gettablewasmcontracttx, cannot get table from native contract '%s'", contract_name.to_string().c_str()))
 
         CAccount contract;
         CUniversalContract contract_store;
@@ -294,11 +294,11 @@ Value gettablewasm( const Array &params, bool fHelp ) {
 
         auto pContractDataIt = database_contract->CreateContractDataIterator(contract.regid, search_key);
         JSON_RPC_ASSERT(pContractDataIt, RPC_INVALID_PARAMS,
-                        strprintf("rpcwasm.gettablewasmcontracttx, Cannot get table from contract %s", contract_name.to_string().c_str()))
+                        strprintf("rpcwasm.gettablewasmcontracttx, cannot get table from contract '%s'", contract_name.to_string().c_str()))
 
         bool                hasMore = false;
         json_spirit::Object object_return;
-        json_spirit::Array  rows_json;
+        json_spirit::Array  row_json;
         for (pContractDataIt->SeekUpper(&start_key); pContractDataIt->IsValid(); pContractDataIt->Next()) {
             if (pContractDataIt->GotCount() > numbers) {
                 hasMore = true;
@@ -316,10 +316,10 @@ Value gettablewasm( const Array &params, bool fHelp ) {
             object_json.push_back(Pair("key",   ToHex(key, "")));
             object_json.push_back(Pair("value", ToHex(value, "")));
 
-            rows_json.push_back(value_json);
+            row_json.push_back(value_json);
         }
 
-        object_return.push_back(Pair("rows", rows_json));
+        object_return.push_back(Pair("rows", row_json));
         object_return.push_back(Pair("more", hasMore));
         return object_return;
 
@@ -350,7 +350,7 @@ Value jsontobinwasm( const Array &params, bool fHelp ) {
         string arguments = params[2].get_str();
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                         RPC_INVALID_PARAMETER,
-                        "rpcwasm.abijsontobinwasmcontracttx, Arguments is empty or out of size range")
+                        "rpcwasm.abijsontobinwasmcontracttx, arguments is empty or out of size range")
         std::vector<char> action_data(arguments.begin(), arguments.end() );
         if( abi.size() > 0 ) action_data = wasm::abi_serializer::pack(abi, contract_action.to_string(), arguments, max_serialization_time);
 
@@ -369,11 +369,11 @@ Value bintojsonwasm( const Array &params, bool fHelp ) {
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
-        auto database_account      = pCdMan->pAccountCache;
-        auto database_contract     = pCdMan->pContractCache;
+        auto database_account  = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
 
-        auto contract_name         = wasm::name(params[0].get_str());
-        auto contract_action       = wasm::name(params[1].get_str());
+        auto contract_name     = wasm::name(params[0].get_str());
+        auto contract_action   = wasm::name(params[1].get_str());
 
         std::vector<char>  abi;
         CAccount           contract;
@@ -386,7 +386,7 @@ Value bintojsonwasm( const Array &params, bool fHelp ) {
         string arguments = FromHex(params[2].get_str());
         JSON_RPC_ASSERT(!arguments.empty() && arguments.size() < MAX_CONTRACT_ARGUMENT_SIZE,
                         RPC_INVALID_PARAMETER,
-                        "rpcwasm.abibintojsonwasmcontracttx, Arguments is empty or out of size range")
+                        "rpcwasm.abibintojsonwasmcontracttx, arguments is empty or out of size range")
 
         json_spirit::Object object_return;
         std::vector<char>   action_data(arguments.begin(), arguments.end() );
@@ -410,7 +410,7 @@ Value getcodewasm( const Array &params, bool fHelp ) {
         auto contract_name     = wasm::name(params[0].get_str());
         JSON_RPC_ASSERT(!is_native_contract(contract_name.value),
                         RPC_INVALID_PARAMS,
-                        strprintf("rpcwasm.getcodewasmcontracttx, Cannot get code from native contract %s", contract_name.to_string().c_str()))
+                        strprintf("rpcwasm.getcodewasmcontracttx, cannot get code from native contract '%s'", contract_name.to_string().c_str()))
 
         CAccount           contract;
         CUniversalContract contract_store;
@@ -430,10 +430,10 @@ Value getabiwasm( const Array &params, bool fHelp ) {
     RPCTypeCheck(params, list_of(str_type));
 
     try{
-        auto               database_account  = pCdMan->pAccountCache;
-        auto               database_contract = pCdMan->pContractCache;
+        auto database_account  = pCdMan->pAccountCache;
+        auto database_contract = pCdMan->pContractCache;
 
-        auto               contract_name     = wasm::name(params[0].get_str());
+        auto contract_name     = wasm::name(params[0].get_str());
 
         vector<char>       abi;
         CAccount           contract;
@@ -460,15 +460,15 @@ Value gettxtrace( const Array &params, bool fHelp ) {
     RPCTypeCheck(params, list_of(str_type));
 
     try{
-        auto    database  = std::make_shared<CCacheWrapper>(pCdMan);
-        auto    resolver  = make_resolver(database);
+        auto database  = std::make_shared<CCacheWrapper>(pCdMan);
+        auto resolver  = make_resolver(database);
 
-        auto    trx_id    = uint256S(params[0].get_str());
+        auto trx_id    = uint256S(params[0].get_str());
 
         string  trace_string;
         WASM_ASSERT( database->contractCache.GetContractTraces(trx_id, trace_string),
                      wasm_exception,
-                     "rpc::gettxtrace, Get tx trace failed! txid=%s",
+                     "rpc::gettxtrace, get tx trace failed! txid '%s'",
                      trx_id.ToString().c_str())
 
         json_spirit::Object object_return;

@@ -16,12 +16,10 @@ public:
     vector<wasm::signature_pair>     signatures;
 
 public:
-    bool mining                    = false;
-    bool validating_tx_in_mem_pool = false;
-
-    system_clock::time_point  pseudo_start;
-    std::chrono::microseconds billed_time                  = chrono::microseconds(0);
-    std::chrono::milliseconds max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_observe);
+    system_clock::time_point      pseudo_start;
+    std::chrono::microseconds     billed_time              = chrono::microseconds(0);
+    std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
+    wasm::transaction_status_type transaction_status       = wasm::transaction_status_type::syncing;//block in syncing
 
     void                      pause_billing_timer();
     void                      resume_billing_timer();
@@ -61,10 +59,10 @@ public:
         return sigHash;
     }
 
-    virtual uint256                    GetHash() const { return ComputeSignatureHash(); }
+    virtual uint256                    GetHash()        const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CWasmContractTx>(*this); }
+    virtual map<TokenSymbol, uint64_t> GetValues()      const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual uint64_t                   GetFuel(int32_t height, uint32_t fuelRate);
-    virtual map<TokenSymbol, uint64_t> GetValues() const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }\
     virtual bool                       GetInvolvedKeyIds(CCacheWrapper &cw, set<CKeyID> &keyIds);
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

@@ -12,7 +12,7 @@ namespace wasm {
 
     const static auto max_serialization_time          = microseconds(15 * 1000);
     const static auto max_wasm_execute_time_mining    = 200;//in milliseconds
-    const static auto max_wasm_execute_time_observe   = 2000;
+    const static auto max_wasm_execute_time_infinite  = 2000;
     //const static auto max_serialization_time = microseconds(60 * 1000 * 1000);
     const static uint16_t max_inline_transaction_depth = 4;
     const static uint16_t max_recipients_execute_one   = 16;
@@ -29,8 +29,9 @@ namespace wasm {
     const static uint64_t wasmio_owner = N(wasmio.owner);
 
 
-    const static uint64_t max_wasm_transaction_runstep = 1000000000;//10 WICC
-    const static uint64_t fuel_store_fee_per_byte      = 6000;
+    //const static uint64_t max_wasm_transaction_runstep = 1000000000;//10 WICC
+    const static uint64_t wasm_fuel_rate               = 100;
+    const static uint64_t fuel_store_fee_per_byte      = 60;
 
 
     namespace wasm_constraints {

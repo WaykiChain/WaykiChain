@@ -211,10 +211,11 @@ static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
-    uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate , max_wasm_transaction_runstep);
+    //uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate , max_wasm_transaction_runstep);
+    uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate , MAX_BLOCK_RUN_STEP);//12 WICC
     WASM_ASSERT(fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
 
-    return fuel_limit;
+    return fuel_limit * wasm_fuel_rate;
 }
 
 static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace, vector<CReceipt>& receipts) {
@@ -256,12 +257,13 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto &database            = *context.pCw;
         auto execute_tx_return    = context.pState;
 
-        mining                    = context.is_mining;
-        validating_tx_in_mem_pool = context.is_validating_tx_in_mem_pool;
+        transaction_status        = context.transaction_status;
 
-        if(mining) {
+        if(transaction_status == wasm::transaction_status_type::syncing ||
+           transaction_status == wasm::transaction_status_type::validating ){
             max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
         }
+        
         //init storage usage 
         nRunStep                     = GetSerializeSize(SER_DISK, CLIENT_VERSION) * fuel_store_fee_per_byte;
 
@@ -285,13 +287,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
             execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, database, receipts, 0);
         }
         trx_trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - pseudo_start);
-
-        if(validating_tx_in_mem_pool){
-             WASM_ASSERT(trx_trace.elapsed.count() < max_wasm_execute_time_mining * 1000,
-                        wasm_exception,
-                        "CWasmContractTx::ExecuteTx, Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
-                        max_wasm_execute_time_mining * 1000, trx_trace.elapsed.count())           
-        }
+        //WASM_TRACE("trx_trace.elapsed:%ld", trx_trace.elapsed.count() )
 
         WASM_ASSERT(trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
                     wasm_exception,
@@ -311,7 +307,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     "CWasmContractTx::ExecuteTx, set tx trace failed! txid=%s",
                     GetHash().ToString().c_str())
 
-        //save receipts
+        //save trx receipts
         trace_to_receipts(trx_trace, receipts);
         WASM_ASSERT(database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
                     wasm_exception,

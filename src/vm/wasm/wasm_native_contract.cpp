@@ -46,13 +46,16 @@ namespace wasm {
         //             "wasmnativecontract.Setcode, can not reset code, contract = %s",
         //             contract_name.c_str()) 
         contract_store.vm_type = VMType::WASM_VM;
-        contract_store.code = code;
-        contract_store.abi  = abi;
-        contract_store.memo = memo;
+        contract_store.code    = code;
+        contract_store.abi     = abi;
+        contract_store.memo    = memo;
 
         WASM_ASSERT(database_contract.SaveContract(contract.regid, contract_store), 
                     account_operation_exception,
                     "%s","wasmio_native_setcode.setcode, Save account error")
+        
+        //WASM_TRACE("%s",contract.regid.ToString().c_str())
+
     }
     
     void wasmio_bank_native_transfer(wasm_context &context) {
