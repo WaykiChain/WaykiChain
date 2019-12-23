@@ -58,14 +58,6 @@ namespace wasm {
             wasm::abi_def wasm_abi = wasmio_bank_contract_abi();
             abi = wasm::pack<wasm::abi_def>(wasm_abi);
             return true;
-        } else if (dex::dex_operator == contract){
-            wasm::abi_def wasm_abi = dex::get_operator_abi();
-            abi = wasm::pack<wasm::abi_def>(wasm_abi);
-            return true;
-        } else if (dex::dex_order == contract){
-            wasm::abi_def wasm_abi = dex::get_order_abi();
-            abi = wasm::pack<wasm::abi_def>(wasm_abi);
-            return true;
         }
 
         return false;

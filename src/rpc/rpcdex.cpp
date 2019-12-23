@@ -19,12 +19,12 @@
 static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOperatorDetail &dexOperator) {
     Object result;
     CKeyID ownerKeyid;
-    accountCache.GetKeyId(dexOperator.owner, ownerKeyid);
+    accountCache.GetKeyId(dexOperator.owner_regid, ownerKeyid);
     CKeyID matcherKeyid;
-    accountCache.GetKeyId(dexOperator.matcher, matcherKeyid);
-    result.push_back(Pair("owner_nickid",   dexOperator.owner.ToString()));
+    accountCache.GetKeyId(dexOperator.match_regid, matcherKeyid);
+    result.push_back(Pair("owner_regid",   dexOperator.owner_regid.ToString()));
     result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
-    result.push_back(Pair("matcher_nickid", dexOperator.matcher.ToString()));
+    result.push_back(Pair("matcher_regid", dexOperator.match_regid.ToString()));
     result.push_back(Pair("matcher_addr",   ownerKeyid.ToAddress()));
     result.push_back(Pair("name",           dexOperator.name));
     result.push_back(Pair("portal_url",     dexOperator.portal_url));
@@ -452,10 +452,10 @@ extern Value getdexorders(const Array& params, bool fHelp) {
 extern Value getdexoperator(const Array& params, bool fHelp) {
      if (fHelp || params.size() != 1) {
         throw runtime_error(
-            "getdexoperator dex_operator_id\n"
-            "\nget dex operator by dex_operator_id.\n"
+            "getdexoperator dex_id\n"
+            "\nget dex operator by dex_id.\n"
             "\nArguments:\n"
-            "1.\"dex_operator_id\":  (numeric, required) dex operator id\n"
+            "1.\"dex_id\":  (numeric, required) dex id\n"
             "\nResult: dex_operator detail\n"
             "\nExamples:\n"
             + HelpExampleCli("getdexoperator", "10")
@@ -467,7 +467,7 @@ extern Value getdexoperator(const Array& params, bool fHelp) {
     uint32_t dexOrderId = params[0].get_int();
     DexOperatorDetail dexOperator;
     if (!pCdMan->pDexCache->GetDexOperator(dexOrderId, dexOperator))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("dex operator does not exist! dex_operator_id=%lu", dexOrderId));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("dex operator does not exist! dex_id=%lu", dexOrderId));
 
     Object obj = DexOperatorToJson(*pCdMan->pAccountCache, dexOperator);
     obj.insert(obj.begin(), Pair("id", (uint64_t)dexOrderId));
@@ -478,7 +478,7 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 1) {
         throw runtime_error(
             "getdexoperatorbyowner owner_addr\n"
-            "\nget dex operator by dex_operator_id.\n"
+            "\nget dex operator by dex operator owner.\n"
             "\nArguments:\n"
             "1.\"owner_addr\":  (string, required) owner address\n"
             "\nResult: dex_operator detail\n"
@@ -492,12 +492,12 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    if (account.nickid.IsEmpty())
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("account does not have NickID! uid=%s", userId.ToDebugString()));
+    if (account.IsRegistered())
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("account not registered! uid=%s", userId.ToDebugString()));
 
     DexOperatorDetail dexOperator;
     uint32_t dexOrderId = 0;
-    if (!pCdMan->pDexCache->GetDexOperatorByOwner(account.nickid, dexOrderId, dexOperator))
+    if (!pCdMan->pDexCache->GetDexOperatorByOwner(account.regid, dexOrderId, dexOperator))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("the owner account dos not have a dex operator! uid=%s", userId.ToDebugString()));
 
     Object obj = DexOperatorToJson(*pCdMan->pAccountCache, dexOperator);

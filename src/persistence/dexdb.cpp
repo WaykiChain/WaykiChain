@@ -420,8 +420,8 @@ bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
     return operator_detail_cache.GetData(idKey, detail);
 }
 
-bool CDexDBCache::GetDexOperatorByOwner(const CNickID &nickid, DexID &id, DexOperatorDetail& detail) {
-    if (operator_owner_map_cache.GetData(nickid, id)) {
+bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &id, DexOperatorDetail& detail) {
+    if (operator_owner_map_cache.GetData(regid.ToRawString(), id)) {
         return GetDexOperator(id, detail);
     }
     return false;
@@ -432,8 +432,8 @@ bool CDexDBCache::HaveDexOperator(const DexID &id) {
     return operator_detail_cache.HaveData(idKey);
 }
 
-bool CDexDBCache::HaveDexOperatorByOwner(const CNickID &nickid) {
-    return operator_owner_map_cache.HaveData(nickid);
+bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
+    return operator_owner_map_cache.HaveData(regid.ToRawString());
 }
 
 bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& detail) {
@@ -442,20 +442,20 @@ bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& de
         return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
     }
 
-    if (operator_owner_map_cache.HaveData(detail.owner)) {
-        return ERRORMSG("%s, the owner already has a dex operator! owner=%s\n", __func__, detail.owner.ToString());
+    if (operator_owner_map_cache.HaveData(detail.owner_regid.ToRawString())) {
+        return ERRORMSG("%s, the owner already has a dex operator! owner=%s\n", __func__, detail.owner_regid.ToString());
     }
 
     return  operator_detail_cache.SetData(idKey, detail) &&
-            operator_owner_map_cache.SetData(detail.owner, id);
+            operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), id);
 }
 
 bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& old_detail,
     const DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
-    if (old_detail.owner != detail.owner) {
-        if (!operator_owner_map_cache.EraseData(old_detail.owner) ||
-            !operator_owner_map_cache.SetData(detail.owner, id))
+    if (old_detail.owner_regid != detail.owner_regid) {
+        if (!operator_owner_map_cache.EraseData(old_detail.owner_regid.ToRawString()) ||
+            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), id))
             return false;
     }
     return operator_detail_cache.SetData(idKey, detail);

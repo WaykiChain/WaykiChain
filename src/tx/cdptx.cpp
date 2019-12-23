@@ -743,7 +743,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint64_t nonReturnCdpLiquidateRatio;
     if (!cw.sysParamCache.GetParam(CDP_NONRETURN_LIQUIDATE_RATIO, nonReturnCdpLiquidateRatio)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_START_LIQUIDATE_RATIO error!"),
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP_NONRETURN_LIQUIDATE_RATIO error!"),
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 

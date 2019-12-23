@@ -50,6 +50,10 @@ enum TxType: uint8_t {
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
 
+    NICKID_REGISTER_TX          = 50,    //!< nickid register Tx
+
+    WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
+
     DEX_TRADEPAIR_PROPOSE_TX    = 81,   //!< Owner proposes a trade pair on DEX
     DEX_TRADEPAIR_LIST_TX       = 82,   //!< Owner lists a trade pair on DEX
     DEX_TRADEPAIR_DELIST_TX     = 83,   //!< Owner or validators delist a trade pair
@@ -59,10 +63,13 @@ enum TxType: uint8_t {
     DEX_MARKET_SELL_ORDER_TX    = 87,   //!< dex sell market price order Tx
     DEX_CANCEL_ORDER_TX         = 88,   //!< dex cancel order Tx
     DEX_TRADE_SETTLE_TX         = 89,   //!< dex settle Tx
+    DEX_LIMIT_BUY_ORDER_EX_TX   = 90,   //!< dex buy limit price order ex Tx, support exid
+    DEX_LIMIT_SELL_ORDER_EX_TX  = 91,   //!< dex sell limit price order ex Tx, support exid
+    DEX_MARKET_BUY_ORDER_EX_TX  = 92,   //!< dex buy market price order ex Tx, support exid
+    DEX_MARKET_SELL_ORDER_EX_TX = 93,   //!< dex sell market price order ex Tx, support exid
 
-    NICKID_REGISTER_TX          = 91,    //!< nickid register Tx
-
-    WASM_CONTRACT_TX         = 100,   //!< wasm contract tx
+    DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
+    DEX_OPERATOR_UPDATE_TX      = 100,  //!< dex operator update tx
 
 };
 
@@ -137,9 +144,18 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_LIMIT_SELL_ORDER_TX,  std::make_tuple("DEX_LIMIT_SELL_ORDER_TX",  0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
 { DEX_MARKET_BUY_ORDER_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_TX",  0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
 { DEX_MARKET_SELL_ORDER_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
+
+{ DEX_LIMIT_BUY_ORDER_EX_TX,   std::make_tuple("DEX_LIMIT_BUY_ORDER_EX_TX",   0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
+{ DEX_LIMIT_SELL_ORDER_EX_TX,  std::make_tuple("DEX_LIMIT_SELL_ORDER_EX_TX",  0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
+{ DEX_MARKET_BUY_ORDER_EX_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_EX_TX",  0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
+{ DEX_MARKET_SELL_ORDER_EX_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_EX_TX", 0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
+
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
 
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
+
+{ DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
+{ DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
 
 { NICKID_REGISTER_TX,       std::make_tuple("NICKID_REGISTER_TX",       0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
 { WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,0.01*COIN,0.01*COIN ) }

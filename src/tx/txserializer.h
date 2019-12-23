@@ -87,6 +87,12 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case CDP_LIQUIDATE_TX:
             ::Serialize(os, (const CCDPLiquidateTx&)tx, serType, version); break;
 
+        case NICKID_REGISTER_TX:
+            ::Serialize(os, (const CNickIdRegisterTx&)tx, serType, version); break;
+
+        case WASM_CONTRACT_TX:
+            ::Serialize(os, (const CWasmContractTx&)tx, serType, version); break;
+
         case DEX_TRADE_SETTLE_TX:
             ::Serialize(os, (const CDEXSettleTx&)tx, serType, version); break;
         case DEX_CANCEL_ORDER_TX:
@@ -99,11 +105,14 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXBuyMarketOrderTx&)tx, serType, version); break;
         case DEX_MARKET_SELL_ORDER_TX:
             ::Serialize(os, (const CDEXSellMarketOrderTx&)tx, serType, version); break;
-        case NICKID_REGISTER_TX:
-            ::Serialize(os, (const CNickIdRegisterTx&)tx, serType, version); break;
-
-        case WASM_CONTRACT_TX:
-            ::Serialize(os, (const CWasmContractTx&)tx, serType, version); break;
+        case DEX_LIMIT_BUY_ORDER_EX_TX:
+            ::Serialize(os, (const CDEXBuyLimitOrderExTx&)tx, serType, version); break;
+        case DEX_LIMIT_SELL_ORDER_EX_TX:
+            ::Serialize(os, (const CDEXSellLimitOrderExTx&)tx, serType, version); break;
+        case DEX_MARKET_BUY_ORDER_EX_TX:
+            ::Serialize(os, (const CDEXBuyMarketOrderExTx&)tx, serType, version); break;
+        case DEX_MARKET_SELL_ORDER_EX_TX:
+            ::Serialize(os, (const CDEXSellMarketOrderExTx&)tx, serType, version); break;
 
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -224,6 +233,18 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             break;
         }
 
+        case NICKID_REGISTER_TX: {
+            pBaseTx = std::make_shared<CNickIdRegisterTx>();
+            ::Unserialize(is, *((CNickIdRegisterTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case WASM_CONTRACT_TX: {
+            pBaseTx = std::make_shared<CWasmContractTx>();
+            ::Unserialize(is, *((CWasmContractTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
         case DEX_TRADE_SETTLE_TX: {
             pBaseTx = std::make_shared<CDEXSettleTx>();
             ::Unserialize(is, *((CDEXSettleTx *)(pBaseTx.get())), serType, version);
@@ -254,17 +275,27 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CDEXSellMarketOrderTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case NICKID_REGISTER_TX: {
-            pBaseTx = std::make_shared<CNickIdRegisterTx>();
-            ::Unserialize(is, *((CNickIdRegisterTx *)(pBaseTx.get())), serType, version);
+        case DEX_LIMIT_BUY_ORDER_EX_TX: {
+            pBaseTx = std::make_shared<CDEXBuyLimitOrderExTx>();
+            ::Unserialize(is, *((CDEXBuyLimitOrderExTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+        case DEX_LIMIT_SELL_ORDER_EX_TX: {
+            pBaseTx = std::make_shared<CDEXSellLimitOrderExTx>();
+            ::Unserialize(is, *((CDEXSellLimitOrderExTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+        case DEX_MARKET_BUY_ORDER_EX_TX: {
+            pBaseTx = std::make_shared<CDEXBuyMarketOrderExTx>();
+            ::Unserialize(is, *((CDEXBuyMarketOrderExTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+        case DEX_MARKET_SELL_ORDER_EX_TX: {
+            pBaseTx = std::make_shared<CDEXSellMarketOrderExTx>();
+            ::Unserialize(is, *((CDEXSellMarketOrderExTx *)(pBaseTx.get())), serType, version);
             break;
         }
 
-        case WASM_CONTRACT_TX: {
-            pBaseTx = std::make_shared<CWasmContractTx>();
-            ::Unserialize(is, *((CWasmContractTx *)(pBaseTx.get())), serType, version);
-            break;
-        }
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to unserialize",
                 __FUNCTION__, pBaseTx->nTxType, GetTxType(pBaseTx->nTxType)));
