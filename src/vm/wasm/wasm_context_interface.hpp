@@ -34,18 +34,20 @@ namespace wasm {
         virtual bool set_data  ( uint64_t contract, string k, string v ) { return 0; }
         virtual bool get_data  ( uint64_t contract, string k, string &v ) { return 0; }
         virtual bool erase_data( uint64_t contract, string k ) { return 0; }
-        virtual bool contracts_console() { return true; }
-        virtual void console_append( string val ) {}
-        virtual bool is_account( uint64_t account ) { return true; }
+
+        virtual bool is_account   ( uint64_t account ) { return true; }
         virtual void require_auth ( uint64_t account ) {}
         virtual void require_auth2( uint64_t account, uint64_t permission ) {}
         virtual bool has_authorization( uint64_t account ) const { return true; }
         virtual uint64_t block_time() { return 0; }
-        virtual vm::wasm_allocator*       get_wasm_allocator(){ return nullptr; }
+        virtual vm::wasm_allocator*       get_wasm_allocator()                       { return nullptr; }
+        virtual bool                      is_memory_in_wasm_allocator(const void* p) { return true;    }
         virtual std::chrono::milliseconds get_max_transaction_duration(){ return std::chrono::milliseconds(max_wasm_execute_time_infinite); }
         virtual void update_storage_usage(uint64_t account, int64_t size_in_bytes){}
+        virtual bool contracts_console()             { return true; }
+        virtual void console_append   ( string val ) {}
 
-        virtual void pause_billing_timer(){};
+        virtual void pause_billing_timer (){};
         virtual void resume_billing_timer(){};
 
     };

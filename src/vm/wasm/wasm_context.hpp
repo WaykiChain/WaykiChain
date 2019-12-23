@@ -110,10 +110,12 @@ namespace wasm {
         }
 
         vm::wasm_allocator*       get_wasm_allocator() { return &wasm_alloc; }
+        bool                      is_memory_in_wasm_allocator( const char* p ) { return wasm_alloc.is_in_range(p); }
+
         std::chrono::milliseconds get_max_transaction_duration() { return control_trx.get_max_transaction_duration(); }
         void                      update_storage_usage(uint64_t account, int64_t size_in_bytes);
-        void                      pause_billing_timer()  { control_trx.pause_billing_timer();  };
-        void                      resume_billing_timer() { control_trx.resume_billing_timer(); };
+        void                      pause_billing_timer ()  { control_trx.pause_billing_timer();  };
+        void                      resume_billing_timer()  { control_trx.resume_billing_timer(); };
 
     public:
         inline_transaction&        trx;

@@ -7,6 +7,8 @@
 #include "check.hpp"
 #include "types.hpp"
 
+#include "wasm/wasm_serialize_reflect.hpp"
+
 namespace wasm {
     /**
      *  Defines C++ API for managing assets
@@ -422,49 +424,41 @@ namespace wasm {
 
         }
 
-        /**
-         * %Print the asset
-         *
-         * @brief %Print the asset
-         */
-        // void print()const {
-        //    eosio::print(to_string());
+
+        WASM_REFLECT( asset, (amount)(sym) )
+
+        // /**
+        // *  Serialize a asset into a stream
+        // *
+        // *  @brief Serialize a asset
+        // *  @param ds - The stream to write
+        // *  @param sym - The value to serialize
+        // *  @tparam DataStream - Type of datastream buffer
+        // *  @return DataStream& - Reference to the datastream
+        // */
+        // template<typename DataStream>
+        // friend inline DataStream &operator<<( DataStream &ds, const wasm::asset &asset ) {
+        //     ds << asset.amount;
+        //     ds << asset.sym;
+        //     return ds;
         // }
 
-        //WASM_SERIALIZE( asset, (amount)(symbol) )
+        // /**
+        // *  Deserialize a asset from a stream
+        // *
+        // *  @brief Deserialize a asset
+        // *  @param ds - The stream to read
+        // *  @param symbol - The destination for deserialized value
+        // *  @tparam DataStream - Type of datastream buffer
+        // *  @return DataStream& - Reference to the datastream
+        // */
+        // template<typename DataStream>
+        // friend inline DataStream &operator>>( DataStream &ds, wasm::asset &asset ) {
+        //     ds >> asset.amount;
+        //     ds >> asset.sym;
 
-        /**
-        *  Serialize a asset into a stream
-        *
-        *  @brief Serialize a asset
-        *  @param ds - The stream to write
-        *  @param sym - The value to serialize
-        *  @tparam DataStream - Type of datastream buffer
-        *  @return DataStream& - Reference to the datastream
-        */
-        template<typename DataStream>
-        friend inline DataStream &operator<<( DataStream &ds, const wasm::asset &asset ) {
-            ds << asset.amount;
-            ds << asset.sym;
-            return ds;
-        }
-
-        /**
-        *  Deserialize a asset from a stream
-        *
-        *  @brief Deserialize a asset
-        *  @param ds - The stream to read
-        *  @param symbol - The destination for deserialized value
-        *  @tparam DataStream - Type of datastream buffer
-        *  @return DataStream& - Reference to the datastream
-        */
-        template<typename DataStream>
-        friend inline DataStream &operator>>( DataStream &ds, wasm::asset &asset ) {
-            ds >> asset.amount;
-            ds >> asset.sym;
-
-            return ds;
-        }
+        //     return ds;
+        // }
 
 
     };
