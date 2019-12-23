@@ -120,25 +120,25 @@ void read_and_validate_abi(const string& abi_file, string& abi){
     }
 }
 
-void get_contract(CAccountDBCache*   database_account, 
-                 CContractDBCache*   database_contract, 
-                 const wasm::name&   contract_name, 
-                 CAccount&           contract, 
+void get_contract(CAccountDBCache*   database_account,
+                 CContractDBCache*   database_contract,
+                 const wasm::name&   contract_name,
+                 CAccount&           contract,
                  CUniversalContract& contract_store){
 
-    WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract), 
+    WASM_ASSERT(database_account->GetAccount(nick_name(contract_name.to_string()), contract),
                 account_operation_exception,
                 "rpcwasm.get_contract, contract '%s' does not exist",
                 contract_name.to_string().c_str())
     //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
-    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store), 
+    JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store),
                     RPC_WALLET_ERROR,
                     strprintf("rpcwasm.get_contract, cannot get contract '%s'", 
                     contract_name.to_string().c_str()))
-    JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,                      
+    JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,
                     RPC_WALLET_ERROR,
-                    "rpcwasm.get_contract, must be wasm VM")
-    JSON_RPC_ASSERT(contract_store.abi.size() > 0,                                  
+                   "rpcwasm.get_contract, must be wasm VM")
+    JSON_RPC_ASSERT(contract_store.abi.size() > 0,
                     RPC_WALLET_ERROR,
                     "rpcwasm.get_contract, contract lose abi")
     //JSON_RPC_ASSERT(contract_store.code.size() > 0,                                 RPC_WALLET_ERROR,  "contract lose code")
@@ -222,7 +222,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         EnsureWalletIsUnlocked();
         CWasmContractTx tx;
         {      
-            CAccount payer; 
+            CAccount payer;
             auto     payer_name   = wasm::name(params[0].get_str());
             auto     action       = wasm::name(params[2].get_str());
             WASM_ASSERT(database_account->GetAccount(nick_name(payer_name.value), payer), account_operation_exception,

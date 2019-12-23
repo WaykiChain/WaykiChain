@@ -6,7 +6,7 @@
 #ifndef TX_SERIALIZER_H
 #define TX_SERIALIZER_H
 
-#include <stdexcept>
+
 #include "commons/serialize.h"
 #include "tx/tx.h"
 
@@ -24,17 +24,12 @@
 #include "tx/mulsigtx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/tx.h"
-#include "tx/txmempool.h"
 #include "tx/assettx.h"
 #include "tx/wasmcontracttx.h"
 #include "tx/nickidregtx.h"
+#include "tx/einvalidtxtype.h"
 
 using namespace std;
-
-class EInvalidTxType: public runtime_error {
-public:
-    using runtime_error::runtime_error;
-};
 
 
 template<typename Stream>

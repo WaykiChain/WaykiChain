@@ -1142,10 +1142,6 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant* grantOu
     return true;
 }
 
-// for now, use a very simple selection metric: the node from which we received
-// most recently
-static int64_t NodeSyncScore(const CNode* pNode) { return pNode->nLastRecv; }
-
 void static StartSync(const vector<CNode*>& vNodes) {
     CNode* pnodeNewSync = nullptr;
     int64_t nBestScore  = 0;
@@ -1161,7 +1157,7 @@ void static StartSync(const vector<CNode*>& vNodes) {
               144)) /*&& (pNode->nVersion < NOBLKS_VERSION_START || pNode->nVersion >= NOBLKS_VERSION_END)*/
         ) {
             // if ok, compare node's score with the best so far
-            int64_t nScore = NodeSyncScore(pNode);
+            int64_t nScore = pNode->NodeSyncScore();
             if (pnodeNewSync == nullptr || nScore > nBestScore) {
                 pnodeNewSync = pNode;
                 nBestScore   = nScore;

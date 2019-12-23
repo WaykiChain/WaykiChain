@@ -6,6 +6,7 @@
 #include "block.h"
 
 #include "entities/account.h"
+#include "tx/blockpricemediantx.h"
 #include "main.h"
 #include "net.h"
 

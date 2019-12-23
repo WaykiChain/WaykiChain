@@ -587,6 +587,7 @@ static bool CheckOrderFeeRate(CTxExecuteContext &context, const uint256 &orderId
     if (order.fee_ratio <= DEX_ORDER_FEE_RATE_MAX)
         return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
             __FUNCTION__, orderId.ToString(), order.fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
+    return true ;
 }
 
 string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {

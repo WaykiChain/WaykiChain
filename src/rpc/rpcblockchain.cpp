@@ -17,6 +17,7 @@
 #include "sync.h"
 #include "tx/merkletx.h"
 #include "tx/tx.h"
+#include "tx/coinrewardtx.h"
 #include "wallet/wallet.h"
 
 using namespace json_spirit;

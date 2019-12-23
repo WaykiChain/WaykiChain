@@ -22,6 +22,7 @@
 #include "persistence/accountdb.h"
 #include "persistence/contractdb.h"
 #include "../logging.h"
+#include "tx/txserializer.h"
 
 using namespace json_spirit;
 using namespace boost::assign;

@@ -18,6 +18,8 @@
 #include "tx/cdptx.h"
 #include "tx/pricefeedtx.h"
 #include "tx/assettx.h"
+#include "tx/coinstaketx.h"
+#include "tx/mulsigtx.h"
 
 
 Value submitpricefeedtx(const Array& params, bool fHelp) {

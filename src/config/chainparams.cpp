@@ -11,6 +11,9 @@
 #include "commons/util/util.h"
 #include "configuration.h"
 #include "main.h"
+#include "tx/blockrewardtx.h"
+#include "tx/delegatetx.h"
+#include "tx/coinrewardtx.h"
 
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string/case_conv.hpp> // for to_lower()

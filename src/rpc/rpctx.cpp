@@ -17,6 +17,11 @@
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
+#include "tx/coinstaketx.h"
+#include "tx/nickidregtx.h"
+#include "tx/accountregtx.h"
+#include "tx/mulsigtx.h"
+#include "tx/txserializer.h"
 
 #include <boost/assign/list_of.hpp>
 #include "commons/json/json_spirit_utils.h"
@@ -120,7 +125,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
     if(!account.nickid.IsEmpty()){
         throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
     }
@@ -139,13 +144,10 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
         throw;
     }
 
-    CNickIdRegisterTx tx;
-    tx.nickId       = nickid;
-    tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
-    tx.valid_height = validHeight;
 
-    return SubmitTx(account.keyid, tx);
+    std::shared_ptr<CNickIdRegisterTx> pBaseTx = std::make_shared<CNickIdRegisterTx>(txUid, nickid, fee.GetSawiAmount(), fee.symbol, validHeight);
+
+    return SubmitTx(account.keyid, *pBaseTx);
 }
 
 

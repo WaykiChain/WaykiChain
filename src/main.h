@@ -32,7 +32,8 @@
 #include "persistence/cachewrapper.h"
 #include "sigcache.h"
 #include "tx/tx.h"
-#include "tx/txserializer.h"
+#include "tx/txmempool.h"
+//#include "tx/txserializer.h"
 
 class CBloomFilter;
 class CChain;
