@@ -15,6 +15,7 @@
 #include "datastream.hpp"
 #include "abi_serializer.hpp"
 #include "wasm_context.hpp"
+#include "wasm_variant_trace.hpp"
 
 #include <regex>
 #include <fstream>
@@ -280,6 +281,7 @@ Object GetTxDetailJSON(const uint256& txid) {
                     file >> header;
                     fseek(file, postx.nTxOffset, SEEK_CUR);
                     file >> pBaseTx;
+                    //obj = pBaseTx->IsMultiSignSupport()?pBaseTx->ToJsonMultiSign(*database):pBaseTx->ToJson(*pCdMan->pAccountCache);
                     obj = pBaseTx->ToJson(*pCdMan->pAccountCache);
 
                     obj.push_back(Pair("confirmations",     chainActive.Height() - (int32_t)header.GetHeight()));
@@ -293,22 +295,22 @@ Object GetTxDetailJSON(const uint256& txid) {
                         obj.push_back(Pair("receipts", JSON::ToJson(*pCdMan->pAccountCache, receipts)));
                     }
 
-                    string trace;
-                    auto database = std::make_shared<CCacheWrapper>(pCdMan);
-                    if(database->contractCache.GetContractTraces(txid, trace)){
-
-                        std::vector<char> trace_bytes = std::vector<char>(trace.begin(), trace.end());
-                        transaction_trace t  = wasm::unpack<transaction_trace>(trace_bytes);
-
-                        json_spirit::Value v;
-                        to_variant(t, v, *database);
-
-                        obj.push_back(Pair("tx_trace", v));
-                     }
-
                     CDataStream ds(SER_DISK, CLIENT_VERSION);
                     ds << pBaseTx;
                     obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+
+                    string trace;
+                    auto database = std::make_shared<CCacheWrapper>(pCdMan);
+                    auto resolver = make_resolver(database);
+                    if(database->contractCache.GetContractTraces(txid, trace)){
+
+                        json_spirit::Value value_json;
+                        std::vector<char>  trace_bytes = std::vector<char>(trace.begin(), trace.end());
+                        transaction_trace  trace       = wasm::unpack<transaction_trace>(trace_bytes);
+                        to_variant(trace, value_json, resolver);
+                        obj.push_back(Pair("tx_trace", value_json));
+                     }
+
                 } catch (std::exception &e) {
                     throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
                 }

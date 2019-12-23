@@ -49,7 +49,7 @@ namespace wasm {
                         pContext->action());
             };
             try {
-                watchdog wd(pContext->get_transaction_duration());
+                watchdog wd(pContext->get_max_transaction_duration());
                 _runtime->_bkend->timed_run(wd, fn);
             } catch (vm::timeout_exception &) {
                 //pContext->trx_pContext->checktime();

@@ -13,6 +13,7 @@
 #include "net.h"
 #include "miner/pbftcontext.h"
 #include "miner/pbftmanager.h"
+#include "tx/einvalidtxtype.h"
 
 #include <string>
 #include <tuple>

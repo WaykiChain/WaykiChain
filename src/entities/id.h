@@ -102,7 +102,8 @@ public:
     }
     CNickID(string nickIdIn) {
 
-        value = wasm::string_to_name(nickIdIn.c_str());
+        //value = wasm::string_to_name(nickIdIn.c_str());
+        value = wasm::name(nickIdIn).value;
     }
 
     bool IsMature(const uint32_t currHeight) const ;

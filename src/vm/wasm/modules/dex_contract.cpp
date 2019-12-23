@@ -179,8 +179,8 @@ void dex::dex_operator_register(wasm_context &context) {
     vector<CReceipt> receipts; // TODO: receipts in wasm context
     process_dex_operator_fee(context, args.fee(), ASSET_ACTION_ISSUE, *sp_registrant_account);
     DexOperatorDetail detail(owner_name, matcher_name, args.name(), args.portal_url(), args.memo());
-    DexOperatorID new_id;
-    WASM_ASSERT(context.database.dexCache.IncDexOperatorId(new_id), wasm_assert_exception, "increase dex operator id error");
+    DexID new_id;
+    WASM_ASSERT(context.database.dexCache.IncDexID(new_id), wasm_assert_exception, "increase dex operator id error");
     WASM_ASSERT(context.database.dexCache.CreateDexOperator(new_id, detail), wasm_assert_exception, "save new dex operator error");
     context.require_recipient(args.registrant());
     context.require_recipient(args.owner());
@@ -318,8 +318,7 @@ void dex::dex_order_create(wasm_context &context) {
     WASM_ASSERT(context.database.dexCache.GetDexOperator(args.exid(), operator_detail), wasm_assert_exception,
         "the dex operator does not exist! exid=%u", args.exid());
 
-    static uint64_t ORDER_FEE_RATE_MAX = 50 * 10000;
-    WASM_ASSERT(args.fee_rate() <= ORDER_FEE_RATE_MAX, wasm_assert_exception,
+    WASM_ASSERT(args.fee_rate() <= DEX_ORDER_FEE_RATE_MAX, wasm_assert_exception,
         "fee_rate=%d is too large", args.fee_rate())
 
     TokenSymbol asset_sym = args.asset().sym.code().to_string();
@@ -356,7 +355,6 @@ void dex::dex_order_create(wasm_context &context) {
             asset_amount, sp_from_account->GetBalance(coin_sym, BalanceType::FREE_VALUE));
     }
 
-    static const uint64_t DEX_PRICE_MAX = 1000000 * COIN;
     WASM_ASSERT(args.price() > 0 && args.price() <= DEX_PRICE_MAX, wasm_assert_exception,
         "asset.price=%d is 0 or too large! max=%llu", args.price(), DEX_PRICE_MAX);
 

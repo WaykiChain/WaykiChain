@@ -24,40 +24,6 @@ using namespace std;
     // block orders: height generate_type txid -> active order
 typedef CCompositeKVCache<dbk::DEX_BLOCK_ORDERS,  tuple<CFixedUInt32, uint8_t, uint256>, CDEXOrderDetail>     DEXBlockOrdersCache;
 
-typedef uint32_t DexOperatorID;
-
-// dex operator
-struct DexOperatorDetail {
-    CNickID owner;
-    CNickID matcher;
-    string  name;
-    string portal_url;
-    string memo;
-    // TODO: state
-
-    DexOperatorDetail() {}
-
-    DexOperatorDetail(const CNickID &ownerIn, const CNickID &matcherIn, const string &nameIn,
-                      const string &portalUrlIn, const string &memoIn)
-        : owner(ownerIn), matcher(matcherIn), name(nameIn), portal_url(portalUrlIn), memo(memoIn) {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(owner);
-        READWRITE(matcher);
-        READWRITE(name);
-        READWRITE(portal_url);
-        READWRITE(memo);
-    )
-
-    bool IsEmpty() const {
-        return owner.IsEmpty() && name.empty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
-    }
-
-    void SetEmpty() {
-        owner.SetEmpty(); matcher.SetEmpty(); name = ""; portal_url = ""; memo = "";
-    }
-};
-
 // DEX_DB
 namespace DEX_DB {
     //block order key: height generate_type txid
@@ -139,13 +105,13 @@ public:
     bool UpdateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail& activeOrder);
     bool EraseActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail &activeOrder);
 
-    bool IncDexOperatorId(DexOperatorID &id);
-    bool GetDexOperator(const DexOperatorID &id, DexOperatorDetail& detail);
-    bool GetDexOperatorByOwner(const CNickID &nickid, DexOperatorID &id, DexOperatorDetail& detail);
-    bool HaveDexOperator(const DexOperatorID &id);
+    bool IncDexID(DexID &id);
+    bool GetDexOperator(const DexID &id, DexOperatorDetail& detail);
+    bool GetDexOperatorByOwner(const CNickID &nickid, DexID &id, DexOperatorDetail& detail);
+    bool HaveDexOperator(const DexID &id);
     bool HaveDexOperatorByOwner(const CNickID &nickid);
-    bool CreateDexOperator(const DexOperatorID &id, const DexOperatorDetail& detail);
-    bool UpdateDexOperator(const DexOperatorID &id, const DexOperatorDetail& old_detail,
+    bool CreateDexOperator(const DexID &id, const DexOperatorDetail& detail);
+    bool UpdateDexOperator(const DexID &id, const DexOperatorDetail& old_detail,
         const DexOperatorDetail& detail);
 
     bool Flush() {
@@ -208,10 +174,10 @@ private:
     // order tx id -> active order
     CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,          uint256,                     CDEXOrderDetail >     activeOrderCache;
     DEXBlockOrdersCache    blockOrdersCache;
-    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CFixedLeb128<DexOperatorID>, DexOperatorDetail >   operator_detail_cache;
-    CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    CNickID,                     DexOperatorID >       operator_owner_map_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CFixedLeb128<DexID>, DexOperatorDetail >   operator_detail_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    CNickID,                     DexID >       operator_owner_map_cache;
 
-    CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexOperatorID>> operator_last_id_cache;
+    CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexID>> operator_last_id_cache;
 };
 
 #endif //PERSIST_DEX_H

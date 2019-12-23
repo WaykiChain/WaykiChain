@@ -27,6 +27,7 @@
 #include "p2p/sendmessage.hpp"
 #include "chain/blockdelegates.h"
 #include "persistence/blockundo.h"
+#include "tx/txserializer.h"
 
 #include <sstream>
 #include <algorithm>

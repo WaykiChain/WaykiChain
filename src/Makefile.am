@@ -185,6 +185,7 @@ coin_CORE_H = \
   tx/mulsigtx.h \
   tx/pricefeedtx.h \
   tx/tx.h \
+  tx/einvalidtxtype.h \
   tx/txmempool.h \
   tx/txserializer.h \
   sync.h \

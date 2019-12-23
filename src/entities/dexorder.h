@@ -14,6 +14,8 @@
 #include "commons/types.h"
 #include "commons/json/json_spirit.h"
 
+typedef uint32_t DexID;
+
 enum OrderSide: uint8_t {
     ORDER_BUY  = 1,
     ORDER_SELL = 2,
@@ -76,6 +78,7 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
 }
 
 struct CDEXOrderDetail {
+    DexID dex_id = 0;
     OrderGenerateType generate_type    = EMPTY_ORDER;       //!< generate type
     OrderType order_type               = ORDER_LIMIT_PRICE; //!< order type
     OrderSide order_side               = ORDER_BUY;         //!< order side
@@ -84,6 +87,7 @@ struct CDEXOrderDetail {
     uint64_t coin_amount               = 0;                 //!< amount of coin to buy/sell asset
     uint64_t asset_amount              = 0;                 //!< amount of asset to buy/sell
     uint64_t price                     = 0;                 //!< price in coinType want to buy/sell asset
+    uint64_t fee_ratio                 = 0;                 //!< price in coinType want to buy/sell asset
     CTxCord  tx_cord                   = CTxCord();         //!< related tx cord
     CRegID user_regid                  = CRegID();          //!< user regid
     uint64_t total_deal_coin_amount    = 0;                 //!< total deal coin amount
@@ -104,6 +108,7 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(price));
+        READWRITE(VARINT(fee_ratio));
         READWRITE(tx_cord);
         READWRITE(user_regid);
         READWRITE(VARINT(total_deal_coin_amount));
@@ -129,6 +134,9 @@ public:
         total_deal_coin_amount    = 0;
         total_deal_asset_amount   = 0;
     }
+
+    double GetFeeRatioF() const;
+
 
     string ToString() const;
     void ToJson(json_spirit::Object &obj) const;
@@ -176,16 +184,48 @@ struct CDEXActiveOrder {
 class CDEXSysOrder {
 public:// create functions
     static shared_ptr<CDEXOrderDetail> CreateBuyLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-        const TokenSymbol &assetSymbol, const uint64_t assetAmountIn, const uint64_t priceIn);
+        const TokenSymbol &assetSymbol, uint64_t assetAmountIn, uint64_t priceIn);
 
     static shared_ptr<CDEXOrderDetail> CreateSellLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-        const TokenSymbol &assetSymbol, const uint64_t assetAmountIn, const uint64_t priceIn);
+        const TokenSymbol &assetSymbol, uint64_t assetAmountIn, uint64_t priceIn);
 
     static shared_ptr<CDEXOrderDetail> CreateBuyMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-        const TokenSymbol &assetSymbol, const uint64_t coinAmountIn);
+        const TokenSymbol &assetSymbol, uint64_t coinAmountIn);
 
     static shared_ptr<CDEXOrderDetail> CreateSellMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-        const TokenSymbol &assetSymbol, const uint64_t assetAmountIn);
+        const TokenSymbol &assetSymbol, uint64_t assetAmountIn);
+};
+
+// dex operator
+struct DexOperatorDetail {
+    CNickID owner;
+    CNickID matcher;
+    string  name;
+    string portal_url;
+    string memo;
+    // TODO: state
+
+    DexOperatorDetail() {}
+
+    DexOperatorDetail(const CNickID &ownerIn, const CNickID &matcherIn, const string &nameIn,
+                      const string &portalUrlIn, const string &memoIn)
+        : owner(ownerIn), matcher(matcherIn), name(nameIn), portal_url(portalUrlIn), memo(memoIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(owner);
+        READWRITE(matcher);
+        READWRITE(name);
+        READWRITE(portal_url);
+        READWRITE(memo);
+    )
+
+    bool IsEmpty() const {
+        return owner.IsEmpty() && name.empty() && matcher.IsEmpty() && portal_url.empty() && memo.empty();
+    }
+
+    void SetEmpty() {
+        owner.SetEmpty(); matcher.SetEmpty(); name = ""; portal_url = ""; memo = "";
+    }
 };
 
 #endif //ENTITIES_DEX_ORDER_H

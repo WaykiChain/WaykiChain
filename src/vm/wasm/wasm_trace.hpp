@@ -10,8 +10,7 @@ namespace wasm {
         uint256 trx_id;
         uint64_t receiver;
         inline_transaction trx;
-        //uint32_t block_height;
-        //uint32_t block_time;
+
         //std::chrono::microseconds elapsed;
         string console;
     };
@@ -21,16 +20,11 @@ namespace wasm {
     };
 
 
-    struct transaction_trace {
+    struct transaction_trace {       
         uint256 trx_id;
         std::chrono::microseconds elapsed;
-        //uint32_t block_height;
-        //uint32_t block_time;
         vector <inline_transaction_trace> traces;
     };
-
-
-
 
    /**
     *  Serialize a asset into a stream
@@ -43,11 +37,10 @@ namespace wasm {
     */
     template<typename DataStream>
     inline DataStream &operator<<( DataStream &ds, const wasm::inline_transaction_trace &v ) {
-
         ds << v.trx_id;
         ds << v.receiver;
         ds << v.trx;
-        ds << v.console;
+        //ds << v.console;
         ds << v.inline_traces;
         return ds;
     }
@@ -66,7 +59,7 @@ namespace wasm {
         ds >> v.trx_id;
         ds >> v.receiver;
         ds >> v.trx;
-        ds >> v.console;
+        //ds >> v.console;
         ds >> v.inline_traces;
         return ds;
     }
@@ -166,9 +159,5 @@ namespace wasm {
         ds >> v.traces;
         return ds;
     }
-
-   
-
-
 
 } //wasm

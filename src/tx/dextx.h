@@ -24,7 +24,7 @@ public:
                               const int64_t price);
     bool CheckOrderSymbols(CValidationState &state, const string &title,
                            const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol);
-public:
+
     static uint64_t CalcCoinAmount(uint64_t assetAmount, const uint64_t price);
 };
 

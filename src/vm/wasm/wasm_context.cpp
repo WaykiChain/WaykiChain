@@ -77,11 +77,14 @@ namespace wasm {
                             wasm::name(_receiver).to_string().c_str(), wasm::name(p.account).to_string().c_str());
             }
 
+            //call contract-self and authorized by contract
+            if(t.contract == _receiver && p.account == _receiver ) continue;
+
             //call contract-self
-            if(t.contract == _receiver && !has_permission_from_inline_transaction(p)){
+            if(t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
                 WASM_ASSERT(false,
                             missing_auth_exception,
-                            "Missing authorization by account %s in a new inline transaction",
+                            "Missing authorization by account %s in a new inline  transaction",
                             wasm::name(p.account).to_string().c_str());
             }
 
@@ -103,7 +106,7 @@ namespace wasm {
         vector <uint8_t> code;
         CUniversalContract contract;
         CAccount contract_account ;
-        if(database.accountCache.GetAccount(CNickID(wasm::name(account).to_string()),contract_account)
+        if(database.accountCache.GetAccount(CNickID(account), contract_account)
             && database.contractCache.GetContract(contract_account.regid, contract)) {
             code = vector <uint8_t>(contract.code.begin(), contract.code.end());
         }
@@ -123,7 +126,7 @@ namespace wasm {
         static bool wasm_interface_inited = false;
         if (!wasm_interface_inited) {
             wasm_interface_inited = true;
-            wasmif.initialize(wasm::vm_type::eos_vm);
+            wasmif.initialize(wasm::vm_type::eos_vm_jit);
             register_native_handler(wasmio, N(setcode), wasmio_native_setcode);
             register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
 
@@ -173,6 +176,7 @@ namespace wasm {
             if (native) {
                 (*native)(*this);
             } else {
+
                 vector <uint8_t> code = get_code(_receiver);
                 if (code.size() > 0) {
                     wasmif.execute(code, this);
@@ -200,8 +204,6 @@ namespace wasm {
         trace.console = _pending_console_output.str();
         //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
-        // trace.block_height =
-        // trace.block_time =
         reset_console();
 
         if (contracts_console()) {
@@ -246,18 +248,15 @@ namespace wasm {
 
     bool wasm_context::is_account( uint64_t account ) {
 
-        auto account_name = wasm::name(account);
-        return database.accountCache.HaveAccount(nick_name(account_name.to_string()));
+        //auto account_name = wasm::name(account);
+        return database.accountCache.HaveAccount(nick_name(account));
     }
 
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
 
-        int64_t disk_usage = control_trx.nRunStep;
-        disk_usage += size_in_bytes * fuel_store_fee_per_byte;
-        // WASM_TRACE("size_in_bytes:%ld", size_in_bytes)
-        // WASM_TRACE("disk_usage:%ld", disk_usage)
-        if(disk_usage < 0) disk_usage = 0;
-        control_trx.nRunStep += disk_usage;
+        //int64_t disk_usage    = control_trx.nRunStep;
+        int64_t disk_usage    = size_in_bytes * fuel_store_fee_per_byte;
+        control_trx.nRunStep += (disk_usage < 0) ? 0 : disk_usage;
 
     }
 

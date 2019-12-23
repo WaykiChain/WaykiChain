@@ -9,6 +9,7 @@
 
 #include "tx.h"
 
+
 class CNickIdRegisterTx : public CBaseTx {
 public:
     string nickId ;
