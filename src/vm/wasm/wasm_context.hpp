@@ -30,9 +30,6 @@ namespace wasm {
                      vector <CReceipt> &receipts_in, bool mining, uint32_t depth = 0)
                 : trx(t), control_trx(ctrl), database(cw), receipts(receipts_in), recurse_depth(depth) {
             reset_console();
-            // if (mining) {
-            //     transaction_duration_timeout = std::chrono::milliseconds(max_wasm_execute_time_mining);
-            // }
         };
 
         ~wasm_context() {
@@ -48,25 +45,26 @@ namespace wasm {
 // Console methods:
     public:
         void                      reset_console();
-        std::ostringstream&       get_console_stream() { return _pending_console_output; }
+        std::ostringstream&       get_console_stream()       { return _pending_console_output; }
         const std::ostringstream& get_console_stream() const { return _pending_console_output; }
 
 //virtual
     public:
-        uint64_t    receiver() { return _receiver; }
+        uint64_t    receiver() { return _receiver;    }
         uint64_t    contract() { return trx.contract; }
-        uint64_t    action() { return trx.action; }
+        uint64_t    action()   { return trx.action;   }
 
         void        execute_inline(inline_transaction t);
-        bool        has_recipient(uint64_t account) const;
+        bool        has_recipient    (uint64_t account  ) const;
         void        require_recipient(uint64_t recipient);
-        const char* get_action_data() { return trx.data.data(); }
+        const char* get_action_data()      { return trx.data.data(); }
         uint32_t    get_action_data_size() { return trx.data.size(); }
         bool        is_account(uint64_t account);
-        void        require_auth(uint64_t account);
+        void        require_auth (uint64_t account);
         void        require_auth2(uint64_t account, uint64_t permission) {}
         bool        has_authorization(uint64_t account) const;
-        uint64_t    block_time() { return 0; }
+        uint64_t    block_time() { return 0;      }
+        void        exit      () { wasmif.exit(); }
 
         bool set_data(uint64_t contract, string k, string v) {
             CAccount contract_account;

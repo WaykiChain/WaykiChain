@@ -62,7 +62,7 @@ namespace wasm {
     }
 
     void wasm_interface::validate(const vector <uint8_t> &code) {
-        
+
         try {
              auto code_bytes = (uint8_t*)code.data();
              size_t code_size = code.size();
@@ -112,14 +112,6 @@ namespace wasm {
             WASM_ASSERT(test, wasm_assert_exception, "wasm-assert-fail:%s", (char *)msg)
         }
 
-        void wasm_assert_code( uint32_t test, uint64_t code ) {
-            if (!test) {
-                std::ostringstream o;
-                o << code;
-                WASM_ASSERT(false, wasm_assert_code_exception, "wasm_assert_code:%s", o.str().c_str())
-            }
-        }
-
         void wasm_assert_message( uint32_t test,  const void *msg, uint32_t msg_len ) {
             if (!test) {             
                 WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(msg) + msg_len), 
@@ -130,6 +122,18 @@ namespace wasm {
                 std::string o = string((const char *) msg, msg_len);
                 WASM_ASSERT( false, wasm_assert_code_exception, "wasm_assert_code:%s", o.c_str())
             }
+        }
+
+        void wasm_assert_code( uint32_t test, uint64_t code ) {
+            if (!test) {
+                std::ostringstream o;
+                o << code;
+                WASM_ASSERT(false, wasm_assert_code_exception, "wasm_assert_code:%s", o.str().c_str())
+            }
+        }
+
+        void wasm_exit( int32_t code ){
+            pWasmContext->exit();
         }
 
         uint64_t current_time() {
@@ -770,6 +774,7 @@ namespace wasm {
     };
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, abort,            abort)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_exit,        wasm_exit)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert,      wasm_assert)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, wasm_assert_code, wasm_assert_code)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_time,     current_time)
