@@ -67,6 +67,7 @@ enum TxType: uint8_t {
     DEX_LIMIT_SELL_ORDER_EX_TX  = 91,   //!< dex sell limit price order ex Tx, support exid
     DEX_MARKET_BUY_ORDER_EX_TX  = 92,   //!< dex buy market price order ex Tx, support exid
     DEX_MARKET_SELL_ORDER_EX_TX = 93,   //!< dex sell market price order ex Tx, support exid
+    DEX_TRADE_SETTLE_EX_TX      = 94,   //!< dex settle , support exid
 
     DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
     DEX_OPERATOR_UPDATE_TX      = 101,  //!< dex operator update tx

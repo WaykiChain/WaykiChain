@@ -472,38 +472,38 @@ namespace wasm {
         return ds;
     }
 
-/**
- *  Serialize a symbol into a stream
- *
- *  @brief Serialize a symbol
- *  @param ds - The stream to write
- *  @param sym - The value to serialize
- *  @tparam Stream - Type of datastream buffer
- *  @return datastream<Stream>& - Reference to the datastream
- */
-    template<typename Stream>
-    inline datastream<Stream> &operator<<( datastream<Stream> &ds, const wasm::symbol sym ) {
-        uint64_t raw = sym.raw();
-        ds.write((const char *) &raw, sizeof(raw));
-        return ds;
-    }
+    /**
+     *  Serialize a symbol into a stream
+     *
+     *  @brief Serialize a symbol
+     *  @param ds - The stream to write
+     *  @param sym - The value to serialize
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+        template<typename Stream>
+        inline datastream<Stream> &operator<<( datastream<Stream> &ds, const wasm::symbol sym ) {
+            uint64_t raw = sym.raw();
+            ds.write((const char *) &raw, sizeof(raw));
+            return ds;
+        }
 
-/**
- *  Deserialize a symbol from a stream
- *
- *  @brief Deserialize a symbol
- *  @param ds - The stream to read
- *  @param symbol - The destination for deserialized value
- *  @tparam Stream - Type of datastream buffer
- *  @return datastream<Stream>& - Reference to the datastream
- */
-    template<typename Stream>
-    inline datastream<Stream> &operator>>( datastream<Stream> &ds, wasm::symbol &sym ) {
-        uint64_t raw = 0;
-        ds.read((char *) &raw, sizeof(raw));
-        sym = symbol(raw);
-        return ds;
-    }
+    /**
+     *  Deserialize a symbol from a stream
+     *
+     *  @brief Deserialize a symbol
+     *  @param ds - The stream to read
+     *  @param symbol - The destination for deserialized value
+     *  @tparam Stream - Type of datastream buffer
+     *  @return datastream<Stream>& - Reference to the datastream
+     */
+        template<typename Stream>
+        inline datastream<Stream> &operator>>( datastream<Stream> &ds, wasm::symbol &sym ) {
+            uint64_t raw = 0;
+            ds.read((char *) &raw, sizeof(raw));
+            sym = symbol(raw);
+            return ds;
+        }
 
 // /**
 //  *  Serialize an ignored_wrapper type into a stream

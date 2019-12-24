@@ -77,4 +77,5 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(fuel_fee_exception,                   5000023, "fuel fee exception")
     WASM_DECLARE_EXCEPTION(wasm_timeout_exception,               5000024, "timeout exception")
     WASM_DECLARE_EXCEPTION(asset_type_exception,                 5000025, "asset type exception")
+    WASM_DECLARE_EXCEPTION(wasm_memory_exception,                5000026, "wasm memory exception")
 } //wasm

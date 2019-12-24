@@ -79,8 +79,37 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
     return EMPTY_STRING;
 }
 
+struct DEXOperatorMode {
+    enum Mode: uint8_t {
+        DEFAULT,       // simple mode
+        REQUIRE_AUTH       // require dex operator authenticate (should have operator signature in tx)
+    };
+    Mode value = DEFAULT;
+
+    DEXOperatorMode() {}
+    DEXOperatorMode(Mode valueIn): value(valueIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE((uint8_t&)value);
+    )
+
+    bool IsValid() {
+        return value == DEFAULT || value == REQUIRE_AUTH;
+    }
+
+    string Name() const {
+        switch (value) {
+            case DEFAULT: return "DEFAULT";
+            case REQUIRE_AUTH: return "REQUIRE_AUTH";
+            default: return "";
+        }
+    }
+};
+
 struct CDEXOrderDetail {
+    DEXOperatorMode mode;
     DexID dex_id = 0;
+    uint64_t operator_fee_ratio        = 0;                 //!< operator fee ratio, effective in REQUIRE_AUTH mode
     OrderGenerateType generate_type    = EMPTY_ORDER;       //!< generate type
     OrderType order_type               = ORDER_LIMIT_PRICE; //!< order type
     OrderSide order_side               = ORDER_BUY;         //!< order side
@@ -89,7 +118,6 @@ struct CDEXOrderDetail {
     uint64_t coin_amount               = 0;                 //!< amount of coin to buy/sell asset
     uint64_t asset_amount              = 0;                 //!< amount of asset to buy/sell
     uint64_t price                     = 0;                 //!< price in coinType want to buy/sell asset
-    uint64_t fee_ratio                 = 0;                 //!< price in coinType want to buy/sell asset
     CTxCord  tx_cord                   = CTxCord();         //!< related tx cord
     CRegID user_regid                  = CRegID();          //!< user regid
     uint64_t total_deal_coin_amount    = 0;                 //!< total deal coin amount
@@ -102,6 +130,9 @@ public:
 
 public:
     IMPLEMENT_SERIALIZE(
+        READWRITE(mode);
+        READWRITE(VARINT(dex_id));
+        READWRITE(VARINT(operator_fee_ratio));
         READWRITE((uint8_t&)generate_type);
         READWRITE((uint8_t&)order_type);
         READWRITE((uint8_t&)order_side);
@@ -110,7 +141,6 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(price));
-        READWRITE(VARINT(fee_ratio));
         READWRITE(tx_cord);
         READWRITE(user_regid);
         READWRITE(VARINT(total_deal_coin_amount));
@@ -136,9 +166,6 @@ public:
         total_deal_coin_amount    = 0;
         total_deal_asset_amount   = 0;
     }
-
-    double GetFeeRatioF() const;
-
 
     string ToString() const;
     void ToJson(json_spirit::Object &obj) const;
@@ -185,17 +212,14 @@ struct CDEXActiveOrder {
 // txid -> sys order data
 class CDEXSysOrder {
 public:// create functions
-    static shared_ptr<CDEXOrderDetail> CreateBuyLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-        const TokenSymbol &assetSymbol, uint64_t assetAmountIn, uint64_t priceIn);
-
-    static shared_ptr<CDEXOrderDetail> CreateSellLimitOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
-        const TokenSymbol &assetSymbol, uint64_t assetAmountIn, uint64_t priceIn);
-
     static shared_ptr<CDEXOrderDetail> CreateBuyMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
         const TokenSymbol &assetSymbol, uint64_t coinAmountIn);
 
     static shared_ptr<CDEXOrderDetail> CreateSellMarketOrder(const CTxCord &txCord, const TokenSymbol &coinSymbol,
         const TokenSymbol &assetSymbol, uint64_t assetAmountIn);
+
+    static shared_ptr<CDEXOrderDetail> Create(OrderType orderType, OrderSide orderSide, const CTxCord &txCord,
+        const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol, uint64_t coiAmountIn, uint64_t assetAmountIn);
 };
 
 // dex operator

@@ -237,42 +237,45 @@ namespace wasm {
         friend constexpr bool operator<( const symbol_code &a, const symbol_code &b ) {
             return a.value < b.value;
         }
-        /**
-        *  Serialize a symbol_code into a stream
-        *
-        *  @brief Serialize a symbol_code
-        *  @param ds - The stream to write
-        *  @param sym - The value to serialize
-        *  @tparam DataStream - Type of datastream buffer
-        *  @return DataStream& - Reference to the datastream
-        */
-        template<typename DataStream>
-        friend inline DataStream &operator<<( DataStream &ds, const wasm::symbol_code sym_code ) {
-            uint64_t raw = sym_code.raw();
-            ds.write((const char *) &raw, sizeof(raw));
-            return ds;
-        }
 
-        /**
-        *  Deserialize a symbol_code from a stream
-        *
-        *  @brief Deserialize a symbol_code
-        *  @param ds - The stream to read
-        *  @param symbol - The destination for deserialized value
-        *  @tparam DataStream - Type of datastream buffer
-        *  @return DataStream& - Reference to the datastream
-        */
-        template<typename DataStream>
-        friend inline DataStream &operator>>( DataStream &ds, wasm::symbol_code &sym_code ) {
-            uint64_t raw = 0;
-            ds.read((char *) &raw, sizeof(raw));
-            sym_code = symbol_code(raw);
-            return ds;
-        }
 
     private:
         uint64_t value = 0;
     };
+
+    /**
+    *  Serialize a symbol_code into a stream
+    *
+    *  @brief Serialize a symbol_code
+    *  @param ds - The stream to write
+    *  @param sym - The value to serialize
+    *  @tparam DataStream - Type of datastream buffer
+    *  @return DataStream& - Reference to the datastream
+    */
+    template<typename DataStream>
+    inline DataStream &operator<<( DataStream &ds, const wasm::symbol_code sym_code ) {
+        uint64_t raw = sym_code.raw();
+        ds.write((const char *) &raw, sizeof(raw));
+        return ds;
+    }
+
+    /**
+    *  Deserialize a symbol_code from a stream
+    *
+    *  @brief Deserialize a symbol_code
+    *  @param ds - The stream to read
+    *  @param symbol - The destination for deserialized value
+    *  @tparam DataStream - Type of datastream buffer
+    *  @return DataStream& - Reference to the datastream
+    */
+    template<typename DataStream>
+    inline DataStream &operator>>( DataStream &ds, wasm::symbol_code &sym_code ) {
+        uint64_t raw = 0;
+        ds.read((char *) &raw, sizeof(raw));
+        sym_code = symbol_code(raw);
+        return ds;
+    }
+
 
     /**
      * @struct Stores information about a symbol, the symbol can be 7 characters long.
