@@ -12,12 +12,6 @@
 
 using uint128_t = unsigned __int128;
 
-#define GetDealFeeRatio(dexDealFeeRatio) (\
-    cw.sysParamCache.GetParam(DEX_DEAL_FEE_RATIO, dexDealFeeRatio)? true : \
-        state.DoS(100, ERRORMSG("%s(), read DEX_DEAL_FEE_RATIO error", __FUNCTION__), \
-                        READ_SYS_PARAM_FAIL, "read-sysparamdb-error") ) \
-
-
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 
 static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &orderId,
@@ -998,7 +992,9 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
             if (!CheckOrderFeeRateRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
                 return false;
 
-            uint64_t dealAssetFee = dealItem.dealAssetAmount * buyOperatorFeeRatio / PRICE_BOOST;
+            uint64_t dealAssetFee;
+            if (!CalcOrderFee(context, i, dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee)) return false;
+
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // pay asset fee from seller to settler
             if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
@@ -1016,7 +1012,9 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
         if (sellOperatorFeeRatio != 0) {
             if (!CheckOrderFeeRateRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
                 return false;
-            uint64_t dealCoinFee = dealItem.dealCoinAmount * sellOperatorFeeRatio / PRICE_BOOST;
+            uint64_t dealCoinFee;
+            if (!CalcOrderFee(context, i, dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
+
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // pay coin fee from buyer to settler
             if (!pSrcAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
@@ -1177,3 +1175,13 @@ uint64_t CDEXSettleBaseTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
     return ratio;
 }
 
+bool CDEXSettleBaseTx::CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
+                                    uint64_t &orderFee) {
+
+    uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
+    if (fee > (uint128_t)ULLONG_MAX)
+        return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the calc_order_fee out of range! amount=%llu, "
+            "fee_ratio=%llu", __func__, i,  amount, fee_ratio), REJECT_INVALID, "calc-order-fee-error");
+    orderFee = fee;
+    return true;
+}

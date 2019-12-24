@@ -668,6 +668,8 @@ protected:
     uint64_t GetOperatorFeeRatio(const CDEXOrderDetail &order,
                                  const DexOperatorDetail &operatorDetail,
                                  const OrderSide &takerSide);
+    bool CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
+                      uint64_t &orderFee);
 
 protected:
     DexID   dex_id;
