@@ -170,19 +170,25 @@ uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t pr
 // class CDEXBuyLimitOrderBaseTx
 
 string CDEXBuyLimitOrderBaseTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%s, asset_symbol=%s, amount=%llu, price=%llu",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        coin_symbol, asset_symbol, asset_amount, price);
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
+                     "asset_symbol=%s, amount=%llu, price=%llu, memo_hex=%s",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
+                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
+                     asset_symbol, asset_amount, price, HexStr(memo));
 }
 
 Object CDEXBuyLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("coin_symbol",      coin_symbol));
-    result.push_back(Pair("asset_symbol",     asset_symbol));
-    result.push_back(Pair("asset_amount",   asset_amount));
-    result.push_back(Pair("price",          price));
+    result.push_back(Pair("mode",               mode.Name()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
+    result.push_back(Pair("coin_symbol",        coin_symbol));
+    result.push_back(Pair("asset_symbol",       asset_symbol));
+    result.push_back(Pair("asset_amount",       asset_amount));
+    result.push_back(Pair("price",              price));
+    result.push_back(Pair("memo",               memo));
+    result.push_back(Pair("memo_hex",           HexStr(memo)));
     return result;
 }
 
@@ -260,19 +266,25 @@ bool CDEXBuyLimitOrderExTx::CheckTx(CTxExecuteContext &context) {
 // class CDEXSellLimitOrderTx
 
 string CDEXSellLimitOrderBaseTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%s, asset_symbol=%s, amount=%llu, price=%llu",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        coin_symbol, asset_symbol, asset_amount, price);
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
+                     "asset_symbol=%s, amount=%llu, price=%llu, memo_hex=%s",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
+                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
+                     asset_symbol, asset_amount, price, HexStr(memo));
 }
 
 Object CDEXSellLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("coin_symbol",    coin_symbol));
-    result.push_back(Pair("asset_symbol",   asset_symbol));
-    result.push_back(Pair("asset_amount",   asset_amount));
-    result.push_back(Pair("price",          price));
+    result.push_back(Pair("mode",               mode.Name()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
+    result.push_back(Pair("coin_symbol",        coin_symbol));
+    result.push_back(Pair("asset_symbol",       asset_symbol));
+    result.push_back(Pair("asset_amount",       asset_amount));
+    result.push_back(Pair("price",              price));
+    result.push_back(Pair("memo",               memo));
+    result.push_back(Pair("memo_hex",           HexStr(memo)));
     return result;
 }
 
@@ -341,18 +353,24 @@ bool CDEXSellLimitOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
 // class CDEXBuyMarketOrderBaseTx
 
 string CDEXBuyMarketOrderBaseTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%s, asset_symbol=%s, amount=%llu",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        coin_symbol, asset_symbol, coin_amount);
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
+                     "asset_symbol=%s, coin_amount=%llu, memo_hex=%s",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
+                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
+                     asset_symbol, coin_amount, HexStr(memo));
 }
 
 Object CDEXBuyMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("coin_symbol",    coin_symbol));
-    result.push_back(Pair("asset_symbol",   asset_symbol));
-    result.push_back(Pair("coin_amount",    coin_amount));
+    result.push_back(Pair("mode",               mode.Name()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
+    result.push_back(Pair("coin_symbol",        coin_symbol));
+    result.push_back(Pair("asset_symbol",       asset_symbol));
+    result.push_back(Pair("coin_amount",        coin_amount));
+    result.push_back(Pair("memo",               memo));
+    result.push_back(Pair("memo_hex",           HexStr(memo)));
 
     return result;
 }
@@ -417,18 +435,24 @@ bool CDEXBuyMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
 // class CDEXSellMarketOrderBaseTx
 
 string CDEXSellMarketOrderBaseTx::ToString(CAccountDBCache &accountCache) {
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-        "coin_symbol=%s, asset_symbol=%s, amount=%llu",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        coin_symbol, asset_symbol, asset_amount);
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
+                     "asset_symbol=%s, amount=%llu, memo_hex=%s",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
+                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
+                     asset_symbol, asset_amount, HexStr(memo));
 }
 
 Object CDEXSellMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("coin_symbol",    coin_symbol));
-    result.push_back(Pair("asset_symbol",   asset_symbol));
-    result.push_back(Pair("asset_amount",   asset_amount));
+    result.push_back(Pair("mode",               mode.Name()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
+    result.push_back(Pair("coin_symbol",        coin_symbol));
+    result.push_back(Pair("asset_symbol",       asset_symbol));
+    result.push_back(Pair("asset_amount",       asset_amount));
+    result.push_back(Pair("memo",               memo));
+    result.push_back(Pair("memo_hex",           HexStr(memo)));
     return result;
 }
 
@@ -622,10 +646,10 @@ string CDEXSettleBaseTx::ToString(CAccountDBCache &accountCache) {
         dealInfo += "{" + item.ToString() + "},";
     }
 
-    return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, deal_items=[%s]",
-        GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        dealInfo);
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, dex_id, "
+                     "deal_items=[%s], memo_hex=%s",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
+                     txUid.ToString(), llFees, dex_id, dealInfo, HexStr(memo));
 }
 
 Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -641,7 +665,10 @@ Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     }
 
     Object result = CBaseTx::ToJson(accountCache);
+    result.push_back(Pair("dex_id",  (uint64_t)dex_id));
     result.push_back(Pair("deal_items",  arrayItems));
+    result.push_back(Pair("memo",  memo));
+    result.push_back(Pair("memo_hex", HexStr(memo)));
 
     return result;
 }
