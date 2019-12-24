@@ -20,6 +20,24 @@ using uint128_t = unsigned __int128;
 
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 
+static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &orderId,
+                              uint64_t fee_ratio, const string &title) {
+    static_assert(DEX_ORDER_FEE_RATIO_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
+    if (fee_ratio <= DEX_ORDER_FEE_RATIO_MAX)
+        return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
+            title, orderId.ToString(), fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
+    return true;
+}
+
+static bool GetDexOperator(CTxExecuteContext &context, const DexID &dexId,
+    shared_ptr<DexOperatorDetail> &spOperatorDetail, const string &title) {
+    spOperatorDetail = make_shared<DexOperatorDetail>();
+    if (!context.pCw->dexCache.GetDexOperator(dexId, *spOperatorDetail))
+        return context.pState->DoS(100, ERRORMSG("%s(), the dex operator does not exist! dex_id=%u", title, dexId),
+            REJECT_INVALID, "dex_operator_not_existed");
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXOrderBaseTx
 
@@ -80,6 +98,74 @@ bool CDEXOrderBaseTx::CheckDexOperatorExist(CTxExecuteContext &context) {
     return true;
 }
 
+bool CDEXOrderBaseTx::CheckOrderFeeRate(CTxExecuteContext &context, const string &title) {
+    if (mode.value == DEXOperatorMode::DEFAULT) {
+        if (operator_fee_ratio != 0)
+            return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio must be 0 in DEFAULT_MODE mode, operator_fee_ratio=%llu",
+                title, operator_fee_ratio), REJECT_INVALID, "invalid-order-fee-ratio");
+    } else if (mode.value == DEXOperatorMode::REQUIRE_AUTH) {
+        if (!CheckOrderFeeRateRange(context, GetHash(), operator_fee_ratio, title))
+            return false;
+    } else {
+        return context.pState->DoS(100, ERRORMSG("%s(), invalid order operator mode=%d", title, mode.Name()),
+            REJECT_INVALID, "invalid-order-operator-mode");
+    }
+    return true;
+}
+
+bool CDEXOrderBaseTx::ProcessOrder(CTxExecuteContext &context, CAccount &txAccount, const string &title) {
+    shared_ptr<DexOperatorDetail> pOperatorDetail;
+    if (!GetDexOperator(context, dex_id, pOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
+
+    uint64_t coinAmount = coin_amount;
+    if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY)
+        coinAmount = CalcCoinAmount(asset_amount, price);
+
+    if (order_side == ORDER_BUY) {
+        if (!FreezeBalance(context, txAccount, coin_symbol, coinAmount, title)) return false;
+    } else {
+        assert(order_side == ORDER_SELL);
+        if (!FreezeBalance(context, txAccount, asset_symbol, asset_amount, title)) return false;
+    }
+
+    assert(!txAccount.regid.IsEmpty());
+    const uint256 &txid = GetHash();
+    CDEXOrderDetail orderDetail;
+    orderDetail.mode               = mode;
+    orderDetail.dex_id             = dex_id;
+    orderDetail.operator_fee_ratio = operator_fee_ratio;
+    orderDetail.generate_type      = USER_GEN_ORDER;
+    orderDetail.order_type         = ORDER_LIMIT_PRICE;
+    orderDetail.order_side         = ORDER_BUY;
+    orderDetail.coin_symbol        = coin_symbol;
+    orderDetail.asset_symbol       = asset_symbol;
+    orderDetail.coin_amount        = coinAmount;
+    orderDetail.asset_amount       = asset_amount;
+    orderDetail.price              = price;
+    orderDetail.tx_cord            = CTxCord(context.height, context.index);
+    orderDetail.user_regid         = txAccount.regid;
+    // other fields keep the default value
+
+    if (!context.pCw->dexCache.CreateActiveOrder(txid, orderDetail))
+        return context.pState->DoS(100, ERRORMSG("%s, create active buy order failed! txid=%s",
+            title, txid.ToString()), REJECT_INVALID, "bad-write-dexdb");
+
+    return true;
+}
+
+bool CDEXOrderBaseTx::FreezeBalance(CTxExecuteContext &context, CAccount &account,
+                                    const TokenSymbol &tokenSymbol, const uint64_t &amount,
+                                    const string &title) {
+
+    if (!account.OperateBalance(tokenSymbol, FREEZE, amount)) {
+        return context.pState->DoS(100,
+            ERRORMSG("%s, account has insufficient funds! regid=%s, symbol=%s, amount=%llu", title,
+                     account.regid.ToString(), tokenSymbol, amount),
+            UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
+    }
+    return true;
+}
+
 uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t price) {
     uint128_t coinAmount = assetAmount * (uint128_t)price / PRICE_BOOST;
     assert(coinAmount < ULLONG_MAX);
@@ -111,7 +197,6 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_FEE;
-    IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, ERROR_TITLE(GetTxTypeName()), coin_symbol, asset_symbol)) return false;
 
@@ -119,14 +204,18 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
     if (!CheckOrderPriceRange(state, ERROR_TITLE(GetTxTypeName()), coin_symbol, asset_symbol, price)) return false;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("%s, read account failed", ERROR_TITLE(GetTxTypeName())),
-            REJECT_INVALID, "bad-getaccount");
+    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     if (!CheckDexOperatorExist(context)) return false;
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    IMPLEMENT_CHECK_TX_MEMO;
+
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
+        return state.DoS(100, ERRORMSG("%s, read account failed", ERROR_TITLE(GetTxTypeName())),
+            REJECT_INVALID, "bad-getaccount");
+
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -134,56 +223,26 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
 bool CDEXBuyLimitOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount)) {
         return state.DoS(100, ERRORMSG("%s, read source addr account info error", ERROR_TITLE(GetTxTypeName())),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(context, srcAccount)) {
+    if (!GenerateRegID(context, txAccount)) {
         return false;
     }
 
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("%s, account has insufficient funds", ERROR_TITLE(GetTxTypeName())),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-    // should freeze user's coin for buying the asset
-    uint64_t coinAmount = CalcCoinAmount(asset_amount, price);
 
-    if (!srcAccount.OperateBalance(coin_symbol, FREEZE, coinAmount)) {
-        return state.DoS(100, ERRORMSG("%s, account has insufficient funds", ERROR_TITLE(GetTxTypeName())),
-                         UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
-    }
+    if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("%s, set account info error", ERROR_TITLE(GetTxTypeName())),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    uint64_t dexDealFeeRatio;
-    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
-
-    assert(!srcAccount.regid.IsEmpty());
-    const uint256 &txid = GetHash();
-    CDEXOrderDetail orderDetail;
-    orderDetail.dex_id = dex_id;
-    orderDetail.generate_type = USER_GEN_ORDER;
-    orderDetail.order_type    = ORDER_LIMIT_PRICE;
-    orderDetail.order_side    = ORDER_BUY;
-    orderDetail.coin_symbol   = coin_symbol;
-    orderDetail.asset_symbol  = asset_symbol;
-    orderDetail.coin_amount   = CalcCoinAmount(asset_amount, price);
-    orderDetail.asset_amount  = asset_amount;
-    orderDetail.price         = price;
-    orderDetail.fee_ratio     = dexDealFeeRatio;
-    orderDetail.tx_cord       = CTxCord(context.height, context.index);
-    orderDetail.user_regid    = srcAccount.regid;
-    // other fields keep the default value
-
-    if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
-        return state.DoS(100, ERRORMSG("%s, create active buy order failed", ERROR_TITLE(GetTxTypeName())),
-                         REJECT_INVALID, "bad-write-dexdb");
-
     return true;
 }
 
@@ -236,12 +295,14 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
     if (!CheckOrderPriceRange(state, "CDEXSellLimitOrderTx::CheckTx,", coin_symbol, asset_symbol, price)) return false;
 
+    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
+
+    if (!CheckDexOperatorExist(context)) return false;
+
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-    if (!CheckDexOperatorExist(context)) return false;
 
     CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
@@ -251,53 +312,32 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
 bool CDEXSellLimitOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(context, srcAccount)) {
+    if (!GenerateRegID(context, txAccount)) {
         return false;
     }
 
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
     // freeze user's asset for selling.
-    if (!srcAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
+    if (!txAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
+
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    uint64_t dexDealFeeRatio;
-    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
-
-    assert(!srcAccount.regid.IsEmpty());
-    const uint256 &txid = GetHash();
-    CDEXOrderDetail orderDetail;
-    orderDetail.generate_type = USER_GEN_ORDER;
-    orderDetail.order_type    = ORDER_LIMIT_PRICE;
-    orderDetail.order_side    = ORDER_SELL;
-    orderDetail.coin_symbol   = coin_symbol;
-    orderDetail.asset_symbol  = asset_symbol;
-    orderDetail.coin_amount   = CalcCoinAmount(asset_amount, price);
-    orderDetail.asset_amount  = asset_amount;
-    orderDetail.price         = price;
-    orderDetail.fee_ratio     = dexDealFeeRatio;
-    orderDetail.tx_cord       = CTxCord(context.height, context.index);
-    orderDetail.user_regid = srcAccount.regid;
-    // other fields keep the default value
-
-    if (!cw.dexCache.CreateActiveOrder(txid, orderDetail))
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, create active sell order failed"),
-                         WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
 
     return true;
 }
@@ -334,14 +374,16 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
     if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, coin,", coin_symbol, coin_amount)) return false;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
+    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     if (!CheckDexOperatorExist(context)) return false;
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
+        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
+                         "bad-getaccount");
+
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -349,54 +391,31 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
 bool CDEXBuyMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(context, srcAccount)) {
+    if (!GenerateRegID(context, txAccount)) {
         return false;
     }
 
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's coin for buying the asset
-    if (!srcAccount.OperateBalance(coin_symbol, FREEZE, coin_amount)) {
+    if (!txAccount.OperateBalance(coin_symbol, FREEZE, coin_amount)) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
+
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    uint64_t dexDealFeeRatio;
-    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
-
-    assert(!srcAccount.regid.IsEmpty());
-    const uint256 &txid = GetHash();
-    CDEXOrderDetail orderDetail;
-    orderDetail.generate_type = USER_GEN_ORDER;
-    orderDetail.order_type    = ORDER_MARKET_PRICE;
-    orderDetail.order_side    = ORDER_BUY;
-    orderDetail.coin_symbol   = coin_symbol;
-    orderDetail.asset_symbol  = asset_symbol;
-    orderDetail.coin_amount   = coin_amount;
-    orderDetail.asset_amount  = 0; // unkown in buy market price order
-    orderDetail.price         = 0; // unkown in buy market price order
-    orderDetail.fee_ratio     = dexDealFeeRatio;
-    orderDetail.tx_cord       = CTxCord(context.height, context.index);
-    orderDetail.user_regid = srcAccount.regid;
-    // other fields keep the default value
-
-    if (!cw.dexCache.CreateActiveOrder(txid, orderDetail)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, create active buy order failed"),
-                         WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
-    }
-
     return true;
 }
 
@@ -432,14 +451,16 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, asset,", asset_symbol, asset_amount))
         return false;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
-                         "bad-getaccount");
+    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     if (!CheckDexOperatorExist(context)) return false;
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
+        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
+                         "bad-getaccount");
+
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -447,53 +468,31 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
 bool CDEXSellMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(context, srcAccount)) {
+    if (!GenerateRegID(context, txAccount)) {
         return false;
     }
 
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
     // should freeze user's asset for selling
-    if (!srcAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
+    if (!txAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
+
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
-
-    uint64_t dexDealFeeRatio;
-    if (!GetDealFeeRatio(dexDealFeeRatio)) return false;
-
-    assert(!srcAccount.regid.IsEmpty());
-    const uint256 &txid = GetHash();
-    CDEXOrderDetail orderDetail;
-    orderDetail.generate_type = USER_GEN_ORDER;
-    orderDetail.order_type    = ORDER_MARKET_PRICE;
-    orderDetail.order_side    = ORDER_SELL;
-    orderDetail.coin_symbol   = coin_symbol;
-    orderDetail.asset_symbol  = asset_symbol;
-    orderDetail.coin_amount   = 0; // unkown in sell market price order
-    orderDetail.asset_amount  = asset_amount;
-    orderDetail.price         = 0; // unkown in sell market price order
-    orderDetail.fee_ratio     = dexDealFeeRatio;
-    orderDetail.tx_cord       = CTxCord(context.height, context.index);
-    orderDetail.user_regid    = srcAccount.regid;
-    // other fields keep the default value
-
-    if (!cw.dexCache.CreateActiveOrder(txid, orderDetail)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, create active sell order failed"),
-                         WRITE_ACCOUNT_FAIL, "bad-write-dexdb");
-    }
 
     return true;
 }
@@ -524,12 +523,12 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     if (orderId.IsEmpty())
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
                          "invalid-order-id");
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -539,17 +538,17 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    if (!GenerateRegID(context, srcAccount)) {
+    if (!GenerateRegID(context, txAccount)) {
         return false;
     }
 
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+    if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
@@ -565,7 +564,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "order-inactive");
     }
 
-    if (srcAccount.regid.IsEmpty() || srcAccount.regid != activeOrder.user_regid) {
+    if (txAccount.regid.IsEmpty() || txAccount.regid != activeOrder.user_regid) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, can not cancel other user's order tx"),
                         REJECT_INVALID, "user-unmatched");
     }
@@ -590,12 +589,12 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
         assert(false && "Order side must be ORDER_BUY|ORDER_SELL");
     }
 
-    if (!srcAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount)) {
+    if (!txAccount.OperateBalance(frozenSymbol, UNFREEZE, frozenAmount)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, account has insufficient frozen amount to unfreeze"),
                          UPDATE_ACCOUNT_FAIL, "unfreeze-account-coin");
     }
 
-    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+    if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
@@ -622,14 +621,6 @@ string DEXDealItem::ToString() const {
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
-
-static bool CheckOrderFeeRate(CTxExecuteContext &context, const uint256 &orderId, const CDEXOrderDetail &order) {
-    static_assert(DEX_ORDER_FEE_RATE_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
-    if (order.fee_ratio <= DEX_ORDER_FEE_RATE_MAX)
-        return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
-            __FUNCTION__, orderId.ToString(), order.fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
-    return true;
-}
 
 string CDEXSettleBaseTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo="";
@@ -690,15 +681,15 @@ bool CDEXSettleBaseTx::CheckTx(CTxExecuteContext &context) {
                 i), REJECT_INVALID, "invalid-deal-item");
     }
 
-    CAccount srcAccount;
-    if (!cw.accountCache.GetAccount(txUid, srcAccount))
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    if (txUid.type() == typeid(CRegID) && !srcAccount.HaveOwnerPubKey())
+    if (txUid.type() == typeid(CRegID) && !txAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 
-    IMPLEMENT_CHECK_TX_SIGNATURE(srcAccount.owner_pubkey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(txAccount.owner_pubkey);
 
     return true;
 }
@@ -718,15 +709,6 @@ static bool GetAccount(CTxExecuteContext &context, const CRegID &regid,
         }
         accountMap[regid] = pAccount;
     }
-    return true;
-}
-
-static bool GetDexOperator(CTxExecuteContext &context, const DexID &dexId,
-    shared_ptr<DexOperatorDetail> &spOperatorDetail) {
-    spOperatorDetail = make_shared<DexOperatorDetail>();
-    if (!context.pCw->dexCache.GetDexOperator(dexId, *spOperatorDetail))
-        return context.pState->DoS(100, ERRORMSG("%s(), the dex operator does not exist! dex_id=%u", __func__, dexId),
-            REJECT_INVALID, "dex_operator_not_existed");
     return true;
 }
 
@@ -834,7 +816,7 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     shared_ptr<DexOperatorDetail> pSettleOperatorDetail;
-    if (!GetDexOperator(context, dex_id, pSettleOperatorDetail)) return false;
+    if (!GetDexOperator(context, dex_id, pSettleOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
 
     if (!pSrcAccount->IsMyUid(pSettleOperatorDetail->match_regid))
         return state.DoS(100, ERRORMSG("%s(), tx account is not the matcher of dex operator! dex_id=%u, "
@@ -873,14 +855,14 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
             pBuyOperatorDetail = pSettleOperatorDetail;
             pBuyMatchAccount = pSrcAccount;
         } else {
-            if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail)) return false;
+            if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
             if (!GetAccount(context, pBuyOperatorDetail->match_regid, accountMap, pBuyMatchAccount)) return false;
         }
         if (sellDexId == dex_id) {
             pSellOperatorDetail = pSettleOperatorDetail;
             pSellMatchAccount = pSrcAccount;
         } else {
-            if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail)) return false;
+            if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
             if (!GetAccount(context, pSellOperatorDetail->match_regid, accountMap, pSellMatchAccount)) return false;
         }
 
@@ -1003,13 +985,20 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
                 REJECT_INVALID, "operate-account-failed");
         }
 
-        // 9. calc deal fees
+        // 9. calc deal dex operator fees
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         // 9.1 buyer pay the fee from the received assets to settler
-        if (buyOrder.fee_ratio != 0) {
-            if (!CheckOrderFeeRate(context, dealItem.buyOrderId, buyOrder)) return false;
 
-            uint64_t dealAssetFee = dealItem.dealAssetAmount * buyOrder.fee_ratio / PRICE_BOOST;
+        OrderSide takerSide = GetTakerOrderSide(buyOrder, sellOrder);
+        uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, *pBuyOperatorDetail, takerSide);
+        uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
+
+
+        if (buyOperatorFeeRatio != 0) {
+            if (!CheckOrderFeeRateRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
+                return false;
+
+            uint64_t dealAssetFee = dealItem.dealAssetAmount * buyOperatorFeeRatio / PRICE_BOOST;
             buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
             // pay asset fee from seller to settler
             if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
@@ -1024,9 +1013,10 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
         }
         // 9.2 seller pay the fee from the received coins to settler
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
-        if (sellOrder.fee_ratio != 0) {
-            if (!CheckOrderFeeRate(context, dealItem.sellOrderId, sellOrder)) return false;
-            uint64_t dealCoinFee = dealItem.dealCoinAmount * sellOrder.fee_ratio / PRICE_BOOST;
+        if (sellOperatorFeeRatio != 0) {
+            if (!CheckOrderFeeRateRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
+                return false;
+            uint64_t dealCoinFee = dealItem.dealCoinAmount * sellOperatorFeeRatio / PRICE_BOOST;
             sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
             // pay coin fee from buyer to settler
             if (!pSrcAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
@@ -1150,3 +1140,40 @@ bool CDEXSettleBaseTx::CheckDexId(CTxExecuteContext &context, uint32_t i, uint32
     }
     return true;
 }
+
+
+OrderSide CDEXSettleBaseTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder) {
+    OrderSide takerSide;
+    if (buyOrder.order_type != sellOrder.order_type) {
+        if (buyOrder.order_type == ORDER_MARKET_PRICE) {
+            takerSide = OrderSide::ORDER_BUY;
+        } else {
+            assert(buyOrder.order_type == ORDER_MARKET_PRICE);
+            takerSide = OrderSide::ORDER_SELL;
+        }
+    } else { // buyOrder.order_type == sellOrder.order_type
+        if (buyOrder.tx_cord < sellOrder.tx_cord) {
+            takerSide = OrderSide::ORDER_BUY;
+        } else {
+            takerSide = OrderSide::ORDER_SELL;
+        }
+    }
+    return takerSide;
+}
+
+uint64_t CDEXSettleBaseTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
+                                               const DexOperatorDetail &operatorDetail,
+                                               const OrderSide &takerSide) {
+    uint64_t ratio;
+    if (order.mode.value == DEXOperatorMode::DEFAULT) {
+        if (order.order_side == takerSide) {
+            ratio = operatorDetail.taker_fee_ratio;
+        } else {
+            ratio = operatorDetail.maker_fee_ratio;
+        }
+    } else {
+        ratio = order.operator_fee_ratio;
+    }
+    return ratio;
+}
+
