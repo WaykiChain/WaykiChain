@@ -28,6 +28,7 @@
 #include "tx/wasmcontracttx.h"
 #include "tx/nickidregtx.h"
 #include "tx/einvalidtxtype.h"
+#include "tx/dexoperatortx.h"
 
 using namespace std;
 
@@ -113,6 +114,11 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXBuyMarketOrderExTx&)tx, serType, version); break;
         case DEX_MARKET_SELL_ORDER_EX_TX:
             ::Serialize(os, (const CDEXSellMarketOrderExTx&)tx, serType, version); break;
+        case DEX_OPERATOR_UPDATE_TX:
+            ::Serialize(os, (const CDEXOperatorUpdateTx&)tx, serType, version); break;
+        case DEX_OPERATOR_REGISTER_TX:
+            ::Serialize(os, (const CDEXOperatorRegisterTx&)tx, serType, version); break;
+
 
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -293,6 +299,18 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case DEX_MARKET_SELL_ORDER_EX_TX: {
             pBaseTx = std::make_shared<CDEXSellMarketOrderExTx>();
             ::Unserialize(is, *((CDEXSellMarketOrderExTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case DEX_OPERATOR_UPDATE_TX: {
+            pBaseTx = std::make_shared<CDEXOperatorUpdateTx>();
+            ::Unserialize(is, *((CDEXOperatorUpdateTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case DEX_OPERATOR_REGISTER_TX: {
+            pBaseTx = std::make_shared<CDEXOperatorRegisterTx>();
+            ::Unserialize(is, *((CDEXOperatorRegisterTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

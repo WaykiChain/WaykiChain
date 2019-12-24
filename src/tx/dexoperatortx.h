@@ -11,6 +11,7 @@
 #include "tx.h"
 #include "persistence/dexdb.h"
 
+
 class CDEXOperatorRegisterTx: public CBaseTx {
 public:
     struct Data {
@@ -73,5 +74,85 @@ public:
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
+
+
+class CDEXOperatorUpdateData{
+
+public:
+    enum UpdateField: uint8_t{
+        UPDATE_NONE     = 0,
+        MATCH_UID       = 1 ,
+        NAME            = 2 ,
+        PORTAL_URL      = 3 ,
+        MAKER_FEE_RATIO = 4 ,
+        TAKER_FEE_RATIO = 5
+    };
+
+public:
+    int32_t dexId = -1 ;
+    uint8_t field = UPDATE_NONE  ;
+    string value = "";
+
+    bool IsEmpty(){ return dexId == -1 || field == UPDATE_NONE || field > TAKER_FEE_RATIO ; }
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(dexId));
+            READWRITE(field);
+            READWRITE(value);
+            )
+
+    bool Check(string& errmsg, string& errcode) ;
+
+    bool UpdateToDexOperator(DexOperatorDetail& detail) ;
+
+};
+
+class CDEXOperatorUpdateTx: public CBaseTx {
+
+public:
+    CDEXOperatorUpdateData update_data ;
+public:
+    CDEXOperatorUpdateTx() : CBaseTx(DEX_OPERATOR_UPDATE_TX) {}
+
+    CDEXOperatorUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+                   uint64_t feesIn, const CDEXOperatorUpdateData &updateData)
+            : CBaseTx(DEX_OPERATOR_UPDATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
+            update_data(updateData) {}
+
+    ~CDEXOperatorUpdateTx() {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(this->nVersion));
+            nVersion = this->nVersion;
+            READWRITE(VARINT(valid_height));
+            READWRITE(txUid);
+            READWRITE(fee_symbol);
+            READWRITE(VARINT(llFees));
+            READWRITE(update_data);
+            READWRITE(signature);
+    )
+
+    TxID ComputeSignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
+               << update_data;
+            sigHash = ss.GetHash();
+        }
+        return sigHash;
+    }
+
+    virtual TxID GetHash() const { return ComputeSignatureHash(); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXOperatorUpdateTx>(*this); }
+
+    virtual string ToString(CAccountDBCache &accountCache);
+    virtual Object ToJson(const CAccountDBCache &accountCache) const;
+
+    virtual bool CheckTx(CTxExecuteContext &context);
+    virtual bool ExecuteTx(CTxExecuteContext &context);
+};
+
+
+
 
 #endif  // TX_DEX_OPERATOR_TX_H

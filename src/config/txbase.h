@@ -69,7 +69,7 @@ enum TxType: uint8_t {
     DEX_MARKET_SELL_ORDER_EX_TX = 93,   //!< dex sell market price order ex Tx, support exid
 
     DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
-    DEX_OPERATOR_UPDATE_TX      = 100,  //!< dex operator update tx
+    DEX_OPERATOR_UPDATE_TX      = 101,  //!< dex operator update tx
 
 };
 
@@ -158,7 +158,9 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
 
 { NICKID_REGISTER_TX,       std::make_tuple("NICKID_REGISTER_TX",       0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
-{ WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,0.01*COIN,0.01*COIN ) }
+{ WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ) },
+{ DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN)   },
+{ DEX_OPERATOR_UPDATE_TX, std::make_tuple("DEX_OPERATOR_UPDATE_TX",     0,          0.001*COIN, 0.001*COIN, 0.001*COIN)}
 
 };
 
