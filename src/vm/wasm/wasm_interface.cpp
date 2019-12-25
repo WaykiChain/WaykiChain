@@ -143,7 +143,6 @@ namespace wasm {
             return pWasmContext->block_time();
         }
 
-
         //action
         uint32_t read_action_data( void* memory, uint32_t buf_len ) {
             uint32_t s = pWasmContext->get_action_data_size();
@@ -454,8 +453,9 @@ namespace wasm {
 
         void require_recipient( uint64_t recipient ) {
 
-            WASM_ASSERT(is_account(recipient), account_operation_exception, "can not send a receipt to a non-exist account '%s'",
-                            wasm::name(recipient).to_string().c_str());
+            WASM_ASSERT( is_account(recipient), account_operation_exception, 
+                         "can not send a receipt to a non-exist account '%s'",
+                         wasm::name(recipient).to_string().c_str());
 
             pWasmContext->require_recipient(recipient);
 
@@ -472,6 +472,28 @@ namespace wasm {
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
             pWasmContext->execute_inline(trx);
 
+        }
+
+        uint32_t get_active_producers(void *producers, uint32_t data_len){
+            
+            //get active producers
+            std::vector<uint64_t> active_producers = pWasmContext->get_active_producers();
+            // active_producers.push_back(wasm::name("xiaoyu"));
+            // active_producers.push_back(wasm::name("walker"));
+            // active_producers = pWasmContext->get_active_producers();
+
+            size_t len = active_producers.size() * sizeof(uint64_t);
+            if(data_len == 0) return len;
+
+            auto copy_len = std::min( static_cast<size_t>(data_len), len );
+
+            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(producers) + copy_len), 
+                         wasm_memory_exception, "%s", "access violation")
+            WASM_ASSERT(copy_len < max_wasm_api_data_bytes, wasm_api_data_too_big, "%s",
+                        "wasm api data too big");
+
+            std::memcpy(producers, active_producers.data(), copy_len);
+            return copy_len;
         }
 
         //llvm compiler builtins rt apis( GCC low-level runtime library ), eg. std:string in contract
@@ -805,11 +827,12 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printhex,   printhex)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, printqf,    printqf) 
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization, has_auth)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth,      require_auth)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_recipient, require_recipient) 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, is_account,        is_account)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, send_inline,       send_inline) 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, is_account,   is_account)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, send_inline,  send_inline) 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_auth, require_auth)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, require_recipient,    require_recipient) 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, has_authorization,    has_auth)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, get_active_producers, get_active_producers) 
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashlti3, __ashlti3)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __ashrti3, __ashrti3)
@@ -827,8 +850,8 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __multf3, __multf3)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __divtf3, __divtf3) 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __negtf2, __negtf2)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extendsftf2, __extendsftf2)  
 
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extendsftf2, __extendsftf2)  
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __extenddftf2, __extenddftf2)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __trunctfdf2,  __trunctfdf2)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __trunctfsf2,  __trunctfsf2) 

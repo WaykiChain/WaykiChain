@@ -24,6 +24,8 @@ public:
     void                      pause_billing_timer();
     void                      resume_billing_timer();
     std::chrono::milliseconds get_max_transaction_duration() { return max_transaction_duration; }
+    void                      set_signature(uint64_t account, const vector<uint8_t>& signature);
+    void                      set_signature(const wasm::signature_pair& signature);
 
 public:
     CWasmContractTx(const CBaseTx *pBaseTx): CBaseTx(WASM_CONTRACT_TX) {
@@ -53,6 +55,12 @@ public:
                << txUid
                << inline_transactions
                << VARINT(llFees);
+
+            ss << VARINT(signatures.size());
+            for(const auto &s:signatures){
+               ss << VARINT(s.account);
+            }
+
             sigHash = ss.GetHash();
         }
 

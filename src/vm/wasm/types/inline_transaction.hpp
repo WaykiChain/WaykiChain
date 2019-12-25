@@ -28,9 +28,9 @@ namespace wasm {
         uint64_t perm;
         
         IMPLEMENT_SERIALIZE (
-        READWRITE(VARINT(account) );
-        READWRITE(VARINT(perm));
-        )
+            READWRITE(VARINT(account) );
+            READWRITE(VARINT(perm));
+            )
 
         bool operator == ( const permission& p )
         { 
@@ -46,11 +46,11 @@ namespace wasm {
         std::vector<char> data;
 
         IMPLEMENT_SERIALIZE (
-        READWRITE(VARINT(contract ));
-        READWRITE(VARINT(action ));
-        READWRITE(authorization);
-        READWRITE(data);
-        )
+            READWRITE(VARINT(contract ));
+            READWRITE(VARINT(action ));
+            READWRITE(authorization);
+            READWRITE(data);
+            )
 
     };
 

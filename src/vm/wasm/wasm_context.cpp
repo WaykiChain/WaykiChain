@@ -246,6 +246,10 @@ namespace wasm {
         return database.accountCache.HaveAccount(nick_name(account));
     }
 
+    std::vector<uint64_t> wasm_context::get_active_producers(){
+        return std::vector<uint64_t>();
+    }
+
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
 
         //int64_t disk_usage    = control_trx.nRunStep;

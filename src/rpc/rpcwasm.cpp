@@ -182,10 +182,14 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{payer_name.value, wasmio_owner}},
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
+            tx.signatures.push_back({payer_name.value, vector<uint8_t>()});
+
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature),
                            RPC_WALLET_ERROR, "rpcwasm.submitwasmcontractdeploytx, sign failed")
 
-            tx.signatures.push_back({payer_name.value, tx.signature});
+            tx.set_signature({payer_name.value, tx.signature});
+
+            //tx.signatures.push_back({payer_name.value, tx.signature});
         }
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
@@ -245,10 +249,12 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             //for(int i = 0; i < 10000 ; i++)
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{payer_name.value, wasmio_owner}}, action_data});
 
+            tx.signatures.push_back({payer_name.value, vector<uint8_t>()});
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR,
                             "rpcwasm.submitwasmcontractcalltx, sign failed")
+            tx.set_signature({payer_name.value, tx.signature});
 
-            tx.signatures.push_back({payer_name.value, tx.signature});
+            //tx.signatures.push_back({payer_name.value, tx.signature});
         }
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);

@@ -263,9 +263,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
            transaction_status == wasm::transaction_status_type::validating ){
             max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
         }
-        
-        //init storage usage 
-        nRunStep                     = GetSerializeSize(SER_DISK, CLIENT_VERSION) * fuel_store_fee_per_byte;
 
         //charger fee
         CAccount payer;
@@ -277,6 +274,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         //pseudo start for reduce code compile duration
         pseudo_start = system_clock::now();
+        nRunStep     = GetSerializeSize(SER_DISK, CLIENT_VERSION) * fuel_store_fee_per_byte;
 
         std::vector<CReceipt>   receipts;
         wasm::transaction_trace trx_trace;
@@ -306,6 +304,8 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     wasm_exception,
                     "CWasmContractTx::ExecuteTx, set tx trace failed! txid=%s",
                     GetHash().ToString().c_str())
+
+        //WASM_TRACE("%s", ToHex(GetHash().ToString(), "").c_str())
 
         //save trx receipts
         trace_to_receipts(trx_trace, receipts);
@@ -367,7 +367,6 @@ uint64_t CWasmContractTx::GetFuel(int32_t height, uint32_t nFuelRate) {
     return std::max<uint64_t>(((nRunStep / 100.0f) * nFuelRate), minFee);
 }
 
-
 string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
 
     if (inline_transactions.size() == 0) return string("");
@@ -424,6 +423,29 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     }     
 
     return result;
+}
 
+//void CWasmContractTx::set_signature(uint64_t account, const vector<uint8_t>& signature) {
+void CWasmContractTx::set_signature(uint64_t account, const vector<uint8_t>& signature) {
+    for( auto& s:signatures ){
+        if( s.account == account ){
+            s.signature = signature;
+            return;
+        }
+    }
+    WASM_ASSERT(false, wasm_exception, "cannot find account %s in signature list", wasm::name(account).to_string().c_str());
+}
+
+void CWasmContractTx::set_signature(const wasm::signature_pair& signature) {
+
+    set_signature(signature.account, signature.signature);
+    // for( auto& s:signatures ){
+    //     if( s.account == signature.account ){
+    //         //s.signature = signature.signature;
+    //         s = signature;
+    //         return;
+    //     }
+    // }
+    // WASM_ASSERT(false, wasm_exception, "cannot find account %s in signature list", wasm::name(signature.account).to_string().c_str());
 }
 

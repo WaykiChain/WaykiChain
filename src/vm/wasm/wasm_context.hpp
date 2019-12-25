@@ -66,6 +66,8 @@ namespace wasm {
         uint64_t    block_time() { return 0;      }
         void        exit      () { wasmif.exit(); }
 
+        std::vector<uint64_t> get_active_producers();
+
         bool set_data(uint64_t contract, string k, string v) {
             CAccount contract_account;
             wasm::name contract_name = wasm::name(contract);
