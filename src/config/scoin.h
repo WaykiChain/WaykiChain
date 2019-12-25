@@ -37,7 +37,7 @@ static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex s
 
 
 static const uint64_t DEX_OPERATOR_RISK_FEE_RATIO  = 4000; // 40% * 10000, the ratio of DEX operator fee into the risk riserve
-static const uint64_t DEX_ORDER_FEE_RATE_MAX = 50 * PRICE_BOOST;
+static const uint64_t DEX_ORDER_FEE_RATIO_MAX = 50 * PRICE_BOOST;
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 
 enum SysParamType : uint8_t {

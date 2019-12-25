@@ -113,6 +113,8 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXBuyMarketOrderExTx&)tx, serType, version); break;
         case DEX_MARKET_SELL_ORDER_EX_TX:
             ::Serialize(os, (const CDEXSellMarketOrderExTx&)tx, serType, version); break;
+        case DEX_TRADE_SETTLE_EX_TX:
+            ::Serialize(os, (const CDEXSettleExTx&)tx, serType, version); break;
 
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -295,7 +297,11 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CDEXSellMarketOrderExTx *)(pBaseTx.get())), serType, version);
             break;
         }
-
+        case DEX_TRADE_SETTLE_EX_TX: {
+            pBaseTx = std::make_shared<CDEXSettleTx>();
+            ::Unserialize(is, *((CDEXSettleExTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to unserialize",
                 __FUNCTION__, pBaseTx->nTxType, GetTxType(pBaseTx->nTxType)));

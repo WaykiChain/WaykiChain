@@ -156,6 +156,7 @@ static const EnumTypeMap<BCLog::LogFlags, std::string, uint32_t> LOG_CATEGORY_MA
     {BCLog::CDP,        "CDP"       },
     {BCLog::WALLET,     "WALLET"    },
     {BCLog::LIBEVENT,   "LIBEVENT"  },
+    {BCLog::DEX,        "DEX"       },
     {BCLog::ALL,        "1"         },
     {BCLog::ALL,        "ALL"       },
 };
