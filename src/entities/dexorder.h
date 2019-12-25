@@ -79,15 +79,15 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
     return EMPTY_STRING;
 }
 
-struct DEXOperatorMode {
+ struct OrderOperatorMode {
     enum Mode: uint8_t {
         DEFAULT,       // simple mode
         REQUIRE_AUTH       // require dex operator authenticate (should have operator signature in tx)
     };
     Mode value = DEFAULT;
 
-    DEXOperatorMode() {}
-    DEXOperatorMode(Mode valueIn): value(valueIn) {}
+    OrderOperatorMode() {}
+    OrderOperatorMode(Mode valueIn): value(valueIn) {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&)value);
@@ -104,10 +104,13 @@ struct DEXOperatorMode {
             default: return "";
         }
     }
+
+    bool operator==(const Mode &modeValue) const { return this->value == modeValue; }
+    bool operator!=(const Mode &modeValue) const { return this->value != modeValue; }
 };
 
 struct CDEXOrderDetail {
-    DEXOperatorMode mode;
+    OrderOperatorMode mode;
     DexID dex_id = 0;
     uint64_t operator_fee_ratio        = 0;                 //!< operator fee ratio, effective in REQUIRE_AUTH mode
     OrderGenerateType generate_type    = EMPTY_ORDER;       //!< generate type

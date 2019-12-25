@@ -82,12 +82,12 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [symbol:fee:unit]\n"
+            "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset\" price [symbol:fee:unit]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell \n "
+            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell. "
             "   default symbol is WICC, default unit is sawi.\n"
             "4.\"price\": (numeric, required) bidding price willing to buy\n"
             "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"

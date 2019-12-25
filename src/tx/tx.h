@@ -236,6 +236,27 @@ public:
     }
 };
 
+class CSignaturePair {
+public:
+    CRegID regid;                 //!< regid only
+    UnsignedCharArray signature;  //!< signature
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(regid);
+        READWRITE(signature);)
+
+public:
+    CSignaturePair() {}
+
+    CSignaturePair(const CRegID &regidIn, const UnsignedCharArray &signatureIn)
+        : regid(regidIn), signature(signatureIn) {}
+
+    CSignaturePair(const CRegID &regidIn): regid(regidIn) {}
+
+    string ToString() const;
+    Object ToJson() const;
+};
+
 #define IMPLEMENT_DEFINE_CW_STATE                                                                               \
     CCacheWrapper &cw       = *context.pCw;                                                                     \
     CValidationState &state = *context.pState;

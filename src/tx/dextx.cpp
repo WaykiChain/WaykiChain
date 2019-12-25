@@ -24,7 +24,7 @@ static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &or
 }
 
 static bool GetDexOperator(CTxExecuteContext &context, const DexID &dexId,
-    shared_ptr<DexOperatorDetail> &spOperatorDetail, const string &title) {
+                           shared_ptr<DexOperatorDetail> &spOperatorDetail, const string &title) {
     spOperatorDetail = make_shared<DexOperatorDetail>();
     if (!context.pCw->dexCache.GetDexOperator(dexId, *spOperatorDetail))
         return context.pState->DoS(100, ERRORMSG("%s(), the dex operator does not exist! dex_id=%u", title, dexId),
@@ -93,11 +93,11 @@ bool CDEXOrderBaseTx::CheckDexOperatorExist(CTxExecuteContext &context) {
 }
 
 bool CDEXOrderBaseTx::CheckOrderFeeRate(CTxExecuteContext &context, const string &title) {
-    if (mode.value == DEXOperatorMode::DEFAULT) {
+    if (mode.value == OrderOperatorMode::DEFAULT) {
         if (operator_fee_ratio != 0)
             return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio must be 0 in DEFAULT_MODE mode, operator_fee_ratio=%llu",
                 title, operator_fee_ratio), REJECT_INVALID, "invalid-order-fee-ratio");
-    } else if (mode.value == DEXOperatorMode::REQUIRE_AUTH) {
+    } else if (mode.value == OrderOperatorMode::REQUIRE_AUTH) {
         if (!CheckOrderFeeRateRange(context, GetHash(), operator_fee_ratio, title))
             return false;
     } else {
@@ -107,9 +107,70 @@ bool CDEXOrderBaseTx::CheckOrderFeeRate(CTxExecuteContext &context, const string
     return true;
 }
 
+bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const string &title) {
+
+    if (!mode.IsValid())
+        return context.pState->DoS(100, ERRORMSG("%s, invalid order operator mode=%d",
+            title, mode.Name()), REJECT_INVALID, "invalid-order-operator-mode");
+
+    if (mode == OrderOperatorMode::DEFAULT) {
+        if (operator_fee_ratio != 0)
+            return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio=%llu must be 0 in %s mode",
+                title, operator_fee_ratio, mode.Name()), REJECT_INVALID, "invalid-order-fee-ratio");
+
+        if (operator_signature_pair)
+            return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature must be empty in %s mode",
+                title, mode.Name()), REJECT_INVALID, "bad-getaccount");
+
+        if (!CheckDexOperatorExist(context)) return false;
+
+    } else {
+
+        if (!CheckOrderFeeRateRange(context, GetHash(), operator_fee_ratio, title))
+            return false;
+
+        if (!operator_signature_pair) {
+            return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature can not be empty in %s mode",
+                title, mode.Name()), REJECT_INVALID, "bad-getaccount");
+        }
+
+        shared_ptr<DexOperatorDetail> spOperatorDetail;
+        if(!GetDexOperator(context, dex_id, spOperatorDetail, title)) return false;
+
+        CRegID &operator_regid = operator_signature_pair.value().regid;
+        if (operator_regid != spOperatorDetail->match_regid)
+            return context.pState->DoS(100, ERRORMSG("%s, wrong operator regid=%s vs %s! mode=%s",
+                title, operator_regid.ToString(), spOperatorDetail->match_regid.ToString(), mode.Name()),
+                REJECT_INVALID, "bad-getaccount");
+
+        CAccount operatorAccount;
+        if (!context.pCw->accountCache.GetAccount(operator_regid, operatorAccount))
+            return context.pState->DoS(100, ERRORMSG("%s, read account failed! operator_regid=%s, mode=%s",
+                title, operator_regid.ToString(), mode.Name()),
+                REJECT_INVALID, "bad-getaccount");
+
+        if (!operatorAccount.IsRegistered())
+            return context.pState->DoS(100, ERRORMSG("%s, the operator account must be registered! "
+                "operator_regid=%s, mode=%s", title, operator_regid.ToString(), mode.Name()),
+                REJECT_INVALID, "operator-account-unregistered");
+
+        const UnsignedCharArray operatorSignature = operator_signature_pair.value().signature;
+        if (!CheckSignatureSize(operatorSignature)) {
+            return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid! mode=%s", title,
+                operatorSignature.size(), mode.Name()), REJECT_INVALID, "bad-operator-sig-size");
+        }
+        uint256 sighash = GetHash();
+        if (!VerifySignature(sighash, operatorSignature, operatorAccount.owner_pubkey)) {
+            return context.pState->DoS(100, ERRORMSG("%s, check operator signature error! mode=%s",
+                title, mode.Name()), REJECT_INVALID, "bad-operator-signature");
+        }
+    }
+    return true;
+}
+
 bool CDEXOrderBaseTx::ProcessOrder(CTxExecuteContext &context, CAccount &txAccount, const string &title) {
-    shared_ptr<DexOperatorDetail> pOperatorDetail;
-    if (!GetDexOperator(context, dex_id, pOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
+    // shared_ptr<DexOperatorDetail> pOperatorDetail;
+    // if (!GetDexOperator(context, dex_id, pOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
 
     uint64_t coinAmount = coin_amount;
     if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY)
@@ -197,6 +258,7 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, ERROR_TITLE(GetTxTypeName()), coin_symbol, asset_symbol)) return false;
 
@@ -204,11 +266,7 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
     if (!CheckOrderPriceRange(state, ERROR_TITLE(GetTxTypeName()), coin_symbol, asset_symbol, price)) return false;
 
-    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
-
-    if (!CheckDexOperatorExist(context)) return false;
-
-    IMPLEMENT_CHECK_TX_MEMO;
+    if (!CheckOrderOperator(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     CAccount txAccount;
     if (!cw.accountCache.GetAccount(txUid, txAccount))
@@ -301,9 +359,7 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
     if (!CheckOrderPriceRange(state, "CDEXSellLimitOrderTx::CheckTx,", coin_symbol, asset_symbol, price)) return false;
 
-    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
-
-    if (!CheckDexOperatorExist(context)) return false;
+    if (!CheckOrderOperator(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
@@ -386,9 +442,7 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
 
     if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, coin,", coin_symbol, coin_amount)) return false;
 
-    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
-
-    if (!CheckDexOperatorExist(context)) return false;
+    if (!CheckOrderOperator(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     CAccount txAccount;
     if (!cw.accountCache.GetAccount(txUid, txAccount))
@@ -469,9 +523,7 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckOrderAmountRange(state, "CDEXBuyMarketOrderTx::CheckTx, asset,", asset_symbol, asset_amount))
         return false;
 
-    if ( !CheckOrderFeeRate(context, ERROR_TITLE(GetTxTypeName())) ) return false;
-
-    if (!CheckDexOperatorExist(context)) return false;
+    if (!CheckOrderOperator(context, ERROR_TITLE(GetTxTypeName())) ) return false;
 
     CAccount txAccount;
     if (!cw.accountCache.GetAccount(txUid, txAccount))
@@ -1190,7 +1242,7 @@ uint64_t CDEXSettleBaseTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
                                                const DexOperatorDetail &operatorDetail,
                                                const OrderSide &takerSide) {
     uint64_t ratio;
-    if (order.mode.value == DEXOperatorMode::DEFAULT) {
+    if (order.mode.value == OrderOperatorMode::DEFAULT) {
         if (order.order_side == takerSide) {
             ratio = operatorDetail.taker_fee_ratio;
         } else {

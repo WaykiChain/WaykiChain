@@ -26,6 +26,7 @@
 #include <openssl/ripemd.h>
 #include <openssl/sha.h>
 #include <tuple>
+#include <optional>
 #include <boost/type_traits/is_fundamental.hpp>
 
 class CAutoFile;
@@ -496,6 +497,10 @@ template<typename T> unsigned int GetSerializeSize(const std::shared_ptr<T> &sp,
 template<typename Stream, typename T> void Serialize(Stream& os, const std::shared_ptr<T> &sp, int nType, int nVersion);
 template<typename Stream, typename T> void Unserialize(Stream& is, std::shared_ptr<T> &sp, int nType, int nVersion);
 
+template<typename T> unsigned int GetSerializeSize(const std::optional<T> &v, int nType, int nVersion);
+template<typename Stream, typename T> void Serialize(Stream& os, const std::optional<T> &v, int nType, int nVersion);
+template<typename Stream, typename T> void Unserialize(Stream& is, std::optional<T> &v, int nType, int nVersion);
+
 class CSerActionGetSerializeSize { };
 class CSerActionSerialize { };
 class CSerActionUnserialize { };
@@ -853,6 +858,30 @@ void Unserialize(Stream& is, std::shared_ptr<T> &sp, int nType, int nVersion) {
     T::UnserializePtr(is, sp, nType, nVersion);
 }
 
+template<typename T> unsigned int GetSerializeSize(const std::optional<T> &v, int nType, int nVersion) {
+    unsigned int ret = 1;
+    if (v)
+        ret += ::GetSerializeSize(v.value(), nType, nVersion);
+    return ret;
+}
+
+template<typename Stream, typename T>
+void Serialize(Stream& os, const std::optional<T> &v, int nType, int nVersion) {
+    char hasValue = v.has_value();
+    WRITEDATA(os, hasValue);
+    if (v.has_value())
+        ::Serialize(os, v.value(), nType, nVersion);
+}
+
+template<typename Stream, typename T>
+void Unserialize(Stream& is, std::optional<T> &v, int nType, int nVersion) {
+    char hasValue;
+    READDATA(is, hasValue);
+    if (hasValue != 0) {
+        v = make_optional<T>();
+        ::Unserialize(is, v.value(), nType, nVersion);
+    }
+}
 
 //
 // Support for IMPLEMENT_SERIALIZE and READWRITE macro

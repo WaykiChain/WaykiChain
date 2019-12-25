@@ -8,32 +8,6 @@
 
 #include "tx.h"
 
-class CSignaturePair {
-public:
-    CRegID regid;                 //!< regid only
-    UnsignedCharArray signature;  //!< signature
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(regid);
-        READWRITE(signature);)
-
-public:
-    CSignaturePair(const CSignaturePair &signaturePair) {
-        regid     = signaturePair.regid;
-        signature = signaturePair.signature;
-    }
-
-    CSignaturePair(const CRegID &regIdIn, const UnsignedCharArray &signatureIn) {
-        regid     = regIdIn;
-        signature = signatureIn;
-    }
-
-    CSignaturePair() {}
-
-    string ToString() const;
-    Object ToJson() const;
-};
-
 class CMulsigTx : public CBaseTx {
 public:
     vector<SingleTransfer> transfers;       //!< transfer pair
