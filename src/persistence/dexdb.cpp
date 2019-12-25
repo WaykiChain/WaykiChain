@@ -7,10 +7,13 @@
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "main.h"
+
 #include <functional>
 
 ///////////////////////////////////////////////////////////////////////////////
 // class DEX_DB
+
+static uint32_t MAIN_DEX_ID = 1 ;
 
 void DEX_DB::OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj) {
         obj.push_back(Pair("order_id", orderId.ToString()));
@@ -408,6 +411,8 @@ bool CDexDBCache::IncDexID(DexID &id) {
     if (newId == ULONG_MAX)
         return ERRORMSG("%s, dex operator id is inc to max! last_id=%ul\n", __func__, newId);
     newId++;
+    if(newId == MAIN_DEX_ID )
+        newId++ ;
     if (operator_last_id_cache.SetData(idVariant)) {
         id = newId;
         return true;
@@ -415,25 +420,70 @@ bool CDexDBCache::IncDexID(DexID &id) {
     return false;
 }
 
+bool Dex0(DexOperatorDetail& detail){
+
+    uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
+    CRegID regid(strprintf("%d-3",stableGensisHeight)) ;
+    detail.owner_regid =  regid;
+    detail.match_regid = regid;
+    detail.name = "wayki-dex" ;
+    detail.portal_url = "https://dex.waykichain.com" ;
+    detail.taker_fee_ratio = 40000 ;
+    detail.maker_fee_ratio = 40000 ;
+
+    return true ;
+}
+
 bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
-    return operator_detail_cache.GetData(idKey, detail);
+    bool result =  operator_detail_cache.GetData(idKey, detail);
+    if(result)
+        return result ;
+    if(id == MAIN_DEX_ID )
+        return Dex0(detail) ;
+    return result ;
+
 }
 
 bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &id, DexOperatorDetail& detail) {
     if (operator_owner_map_cache.GetData(regid.ToRawString(), id)) {
         return GetDexOperator(id, detail);
+    }else {
+        uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
+        CRegID sysRegId(strprintf("%d-3",stableGensisHeight)) ;
+        if(sysRegId == regid) {
+            id = MAIN_DEX_ID ;
+            bool result = GetDexOperator(id ,detail) ;
+            if(result && detail.owner_regid == regid)
+                return result;
+        }
     }
     return false;
 }
 
 bool CDexDBCache::HaveDexOperator(const DexID &id) {
+    if(id == MAIN_DEX_ID )
+        return true ;
     decltype(operator_detail_cache)::KeyType idKey(id);
     return operator_detail_cache.HaveData(idKey);
 }
 
 bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
-    return operator_owner_map_cache.HaveData(regid.ToRawString());
+     bool dbHave = operator_owner_map_cache.HaveData(regid.ToRawString());
+
+     if(!dbHave){
+         uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
+         CRegID sysRegId(strprintf("%d-3",stableGensisHeight)) ;
+         if(sysRegId == regid){
+             DexOperatorDetail detail ;
+             bool b = GetDexOperator(MAIN_DEX_ID , detail) ;
+             if(b && detail.owner_regid == regid)
+                 return true ;
+         }
+     }
+
+     return dbHave ;
+
 }
 
 bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& detail) {
@@ -442,7 +492,7 @@ bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& de
         return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
     }
 
-    if (operator_owner_map_cache.HaveData(detail.owner_regid.ToRawString())) {
+    if (HaveDexOperatorByOwner(detail.owner_regid)) {
         return ERRORMSG("%s, the owner already has a dex operator! owner=%s\n", __func__, detail.owner_regid.ToString());
     }
 
@@ -455,8 +505,10 @@ bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& ol
     decltype(operator_detail_cache)::KeyType idKey(id);
     if (old_detail.owner_regid != detail.owner_regid) {
         if (!operator_owner_map_cache.EraseData(old_detail.owner_regid.ToRawString()) ||
-            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), id))
+            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), id)){
             return false;
+        }
+
     }
     return operator_detail_cache.SetData(idKey, detail);
 }

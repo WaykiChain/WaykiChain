@@ -80,12 +80,14 @@ class CDEXOperatorUpdateData{
 
 public:
     enum UpdateField: uint8_t{
-        UPDATE_NONE     = 0,
+        UPDATE_NONE     = 0 ,
         MATCH_UID       = 1 ,
         NAME            = 2 ,
         PORTAL_URL      = 3 ,
         MAKER_FEE_RATIO = 4 ,
-        TAKER_FEE_RATIO = 5
+        TAKER_FEE_RATIO = 5 ,
+        OWNER_UID       = 6 ,
+        MEMO            = 7
     };
 
 public:
@@ -93,7 +95,7 @@ public:
     uint8_t field = UPDATE_NONE  ;
     string value = "";
 
-    bool IsEmpty(){ return dexId == -1 || field == UPDATE_NONE || field > TAKER_FEE_RATIO ; }
+    bool IsEmpty(){ return dexId == -1 || field == UPDATE_NONE || field > MEMO ; }
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(dexId));

@@ -467,7 +467,28 @@ CUserID ParseFromString(const string idStr , const string errorMessage){
 Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
     if(fHelp || params.size()< 7  || params.size()>9){
-        throw runtime_error("hahahahaha") ;
+        throw runtime_error(
+                "submitdexoperatorregtx  \"addr\" \"owner_regid\" \"match_regid\" \"dex_name\" \"portal_url\" \"maker_fee_ratio\" \"taker_fee_ratio\" \"fees\" \"memo\"  "
+                "\n register a dex operator\n"
+                "\nArguments:\n"
+                "1.\"addr\":            (string, required) the dex creator's address\n"
+                "2.\"owner_regid\":     (string, required) the dexoperator 's owner, must be a regid \n"
+                "3.\"match_regid\":     (string, required) the dexoperator 's matcher, must be a regid \n"
+                "4.\"dex_name\":        (string, required) dex operator's name \n"
+                "5.\"portal_url\":      (string, required) the dex operator's website url \n"
+                "6.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
+                "7.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
+                "8.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
+                "9 \"memo\":            (string, optional) dex memo \n"
+                "\nResult:\n"
+                "\"txHash\"             (string) The transaction id.\n"
+
+                "\nExamples:\n"
+                + HelpExampleCli("submitdexoperatorregtx", "0-1 0-1 0-2 wayki-dex http://www.wayki-dex.com 2000000 2000000")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitdexoperatorregtx", "0-1 0-1 0-2 wayki-dex http://www.wayki-dex.com 2000000 2000000")
+
+                ) ;
     }
 
     EnsureWalletIsUnlocked();
@@ -501,7 +522,30 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
 Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
 
     if(fHelp ||params.size()< 4 || params.size() > 5 ){
-        throw runtime_error("todo todo") ;
+        throw runtime_error(
+                "submitdexoperatorupdatetx  \"tx_uid\" \"dex_id\" \"update_field\" \"value\" \"fee\" \n"
+                "\n register a dex operator\n"
+                "\nArguments:\n"
+                "1.\"tx_uid\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
+                "2.\"dex_id\":          (number, required) dex operator's id \n"
+                "3.\"update_field\":    (nuber, required) the dexoperator field to update\n"
+                "                       1: match_regid\n"
+                "                       2: dex_name\n"
+                "                       3: portal_url\n"
+                "                       4: maker_fee_ratio\n"
+                "                       5: taker_fee_ratio\n"
+                "                       6: owner_regid\n"
+                "                       7: memo\n"
+                "4.\"value\":           (string, required) updated value \n"
+                "5.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
+                "\nResult:\n"
+                "\"txHash\"             (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitdexoperatorupdatetx", "0-1 1 1 0-3")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitdexoperatorupdatetx", "0-1 1 1 0-3")
+
+                ) ;
     }
 
     EnsureWalletIsUnlocked();
