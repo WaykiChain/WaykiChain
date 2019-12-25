@@ -145,7 +145,7 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
 }
 
 inline int64_t GetShuffleOriginSeed(const int32_t curHeight, const int64_t blockTime ){
-    if (curHeight < (int32_t)SysCfg().GetContinuousProduceForkHeight()){
+    if (curHeight < (int32_t)SysCfg().GetVer3ForkHeight()){
         return curHeight ;
     }else{
         int64_t slot = blockTime/GetBlockInterval(curHeight) ;

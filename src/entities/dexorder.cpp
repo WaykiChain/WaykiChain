@@ -65,7 +65,7 @@ shared_ptr<CDEXOrderDetail> CDEXSysOrder::Create(OrderType orderType, OrderSide 
                                                  uint64_t coiAmountIn,
                                                  uint64_t assetAmountIn) {
     auto pSysOrder                = make_shared<CDEXOrderDetail>();
-    pSysOrder->mode               = DEXOperatorMode::REQUIRE_AUTH;
+    pSysOrder->mode               = OrderOperatorMode::REQUIRE_AUTH;
     pSysOrder->dex_id             = 0;
     pSysOrder->operator_fee_ratio = 0;
     pSysOrder->generate_type      = SYSTEM_GEN_ORDER;
