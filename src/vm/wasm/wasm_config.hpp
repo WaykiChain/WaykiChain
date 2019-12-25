@@ -27,8 +27,8 @@ namespace wasm {
     const static uint64_t wasmio_code  = N(wasmio.code);
     const static uint64_t wasmio_owner = N(wasmio.owner);
 
-    const static uint64_t store_fuel_fee_per_byte      = 100;//mul 10 to WICC
-    const static uint64_t inform_fuel_fee_per_receipt  = 10000;//mul 10 to WICC
+    const static uint64_t store_fuel_fee_per_byte       = 100;//* 10 to WICC
+    const static uint64_t notice_fuel_fee_per_recipient = 10000;//* 10 to WICC
 
 
     namespace wasm_constraints {

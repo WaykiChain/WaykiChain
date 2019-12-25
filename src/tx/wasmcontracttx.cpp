@@ -213,10 +213,10 @@ static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
     uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate / 10 , MAX_BLOCK_RUN_STEP);//1.2 WICC
     WASM_ASSERT(fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
 
-    // if(context.transaction_status == wasm::transaction_status_type::validating){
-    // WASM_TRACE("fee_for_gas:%ld", fee_for_gas)
-    // WASM_TRACE("MAX_BLOCK_RUN_STEP:%ld", MAX_BLOCK_RUN_STEP)
-    // }
+    if(context.transaction_status == wasm::transaction_status_type::validating){
+    WASM_TRACE("fee_for_gas:%ld", fee_for_gas)
+    WASM_TRACE("MAX_BLOCK_RUN_STEP:%ld", MAX_BLOCK_RUN_STEP)
+    }
 
     return fuel_limit;
 }
@@ -279,11 +279,11 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         fuel            = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
         recipients_size = 0;
 
-        // if(transaction_status == wasm::transaction_status_type::validating)
-        // {
-        //    WASM_TRACE("bytes:%d", GetSerializeSize(SER_DISK, CLIENT_VERSION))
-        //    WASM_TRACE("nRunStep:%ld", nRunStep)
-        // }
+        if(transaction_status == wasm::transaction_status_type::validating)
+        {
+           WASM_TRACE("bytes:%d", GetSerializeSize(SER_DISK, CLIENT_VERSION))
+           WASM_TRACE("fuel:%ld", fuel)
+        }
 
         std::vector<CReceipt>   receipts;
         wasm::transaction_trace trx_trace;
@@ -302,13 +302,12 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         //check storage usage with the limited fuel
         uint64_t fee    = get_fuel_limit(*this, context);
-        fuel            = fuel + recipients_size * inform_fuel_fee_per_receipt;
-        nRunStep        = fuel;
-        // if(transaction_status == wasm::transaction_status_type::validating){
-        // WASM_TRACE("nRunStep:%ld", nRunStep)
-        // WASM_TRACE("fee:%ld", fee)
-        // WASM_TRACE("recipients_size:%ld", recipients_size)
-        // }
+        fuel            = fuel + recipients_size * notice_fuel_fee_per_recipient;
+        if(transaction_status == wasm::transaction_status_type::validating){
+        WASM_TRACE("fuel:%ld", fuel)
+        WASM_TRACE("fee:%ld", fee)
+        WASM_TRACE("recipients_size:%ld", recipients_size)
+        }
 
         WASM_ASSERT(fee > fuel, fuel_fee_exception, "%s",
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel");
@@ -329,6 +328,8 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                     GetHash().ToString().c_str())
 
         execute_tx_return->SetReturn(GetHash().ToString());
+
+        nRunStep = fuel;
 
     } catch (wasm::exception &e) {
         return context.pState->DoS(100, ERRORMSG(e.detail()), e.code(), e.detail());
@@ -426,11 +427,11 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     if(signatures.size() == 1){
         Value tmp;
         to_variant(signatures[0], tmp);
-        result.push_back(Pair("signature", tmp));
+        result.push_back(Pair("signature_pair", tmp));
     } else if(signatures.size() > 1) {
         Value signatures_arr;
         to_variant(signatures, signatures_arr);
-        result.push_back(Pair("signatures", signatures_arr));
+        result.push_back(Pair("signature_pairs", signatures_arr));
     }     
 
     return result;
