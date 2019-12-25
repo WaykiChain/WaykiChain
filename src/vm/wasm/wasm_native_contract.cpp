@@ -55,7 +55,6 @@ namespace wasm {
                     "%s","wasmio_native_setcode.setcode, Save account error")
         
         //WASM_TRACE("%s",contract.regid.ToString().c_str())
-
     }
     
     void wasmio_bank_native_transfer(wasm_context &context) {
@@ -65,7 +64,8 @@ namespace wasm {
 
         auto &database = context.database.accountCache;
 
-        context.control_trx.fuel += (16 + context.trx.data.size()) * store_fuel_fee_per_byte;//16 bytes are contract and action
+        //context.control_trx.fuel += (16 + context.trx.data.size()) * store_fuel_fee_per_byte;//contract + action are 16 bytes 
+        context.control_trx.fuel += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
         std::tuple<uint64_t, uint64_t, wasm::asset, string> transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
         auto from     = std::get<0>(transfer_data);
