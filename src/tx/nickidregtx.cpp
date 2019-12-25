@@ -103,7 +103,6 @@ string CNickIdRegisterTx::ToString(CAccountDBCache &accountCache) {
 Object CNickIdRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("txUid",         txUid.ToString()));
     result.push_back(Pair("nick_name",      nickId));
 
     return result;

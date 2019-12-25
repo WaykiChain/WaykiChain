@@ -15,6 +15,7 @@
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
 #include "tx/dextx.h"
+#include "tx/dexoperatortx.h"
 
 static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOperatorDetail &dexOperator) {
     Object result;
@@ -28,6 +29,8 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("matcher_addr",   ownerKeyid.ToAddress()));
     result.push_back(Pair("name",           dexOperator.name));
     result.push_back(Pair("portal_url",     dexOperator.portal_url));
+    result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
+    result.push_back(Pair("taker_fee_ratio", dexOperator.taker_fee_ratio));
     result.push_back(Pair("memo",           dexOperator.memo));
     result.push_back(Pair("memo_hex",       HexStr(dexOperator.memo)));
     return result;
@@ -449,6 +452,126 @@ extern Value getdexorders(const Array& params, bool fHelp) {
 }
 
 
+CUserID ParseFromString(const string idStr , const string errorMessage){
+    CRegID regid(idStr);
+    if(regid.IsEmpty())
+        throw JSONRPCError(RPC_INVALID_PARAMS, errorMessage);
+
+    CAccount account ;
+    if(!pCdMan->pAccountCache->GetAccount(regid,account))
+        throw JSONRPCError(RPC_INVALID_PARAMS, errorMessage);
+
+    return regid ;
+}
+
+Value submitdexoperatorregtx(const Array& params, bool fHelp){
+
+    if(fHelp || params.size()< 7  || params.size()>9){
+        throw runtime_error(
+                "submitdexoperatorregtx  \"addr\" \"owner_regid\" \"match_regid\" \"dex_name\" \"portal_url\" \"maker_fee_ratio\" \"taker_fee_ratio\" \"fees\" \"memo\"  "
+                "\n register a dex operator\n"
+                "\nArguments:\n"
+                "1.\"addr\":            (string, required) the dex creator's address\n"
+                "2.\"owner_regid\":     (string, required) the dexoperator 's owner, must be a regid \n"
+                "3.\"match_regid\":     (string, required) the dexoperator 's matcher, must be a regid \n"
+                "4.\"dex_name\":        (string, required) dex operator's name \n"
+                "5.\"portal_url\":      (string, required) the dex operator's website url \n"
+                "6.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
+                "7.\"taker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
+                "8.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
+                "9 \"memo\":            (string, optional) dex memo \n"
+                "\nResult:\n"
+                "\"txHash\"             (string) The transaction id.\n"
+
+                "\nExamples:\n"
+                + HelpExampleCli("submitdexoperatorregtx", "0-1 0-1 0-2 wayki-dex http://www.wayki-dex.com 2000000 2000000")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitdexoperatorregtx", "0-1 0-1 0-2 wayki-dex http://www.wayki-dex.com 2000000 2000000")
+
+                ) ;
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
+    CDEXOperatorRegisterTx::Data ddata ;
+    ddata.owner_uid = ParseFromString(params[1].get_str() ,"owner_uid must be a valid regid") ;
+    ddata.match_uid = ParseFromString(params[2].get_str() , "match_uid must be a valid regid") ;
+    ddata.name = params[3].get_str() ;
+    ddata.portal_url = params[4].get_str() ;
+    ddata.maker_fee_ratio = AmountToRawValue(params[5]) ;
+    ddata.taker_fee_ratio = AmountToRawValue(params[6]) ;
+    ComboMoney fee  = RPC_PARAM::GetFee(params, 7, DEX_OPERATOR_REGISTER_TX);
+    if(params.size()>= 9 ){
+        ddata.memo = params[8].get_str() ;
+    }
+
+    if(ddata.memo.size()> MAX_COMMON_TX_MEMO_SIZE){
+        throw JSONRPCError(RPC_INVALID_PARAMS,
+                strprintf("memo size is too long, its size is %d ,but max memo size is %d ", ddata.memo.size(), MAX_COMMON_TX_MEMO_SIZE)) ;
+    }
+
+    // Get account for checking balance
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    int32_t validHeight = chainActive.Height();
+
+    CDEXOperatorRegisterTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), ddata);
+    return SubmitTx(account.keyid, tx);
+}
+
+Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
+
+    if(fHelp ||params.size()< 4 || params.size() > 5 ){
+        throw runtime_error(
+                "submitdexoperatorupdatetx  \"tx_uid\" \"dex_id\" \"update_field\" \"value\" \"fee\" \n"
+                "\n register a dex operator\n"
+                "\nArguments:\n"
+                "1.\"tx_uid\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
+                "2.\"dex_id\":          (number, required) dex operator's id \n"
+                "3.\"update_field\":    (nuber, required) the dexoperator field to update\n"
+                "                       1: match_regid\n"
+                "                       2: dex_name\n"
+                "                       3: portal_url\n"
+                "                       4: maker_fee_ratio\n"
+                "                       5: taker_fee_ratio\n"
+                "                       6: owner_regid\n"
+                "                       7: memo\n"
+                "4.\"value\":           (string, required) updated value \n"
+                "5.\"fee\":             (symbol:fee:unit, optional) tx fee,default is the min fee for the tx type  \n"
+                "\nResult:\n"
+                "\"txHash\"             (string) The transaction id.\n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitdexoperatorupdatetx", "0-1 1 1 0-3")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitdexoperatorupdatetx", "0-1 1 1 0-3")
+
+                ) ;
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
+    CDEXOperatorUpdateData updateData ;
+    updateData.dexId = params[1].get_int() ;
+    updateData.field = (uint8_t)params[2].get_int() ;
+    updateData.value = params[3].get_str();
+    string errmsg ;
+    string errcode ;
+    if(!updateData.Check(errmsg,errcode)){
+        throw JSONRPCError(RPC_INVALID_PARAMS, errmsg);
+    }
+    ComboMoney fee = RPC_PARAM::GetFee(params,4, DEX_OPERATOR_UPDATE_TX) ;
+
+    // Get account for checking balance
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    int32_t validHeight = chainActive.Height();
+
+    CDEXOperatorUpdateTx tx(userId, validHeight, fee.symbol, fee.GetSawiAmount(), updateData);
+    return SubmitTx(account.keyid, tx);
+
+}
+
+
 extern Value getdexoperator(const Array& params, bool fHelp) {
      if (fHelp || params.size() != 1) {
         throw runtime_error(
@@ -492,7 +615,7 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
     const CUserID &userId = RPC_PARAM::GetUserId(params[0]);
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    if (account.IsRegistered())
+    if (!account.IsRegistered())
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("account not registered! uid=%s", userId.ToDebugString()));
 
     DexOperatorDetail dexOperator;

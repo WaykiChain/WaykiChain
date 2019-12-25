@@ -7,7 +7,7 @@
 
 #include "config/configuration.h"
 #include "main.h"
-
+#include <regex>
 #include <algorithm>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,6 +15,8 @@
 
 static const string OPERATOR_ACTION_REGISTER = "register";
 static const string OPERATOR_ACTION_UPDATE = "update";
+static const uint32_t MAX_NAME_LEN = 32;
+static const uint64_t MAX_MATCH_FEE_RATIO_VALUE = 50000000; // 50%
 
 static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, const string &action,
     CAccount &txAccount, vector<CReceipt> &receipts) {
@@ -101,8 +103,16 @@ string CDEXOperatorRegisterTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
-    // TODO: ...
-    return Object();
+    Object result = CBaseTx::ToJson(accountCache);
+
+    result.push_back(Pair("owner_uid", data.owner_uid.ToString()));
+    result.push_back(Pair("match_uid", data.match_uid.ToString()));
+    result.push_back(Pair("dex_name", data.name));
+    result.push_back(Pair("portal_url", data.portal_url));
+    result.push_back(Pair("maker_fee_ratio",data.maker_fee_ratio));
+    result.push_back(Pair("taker_fee_ratio",data.taker_fee_ratio));
+    result.push_back(Pair("memo",data.memo));
+    return result ;
 }
 
 bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
@@ -121,13 +131,15 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
             "match-uid-type-error");
     }
 
-    static const uint32_t MAX_NAME_LEN = 32;
     if (data.name.size() > MAX_NAME_LEN) {
         return state.DoS(100, ERRORMSG("%s, name len=%d greater than %d", __func__,
-            data.name.size(), MAX_NAME_LEN), REJECT_INVALID, "invalid-domain-name");
+            data.name.size(), MAX_NAME_LEN), REJECT_INVALID, "invalid-name");
     }
 
-    static const uint64_t MAX_MATCH_FEE_RATIO_VALUE = 50000000; // 50%
+    if(data.memo.size() > MAX_COMMON_TX_MEMO_SIZE){
+        return state.DoS(100, ERRORMSG("%s, memo len=%d greater than %d", __func__,
+                                       data.memo.size(), MAX_COMMON_TX_MEMO_SIZE), REJECT_INVALID, "invalid-memo");
+    }
 
     if (data.maker_fee_ratio > MAX_MATCH_FEE_RATIO_VALUE)
         return state.DoS(100, ERRORMSG("%s, maker_fee_ratio=%d is greater than %d", __func__,
@@ -165,19 +177,19 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     } else {
         pOwnerAccount = make_shared<CAccount>();
         if (pOwnerAccount == nullptr || !cw.accountCache.GetAccount(data.owner_uid, *pOwnerAccount))
-            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, read owner account failed! owner_uid=%s",
+            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, read owner account failed! owner_uid=%s",
                 data.owner_uid.ToDebugString()), REJECT_INVALID, "owner-account-not-exist");
     }
     shared_ptr<CAccount> pMatchAccount;
     if (!pTxAccount->IsMyUid(data.match_uid) && !pOwnerAccount->IsMyUid(data.match_uid)) {
         if (!cw.accountCache.HaveAccount(data.match_uid))
-            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, get match account failed! match_uid=%s",
+            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! match_uid=%s",
                 data.match_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
     }
 
     if(cw.dexCache.HaveDexOperatorByOwner(pOwnerAccount->regid))
         return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
-            pOwnerAccount->regid.ToString()), REJECT_INVALID, "match-account-not-exist");
+            pOwnerAccount->regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
 
     if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
         return false;
@@ -198,7 +210,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     };
     if (!cw.dexCache.CreateDexOperator(new_id, detail))
         return state.DoS(100, ERRORMSG("%s, save new dex operator error! new_id=%u", __func__, new_id),
-                         UPDATE_ACCOUNT_FAIL, "inc_dex_id_error");
+                         UPDATE_ACCOUNT_FAIL, "save-operator-error");
 
     if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx account to db failed! txUid=%s",
@@ -207,5 +219,181 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
+    return true;
+}
+
+bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
+
+    if(IsEmpty()){
+        errmsg = "CDEXOperatorUpdateData::check(): update data is empty" ;
+        errcode= "empty-update-data" ;
+        return false ;
+    }
+
+    if(field == MATCH_UID || field == OWNER_UID){
+        string placeholder = (field == MATCH_UID)? "match": "owner" ;
+
+        CRegID regid(value);
+        CAccount account ;
+        if(regid.IsEmpty() ||!pCdMan->pAccountCache->GetAccount(regid,account)){
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid must be a valid regid",placeholder);
+            errcode = strprintf("%s-uid-type-error", placeholder) ;
+            return false ;
+        }
+    }
+
+
+    if(field == NAME && value.size() > MAX_NAME_LEN) {
+           errmsg = strprintf("%s, name len=%d greater than %d", __func__,value.size(), MAX_NAME_LEN);
+           errcode = "invalid-name" ;
+           return false ;
+    }
+
+    if(field == MEMO && value.size() > MAX_COMMON_TX_MEMO_SIZE){
+        errmsg = strprintf("%s, memo len=%d greater than %d", __func__,value.size(), MAX_COMMON_TX_MEMO_SIZE);
+        errcode = "invalid-memo" ;
+        return false ;
+    }
+
+
+    if(field == TAKER_FEE_RATIO || field == MAKER_FEE_RATIO ){
+        regex  r("[0-9]+");
+        if(!regex_match(value ,r )){
+            errmsg = strprintf("%s, fee_ratio format is error", __func__);
+            errcode = "invalid-match-fee-ratio-type" ;
+            return false ;
+        }
+
+        uint64_t v = atoui64(value) ;
+        if( v > MAX_MATCH_FEE_RATIO_VALUE){
+            errmsg = strprintf("%s, fee_ratio=%d is greater than %d", __func__,
+                               v, MAX_MATCH_FEE_RATIO_VALUE);
+            errcode = "invalid-match-fee-ratio-type" ;
+            return false ;
+        }
+    }
+
+    return true ;
+
+}
+
+bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail) {
+    if(field == MATCH_UID ) {
+       detail.match_regid = CRegID(value) ;
+    } else if(field == NAME ) {
+        detail.name = value;
+    } else if(field == PORTAL_URL) {
+        detail.portal_url = value ;
+    } else if(field == TAKER_FEE_RATIO ) {
+        detail.taker_fee_ratio = atoui64(value);
+    } else if(field == MAKER_FEE_RATIO) {
+        detail.maker_fee_ratio = atoui64(value);
+    } else if(field == MEMO) {
+        detail.memo = value ;
+    } else if( field == OWNER_UID) {
+        detail.owner_regid = CRegID(value) ;
+    }
+
+    return true ;
+
+}
+
+string CDEXOperatorUpdateTx::ToString(CAccountDBCache &accountCache) {
+
+    return "" ;
+}
+
+Object CDEXOperatorUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
+
+    Object result = CBaseTx::ToJson(accountCache);
+
+    result.push_back(Pair("update_field", update_data.field)) ;
+    result.push_back(Pair("update_value", update_data.value)) ;
+    result.push_back(Pair("dex_id", update_data.dexId));
+    return result;
+}
+bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
+    IMPLEMENT_DEFINE_CW_STATE;
+    IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_FEE;
+
+    string errmsg ;
+    string errcode ;
+    if(!update_data.Check(errmsg ,errcode)){
+        return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, %s",errmsg), REJECT_INVALID, errcode);
+    }
+
+    if(update_data.field == CDEXOperatorUpdateData::OWNER_UID){
+        if(cw.dexCache.HaveDexOperatorByOwner(CRegID(update_data.value)))
+            return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
+                                           update_data.value), REJECT_INVALID, "owner-had-dexoperator");
+    }
+
+    CAccount txAccount;
+    if (!cw.accountCache.GetAccount(txUid, txAccount))
+        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::CheckTx, read account failed! tx account not exist, txUid=%s",
+                                       txUid.ToDebugString()), REJECT_INVALID, "bad-getaccount");
+
+    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
+    IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
+
+    return true ;
+}
+
+bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+    vector<CReceipt> receipts;
+    shared_ptr<CAccount> pTxAccount = make_shared<CAccount>();
+    if (pTxAccount == nullptr || !cw.accountCache.GetAccount(txUid, *pTxAccount))
+        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, read tx account by txUid=%s error",
+                                       txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
+
+    if (!pTxAccount->OperateBalance(fee_symbol, BalanceOpType::SUB_FREE, llFees)) {
+        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, insufficient funds in account to sub fees, fees=%llu, txUid=%s",
+                                       llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
+    }
+
+    DexOperatorDetail oldDetail  ;
+    if(!cw.dexCache.GetDexOperator((DexID)update_data.dexId, oldDetail)){
+        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, the dexoperator( id= %u) is not exist!",
+                                       update_data.dexId), UPDATE_ACCOUNT_FAIL, "dexoperator-not-exist");
+    }
+
+    if (!pTxAccount->IsMyUid(oldDetail.owner_regid)) {
+        return state.DoS(100, ERRORMSG("CDEXOperatorUpdateTx::ExecuteTx, only owner can update dexoperator!， owner_regid=%s, txUid=%s, dexId=%u",
+                                       oldDetail.owner_regid.ToString(),txUid.ToString(), update_data.dexId),
+                                               UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
+    }
+
+
+
+
+
+    /* if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
+         return false;*/
+
+    DexOperatorDetail detail = {
+            oldDetail.owner_regid,
+            oldDetail.match_regid,
+            oldDetail.name,
+            oldDetail.portal_url,
+            oldDetail.maker_fee_ratio,
+            oldDetail.taker_fee_ratio,
+            oldDetail.memo
+    };
+    update_data.UpdateToDexOperator(detail) ;
+
+    if (!cw.dexCache.UpdateDexOperator(update_data.dexId, oldDetail, detail))
+        return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, update_data.dexId),
+                         UPDATE_ACCOUNT_FAIL, "save-updated-operator-error");
+
+    if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx account to db failed! txUid=%s",
+                                       txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
+
+    if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                                       GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }

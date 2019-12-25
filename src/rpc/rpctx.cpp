@@ -100,7 +100,6 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-
 Value submitnickidregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2)
         throw runtime_error("submitnickidregistertx \"addr\" \"nickid\" [\"fee\"]\n"

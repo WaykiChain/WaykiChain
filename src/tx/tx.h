@@ -272,7 +272,7 @@ public:
                                   context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");  \
     } else {                                                                                                    \
         uint64_t minFee;                                                                                        \
-        if (!GetTxMinFee(UCOIN_TRANSFER_TX, context.height, fee_symbol, minFee))                                \
+        if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee))                                \
             return state.DoS(100, ERRORMSG("GetTxMinFee failed"), REJECT_INVALID, "GetTxMinFee-failed");        \
         if (llFees < 2 * minFee){                                                                            \
             string err =  strprintf("The given fee is too small: %llu < %llu sawi", llFees, 2*minFee);             \
