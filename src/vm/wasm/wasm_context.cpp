@@ -161,6 +161,8 @@ namespace wasm {
     void wasm_context::execute_one(inline_transaction_trace &trace) {
 
         //auto start = system_clock::now();
+        control_trx.recipients_size ++;
+
         trace.trx      = trx;
         trace.receiver = _receiver;
 
@@ -194,7 +196,7 @@ namespace wasm {
             }
         }
 
-        trace.trx_id = control_trx.GetHash();
+        trace.trx_id  = control_trx.GetHash();
         trace.console = _pending_console_output.str();
         //trace.elapsed = std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
 
@@ -218,6 +220,10 @@ namespace wasm {
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
         }
+
+        WASM_ASSERT(notified.size() <= max_recipients_size, 
+                    missing_auth_exception, 
+                    "recipients size must be <= '%ld', but get '%ld'", max_recipients_size, notified.size() );
 
     }
 
@@ -253,8 +259,8 @@ namespace wasm {
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
 
         //int64_t disk_usage    = control_trx.nRunStep;
-        int64_t disk_usage    = size_in_bytes * fuel_store_fee_per_byte;
-        control_trx.nRunStep += (disk_usage < 0) ? 0 : disk_usage;
+        int64_t disk_usage  = size_in_bytes * store_fuel_fee_per_byte;
+        control_trx.fuel   += (disk_usage < 0) ? 0 : disk_usage;
 
     }
 

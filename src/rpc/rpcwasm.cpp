@@ -166,7 +166,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             CAccount payer;
             auto              contract   = wasm::name(params[1].get_str());
             auto              payer_name = wasm::name(params[0].get_str());
-            const ComboMoney& fee        = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_DEPLOY_TX);
+            const ComboMoney& fee        = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
             WASM_ASSERT(database->GetAccount(nick_name(payer_name.value), payer), 
                         account_operation_exception,
@@ -183,13 +183,10 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
             tx.signatures.push_back({payer_name.value, vector<uint8_t>()});
-
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature),
                            RPC_WALLET_ERROR, "rpcwasm.submitwasmcontractdeploytx, sign failed")
 
             tx.set_signature({payer_name.value, tx.signature});
-
-            //tx.signatures.push_back({payer_name.value, tx.signature});
         }
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
@@ -238,7 +235,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             if( abi.size() > 0 ) 
                 action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
-            ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::UCONTRACT_INVOKE_TX);
+            ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
             tx.nTxType      = WASM_CONTRACT_TX;
             tx.txUid        = payer.regid;
@@ -246,15 +243,13 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.fee_symbol   = fee.symbol;
             tx.llFees       = fee.GetSawiAmount();
 
-            //for(int i = 0; i < 10000 ; i++)
+            //for(int i = 0; i < 300 ; i++)
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{payer_name.value, wasmio_owner}}, action_data});
 
             tx.signatures.push_back({payer_name.value, vector<uint8_t>()});
             JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR,
                             "rpcwasm.submitwasmcontractcalltx, sign failed")
             tx.set_signature({payer_name.value, tx.signature});
-
-            //tx.signatures.push_back({payer_name.value, tx.signature});
         }
 
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);

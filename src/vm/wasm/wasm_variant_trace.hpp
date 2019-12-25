@@ -48,7 +48,7 @@ static inline void to_variant(const signature_pair &t, json_spirit::Value &v) {
     json_spirit::Config::add(obj, "account", val);
 
     to_variant(HexStr(t.signature), val);
-    json_spirit::Config::add(obj, "permission", val);
+    json_spirit::Config::add(obj, "signature", val);
 
     v = obj;
 }
