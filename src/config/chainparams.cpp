@@ -120,7 +120,6 @@ public:
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(TEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(TEST_NET);
         nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(TEST_NET);
-        nContinuousProduceForkHeight = IniCfg().GetCoutinuousProcduceForkHeight(TEST_NET) ;
         // Modify the testnet genesis block so the timestamp is valid for a later start.
         genesis.SetTime(IniCfg().GetStartTimeInit(TEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(TEST_NET));
@@ -178,7 +177,6 @@ public:
         nFeatureForkHeight       = IniCfg().GetFeatureForkHeight(REGTEST_NET);
         nStableCoinGenesisHeight = IniCfg().GetStableCoinGenesisHeight(REGTEST_NET);
         nVer3ForkHeight          = IniCfg().GetVer3ForkHeight(REGTEST_NET);
-        nContinuousProduceForkHeight = IniCfg().GetCoutinuousProcduceForkHeight(REGTEST_NET) ;
         genesis.SetTime(IniCfg().GetStartTimeInit(REGTEST_NET));
         genesis.SetNonce(IniCfg().GetGenesisBlockNonce(REGTEST_NET));
         genesis.vptx.clear();

@@ -174,7 +174,6 @@ public:
     uint32_t GetFeatureForkHeight() const { return nFeatureForkHeight; }
     uint32_t GetStableCoinGenesisHeight() const { return nStableCoinGenesisHeight; }
     uint32_t GetVer3ForkHeight() const { return nVer3ForkHeight; }
-    uint32_t GetContinuousProduceForkHeight() const { return nContinuousProduceForkHeight; }
     uint32_t GetContinuousCountBeforeFork() const { return nContinuousCountBeforeFork; }
     uint32_t GetContinuousCountAfterFork() const { return nContinuousCountAfterFork; }
     CRegID GetFcoinGenesisRegId() const { return CRegID(nStableCoinGenesisHeight, 1); }
