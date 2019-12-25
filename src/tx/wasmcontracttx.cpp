@@ -221,36 +221,44 @@ static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
     return fuel_limit;
 }
 
-static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace, vector<CReceipt>& receipts) {
+static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace, 
+                                     vector<CReceipt>&                     receipts, 
+                                     map<transfer_data_type,  uint64_t>&   receipts_duplicate_check) {
 
     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
+
         CReceipt receipt;
         receipt.code = TRANSFER_ACTUAL_COINS;
 
-        std::tuple < uint64_t, uint64_t, wasm::asset, string > transfer_data 
-                      = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
-        auto from     = std::get<0>(transfer_data);
-        auto to       = std::get<1>(transfer_data);
-        auto quantity = std::get<2>(transfer_data);
-        auto memo     = std::get<3>(transfer_data);
+        transfer_data_type transfer_data = wasm::unpack < std::tuple < uint64_t, uint64_t, wasm::asset, string>> (trace.trx.data);
+        auto from                        = std::get<0>(transfer_data);
+        auto to                          = std::get<1>(transfer_data);
+        auto quantity                    = std::get<2>(transfer_data);
+        auto memo                        = std::get<3>(transfer_data);
 
-        receipt.from_uid    = CUserID(CNickID(wasm::name(from).to_string()));
-        receipt.to_uid      = CUserID(CNickID(wasm::name(to).to_string()));
-        receipt.coin_symbol = quantity.sym.code().to_string();
-        receipt.coin_amount = quantity.amount;
+        auto itr = receipts_duplicate_check.find(std::tuple(from, to ,quantity, memo));
+        if (itr == receipts_duplicate_check.end()){
+            receipts_duplicate_check[std::tuple(from, to ,quantity, memo)] = wasmio_bank;
 
-        receipts.push_back(receipt);
+            receipt.from_uid    = CUserID(CNickID(from));
+            receipt.to_uid      = CUserID(CNickID(to));
+            receipt.coin_symbol = quantity.sym.code().to_string();
+            receipt.coin_amount = quantity.amount;
+
+            receipts.push_back(receipt);
+        }
     }
 
     for (auto t: trace.inline_traces) {
-        inline_trace_to_receipts(t, receipts);
+        inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
     }
 
 }
 
 static void trace_to_receipts(const wasm::transaction_trace& trace, vector<CReceipt>& receipts) {
+    map<transfer_data_type, uint64_t > receipts_duplicate_check;
     for (auto t: trace.traces) {
-        inline_trace_to_receipts(t, receipts);
+        inline_trace_to_receipts(t, receipts, receipts_duplicate_check);
     }
 }
 

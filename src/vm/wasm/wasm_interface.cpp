@@ -448,7 +448,7 @@ namespace wasm {
         }
 
         bool has_authorization( uint64_t account ) const {
-            return true;
+            return pWasmContext->has_authorization(account);
         }
 
         void require_recipient( uint64_t recipient ) {

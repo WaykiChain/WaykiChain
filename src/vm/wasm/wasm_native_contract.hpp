@@ -9,6 +9,9 @@ using namespace wasm;
 
 namespace wasm {
 
+    using transfer_data_type = std::tuple <uint64_t, uint64_t, wasm::asset, string >;
+    using set_code_data_type = std::tuple<uint64_t, string, string, string>;
+
     void wasmio_native_setcode( wasm_context & );
     void wasmio_bank_native_transfer( wasm_context & );
 
