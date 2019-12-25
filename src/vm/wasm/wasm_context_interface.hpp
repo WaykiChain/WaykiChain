@@ -42,6 +42,8 @@ namespace wasm {
         virtual uint64_t block_time() { return 0; }
         virtual void     exit      () {}
 
+        virtual std::vector<uint64_t>     get_active_producers() { return std::vector<uint64_t>(); }
+
         virtual vm::wasm_allocator*       get_wasm_allocator()                       { return nullptr; }
         virtual bool                      is_memory_in_wasm_allocator(const void* p) { return true;    }
 
