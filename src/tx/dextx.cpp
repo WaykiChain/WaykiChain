@@ -17,7 +17,7 @@ using uint128_t = unsigned __int128;
 static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &orderId,
                               uint64_t fee_ratio, const string &title) {
     static_assert(DEX_ORDER_FEE_RATIO_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
-    if (fee_ratio <= DEX_ORDER_FEE_RATIO_MAX)
+    if (fee_ratio > DEX_ORDER_FEE_RATIO_MAX)
         return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
             title, orderId.ToString(), fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
     return true;

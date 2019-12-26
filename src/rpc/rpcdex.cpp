@@ -36,19 +36,64 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     return result;
 }
 
+namespace RPC_PARAM {
+
+    static DexID GetDexId(const Array& params, const size_t index) {
+        return params.size() > 4? RPC_PARAM::GetUint32(params[4]) : DEX_RESERVED_ID;
+    }
+
+    static OrderOperatorMode GetOperatorMode(const Array& params, const size_t index) {
+        if (params.size() > index) {
+            const string &modeStr = params[index].get_str();
+            OrderOperatorMode mode;
+            if (!OrderOperatorMode::Parse(modeStr, mode))
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("operator_mode=%s invalid", modeStr));
+            return mode;
+        }
+        return OrderOperatorMode::DEFAULT;
+    }
+
+    static uint64_t GetOperatorFeeRatio(const Array& params, const size_t index) {
+        if (params.size() > index) {
+            uint64_t ratio = RPC_PARAM::GetUint64(params[index]);
+            if (ratio > DEX_ORDER_FEE_RATIO_MAX)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("operator_fee_ratio=%llu is large than %llu",
+                    ratio, DEX_ORDER_FEE_RATIO_MAX));
+        }
+        return 0;
+    }
+
+    static string GetMemo(const Array& params, const size_t index) {
+        if (params.size() > index) {
+            string memo = params[index].get_str();
+            if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("memo.size=%u is large than %llu",
+                    memo.size(), MAX_COMMON_TX_MEMO_SIZE));
+        }
+        return 0;
+    }
+
+} // namespace RPC_PARAM
+
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 4 || params.size() > 5) {
         throw runtime_error(
-            "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount price [symbol:fee:unit]\n"
+            "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"symbol:asset_amount:unit\"  price "
+                " [dex_id] [\"operator_mode\"] [operator_fee_ratio] [symbol:fee:unit]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
-            "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to buy \n "
+            "3.\"symbol:asset_amount:unit\",(comboMoney,required) the target amount to buy \n "
             "   default symbol is WICC, default unit is sawi.\n"
             "4.\"price\": (numeric, required) bidding price willing to buy\n"
-            "5.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "5.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 1\n"
+            "6.\"operator_mode\": (string, optional) dex operator mode, must be DEFAULT|REQUIRE_AUTH, default is DEFAULT\n"
+            "7.\"operator_fee_ratio\": (numeric, optional) dex operator fee ratio, boost 100000000, "
+            "                           MAX 50000000, effective in DEFAULT mode, default is 0\n"
+            "8.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "9.\"memo\": (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -59,24 +104,44 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     }
 
     EnsureWalletIsUnlocked();
+    int32_t validHeight = chainActive.Height();
+    FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
+    const TxType txType = version  < MAJOR_VER_R3 ? DEX_LIMIT_BUY_ORDER_TX : DEX_LIMIT_BUY_ORDER_EX_TX;
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     uint64_t price                 = RPC_PARAM::GetPrice(params[3]);  // TODO: need to check price?
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 4, DEX_LIMIT_BUY_ORDER_TX);
+    DexID dexId                    = RPC_PARAM::GetDexId(params, 4);
+    OrderOperatorMode operatorMode = RPC_PARAM::GetOperatorMode(params, 5);
+    uint64_t operatorFeeRatio      = RPC_PARAM::GetOperatorFeeRatio(params, 6);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 7, txType);
+    string memo                    = RPC_PARAM::GetMemo(params, 8);
 
-    RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
+    RPC_PARAM::CheckOrderSymbols(__func__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetInfo.GetSawiAmount(), price);
-    RPC_PARAM::CheckAccountBalance(account, coinSymbol, FREEZE, coinAmount);
+    RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
+    if (version < MAJOR_VER_R3) {
+        if (dexId != DEX_RESERVED_ID || operatorMode != OrderOperatorMode::DEFAULT)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("dex_id must be %d and operator_mode must be %s before height=%d",
+                DEX_RESERVED_ID, OrderOperatorMode::GetDefault().Name()));
+        CDEXBuyLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
+                        assetInfo.symbol, assetInfo.GetSawiAmount(), price);
+        return SubmitTx(txAccount.keyid, tx);
+    } else {
+        DexOperatorDetail operatorDetail;
+        if (!pCdMan->pDexCache->GetDexOperator(dexId, operatorDetail))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the dex operator does not exist! dex_id=%u",
+                dexId));
 
-    int32_t validHeight = chainActive.Height();
-    CDEXBuyLimitOrderTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
-                           assetInfo.symbol, assetInfo.GetSawiAmount(), price);
-    return SubmitTx(account.keyid, tx);
+        CDEXBuyLimitOrderExTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), operatorMode, dexId, operatorFeeRatio, coinSymbol,
+                            assetInfo.symbol, assetInfo.GetSawiAmount(), price, memo, &operatorDetail.match_regid);
+        return SubmitTx(txAccount.keyid, tx);
+    }
+
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {

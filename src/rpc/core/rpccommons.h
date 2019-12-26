@@ -36,6 +36,9 @@ namespace JSON {
 
 namespace RPC_PARAM {
 
+    uint32_t GetUint32(const Value &jsonValue);
+    uint64_t GetUint64(const Value &jsonValue);
+
     ComboMoney GetComboMoney(const Value &jsonValue, const TokenSymbol &defaultSymbol = SYMB::WICC);
 
     ComboMoney GetFee(const Array& params, const size_t index, const TxType txType);

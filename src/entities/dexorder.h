@@ -93,20 +93,20 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
         READWRITE((uint8_t&)value);
     )
 
-    bool IsValid() {
-        return value == DEFAULT || value == REQUIRE_AUTH;
-    }
+    bool IsValid();
 
-    string Name() const {
-        switch (value) {
-            case DEFAULT: return "DEFAULT";
-            case REQUIRE_AUTH: return "REQUIRE_AUTH";
-            default: return "";
-        }
-    }
+    const string& Name() const;
+
+    static bool Parse(const string &name, OrderOperatorMode &mode);
+
+    static OrderOperatorMode GetDefault();
 
     bool operator==(const Mode &modeValue) const { return this->value == modeValue; }
     bool operator!=(const Mode &modeValue) const { return this->value != modeValue; }
+
+private:
+    static const EnumTypeMap<Mode, string> VALUE_NAME_MAP;
+    static const unordered_map<string, Mode> NAME_VALUE_MAP;
 };
 
 struct CDEXOrderDetail {
