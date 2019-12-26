@@ -222,7 +222,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
+bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_t currentHeight ){
 
     if(IsEmpty()){
         errmsg = "CDEXOperatorUpdateData::check(): update data is empty" ;
@@ -233,11 +233,21 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
     if(field == MATCH_UID || field == OWNER_UID){
         string placeholder = (field == MATCH_UID)? "match": "owner" ;
 
-        CRegID regid(value);
+        auto uid = CUserID::ParseUserId(value);
+        if (!uid) {
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is a invalid account",placeholder, value);
+            errcode = strprintf("%s-uid-invalid", placeholder) ;
+            return false ;
+        }
         CAccount account ;
-        if(regid.IsEmpty() ||!pCdMan->pAccountCache->GetAccount(regid,account)){
-            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid must be a valid regid",placeholder);
-            errcode = strprintf("%s-uid-type-error", placeholder) ;
+        if( !pCdMan->pAccountCache->GetAccount(*uid,account)){
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is not exist! ",placeholder, value );
+            errcode = strprintf("%s-uid-invalid", placeholder) ;
+            return false ;
+        }
+        if( account.regid.IsEmpty() ||!account.IsRegistered() || !account.regid.IsMature(currentHeight)){
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) don't have regid or regid is immature ! ",placeholder, value );
+            errcode = strprintf("%s-uid-invalid", placeholder) ;
             return false ;
         }
     }
@@ -277,9 +287,31 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
 
 }
 
-bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail) {
+bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
+
+
+    auto uid = CUserID::ParseUserId(value ) ;
+    if((*uid).is<CRegID>()){
+        regid =  (*uid).get<CRegID>() ;
+        return true;
+    }
+
+    CAccount account ;
+    if(cw.accountCache.GetAccount(*uid,account) && !account.regid.IsEmpty()){
+        regid = account.regid;
+        return true ;
+    }
+    return false ;
+}
+
+bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) {
     if(field == MATCH_UID ) {
-       detail.match_regid = CRegID(value) ;
+        CRegID regid ;
+        bool res = GetRegID(cw ,regid) ;
+        if(res){
+            detail.match_regid = regid ;
+        }
+        return  res ;
     } else if(field == NAME ) {
         detail.name = value;
     } else if(field == PORTAL_URL) {
@@ -291,7 +323,12 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail) {
     } else if(field == MEMO) {
         detail.memo = value ;
     } else if( field == OWNER_UID) {
-        detail.owner_regid = CRegID(value) ;
+        CRegID regid ;
+        bool res = GetRegID(cw ,regid) ;
+        if(res){
+            detail.owner_regid = regid ;
+        }
+        return  res ;
     }
 
     return true ;
@@ -320,7 +357,7 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
 
     string errmsg ;
     string errcode ;
-    if(!update_data.Check(errmsg ,errcode)){
+    if(!update_data.Check(errmsg ,errcode, context.height )){
         return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, %s",errmsg), REJECT_INVALID, errcode);
     }
 
@@ -382,7 +419,10 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
             oldDetail.taker_fee_ratio,
             oldDetail.memo
     };
-    update_data.UpdateToDexOperator(detail) ;
+    if(!update_data.UpdateToDexOperator(detail,cw) ){
+        return state.DoS(100, ERRORMSG("%s, copy updated dex operator error! dex_id=%u", __func__, update_data.dexId),
+                         UPDATE_ACCOUNT_FAIL, "copy-updated-operator-error");
+    }
 
     if (!cw.dexCache.UpdateDexOperator(update_data.dexId, oldDetail, detail))
         return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, update_data.dexId),

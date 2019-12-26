@@ -470,7 +470,7 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const Tx
     return fee;
 }
 
-CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
+CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool ) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");

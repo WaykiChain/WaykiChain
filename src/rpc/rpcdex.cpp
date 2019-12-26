@@ -26,7 +26,7 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     result.push_back(Pair("owner_regid",   dexOperator.owner_regid.ToString()));
     result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
     result.push_back(Pair("matcher_regid", dexOperator.match_regid.ToString()));
-    result.push_back(Pair("matcher_addr",   ownerKeyid.ToAddress()));
+    result.push_back(Pair("matcher_addr",   matcherKeyid.ToAddress()));
     result.push_back(Pair("name",           dexOperator.name));
     result.push_back(Pair("portal_url",     dexOperator.portal_url));
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
@@ -452,16 +452,16 @@ extern Value getdexorders(const Array& params, bool fHelp) {
 }
 
 
-CUserID ParseFromString(const string idStr , const string errorMessage){
-    CRegID regid(idStr);
-    if(regid.IsEmpty())
-        throw JSONRPCError(RPC_INVALID_PARAMS, errorMessage);
+void checkAccountRegId(const CUserID uid , const string field){
 
+    if(!uid.is<CRegID>() || !uid.get<CRegID>().IsMature(chainActive.Height())){
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s have not regid or regid is immature!", field));
+    }
     CAccount account ;
-    if(!pCdMan->pAccountCache->GetAccount(regid,account))
-        throw JSONRPCError(RPC_INVALID_PARAMS, errorMessage);
+    if(!pCdMan->pAccountCache->GetAccount(uid,account))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s is a invalid account",field));
 
-    return regid ;
+
 }
 
 Value submitdexoperatorregtx(const Array& params, bool fHelp){
@@ -472,8 +472,8 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
                 "\n register a dex operator\n"
                 "\nArguments:\n"
                 "1.\"addr\":            (string, required) the dex creator's address\n"
-                "2.\"owner_regid\":     (string, required) the dexoperator 's owner, must be a regid \n"
-                "3.\"match_regid\":     (string, required) the dexoperator 's matcher, must be a regid \n"
+                "2.\"owner_uid\":       (string, required) the dexoperator 's owner account \n"
+                "3.\"match_uid\":       (string, required) the dexoperator 's matcher account \n"
                 "4.\"dex_name\":        (string, required) dex operator's name \n"
                 "5.\"portal_url\":      (string, required) the dex operator's website url \n"
                 "6.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
@@ -494,8 +494,10 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
     CDEXOperatorRegisterTx::Data ddata ;
-    ddata.owner_uid = ParseFromString(params[1].get_str() ,"owner_uid must be a valid regid") ;
-    ddata.match_uid = ParseFromString(params[2].get_str() , "match_uid must be a valid regid") ;
+    ddata.owner_uid = RPC_PARAM::GetUserId(params[1].get_str()) ;
+    ddata.match_uid = RPC_PARAM::GetUserId(params[2].get_str()) ;
+    checkAccountRegId(ddata.owner_uid, "owner_uid");
+    checkAccountRegId(ddata.match_uid, "match_uid");
     ddata.name = params[3].get_str() ;
     ddata.portal_url = params[4].get_str() ;
     ddata.maker_fee_ratio = AmountToRawValue(params[5]) ;
@@ -556,7 +558,7 @@ Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
     updateData.value = params[3].get_str();
     string errmsg ;
     string errcode ;
-    if(!updateData.Check(errmsg,errcode)){
+    if(!updateData.Check(errmsg,errcode,chainActive.Height())){
         throw JSONRPCError(RPC_INVALID_PARAMS, errmsg);
     }
     ComboMoney fee = RPC_PARAM::GetFee(params,4, DEX_OPERATOR_UPDATE_TX) ;

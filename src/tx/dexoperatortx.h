@@ -103,9 +103,10 @@ public:
             READWRITE(value);
             )
 
-    bool Check(string& errmsg, string& errcode) ;
+    bool Check(string& errmsg, string& errcode, uint32_t currentHeight) ;
 
-    bool UpdateToDexOperator(DexOperatorDetail& detail) ;
+    bool UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) ;
+    bool GetRegID(CCacheWrapper& cw,CRegID& regid) ;
 
 };
 
