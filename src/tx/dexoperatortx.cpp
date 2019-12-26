@@ -307,11 +307,12 @@ bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
 bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) {
     if(field == MATCH_UID ) {
         CRegID regid ;
-        bool res = GetRegID(cw ,regid) ;
-        if(res){
+        if( GetRegID(cw ,regid)){
             detail.match_regid = regid ;
+            return true;
+        } else{
+            return false ;
         }
-        return  res ;
     } else if(field == NAME ) {
         detail.name = value;
     } else if(field == PORTAL_URL) {
@@ -324,11 +325,12 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCach
         detail.memo = value ;
     } else if( field == OWNER_UID) {
         CRegID regid ;
-        bool res = GetRegID(cw ,regid) ;
-        if(res){
+        if(GetRegID(cw ,regid)){
             detail.owner_regid = regid ;
+            return true ;
+        }else{
+            return false ;
         }
-        return  res ;
     }
 
     return true ;
