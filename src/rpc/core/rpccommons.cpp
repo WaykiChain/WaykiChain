@@ -405,6 +405,22 @@ Array JSON::ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &
 ///////////////////////////////////////////////////////////////////////////////
 // namespace RPC_PARAM
 
+uint32_t RPC_PARAM::GetUint32(const Value &jsonValue) {
+    int64_t ret = jsonValue.get_int64();
+    if (ret < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("value=%lld out of range", ret));
+    }
+    return uint32_t(ret);
+}
+
+uint64_t RPC_PARAM::GetUint64(const Value &jsonValue) {
+    int64_t ret = jsonValue.get_int64();
+    if (ret < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("value=%lld out of range", ret));
+    }
+    return uint64_t(ret);
+}
+
 ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
                                     const TokenSymbol &defaultSymbol) {
     ComboMoney money;
