@@ -21,12 +21,12 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
     Object result;
     CKeyID ownerKeyid;
     accountCache.GetKeyId(dexOperator.owner_regid, ownerKeyid);
-    CKeyID matcherKeyid;
-    accountCache.GetKeyId(dexOperator.match_regid, matcherKeyid);
+    CKeyID feeReceiverKeyId;
+    accountCache.GetKeyId(dexOperator.fee_receiver_regid, feeReceiverKeyId);
     result.push_back(Pair("owner_regid",   dexOperator.owner_regid.ToString()));
     result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
-    result.push_back(Pair("matcher_regid", dexOperator.match_regid.ToString()));
-    result.push_back(Pair("matcher_addr",   matcherKeyid.ToAddress()));
+    result.push_back(Pair("fee_receiver_regid", dexOperator.fee_receiver_regid.ToString()));
+    result.push_back(Pair("fee_receiver_addr",   feeReceiverKeyId.ToAddress()));
     result.push_back(Pair("name",           dexOperator.name));
     result.push_back(Pair("portal_url",     dexOperator.portal_url));
     result.push_back(Pair("maker_fee_ratio", dexOperator.maker_fee_ratio));
@@ -138,7 +138,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
                 dexId));
 
         CDEXBuyLimitOrderExTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), operatorMode, dexId, operatorFeeRatio, coinSymbol,
-                            assetInfo.symbol, assetInfo.GetSawiAmount(), price, memo, &operatorDetail.match_regid);
+                            assetInfo.symbol, assetInfo.GetSawiAmount(), price, memo, &operatorDetail.fee_receiver_regid);
         return SubmitTx(txAccount.keyid, tx);
     }
 
@@ -533,12 +533,12 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
 
     if(fHelp || params.size()< 7  || params.size()>9){
         throw runtime_error(
-                "submitdexoperatorregtx  \"addr\" \"owner_regid\" \"match_regid\" \"dex_name\" \"portal_url\" \"maker_fee_ratio\" \"taker_fee_ratio\" \"fees\" \"memo\"  "
+                "submitdexoperatorregtx  \"addr\" \"owner_uid\" \"fee_receiver_uid\" \"dex_name\" \"portal_url\" \"maker_fee_ratio\" \"taker_fee_ratio\" \"fees\" \"memo\"  "
                 "\n register a dex operator\n"
                 "\nArguments:\n"
                 "1.\"addr\":            (string, required) the dex creator's address\n"
                 "2.\"owner_uid\":       (string, required) the dexoperator 's owner account \n"
-                "3.\"match_uid\":       (string, required) the dexoperator 's matcher account \n"
+                "3.\"fee_receiver_uid\":(string, required) the dexoperator 's fee receiver account \n"
                 "4.\"dex_name\":        (string, required) dex operator's name \n"
                 "5.\"portal_url\":      (string, required) the dex operator's website url \n"
                 "6.\"maker_fee_ratio\": (number, required) range is 0 ~ 50000000, 50000000 stand for 50% \n"
@@ -560,9 +560,9 @@ Value submitdexoperatorregtx(const Array& params, bool fHelp){
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
     CDEXOperatorRegisterTx::Data ddata ;
     ddata.owner_uid = RPC_PARAM::GetUserId(params[1].get_str()) ;
-    ddata.match_uid = RPC_PARAM::GetUserId(params[2].get_str()) ;
+    ddata.fee_receiver_uid = RPC_PARAM::GetUserId(params[2].get_str()) ;
     checkAccountRegId(ddata.owner_uid, "owner_uid");
-    checkAccountRegId(ddata.match_uid, "match_uid");
+    checkAccountRegId(ddata.fee_receiver_uid, "fee_receiver_uid");
     ddata.name = params[3].get_str() ;
     ddata.portal_url = params[4].get_str() ;
     ddata.maker_fee_ratio = AmountToRawValue(params[5]) ;
@@ -596,7 +596,7 @@ Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
                 "1.\"tx_uid\":          (string, required) the tx sender, must be the dexoperaor's owner regid\n"
                 "2.\"dex_id\":          (number, required) dex operator's id \n"
                 "3.\"update_field\":    (nuber, required) the dexoperator field to update\n"
-                "                       1: match_regid\n"
+                "                       1: fee_receiver_regid\n"
                 "                       2: dex_name\n"
                 "                       3: portal_url\n"
                 "                       4: maker_fee_ratio\n"

@@ -16,7 +16,7 @@ class CDEXOperatorRegisterTx: public CBaseTx {
 public:
     struct Data {
         CUserID owner_uid;                   // owner uid of exchange
-        CUserID match_uid;                   // match uid
+        CUserID fee_receiver_uid;                   // match uid
         string name              = "";       // domain name
         string portal_url        = "";
         uint64_t maker_fee_ratio = 0;
@@ -25,7 +25,7 @@ public:
 
         IMPLEMENT_SERIALIZE(
             READWRITE(owner_uid);
-            READWRITE(match_uid);
+            READWRITE(fee_receiver_uid);
             READWRITE(name);
             READWRITE(portal_url);
             READWRITE(VARINT(maker_fee_ratio));
@@ -81,7 +81,7 @@ class CDEXOperatorUpdateData{
 public:
     enum UpdateField: uint8_t{
         UPDATE_NONE     = 0 ,
-        MATCH_UID       = 1 ,
+        FEE_RECEIVER_UID       = 1 ,
         NAME            = 2 ,
         PORTAL_URL      = 3 ,
         MAKER_FEE_RATIO = 4 ,

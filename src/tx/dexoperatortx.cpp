@@ -106,7 +106,7 @@ Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const
     Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("owner_uid", data.owner_uid.ToString()));
-    result.push_back(Pair("match_uid", data.match_uid.ToString()));
+    result.push_back(Pair("fee_receiver_uid", data.fee_receiver_uid.ToString()));
     result.push_back(Pair("dex_name", data.name));
     result.push_back(Pair("portal_url", data.portal_url));
     result.push_back(Pair("maker_fee_ratio",data.maker_fee_ratio));
@@ -126,8 +126,8 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
             "owner-uid-type-error");
     }
 
-    if (!data.match_uid.is<CRegID>()) {
-        return state.DoS(100, ERRORMSG("%s, match_uid must be regid", __func__), REJECT_INVALID,
+    if (!data.fee_receiver_uid.is<CRegID>()) {
+        return state.DoS(100, ERRORMSG("%s, fee_receiver_uid must be regid", __func__), REJECT_INVALID,
             "match-uid-type-error");
     }
 
@@ -181,10 +181,10 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                 data.owner_uid.ToDebugString()), REJECT_INVALID, "owner-account-not-exist");
     }
     shared_ptr<CAccount> pMatchAccount;
-    if (!pTxAccount->IsMyUid(data.match_uid) && !pOwnerAccount->IsMyUid(data.match_uid)) {
-        if (!cw.accountCache.HaveAccount(data.match_uid))
-            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! match_uid=%s",
-                data.match_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
+    if (!pTxAccount->IsMyUid(data.fee_receiver_uid) && !pOwnerAccount->IsMyUid(data.fee_receiver_uid)) {
+        if (!cw.accountCache.HaveAccount(data.fee_receiver_uid))
+            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! fee_receiver_uid=%s",
+                data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
     }
 
     if(cw.dexCache.HaveDexOperatorByOwner(pOwnerAccount->regid))
@@ -201,7 +201,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOperatorDetail detail = {
         data.owner_uid.get<CRegID>(),
-        data.match_uid.get<CRegID>(),
+        data.fee_receiver_uid.get<CRegID>(),
         data.name,
         data.portal_url,
         data.maker_fee_ratio,
@@ -230,8 +230,8 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_
         return false ;
     }
 
-    if(field == MATCH_UID || field == OWNER_UID){
-        string placeholder = (field == MATCH_UID)? "match": "owner" ;
+    if(field == FEE_RECEIVER_UID || field == OWNER_UID){
+        string placeholder = (field == FEE_RECEIVER_UID)? "fee_receiver": "owner" ;
 
         auto uid = CUserID::ParseUserId(value);
         if (!uid) {
@@ -305,10 +305,10 @@ bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
 }
 
 bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) {
-    if(field == MATCH_UID ) {
+    if(field == FEE_RECEIVER_UID ) {
         CRegID regid ;
         if( GetRegID(cw ,regid)){
-            detail.match_regid = regid ;
+            detail.fee_receiver_regid = regid ;
             return true;
         } else{
             return false ;
@@ -414,7 +414,7 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOperatorDetail detail = {
             oldDetail.owner_regid,
-            oldDetail.match_regid,
+            oldDetail.fee_receiver_regid,
             oldDetail.name,
             oldDetail.portal_url,
             oldDetail.maker_fee_ratio,
