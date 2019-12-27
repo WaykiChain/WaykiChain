@@ -219,11 +219,7 @@ namespace wasm {
 
             string k        = string((const char *) key, key_len);
             auto   contract = pWasmContext->receiver();
-
             AddPrefix(contract, k);
-
-            // wasm_assert(pWasmContext->erase_data(contract, k),
-            //            ("db_remove failed, key:" + ToHex(k, " ")).c_str());
 
             WASM_ASSERT( pWasmContext->erase_data(contract, k),
                          wasm_assert_exception, 
@@ -289,8 +285,6 @@ namespace wasm {
             auto   contract = pWasmContext->receiver();
             AddPrefix(contract, k);
 
-            // wasm_assert(pWasmContext->set_data(contract, k, v),
-            //             ("set_data key fail, key:" + ToHex(k, "")).c_str());
             WASM_ASSERT( pWasmContext->set_data(contract, k, v), 
                          wasm_assert_exception, 
                          "db_update failed, key: %s",
@@ -350,12 +344,11 @@ namespace wasm {
         }
 
         void prints( const void *str ) {
-            auto size = strlen((const char*)str);
+            auto size = strlen((const char*)str); 
             WASM_ASSERT( size < max_wasm_api_data_bytes, 
                          api_data_size_too_big_exception, 
                          "wasm api data size must be < %ld, but get %ld",
                          max_wasm_api_data_bytes, size )
-
 
             if (!print_ignore) {
                 std::ostringstream o;
