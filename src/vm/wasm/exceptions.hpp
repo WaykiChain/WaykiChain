@@ -5,10 +5,15 @@
 #include "commons/tinyformat.h"
 
 using namespace std;
-#define WASM_ASSERT( expr, exc_type, ... )     \
-   if ( !( expr ) ) {                          \
-       string str = tfm::format( __VA_ARGS__ );\
-       throw exc_type( str.c_str() ) ; }
+
+#define WASM_ASSERT( expr, exc_type, ... )       \
+   if ( !( expr ) ) {                            \
+       string str = tfm::format( __VA_ARGS__ );  \
+       std::ostringstream o;                     \
+       o << __FILE__ << ":" << __LINE__          \
+         << ":[" << __FUNCTION__ << "], "        \
+         << str;                                 \
+       throw exc_type( o.str().c_str() ) ; }
 
 #define WASM_THROW( exc_type, ... )    \
        WASM_ASSERT( false, exc_type,  __VA_ARGS__ )
@@ -66,7 +71,7 @@ namespace wasm {
     WASM_DECLARE_EXCEPTION(array_size_exceeds_exception,         5000012, "array size exceeds exception")
     WASM_DECLARE_EXCEPTION(pack_exception,                       5000013, "pack exception")
     WASM_DECLARE_EXCEPTION(inline_transaction_too_big,           5000014, "inline transaction too big")
-    WASM_DECLARE_EXCEPTION(wasm_api_data_too_big,                5000015, "wasm api data too big")
+    WASM_DECLARE_EXCEPTION(api_data_size_too_big_exception,      5000015, "wasm api data too big")
     WASM_DECLARE_EXCEPTION(overlapping_memory_error,             5000016, "memcpy can only accept non-aliasing pointers")
     WASM_DECLARE_EXCEPTION(unsatisfied_authorization,            5000017, "unsatisfied authorization")
     WASM_DECLARE_EXCEPTION(abort_called,                         5000018, "abort called")

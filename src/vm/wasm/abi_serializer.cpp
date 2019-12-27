@@ -156,13 +156,13 @@ namespace wasm {
          *  The ABI vector may contain duplicates which would make it
          *  an invalid ABI
          */
-        WASM_ASSERT(typedefs.size() == abi.types.size(), duplicate_abi_def_exception, "%s",
+        WASM_ASSERT(typedefs.size() == abi.types.size(), duplicate_abi_def_exception, 
                     "Duplicate type definition detected");
-        WASM_ASSERT(structs.size() == abi.structs.size(), duplicate_abi_def_exception, "%s",
+        WASM_ASSERT(structs.size() == abi.structs.size(), duplicate_abi_def_exception, 
                     "Duplicate struct definition detected");
-        WASM_ASSERT(actions.size() == abi.actions.size(), duplicate_abi_def_exception, "%s",
+        WASM_ASSERT(actions.size() == abi.actions.size(), duplicate_abi_def_exception, 
                     "Duplicate action definition detected");
-        WASM_ASSERT(tables.size() == abi.tables.size(), duplicate_abi_def_exception, "%s",
+        WASM_ASSERT(tables.size() == abi.tables.size(), duplicate_abi_def_exception,
                     "Duplicate table definition detected");
 
         validate(ctx);
@@ -180,8 +180,10 @@ namespace wasm {
     int abi_serializer::get_integer_size( const type_name &type ) const {
         string stype = type;
 
-        WASM_ASSERT(is_integer(type), invalid_type_inside_abi, "'%s' is not an integer type",
-                    stype.data());
+        WASM_ASSERT( is_integer(type), 
+                     invalid_type_inside_abi, 
+                     "'%s' is not an integer type",
+                     stype.data());
 
         if (boost::starts_with(stype, "uint")) {
             return boost::lexical_cast<int>(stype.substr(4));
@@ -243,8 +245,10 @@ namespace wasm {
     const struct_def &abi_serializer::get_struct( const type_name &type ) const {
         auto itr = structs.find(resolve_type(type));
 
-        WASM_ASSERT(itr != structs.end(), invalid_type_inside_abi, "Unknown struct '%s'",
-                    type.data());
+        WASM_ASSERT( itr != structs.end(), 
+                     invalid_type_inside_abi,
+                     "Unknown struct '%s'",
+                     type.data());
 
         return itr->second;
     }
@@ -272,8 +276,7 @@ namespace wasm {
         if (btype != built_in_types.end()) {
             try {
                 return btype->second.first(ds, is_array(rtype), is_optional(rtype));
-            }
-            WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack type '%s' ", rtype.c_str())
+            }WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack type '%s' ", rtype.c_str())
         }
 
         auto s_itr = structs.end();
@@ -281,28 +284,25 @@ namespace wasm {
             wasm::unsigned_int size;
             try {
                 ds >> size;
-            }
-            WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack size of array '%s' ",
-                                    rtype.c_str())
-            WASM_ASSERT(size < max_abi_array_size, array_size_exceeds_exception,
-                        "Array size %u must be smaller than max %d", size.value,
-                        max_abi_array_size);
+            }WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack size of array '%s' ", rtype.c_str())
+            
+            WASM_ASSERT( size < max_abi_array_size, 
+                         array_size_exceeds_exception,
+                         "Array size %u must be smaller than max %d", size.value,
+                         max_abi_array_size);
 
             json_spirit::Array vars;
             for (decltype(size.value) i = 0; i < size; ++i) {
                 auto v = _binary_to_variant(ftype, ds, ctx);
-                WASM_ASSERT(!v.is_null(), unpack_exception, "Invalid packed array '%s'",
-                            rtype.c_str());
+                WASM_ASSERT( !v.is_null(), unpack_exception, "Invalid packed array '%s'",rtype.c_str());
                 vars.emplace_back(std::move(v));
             }
             return json_spirit::Value(std::move(vars));
         } else if (is_optional(rtype)) {
-
             char flag;
             try {
                 ds >> flag;
-            }
-            WASM_RETHROW_EXCEPTIONS(unpack_exception,
+            }WASM_RETHROW_EXCEPTIONS(unpack_exception,
                                     "Unable to unpack presence flag of optional '%s' ", rtype.c_str())
             return flag ? _binary_to_variant(ftype, ds, ctx) : json_spirit::Value();
 
@@ -367,17 +367,17 @@ namespace wasm {
         if (v.type() == json_spirit::array_type) {
             auto a = v.get_array();
             if (index > a.size() - 1) {
-                WASM_THROW(pack_exception,
-                           "Missing field no. '%d' in input object while processing struct '%s'",
-                           index, s.c_str());
+                WASM_THROW( pack_exception,
+                            "Missing field no. '%d' in input object while processing struct '%s'",
+                            index, s.c_str());
                 json_spirit::Value var;
                 return var;
             }
             return a[index];
         }
 
-        WASM_THROW(pack_exception,
-                        "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
+        WASM_THROW( pack_exception,
+                    "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
         json_spirit::Value var;
 
         return var;

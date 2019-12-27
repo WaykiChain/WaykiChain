@@ -62,7 +62,6 @@ namespace wasm {
         //contract-self or wasmio_bank
         WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank ,
                     wasm_assert_exception,
-                    "%s",
                     "Inline transaction can be sent to/by contract self or wasmio.bank ");
 
         //check authorization
@@ -146,7 +145,7 @@ namespace wasm {
         }
 
         WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
-                    transaction_exception, "%s",
+                    transaction_exception,
                     "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {

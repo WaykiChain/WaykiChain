@@ -129,8 +129,7 @@ namespace wasm {
                 string t = wasm::name(table).to_string();
                 name = abis.get_table_type(t);
 
-                WASM_ASSERT(name.size() > 0, abi_parse_exception, "can not get table %s's type from abi",
-                            t.data());
+                WASM_ASSERT(name.size() > 0, abi_parse_exception, "can not get table %s's type from abi", t.data());
 
                 data_v = abis.binary_to_variant(name, data, max_serialization_time);
             }

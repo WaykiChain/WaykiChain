@@ -19,8 +19,10 @@ namespace wasm {
 
     void wasmio_native_setcode(wasm_context &context) {
 
-         WASM_ASSERT(context._receiver == wasmio, wasm_assert_exception, 
-                     "wasmio_native_setcode.setcode, Except contract wasmio, But get %s", wasm::name(context._receiver).to_string().c_str());
+         WASM_ASSERT( context._receiver == wasmio, 
+                      wasm_assert_exception, 
+                      "wasmio_native_setcode.setcode, Except contract wasmio, But get '%s'", 
+                      wasm::name(context._receiver).to_string().c_str());
 
         auto &database_account         = context.database.accountCache;
         auto &database_contract        = context.database.contractCache;
@@ -37,7 +39,7 @@ namespace wasm {
         CAccount contract;
         WASM_ASSERT(database_account.GetAccount(nick_name(contract_name), contract),
                     account_operation_exception,
-                    "wasmio_native_setcode.setcode, Contract does not exist, contract = %s",
+                    "wasmio_native_setcode.setcode, Contract '%s' does not exist",
                     wasm::name(contract_name).to_string().c_str()) 
 
         CUniversalContract contract_store;
@@ -58,8 +60,10 @@ namespace wasm {
     
     void wasmio_bank_native_transfer(wasm_context &context) {
 
-        WASM_ASSERT(context._receiver == wasmio_bank, wasm_assert_exception, 
-                    "wasmio_bank_native_transfer.transfer, Except contract wasmio.bank, But get %s", wasm::name(context._receiver).to_string().c_str());
+        WASM_ASSERT( context._receiver == wasmio_bank,
+                     wasm_assert_exception, 
+                     "except contract wasmio.bank, but get '%s'", 
+                     wasm::name(context._receiver).to_string().c_str());
 
         auto &database            = context.database.accountCache;
         context.control_trx.fuel += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
@@ -71,23 +75,24 @@ namespace wasm {
         auto memo                        = std::get<3>(transfer_data);
 
         context.require_auth(from); //from auth
-        WASM_ASSERT(from != to,             wasm_assert_exception,"%s", "cannot transfer to self");
-        WASM_ASSERT(context.is_account(to), wasm_assert_exception, "to %s account does not exist", wasm::name(to).to_string().c_str() );
-        WASM_ASSERT(quantity.is_valid(),    wasm_assert_exception, "%s", "invalid quantity");
-        WASM_ASSERT(quantity.amount > 0,    wasm_assert_exception, "%s", "must transfer positive quantity");
-        WASM_ASSERT(memo.size() <= 256,     wasm_assert_exception, "%s", "memo has more than 256 bytes");
+        WASM_ASSERT(from != to,             wasm_assert_exception, "cannot transfer to self");
+
+        WASM_ASSERT(context.is_account(to), wasm_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string().c_str() );
+        WASM_ASSERT(quantity.is_valid(),    wasm_assert_exception, "invalid quantity");
+        WASM_ASSERT(quantity.amount > 0,    wasm_assert_exception, "must transfer positive quantity");
+        WASM_ASSERT(memo.size()  <= 256,    wasm_assert_exception, "memo has more than 256 bytes");
 
         CAccount from_account;
         WASM_ASSERT(database.GetAccount(nick_name(from), from_account),
                     account_operation_exception,
-                    "wasmio_bank_native_transfer.Transfer, from account does not exist, from Id = %s",
+                    "from account '%s' does not exist",
                     wasm::name(from).to_string().c_str())
         sub_balance( from_account, quantity, database );
 
         CAccount to_account;
         WASM_ASSERT(database.GetAccount(nick_name(to), to_account),
                     account_operation_exception,
-                    "wasmio_bank_native_transfer.Transfer, to account does not exist, to Id = %s",
+                    "to account '%s' does not exist",
                     wasm::name(to).to_string().c_str())
         add_balance( to_account, quantity, database );
 
@@ -95,7 +100,5 @@ namespace wasm {
         context.require_recipient(to);
 
     }
-
-
 
 }
