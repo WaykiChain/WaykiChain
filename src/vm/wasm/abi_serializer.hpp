@@ -89,7 +89,7 @@ namespace wasm {
                 data = abis.variant_to_binary(action_type, data_v, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params.c_str())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params)
 
             return data;
 
@@ -111,7 +111,7 @@ namespace wasm {
                 data_v = abis.binary_to_variant(action_type, data, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", action.c_str())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", action)
 
             return data_v;
         }
@@ -133,7 +133,7 @@ namespace wasm {
 
                 data_v = abis.binary_to_variant(name, data, max_serialization_time);
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name.c_str())
+            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name)
 
             return data_v;
         }
@@ -222,7 +222,7 @@ namespace wasm {
 
             WASM_ASSERT(!t->has_circle(n, ctx),
                         abi_circular_def_exception,
-                        "Circular reference in struct %s", n.c_str());
+                        "Circular reference in struct %s", n);
 
             for (auto child: t->childs) {
                 if (child->name == n)

@@ -139,10 +139,10 @@ namespace wasm {
         wasm::abi_traverse_context ctx2(max_serialization_time);
         for (const auto &td : abi.types) {
             WASM_ASSERT(_is_type(td.type, ctx), invalid_type_inside_abi, "Invalid type '%s'",
-                        td.type.c_str());
+                        td.type);
 
             WASM_ASSERT(!_is_type(td.new_type_name, ctx), duplicate_abi_def_exception,
-                        "Type '%s' already exists", td.new_type_name.c_str());
+                        "Type '%s' already exists", td.new_type_name);
 
             typedefs[td.new_type_name] = td.type;
         }
@@ -276,7 +276,7 @@ namespace wasm {
         if (btype != built_in_types.end()) {
             try {
                 return btype->second.first(ds, is_array(rtype), is_optional(rtype));
-            }WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack type '%s' ", rtype.c_str())
+            }WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack type '%s' ", rtype)
         }
 
         auto s_itr = structs.end();
@@ -284,7 +284,7 @@ namespace wasm {
             wasm::unsigned_int size;
             try {
                 ds >> size;
-            }WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack size of array '%s' ", rtype.c_str())
+            }WASM_RETHROW_EXCEPTIONS(unpack_exception, "Unable to unpack size of array '%s' ", rtype)
             
             WASM_ASSERT( size < max_abi_array_size, 
                          array_size_exceeds_exception,
@@ -294,7 +294,7 @@ namespace wasm {
             json_spirit::Array vars;
             for (decltype(size.value) i = 0; i < size; ++i) {
                 auto v = _binary_to_variant(ftype, ds, ctx);
-                WASM_ASSERT( !v.is_null(), unpack_exception, "Invalid packed array '%s'",rtype.c_str());
+                WASM_ASSERT( !v.is_null(), unpack_exception, "Invalid packed array '%s'",rtype);
                 vars.emplace_back(std::move(v));
             }
             return json_spirit::Value(std::move(vars));
@@ -303,7 +303,7 @@ namespace wasm {
             try {
                 ds >> flag;
             }WASM_RETHROW_EXCEPTIONS(unpack_exception,
-                                    "Unable to unpack presence flag of optional '%s' ", rtype.c_str())
+                                    "Unable to unpack presence flag of optional '%s' ", rtype)
             return flag ? _binary_to_variant(ftype, ds, ctx) : json_spirit::Value();
 
         } else if ((s_itr = structs.find(rtype)) != structs.end()) {
@@ -329,7 +329,7 @@ namespace wasm {
             return json_spirit::Value(std::move(obj));
         }
 
-        WASM_THROW(unpack_exception, "Unable to unpack '%s' from stream", rtype.c_str());
+        WASM_THROW(unpack_exception, "Unable to unpack '%s' from stream", rtype);
         json_spirit::Value var;
         return var;
     }
@@ -355,7 +355,7 @@ namespace wasm {
 
         if(!is_optional){
             WASM_THROW(pack_exception, "Missing field '%s' in input object while processing struct '%s'",
-                        field.c_str(), s.c_str());
+                        field, s);
         }
         json_spirit::Value var;
 
@@ -369,7 +369,7 @@ namespace wasm {
             if (index > a.size() - 1) {
                 WASM_THROW( pack_exception,
                             "Missing field no. '%d' in input object while processing struct '%s'",
-                            index, s.c_str());
+                            index, s);
                 json_spirit::Value var;
                 return var;
             }
@@ -377,7 +377,7 @@ namespace wasm {
         }
 
         WASM_THROW( pack_exception,
-                    "Unexpected input encountered while processing struct '%s', the input data must be array", s.c_str())
+                    "Unexpected input encountered while processing struct '%s', the input data must be array", s)
         json_spirit::Value var;
 
         return var;
@@ -419,12 +419,12 @@ namespace wasm {
                 } else if (var.type() == json_spirit::array_type) {
                     WASM_ASSERT(st.base == type_name(), invalid_type_inside_abi,
                                 "Using input array to specify the fields of the derived struct '%s'; input arrays are currently only allowed for structs without a base",
-                                st.name.c_str());
+                                st.name);
 
                     auto &vo = var.get_array();
                     WASM_ASSERT(vo.size() == st.fields.size(), pack_exception,
                                 "Unexpected input encountered while processing struct '%s', the input array size '%ld' must be equal to the struct fields size '%ld'",
-                                type.c_str(), vo.size(), st.fields.size())
+                                type, vo.size(), st.fields.size())
 
                     for (uint32_t i = 0; i < st.fields.size(); ++i) {
                         const auto &field = st.fields[i];
@@ -434,15 +434,15 @@ namespace wasm {
                 } else {
                     WASM_THROW(pack_exception,
                                "Unexpected input encountered while processing struct '%s', the input data should be array or struct",
-                               type.c_str())
+                               type)
                 }
 
             } else {
                 WASM_THROW(invalid_type_inside_abi, "Unknown type '%s', The type should be built-in , array or struct",
-                           type.c_str());
+                           type);
             }
         }
-        WASM_CAPTURE_AND_RETHROW("Can not convert '%s' to '%s'", type.c_str(), json_spirit::write(var).c_str())
+        WASM_CAPTURE_AND_RETHROW("Can not convert '%s' to '%s'", type, json_spirit::write(var))
 
     }
 
@@ -497,21 +497,21 @@ namespace wasm {
                     ctx.check_deadline();
                     WASM_ASSERT(find(types_seen.begin(), types_seen.end(), itr->second) == types_seen.end(),
                                 abi_circular_def_exception, "Circular reference in type %s",
-                                itr->second.c_str());
+                                itr->second);
 
                     types_seen.emplace_back(itr->second);
                     itr = typedefs.find(itr->second);
                 }
             }
-            WASM_CAPTURE_AND_RETHROW("Unknown new type %s", t.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Unknown new type %s", t.first)
         }
 
         for (const auto &t : typedefs) {
             try {
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
-                            "Unknown type %s", t.second.c_str());
+                            "Unknown type %s", t.second);
             }
-            WASM_CAPTURE_AND_RETHROW("Unknown type %s", t.second.c_str())
+            WASM_CAPTURE_AND_RETHROW("Unknown type %s", t.second)
         }
 
         for (const auto &s : structs) {
@@ -524,7 +524,7 @@ namespace wasm {
                         const auto &base = get_struct(current.base); //<-- force struct to inherit from another struct
                         WASM_ASSERT(find(types_seen.begin(), types_seen.end(), base.name) == types_seen.end(),
                                     abi_circular_def_exception,
-                                    "Circular reference in struct '%s'", s.second.name.c_str());
+                                    "Circular reference in struct '%s'", s.second.name);
 
                         types_seen.emplace_back(base.name);
                         current = base;
@@ -535,14 +535,14 @@ namespace wasm {
                     try {
                         ctx.check_deadline();
                         WASM_ASSERT(_is_type(_remove_bin_extension(field.type), ctx), invalid_type_inside_abi,
-                                    "Invalid type inside abi in type '%s'", field.type.c_str());
+                                    "Invalid type inside abi in type '%s'", field.type);
                     }
-                    WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s' field '%s'", s.first.c_str(),
-                                             field.type.c_str())
+                    WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s' field '%s'", s.first,
+                                             field.type)
                 }
 
             }
-            WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s'", s.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Parse error in struct '%s'", s.first)
         }
 
         // //check struct in recursion
@@ -553,7 +553,7 @@ namespace wasm {
             try {
                 check_struct_in_recursion(s.second, r, ctx);
             }
-            WASM_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Circular reference in struct '%s'", s.first)
         }
 
 
@@ -561,18 +561,18 @@ namespace wasm {
             try {
                 ctx.check_deadline();
                 WASM_ASSERT(_is_type(a.second, ctx), invalid_type_inside_abi,
-                            "Invalid type inside abi in action '%s'", a.second.c_str());
+                            "Invalid type inside abi in action '%s'", a.second);
             }
-            WASM_CAPTURE_AND_RETHROW("action %s error", a.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("action %s error", a.first)
         }
 
         for (const auto &t : tables) {
             try {
                 ctx.check_deadline();
                 WASM_ASSERT(_is_type(t.second, ctx), invalid_type_inside_abi,
-                            "Invalid type inside abi in table '%s'", t.second.c_str());
+                            "Invalid type inside abi in table '%s'", t.second);
             }
-            WASM_CAPTURE_AND_RETHROW("Table '%s' error", t.first.c_str())
+            WASM_CAPTURE_AND_RETHROW("Table '%s' error", t.first)
         }
     }
 

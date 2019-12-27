@@ -72,7 +72,7 @@ namespace wasm {
                 WASM_ASSERT(false,
                             missing_auth_exception,
                             "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
-                            wasm::name(_receiver).to_string().c_str(), wasm::name(p.account).to_string().c_str());
+                            wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
             }
 
             //call contract-self and authorized by contract
@@ -83,7 +83,7 @@ namespace wasm {
                 WASM_ASSERT(false,
                             missing_auth_exception,
                             "Missing authorization by account %s in a new inline  transaction",
-                            wasm::name(p.account).to_string().c_str());
+                            wasm::name(p.account).to_string());
             }
 
             //call another contract
@@ -91,7 +91,7 @@ namespace wasm {
             //     WASM_ASSERT(false,
             //                 missing_auth_exception,
             //                 "Inline to another contract can be only authorized by contract-self %s in wasmio.code, but get %s",
-            //                 wasm::name(_receiver).to_string().c_str(), wasm::name(p.account).to_string().c_str());
+            //                 wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
             // }
 
         }
@@ -182,14 +182,14 @@ namespace wasm {
             o << e.detail();
             if (_pending_console_output.str().size() > 0){
                 o << " , " << tfm::format("pending console output: %s",
-                                          _pending_console_output.str().c_str());
+                                          _pending_console_output.str());
             }
             e.msg = o.str();
             throw;
         } catch (...) {
             if (_pending_console_output.str().size() > 0){
                 throw wasm_exception(
-                        tfm::format("pending console output: %s", _pending_console_output.str().c_str()).c_str());
+                        tfm::format("pending console output: %s", _pending_console_output.str()).c_str());
             } else {
                 throw;
             }
@@ -232,7 +232,7 @@ namespace wasm {
                 return;
             }
         }
-        WASM_ASSERT(false, missing_auth_exception, "missing authority of %s", wasm::name(account).to_string().c_str());
+        WASM_ASSERT(false, missing_auth_exception, "missing authority of %s", wasm::name(account).to_string());
     }
 
     bool wasm_context::has_authorization( uint64_t account ) const {

@@ -53,13 +53,13 @@ namespace wasm {
                 _runtime->_bkend->timed_run(wd, fn);
             } catch (vm::timeout_exception &) {
                 //pContext->trx_pContext->checktime();
-                WASM_THROW(wasm_timeout_exception, "%s", "timeout exception");
+                WASM_THROW(wasm_timeout_exception, "timeout exception");
                 //WASM_TRACE("receiver:%d contract:%d action:%d",pContext->receiver(), pContext->contract(), pContext->action() )
             } catch (vm::wasm_memory_exception &e) {
-                WASM_THROW(wasm_execution_error, "%s", "access violation");
+                WASM_THROW(wasm_execution_error, "access violation");
             } catch (vm::exception &e) {
                 // FIXME: Do better translation
-                WASM_THROW(wasm_execution_error, "%s", "something went wrong...");
+                WASM_THROW(wasm_execution_error, "something went wrong...");
             }
             _runtime->_bkend = nullptr;
         }

@@ -99,8 +99,8 @@ namespace wasm {
 
         template<typename T>
         static void AddPrefix( T t, string &key ) {
-            std::vector<char> k = wasm::pack(t);
-            key                 = string((const char *) k.data(), k.size()) + key;
+            std::vector<char> prefix = wasm::pack(t);
+                              key    = string((const char *) prefix.data(), prefix.size()) + key;
         }
 
         //system
@@ -114,17 +114,17 @@ namespace wasm {
 
         void wasm_assert_message( uint32_t test,  const void *msg, uint32_t msg_len ) {
             if (!test) {             
-                WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(msg) + msg_len), 
-                             wasm_memory_exception, 
-                             "access violation")
+                WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(msg) + msg_len), 
+                            wasm_memory_exception, 
+                            "access violation")
 
-                WASM_ASSERT( msg_len < max_wasm_api_data_bytes, 
-                             api_data_size_too_big_exception, 
-                             "msg size must be < %ld, but get %ld",
-                             max_wasm_api_data_bytes, msg_len)
+                WASM_ASSERT(msg_len < max_wasm_api_data_bytes, 
+                            api_data_size_too_big_exception, 
+                            "msg size must be < %ld, but get %ld",
+                            max_wasm_api_data_bytes, msg_len)
 
                 std::string str = string((const char *) msg, msg_len);
-                WASM_ASSERT( false, wasm_assert_code_exception, str.c_str())
+                WASM_ASSERT( false, wasm_assert_code_exception, str)
             }
         }
 
@@ -132,7 +132,7 @@ namespace wasm {
             if (!test) {
                 std::ostringstream o;
                 o << code;
-                WASM_ASSERT( false, wasm_assert_code_exception, o.str().c_str())
+                WASM_ASSERT(false, wasm_assert_code_exception, o.str())
             }
         }
 
@@ -153,8 +153,8 @@ namespace wasm {
             if (buf_len == 0) return s;
 
             uint32_t copy_len = std::min(buf_len, s);
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(memory) + copy_len), 
-                         wasm_memory_exception, "access violation")
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(memory) + copy_len), 
+                        wasm_memory_exception, "access violation")
 
             std::memcpy(memory, pWasmContext->get_action_data(), copy_len);
             return copy_len;
@@ -177,20 +177,18 @@ namespace wasm {
 
         //database
         int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
-                         wasm_memory_exception, "access violation")
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(val) + val_len), 
-                         wasm_memory_exception, "access violation")
-
-            WASM_ASSERT( key_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception,
-                         "key size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, key_len)
-
-            WASM_ASSERT( val_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "value size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, val_len)
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(val) + val_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(key_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception,
+                        "key size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, key_len)
+            WASM_ASSERT(val_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "value size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, val_len)
 
             string k        = string((const char *) key, key_len);
             string v        = string((const char *) val, val_len);
@@ -198,10 +196,9 @@ namespace wasm {
 
             AddPrefix(contract, k);
 
-            WASM_ASSERT( pWasmContext->set_data(contract, k, v), 
-                         wasm_assert_exception, 
-                         "db_store failed, key: %s",
-                         ToHex(k).c_str())
+            WASM_ASSERT(pWasmContext->set_data(contract, k, v), 
+                        wasm_assert_exception, 
+                        "db_store failed, key: %s", ToHex(k))
 
             pWasmContext->update_storage_usage(payer, k.size() + v.size());
 
@@ -209,22 +206,20 @@ namespace wasm {
         }
 
         int32_t db_remove( const uint64_t payer, const void *key, uint32_t key_len ) {
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
-                         wasm_memory_exception, "access violation")
-
-            WASM_ASSERT( key_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception,
-                         "key size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, key_len)
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(key_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception,
+                        "key size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, key_len)
 
             string k        = string((const char *) key, key_len);
             auto   contract = pWasmContext->receiver();
             AddPrefix(contract, k);
 
-            WASM_ASSERT( pWasmContext->erase_data(contract, k),
-                         wasm_assert_exception, 
-                         "db_remove failed, key: %s",
-                         ToHex(k).c_str())
+            WASM_ASSERT(pWasmContext->erase_data(contract, k),
+                        wasm_assert_exception, 
+                        "db_remove failed, key: %s", ToHex(k))
 
             pWasmContext->update_storage_usage(payer, k.size());
 
@@ -232,20 +227,18 @@ namespace wasm {
         }
 
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
-                         wasm_memory_exception, "access violation")
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(val) + val_len), 
-                         wasm_memory_exception, "access violation")
-
-            WASM_ASSERT( key_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception,
-                         "key size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, key_len)
-
-            WASM_ASSERT( val_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "value size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, val_len)
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(val) + val_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(key_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception,
+                        "key size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, key_len)
+            WASM_ASSERT(val_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "value size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, val_len)
 
             string k        = string((const char *) key, key_len);
             auto   contract = pWasmContext->receiver();
@@ -265,30 +258,27 @@ namespace wasm {
         }
 
         int32_t db_update( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
-                         wasm_memory_exception, "access violation")
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(val) + val_len), 
-                         wasm_memory_exception, "access violation")
-
-            WASM_ASSERT( key_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception,
-                         "key size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, key_len)
-
-            WASM_ASSERT( val_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "value size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, val_len)
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(val) + val_len), 
+                        wasm_memory_exception, "access violation")
+            WASM_ASSERT(key_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception,
+                        "key size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, key_len)
+            WASM_ASSERT(val_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "value size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, val_len)
 
             string k        = string((const char *) key, key_len);
             string v        = string((const char *) val, val_len);
             auto   contract = pWasmContext->receiver();
             AddPrefix(contract, k);
 
-            WASM_ASSERT( pWasmContext->set_data(contract, k, v), 
-                         wasm_assert_exception, 
-                         "db_update failed, key: %s",
-                         ToHex(k).c_str())
+            WASM_ASSERT(pWasmContext->set_data(contract, k, v), 
+                        wasm_assert_exception, 
+                        "db_update failed, key: %s", ToHex(k))
 
             pWasmContext->update_storage_usage(payer, k.size() + v.size());
 
@@ -345,10 +335,10 @@ namespace wasm {
 
         void prints( const void *str ) {
             auto size = strlen((const char*)str); 
-            WASM_ASSERT( size < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "wasm api data size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, size )
+            WASM_ASSERT(size < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "wasm api data size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, size )
 
             if (!print_ignore) {
                 std::ostringstream o;
@@ -358,14 +348,13 @@ namespace wasm {
         }
 
         void prints_l( const void *str, uint32_t str_len ) {
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(str) + str_len), 
-                         wasm_memory_exception, 
-                         "access violation")
-
-            WASM_ASSERT( str_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "wasm api data size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, str_len )
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(str) + str_len), 
+                        wasm_memory_exception, 
+                        "access violation")
+            WASM_ASSERT(str_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "wasm api data size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, str_len )
 
             if (!print_ignore) {
                 pWasmContext->console_append(string((const char*)str, str_len));
@@ -458,14 +447,14 @@ namespace wasm {
 
         void printhex( const char *data, uint32_t data_len ) {
 
-            WASM_ASSERT( data_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "wasm api data size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, data_len )
+            WASM_ASSERT(data_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "wasm api data size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, data_len )
 
             if (!print_ignore) {
                 string str((const char*)data, data_len);
-                pWasmContext->console_append(ToHex(str, ""));
+                pWasmContext->console_append(ToHex(str));
             }
         }
         
@@ -483,9 +472,9 @@ namespace wasm {
         }
 
         void require_recipient( uint64_t recipient ) {
-            WASM_ASSERT( is_account(recipient), account_operation_exception, 
-                         "can not send a receipt to a non-exist account '%s'",
-                         wasm::name(recipient).to_string().c_str());
+            WASM_ASSERT(is_account(recipient), account_operation_exception, 
+                        "can not send a receipt to a non-exist account '%s'",
+                        wasm::name(recipient).to_string());
 
             pWasmContext->require_recipient(recipient);
 
@@ -497,10 +486,10 @@ namespace wasm {
 
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
-            WASM_ASSERT( data_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "wasm api data size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, data_len )
+            WASM_ASSERT(data_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "wasm api data size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, data_len )
 
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
             pWasmContext->execute_inline(trx);
@@ -515,18 +504,17 @@ namespace wasm {
             // active_producers.push_back(wasm::name("walker"));
             // active_producers = pWasmContext->get_active_producers();
 
-            size_t len = active_producers.size() * sizeof(uint64_t);
+            size_t len   = active_producers.size() * sizeof(uint64_t);
             if(data_len == 0) return len;
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
-
-            WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(producers) + copy_len), 
-                         wasm_memory_exception, 
-                         "access violation")
-            WASM_ASSERT( copy_len < max_wasm_api_data_bytes, 
-                         api_data_size_too_big_exception, 
-                         "wasm api data size must be < %ld, but get %ld",
-                         max_wasm_api_data_bytes, copy_len )
+            WASM_ASSERT(pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(producers) + copy_len), 
+                        wasm_memory_exception, 
+                        "access violation")
+            WASM_ASSERT(copy_len < max_wasm_api_data_bytes, 
+                        api_data_size_too_big_exception, 
+                        "wasm api data size must be < %ld, but get %ld",
+                        max_wasm_api_data_bytes, copy_len )
 
             std::memcpy(producers, active_producers.data(), copy_len);
             return copy_len;

@@ -64,7 +64,7 @@ namespace wasm {
     }
 
     template<typename T>
-    static inline string ToHex( const T &t, string separator = " " ) {
+    static inline string ToHex( const T &t, string separator = "" ) {
         const std::string hex = "0123456789abcdef";
         std::ostringstream o;
 
