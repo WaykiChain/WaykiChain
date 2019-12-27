@@ -192,14 +192,11 @@ namespace wasm {
                          "value size must be < %ld, but get %ld",
                          max_wasm_api_data_bytes, val_len)
 
-            string k                = string((const char *) key, key_len);
-            string v                = string((const char *) val, val_len);
-            const uint64_t contract = pWasmContext->receiver();
+            string k        = string((const char *) key, key_len);
+            string v        = string((const char *) val, val_len);
+            auto   contract = pWasmContext->receiver();
 
             AddPrefix(contract, k);
-            //const uint64_t contract = pWasmContext->receiver();
-            // wasm_assert(pWasmContext->set_data(contract, k, v), ("wasm db_store failed, key:" +
-            //                                                     ToHex(k)).c_str());      //wasmContext.AppendUndo(contract, k, oldValue);
 
             WASM_ASSERT( pWasmContext->set_data(contract, k, v), 
                          wasm_assert_exception, 
@@ -215,19 +212,23 @@ namespace wasm {
             WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(key) + key_len), 
                          wasm_memory_exception, "access violation")
 
-            WASM_ASSERT(key_len < max_wasm_api_data_bytes, api_data_size_too_big_exception, "key size too big");
+            WASM_ASSERT( key_len < max_wasm_api_data_bytes, 
+                         api_data_size_too_big_exception,
+                         "key size must be < %ld, but get %ld",
+                         max_wasm_api_data_bytes, key_len)
 
-            string k = string((const char *) key, key_len);
-            AddPrefix(pWasmContext->receiver(), k);
+            string k        = string((const char *) key, key_len);
+            auto   contract = pWasmContext->receiver();
 
-            const uint64_t contract = pWasmContext->receiver();
+            AddPrefix(contract, k);
 
-            // string v;
-            // wasm_assert(pWasmContext->get_data(contract, k, v),
-            //             ("wasm db_remove get_data key fail, key:" + ToHex(k, "")).c_str());
+            // wasm_assert(pWasmContext->erase_data(contract, k),
+            //            ("db_remove failed, key:" + ToHex(k, " ")).c_str());
 
-            wasm_assert(pWasmContext->erase_data(contract, k),
-                        ("db_remove failed, key:" + ToHex(k, " ")).c_str());
+            WASM_ASSERT( pWasmContext->erase_data(contract, k),
+                         wasm_assert_exception, 
+                         "db_remove failed, key: %s",
+                         ToHex(k).c_str())
 
             pWasmContext->update_storage_usage(payer, k.size());
 
@@ -250,15 +251,14 @@ namespace wasm {
                          "value size must be < %ld, but get %ld",
                          max_wasm_api_data_bytes, val_len)
 
-            string k = string((const char *) key, key_len);
-            AddPrefix(pWasmContext->receiver(), k);
+            string k        = string((const char *) key, key_len);
+            auto   contract = pWasmContext->receiver();
+            AddPrefix(contract, k);
 
             string v;
-            const uint64_t contract = pWasmContext->receiver();
-
             if (!pWasmContext->get_data(contract, k, v)) return 0;
 
-            auto size = v.size();
+            auto size    = v.size();
             if (val_len == 0) return size;
 
             auto val_size = val_len > size ? size : val_len;
@@ -284,19 +284,18 @@ namespace wasm {
                          "value size must be < %ld, but get %ld",
                          max_wasm_api_data_bytes, val_len)
 
-            string k = string((const char *) key, key_len);
-            string v = string((const char *) val, val_len);
+            string k        = string((const char *) key, key_len);
+            string v        = string((const char *) val, val_len);
+            auto   contract = pWasmContext->receiver();
+            AddPrefix(contract, k);
 
-            AddPrefix(pWasmContext->receiver(), k);
+            // wasm_assert(pWasmContext->set_data(contract, k, v),
+            //             ("set_data key fail, key:" + ToHex(k, "")).c_str());
+            WASM_ASSERT( pWasmContext->set_data(contract, k, v), 
+                         wasm_assert_exception, 
+                         "db_update failed, key: %s",
+                         ToHex(k).c_str())
 
-            const uint64_t contract = pWasmContext->receiver();
-            // string old_value;
-            // wasm_assert(pWasmContext->get_data(contract, k, old_value),
-            //             ("wasm db_update db_get key fail, key:" + ToHex(k, "")).c_str());
-            wasm_assert(pWasmContext->set_data(contract, k, v),
-                        ("set_data key fail, key:" + ToHex(k, "")).c_str());
-
-            //pWasmContext->update_storage_usage(payer, v.size() - old_value.size());
             pWasmContext->update_storage_usage(payer, k.size() + v.size());
 
             return 1;
@@ -351,8 +350,12 @@ namespace wasm {
         }
 
         void prints( const void *str ) {
-            WASM_ASSERT(strlen((const char*)str) < max_wasm_api_data_bytes, 
-                        api_data_size_too_big_exception, "string size too big");
+            auto size = strlen((const char*)str);
+            WASM_ASSERT( size < max_wasm_api_data_bytes, 
+                         api_data_size_too_big_exception, 
+                         "wasm api data size must be < %ld, but get %ld",
+                         max_wasm_api_data_bytes, size )
+
 
             if (!print_ignore) {
                 std::ostringstream o;
@@ -363,9 +366,14 @@ namespace wasm {
 
         void prints_l( const void *str, uint32_t str_len ) {
             WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(str) + str_len), 
-                wasm_memory_exception, "access violation")
+                         wasm_memory_exception, 
+                         "access violation")
 
-            WASM_ASSERT(str_len < max_wasm_api_data_bytes, api_data_size_too_big_exception, "string size too big");
+            WASM_ASSERT( str_len < max_wasm_api_data_bytes, 
+                         api_data_size_too_big_exception, 
+                         "wasm api data size must be < %ld, but get %ld",
+                         max_wasm_api_data_bytes, str_len )
+
             if (!print_ignore) {
                 pWasmContext->console_append(string((const char*)str, str_len));
             }
@@ -456,11 +464,13 @@ namespace wasm {
         }
 
         void printhex( const char *data, uint32_t data_len ) {
+
+            WASM_ASSERT( data_len < max_wasm_api_data_bytes, 
+                         api_data_size_too_big_exception, 
+                         "wasm api data size must be < %ld, but get %ld",
+                         max_wasm_api_data_bytes, data_len )
+
             if (!print_ignore) {
-
-                WASM_ASSERT(data_len < max_wasm_api_data_bytes, api_data_size_too_big_exception,
-                            "wasm api data too big");
-
                 string str((const char*)data, data_len);
                 pWasmContext->console_append(ToHex(str, ""));
             }
@@ -480,7 +490,6 @@ namespace wasm {
         }
 
         void require_recipient( uint64_t recipient ) {
-
             WASM_ASSERT( is_account(recipient), account_operation_exception, 
                          "can not send a receipt to a non-exist account '%s'",
                          wasm::name(recipient).to_string().c_str());
@@ -495,8 +504,11 @@ namespace wasm {
 
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
-            WASM_ASSERT(data_len < max_inline_transaction_bytes, inline_transaction_too_big,
-                        "inline transaction too big");
+            WASM_ASSERT( data_len < max_wasm_api_data_bytes, 
+                         api_data_size_too_big_exception, 
+                         "wasm api data size must be < %ld, but get %ld",
+                         max_wasm_api_data_bytes, data_len )
+
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
             pWasmContext->execute_inline(trx);
 
@@ -516,9 +528,12 @@ namespace wasm {
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
 
             WASM_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<const char*>(producers) + copy_len), 
-                         wasm_memory_exception, "access violation")
-            WASM_ASSERT(copy_len < max_wasm_api_data_bytes, api_data_size_too_big_exception, 
-                        "wasm api data too big");
+                         wasm_memory_exception, 
+                         "access violation")
+            WASM_ASSERT( copy_len < max_wasm_api_data_bytes, 
+                         api_data_size_too_big_exception, 
+                         "wasm api data size must be < %ld, but get %ld",
+                         max_wasm_api_data_bytes, copy_len )
 
             std::memcpy(producers, active_producers.data(), copy_len);
             return copy_len;
