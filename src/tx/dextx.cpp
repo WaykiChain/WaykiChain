@@ -17,7 +17,7 @@ using uint128_t = unsigned __int128;
 static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &orderId,
                               uint64_t fee_ratio, const string &title) {
     static_assert(DEX_ORDER_FEE_RATIO_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
-    if (fee_ratio <= DEX_ORDER_FEE_RATIO_MAX)
+    if (fee_ratio > DEX_ORDER_FEE_RATIO_MAX)
         return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
             title, orderId.ToString(), fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
     return true;
@@ -138,9 +138,9 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
         if(!GetDexOperator(context, dex_id, spOperatorDetail, title)) return false;
 
         CRegID &operator_regid = operator_signature_pair.value().regid;
-        if (operator_regid != spOperatorDetail->match_regid)
+        if (operator_regid != spOperatorDetail->fee_receiver_regid)
             return context.pState->DoS(100, ERRORMSG("%s, wrong operator regid=%s vs %s! mode=%s",
-                title, operator_regid.ToString(), spOperatorDetail->match_regid.ToString(), mode.Name()),
+                title, operator_regid.ToString(), spOperatorDetail->fee_receiver_regid.ToString(), mode.Name()),
                 REJECT_INVALID, "bad-getaccount");
 
         CAccount operatorAccount;
@@ -891,10 +891,10 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
     shared_ptr<DexOperatorDetail> pSettleOperatorDetail;
     if (!GetDexOperator(context, dex_id, pSettleOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
 
-    if (!pSrcAccount->IsMyUid(pSettleOperatorDetail->match_regid))
+    if (!pSrcAccount->IsMyUid(pSettleOperatorDetail->fee_receiver_regid))
         return state.DoS(100, ERRORMSG("%s(), tx account is not the matcher of dex operator! dex_id=%u, "
-            "tx_uid=%s, match_regid=%s", __func__, dex_id, txUid.ToDebugString(),
-            pSettleOperatorDetail->match_regid.ToString()),
+            "tx_uid=%s, fee_receiver_regid=%s", __func__, dex_id, txUid.ToDebugString(),
+            pSettleOperatorDetail->fee_receiver_regid.ToString()),
             REJECT_INVALID, "invalid_dex_operator_matcher");
 
     map<CRegID, shared_ptr<CAccount>> accountMap = {
@@ -929,14 +929,14 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
             pBuyMatchAccount = pSrcAccount;
         } else {
             if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-            if (!GetAccount(context, pBuyOperatorDetail->match_regid, accountMap, pBuyMatchAccount)) return false;
+            if (!GetAccount(context, pBuyOperatorDetail->fee_receiver_regid, accountMap, pBuyMatchAccount)) return false;
         }
         if (sellDexId == dex_id) {
             pSellOperatorDetail = pSettleOperatorDetail;
             pSellMatchAccount = pSrcAccount;
         } else {
             if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-            if (!GetAccount(context, pSellOperatorDetail->match_regid, accountMap, pSellMatchAccount)) return false;
+            if (!GetAccount(context, pSellOperatorDetail->fee_receiver_regid, accountMap, pSellMatchAccount)) return false;
         }
 
         // 3. check coin type match

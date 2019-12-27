@@ -13,7 +13,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // class DEX_DB
 
-static uint32_t MAIN_DEX_ID = 1 ;
+static uint32_t MAIN_DEX_ID = 0 ;
 
 void DEX_DB::OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj) {
         obj.push_back(Pair("order_id", orderId.ToString()));
@@ -411,8 +411,7 @@ bool CDexDBCache::IncDexID(DexID &id) {
     if (newId == ULONG_MAX)
         return ERRORMSG("%s, dex operator id is inc to max! last_id=%ul\n", __func__, newId);
     newId++;
-    if(newId == MAIN_DEX_ID )
-        newId++ ;
+
     if (operator_last_id_cache.SetData(idVariant)) {
         id = newId;
         return true;
@@ -425,7 +424,7 @@ bool Dex0(DexOperatorDetail& detail){
     uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
     CRegID regid(strprintf("%d-3",stableGensisHeight)) ;
     detail.owner_regid =  regid;
-    detail.match_regid = regid;
+    detail.fee_receiver_regid = regid;
     detail.name = "wayki-dex" ;
     detail.portal_url = "https://dex.waykichain.com" ;
     detail.taker_fee_ratio = 40000 ;
@@ -446,8 +445,9 @@ bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
 }
 
 bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &id, DexOperatorDetail& detail) {
-    if (operator_owner_map_cache.GetData(regid.ToRawString(), id)) {
-        return GetDexOperator(id, detail);
+    CDexDiskID idVarint(id) ;
+    if (operator_owner_map_cache.GetData(regid.ToRawString(), idVarint)) {
+        return GetDexOperator(idVarint.GetValue(), detail);
     }else {
         uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
         CRegID sysRegId(strprintf("%d-3",stableGensisHeight)) ;
@@ -505,7 +505,7 @@ bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& ol
     decltype(operator_detail_cache)::KeyType idKey(id);
     if (old_detail.owner_regid != detail.owner_regid) {
         if (!operator_owner_map_cache.EraseData(old_detail.owner_regid.ToRawString()) ||
-            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), id)){
+            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), CDexDiskID(id))){
             return false;
         }
 

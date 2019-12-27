@@ -16,6 +16,30 @@
 
 typedef uint32_t DexID;
 
+
+class CDexDiskID{
+
+private:
+    uint32_t value = 0 ;
+
+public:
+    bool IsEmpty() const { return false ;}
+    void SetEmpty() {}
+    CDexDiskID(){}
+    CDexDiskID(uint32_t id):value(id){}
+    uint32_t GetValue() const { return value ;}
+    string ToString() const { return strprintf("%d", value) ;}
+
+    friend bool operator==(const CDexDiskID& d1, const CDexDiskID& d2 ){ return d1.value == d2.value ;}
+    friend bool operator!=(const CDexDiskID& d1, const CDexDiskID& d2 ){ return d1.value != d2.value ;}
+    friend bool operator<( const CDexDiskID& d1, const CDexDiskID& d2 ){ return d1.value < d2.value ;}
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(value));
+    )
+};
+
+
+
 static const DexID DEX_RESERVED_ID = 0;
 
 enum OrderSide: uint8_t {
@@ -93,20 +117,20 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
         READWRITE((uint8_t&)value);
     )
 
-    bool IsValid() {
-        return value == DEFAULT || value == REQUIRE_AUTH;
-    }
+    bool IsValid();
 
-    string Name() const {
-        switch (value) {
-            case DEFAULT: return "DEFAULT";
-            case REQUIRE_AUTH: return "REQUIRE_AUTH";
-            default: return "";
-        }
-    }
+    const string& Name() const;
+
+    static bool Parse(const string &name, OrderOperatorMode &mode);
+
+    static OrderOperatorMode GetDefault();
 
     bool operator==(const Mode &modeValue) const { return this->value == modeValue; }
     bool operator!=(const Mode &modeValue) const { return this->value != modeValue; }
+
+private:
+    static const EnumTypeMap<Mode, string> VALUE_NAME_MAP;
+    static const unordered_map<string, Mode> NAME_VALUE_MAP;
 };
 
 struct CDEXOrderDetail {
@@ -228,7 +252,7 @@ public:// create functions
 // dex operator
 struct DexOperatorDetail {
     CRegID owner_regid;                   // owner uid of exchange
-    CRegID match_regid;                   // match uid
+    CRegID fee_receiver_regid;                   // match uid
     string name              = "";       // domain name
     string portal_url        = "";
     uint64_t maker_fee_ratio = 0;
@@ -238,7 +262,7 @@ struct DexOperatorDetail {
 
     IMPLEMENT_SERIALIZE(
         READWRITE(owner_regid);
-        READWRITE(match_regid);
+        READWRITE(fee_receiver_regid);
         READWRITE(name);
         READWRITE(portal_url);
         READWRITE(VARINT(maker_fee_ratio));
@@ -247,12 +271,12 @@ struct DexOperatorDetail {
     )
 
     bool IsEmpty() const {
-        return owner_regid.IsEmpty() && match_regid.IsEmpty() && name.empty() && portal_url.empty() &&
+        return owner_regid.IsEmpty() && fee_receiver_regid.IsEmpty() && name.empty() && portal_url.empty() &&
                maker_fee_ratio == 0 && taker_fee_ratio == 0 && memo.empty();
     }
 
     void SetEmpty() {
-        owner_regid.SetEmpty(); match_regid.SetEmpty(); name = ""; portal_url = ""; maker_fee_ratio = 0;
+        owner_regid.SetEmpty(); fee_receiver_regid.SetEmpty(); name = ""; portal_url = ""; maker_fee_ratio = 0;
         taker_fee_ratio = 0; memo = "";
     }
 };

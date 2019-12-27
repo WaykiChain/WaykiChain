@@ -106,7 +106,7 @@ Object CDEXOperatorRegisterTx::ToJson(const CAccountDBCache &accountCache) const
     Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("owner_uid", data.owner_uid.ToString()));
-    result.push_back(Pair("match_uid", data.match_uid.ToString()));
+    result.push_back(Pair("fee_receiver_uid", data.fee_receiver_uid.ToString()));
     result.push_back(Pair("dex_name", data.name));
     result.push_back(Pair("portal_url", data.portal_url));
     result.push_back(Pair("maker_fee_ratio",data.maker_fee_ratio));
@@ -126,8 +126,8 @@ bool CDEXOperatorRegisterTx::CheckTx(CTxExecuteContext &context) {
             "owner-uid-type-error");
     }
 
-    if (!data.match_uid.is<CRegID>()) {
-        return state.DoS(100, ERRORMSG("%s, match_uid must be regid", __func__), REJECT_INVALID,
+    if (!data.fee_receiver_uid.is<CRegID>()) {
+        return state.DoS(100, ERRORMSG("%s, fee_receiver_uid must be regid", __func__), REJECT_INVALID,
             "match-uid-type-error");
     }
 
@@ -181,10 +181,10 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                 data.owner_uid.ToDebugString()), REJECT_INVALID, "owner-account-not-exist");
     }
     shared_ptr<CAccount> pMatchAccount;
-    if (!pTxAccount->IsMyUid(data.match_uid) && !pOwnerAccount->IsMyUid(data.match_uid)) {
-        if (!cw.accountCache.HaveAccount(data.match_uid))
-            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! match_uid=%s",
-                data.match_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
+    if (!pTxAccount->IsMyUid(data.fee_receiver_uid) && !pOwnerAccount->IsMyUid(data.fee_receiver_uid)) {
+        if (!cw.accountCache.HaveAccount(data.fee_receiver_uid))
+            return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! fee_receiver_uid=%s",
+                data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
     }
 
     if(cw.dexCache.HaveDexOperatorByOwner(pOwnerAccount->regid))
@@ -201,7 +201,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOperatorDetail detail = {
         data.owner_uid.get<CRegID>(),
-        data.match_uid.get<CRegID>(),
+        data.fee_receiver_uid.get<CRegID>(),
         data.name,
         data.portal_url,
         data.maker_fee_ratio,
@@ -222,7 +222,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
+bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_t currentHeight ){
 
     if(IsEmpty()){
         errmsg = "CDEXOperatorUpdateData::check(): update data is empty" ;
@@ -230,14 +230,24 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
         return false ;
     }
 
-    if(field == MATCH_UID || field == OWNER_UID){
-        string placeholder = (field == MATCH_UID)? "match": "owner" ;
+    if(field == FEE_RECEIVER_UID || field == OWNER_UID){
+        string placeholder = (field == FEE_RECEIVER_UID)? "fee_receiver": "owner" ;
 
-        CRegID regid(value);
+        auto uid = CUserID::ParseUserId(value);
+        if (!uid) {
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is a invalid account",placeholder, value);
+            errcode = strprintf("%s-uid-invalid", placeholder) ;
+            return false ;
+        }
         CAccount account ;
-        if(regid.IsEmpty() ||!pCdMan->pAccountCache->GetAccount(regid,account)){
-            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid must be a valid regid",placeholder);
-            errcode = strprintf("%s-uid-type-error", placeholder) ;
+        if( !pCdMan->pAccountCache->GetAccount(*uid,account)){
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is not exist! ",placeholder, value );
+            errcode = strprintf("%s-uid-invalid", placeholder) ;
+            return false ;
+        }
+        if( account.regid.IsEmpty() ||!account.IsRegistered() || !account.regid.IsMature(currentHeight)){
+            errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) don't have regid or regid is immature ! ",placeholder, value );
+            errcode = strprintf("%s-uid-invalid", placeholder) ;
             return false ;
         }
     }
@@ -277,9 +287,32 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode ){
 
 }
 
-bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail) {
-    if(field == MATCH_UID ) {
-       detail.match_regid = CRegID(value) ;
+bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
+
+
+    auto uid = CUserID::ParseUserId(value ) ;
+    if((*uid).is<CRegID>()){
+        regid =  (*uid).get<CRegID>() ;
+        return true;
+    }
+
+    CAccount account ;
+    if(cw.accountCache.GetAccount(*uid,account) && !account.regid.IsEmpty()){
+        regid = account.regid;
+        return true ;
+    }
+    return false ;
+}
+
+bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) {
+    if(field == FEE_RECEIVER_UID ) {
+        CRegID regid ;
+        if( GetRegID(cw ,regid)){
+            detail.fee_receiver_regid = regid ;
+            return true;
+        } else{
+            return false ;
+        }
     } else if(field == NAME ) {
         detail.name = value;
     } else if(field == PORTAL_URL) {
@@ -291,7 +324,13 @@ bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail) {
     } else if(field == MEMO) {
         detail.memo = value ;
     } else if( field == OWNER_UID) {
-        detail.owner_regid = CRegID(value) ;
+        CRegID regid ;
+        if(GetRegID(cw ,regid)){
+            detail.owner_regid = regid ;
+            return true ;
+        }else{
+            return false ;
+        }
     }
 
     return true ;
@@ -320,7 +359,7 @@ bool CDEXOperatorUpdateTx::CheckTx(CTxExecuteContext &context) {
 
     string errmsg ;
     string errcode ;
-    if(!update_data.Check(errmsg ,errcode)){
+    if(!update_data.Check(errmsg ,errcode, context.height )){
         return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::CheckTx, %s",errmsg), REJECT_INVALID, errcode);
     }
 
@@ -375,14 +414,17 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
 
     DexOperatorDetail detail = {
             oldDetail.owner_regid,
-            oldDetail.match_regid,
+            oldDetail.fee_receiver_regid,
             oldDetail.name,
             oldDetail.portal_url,
             oldDetail.maker_fee_ratio,
             oldDetail.taker_fee_ratio,
             oldDetail.memo
     };
-    update_data.UpdateToDexOperator(detail) ;
+    if(!update_data.UpdateToDexOperator(detail,cw) ){
+        return state.DoS(100, ERRORMSG("%s, copy updated dex operator error! dex_id=%u", __func__, update_data.dexId),
+                         UPDATE_ACCOUNT_FAIL, "copy-updated-operator-error");
+    }
 
     if (!cw.dexCache.UpdateDexOperator(update_data.dexId, oldDetail, detail))
         return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, update_data.dexId),

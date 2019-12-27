@@ -405,6 +405,22 @@ Array JSON::ToJson(const CAccountDBCache &accountCache, const vector<CReceipt> &
 ///////////////////////////////////////////////////////////////////////////////
 // namespace RPC_PARAM
 
+uint32_t RPC_PARAM::GetUint32(const Value &jsonValue) {
+    int64_t ret = jsonValue.get_int64();
+    if (ret < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("value=%lld out of range", ret));
+    }
+    return uint32_t(ret);
+}
+
+uint64_t RPC_PARAM::GetUint64(const Value &jsonValue) {
+    int64_t ret = jsonValue.get_int64();
+    if (ret < 0) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("value=%lld out of range", ret));
+    }
+    return uint64_t(ret);
+}
+
 ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
                                     const TokenSymbol &defaultSymbol) {
     ComboMoney money;
@@ -470,7 +486,7 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const Tx
     return fee;
 }
 
-CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid) {
+CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");

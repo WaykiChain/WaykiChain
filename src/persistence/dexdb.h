@@ -174,8 +174,8 @@ private:
     // order tx id -> active order
     CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,          uint256,                     CDEXOrderDetail >     activeOrderCache;
     DEXBlockOrdersCache    blockOrdersCache;
-    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CFixedLeb128<DexID>, DexOperatorDetail >   operator_detail_cache;
-    CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    string,                     DexID >       operator_owner_map_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       CDexDiskID, DexOperatorDetail >   operator_detail_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    string,                     CDexDiskID>       operator_owner_map_cache;
 
     CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexID>> operator_last_id_cache;
 };

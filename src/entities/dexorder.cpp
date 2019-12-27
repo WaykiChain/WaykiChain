@@ -8,6 +8,43 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
+//  struct OrderOperatorMode
+
+
+const EnumTypeMap<OrderOperatorMode::Mode, string> OrderOperatorMode::VALUE_NAME_MAP = {
+    {DEFAULT, "DEFAULT"},
+    {REQUIRE_AUTH, "REQUIRE_AUTH"}
+};
+
+const unordered_map<string, OrderOperatorMode::Mode> OrderOperatorMode::NAME_VALUE_MAP = {
+    {"DEFAULT", DEFAULT},
+    {"REQUIRE_AUTH", REQUIRE_AUTH}
+};
+
+bool OrderOperatorMode::IsValid() {
+    return VALUE_NAME_MAP.find(value) != VALUE_NAME_MAP.end();
+}
+
+const string& OrderOperatorMode::Name() const {
+    auto it = VALUE_NAME_MAP.find(value);
+    if (it != VALUE_NAME_MAP.end())
+        return it->second;
+    return EMPTY_STRING;
+}
+
+bool OrderOperatorMode::Parse(const string &name, OrderOperatorMode &mode) {
+    string n = StrToUpper(name);
+    auto it = NAME_VALUE_MAP.find(n);
+    if (it != NAME_VALUE_MAP.end()) {
+        mode = it->second;
+        return true;
+    }
+    return false;
+}
+
+OrderOperatorMode OrderOperatorMode::GetDefault() { return DEFAULT; }
+
+///////////////////////////////////////////////////////////////////////////////
 // class CDEXOrderDetail
 
 string CDEXOrderDetail::ToString() const {
