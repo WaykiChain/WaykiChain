@@ -176,8 +176,26 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     /* for dex */
     if (strMethod == "submitdexbuylimitordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 5) ConvertTo<bool>(params[5]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 6) ConvertTo<bool>(params[6]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 7) ConvertTo<int64_t>(params[7]);
 
     if (strMethod == "submitdexselllimitordertx"    && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexselllimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
+    if (strMethod == "submitdexselllimitordertx"     && n > 5) ConvertTo<bool>(params[5]);
+    if (strMethod == "submitdexselllimitordertx"     && n > 6) ConvertTo<bool>(params[6]);
+    if (strMethod == "submitdexselllimitordertx"     && n > 7) ConvertTo<int64_t>(params[7]);
+
+    if (strMethod == "submitdexbuymarketordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexbuymarketordertx"     && n > 4) ConvertTo<bool>(params[4]);
+    if (strMethod == "submitdexbuymarketordertx"     && n > 5) ConvertTo<bool>(params[5]);
+    if (strMethod == "submitdexbuymarketordertx"     && n > 6) ConvertTo<int64_t>(params[6]);
+
+    if (strMethod == "submitdexsellmarketordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
+    if (strMethod == "submitdexsellmarketordertx"     && n > 4) ConvertTo<bool>(params[4]);
+    if (strMethod == "submitdexsellmarketordertx"     && n > 5) ConvertTo<bool>(params[5]);
+    if (strMethod == "submitdexsellmarketordertx"     && n > 6) ConvertTo<int64_t>(params[6]);
 
     if (strMethod == "submitdexsettletx"            && n > 1) ConvertTo<Array>(params[1]);
 

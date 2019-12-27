@@ -103,63 +103,55 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
     return EMPTY_STRING;
 }
 
- struct OrderOperatorMode {
-    enum Mode: uint8_t {
-        DEFAULT,       // simple mode
-        REQUIRE_AUTH       // require dex operator authenticate (should have operator signature in tx)
-    };
-    Mode value = DEFAULT;
+struct OrderOpt {
+    uint8_t bits = 0;
 
-    OrderOperatorMode() {}
-    OrderOperatorMode(Mode valueIn): value(valueIn) {}
+    static const uint8_t IS_PUBLIC = 1 << 0;
+    static const uint8_t HAS_FEE   = 1 << 1;
+    static const uint8_t BITS_MAX  = (1 << 2) - 1;
+
+    OrderOpt() {}
+    OrderOpt(uint8_t bitsIn): bits(bitsIn) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE((uint8_t&)value);
+        READWRITE(bits);
     )
 
-    bool IsValid();
+    bool CheckValid();
 
-    const string& Name() const;
+    bool IsPublic() const;
 
-    static bool Parse(const string &name, OrderOperatorMode &mode);
+    void SetIsPublic(bool isPublic);
 
-    static OrderOperatorMode GetDefault();
+    bool HasFeeRatio() const;
 
-    bool operator==(const Mode &modeValue) const { return this->value == modeValue; }
-    bool operator!=(const Mode &modeValue) const { return this->value != modeValue; }
+    void SetHasFeeRatio(bool hasFee);
 
-private:
-    static const EnumTypeMap<Mode, string> VALUE_NAME_MAP;
-    static const unordered_map<string, Mode> NAME_VALUE_MAP;
+    void SetBit(bool enabled, uint8_t bit);
+
+    string ToString() const;
+    json_spirit::Object ToJson() const;
 };
 
 struct CDEXOrderDetail {
-    OrderOperatorMode mode;
-    DexID dex_id = 0;
-    uint64_t operator_fee_ratio        = 0;                 //!< operator fee ratio, effective in REQUIRE_AUTH mode
-    OrderGenerateType generate_type    = EMPTY_ORDER;       //!< generate type
-    OrderType order_type               = ORDER_LIMIT_PRICE; //!< order type
-    OrderSide order_side               = ORDER_BUY;         //!< order side
-    TokenSymbol coin_symbol            = "";                //!< coin symbol
-    TokenSymbol asset_symbol           = "";                //!< asset symbol
-    uint64_t coin_amount               = 0;                 //!< amount of coin to buy/sell asset
-    uint64_t asset_amount              = 0;                 //!< amount of asset to buy/sell
-    uint64_t price                     = 0;                 //!< price in coinType want to buy/sell asset
-    CTxCord  tx_cord                   = CTxCord();         //!< related tx cord
-    CRegID user_regid                  = CRegID();          //!< user regid
-    uint64_t total_deal_coin_amount    = 0;                 //!< total deal coin amount
-    uint64_t total_deal_asset_amount   = 0;                 //!< total deal asset amount
-
-public:
-    static shared_ptr<CDEXOrderDetail> CreateUserBuyLimitOrder(
-        const TokenSymbol &coinSymbol, const TokenSymbol &assetSymbol, const uint64_t assetAmountIn,
-        const uint64_t priceIn, const CTxCord &txCord, const CRegID &userRegid);
+    OrderGenerateType generate_type = EMPTY_ORDER;       //!< generate type
+    OrderType order_type            = ORDER_LIMIT_PRICE; //!< order type
+    OrderSide order_side            = ORDER_BUY;         //!< order side
+    TokenSymbol coin_symbol         = "";                //!< coin symbol
+    TokenSymbol asset_symbol        = "";                //!< asset symbol
+    uint64_t coin_amount            = 0;                 //!< amount of coin to buy/sell asset
+    uint64_t asset_amount           = 0;                 //!< amount of asset to buy/sell
+    uint64_t price                  = 0;          //!< price in coinType want to buy/sell asset
+    OrderOpt order_opt              = OrderOpt(); //!< order opt: is_public, has_fee_ratio
+    DexID dex_id                    = 0;          //!< dex id of operator
+    uint64_t match_fee_ratio        = 0;          //!< match fee ratio, effective when order_opt.HasFeeRatio()==true, otherwith must be 0
+    CTxCord tx_cord                  = CTxCord(); //!< related tx cord
+    CRegID user_regid                = CRegID();  //!< user regid
+    uint64_t total_deal_coin_amount  = 0;         //!< total deal coin amount
+    uint64_t total_deal_asset_amount = 0;         //!< total deal asset amount
 
 public:
     IMPLEMENT_SERIALIZE(
-        READWRITE(mode);
-        READWRITE(VARINT(dex_id));
-        READWRITE(VARINT(operator_fee_ratio));
         READWRITE((uint8_t&)generate_type);
         READWRITE((uint8_t&)order_type);
         READWRITE((uint8_t&)order_side);
@@ -168,6 +160,9 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(price));
+        READWRITE(order_opt);
+        READWRITE(VARINT(dex_id));
+        READWRITE(VARINT(match_fee_ratio));
         READWRITE(tx_cord);
         READWRITE(user_regid);
         READWRITE(VARINT(total_deal_coin_amount));
@@ -180,18 +175,7 @@ public:
         return generate_type == EMPTY_ORDER;
     }
     void SetEmpty() {
-        generate_type             = EMPTY_ORDER;
-        order_type                = ORDER_LIMIT_PRICE;
-        order_side                = ORDER_BUY;
-        coin_symbol               = "";
-        asset_symbol              = "";
-        coin_amount               = 0;
-        asset_amount              = 0;
-        price                     = 0;
-        tx_cord.SetEmpty();
-        user_regid.SetEmpty();
-        total_deal_coin_amount    = 0;
-        total_deal_asset_amount   = 0;
+        *this = CDEXOrderDetail();
     }
 
     string ToString() const;

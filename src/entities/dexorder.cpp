@@ -6,64 +6,64 @@
 #include "dexorder.h"
 #include "config/chainparams.h"
 
+////////////////////////////////////////////////////////////////////////////////
+// OrderOpt
 
-///////////////////////////////////////////////////////////////////////////////
-//  struct OrderOperatorMode
-
-
-const EnumTypeMap<OrderOperatorMode::Mode, string> OrderOperatorMode::VALUE_NAME_MAP = {
-    {DEFAULT, "DEFAULT"},
-    {REQUIRE_AUTH, "REQUIRE_AUTH"}
-};
-
-const unordered_map<string, OrderOperatorMode::Mode> OrderOperatorMode::NAME_VALUE_MAP = {
-    {"DEFAULT", DEFAULT},
-    {"REQUIRE_AUTH", REQUIRE_AUTH}
-};
-
-bool OrderOperatorMode::IsValid() {
-    return VALUE_NAME_MAP.find(value) != VALUE_NAME_MAP.end();
+bool OrderOpt::CheckValid() {
+    return bits <= BITS_MAX;
 }
 
-const string& OrderOperatorMode::Name() const {
-    auto it = VALUE_NAME_MAP.find(value);
-    if (it != VALUE_NAME_MAP.end())
-        return it->second;
-    return EMPTY_STRING;
+bool OrderOpt::IsPublic() const {
+    return (bits & IS_PUBLIC) != 0;
 }
 
-bool OrderOperatorMode::Parse(const string &name, OrderOperatorMode &mode) {
-    string n = StrToUpper(name);
-    auto it = NAME_VALUE_MAP.find(n);
-    if (it != NAME_VALUE_MAP.end()) {
-        mode = it->second;
-        return true;
-    }
-    return false;
+void OrderOpt::SetIsPublic(bool isPublic) {
+    SetBit(isPublic, IS_PUBLIC);
 }
 
-OrderOperatorMode OrderOperatorMode::GetDefault() { return DEFAULT; }
+bool OrderOpt::HasFeeRatio() const {
+    return (bits & HAS_FEE) != 0;
+}
+
+void OrderOpt::SetHasFeeRatio(bool hasFee) {
+    SetBit(hasFee, HAS_FEE);
+}
+
+void OrderOpt::SetBit(bool enabled, uint8_t bit) {
+    if (enabled)
+        bits |= bit;
+    else
+        bits ^= bit;
+}
+
+string OrderOpt::ToString() const {
+    return strprintf("is_public=%d, has_fee_ratio=%d", IsPublic(), HasFeeRatio());
+}
+json_spirit::Object OrderOpt::ToJson() const {
+    json_spirit::Object obj;
+    obj.push_back(Pair("is_public", IsPublic()));
+    obj.push_back(Pair("has_fee_ratio", HasFeeRatio()));
+    return obj;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXOrderDetail
 
 string CDEXOrderDetail::ToString() const {
-    return strprintf(
-        "mode=%s, dex_id=%u, operator_fee_ratio=%llu, generate_type=%s, order_side=%s, "
-        "order_type=%s, coin_symbol=%d, asset_symbol=%s, coin_amount=%lu,"
-        " asset_amount=%lu, price=%lu, tx_cord=%s, user_regid=%s, "
-        "total_deal_coin_amount=%llu, total_deal_asset_amount=%llu",
-        mode.Name(), dex_id, operator_fee_ratio, GetOrderGenTypeName(generate_type),
-        GetOrderSideName(order_side), GetOrderTypeName(order_type), coin_symbol, asset_symbol,
-        coin_amount, asset_amount, price, tx_cord.ToString(), user_regid.ToString(),
-        total_deal_coin_amount, total_deal_asset_amount);
+    return strprintf("generate_type=%s, order_side=%s, "
+                     "order_type=%s, coin_symbol=%d, asset_symbol=%s, coin_amount=%lu,"
+                     " asset_amount=%lu, price=%lu, order_opt={%s}, dex_id=%u, "
+                     "match_fee_ratio=%llu, tx_cord=%s, user_regid=%s, "
+                     "total_deal_coin_amount=%llu, total_deal_asset_amount=%llu",
+                     GetOrderGenTypeName(generate_type), GetOrderSideName(order_side),
+                     GetOrderTypeName(order_type), coin_symbol, asset_symbol, coin_amount,
+                     asset_amount, price, order_opt.ToString(), dex_id, match_fee_ratio,
+                     tx_cord.ToString(), user_regid.ToString(), total_deal_coin_amount,
+                     total_deal_asset_amount);
 }
 
 
 void CDEXOrderDetail::ToJson(json_spirit::Object &obj) const {
-    obj.push_back(Pair("mode",                      mode.Name()));
-    obj.push_back(Pair("dex_id",                    (int64_t)dex_id));
-    obj.push_back(Pair("operator_fee_ratio",        operator_fee_ratio));
     obj.push_back(Pair("generate_type",             GetOrderGenTypeName(generate_type)));
     obj.push_back(Pair("order_type",                GetOrderTypeName(order_type)));
     obj.push_back(Pair("order_side",                GetOrderSideName(order_side)));
@@ -72,6 +72,9 @@ void CDEXOrderDetail::ToJson(json_spirit::Object &obj) const {
     obj.push_back(Pair("coin_amount",               coin_amount));
     obj.push_back(Pair("asset_amount",              asset_amount));
     obj.push_back(Pair("price",                     price));
+    obj.push_back(Pair("order_opt",                 order_opt.ToJson()));
+    obj.push_back(Pair("dex_id",                    (int64_t)dex_id));
+    obj.push_back(Pair("match_fee_ratio",           match_fee_ratio));
     obj.push_back(Pair("tx_cord",                   tx_cord.ToString()));
     obj.push_back(Pair("user_regid",                user_regid.ToString()));
     obj.push_back(Pair("total_deal_coin_amount",    total_deal_coin_amount));
@@ -102,9 +105,6 @@ shared_ptr<CDEXOrderDetail> CDEXSysOrder::Create(OrderType orderType, OrderSide 
                                                  uint64_t coiAmountIn,
                                                  uint64_t assetAmountIn) {
     auto pSysOrder                = make_shared<CDEXOrderDetail>();
-    pSysOrder->mode               = OrderOperatorMode::REQUIRE_AUTH;
-    pSysOrder->dex_id             = 0;
-    pSysOrder->operator_fee_ratio = 0;
     pSysOrder->generate_type      = SYSTEM_GEN_ORDER;
     pSysOrder->order_type         = ORDER_MARKET_PRICE;
     pSysOrder->order_side         = ORDER_SELL;
@@ -113,6 +113,9 @@ shared_ptr<CDEXOrderDetail> CDEXSysOrder::Create(OrderType orderType, OrderSide 
     pSysOrder->coin_amount        = coiAmountIn;
     pSysOrder->asset_amount       = assetAmountIn;
     pSysOrder->price              = 0;
+    pSysOrder->order_opt          = OrderOpt::IS_PUBLIC | OrderOpt::HAS_FEE;
+    pSysOrder->dex_id             = 0;
+    pSysOrder->match_fee_ratio    = 0;
     pSysOrder->tx_cord            = txCord;
     pSysOrder->user_regid         = SysCfg().GetFcoinGenesisRegId();
     // other fields keep default value
