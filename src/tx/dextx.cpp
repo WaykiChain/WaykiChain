@@ -116,19 +116,10 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
         if (!CheckOrderFeeRateRange(context, GetHash(), match_fee_ratio, title))
             return false;
 
-        if (!operator_signature_pair) {
-            return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature is empty when has_fee_ratio=true",
-                title), REJECT_INVALID, "need-operator-signature");
-        }
-
         shared_ptr<DexOperatorDetail> spOperatorDetail;
         if(!GetDexOperator(context, dex_id, spOperatorDetail, title)) return false;
 
-        CRegID &operator_regid = operator_signature_pair.value().regid;
-        if (operator_regid != spOperatorDetail->fee_receiver_regid)
-            return context.pState->DoS(100, ERRORMSG("%s, wrong operator regid=%s vs %s",
-                title, operator_regid.ToString(), spOperatorDetail->fee_receiver_regid.ToString()),
-                REJECT_INVALID, "wrong-operator-regid");
+        CRegID &operator_regid = spOperatorDetail->fee_receiver_regid;
 
         CAccount operatorAccount;
         if (!context.pCw->accountCache.GetAccount(operator_regid, operatorAccount))
@@ -141,13 +132,12 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
                 "operator_regid=%s", title, operator_regid.ToString()),
                 REJECT_INVALID, "operator-account-unregistered");
 
-        const UnsignedCharArray operatorSignature = operator_signature_pair.value().signature;
-        if (!CheckSignatureSize(operatorSignature)) {
-            return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid", title,
-                operatorSignature.size()), REJECT_INVALID, "bad-operator-sig-size");
+        if (!CheckSignatureSize(operator_signature)) {
+            return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid when has_fee_ratio=true", title,
+                operator_signature.size()), REJECT_INVALID, "bad-operator-sig-size");
         }
         uint256 sighash = GetHash();
-        if (!VerifySignature(sighash, operatorSignature, operatorAccount.owner_pubkey)) {
+        if (!VerifySignature(sighash, operator_signature, operatorAccount.owner_pubkey)) {
             return context.pState->DoS(100, ERRORMSG("%s, check operator signature error",
                 title), REJECT_INVALID, "bad-operator-signature");
         }
@@ -157,7 +147,7 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
             return context.pState->DoS(100, ERRORMSG("%s(), match fee ratio=%llu must be 0 when has_fee_ratio=false",
                 title, match_fee_ratio), REJECT_INVALID, "invalid-match-fee-ratio");
 
-        if (operator_signature_pair)
+        if (operator_signature.empty())
             return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature is not empty when has_fee_ratio=false",
                 title), REJECT_INVALID, "no-need-operator-signature");
 

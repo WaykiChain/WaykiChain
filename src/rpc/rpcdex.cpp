@@ -42,17 +42,6 @@ namespace RPC_PARAM {
         return params.size() > 4? RPC_PARAM::GetUint32(params[4]) : DEX_RESERVED_ID;
     }
 
-    // static OrderOperatorMode GetOrderOpt(const Array& params, const size_t index) {
-    //     if (params.size() > index) {
-    //         const string &modeStr = params[index].get_str();
-    //         OrderOperatorMode mode;
-    //         if (!OrderOperatorMode::Parse(modeStr, mode))
-    //             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("operator_mode=%s invalid", modeStr));
-    //         return mode;
-    //     }
-    //     return OrderOperatorMode::DEFAULT;
-    // }
-
     uint64_t GetOperatorFeeRatio(const Array& params, const size_t index) {
         if (params.size() > index) {
             uint64_t ratio = RPC_PARAM::GetUint64(params[index]);
@@ -84,13 +73,22 @@ namespace RPC_PARAM {
         return orderOpt;
     }
 
+    DexOperatorDetail GetDexOperator(const DexID &dexId) {
+        DexOperatorDetail operatorDetail;
+        if (!pCdMan->pDexCache->GetDexOperator(dexId, operatorDetail))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the dex operator does not exist! dex_id=%u",
+                dexId));
+        return operatorDetail;
+    }
 } // namespace RPC_PARAM
 
 Object SubmitOrderTx(const CKeyID &txKeyid, shared_ptr<CDEXOrderBaseTx> &pOrderBaseTx) {
+
+    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(pOrderBaseTx->dex_id);
+
     if (!pWalletMain->HaveKey(txKeyid)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "tx user address not found in wallet");
     }
-
     const uint256 txHash = pOrderBaseTx->GetHash();
     if (!pWalletMain->Sign(txKeyid, txHash, pOrderBaseTx->signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
@@ -98,9 +96,7 @@ Object SubmitOrderTx(const CKeyID &txKeyid, shared_ptr<CDEXOrderBaseTx> &pOrderB
 
     shared_ptr<CBaseTx> pBaseTx = static_pointer_cast<CBaseTx>(pOrderBaseTx);
     if (pOrderBaseTx->order_opt.HasFeeRatio()) {
-        assert(pOrderBaseTx->operator_signature_pair);
-        const CRegID &operatorRegid = pOrderBaseTx->operator_signature_pair.value().regid;
-        CAccount operatorAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, operatorRegid);
+        CAccount operatorAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, operatorDetail.fee_receiver_regid);
         const CKeyID &operatorKeyid = operatorAccount.keyid;
         if (!pWalletMain->HaveKey(operatorKeyid)) {
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -108,12 +104,10 @@ Object SubmitOrderTx(const CKeyID &txKeyid, shared_ptr<CDEXOrderBaseTx> &pOrderB
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("dex operator address not found in wallet! "
                 "tx_raw_with_sign=%s", HexStr(ds.begin(), ds.end())));
         }
-        assert(pOrderBaseTx->operator_signature_pair);
-        if (!pWalletMain->Sign(operatorKeyid, txHash, pOrderBaseTx->operator_signature_pair.value().signature)) {
+        if (!pWalletMain->Sign(operatorKeyid, txHash, pOrderBaseTx->operator_signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
     }
-
 
     std::tuple<bool, string> ret = pWalletMain->CommitTx(pBaseTx.get());
     if (!std::get<0>(ret)) {
@@ -186,15 +180,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
                         assetInfo.symbol, assetInfo.GetSawiAmount(), price);
     } else {
-        DexOperatorDetail operatorDetail;
-        if (!pCdMan->pDexCache->GetDexOperator(dexId, operatorDetail))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the dex operator does not exist! dex_id=%u",
-                dexId));
-
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), price, orderOpt, dexId, operatorFeeRatio, memo,
-            &operatorDetail.fee_receiver_regid);
+            assetInfo.GetSawiAmount(), price, orderOpt, dexId, operatorFeeRatio, memo);
     }
 
     return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
@@ -256,15 +244,9 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
         pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
                         assetInfo.symbol, assetInfo.GetSawiAmount(), price);
     } else {
-        DexOperatorDetail operatorDetail;
-        if (!pCdMan->pDexCache->GetDexOperator(dexId, operatorDetail))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the dex operator does not exist! dex_id=%u",
-                dexId));
-
         pOrderBaseTx = make_shared<CDEXSellLimitOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), price, orderOpt, dexId, operatorFeeRatio, memo,
-            &operatorDetail.fee_receiver_regid);
+            assetInfo.GetSawiAmount(), price, orderOpt, dexId, operatorFeeRatio, memo);
     }
 
     return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
@@ -326,15 +308,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
                                                          cmFee.GetSawiAmount(), coinInfo.symbol,
                                                          assetSymbol, coinInfo.GetSawiAmount());
     } else {
-        DexOperatorDetail operatorDetail;
-        if (!pCdMan->pDexCache->GetDexOperator(dexId, operatorDetail))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the dex operator does not exist! dex_id=%u",
-                dexId));
-
         pOrderBaseTx = make_shared<CDEXBuyMarketOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinInfo.symbol, assetSymbol,
-            coinInfo.GetSawiAmount(), orderOpt, dexId, operatorFeeRatio, memo,
-            &operatorDetail.fee_receiver_regid);
+            coinInfo.GetSawiAmount(), orderOpt, dexId, operatorFeeRatio, memo);
     }
     return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
 }
@@ -395,15 +371,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
             assetInfo.GetSawiAmount());
     } else {
-        DexOperatorDetail operatorDetail;
-        if (!pCdMan->pDexCache->GetDexOperator(dexId, operatorDetail))
-            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the dex operator does not exist! dex_id=%u",
-                dexId));
-
         pOrderBaseTx = make_shared<CDEXSellMarketOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), orderOpt, dexId, operatorFeeRatio, memo,
-            &operatorDetail.fee_receiver_regid);
+            assetInfo.GetSawiAmount(), orderOpt, dexId, operatorFeeRatio, memo);
     }
     return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
 }
