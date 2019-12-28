@@ -640,16 +640,41 @@ struct DEXDealItem  {
     string ToString() const;
 };
 
-class CDEXSettleBaseTx: public CBaseTx {
+class CDEXSettleTx: public CBaseTx {
 
 public:
-    CDEXSettleBaseTx(TxType nTxTypeIn) : CBaseTx(nTxTypeIn) {}
+    CDEXSettleTx() : CBaseTx(DEX_TRADE_SETTLE_TX) {}
 
-    CDEXSettleBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
-                     const TokenSymbol &feeSymbol, uint64_t fees,
-                     const vector<DEXDealItem> &dealItemsIn, const string &memoIn)
-        : CBaseTx(nTxTypeIn, txUidIn, validHeightIn, feeSymbol, fees),
-          dealItems(dealItemsIn), memo(memoIn) {}
+    CDEXSettleTx(const CUserID &txUidIn, int32_t validHeightIn,
+                 const TokenSymbol &feeSymbol, uint64_t fees,
+                 const vector<DEXDealItem> &dealItemsIn)
+        : CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees), dealItems(dealItemsIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(this->nVersion));
+        nVersion = this->nVersion;
+        READWRITE(VARINT(valid_height));
+        READWRITE(txUid);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(llFees));
+
+        READWRITE(dealItems);
+
+        READWRITE(signature);
+    )
+
+    TxID ComputeSignatureHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter ss(SER_GETHASH, 0);
+            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
+               << fee_symbol << VARINT(llFees) << dealItems;
+            sigHash = ss.GetHash();
+        }
+
+        return sigHash;
+    }
+
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
 
     void AddDealItem(const DEXDealItem& item) {
         dealItems.push_back(item);
@@ -678,89 +703,6 @@ protected:
 
 protected:
     vector<DEXDealItem> dealItems;
-    string memo;
-};
-
-class CDEXSettleTx: public CDEXSettleBaseTx {
-
-public:
-    CDEXSettleTx() : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX) {}
-
-    CDEXSettleTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
-                 uint64_t fees, const vector<DEXDealItem> &dealItemsIn)
-        : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees,
-                           dealItemsIn, "") {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(this->nVersion));
-        nVersion = this->nVersion;
-        READWRITE(VARINT(valid_height));
-        READWRITE(txUid);
-        READWRITE(fee_symbol);
-        READWRITE(VARINT(llFees));
-
-        READWRITE(dealItems);
-
-        READWRITE(signature);
-    )
-
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << dealItems;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
-
-    // TODO: check tx
-    //virtual bool CheckTx(CTxExecuteContext &context);
-};
-
-class CDEXSettleExTx: public CDEXSettleBaseTx {
-
-public:
-    CDEXSettleExTx() : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX) {}
-
-    CDEXSettleExTx(const CUserID &txUidIn, int32_t validHeightIn,
-                     const TokenSymbol &feeSymbol, uint64_t fees,
-                     const vector<DEXDealItem> &dealItemsIn, const string &memoIn)
-        : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees,
-                           dealItemsIn, memoIn) {}
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(this->nVersion));
-        nVersion = this->nVersion;
-        READWRITE(VARINT(valid_height));
-        READWRITE(txUid);
-        READWRITE(fee_symbol);
-        READWRITE(VARINT(llFees));
-
-        READWRITE(dealItems);
-        READWRITE(memo);
-
-        READWRITE(signature);
-    )
-
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << dealItems << memo;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
-    }
-
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleExTx>(*this); }
-
-    // TODO: check tx
-    //virtual bool CheckTx(CTxExecuteContext &context);
 };
 
 #endif  // TX_DEX_H

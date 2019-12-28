@@ -680,19 +680,19 @@ string DEXDealItem::ToString() const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
 
-string CDEXSettleBaseTx::ToString(CAccountDBCache &accountCache) {
+string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo="";
     for (const auto &item : dealItems) {
         dealInfo += "{" + item.ToString() + "},";
     }
 
     return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-                     "deal_items=[%s], memo_hex=%s",
+                     "deal_items=[%s]",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, dealInfo, HexStr(memo));
+                     txUid.ToString(), llFees, dealInfo);
 }
 
-Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     Array arrayItems;
     for (const auto &item : dealItems) {
         Object subItem;
@@ -706,13 +706,11 @@ Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("deal_items",  arrayItems));
-    result.push_back(Pair("memo",  memo));
-    result.push_back(Pair("memo_hex", HexStr(memo)));
 
     return result;
 }
 
-bool CDEXSettleBaseTx::CheckTx(CTxExecuteContext &context) {
+bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -860,7 +858,7 @@ static bool GetAccount(CTxExecuteContext &context, const CRegID &regid,
             update active order to dex db
         }
 */
-bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
+bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
 
@@ -1149,7 +1147,7 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXSettleBaseTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
+bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(orderId, dealOrder))
         return state.DoS(100, ERRORMSG("%s(), get active order failed! i=%d, orderId=%s", __func__,
@@ -1166,7 +1164,7 @@ bool CDEXSettleBaseTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, 
     return true;
 }
 
-bool CDEXSettleBaseTx::CheckDexOperator(CTxExecuteContext &context, uint32_t i,
+bool CDEXSettleTx::CheckDexOperator(CTxExecuteContext &context, uint32_t i,
                                         const CDEXOrderDetail &buyOrder,
                                         const CDEXOrderDetail &sellOrder,
                                         const OrderSide &makerSide) {
@@ -1189,7 +1187,7 @@ bool CDEXSettleBaseTx::CheckDexOperator(CTxExecuteContext &context, uint32_t i,
 }
 
 
-OrderSide CDEXSettleBaseTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder) {
+OrderSide CDEXSettleTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder) {
     OrderSide takerSide;
     if (buyOrder.order_type != sellOrder.order_type) {
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {
@@ -1208,7 +1206,7 @@ OrderSide CDEXSettleBaseTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, c
     return takerSide;
 }
 
-uint64_t CDEXSettleBaseTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
+uint64_t CDEXSettleTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
                                                const DexOperatorDetail &operatorDetail,
                                                const OrderSide &takerSide) {
     uint64_t ratio;
@@ -1224,7 +1222,7 @@ uint64_t CDEXSettleBaseTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
     return ratio;
 }
 
-bool CDEXSettleBaseTx::CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
+bool CDEXSettleTx::CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
                                     uint64_t &orderFee) {
 
     uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
