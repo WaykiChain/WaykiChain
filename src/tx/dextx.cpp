@@ -107,7 +107,7 @@ bool CDEXOrderBaseTx::CheckOrderFeeRate(CTxExecuteContext &context, const string
 
 bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const string &title) {
 
-    if (order_opt.CheckValid())
+    if (!order_opt.CheckValid())
         return context.pState->DoS(100, ERRORMSG("%s, invalid order_opt=%u",
             title, order_opt.bits), REJECT_INVALID, "invalid-order-opt");
 
@@ -238,6 +238,7 @@ Object CDEXBuyLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) cons
     result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
     return result;
 }
 
@@ -331,6 +332,7 @@ Object CDEXSellLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) con
     result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
     return result;
 }
 
@@ -415,6 +417,7 @@ Object CDEXBuyMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) con
     result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
 
     return result;
 }
@@ -495,6 +498,7 @@ Object CDEXSellMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) co
     result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
     return result;
 }
 

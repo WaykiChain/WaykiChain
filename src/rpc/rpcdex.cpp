@@ -48,6 +48,7 @@ namespace RPC_PARAM {
             if (ratio > DEX_ORDER_FEE_RATIO_MAX)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("match_fee_ratio=%llu is large than %llu",
                     ratio, DEX_ORDER_FEE_RATIO_MAX));
+            return ratio;
         }
         return 0;
     }
@@ -58,15 +59,16 @@ namespace RPC_PARAM {
             if (memo.size() > MAX_COMMON_TX_MEMO_SIZE)
                 throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("memo.size=%u is large than %llu",
                     memo.size(), MAX_COMMON_TX_MEMO_SIZE));
+            return memo;
         }
-        return 0;
+        return "";
     }
 
     OrderOpt GetOrderOpt(const Array &params, const size_t isPublicIdx,
                          const size_t hasFeeRatioIdx) {
 
-        bool isPublic    = params.size() > 5 ? params[5].get_bool() : true;
-        bool hasFeeRatio = params.size() > 6 ? params[6].get_bool() : true;
+        bool isPublic    = params.size() > isPublicIdx ? params[isPublicIdx].get_bool() : true;
+        bool hasFeeRatio = params.size() > hasFeeRatioIdx ? params[hasFeeRatioIdx].get_bool() : false;
         OrderOpt orderOpt;
         orderOpt.SetIsPublic(isPublic);
         orderOpt.SetHasFeeRatio(hasFeeRatio);
@@ -123,10 +125,10 @@ Object SubmitOrderTx(const CKeyID &txKeyid, shared_ptr<CDEXOrderBaseTx> &pOrderB
 
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 4 || params.size() > 5) {
+    if (fHelp || params.size() < 4 || params.size() > 10) {
         throw runtime_error(
             "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"symbol:asset_amount:unit\"  price"
-                " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"
+                " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit] [memo]\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
@@ -189,7 +191,7 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 4 || params.size() > 5) {
+    if (fHelp || params.size() < 4 || params.size() > 10) {
         throw runtime_error(
             "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset\" price"
                 " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"
@@ -253,7 +255,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 3 || params.size() > 4) {
+     if (fHelp || params.size() < 3 || params.size() > 9) {
         throw runtime_error(
             "submitdexbuymarketordertx \"addr\" \"coin_symbol\" coin_amount \"asset_symbol\" "
                 " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"
@@ -316,7 +318,7 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 4) {
+    if (fHelp || params.size() < 3 || params.size() > 9) {
         throw runtime_error(
             "submitdexsellmarketordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount "
                 " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"

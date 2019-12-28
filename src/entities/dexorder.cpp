@@ -33,7 +33,7 @@ void OrderOpt::SetBit(bool enabled, uint8_t bit) {
     if (enabled)
         bits |= bit;
     else
-        bits ^= bit;
+        bits &= ~bit;
 }
 
 string OrderOpt::ToString() const {
