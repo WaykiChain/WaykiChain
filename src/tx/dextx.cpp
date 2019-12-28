@@ -686,10 +686,10 @@ string CDEXSettleBaseTx::ToString(CAccountDBCache &accountCache) {
         dealInfo += "{" + item.ToString() + "},";
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, dex_id, "
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
                      "deal_items=[%s], memo_hex=%s",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, dex_id, dealInfo, HexStr(memo));
+                     txUid.ToString(), llFees, dealInfo, HexStr(memo));
 }
 
 Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -705,7 +705,6 @@ Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     }
 
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("dex_id",  (uint64_t)dex_id));
     result.push_back(Pair("deal_items",  arrayItems));
     result.push_back(Pair("memo",  memo));
     result.push_back(Pair("memo_hex", HexStr(memo)));
@@ -876,21 +875,12 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
-    shared_ptr<DexOperatorDetail> pSettleOperatorDetail;
-    if (!GetDexOperator(context, dex_id, pSettleOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-
-    if (!pSrcAccount->IsMyUid(pSettleOperatorDetail->fee_receiver_regid))
-        return state.DoS(100, ERRORMSG("%s(), tx account is not the matcher of dex operator! dex_id=%u, "
-            "tx_uid=%s, fee_receiver_regid=%s", __func__, dex_id, txUid.ToDebugString(),
-            pSettleOperatorDetail->fee_receiver_regid.ToString()),
-            REJECT_INVALID, "invalid_dex_operator_matcher");
-
     map<CRegID, shared_ptr<CAccount>> accountMap = {
         {pSrcAccount->regid, pSrcAccount}
     };
     for (size_t i = 0; i < dealItems.size(); i++) {
         auto &dealItem = dealItems[i];
-        //1. get and check buyDealOrder and sellDealOrder
+        //1.1 get and check buyDealOrder and sellDealOrder
         CDEXOrderDetail buyOrder, sellOrder;
         if (!GetDealOrder(cw, state, i, dealItem.buyOrderId, ORDER_BUY, buyOrder))
             return false;
@@ -898,34 +888,26 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
         if (!GetDealOrder(cw, state, i, dealItem.sellOrderId, ORDER_SELL, sellOrder))
             return false;
 
-        // 2. get account of order
+        // 1.2 get account of order
         shared_ptr<CAccount> pBuyOrderAccount = nullptr;
         if (!GetAccount(context, buyOrder.user_regid, accountMap, pBuyOrderAccount)) return false;
 
         shared_ptr<CAccount> pSellOrderAccount = nullptr;
         if (!GetAccount(context, sellOrder.user_regid, accountMap, pSellOrderAccount)) return false;
 
-        // check dex_id
-        uint32_t buyDexId = buyOrder.dex_id;
-        uint32_t sellDexId = sellOrder.dex_id;
-        if (!CheckDexId(context, i, buyDexId, sellDexId)) return false;
+        // 2. check dex_id
+        OrderSide takerSide = GetTakerOrderSide(buyOrder, sellOrder);
+        OrderSide makeSide = takerSide != ORDER_BUY ? ORDER_BUY : ORDER_SELL;
+        if (!CheckDexOperator(context, i, buyOrder, sellOrder, makeSide)) return false;
 
         shared_ptr<DexOperatorDetail> pBuyOperatorDetail, pSellOperatorDetail;
         shared_ptr<CAccount> pBuyMatchAccount, pSellMatchAccount;
-        if (buyDexId == dex_id) {
-            pBuyOperatorDetail = pSettleOperatorDetail;
-            pBuyMatchAccount = pSrcAccount;
-        } else {
-            if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-            if (!GetAccount(context, pBuyOperatorDetail->fee_receiver_regid, accountMap, pBuyMatchAccount)) return false;
-        }
-        if (sellDexId == dex_id) {
-            pSellOperatorDetail = pSettleOperatorDetail;
-            pSellMatchAccount = pSrcAccount;
-        } else {
-            if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-            if (!GetAccount(context, pSellOperatorDetail->fee_receiver_regid, accountMap, pSellMatchAccount)) return false;
-        }
+
+        if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
+        if (!GetAccount(context, pBuyOperatorDetail->fee_receiver_regid, accountMap, pBuyMatchAccount)) return false;
+
+        if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
+        if (!GetAccount(context, pSellOperatorDetail->fee_receiver_regid, accountMap, pSellMatchAccount)) return false;
 
         // 3. check coin type match
         if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
@@ -1050,10 +1032,8 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         // 9.1 buyer pay the fee from the received assets to settler
 
-        OrderSide takerSide = GetTakerOrderSide(buyOrder, sellOrder);
         uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, *pBuyOperatorDetail, takerSide);
         uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
-
 
         if (buyOperatorFeeRatio != 0) {
             if (!CheckOrderFeeRateRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
@@ -1186,21 +1166,23 @@ bool CDEXSettleBaseTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, 
     return true;
 }
 
-bool CDEXSettleBaseTx::CheckDexId(CTxExecuteContext &context, uint32_t i, uint32_t buyDexId, uint32_t sellDexId) {
-    if (buyDexId != dex_id && sellDexId != dex_id) {
-        return context.pState->DoS(100, ERRORMSG("%s(), i[%d] can not settle the other operator' orders! settle_dex_id=%u, "
-            "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
-            REJECT_INVALID, "dex-id-unmatch");
-    } else if (buyDexId != sellDexId) {
-        // Only orders from dex operator 0 can be shared
-        if (buyDexId == dex_id && sellDexId != DEX_RESERVED_ID) {
-            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the sell order is not shared! settle_dex_id=%u, "
-                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
-                REJECT_INVALID, "dex-id-unmatch");
-        } else if (sellDexId == dex_id && buyDexId != DEX_RESERVED_ID) {
-            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the buy order is not shared! settle_dex_id=%u, "
-                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
-                REJECT_INVALID, "dex-id-unmatch");
+bool CDEXSettleBaseTx::CheckDexOperator(CTxExecuteContext &context, uint32_t i,
+                                        const CDEXOrderDetail &buyOrder,
+                                        const CDEXOrderDetail &sellOrder,
+                                        const OrderSide &makerSide) {
+
+    uint32_t buyDexId = buyOrder.dex_id;
+    uint32_t sellDexId = sellOrder.dex_id;
+    if (buyDexId != sellDexId) {
+        if (makerSide == ORDER_BUY && !buyOrder.order_opt.IsPublic()) {
+            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the buy order is maker order and must be public! "
+                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, buyDexId, sellDexId),
+                REJECT_INVALID, "buy-order-not-public");
+        }
+        if (makerSide == ORDER_SELL && !sellOrder.order_opt.IsPublic()) {
+            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the sell order is maker order and must be public! "
+                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, buyDexId, sellDexId),
+                REJECT_INVALID, "sell-order-not-public");
         }
     }
     return true;

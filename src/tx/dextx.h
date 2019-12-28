@@ -646,9 +646,9 @@ public:
     CDEXSettleBaseTx(TxType nTxTypeIn) : CBaseTx(nTxTypeIn) {}
 
     CDEXSettleBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
-                     const TokenSymbol &feeSymbol, uint64_t fees, DexID dexIdIn,
+                     const TokenSymbol &feeSymbol, uint64_t fees,
                      const vector<DEXDealItem> &dealItemsIn, const string &memoIn)
-        : CBaseTx(nTxTypeIn, txUidIn, validHeightIn, feeSymbol, fees), dex_id(dexIdIn),
+        : CBaseTx(nTxTypeIn, txUidIn, validHeightIn, feeSymbol, fees),
           dealItems(dealItemsIn), memo(memoIn) {}
 
     void AddDealItem(const DEXDealItem& item) {
@@ -666,17 +666,17 @@ public:
 protected:
     bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &order_id,
         const OrderSide orderSide, CDEXOrderDetail &dealOrder);
-    bool CheckDexId(CTxExecuteContext &context, uint32_t i, uint32_t buyDexId, uint32_t sellDexId);
+    bool CheckDexOperator(CTxExecuteContext &context, uint32_t i, const CDEXOrderDetail &buyOrder,
+                    const CDEXOrderDetail &sellOrder, const OrderSide &takerSide);
 
     OrderSide GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder);
     uint64_t GetOperatorFeeRatio(const CDEXOrderDetail &order,
                                  const DexOperatorDetail &operatorDetail,
-                                 const OrderSide &takerSide);
+                                 const OrderSide &makerSide);
     bool CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
                       uint64_t &orderFee);
 
 protected:
-    DexID   dex_id;
     vector<DEXDealItem> dealItems;
     string memo;
 };
@@ -689,7 +689,7 @@ public:
     CDEXSettleTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                  uint64_t fees, const vector<DEXDealItem> &dealItemsIn)
         : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees,
-                           DEX_RESERVED_ID, dealItemsIn, "") {}
+                           dealItemsIn, "") {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -727,9 +727,9 @@ public:
     CDEXSettleExTx() : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX) {}
 
     CDEXSettleExTx(const CUserID &txUidIn, int32_t validHeightIn,
-                     const TokenSymbol &feeSymbol, uint64_t fees, DexID dexIdIn,
+                     const TokenSymbol &feeSymbol, uint64_t fees,
                      const vector<DEXDealItem> &dealItemsIn, const string &memoIn)
-        : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees, dexIdIn,
+        : CDEXSettleBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees,
                            dealItemsIn, memoIn) {}
 
     IMPLEMENT_SERIALIZE(
@@ -740,7 +740,6 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
-        READWRITE(VARINT(dex_id));
         READWRITE(dealItems);
         READWRITE(memo);
 
@@ -751,7 +750,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << VARINT(dex_id) << dealItems << memo;
+               << fee_symbol << VARINT(llFees) << dealItems << memo;
             sigHash = ss.GetHash();
         }
 
