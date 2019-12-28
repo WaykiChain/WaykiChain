@@ -421,8 +421,7 @@ bool CDexDBCache::IncDexID(DexID &id) {
 
 bool Dex0(DexOperatorDetail& detail){
 
-    uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
-    CRegID regid(strprintf("%d-3",stableGensisHeight)) ;
+    CRegID regid = SysCfg().GetDexMatchSvcRegId() ;
     detail.owner_regid =  regid;
     detail.fee_receiver_regid = regid;
     detail.name = "wayki-dex" ;
@@ -444,16 +443,16 @@ bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
 
 }
 
-bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &id, DexOperatorDetail& detail) {
-    CDexDiskID idVarint(id) ;
-    if (operator_owner_map_cache.GetData(regid.ToRawString(), idVarint)) {
-        return GetDexOperator(idVarint.GetValue(), detail);
+bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOperatorDetail& detail) {
+    CDexDiskID dexID ;
+    if (operator_owner_map_cache.GetData(regid.ToRawString(), dexID)) {
+        idOut = dexID.GetValue();
+        return GetDexOperator(dexID.GetValue(), detail);
     }else {
-        uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
-        CRegID sysRegId(strprintf("%d-3",stableGensisHeight)) ;
+        CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
         if(sysRegId == regid) {
-            id = MAIN_DEX_ID ;
-            bool result = GetDexOperator(id ,detail) ;
+            idOut = MAIN_DEX_ID ;
+            bool result = GetDexOperator(idOut ,detail) ;
             if(result && detail.owner_regid == regid)
                 return result;
         }
@@ -472,8 +471,7 @@ bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
      bool dbHave = operator_owner_map_cache.HaveData(regid.ToRawString());
 
      if(!dbHave){
-         uint32_t stableGensisHeight = SysCfg().GetStableCoinGenesisHeight() ;
-         CRegID sysRegId(strprintf("%d-3",stableGensisHeight)) ;
+         CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
          if(sysRegId == regid){
              DexOperatorDetail detail ;
              bool b = GetDexOperator(MAIN_DEX_ID , detail) ;
