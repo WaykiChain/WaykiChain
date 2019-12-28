@@ -560,14 +560,14 @@ bool CDEXSellMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
 
 string CDEXCancelOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, orderId=%s",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, order_id=%s",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        orderId.GetHex());
+        order_id.GetHex());
 }
 
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("order_id", orderId.GetHex()));
+    result.push_back(Pair("order_id", order_id.GetHex()));
 
     return result;
 }
@@ -578,7 +578,7 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_FEE;
 
-    if (orderId.IsEmpty())
+    if (order_id.IsEmpty())
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
                          "invalid-order-id");
     CAccount txAccount;
@@ -612,7 +612,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     CDEXOrderDetail activeOrder;
-    if (!cw.dexCache.GetActiveOrder(orderId, activeOrder)) {
+    if (!cw.dexCache.GetActiveOrder(order_id, activeOrder)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed"),
                         REJECT_INVALID, "order-inactive");
     }
@@ -656,8 +656,8 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!cw.dexCache.EraseActiveOrder(orderId, activeOrder)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", orderId.ToString()),
+    if (!cw.dexCache.EraseActiveOrder(order_id, activeOrder)) {
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", order_id.ToString()),
                          REJECT_INVALID, "order-erase-failed");
     }
 

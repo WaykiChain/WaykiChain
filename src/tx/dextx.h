@@ -582,7 +582,7 @@ public:
     CDEXCancelOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                       uint64_t fees, uint256 orderIdIn)
         : CBaseTx(DEX_CANCEL_ORDER_TX, txUidIn, validHeightIn, feeSymbol, fees),
-          orderId(orderIdIn) {}
+          order_id(orderIdIn) {}
 
     ~CDEXCancelOrderTx() {}
 
@@ -594,7 +594,7 @@ public:
 
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
-        READWRITE(orderId);
+        READWRITE(order_id);
 
         READWRITE(signature);
     )
@@ -603,7 +603,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << orderId;
+               << fee_symbol << VARINT(llFees) << order_id;
             sigHash = ss.GetHash();
         }
 
@@ -617,7 +617,7 @@ public:
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 public:
-    uint256  orderId;       //!< id of oder need to be canceled.
+    uint256  order_id;       //!< id of oder need to be canceled.
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -664,7 +664,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 protected:
-    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
+    bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &order_id,
         const OrderSide orderSide, CDEXOrderDetail &dealOrder);
     bool CheckDexId(CTxExecuteContext &context, uint32_t i, uint32_t buyDexId, uint32_t sellDexId);
 
