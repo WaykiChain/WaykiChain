@@ -849,10 +849,9 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                               ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR);
         receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                               ReceiptCode::CDP_ASSET_TO_LIQUIDATOR);
-        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol,
-                              (uint64_t)totalBcoinsToCdpOwner,
+        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol, (uint64_t)totalBcoinsToCdpOwner,
                               ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER);
-        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, cdp.total_owed_scoins,
+        receipts.emplace_back(nullId, nullId, cdp.scoin_symbol, cdp.total_owed_scoins,
                               ReceiptCode::CDP_LIQUIDATED_CLOSEOUT_SCOIN);
 
     } else {    // partial liquidation
@@ -915,13 +914,13 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
 
-        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, scoins_to_liquidate,
+        receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, scoins_to_liquidate,
                               ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR);
-        receipts.emplace_back(CUserID::NULL_ID, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
+        receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                               ReceiptCode::CDP_ASSET_TO_LIQUIDATOR);
-        receipts.emplace_back(CUserID::NULL_ID, cdp.owner_regid, cdp.bcoin_symbol, bcoinsToCDPOwner,
+        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol, bcoinsToCDPOwner,
                               ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER);
-        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, scoinsToCloseout,
+        receipts.emplace_back(nullId, nullId, cdp.scoin_symbol, scoinsToCloseout,
                               ReceiptCode::CDP_LIQUIDATED_CLOSEOUT_SCOIN);
     }
 
