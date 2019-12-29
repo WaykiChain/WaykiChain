@@ -69,7 +69,7 @@ public:
     bool EraseKeyId(const CRegID &regId);
     bool EraseKeyId(const CUserID &userId);
 
-    std::tuple<uint64_t, uint64_t> TraverseAccount();
+    std::tuple<uint64_t, uint64_t, uint64_t, uint64_t> TraverseAccount();
 
     bool GetUserId(const string &addr, CUserID &userId) const;
     bool GetRegId(const CKeyID &keyId, CRegID &regId) const;
