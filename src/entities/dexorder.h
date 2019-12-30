@@ -16,32 +16,6 @@
 
 typedef uint32_t DexID;
 
-
-class CDexDiskID{
-
-private:
-    uint32_t value = 0 ;
-    bool empty = true ;
-
-public:
-    bool IsEmpty() const { return empty ;}
-    void SetEmpty() { empty = true ; }
-    CDexDiskID(){}
-    CDexDiskID(uint32_t id):value(id), empty(false){}
-    uint32_t GetValue() const { return value ;}
-    string ToString() const { return strprintf("%d", value) ;}
-
-    friend bool operator==(const CDexDiskID& d1, const CDexDiskID& d2 ){ return d1.value == d2.value && d1.empty == d2.empty; }
-    friend bool operator!=(const CDexDiskID& d1, const CDexDiskID& d2 ){ return d1.value != d2.value || d1.empty == d2.empty; }
-    friend bool operator<( const CDexDiskID& d1, const CDexDiskID& d2 ){ return d1.value <  d2.value; }
-    IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(value));
-            READWRITE(empty);
-    )
-};
-
-
-
 static const DexID DEX_RESERVED_ID = 0;
 
 enum OrderSide: uint8_t {

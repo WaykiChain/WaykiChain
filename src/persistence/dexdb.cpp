@@ -7,7 +7,7 @@
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "main.h"
-
+#include <optional>
 #include <functional>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -444,10 +444,10 @@ bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
 }
 
 bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOperatorDetail& detail) {
-    CDexDiskID dexID ;
+    decltype(operator_owner_map_cache)::ValueType dexID ;
     if (operator_owner_map_cache.GetData(regid.ToRawString(), dexID)) {
-        idOut = dexID.GetValue();
-        return GetDexOperator(dexID.GetValue(), detail);
+        idOut = dexID.value().get();
+        return GetDexOperator(dexID.value().get(), detail);
     }else {
         CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
         if(sysRegId == regid) {
@@ -501,9 +501,10 @@ bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& de
 bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& old_detail,
     const DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
+    std::optional idValue{CVarIntValue<DexID>(id)};
     if (old_detail.owner_regid != detail.owner_regid) {
         if (!operator_owner_map_cache.EraseData(old_detail.owner_regid.ToRawString()) ||
-            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), CDexDiskID(id))){
+            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), idValue)){
             return false;
         }
 

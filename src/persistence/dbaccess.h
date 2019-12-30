@@ -13,6 +13,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <optional>
 
 using namespace std;
 
@@ -29,6 +30,8 @@ namespace db_util {
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
+
+
     DEFINE_NUMERIC_EMPTY(int32_t)
     DEFINE_NUMERIC_EMPTY(uint8_t)
     DEFINE_NUMERIC_EMPTY(uint16_t)
@@ -42,6 +45,10 @@ namespace db_util {
     // vector
     template<typename T, typename A> bool IsEmpty(const vector<T, A>& val);
     template<typename T, typename A> void SetEmpty(vector<T, A>& val);
+
+    //optional
+    template<typename T> bool IsEmpty(const std::optional<T> val) { return val == std::nullopt; }
+    template<typename T> void SetEmpty(std::optional<T>& val) { val = std::nullopt; }
 
     // set
     template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val);
