@@ -245,11 +245,12 @@ std::tuple< uint64_t /* total regids */,
     uint64_t totalSCoins = 0;
     uint64_t totalFCoins = 0;
 
-    CAccountToken actWicc = item.second.GetToken(SYMB::WICC);
-    CAccountToken actWusd = item.second.GetToken(SYMB::WUSD);
-    CAccountToken actWgrt = item.second.GetToken(SYMB::WGRT);
 
     for (auto &item : items) {
+        CAccountToken actWicc = item.second.GetToken(SYMB::WICC);
+        CAccountToken actWusd = item.second.GetToken(SYMB::WUSD);
+        CAccountToken actWgrt = item.second.GetToken(SYMB::WGRT);
+
         totalRegIds++;
 
         totalBCoins += actWicc.free_amount + actWicc.voted_amount + actWicc.frozen_amount + actWicc.staked_amount;
