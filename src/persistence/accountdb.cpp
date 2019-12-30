@@ -254,7 +254,7 @@ std::tuple< uint64_t /* total regids */,
         totalRegIds++;
 
         totalBCoins += actWicc.free_amount + actWicc.voted_amount + actWicc.frozen_amount + actWicc.staked_amount;
-        totalSCoins += actWusd.free_amount + actWusd.voted_amount + actWusd.frozen_amount + actWicc.staked_amount;
+        totalSCoins += actWusd.free_amount + actWusd.voted_amount + actWusd.frozen_amount + actWusd.staked_amount;
         totalFCoins += actWgrt.free_amount + actWgrt.voted_amount + actWgrt.frozen_amount + actWgrt.staked_amount;
     }
 
