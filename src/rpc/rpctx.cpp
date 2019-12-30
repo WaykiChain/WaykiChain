@@ -1323,12 +1323,17 @@ Value gettotalcoins(const Array& params, bool fHelp) {
 
     Object obj;
 
-    uint64_t totalCoins(0);
     uint64_t totalRegIds(0);
-    std::tie(totalCoins, totalRegIds) = pCdMan->pAccountCache->TraverseAccount();
+    uint64_t totalBCoins(0);
+    uint64_t totalSCoins(0);
+    uint64_t totalFCoins(0);
+    std::tie(totalRegIds, totalBCoins, totalSCoins, totalFCoins) = pCdMan->pAccountCache->TraverseAccount();
     // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
-    obj.push_back(Pair("total_coins",  ValueFromAmount(totalCoins)));
+    
     obj.push_back(Pair("total_regids", totalRegIds));
+    obj.push_back(Pair("total_bcoins",  ValueFromAmount(totalBCoins)));
+    obj.push_back(Pair("total_scoins",  ValueFromAmount(totalSCoins)));
+    obj.push_back(Pair("total_fcoins",  ValueFromAmount(totalFCoins)));
 
     return obj;
 }
