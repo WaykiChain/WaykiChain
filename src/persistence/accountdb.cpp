@@ -247,15 +247,15 @@ std::tuple< uint64_t /* total regids */,
 
 
     for (auto &item : items) {
-        CAccountToken actWicc = item.second.GetToken(SYMB::WICC);
-        CAccountToken actWusd = item.second.GetToken(SYMB::WUSD);
-        CAccountToken actWgrt = item.second.GetToken(SYMB::WGRT);
+        CAccountToken wicc = item.second.GetToken(SYMB::WICC);
+        CAccountToken wusd = item.second.GetToken(SYMB::WUSD);
+        CAccountToken wgrt = item.second.GetToken(SYMB::WGRT);
 
         totalRegIds++;
 
-        totalBCoins += actWicc.free_amount + actWicc.voted_amount + actWicc.frozen_amount + actWicc.staked_amount;
-        totalSCoins += actWusd.free_amount + actWusd.voted_amount + actWusd.frozen_amount + actWusd.staked_amount;
-        totalFCoins += actWgrt.free_amount + actWgrt.voted_amount + actWgrt.frozen_amount + actWgrt.staked_amount;
+        totalBCoins += wicc.free_amount + wicc.voted_amount + wicc.frozen_amount + wicc.staked_amount;
+        totalSCoins += wusd.free_amount + wusd.voted_amount + wusd.frozen_amount + wusd.staked_amount;
+        totalFCoins += wgrt.free_amount + wgrt.voted_amount + wgrt.frozen_amount + wgrt.staked_amount;
     }
 
     return std::tie(totalRegIds, totalBCoins, totalSCoins, totalFCoins);
