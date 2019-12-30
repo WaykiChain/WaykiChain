@@ -116,10 +116,17 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
         if (!CheckOrderFeeRateRange(context, GetHash(), match_fee_ratio, title))
             return false;
 
+        if (!operator_uid.is<CRegID>())
+            return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be regid when has_fee_ratio=true",
+                title, match_fee_ratio), REJECT_INVALID, "operator-uid-not-regid");
+
         shared_ptr<DexOperatorDetail> spOperatorDetail;
         if(!GetDexOperator(context, dex_id, spOperatorDetail, title)) return false;
 
-        CRegID &operator_regid = spOperatorDetail->fee_receiver_regid;
+        CRegID &operator_regid = operator_uid.get<CRegID>();
+        if (operator_regid != spOperatorDetail->fee_receiver_regid)
+            return context.pState->DoS(100, ERRORMSG("%s(), the dex operator uid is wrong when has_fee_ratio=true",
+                title, match_fee_ratio), REJECT_INVALID, "operator-uid-wrong");
 
         CAccount operatorAccount;
         if (!context.pCw->accountCache.GetAccount(operator_regid, operatorAccount))
@@ -146,6 +153,10 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
         if (match_fee_ratio != 0)
             return context.pState->DoS(100, ERRORMSG("%s(), match fee ratio=%llu must be 0 when has_fee_ratio=false",
                 title, match_fee_ratio), REJECT_INVALID, "invalid-match-fee-ratio");
+
+        if (!operator_uid.IsEmpty())
+            return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be empty when has_fee_ratio=false",
+                title, match_fee_ratio), REJECT_INVALID, "operator-uid-not-empty");
 
         if (operator_signature.empty())
             return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature is not empty when has_fee_ratio=false",

@@ -84,9 +84,8 @@ namespace RPC_PARAM {
     }
 } // namespace RPC_PARAM
 
-Object SubmitOrderTx(const CKeyID &txKeyid, shared_ptr<CDEXOrderBaseTx> &pOrderBaseTx) {
-
-    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(pOrderBaseTx->dex_id);
+Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDetail,
+    shared_ptr<CDEXOrderBaseTx> &pOrderBaseTx) {
 
     if (!pWalletMain->HaveKey(txKeyid)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "tx user address not found in wallet");
@@ -176,18 +175,21 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     uint64_t coinAmount = CDEXOrderBaseTx::CalcCoinAmount(assetInfo.GetSawiAmount(), price);
     RPC_PARAM::CheckAccountBalance(txAccount, coinSymbol, FREEZE, coinAmount);
 
+    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
+
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
         // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
                         assetInfo.symbol, assetInfo.GetSawiAmount(), price);
     } else {
+        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
         pOrderBaseTx = make_shared<CDEXBuyLimitOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), price, orderOpt, dexId, operatorFeeRatio, memo);
+            assetInfo.GetSawiAmount(), price, dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
     }
 
-    return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
+    return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
@@ -240,18 +242,21 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
     RPC_PARAM::CheckAccountBalance(txAccount, assetInfo.symbol, FREEZE, assetInfo.GetSawiAmount());
 
+    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
+
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
         // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
         pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
                         assetInfo.symbol, assetInfo.GetSawiAmount(), price);
     } else {
+        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
         pOrderBaseTx = make_shared<CDEXSellLimitOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), price, orderOpt, dexId, operatorFeeRatio, memo);
+            assetInfo.GetSawiAmount(), price, dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
     }
 
-    return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
+    return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
@@ -303,6 +308,8 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
     RPC_PARAM::CheckAccountBalance(txAccount, coinInfo.symbol, FREEZE, coinInfo.GetSawiAmount());
 
+    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
+
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
         // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
@@ -310,11 +317,13 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
                                                          cmFee.GetSawiAmount(), coinInfo.symbol,
                                                          assetSymbol, coinInfo.GetSawiAmount());
     } else {
+        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
         pOrderBaseTx = make_shared<CDEXBuyMarketOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinInfo.symbol, assetSymbol,
-            coinInfo.GetSawiAmount(), orderOpt, dexId, operatorFeeRatio, memo);
+            coinInfo.GetSawiAmount(), dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
     }
-    return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
+
+    return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
@@ -366,6 +375,8 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
     RPC_PARAM::CheckAccountBalance(txAccount, assetInfo.symbol, FREEZE, assetInfo.GetSawiAmount());
 
+    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
+
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
         // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
@@ -373,11 +384,13 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
             assetInfo.GetSawiAmount());
     } else {
+        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
         pOrderBaseTx = make_shared<CDEXSellMarketOrderExTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), orderOpt, dexId, operatorFeeRatio, memo);
+            assetInfo.GetSawiAmount(), dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
     }
-    return SubmitOrderTx(txAccount.keyid, pOrderBaseTx);
+
+    return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
 }
 
 Value submitdexcancelordertx(const Array& params, bool fHelp) {
