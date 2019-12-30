@@ -30,9 +30,7 @@ namespace wasm {
 
         json_spirit::Value var;
         wasm::to_variant(temp, var);
-
        // WASM_TRACE("var:%s",json_spirit::write_formatted(var).c_str() )
-
         return var;
     }
 

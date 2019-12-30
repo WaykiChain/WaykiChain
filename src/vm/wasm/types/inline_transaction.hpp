@@ -15,7 +15,7 @@ namespace wasm {
 
     struct signature_pair {
         uint64_t          account;
-        vector<uint8_t> signature;
+        vector<uint8_t>   signature;
 
         IMPLEMENT_SERIALIZE (
             READWRITE(VARINT(account ));

@@ -42,9 +42,9 @@ namespace wasm {
             auto receiver_s = name(receiver).to_string();
 
             prefix << "[(" << contract_s << "," << action_s << ")->" << receiver_s << "]";
-            std::cout << prefix.str() << ": CONSOLE OUTPUT BEGIN =====================\n"
+            std::cout << prefix.str()  << ": CONSOLE OUTPUT BEGIN =====================\n"
                       << trace.console << "\n"
-                      << prefix.str() << ": CONSOLE OUTPUT END   =====================\n";
+                      << prefix.str()  << ": CONSOLE OUTPUT END   =====================\n";
         }
     }
 
@@ -125,7 +125,7 @@ namespace wasm {
         if (!wasm_interface_inited) {
             wasm_interface_inited = true;
             wasmif.initialize(wasm::vm_type::eos_vm_jit);
-            register_native_handler(wasmio, N(setcode), wasmio_native_setcode);
+            register_native_handler(wasmio,      N(setcode),  wasmio_native_setcode      );
             register_native_handler(wasmio_bank, N(transfer), wasmio_bank_native_transfer);
         }
     }
@@ -165,7 +165,7 @@ namespace wasm {
         trace.trx      = trx;
         trace.receiver = _receiver;
 
-        auto native = find_native_handle(_receiver, trx.action);
+        auto native    = find_native_handle(_receiver, trx.action);
 
         try {
             if (native) {
@@ -252,7 +252,33 @@ namespace wasm {
     }
 
     std::vector<uint64_t> wasm_context::get_active_producers(){
-        return std::vector<uint64_t>();
+
+        WASM_TRACE("get_active_producers")
+
+        auto &database_account  = database.accountCache;
+        auto &database_delegate = database.delegateCache;
+
+        std::vector<uint64_t> active_producers;
+        VoteDelegateVector    producers;
+        WASM_ASSERT(database_delegate.GetActiveDelegates(producers), 
+                    missing_auth_exception, 
+                    "fail to get top delegates for active producer");
+
+        for( auto p: producers){
+            CAccount producer;
+            WASM_ASSERT(database_account.GetAccount(p.regid, producer),
+                    account_operation_exception,
+                    "producer account get account error, regid = %s",
+                    p.regid.ToString())  
+
+            WASM_ASSERT(producer.nickid.value != 0,
+                    account_operation_exception,
+                    "producer account does not register nick_id, regid = %s",
+                    p.regid.ToString())  
+
+            active_producers.push_back(producer.nickid.value);          
+        }
+        return active_producers;
     }
 
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){

@@ -170,7 +170,6 @@ namespace wasm {
         }
 
         void sha256( const void *data, uint32_t data_len, void *hash_val ) {
-
             // string k = string((const char *) data, data_len);
             // SHA256(k.data(), k.size(), hash_val.begin());
         }

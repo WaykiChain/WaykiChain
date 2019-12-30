@@ -217,7 +217,6 @@ namespace wasm {
 
     // }
 
-
     static inline void to_variant( const wasm::checksum160_type &t, wasm::variant &v ) {
         //to_variant(t.hash, v);
         string str(&t.hash[0], &t.hash[sizeof(t.hash) / sizeof(t.hash[0])]);
