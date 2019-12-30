@@ -43,20 +43,20 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
 
     CAccount fcoinGenesisAccount;
     if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("%s(), get risk riserve account failed", __func__),
+        return state.DoS(100, ERRORMSG("%s(), get risk reserve account failed", __func__),
                         READ_ACCOUNT_FAIL, "get-account-failed");
 
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, riskFee)) {
-        return state.DoS(100, ERRORMSG("%s(), operate balance failed! add %s asset fee=%llu to risk riserve account error",
+        return state.DoS(100, ERRORMSG("%s(), operate balance failed! add %s asset fee=%llu to risk reserve account error",
             __func__, action, riskFee), UPDATE_ACCOUNT_FAIL, "update-account-failed");
     }
     if (action == OPERATOR_ACTION_REGISTER)
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RISERVE);
+        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RESERVE);
     else
-        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RISERVE);
+        receipts.emplace_back(txAccount.regid, fcoinGenesisAccount.regid, SYMB::WICC, riskFee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE);
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
-        return state.DoS(100, ERRORMSG("%s(), write risk riserve account error, regid=%s",
+        return state.DoS(100, ERRORMSG("%s(), write risk reserve account error, regid=%s",
             __func__, fcoinGenesisAccount.regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     VoteDelegateVector delegates;

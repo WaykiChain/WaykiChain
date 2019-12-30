@@ -849,10 +849,9 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                               ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR);
         receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                               ReceiptCode::CDP_ASSET_TO_LIQUIDATOR);
-        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol,
-                              (uint64_t)totalBcoinsToCdpOwner,
+        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol, (uint64_t)totalBcoinsToCdpOwner,
                               ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER);
-        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, cdp.total_owed_scoins,
+        receipts.emplace_back(nullId, nullId, cdp.scoin_symbol, cdp.total_owed_scoins,
                               ReceiptCode::CDP_LIQUIDATED_CLOSEOUT_SCOIN);
 
     } else {    // partial liquidation
@@ -915,13 +914,13 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                         cdp.cdpid.ToString()), UPDATE_CDP_FAIL, "bad-save-cdp");
         }
 
-        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, scoins_to_liquidate,
+        receipts.emplace_back(txUid, nullId, cdp.scoin_symbol, scoins_to_liquidate,
                               ReceiptCode::CDP_SCOIN_FROM_LIQUIDATOR);
-        receipts.emplace_back(CUserID::NULL_ID, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
+        receipts.emplace_back(nullId, txUid, cdp.bcoin_symbol, totalBcoinsToReturnLiquidator,
                               ReceiptCode::CDP_ASSET_TO_LIQUIDATOR);
-        receipts.emplace_back(CUserID::NULL_ID, cdp.owner_regid, cdp.bcoin_symbol, bcoinsToCDPOwner,
+        receipts.emplace_back(nullId, cdp.owner_regid, cdp.bcoin_symbol, bcoinsToCDPOwner,
                               ReceiptCode::CDP_LIQUIDATED_ASSET_TO_OWNER);
-        receipts.emplace_back(txUid, CUserID::NULL_ID, cdp.scoin_symbol, scoinsToCloseout,
+        receipts.emplace_back(nullId, nullId, cdp.scoin_symbol, scoinsToCloseout,
                               ReceiptCode::CDP_LIQUIDATED_CLOSEOUT_SCOIN);
     }
 
@@ -978,7 +977,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
         uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
         uint64_t leftScoinPenalty  = scoinPenaltyFees - halfScoinsPenalty;  // handle odd amount
 
-        // 1) save 50% penalty fees into risk riserve
+        // 1) save 50% penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
@@ -1005,17 +1004,17 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
-                              ReceiptCode::CDP_PENALTY_TO_RISERVE);
+                              ReceiptCode::CDP_PENALTY_TO_RESERVE);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty,
                               ReceiptCode::CDP_PENALTY_BUY_DEFLATE_FCOINS);
     } else {
-        // send penalty fees into risk riserve
+        // send penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
         }
         receipts.emplace_back(nullId, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinPenaltyFees,
-                              ReceiptCode::CDP_PENALTY_TO_RISERVE);
+                              ReceiptCode::CDP_PENALTY_TO_RESERVE);
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))

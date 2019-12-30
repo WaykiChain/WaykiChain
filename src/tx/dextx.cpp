@@ -15,11 +15,12 @@ using uint128_t = unsigned __int128;
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 
 static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &orderId,
-                              uint64_t fee_ratio, const string &title) {
+                              uint64_t feeRatio, const string &title) {
     static_assert(DEX_ORDER_FEE_RATIO_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
-    if (fee_ratio > DEX_ORDER_FEE_RATIO_MAX)
-        return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio invalid! order_id=%s, fee_rate=%llu",
-            title, orderId.ToString(), fee_ratio), REJECT_INVALID, "invalid-fee-ratio");
+    if (feeRatio > DEX_ORDER_FEE_RATIO_MAX)
+        return context.pState->DoS(100, ERRORMSG("%s(), order fee_ratio = %llu is large than %llu! order_id=%s",
+            title, feeRatio, DEX_ORDER_FEE_RATIO_MAX, orderId.ToString(), feeRatio),
+            REJECT_INVALID, "invalid-fee-ratio");
     return true;
 }
 
@@ -93,77 +94,75 @@ bool CDEXOrderBaseTx::CheckDexOperatorExist(CTxExecuteContext &context) {
 }
 
 bool CDEXOrderBaseTx::CheckOrderFeeRate(CTxExecuteContext &context, const string &title) {
-    if (mode.value == OrderOperatorMode::DEFAULT) {
-        if (operator_fee_ratio != 0)
-            return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio must be 0 in DEFAULT_MODE mode, operator_fee_ratio=%llu",
-                title, operator_fee_ratio), REJECT_INVALID, "invalid-order-fee-ratio");
-    } else if (mode.value == OrderOperatorMode::REQUIRE_AUTH) {
-        if (!CheckOrderFeeRateRange(context, GetHash(), operator_fee_ratio, title))
+    if (order_opt.HasFeeRatio()) {
+        if (!CheckOrderFeeRateRange(context, GetHash(), match_fee_ratio, title))
             return false;
     } else {
-        return context.pState->DoS(100, ERRORMSG("%s(), invalid order operator mode=%d", title, mode.Name()),
-            REJECT_INVALID, "invalid-order-operator-mode");
+        if (match_fee_ratio != 0)
+            return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio=%llu must be 0 when has_fee_ratio=false",
+                title, match_fee_ratio), REJECT_INVALID, "invalid-order-fee-ratio");
     }
     return true;
 }
 
 bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const string &title) {
 
-    if (!mode.IsValid())
-        return context.pState->DoS(100, ERRORMSG("%s, invalid order operator mode=%d",
-            title, mode.Name()), REJECT_INVALID, "invalid-order-operator-mode");
+    if (!order_opt.CheckValid())
+        return context.pState->DoS(100, ERRORMSG("%s, invalid order_opt=%u",
+            title, order_opt.bits), REJECT_INVALID, "invalid-order-opt");
 
-    if (mode == OrderOperatorMode::DEFAULT) {
-        if (operator_fee_ratio != 0)
-            return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio=%llu must be 0 in %s mode",
-                title, operator_fee_ratio, mode.Name()), REJECT_INVALID, "invalid-order-fee-ratio");
+    if (order_opt.HasFeeRatio()) {
 
-        if (operator_signature_pair)
-            return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature must be empty in %s mode",
-                title, mode.Name()), REJECT_INVALID, "bad-getaccount");
-
-        if (!CheckDexOperatorExist(context)) return false;
-
-    } else {
-
-        if (!CheckOrderFeeRateRange(context, GetHash(), operator_fee_ratio, title))
+        if (!CheckOrderFeeRateRange(context, GetHash(), match_fee_ratio, title))
             return false;
 
-        if (!operator_signature_pair) {
-            return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature can not be empty in %s mode",
-                title, mode.Name()), REJECT_INVALID, "bad-getaccount");
-        }
+        if (!operator_uid.is<CRegID>())
+            return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be regid when has_fee_ratio=true",
+                title, match_fee_ratio), REJECT_INVALID, "operator-uid-not-regid");
 
         shared_ptr<DexOperatorDetail> spOperatorDetail;
         if(!GetDexOperator(context, dex_id, spOperatorDetail, title)) return false;
 
-        CRegID &operator_regid = operator_signature_pair.value().regid;
+        CRegID &operator_regid = operator_uid.get<CRegID>();
         if (operator_regid != spOperatorDetail->fee_receiver_regid)
-            return context.pState->DoS(100, ERRORMSG("%s, wrong operator regid=%s vs %s! mode=%s",
-                title, operator_regid.ToString(), spOperatorDetail->fee_receiver_regid.ToString(), mode.Name()),
-                REJECT_INVALID, "bad-getaccount");
+            return context.pState->DoS(100, ERRORMSG("%s(), the dex operator uid is wrong when has_fee_ratio=true",
+                title, match_fee_ratio), REJECT_INVALID, "operator-uid-wrong");
 
         CAccount operatorAccount;
         if (!context.pCw->accountCache.GetAccount(operator_regid, operatorAccount))
-            return context.pState->DoS(100, ERRORMSG("%s, read account failed! operator_regid=%s, mode=%s",
-                title, operator_regid.ToString(), mode.Name()),
-                REJECT_INVALID, "bad-getaccount");
+            return context.pState->DoS(100, ERRORMSG("%s, operator account not existed! operator_regid=%s",
+                title, operator_regid.ToString()),
+                REJECT_INVALID, "operator-account-not-existed");
 
         if (!operatorAccount.IsRegistered())
             return context.pState->DoS(100, ERRORMSG("%s, the operator account must be registered! "
-                "operator_regid=%s, mode=%s", title, operator_regid.ToString(), mode.Name()),
+                "operator_regid=%s", title, operator_regid.ToString()),
                 REJECT_INVALID, "operator-account-unregistered");
 
-        const UnsignedCharArray operatorSignature = operator_signature_pair.value().signature;
-        if (!CheckSignatureSize(operatorSignature)) {
-            return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid! mode=%s", title,
-                operatorSignature.size(), mode.Name()), REJECT_INVALID, "bad-operator-sig-size");
+        if (!CheckSignatureSize(operator_signature)) {
+            return context.pState->DoS(100, ERRORMSG("%s, operator signature size=%d invalid when has_fee_ratio=true", title,
+                operator_signature.size()), REJECT_INVALID, "bad-operator-sig-size");
         }
         uint256 sighash = GetHash();
-        if (!VerifySignature(sighash, operatorSignature, operatorAccount.owner_pubkey)) {
-            return context.pState->DoS(100, ERRORMSG("%s, check operator signature error! mode=%s",
-                title, mode.Name()), REJECT_INVALID, "bad-operator-signature");
+        if (!VerifySignature(sighash, operator_signature, operatorAccount.owner_pubkey)) {
+            return context.pState->DoS(100, ERRORMSG("%s, check operator signature error",
+                title), REJECT_INVALID, "bad-operator-signature");
         }
+
+    } else {
+        if (match_fee_ratio != 0)
+            return context.pState->DoS(100, ERRORMSG("%s(), match fee ratio=%llu must be 0 when has_fee_ratio=false",
+                title, match_fee_ratio), REJECT_INVALID, "invalid-match-fee-ratio");
+
+        if (!operator_uid.IsEmpty())
+            return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be empty when has_fee_ratio=false",
+                title, match_fee_ratio), REJECT_INVALID, "operator-uid-not-empty");
+
+        if (operator_signature.empty())
+            return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature is not empty when has_fee_ratio=false",
+                title), REJECT_INVALID, "no-need-operator-signature");
+
+        if (!CheckDexOperatorExist(context)) return false;
     }
     return true;
 }
@@ -173,7 +172,7 @@ bool CDEXOrderBaseTx::ProcessOrder(CTxExecuteContext &context, CAccount &txAccou
     // if (!GetDexOperator(context, dex_id, pOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
 
     uint64_t coinAmount = coin_amount;
-    if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY)
+    if (order_type == ORDER_LIMIT_PRICE && order_side == ORDER_BUY)
         coinAmount = CalcCoinAmount(asset_amount, price);
 
     if (order_side == ORDER_BUY) {
@@ -186,17 +185,17 @@ bool CDEXOrderBaseTx::ProcessOrder(CTxExecuteContext &context, CAccount &txAccou
     assert(!txAccount.regid.IsEmpty());
     const uint256 &txid = GetHash();
     CDEXOrderDetail orderDetail;
-    orderDetail.mode               = mode;
-    orderDetail.dex_id             = dex_id;
-    orderDetail.operator_fee_ratio = operator_fee_ratio;
     orderDetail.generate_type      = USER_GEN_ORDER;
-    orderDetail.order_type         = ORDER_LIMIT_PRICE;
-    orderDetail.order_side         = ORDER_BUY;
+    orderDetail.order_type         = order_type;
+    orderDetail.order_side         = order_side;
     orderDetail.coin_symbol        = coin_symbol;
     orderDetail.asset_symbol       = asset_symbol;
     orderDetail.coin_amount        = coinAmount;
     orderDetail.asset_amount       = asset_amount;
     orderDetail.price              = price;
+    orderDetail.order_opt          = order_opt;
+    orderDetail.dex_id             = dex_id;
+    orderDetail.match_fee_ratio    = match_fee_ratio;
     orderDetail.tx_cord            = CTxCord(context.height, context.index);
     orderDetail.user_regid         = txAccount.regid;
     // other fields keep the default value
@@ -232,24 +231,25 @@ uint64_t CDEXOrderBaseTx::CalcCoinAmount(uint64_t assetAmount, const uint64_t pr
 
 string CDEXBuyLimitOrderBaseTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
-                     "asset_symbol=%s, amount=%llu, price=%llu, memo_hex=%s",
+                     "coin_symbol=%s, asset_symbol=%s, amount=%llu, price=%llu, order_opt={%s}, "
+                     "dex_id=%u, match_fee_ratio=%llu, memo_hex=%s",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
-                     asset_symbol, asset_amount, price, HexStr(memo));
+                     txUid.ToString(), llFees, coin_symbol, asset_symbol, asset_amount, price,
+                     order_opt.ToString(), dex_id, match_fee_ratio, HexStr(memo));
 }
 
 Object CDEXBuyLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("mode",               mode.Name()));
-    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
-    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
     result.push_back(Pair("coin_symbol",        coin_symbol));
     result.push_back(Pair("asset_symbol",       asset_symbol));
     result.push_back(Pair("asset_amount",       asset_amount));
     result.push_back(Pair("price",              price));
+    result.push_back(Pair("order_opt",          order_opt.ToJson()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
     return result;
 }
 
@@ -325,24 +325,25 @@ bool CDEXBuyLimitOrderExTx::CheckTx(CTxExecuteContext &context) {
 
 string CDEXSellLimitOrderBaseTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
-                     "asset_symbol=%s, amount=%llu, price=%llu, memo_hex=%s",
+                     "coin_symbol=%s, asset_symbol=%s, amount=%llu, price=%llu, order_opt={%s}, "
+                     "dex_id=%u, match_fee_ratio=%llu, memo_hex=%s",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
-                     asset_symbol, asset_amount, price, HexStr(memo));
+                     txUid.ToString(), llFees, coin_symbol, asset_symbol, asset_amount, price,
+                     order_opt.ToString(), dex_id, match_fee_ratio, HexStr(memo));
 }
 
 Object CDEXSellLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("mode",               mode.Name()));
-    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
-    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
     result.push_back(Pair("coin_symbol",        coin_symbol));
     result.push_back(Pair("asset_symbol",       asset_symbol));
     result.push_back(Pair("asset_amount",       asset_amount));
     result.push_back(Pair("price",              price));
+    result.push_back(Pair("order_opt",          order_opt.ToJson()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
     return result;
 }
 
@@ -410,23 +411,24 @@ bool CDEXSellLimitOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
 
 string CDEXBuyMarketOrderBaseTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
-                     "asset_symbol=%s, coin_amount=%llu, memo_hex=%s",
+                     "coin_symbol=%s, asset_symbol=%s, coin_amount=%llu, order_opt={%s}, "
+                     "dex_id=%u, match_fee_ratio=%llu, memo_hex=%s",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
-                     asset_symbol, coin_amount, HexStr(memo));
+                     txUid.ToString(), llFees, coin_symbol, asset_symbol, coin_amount,
+                     order_opt.ToString(), dex_id, match_fee_ratio, HexStr(memo));
 }
 
 Object CDEXBuyMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("mode",               mode.Name()));
-    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
-    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
     result.push_back(Pair("coin_symbol",        coin_symbol));
     result.push_back(Pair("asset_symbol",       asset_symbol));
     result.push_back(Pair("coin_amount",        coin_amount));
+    result.push_back(Pair("order_opt",          order_opt.ToString()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
 
     return result;
 }
@@ -490,23 +492,24 @@ bool CDEXBuyMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
 
 string CDEXSellMarketOrderBaseTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
-                     "mode=%s, dex_id=%u, operator_fee_ratio=%llu, coin_symbol=%s, "
-                     "asset_symbol=%s, amount=%llu, memo_hex=%s",
+                     "coin_symbol=%s, asset_symbol=%s, amount=%llu, order_opt={%s}, "
+                     "dex_id=%u, match_fee_ratio=%llu, memo_hex=%s",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, mode.Name(), dex_id, operator_fee_ratio, coin_symbol,
-                     asset_symbol, asset_amount, HexStr(memo));
+                     txUid.ToString(), llFees, order_opt.ToString(), dex_id, match_fee_ratio,
+                     coin_symbol, asset_symbol, asset_amount, HexStr(memo));
 }
 
 Object CDEXSellMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("mode",               mode.Name()));
-    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
-    result.push_back(Pair("operator_fee_ratio", operator_fee_ratio));
     result.push_back(Pair("coin_symbol",        coin_symbol));
     result.push_back(Pair("asset_symbol",       asset_symbol));
     result.push_back(Pair("asset_amount",       asset_amount));
+    result.push_back(Pair("mode",               order_opt.ToJson()));
+    result.push_back(Pair("dex_id",             (uint64_t)dex_id));
+    result.push_back(Pair("match_fee_ratio",    match_fee_ratio));
     result.push_back(Pair("memo",               memo));
     result.push_back(Pair("memo_hex",           HexStr(memo)));
+    result.push_back(Pair("operator_signature", HexStr(operator_signature)));
     return result;
 }
 
@@ -572,14 +575,14 @@ bool CDEXSellMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
 
 string CDEXCancelOrderTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
-        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, orderId=%s",
+        "txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, order_id=%s",
         GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height, txUid.ToString(), llFees,
-        orderId.GetHex());
+        order_id.GetHex());
 }
 
 Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("order_id", orderId.GetHex()));
+    result.push_back(Pair("order_id", order_id.GetHex()));
 
     return result;
 }
@@ -590,7 +593,7 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
     IMPLEMENT_CHECK_TX_FEE;
 
-    if (orderId.IsEmpty())
+    if (order_id.IsEmpty())
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
                          "invalid-order-id");
     CAccount txAccount;
@@ -624,7 +627,7 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     CDEXOrderDetail activeOrder;
-    if (!cw.dexCache.GetActiveOrder(orderId, activeOrder)) {
+    if (!cw.dexCache.GetActiveOrder(order_id, activeOrder)) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, the order is inactive or not existed"),
                         REJECT_INVALID, "order-inactive");
     }
@@ -668,8 +671,8 @@ bool CDEXCancelOrderTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, set account info error"),
                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    if (!cw.dexCache.EraseActiveOrder(orderId, activeOrder)) {
-        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", orderId.ToString()),
+    if (!cw.dexCache.EraseActiveOrder(order_id, activeOrder)) {
+        return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::ExecuteTx, erase active order failed! order_id=%s", order_id.ToString()),
                          REJECT_INVALID, "order-erase-failed");
     }
 
@@ -692,19 +695,19 @@ string DEXDealItem::ToString() const {
 ///////////////////////////////////////////////////////////////////////////////
 // class CDEXSettleTx
 
-string CDEXSettleBaseTx::ToString(CAccountDBCache &accountCache) {
+string CDEXSettleTx::ToString(CAccountDBCache &accountCache) {
     string dealInfo="";
     for (const auto &item : dealItems) {
         dealInfo += "{" + item.ToString() + "},";
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, dex_id, "
-                     "deal_items=[%s], memo_hex=%s",
+    return strprintf("txType=%s, hash=%s, ver=%d, valid_height=%d, txUid=%s, llFees=%llu, "
+                     "deal_items=[%s]",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, valid_height,
-                     txUid.ToString(), llFees, dex_id, dealInfo, HexStr(memo));
+                     txUid.ToString(), llFees, dealInfo);
 }
 
-Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
     Array arrayItems;
     for (const auto &item : dealItems) {
         Object subItem;
@@ -717,15 +720,12 @@ Object CDEXSettleBaseTx::ToJson(const CAccountDBCache &accountCache) const {
     }
 
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("dex_id",  (uint64_t)dex_id));
     result.push_back(Pair("deal_items",  arrayItems));
-    result.push_back(Pair("memo",  memo));
-    result.push_back(Pair("memo_hex", HexStr(memo)));
 
     return result;
 }
 
-bool CDEXSettleBaseTx::CheckTx(CTxExecuteContext &context) {
+bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid.type());
@@ -873,7 +873,7 @@ static bool GetAccount(CTxExecuteContext &context, const CRegID &regid,
             update active order to dex db
         }
 */
-bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
+bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     vector<CReceipt> receipts;
 
@@ -888,21 +888,12 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
-    shared_ptr<DexOperatorDetail> pSettleOperatorDetail;
-    if (!GetDexOperator(context, dex_id, pSettleOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-
-    if (!pSrcAccount->IsMyUid(pSettleOperatorDetail->fee_receiver_regid))
-        return state.DoS(100, ERRORMSG("%s(), tx account is not the matcher of dex operator! dex_id=%u, "
-            "tx_uid=%s, fee_receiver_regid=%s", __func__, dex_id, txUid.ToDebugString(),
-            pSettleOperatorDetail->fee_receiver_regid.ToString()),
-            REJECT_INVALID, "invalid_dex_operator_matcher");
-
     map<CRegID, shared_ptr<CAccount>> accountMap = {
         {pSrcAccount->regid, pSrcAccount}
     };
     for (size_t i = 0; i < dealItems.size(); i++) {
         auto &dealItem = dealItems[i];
-        //1. get and check buyDealOrder and sellDealOrder
+        //1.1 get and check buyDealOrder and sellDealOrder
         CDEXOrderDetail buyOrder, sellOrder;
         if (!GetDealOrder(cw, state, i, dealItem.buyOrderId, ORDER_BUY, buyOrder))
             return false;
@@ -910,34 +901,26 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
         if (!GetDealOrder(cw, state, i, dealItem.sellOrderId, ORDER_SELL, sellOrder))
             return false;
 
-        // 2. get account of order
+        // 1.2 get account of order
         shared_ptr<CAccount> pBuyOrderAccount = nullptr;
         if (!GetAccount(context, buyOrder.user_regid, accountMap, pBuyOrderAccount)) return false;
 
         shared_ptr<CAccount> pSellOrderAccount = nullptr;
         if (!GetAccount(context, sellOrder.user_regid, accountMap, pSellOrderAccount)) return false;
 
-        // check dex_id
-        uint32_t buyDexId = buyOrder.dex_id;
-        uint32_t sellDexId = sellOrder.dex_id;
-        if (!CheckDexId(context, i, buyDexId, sellDexId)) return false;
+        // 2. check dex_id
+        OrderSide takerSide = GetTakerOrderSide(buyOrder, sellOrder);
+        OrderSide makeSide = takerSide != ORDER_BUY ? ORDER_BUY : ORDER_SELL;
+        if (!CheckDexOperator(context, i, buyOrder, sellOrder, makeSide)) return false;
 
         shared_ptr<DexOperatorDetail> pBuyOperatorDetail, pSellOperatorDetail;
         shared_ptr<CAccount> pBuyMatchAccount, pSellMatchAccount;
-        if (buyDexId == dex_id) {
-            pBuyOperatorDetail = pSettleOperatorDetail;
-            pBuyMatchAccount = pSrcAccount;
-        } else {
-            if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-            if (!GetAccount(context, pBuyOperatorDetail->fee_receiver_regid, accountMap, pBuyMatchAccount)) return false;
-        }
-        if (sellDexId == dex_id) {
-            pSellOperatorDetail = pSettleOperatorDetail;
-            pSellMatchAccount = pSrcAccount;
-        } else {
-            if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
-            if (!GetAccount(context, pSellOperatorDetail->fee_receiver_regid, accountMap, pSellMatchAccount)) return false;
-        }
+
+        if (!GetDexOperator(context, buyOrder.dex_id, pBuyOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
+        if (!GetAccount(context, pBuyOperatorDetail->fee_receiver_regid, accountMap, pBuyMatchAccount)) return false;
+
+        if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
+        if (!GetAccount(context, pSellOperatorDetail->fee_receiver_regid, accountMap, pSellMatchAccount)) return false;
 
         // 3. check coin type match
         if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
@@ -1062,10 +1045,8 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
         // 9.1 buyer pay the fee from the received assets to settler
 
-        OrderSide takerSide = GetTakerOrderSide(buyOrder, sellOrder);
         uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, *pBuyOperatorDetail, takerSide);
         uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
-
 
         if (buyOperatorFeeRatio != 0) {
             if (!CheckOrderFeeRateRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
@@ -1181,7 +1162,7 @@ bool CDEXSettleBaseTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXSettleBaseTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
+bool CDEXSettleTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &orderId,
                                 const OrderSide orderSide, CDEXOrderDetail &dealOrder) {
     if (!cw.dexCache.GetActiveOrder(orderId, dealOrder))
         return state.DoS(100, ERRORMSG("%s(), get active order failed! i=%d, orderId=%s", __func__,
@@ -1198,28 +1179,30 @@ bool CDEXSettleBaseTx::GetDealOrder(CCacheWrapper &cw, CValidationState &state, 
     return true;
 }
 
-bool CDEXSettleBaseTx::CheckDexId(CTxExecuteContext &context, uint32_t i, uint32_t buyDexId, uint32_t sellDexId) {
-    if (buyDexId != dex_id && sellDexId != dex_id) {
-        return context.pState->DoS(100, ERRORMSG("%s(), i[%d] can not settle the other operator' orders! settle_dex_id=%u, "
-            "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
-            REJECT_INVALID, "dex-id-unmatch");
-    } else if (buyDexId != sellDexId) {
-        // Only orders from dex operator 0 can be shared
-        if (buyDexId == dex_id && sellDexId != DEX_RESERVED_ID) {
-            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the sell order is not shared! settle_dex_id=%u, "
-                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
-                REJECT_INVALID, "dex-id-unmatch");
-        } else if (sellDexId == dex_id && buyDexId != DEX_RESERVED_ID) {
-            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the buy order is not shared! settle_dex_id=%u, "
-                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, dex_id, buyDexId, sellDexId),
-                REJECT_INVALID, "dex-id-unmatch");
+bool CDEXSettleTx::CheckDexOperator(CTxExecuteContext &context, uint32_t i,
+                                        const CDEXOrderDetail &buyOrder,
+                                        const CDEXOrderDetail &sellOrder,
+                                        const OrderSide &makerSide) {
+
+    uint32_t buyDexId = buyOrder.dex_id;
+    uint32_t sellDexId = sellOrder.dex_id;
+    if (buyDexId != sellDexId) {
+        if (makerSide == ORDER_BUY && !buyOrder.order_opt.IsPublic()) {
+            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the buy order is maker order and must be public! "
+                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, buyDexId, sellDexId),
+                REJECT_INVALID, "buy-order-not-public");
+        }
+        if (makerSide == ORDER_SELL && !sellOrder.order_opt.IsPublic()) {
+            return context.pState->DoS(100, ERRORMSG("%s(), i[%d] the sell order is maker order and must be public! "
+                "buy_dex_id=%u, sell_dex_id=%u", __FUNCTION__, i, buyDexId, sellDexId),
+                REJECT_INVALID, "sell-order-not-public");
         }
     }
     return true;
 }
 
 
-OrderSide CDEXSettleBaseTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder) {
+OrderSide CDEXSettleTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder) {
     OrderSide takerSide;
     if (buyOrder.order_type != sellOrder.order_type) {
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {
@@ -1238,23 +1221,23 @@ OrderSide CDEXSettleBaseTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, c
     return takerSide;
 }
 
-uint64_t CDEXSettleBaseTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
+uint64_t CDEXSettleTx::GetOperatorFeeRatio(const CDEXOrderDetail &order,
                                                const DexOperatorDetail &operatorDetail,
                                                const OrderSide &takerSide) {
     uint64_t ratio;
-    if (order.mode.value == OrderOperatorMode::DEFAULT) {
+    if (order.order_opt.HasFeeRatio()) {
+        ratio = order.match_fee_ratio;
+    } else {
         if (order.order_side == takerSide) {
             ratio = operatorDetail.taker_fee_ratio;
         } else {
             ratio = operatorDetail.maker_fee_ratio;
         }
-    } else {
-        ratio = order.operator_fee_ratio;
     }
     return ratio;
 }
 
-bool CDEXSettleBaseTx::CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
+bool CDEXSettleTx::CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
                                     uint64_t &orderFee) {
 
     uint128_t fee = amount * (uint128_t)fee_ratio / PRICE_BOOST;
