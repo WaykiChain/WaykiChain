@@ -23,7 +23,7 @@ static CUserID nullId;
     DEFINE(COIN_BLOCK_REWORD_TO_MINER,          102, "coin block reward to miner") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
     /**** transfer */ \
-    DEFINE(TRANSFER_FEE_TO_RISERVE,             201, "transferred fee to risk riserve") \
+    DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
@@ -41,7 +41,7 @@ static CUserID nullId;
     DEFINE(CDP_ASSET_TO_LIQUIDATOR,             441, "cdp assets to liquidator") \
     DEFINE(CDP_LIQUIDATED_ASSET_TO_OWNER,       442, "cdp liquidated assets to owner") \
     DEFINE(CDP_LIQUIDATED_CLOSEOUT_SCOIN,       443, "cdp liquidated closeout scoins") \
-    DEFINE(CDP_PENALTY_TO_RISERVE,              444, "cdp half penalty scoins to risk riserve directly") \
+    DEFINE(CDP_PENALTY_TO_RESERVE,              444, "cdp half penalty scoins to risk reserve directly") \
     DEFINE(CDP_PENALTY_BUY_DEFLATE_FCOINS,      445, "cdp half penalty scoins to buy fcoins for deflating") \
     /**** CDP forced liquidate*/ \
     DEFINE(CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE, 460, "total closeout scoins from risk reserve in forced-liquidation") \
@@ -54,12 +54,12 @@ static CUserID nullId;
     DEFINE(DEX_COIN_TO_SELLER,                  504, "dex deal deal coins to seller") \
     DEFINE(DEX_UNFREEZE_COIN_TO_BUYER,          505, "dex unfreeze coins to buyer for canceling order") \
     DEFINE(DEX_UNFREEZE_ASSET_TO_SELLER,        506, "dex unfreeze asset to seller for canceling order") \
-    DEFINE(DEX_OPERATOR_REG_FEE_TO_RISERVE,     520, "dex operator registered fee to risk riserve") \
-    DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_RISERVE, 702, "dex operator updated fee to risk riserve") \
+    DEFINE(DEX_OPERATOR_REG_FEE_TO_RESERVE,     520, "dex operator registered fee to risk reserve") \
+    DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_RESERVE, 702, "dex operator updated fee to risk reserve") \
     DEFINE(DEX_OPERATOR_REG_FEE_TO_MINER,       703, "dex operator registered fee to miner") \
     DEFINE(DEX_OPERATOR_UPDATED_FEE_TO_MINER,   704, "dex operator updated fee to miner") \
     /**** contract */ \
-    DEFINE(CONTRACT_FUEL_TO_RISK_RISERVE,       601, "contract fuel to risk riserve") \
+    DEFINE(CONTRACT_FUEL_TO_RISK_RESERVE,       601, "contract fuel to risk reserve") \
     DEFINE(CONTRACT_TOKEN_OPERATE_ADD,          602, "operate add token of contract user account") \
     DEFINE(CONTRACT_TOKEN_OPERATE_SUB,          603, "operate sub token of contract user account") \
     DEFINE(CONTRACT_TOKEN_OPERATE_TAG_ADD,      604, "operate add token tag of contract user account") \
@@ -68,8 +68,8 @@ static CUserID nullId;
     DEFINE(CONTRACT_ACCOUNT_OPERATE_SUB,        607, "operate sub bcoins of account by contract") \
     DEFINE(CONTRACT_ACCOUNT_TRANSFER_ASSET,     608, "transfer account asset by contract") \
     /**** asset */ \
-    DEFINE(ASSET_ISSUED_FEE_TO_RISERVE,         701, "asset issued fee to risk riserve") \
-    DEFINE(ASSET_UPDATED_FEE_TO_RISERVE,        702, "asset updated fee to risk riserve") \
+    DEFINE(ASSET_ISSUED_FEE_TO_RESERVE,         701, "asset issued fee to risk reserve") \
+    DEFINE(ASSET_UPDATED_FEE_TO_RESERVE,        702, "asset updated fee to risk reserve") \
     DEFINE(ASSET_ISSUED_FEE_TO_MINER,           703, "asset issued fee to miner") \
     DEFINE(ASSET_UPDATED_FEE_TO_MINER,          704, "asset updated fee to miner")
 

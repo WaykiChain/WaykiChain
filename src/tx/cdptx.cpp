@@ -977,7 +977,7 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
         uint64_t halfScoinsPenalty = scoinPenaltyFees / 2;
         uint64_t leftScoinPenalty  = scoinPenaltyFees - halfScoinsPenalty;  // handle odd amount
 
-        // 1) save 50% penalty fees into risk riserve
+        // 1) save 50% penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, halfScoinsPenalty)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
@@ -1004,17 +1004,17 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, halfScoinsPenalty,
-                              ReceiptCode::CDP_PENALTY_TO_RISERVE);
+                              ReceiptCode::CDP_PENALTY_TO_RESERVE);
         receipts.emplace_back(nullId, fcoinGenesisUid, cdp.scoin_symbol, leftScoinPenalty,
                               ReceiptCode::CDP_PENALTY_BUY_DEFLATE_FCOINS);
     } else {
-        // send penalty fees into risk riserve
+        // send penalty fees into risk reserve
         if (!fcoinGenesisAccount.OperateBalance(cdp.scoin_symbol, BalanceOpType::ADD_FREE, scoinPenaltyFees)) {
             return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add scoins to fcoin genesis account failed"),
                              UPDATE_ACCOUNT_FAIL, "add-scoins-to-fcoin-genesis-account-failed");
         }
         receipts.emplace_back(nullId, fcoinGenesisAccount.regid, cdp.scoin_symbol, scoinPenaltyFees,
-                              ReceiptCode::CDP_PENALTY_TO_RISERVE);
+                              ReceiptCode::CDP_PENALTY_TO_RESERVE);
     }
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))

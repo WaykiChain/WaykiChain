@@ -101,19 +101,19 @@ static void process_dex_operator_fee(wasm_context &context, const wasm::asset &f
     uint64_t risk_fee       = amount * DEX_OPERATOR_RISK_FEE_RATIO / RATIO_BOOST;
     uint64_t total_delegate_fee = amount - risk_fee;
 
-    shared_ptr<CAccount> sp_risk_riserve_account = make_shared<CAccount>();
-    WASM_ASSERT(context.database.accountCache.GetFcoinGenesisAccount(*sp_risk_riserve_account), wasm_assert_exception,
-        "%s(), risk riserve account does not existed", __func__);
+    shared_ptr<CAccount> sp_risk_reserve_account = make_shared<CAccount>();
+    WASM_ASSERT(context.database.accountCache.GetFcoinGenesisAccount(*sp_risk_reserve_account), wasm_assert_exception,
+        "%s(), risk reserve account does not existed", __func__);
 
-    wasm_account::add_free_balance(*sp_risk_riserve_account, symbol, risk_fee, ERROR_TITLE("risk fee"));
-    wasm_account::save(context.database, *sp_risk_riserve_account, ERROR_TITLE("risk riserve"));
+    wasm_account::add_free_balance(*sp_risk_reserve_account, symbol, risk_fee, ERROR_TITLE("risk fee"));
+    wasm_account::save(context.database, *sp_risk_reserve_account, ERROR_TITLE("risk reserve"));
 
     if (action == ASSET_ACTION_ISSUE)
-        context.receipts.emplace_back(registrant_account.nickid, sp_risk_riserve_account->regid, symbol,
-                              risk_fee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RISERVE);
+        context.receipts.emplace_back(registrant_account.nickid, sp_risk_reserve_account->regid, symbol,
+                              risk_fee, ReceiptCode::DEX_OPERATOR_REG_FEE_TO_RESERVE);
     else
-        context.receipts.emplace_back(registrant_account.nickid, sp_risk_riserve_account->regid, symbol,
-            risk_fee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RISERVE);
+        context.receipts.emplace_back(registrant_account.nickid, sp_risk_reserve_account->regid, symbol,
+            risk_fee, ReceiptCode::DEX_OPERATOR_UPDATED_FEE_TO_RESERVE);
 
     VoteDelegateVector delegates;
     WASM_ASSERT(context.database.delegateCache.GetActiveDelegates(delegates), wasm_assert_exception,

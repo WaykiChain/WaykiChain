@@ -168,7 +168,7 @@ bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
                         UPDATE_ACCOUNT_FAIL, "bad-save-accountdb");
 
                 CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-                receipts.emplace_back(keyId, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RISERVE);
+                receipts.emplace_back(keyId, fcoinGenesisUid, SYMB::WUSD, reserveFeeScoins, ReceiptCode::TRANSFER_FEE_TO_RESERVE);
                 receipts.emplace_back(keyId, transfer.to_uid, SYMB::WUSD, actualCoinsToSend, ReceiptCode::TRANSFER_ACTUAL_COINS);
             }
         }

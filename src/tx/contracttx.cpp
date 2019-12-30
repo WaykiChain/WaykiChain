@@ -395,7 +395,7 @@ bool CUniversalContractDeployTx::ExecuteTx(CTxExecuteContext &context) {
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        CReceipt receipt(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RISERVE);
+        CReceipt receipt(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RESERVE);
 
         if (!cw.txReceiptCache.SetTxReceipts(GetHash(), {receipt}))
             return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::ExecuteTx, set tx receipts failed!! txid=%s",
@@ -571,7 +571,7 @@ bool CUniversalContractInvokeTx::ExecuteTx(CTxExecuteContext &context) {
                              UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
 
         CUserID fcoinGenesisUid(fcoinGenesisAccount.regid);
-        receipts.emplace_back(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RISERVE);
+        receipts.emplace_back(nullId, fcoinGenesisUid, SYMB::WUSD, fuel, ReceiptCode::CONTRACT_FUEL_TO_RISK_RESERVE);
     }
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
