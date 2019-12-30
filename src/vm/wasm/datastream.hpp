@@ -16,7 +16,7 @@
 #include "wasm/types/types.hpp"
 #include "wasm/types/symbol.hpp"
 #include "wasm/types/varint.hpp"
-#include "wasm/types/inline_transaction.hpp"
+//#include "wasm/types/inline_transaction.hpp"
 
 
 namespace wasm {
@@ -481,12 +481,12 @@ namespace wasm {
      *  @tparam Stream - Type of datastream buffer
      *  @return datastream<Stream>& - Reference to the datastream
      */
-        template<typename Stream>
-        inline datastream<Stream> &operator<<( datastream<Stream> &ds, const wasm::symbol sym ) {
-            uint64_t raw = sym.raw();
-            ds.write((const char *) &raw, sizeof(raw));
-            return ds;
-        }
+        // template<typename Stream>
+        // inline datastream<Stream> &operator<<( datastream<Stream> &ds, const wasm::symbol sym ) {
+        //     uint64_t raw = sym.raw();
+        //     ds.write((const char *) &raw, sizeof(raw));
+        //     return ds;
+        // }
 
     /**
      *  Deserialize a symbol from a stream
@@ -497,13 +497,13 @@ namespace wasm {
      *  @tparam Stream - Type of datastream buffer
      *  @return datastream<Stream>& - Reference to the datastream
      */
-        template<typename Stream>
-        inline datastream<Stream> &operator>>( datastream<Stream> &ds, wasm::symbol &sym ) {
-            uint64_t raw = 0;
-            ds.read((char *) &raw, sizeof(raw));
-            sym = symbol(raw);
-            return ds;
-        }
+        // template<typename Stream>
+        // inline datastream<Stream> &operator>>( datastream<Stream> &ds, wasm::symbol &sym ) {
+        //     uint64_t raw = 0;
+        //     ds.read((char *) &raw, sizeof(raw));
+        //     sym = symbol(raw);
+        //     return ds;
+        // }
 
 // /**
 //  *  Serialize an ignored_wrapper type into a stream
@@ -1403,13 +1403,13 @@ namespace wasm {
     *  @tparam DataStream - Type of datastream buffer
     *  @return DataStream& - Reference to the datastream
     */
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    DataStream &operator<<( DataStream &ds, const permission &perm ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // DataStream &operator<<( DataStream &ds, const permission &perm ) {
 
-        ds << perm.account;
-        ds << perm.perm;
-        return ds;
-    }
+    //     ds << perm.account;
+    //     ds << perm.perm;
+    //     return ds;
+    // }
 
     /**
     *  Deserialize a asset from a stream
@@ -1420,13 +1420,13 @@ namespace wasm {
     *  @tparam DataStream - Type of datastream buffer
     *  @return DataStream& - Reference to the datastream
     */
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    DataStream &operator>>( DataStream &ds, permission &perm ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // DataStream &operator>>( DataStream &ds, permission &perm ) {
 
-        ds >> perm.account;
-        ds >> perm.perm;
-        return ds;
-    }
+    //     ds >> perm.account;
+    //     ds >> perm.perm;
+    //     return ds;
+    // }
 
 
     /**
@@ -1438,18 +1438,16 @@ namespace wasm {
     *  @tparam DataStream - Type of datastream buffer
     *  @return DataStream& - Reference to the datastream
     */
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    DataStream &operator<<( DataStream &ds, const inline_transaction &trx ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // DataStream &operator<<( DataStream &ds, const inline_transaction &trx ) {
 
-        // ds.write( (const char*)&trx.contract, sizeof(trx.contract));
-        // ds.write( (const char*)&trx.action, sizeof(trx.action));
-        ds << trx.contract;
-        ds << trx.action;
-        ds << trx.authorization;
+    //     ds << trx.contract;
+    //     ds << trx.action;
+    //     ds << trx.authorization;
 
-        ds << trx.data;
-        return ds;
-    }
+    //     ds << trx.data;
+    //     return ds;
+    // }
 
     /**
     *  Deserialize a asset from a stream
@@ -1460,20 +1458,16 @@ namespace wasm {
     *  @tparam DataStream - Type of datastream buffer
     *  @return DataStream& - Reference to the datastream
     */
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    DataStream &operator>>( DataStream &ds, inline_transaction &trx ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // DataStream &operator>>( DataStream &ds, inline_transaction &trx ) {
 
-        // ds.read((char*)&trx.contract, sizeof(trx.contract));
-        // ds.read((char*)&trx.action, sizeof(trx.action));
+    //     ds >> trx.contract;
+    //     ds >> trx.action;
+    //     ds >> trx.authorization;
 
-        ds >> trx.contract;
-        ds >> trx.action;
-        ds >> trx.authorization;
-
-        ds >> trx.data;
-
-        return ds;
-    }
+    //     ds >> trx.data;
+    //     return ds;
+    // }
 
 
     /**

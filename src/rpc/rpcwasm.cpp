@@ -47,14 +47,14 @@ using namespace boost::assign;
 using std::chrono::microseconds;
 // using namespace wasm;
 
-#define JSON_RPC_ASSERT(expr ,code, ...)         \
-    if( !( expr ) ){                             \
-        string msg = tfm::format( __VA_ARGS__ ); \
-        std::ostringstream o;                    \
-        o << __FILE__ << ":" << __LINE__         \
-          << ":[" << __FUNCTION__ << "], "       \
-          << msg;                                \
-        throw JSONRPCError(code, o.str().c_str());       \
+#define JSON_RPC_ASSERT(expr ,code, ...)            \
+    if( !( expr ) ){                                \
+        string msg = tfm::format( __VA_ARGS__ );    \
+        std::ostringstream o;                       \
+        o << __FILE__ << ":" << __LINE__            \
+          << ":[" << __FUNCTION__ << "], "          \
+          << msg;                                   \
+        throw JSONRPCError(code, o.str().c_str());  \
     }
 
 #define JSON_RPC_CAPTURE_AND_RETHROW                      \

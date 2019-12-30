@@ -7,6 +7,7 @@
 #include <map>
 
 #include "commons/serialize.h"
+#include "wasm/wasm_serialize_reflect.hpp"
 
 using namespace std;
 
@@ -20,6 +21,8 @@ namespace wasm {
             READWRITE(VARINT(account ));
             READWRITE(signature);
             )
+
+        WASM_REFLECT( signature_pair, (account)(signature) )
 
     };
 
@@ -37,13 +40,15 @@ namespace wasm {
             return account == p.account && perm == p.perm;
         }
 
+        WASM_REFLECT( permission, (account)(perm) )
+
     };
 
     struct inline_transaction {
-        uint64_t contract;
-        uint64_t action;
+        uint64_t                 contract;
+        uint64_t                 action;
         std::vector <permission> authorization;
-        std::vector<char> data;
+        std::vector<char>        data;
 
         IMPLEMENT_SERIALIZE (
             READWRITE(VARINT(contract ));
@@ -51,6 +56,8 @@ namespace wasm {
             READWRITE(authorization);
             READWRITE(data);
             )
+
+        WASM_REFLECT( inline_transaction, (contract)(action)(authorization)(data) )
 
     };
 

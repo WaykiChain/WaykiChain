@@ -8,9 +8,12 @@
 #include "wasm/exceptions.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/datastream.hpp"
+#include "wasm/wasm_serialize_reflect.hpp"
 
 #include "commons/json/json_spirit.h"
 #include "commons/json/json_spirit_value.h"
+
+
 
 namespace wasm {
     using namespace json_spirit;
@@ -31,6 +34,8 @@ namespace wasm {
 
         type_name new_type_name;
         type_name type;
+
+        WASM_REFLECT( type_def, (new_type_name)(type) )
     };
 
     struct field_def {
@@ -40,11 +45,13 @@ namespace wasm {
                 : name(name), type(type) {}
 
         field_name name;
-        type_name type;
+        type_name  type;
 
         bool operator==( const field_def &other ) const {
             return std::tie(name, type) == std::tie(other.name, other.type);
         }
+
+        WASM_REFLECT( field_def, (name)(type) )
     };
 
     struct struct_def {
@@ -53,13 +60,15 @@ namespace wasm {
         struct_def( const type_name &name, const type_name &base, const vector <field_def> &fields )
                 : name(name), base(base), fields(fields) {}
 
-        type_name name;
-        type_name base;
+        type_name          name;
+        type_name          base;
         vector <field_def> fields;
 
         bool operator==( const struct_def &other ) const {
             return std::tie(name, base, fields) == std::tie(other.name, other.base, other.fields);
         }
+
+        WASM_REFLECT( struct_def, (name)(base)(fields) )
     };
 
     struct action_def {
@@ -71,7 +80,9 @@ namespace wasm {
         //action_name name;
         type_name name;
         type_name type;
-        string ricardian_contract;
+        string    ricardian_contract;
+
+        WASM_REFLECT( action_def, (name)(type)(ricardian_contract) )
     };
 
     struct table_def {
@@ -81,12 +92,14 @@ namespace wasm {
                    const vector <type_name> &key_types, const type_name &type )
                 : name(name), index_type(index_type), key_names(key_names), key_types(key_types), type(type) {}
 
-        //table_name         name;        // the name of the table
-        type_name name;        // the name of the table
-        type_name index_type;  // the kind of index, i64, i128i128, etc
+        //table_name         name;       // the name of the table
+        type_name           name;        // the name of the table
+        type_name           index_type;  // the kind of index, i64, i128i128, etc
         vector <field_name> key_names;   // names for the keys defined by key_types
-        vector <type_name> key_types;   // the type of key parameters
-        type_name type;        // type of binary data stored in this table
+        vector <type_name>  key_types;   // the type of key parameters
+        type_name           type;        // type of binary data stored in this table
+
+        WASM_REFLECT( table_def, (name)(index_type)(key_names)(key_types)(type) )
     };
 
     struct clause_pair {
@@ -97,6 +110,8 @@ namespace wasm {
 
         string id;
         string body;
+
+        WASM_REFLECT( clause_pair, (id)(body) )
     };
 
     struct error_message {
@@ -107,6 +122,8 @@ namespace wasm {
 
         uint64_t error_code;
         string error_msg;
+
+        WASM_REFLECT( error_message, (error_code)(error_msg) )
     };
 
     struct abi_def {
@@ -123,162 +140,164 @@ namespace wasm {
         vector <action_def> actions;
         vector <table_def> tables;
         vector <clause_pair> ricardian_clauses;
+
+        WASM_REFLECT( abi_def, (version)(types)(structs)(actions)(tables)(ricardian_clauses) )
     };
 
-    // type_def
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const type_def &t ) {
+    // // type_def
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const type_def &t ) {
 
-        ds << t.new_type_name;
-        ds << t.type;
-        return ds;
-    }
+    //     ds << t.new_type_name;
+    //     ds << t.type;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, type_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, type_def &t ) {
 
-        ds >> t.new_type_name;
-        ds >> t.type;
-        return ds;
-    }
+    //     ds >> t.new_type_name;
+    //     ds >> t.type;
+    //     return ds;
+    // }
 
     // field_def
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const field_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const field_def &t ) {
 
-        ds << t.name;
-        ds << t.type;
-        return ds;
-    }
+    //     ds << t.name;
+    //     ds << t.type;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, field_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, field_def &t ) {
 
-        ds >> t.name;
-        ds >> t.type;
-        return ds;
-    }
+    //     ds >> t.name;
+    //     ds >> t.type;
+    //     return ds;
+    // }
 
     // struct_def
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const struct_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const struct_def &t ) {
 
-        ds << t.name;
-        ds << t.base;
-        ds << t.fields;
-        return ds;
-    }
+    //     ds << t.name;
+    //     ds << t.base;
+    //     ds << t.fields;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, struct_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, struct_def &t ) {
 
-        ds >> t.name;
-        ds >> t.base;
-        ds >> t.fields;
-        return ds;
-    }
+    //     ds >> t.name;
+    //     ds >> t.base;
+    //     ds >> t.fields;
+    //     return ds;
+    // }
 
     // action_def
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const action_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const action_def &t ) {
 
-        ds << t.name;
-        ds << t.type;
-        ds << t.ricardian_contract;
-        return ds;
-    }
+    //     ds << t.name;
+    //     ds << t.type;
+    //     ds << t.ricardian_contract;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, action_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, action_def &t ) {
 
-        ds >> t.name;
-        ds >> t.type;
-        ds >> t.ricardian_contract;
-        return ds;
-    }
+    //     ds >> t.name;
+    //     ds >> t.type;
+    //     ds >> t.ricardian_contract;
+    //     return ds;
+    // }
 
     // table_def
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const table_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const table_def &t ) {
 
-        ds << t.name;
-        ds << t.index_type;
-        ds << t.key_names;
-        ds << t.key_types;
-        ds << t.type;
-        return ds;
-    }
+    //     ds << t.name;
+    //     ds << t.index_type;
+    //     ds << t.key_names;
+    //     ds << t.key_types;
+    //     ds << t.type;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, table_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, table_def &t ) {
 
-        ds >> t.name;
-        ds >> t.index_type;
-        ds >> t.key_names;
-        ds >> t.key_types;
-        ds >> t.type;
-        return ds;
-    }
+    //     ds >> t.name;
+    //     ds >> t.index_type;
+    //     ds >> t.key_names;
+    //     ds >> t.key_types;
+    //     ds >> t.type;
+    //     return ds;
+    // }
 
     // clause_pair
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const clause_pair &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const clause_pair &t ) {
 
-        ds << t.id;
-        ds << t.body;
-        return ds;
-    }
+    //     ds << t.id;
+    //     ds << t.body;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, clause_pair &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, clause_pair &t ) {
 
-        ds >> t.id;
-        ds >> t.body;
-        return ds;
-    }
+    //     ds >> t.id;
+    //     ds >> t.body;
+    //     return ds;
+    // }
 
 
     // error_message
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const error_message &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const error_message &t ) {
 
-        ds << t.error_code;
-        ds << t.error_msg;
-        return ds;
-    }
+    //     ds << t.error_code;
+    //     ds << t.error_msg;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, error_message &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, error_message &t ) {
 
-        ds >> t.error_code;
-        ds >> t.error_msg;
-        return ds;
-    }
+    //     ds >> t.error_code;
+    //     ds >> t.error_msg;
+    //     return ds;
+    // }
 
     // abi_def
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator<<( DataStream &ds, const abi_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator<<( DataStream &ds, const abi_def &t ) {
 
-        ds << t.version;
-        ds << t.types;
-        ds << t.structs;
-        ds << t.actions;
-        ds << t.tables;
-        ds << t.ricardian_clauses;
-        return ds;
-    }
+    //     ds << t.version;
+    //     ds << t.types;
+    //     ds << t.structs;
+    //     ds << t.actions;
+    //     ds << t.tables;
+    //     ds << t.ricardian_clauses;
+    //     return ds;
+    // }
 
-    template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
-    inline DataStream &operator>>( DataStream &ds, abi_def &t ) {
+    // template<typename DataStream, std::enable_if_t<_datastream_detail::is_primitive<typename DataStream::wasm>()> * = nullptr>
+    // inline DataStream &operator>>( DataStream &ds, abi_def &t ) {
 
-        ds >> t.version;
-        ds >> t.types;
-        ds >> t.structs;
-        ds >> t.actions;
-        ds >> t.tables;
-        ds >> t.ricardian_clauses;
-        return ds;
-    }
+    //     ds >> t.version;
+    //     ds >> t.types;
+    //     ds >> t.structs;
+    //     ds >> t.actions;
+    //     ds >> t.tables;
+    //     ds >> t.ricardian_clauses;
+    //     return ds;
+    // }
 
 
     enum ABI_Enum {

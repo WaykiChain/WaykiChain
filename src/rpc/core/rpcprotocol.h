@@ -156,5 +156,6 @@ string JSONRPCRequest(const string& strMethod, const json_spirit::Array& params,
 json_spirit::Object JSONRPCReplyObj(const json_spirit::Value& result, const json_spirit::Value& error, const json_spirit::Value& id);
 string JSONRPCReply(const json_spirit::Value& result, const json_spirit::Value& error, const json_spirit::Value& id);
 json_spirit::Object JSONRPCError(int code, const string& message);
+json_spirit::Object JSONRPCError2(int code, const json_spirit::Value& value);
 
 #endif
