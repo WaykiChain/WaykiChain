@@ -66,6 +66,9 @@ namespace dbk {
         /*                                                                      */ \
         /**** single-value sys_conf db (global parameters)                      */ \
         DEFINE( SYS_PARAM,            "sysp",   SYSPARAM )       /* conf{$ParamName} --> $ParamValue */ \
+        DEFINE( SYS_GOVERN,           "govn",   SYSPARAM )       /* govn --> $list of governers */ \
+        DEFINE( GOVN_PROP,            "pgvn",   SYSPARAM )       /* pgvn{txid} --> proposal */ \
+        DEFINE( GOVN_SECOND,          "sgvn",   SYSPARAM )       /* sgvn{txid}{regid} --> 1 */ \
         /*** Asset Registry DB */ \
         DEFINE( ASSET,                "asst",   ASSET )          /* asst{$AssetName} --> $Asset */ \
         DEFINE( ASSET_TRADING_PAIR,   "atdp",   ASSET )          /* asst{$AssetName} --> $Asset */ \
