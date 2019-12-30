@@ -172,7 +172,7 @@ bool CDEXOrderBaseTx::ProcessOrder(CTxExecuteContext &context, CAccount &txAccou
     // if (!GetDexOperator(context, dex_id, pOperatorDetail, ERROR_TITLE(GetTxTypeName()))) return false;
 
     uint64_t coinAmount = coin_amount;
-    if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY)
+    if (order_type == ORDER_LIMIT_PRICE && order_side == ORDER_BUY)
         coinAmount = CalcCoinAmount(asset_amount, price);
 
     if (order_side == ORDER_BUY) {
@@ -186,8 +186,8 @@ bool CDEXOrderBaseTx::ProcessOrder(CTxExecuteContext &context, CAccount &txAccou
     const uint256 &txid = GetHash();
     CDEXOrderDetail orderDetail;
     orderDetail.generate_type      = USER_GEN_ORDER;
-    orderDetail.order_type         = ORDER_LIMIT_PRICE;
-    orderDetail.order_side         = ORDER_BUY;
+    orderDetail.order_type         = order_type;
+    orderDetail.order_side         = order_side;
     orderDetail.coin_symbol        = coin_symbol;
     orderDetail.asset_symbol       = asset_symbol;
     orderDetail.coin_amount        = coinAmount;

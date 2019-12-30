@@ -58,7 +58,10 @@ public:
 // buy limit order tx
 class CDEXBuyLimitOrderBaseTx : public CDEXOrderBaseTx {
 public:
-    CDEXBuyLimitOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {}
+    CDEXBuyLimitOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {
+        order_type      = ORDER_LIMIT_PRICE;
+        order_side      = ORDER_BUY;
+    }
 
     CDEXBuyLimitOrderBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
                             const TokenSymbol &feeSymbol, uint64_t fees,
@@ -193,7 +196,10 @@ public:
 class CDEXSellLimitOrderBaseTx : public CDEXOrderBaseTx {
 
 public:
-    CDEXSellLimitOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {}
+    CDEXSellLimitOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {
+        order_type      = ORDER_LIMIT_PRICE;
+        order_side      = ORDER_SELL;
+    }
 
     CDEXSellLimitOrderBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
                              const TokenSymbol &feeSymbol, uint64_t fees, TokenSymbol coinSymbol,
@@ -326,7 +332,10 @@ public:
 // buy market order tx
 class CDEXBuyMarketOrderBaseTx : public CDEXOrderBaseTx {
 public:
-    CDEXBuyMarketOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {}
+    CDEXBuyMarketOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {
+        order_type      = ORDER_MARKET_PRICE;
+        order_side      = ORDER_BUY;
+    }
 
     CDEXBuyMarketOrderBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
                              const TokenSymbol &feeSymbol, uint64_t fees, TokenSymbol coinSymbol,
@@ -456,7 +465,10 @@ public:
 // sell market order tx
 class CDEXSellMarketOrderBaseTx : public CDEXOrderBaseTx {
 public:
-    CDEXSellMarketOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {}
+    CDEXSellMarketOrderBaseTx(TxType nTxTypeIn) : CDEXOrderBaseTx(nTxTypeIn) {
+        order_type      = ORDER_MARKET_PRICE;
+        order_side      = ORDER_SELL;
+    }
 
     CDEXSellMarketOrderBaseTx(TxType nTxTypeIn, const CUserID &txUidIn, int32_t validHeightIn,
                               const TokenSymbol &feeSymbol, uint64_t fees, TokenSymbol coinSymbol,
