@@ -65,7 +65,7 @@ namespace wasm {
         }
 
     private:
-        wasm_vm_runtime <Impl> *_runtime;
+        wasm_vm_runtime <Impl> *    _runtime;
         std::shared_ptr <backend_t> _instantiated_module;
     };
 

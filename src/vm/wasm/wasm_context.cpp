@@ -253,28 +253,26 @@ namespace wasm {
 
     std::vector<uint64_t> wasm_context::get_active_producers(){
 
-        WASM_TRACE("get_active_producers")
-
         auto &database_account  = database.accountCache;
         auto &database_delegate = database.delegateCache;
 
         std::vector<uint64_t> active_producers;
         VoteDelegateVector    producers;
-        WASM_ASSERT(database_delegate.GetActiveDelegates(producers), 
-                    missing_auth_exception, 
-                    "fail to get top delegates for active producer");
+        WASM_ASSERT( database_delegate.GetActiveDelegates(producers), 
+                     account_operation_exception, 
+                     "fail to get top delegates for active producer");
 
         for( auto p: producers){
             CAccount producer;
-            WASM_ASSERT(database_account.GetAccount(p.regid, producer),
-                    account_operation_exception,
-                    "producer account get account error, regid = %s",
-                    p.regid.ToString())  
+            WASM_ASSERT( database_account.GetAccount(p.regid, producer),
+                         account_operation_exception,
+                         "producer account get account error, regid = %s",
+                         p.regid.ToString())  
 
-            WASM_ASSERT(producer.nickid.value != 0,
-                    account_operation_exception,
-                    "producer account does not register nick_id, regid = %s",
-                    p.regid.ToString())  
+            WASM_ASSERT( producer.nickid.value != 0,
+                         account_operation_exception,
+                         "producer account does not register nick_id, regid = %s",
+                         p.regid.ToString())  
 
             active_producers.push_back(producer.nickid.value);          
         }
@@ -283,10 +281,8 @@ namespace wasm {
 
     void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
 
-        //int64_t disk_usage    = control_trx.nRunStep;
         int64_t disk_usage  = size_in_bytes * store_fuel_fee_per_byte;
         control_trx.fuel   += (disk_usage < 0) ? 0 : disk_usage;
-
     }
 
 }

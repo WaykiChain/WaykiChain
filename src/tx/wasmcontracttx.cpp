@@ -82,17 +82,17 @@ void CWasmContractTx::validate_contracts(CTxExecuteContext& context) {
         WASM_ASSERT(database.accountCache.GetAccount(nick_name(contract_name.to_string()), contract),
                     account_operation_exception,
                     "CWasmContractTx.contract_validation, contract account does not exist, contract = %s",
-                    contract_name.to_string().c_str())
+                    contract_name.to_string())
 
         CUniversalContract contract_store;
         WASM_ASSERT(database.contractCache.GetContract(contract.regid, contract_store),
                     account_operation_exception,
                     "CWasmContractTx.contract_validation, cannot get contract with nick name = %s",
-                    contract_name.to_string().c_str())
+                    contract_name.to_string())
         WASM_ASSERT(contract_store.code.size() > 0 && contract_store.abi.size() > 0,
                     account_operation_exception,
                     "CWasmContractTx.contract_validation, %s contract abi or code  does not exist",
-                    contract_name.to_string().c_str())
+                    contract_name.to_string())
 
     }
 
@@ -107,7 +107,7 @@ void CWasmContractTx::validate_authorization(const std::vector<uint64_t>& author
             WASM_ASSERT(itr != authorization_accounts.end(),
                         account_operation_exception,
                         "CWasmContractTx.authorization_validation, authorization %s does not have signature",
-                        wasm::name(p.account).to_string().c_str())
+                        wasm::name(p.account).to_string())
             // if(p.account != account){
             //     WASM_ASSERT( false,
             //                  account_operation_exception,
@@ -188,7 +188,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
                          wasm::name(payer.nickid.ToString()).value) != authorization_accounts.end(),
                     account_operation_exception,
                     "CWasmContractTx.CheckTx, can not find the signature by payer %s",
-                    payer.nickid.ToString().c_str())
+                    payer.nickid.ToString())
 
     } catch (wasm::exception &e) {
 
@@ -212,11 +212,6 @@ static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
     uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
     uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate / 10 , MAX_BLOCK_RUN_STEP);//1.2 WICC
     WASM_ASSERT(fuel_limit > 0, fuel_fee_exception, "%s", "get_fuel_limit, fuel limit equal 0")
-
-    // if(context.transaction_status == wasm::transaction_status_type::validating){
-    // WASM_TRACE("fee_for_gas:%ld", fee_for_gas)
-    // WASM_TRACE("MAX_BLOCK_RUN_STEP:%ld", MAX_BLOCK_RUN_STEP)
-    // }
 
     return fuel_limit;
 }
@@ -269,7 +264,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         auto execute_tx_return = context.pState;
         transaction_status     = context.transaction_status;
 
-        if(transaction_status == wasm::transaction_status_type::syncing ||
+        if(transaction_status == wasm::transaction_status_type::mining ||
            transaction_status == wasm::transaction_status_type::validating ){
             max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
         }
@@ -279,18 +274,12 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         WASM_ASSERT(database.accountCache.GetAccount(txUid, payer),
                     account_operation_exception,
                     "wasmnativecontract.Setcode, payer does not exist, payer uid = '%s'",
-                    txUid.ToString().c_str())
+                    txUid.ToString())
         sub_balance(payer, wasm::asset(llFees, wasm::symbol(SYMB::WICC, 8)), database.accountCache);
 
-        //pseudo start for reduce code compile duration
-        pseudo_start    = system_clock::now();
-        fuel            = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
         recipients_size = 0;
-        // if(transaction_status == wasm::transaction_status_type::validating)
-        // {
-        //    WASM_TRACE("bytes:%d", GetSerializeSize(SER_DISK, CLIENT_VERSION))
-        //    WASM_TRACE("fuel:%ld", fuel)
-        // }
+        pseudo_start    = system_clock::now();//pseudo start for reduce code loading duration
+        fuel            = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
         std::vector<CReceipt>   receipts;
         wasm::transaction_trace trx_trace;
@@ -310,11 +299,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         //check storage usage with the limited fuel
         uint64_t fee    = get_fuel_limit(*this, context);
         fuel            = fuel + recipients_size * notice_fuel_fee_per_recipient;
-        // if(transaction_status == wasm::transaction_status_type::validating){
-        // WASM_TRACE("fuel:%ld", fuel)
-        // WASM_TRACE("fee:%ld", fee)
-        // WASM_TRACE("recipients_size:%ld", recipients_size)
-        // }
 
         WASM_ASSERT(fee > fuel, fuel_fee_exception, "%s",
                     "CWasmContractTx.ExecuteTx, fee is not enough to afford fuel");
@@ -325,14 +309,14 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                                                              std::string(trace_bytes.begin(), trace_bytes.end())),
                     wasm_exception,
                     "CWasmContractTx::ExecuteTx, set tx trace failed! txid=%s",
-                    GetHash().ToString().c_str())
+                    GetHash().ToString())
 
         //save trx receipts
         trace_to_receipts(trx_trace, receipts);
         WASM_ASSERT(database.txReceiptCache.SetTxReceipts(GetHash(), receipts),
                     wasm_exception,
                     "CWasmContractTx::ExecuteTx, set tx receipts failed! txid=%s",
-                    GetHash().ToString().c_str())
+                    GetHash().ToString())
 
         execute_tx_return->SetReturn(GetHash().ToString());
 
@@ -444,7 +428,6 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-//void CWasmContractTx::set_signature(uint64_t account, const vector<uint8_t>& signature) {
 void CWasmContractTx::set_signature(uint64_t account, const vector<uint8_t>& signature) {
     for( auto& s:signatures ){
         if( s.account == account ){
@@ -452,19 +435,10 @@ void CWasmContractTx::set_signature(uint64_t account, const vector<uint8_t>& sig
             return;
         }
     }
-    WASM_ASSERT(false, wasm_exception, "cannot find account %s in signature list", wasm::name(account).to_string().c_str());
+    WASM_ASSERT(false, wasm_exception, "cannot find account %s in signature list", wasm::name(account).to_string());
 }
 
 void CWasmContractTx::set_signature(const wasm::signature_pair& signature) {
-
     set_signature(signature.account, signature.signature);
-    // for( auto& s:signatures ){
-    //     if( s.account == signature.account ){
-    //         //s.signature = signature.signature;
-    //         s = signature;
-    //         return;
-    //     }
-    // }
-    // WASM_ASSERT(false, wasm_exception, "cannot find account %s in signature list", wasm::name(signature.account).to_string().c_str());
 }
 
