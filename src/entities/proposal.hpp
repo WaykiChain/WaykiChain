@@ -20,19 +20,15 @@
 
 class CProposal {
 private:
-    uint8_t m;
-    uint8_t n;
     uint64_t expire_block_height;
-
     list<string, uint64_t> paramValues;
-
     mutable uint256 sigHash;  //!< only in memory
 
 public:
     CProposal() {};
     
-    CProposal(uint8_t mIn, uint8_t nIn, uint64_t expireBlockHeightIn, list<string, uint64_t> &paramValuesIn):
-        m(mIn), n(nIn), expire_block_height(expireBlockHeightIn), paramValues(paramValuesIn) {};
+    CProposal(uint64_t expireBlockHeightIn, list<string, uint64_t> &paramValuesIn):
+         expire_block_height(expireBlockHeightIn), paramValues(paramValuesIn) {};
 
     ~CProposal() {}
 
@@ -40,7 +36,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
 
-            ss << VARINT(m) << VARINT(n) << VARINT(expire_block_height) << paramValues;
+            ss << VARINT(expire_block_height) << paramValues;
 
             sigHash = ss.GetHash();
         }
@@ -49,8 +45,6 @@ public:
     }
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(m));
-        READWRITE(VARINT(n));
         READWRITE(VARINT(expire_block_height));
         READWRITE(paramValues);
     );
