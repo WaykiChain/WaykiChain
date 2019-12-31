@@ -72,7 +72,7 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
 bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     if (assets_to_stake.size() != 1) {
@@ -92,7 +92,7 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -359,7 +359,7 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     CAccount account;
@@ -373,7 +373,7 @@ bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "empty-cdpid");
     }
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -627,7 +627,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
  bool CCDPLiquidateTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     if (scoins_to_liquidate == 0) {
@@ -644,7 +644,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", txUid.ToString()),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;

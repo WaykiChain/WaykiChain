@@ -17,7 +17,7 @@
 
 bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     if (candidateVotes.empty() || candidateVotes.size() > IniCfg().GetMaxVoteCandidateNum()) {
@@ -25,7 +25,7 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
                          "candidate-votes-out-of-range");
     }
 
-    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
+    if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
 
@@ -37,7 +37,7 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
 
     for (const auto &vote : candidateVotes) {
         // candidate uid should be CPubKey or CRegID
-        IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(vote.GetCandidateUid().type());
+        IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(vote.GetCandidateUid());
 
         if (0 >= vote.GetVotedBcoins() || (uint64_t)GetBaseCoinMaxMoney() < vote.GetVotedBcoins())
             return ERRORMSG("CDelegateVoteTx::CheckTx, votes: %lld not within (0 .. MaxVote)", vote.GetVotedBcoins());
@@ -56,7 +56,7 @@ bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
     }
 
     if (GetFeatureForkVersion(context.height) >= MAJOR_VER_R2) {
-        CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+        CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
         IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
     }
     return true;

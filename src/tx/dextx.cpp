@@ -256,7 +256,7 @@ Object CDEXBuyLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) cons
 bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 
@@ -273,7 +273,7 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s, read account failed", ERROR_TITLE(GetTxTypeName())),
             REJECT_INVALID, "bad-getaccount");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -350,7 +350,7 @@ Object CDEXSellLimitOrderBaseTx::ToJson(const CAccountDBCache &accountCache) con
 bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 
@@ -367,7 +367,7 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    CPubKey pubKey = ( txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
+    CPubKey pubKey = ( txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -436,7 +436,7 @@ Object CDEXBuyMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) con
 bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 
@@ -451,7 +451,7 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -516,7 +516,7 @@ Object CDEXSellMarketOrderBaseTx::ToJson(const CAccountDBCache &accountCache) co
 bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
     IMPLEMENT_CHECK_TX_MEMO;
 
@@ -533,7 +533,7 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -590,7 +590,7 @@ Object CDEXCancelOrderTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     if (order_id.IsEmpty())
@@ -601,7 +601,7 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -728,7 +728,7 @@ Object CDEXSettleTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
@@ -758,7 +758,7 @@ bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     if (!cw.accountCache.GetAccount(txUid, txAccount))
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-    if (txUid.type() == typeid(CRegID) && !txAccount.HaveOwnerPubKey())
+    if (txUid.is<CRegID>() && !txAccount.HaveOwnerPubKey())
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account unregistered"),
                          REJECT_INVALID, "bad-account-unregistered");
 

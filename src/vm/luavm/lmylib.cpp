@@ -952,14 +952,14 @@ int32_t ExGetTxRegIDFunc(lua_State *L) {
     if (GetTransaction(pBaseTx, hash, pVmRunEnv->GetCw()->blockCache, false)) {
         if (pBaseTx->nTxType == BCOIN_TRANSFER_TX) {
             CBaseCoinTransferTx *tx = static_cast<CBaseCoinTransferTx*>(pBaseTx.get());
-            if (tx->txUid.type() != typeid(CRegID))
+            if (!tx->txUid.is<CRegID>())
                 return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");
 
             vector<uint8_t> item = tx->txUid.get<CRegID>().GetRegIdRaw();
             len = RetRstToLua(L, item);
         } else if (pBaseTx->nTxType == LCONTRACT_INVOKE_TX) {
             CLuaContractInvokeTx *tx = static_cast<CLuaContractInvokeTx*>(pBaseTx.get());
-            if (tx->txUid.type() != typeid(CRegID))
+            if (!tx->txUid.is<CRegID>())
                 return RetFalse("ExGetTxRegIDFunc, txUid is not CRegID type");
 
             vector<uint8_t> item = tx->txUid.get<CRegID>().GetRegIdRaw();

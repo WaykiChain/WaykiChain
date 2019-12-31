@@ -12,7 +12,7 @@
 bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_FEE;
 
     if (stake_type != BalanceOpType::STAKE && stake_type != BalanceOpType::UNSTAKE) {
@@ -36,7 +36,7 @@ bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;

@@ -37,7 +37,7 @@ string GetTxType(const TxType txType) {
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
     const auto &iter = kTxFeeTable.find(nTxType);
     if (iter != kTxFeeTable.end()) {
-        FeatureForkVersionEnum version = GetFeatureForkVersion(height);             
+        FeatureForkVersionEnum version = GetFeatureForkVersion(height);
         if (symbol == SYMB::WICC) {
             if (version >= MAJOR_VER_R2) {
                 feeOut = std::get<2>(iter->second);
@@ -74,7 +74,7 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
 }
 
 bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
-    if (txUid.type() == typeid(CPubKey)) {
+    if (txUid.is<CPubKey>()) {
         account.owner_pubkey = txUid.get<CPubKey>();
 
         CRegID regId;

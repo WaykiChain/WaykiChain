@@ -140,7 +140,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
         CAccount account;
         WASM_ASSERT(database.accountCache.GetAccount(nick_name(wasm::name(s.account).to_string()), account),
                     account_operation_exception, "%s",
-                    "CWasmContractTx.get_accounts_from_signature, can not get account from public key")        
+                    "CWasmContractTx.get_accounts_from_signature, can not get account from public key")
         WASM_ASSERT(account.owner_pubkey.Verify(signature_hash, s.signature),
                     account_operation_exception,
                     "%s",
@@ -168,10 +168,10 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
         WASM_ASSERT(signatures.size() > 0 && signatures.size() <= max_signatures_size, account_operation_exception, "%s",
                     "CWasmContractTx.CheckTx, Signatures size must be <= %s", max_signatures_size)
 
-        WASM_ASSERT(inline_transactions.size() > 0 && inline_transactions.size() <= max_inline_transactions_size, account_operation_exception, 
+        WASM_ASSERT(inline_transactions.size() > 0 && inline_transactions.size() <= max_inline_transactions_size, account_operation_exception,
                     "CWasmContractTx.CheckTx, Inline_transactions size must be <= %s", max_inline_transactions_size)
 
-        IMPLEMENT_CHECK_TX_REGID(txUid.type());
+        IMPLEMENT_CHECK_TX_REGID(txUid);
         validate_contracts(context);
 
         std::vector <uint64_t> authorization_accounts;
@@ -216,8 +216,8 @@ static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
     return fuel_limit;
 }
 
-static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace, 
-                                     vector<CReceipt>&                     receipts, 
+static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
+                                     vector<CReceipt>&                     receipts,
                                      map<transfer_data_type,  uint64_t>&   receipts_duplicate_check) {
 
     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
@@ -294,7 +294,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         WASM_ASSERT(trx_trace.elapsed.count() < max_transaction_duration.count() * 1000,
                     wasm_exception,
                     "CWasmContractTx::ExecuteTx, Tx execution time must be in '%d' microseconds, but get '%d' microseconds",
-                    max_transaction_duration * 1000, trx_trace.elapsed.count())                   
+                    max_transaction_duration * 1000, trx_trace.elapsed.count())
 
         //check storage usage with the limited fuel
         uint64_t fee    = get_fuel_limit(*this, context);
@@ -391,7 +391,7 @@ string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
 Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
 
     if (inline_transactions.size() == 0) return Object{};
-    
+
     CAccount payer;
     accountCache.GetAccount(txUid, payer);
 
@@ -423,7 +423,7 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
         Value signatures_arr;
         to_variant(signatures, signatures_arr);
         result.push_back(Pair("signature_pairs", signatures_arr));
-    }     
+    }
 
     return result;
 }

@@ -837,7 +837,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
             CDelegateVoteTx *pDelegateTx = (CDelegateVoteTx *)block.vptx[i].get();
-            assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
+            assert(pDelegateTx->txUid.is<CRegID>());  // Vote Tx must use RegId
 
             CAccount voterAcct;
             assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
@@ -864,7 +864,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                     votedAcct.SetRegId(votedRegId);
                     votedAcct.received_votes = vote.GetVotedBcoins();
 
-                    if (votedUid.type() == typeid(CPubKey)) {
+                    if (votedUid.is<CPubKey>()) {
                         votedAcct.owner_pubkey = votedUid.get<CPubKey>();
                         votedAcct.keyid  = votedAcct.owner_pubkey.GetKeyId();
                     }

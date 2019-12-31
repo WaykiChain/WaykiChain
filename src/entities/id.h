@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <variant>
 
 #include "crypto/hash.h"
 #include "commons/json/json_spirit_utils.h"
@@ -92,8 +93,6 @@ private:
 };
 
 class CNickID {
-
-
 public:
     uint64_t value = 0 ;
     CNickID() {}
@@ -122,7 +121,7 @@ public:
 
 class CUserID {
 private:
-    boost::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID> uid;
+    std::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID> uid;
 
 public:
     enum SerializeFlag {
@@ -135,7 +134,7 @@ public:
     };
 
 public:
-    static shared_ptr<CUserID> ParseUserId(const string &idStr);
+    static std::shared_ptr<CUserID> ParseUserId(const string &idStr);
     static const CUserID NULL_ID;
 public:
     CUserID() : uid(CNullID()) {}
@@ -153,17 +152,17 @@ public:
 
     template <typename ID>
     ID& get() {
-        return boost::get<ID>(uid);
+        return std::get<ID>(uid);
     }
 
     template <typename ID>
     const ID& get() const {
-        return boost::get<ID>(uid);
+        return std::get<ID>(uid);
     }
 
     template <typename ID>
-    bool is() const {
-        return uid.type() == typeid(ID);
+    inline constexpr bool is() const {
+        return std::holds_alternative<ID>(uid);
     }
 
     bool IsEmpty() const {
@@ -180,7 +179,9 @@ public:
         }
     }
 
-    const std::type_info &type() const { return uid.type(); }
+    inline constexpr bool is_same_type(const CUserID &other) const {
+        return this->uid.index() == other.uid.index();
+    }
 
 public:
     std::string GetIDName() const {
@@ -216,7 +217,7 @@ public:
     string ToDebugString() const;
 
     friend bool operator==(const CUserID &id1, const CUserID &id2) {
-        if (id1.type() != id2.type()) {
+        if (!id1.is_same_type(id2)) {
             return false;
         }
         if (id1.is<CRegID>()) {
@@ -242,24 +243,24 @@ public:
 
     inline unsigned int GetSerializeSize(int nType, int nVersion) const {
         assert(is<CNullID>() || !ContentIsEmpty());
-        if (uid.type() == typeid(CRegID)) {
-            CRegID regId    = boost::get<CRegID>(uid);
+        if (is<CRegID>()) {
+            CRegID regId    = std::get<CRegID>(uid);
             unsigned int sz = regId.GetSerializeSize(nType, nVersion);
             assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
             return sizeof(uint8_t) + sz;
-        } else if (uid.type() == typeid(CKeyID)) {
-            CKeyID keyId    = boost::get<CKeyID>(uid);
+        } else if (is<CKeyID>()) {
+            CKeyID keyId    = std::get<CKeyID>(uid);
             unsigned int sz = keyId.GetSerializeSize(nType, nVersion);
             assert(sz == FlagKeyID);
             return sizeof(uint8_t) + sz;
-        } else if (uid.type() == typeid(CPubKey)) {
-            CPubKey pubKey  = boost::get<CPubKey>(uid);
+        } else if (is<CPubKey>()) {
+            CPubKey pubKey  = std::get<CPubKey>(uid);
             unsigned int sz = pubKey.GetSerializeSize(nType, nVersion);
             // If the public key is empty, length of serialized data is 1, otherwise, 34.
             assert(sz == sizeof(uint8_t) || sizeof(uint8_t) + FlagPubKey);
             return sz;
-        } else if (uid.type() == typeid(CNickID)) {
-            CNickID nickId = boost::get<CNickID>(uid);
+        } else if (is<CNickID>()) {
+            CNickID nickId = std::get<CNickID>(uid);
             return sizeof(uint8_t) + nickId.GetSerializeSize(nType, nVersion);
         } else {  // CNullID
             return sizeof(uint8_t);
@@ -270,22 +271,22 @@ public:
     void Serialize(Stream &s, int nType, int nVersion) const {
         assert(is<CNullID>() || !ContentIsEmpty());
         if (is<CRegID>()) {
-            CRegID regId    = boost::get<CRegID>(uid);
+            CRegID regId    = std::get<CRegID>(uid);
             unsigned int sz = regId.GetSerializeSize(nType, nVersion);
             assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
             s << (uint8_t)sz << regId;
         } else if (is<CKeyID>()) {
-            CKeyID keyId = boost::get<CKeyID>(uid);
+            CKeyID keyId = std::get<CKeyID>(uid);
             assert(keyId.GetSerializeSize(nType, nVersion) == FlagKeyID);
             s << (uint8_t)FlagKeyID << keyId;
         } else if (is<CPubKey>()) {
-            CPubKey pubKey = boost::get<CPubKey>(uid);
+            CPubKey pubKey = std::get<CPubKey>(uid);
             // If the public key is empty, length of serialized data is 1, otherwise, 34.
             assert(pubKey.GetSerializeSize(nType, nVersion) == sizeof(uint8_t) ||
                    pubKey.GetSerializeSize(nType, nVersion) == sizeof(uint8_t) + FlagPubKey);
             s << pubKey;
         } else if (is<CNickID>()) {
-            CNickID nickId = boost::get<CNickID>(uid);
+            CNickID nickId = std::get<CNickID>(uid);
             s << (uint8_t)FlagNickID << nickId;
         } else {
             assert(is<CNullID>());

@@ -19,11 +19,11 @@
 bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
     CValidationState &state = *context.pState;
 
-    if (txUid.type() != typeid(CPubKey))
+    if (!txUid.is<CPubKey>())
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, userId must be CPubKey"), REJECT_INVALID,
                          "uid-type-error");
 
-    if ((minerUid.type() != typeid(CPubKey)) && (minerUid.type() != typeid(CNullID)))
+    if ((!minerUid.is<CPubKey>()) && (!minerUid.is<CNullID>()))
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, minerId must be CPubKey or CNullID"),
                          REJECT_INVALID, "minerUid-type-error");
 
@@ -60,7 +60,7 @@ bool CAccountRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                         keyId.ToString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (typeid(CPubKey) == minerUid.type()) {
+    if (minerUid.is<CPubKey>()) {
         account.miner_pubkey = minerUid.get<CPubKey>();
         if (!account.miner_pubkey.IsFullyValid()) {
             return state.DoS(100, ERRORMSG("CAccountRegisterTx::ExecuteTx, minerPubKey:%s Is Invalid",
@@ -82,7 +82,7 @@ string CAccountRegisterTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CAccountRegisterTx::ToJson(const CAccountDBCache &accountCache) const {
-    assert(txUid.type() == typeid(CPubKey));
+    assert(txUid.is<CPubKey>());
 
     Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("pubkey",         txUid.ToString()));

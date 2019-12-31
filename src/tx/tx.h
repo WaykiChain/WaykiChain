@@ -303,38 +303,39 @@ public:
         }                                                                                   \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID(txUidType)                                                            \
-    if (txUidType != typeid(CRegID)) {                                                                 \
-        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID,      \
-            "txUid-type-error");                                                                       \
+#define IMPLEMENT_CHECK_TX_REGID(txUid)                                                            \
+    if (!txUid.is<CRegID>()) {                                                                     \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID", __FUNCTION__), REJECT_INVALID,  \
+                         "txUid-type-error");                                                      \
     }
 
-#define IMPLEMENT_CHECK_TX_APPID(appUidType)                                                       \
-    if (appUidType != typeid(CRegID)) {                                                            \
+#define IMPLEMENT_CHECK_TX_APPID(appUid)                                                           \
+    if (!appUid.is<CRegID>()) {                                                                    \
         return state.DoS(100, ERRORMSG("%s, appUid must be CRegID", __FUNCTION__), REJECT_INVALID, \
                          "appUid-type-error");                                                     \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUidType)                                                        \
-    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && txUidType != typeid(CRegID)) {              \
-        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),    \
-                         REJECT_INVALID, "txUid-type-error");                                                \
-    }                                                                                                        \
-    if ((txUidType != typeid(CRegID)) && (txUidType != typeid(CPubKey))) {                                   \
-        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
-                         "txUid-type-error");                                                                \
+#define IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(uid)                                                    \
+    if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1 && !uid.is<CRegID>()) {              \
+        return state.DoS(                                                                          \
+            100, ERRORMSG("%s, txUid must be CRegID pre-stable coin release", __FUNCTION__),       \
+            REJECT_INVALID, "txUid-type-error");                                                   \
+    }                                                                                              \
+    if ((!uid.is<CRegID>()) && (!uid.is<CPubKey>())) {                                               \
+        return state.DoS(100, ERRORMSG("%s, txUid must be CRegID or CPubKey", __FUNCTION__),       \
+                         REJECT_INVALID, "txUid-type-error");                                      \
     }
 
-#define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUidType)                                              \
-    if ((candidateUidType != typeid(CRegID)) && (candidateUidType != typeid(CPubKey))) {                            \
+#define IMPLEMENT_CHECK_TX_CANDIDATE_REGID_OR_PUBKEY(candidateUid)                                              \
+    if ((!candidateUid.is<CRegID>()) && (!candidateUid.is<CPubKey>())) {                            \
         return state.DoS(100, ERRORMSG("%s, candidateUid must be CRegID or CPubKey", __FUNCTION__), REJECT_INVALID, \
                          "candidateUid-type-error");                                                                \
     }
 
-#define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUidType)                                                        \
-    if ((toUidType != typeid(CRegID)) && (toUidType != typeid(CKeyID))) {                                   \
-        return state.DoS(100, ERRORMSG("%s, toUid must be CRegID or CKeyID", __FUNCTION__), REJECT_INVALID, \
-                         "toUid-type-error");                                                               \
+#define IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid)                                                   \
+    if ((!toUid.is<CRegID>()) && (!toUid.is<CKeyID>())) {                                           \
+        return state.DoS(100, ERRORMSG("%s, toUid must be CRegID or CKeyID", __FUNCTION__),        \
+                         REJECT_INVALID, "toUid-type-error");                                      \
     }
 
 #define IMPLEMENT_CHECK_TX_SIGNATURE(signatureVerifyPubKey)                                                          \
