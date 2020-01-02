@@ -8,7 +8,6 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include <variant>
 
@@ -16,6 +15,7 @@
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
 #include "key.h"
+#include "commons/types.h"
 #include "vm/wasm/types/name.hpp"
 
 class CAccountDBCache;
@@ -36,6 +36,9 @@ class CNullID {
 public:
     friend bool operator==(const CNullID &a, const CNullID &b) { return true; }
     friend bool operator<(const CNullID &a, const CNullID &b) { return true; }
+
+    inline constexpr bool IsEmpty() const { return true; }
+    string ToString() const { return "Null"; }
 };
 
 class CRegID {
@@ -122,6 +125,7 @@ public:
 class CUserID {
 private:
     std::variant<CNullID, CRegID, CKeyID, CPubKey, CNickID> uid;
+    enum VarIndex: size_t {IDX_NULL_ID, IDX_REG_ID, IDX_KEY_ID, IDX_PUB_KEY_ID, IDX_NICK_ID};
 
 public:
     enum SerializeFlag {
@@ -136,6 +140,7 @@ public:
 public:
     static std::shared_ptr<CUserID> ParseUserId(const string &idStr);
     static const CUserID NULL_ID;
+    static const EnumTypeMap<VarIndex, string> ID_NAME_MAP;
 public:
     CUserID() : uid(CNullID()) {}
 
@@ -165,17 +170,18 @@ public:
         return std::holds_alternative<ID>(uid);
     }
 
-    bool IsEmpty() const {
+    inline bool IsEmpty() const {
         return is<CNullID>();
     }
 
-    void SetEmpty() { uid = CNullID(); }
+    inline void SetEmpty() { uid = CNullID(); }
 
     template <typename ID>
     void set(const ID &idIn) {
-        uid = idIn;
-        if (!is<CNullID>() && ContentIsEmpty()) {
-            uid = CNullID();
+        if (std::is_same_v<ID, CNullID> || !idIn.IsEmpty()) {
+            uid = idIn;
+        } else {
+            SetEmpty();
         }
     }
 
@@ -184,53 +190,21 @@ public:
     }
 
 public:
-    std::string GetIDName() const {
-        if (is<CRegID>()) {
-            return "RegID";
-        } else if (is<CKeyID>()) {
-            return "KeyID";
-        } else if (is<CPubKey>()) {
-            return "PubKey";
-        } else if (is<CNickID>()) {
-            return "NickID";
-        } else {
-            assert(is<CNullID>());
-            return "Null";
-        }
+    const std::string& GetIDName() const {
+        auto it = ID_NAME_MAP.find((VarIndex)uid.index());
+        if (it != ID_NAME_MAP.end())
+            return it->second;
+        return EMPTY_STRING;
     }
 
     string ToString() const {
-        if (is<CRegID>()) {
-            return get<CRegID>().ToString();
-        } else if (is<CKeyID>()) {
-            return get<CKeyID>().ToString();
-        } else if (is<CPubKey>()) {
-            return get<CPubKey>().ToString();
-        } else if (is<CNickID>()) {
-            return get<CNickID>().ToString();
-        } else {
-            assert(is<CNullID>());
-            return "Null";
-        }
+        return std::visit([](auto&& uidIn){ return uidIn.ToString(); }, uid);
     }
 
     string ToDebugString() const;
 
     friend bool operator==(const CUserID &id1, const CUserID &id2) {
-        if (!id1.is_same_type(id2)) {
-            return false;
-        }
-        if (id1.is<CRegID>()) {
-            return id1.get<CRegID>() == id2.get<CRegID>();
-        } else if (id1.is<CKeyID>()) {
-            return id1.get<CKeyID>() == id2.get<CKeyID>();
-        } else if (id1.is<CPubKey>()) {
-            return id1.get<CPubKey>() == id2.get<CPubKey>();
-        } else if (id1.is<CNickID>()) {
-            return id1.get<CNickID>() == id2.get<CNickID>();
-        } else {  // CNullID
-            return true;
-        }
+        return id1.uid == id2.uid;
     }
 
     json_spirit::Object ToJson() const {
@@ -242,56 +216,53 @@ public:
     }
 
     inline unsigned int GetSerializeSize(int nType, int nVersion) const {
-        assert(is<CNullID>() || !ContentIsEmpty());
-        if (is<CRegID>()) {
-            CRegID regId    = std::get<CRegID>(uid);
-            unsigned int sz = regId.GetSerializeSize(nType, nVersion);
-            assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
-            return sizeof(uint8_t) + sz;
-        } else if (is<CKeyID>()) {
-            CKeyID keyId    = std::get<CKeyID>(uid);
-            unsigned int sz = keyId.GetSerializeSize(nType, nVersion);
-            assert(sz == FlagKeyID);
-            return sizeof(uint8_t) + sz;
-        } else if (is<CPubKey>()) {
-            CPubKey pubKey  = std::get<CPubKey>(uid);
-            unsigned int sz = pubKey.GetSerializeSize(nType, nVersion);
-            // If the public key is empty, length of serialized data is 1, otherwise, 34.
-            assert(sz == sizeof(uint8_t) || sizeof(uint8_t) + FlagPubKey);
-            return sz;
-        } else if (is<CNickID>()) {
-            CNickID nickId = std::get<CNickID>(uid);
-            return sizeof(uint8_t) + nickId.GetSerializeSize(nType, nVersion);
-        } else {  // CNullID
-            return sizeof(uint8_t);
-        }
+
+        return std::visit([&](auto&& idIn) -> uint32_t {
+            using ID = std::decay_t<decltype(idIn)>;
+            if constexpr (std::is_same_v<ID, CRegID>) {
+                unsigned int sz = idIn.GetSerializeSize(nType, nVersion);
+                assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
+                return sizeof(uint8_t) + sz;
+            } else if constexpr (std::is_same_v<ID, CKeyID>) {
+                unsigned int sz = idIn.GetSerializeSize(nType, nVersion);
+                assert(sz == FlagKeyID);
+                return sizeof(uint8_t) + sz;
+            } else if constexpr (std::is_same_v<ID, CPubKey>) {
+                unsigned int sz = idIn.GetSerializeSize(nType, nVersion);
+                // If the public key is empty, length of serialized data is 1, otherwise, 34.
+                assert(sz == sizeof(uint8_t) + FlagPubKey);
+                return sz;
+            } else if constexpr (std::is_same_v<ID, CNickID>) {
+                return sizeof(uint8_t) + idIn.GetSerializeSize(nType, nVersion);
+            } else {  // CNullID
+                assert( (std::is_same_v<ID, CNullID>) );
+                return sizeof(uint8_t);
+            }
+        }, uid);
     }
 
     template <typename Stream>
     void Serialize(Stream &s, int nType, int nVersion) const {
-        assert(is<CNullID>() || !ContentIsEmpty());
-        if (is<CRegID>()) {
-            CRegID regId    = std::get<CRegID>(uid);
-            unsigned int sz = regId.GetSerializeSize(nType, nVersion);
-            assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
-            s << (uint8_t)sz << regId;
-        } else if (is<CKeyID>()) {
-            CKeyID keyId = std::get<CKeyID>(uid);
-            assert(keyId.GetSerializeSize(nType, nVersion) == FlagKeyID);
-            s << (uint8_t)FlagKeyID << keyId;
-        } else if (is<CPubKey>()) {
-            CPubKey pubKey = std::get<CPubKey>(uid);
-            // If the public key is empty, length of serialized data is 1, otherwise, 34.
-            assert(pubKey.GetSerializeSize(nType, nVersion) == sizeof(uint8_t) ||
-                   pubKey.GetSerializeSize(nType, nVersion) == sizeof(uint8_t) + FlagPubKey);
-            s << pubKey;
-        } else if (is<CNickID>()) {
-            CNickID nickId = std::get<CNickID>(uid);
-            s << (uint8_t)FlagNickID << nickId;
-        } else {
-            assert(is<CNullID>());
-            s << (uint8_t)0;
-        }
+        std::visit([&](auto&& idIn) {
+            using ID = std::decay_t<decltype(idIn)>;
+            if constexpr (std::is_same_v<ID, CRegID>) {
+                unsigned int sz = idIn.GetSerializeSize(nType, nVersion);
+                assert(FlagRegIDMin <= sz && sz <= FlagRegIDMax);
+                s << (uint8_t)sz << idIn;
+            } else if constexpr (std::is_same_v<ID, CKeyID>) {
+                assert(idIn.GetSerializeSize(nType, nVersion) == FlagKeyID);
+                s << (uint8_t)FlagKeyID << idIn;
+            } else if constexpr (std::is_same_v<ID, CPubKey>) {
+                // If the public key is empty, length of serialized data is 1, otherwise, 34.
+                assert(idIn.GetSerializeSize(nType, nVersion) == sizeof(uint8_t) + FlagPubKey);
+                s << idIn;
+            } else if constexpr (std::is_same_v<ID, CNickID>) {
+                s << (uint8_t)FlagNickID << idIn;
+            } else {  // CNullID
+                assert( (std::is_same_v<ID, CNullID>) );
+                s << (uint8_t)0;
+            }
+        }, uid);
     }
 
     template <typename Stream>
@@ -329,24 +300,9 @@ public:
             }
         }
 
-        if (invalidId || (!is<CNullID>() && ContentIsEmpty())) {
+        if (invalidId) {
             LogPrint(BCLog::ERROR, "Invalid Unserialize CUserID\n");
             throw ios_base::failure("Unserialize CUserID error");
-        }
-    }
-private:
-    bool ContentIsEmpty() const {
-        if (is<CRegID>()) {
-            return get<CRegID>().IsEmpty();
-        } else if (is<CKeyID>()) {
-            return get<CKeyID>().IsEmpty();
-        } else if (is<CPubKey>()) {
-            return get<CPubKey>().IsEmpty();
-        } else if (is<CNickID>()) {
-            return get<CNickID>().IsEmpty();
-        } else {
-            assert(is<CNullID>());
-            return true;
         }
     }
 };

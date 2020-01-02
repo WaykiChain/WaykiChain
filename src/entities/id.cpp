@@ -161,20 +161,30 @@ bool CNickID::IsMature(const uint32_t currHeight) const {
 // class CUserID
 
 const CUserID CUserID::NULL_ID = {};
+const EnumTypeMap<CUserID::VarIndex, string> CUserID::ID_NAME_MAP = {
+    {IDX_NULL_ID, "Null"},
+    {IDX_REG_ID, "RegID"},
+    {IDX_KEY_ID, "KeyID"},
+    {IDX_PUB_KEY_ID, "PubKey"},
+    {IDX_NICK_ID, "NickID"}
+};
 
 string CUserID::ToDebugString() const {
-        if (is<CRegID>()) {
-            return "R:" + get<CRegID>().ToString();
-        } else if (is<CKeyID>()) {
-            return "K:" + get<CKeyID>().ToString() + ", addr=" + get<CKeyID>().ToAddress();
-        } else if (is<CPubKey>()) {
-            return "P:" + get<CPubKey>().ToString() + ", addr=" + get<CPubKey>().GetKeyId().ToAddress();
-        } else if (is<CNickID>()) {
-            return "N:" + get<CNickID>().ToString();
-        } else {
-            assert(is<CNullID>());
+    return std::visit([&](auto&& idIn) -> string {
+        using ID = std::decay_t<decltype(idIn)>;
+        if constexpr (std::is_same_v<ID, CRegID>) {
+            return "R:" + idIn.ToString();
+        } else if constexpr (std::is_same_v<ID, CKeyID>) {
+            return "K:" + idIn.ToString() + ", addr=" + idIn.ToAddress();
+        } else if constexpr (std::is_same_v<ID, CPubKey>) {
+            return "P:" + idIn.ToString() + ", addr=" + idIn.GetKeyId().ToAddress();
+        } else if constexpr (std::is_same_v<ID, CNickID>) {
+            return "N:" + idIn.ToString();
+        } else {  // CNullID
+            assert( (std::is_same_v<ID, CNullID>) );
             return "Null";
         }
+    }, uid);
 }
 
 shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
