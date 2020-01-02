@@ -16,7 +16,6 @@
 #include "commons/json/json_spirit_value.h"
 #include "key.h"
 #include "commons/types.h"
-#include "vm/wasm/types/name.hpp"
 
 class CAccountDBCache;
 class CUserID;
@@ -98,21 +97,18 @@ private:
 class CNickID {
 public:
     uint64_t value = 0 ;
-    CNickID() {}
-    CNickID(uint64_t nickIdIn){
-        value = nickIdIn ;
-    }
-    CNickID(string nickIdIn) {
 
-        //value = wasm::string_to_name(nickIdIn.c_str());
-        value = wasm::name(nickIdIn).value;
-    }
+    CNickID();
+
+    CNickID(uint64_t nickIdIn);
+
+    CNickID(string nickIdIn);
 
     bool IsMature(const uint32_t currHeight) const ;
-    bool IsEmpty() const { return value == 0; }
-    void SetEmpty() { value = 0; }
-    void Clear() { value = 0; }
-    string ToString() const { return wasm::name(value).to_string(); }
+    bool IsEmpty() const;
+    void SetEmpty();
+    void Clear();
+    string ToString() const;
 
     IMPLEMENT_SERIALIZE(READWRITE(VARINT(value));)
 

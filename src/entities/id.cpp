@@ -6,6 +6,7 @@
 #include "id.h"
 #include "persistence/accountdb.h"
 #include "main.h"
+#include "vm/wasm/types/name.hpp"
 
 extern CCacheDBManager *pCdMan;
 
@@ -148,6 +149,12 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 ///////////////////////////////////////////////////////////////////////////////
 //class CNickID
 
+CNickID::CNickID() {}
+
+CNickID::CNickID(uint64_t nickIdIn): value(nickIdIn) {}
+
+CNickID::CNickID(string nickIdIn): value(wasm::name(nickIdIn).value) {}
+
 bool CNickID::IsMature(const uint32_t currHeight) const {
 
     uint32_t regHeight = 0 ;
@@ -156,6 +163,15 @@ bool CNickID::IsMature(const uint32_t currHeight) const {
     }
     return false ;
 }
+
+
+bool CNickID::IsEmpty() const { return value == 0; }
+
+void CNickID::SetEmpty() { value = 0; }
+
+void CNickID::Clear() { value = 0; }
+
+string CNickID::ToString() const { return wasm::name(value).to_string(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserID
