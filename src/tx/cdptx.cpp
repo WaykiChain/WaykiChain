@@ -169,6 +169,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             ? UINT64_MAX
             : uint64_t(double(assetAmount) * bcoinMedianPrice / PRICE_BOOST / scoins_to_mint * RATIO_BOOST);
     vector<CReceipt> receipts;
+    uint64_t scoinsInterestToRepay = 0;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (assetAmount == 0 || scoins_to_mint == 0) {
@@ -245,7 +246,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
-        uint64_t scoinsInterestToRepay;
         if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
                              REJECT_INVALID, "compute-interest-error");
@@ -276,6 +276,15 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
+    }
+
+    if (!cdp_txid.IsEmpty()) { // alter CDP
+        // support to pay the interest from the new mint soins in altering CDP mode
+        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
+                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
+        }
     }
 
     if (!cw.accountCache.SaveAccount(account)) {
