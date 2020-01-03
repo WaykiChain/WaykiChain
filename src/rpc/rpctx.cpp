@@ -742,7 +742,7 @@ Value listcontracts(const Array& params, bool fHelp) {
 
     bool showDetail = params[0].get_bool();
 
-    map<string, CUniversalContract> contracts;
+    map<CRegIDKey, CUniversalContract> contracts;
     if (!pCdMan->pContractCache->GetContracts(contracts)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts from db.");
     }
@@ -752,8 +752,7 @@ Value listcontracts(const Array& params, bool fHelp) {
     for (const auto &item : contracts) {
         Object contractObject;
         const CUniversalContract &contract = item.second;
-        CRegID regid(item.first);
-        contractObject.push_back(Pair("contract_regid", regid.ToString()));
+        contractObject.push_back(Pair("contract_regid", item.first.regid.ToString()));
         contractObject.push_back(Pair("memo",           contract.memo));
 
         if (showDetail) {

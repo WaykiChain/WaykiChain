@@ -111,7 +111,7 @@ private:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <prefix$RegID -> KeyID>
-    CCompositeKVCache< dbk::REGID_KEYID,          string,       CKeyID >         regId2KeyIdCache;
+    CCompositeKVCache< dbk::REGID_KEYID,          CRegIDKey,       CKeyID >         regId2KeyIdCache;
     // <prefix$NickID -> KeyID>
     CCompositeKVCache< dbk::NICKID_KEYID,         CVarIntValue<uint64_t>,      std::pair<CVarIntValue<uint32_t>,CKeyID>>   nickId2KeyIdCache;
     // <prefix$KeyID -> Account>

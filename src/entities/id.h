@@ -16,6 +16,7 @@
 #include "commons/json/json_spirit_value.h"
 #include "key.h"
 #include "commons/types.h"
+#include "commons/leb128.h"
 
 class CAccountDBCache;
 class CUserID;
@@ -40,6 +41,8 @@ public:
     string ToString() const { return "Null"; }
 };
 
+class CRegIDKey;
+
 class CRegID {
 public:
     CRegID(const string &strRegID);
@@ -47,7 +50,7 @@ public:
     CRegID(const uint32_t height = 0, const uint16_t index = 0);
 
     const vector<uint8_t> &GetRegIdRaw() const;
-    string ToRawString() const;
+
     void SetRegID(const vector<uint8_t> &vIn);
     CKeyID GetKeyId(const CAccountDBCache &accountCache) const;
     uint32_t GetHeight() const { return height; }
@@ -68,7 +71,7 @@ public:
     static bool IsSimpleRegIdStr(const string &str);
     static bool IsRegIdStr(const string &str);
     static bool GetKeyId(const string &str, CKeyID &keyId);
-    bool IsEmpty() const { return (height == 0 && index == 0); }
+    inline constexpr bool IsEmpty() const { return (height == 0 && index == 0); }
     void SetEmpty() { Clear(); }
     bool Clear();
     string ToString() const;
@@ -82,7 +85,6 @@ public:
             vRegID.insert(vRegID.end(), BEGIN(index), END(index));
         }
     )
-
 private:
     uint32_t height;
     uint16_t index;
@@ -92,6 +94,29 @@ private:
     void SetRegIDByCompact(const vector<uint8_t> &vIn);
 
     friend CUserID;
+    friend class CRegIDKey;
+};
+
+class CRegIDKey {
+public:
+    CRegID regid;
+
+    CRegIDKey() {}
+
+    CRegIDKey(const CRegID &regidIn): regid(regidIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE_FIXED_UINT32(regid.height);
+        READWRITE_FIXED_UINT16(regid.index);
+    )
+
+    inline bool IsEmpty() const { return regid.IsEmpty(); }
+    void SetEmpty() { regid.SetEmpty(); }
+
+
+    bool operator==(const CRegIDKey &other) const { return this->regid == other.regid; }
+    bool operator!=(const CRegIDKey &other) const { return this->regid != other.regid; }
+    bool operator<(const CRegIDKey &other) const { return this->regid < other.regid; }
 };
 
 class CNickID {

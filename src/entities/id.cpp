@@ -107,10 +107,6 @@ const vector<uint8_t> &CRegID::GetRegIdRaw() const {
     return vRegID;
 }
 
-string CRegID::ToRawString() const {
-    return string(vRegID.begin(), vRegID.end());  // TODO: change the vRegID to string
-}
-
 bool CRegID::Clear() {
     height = 0;
     index  = 0;

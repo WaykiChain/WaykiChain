@@ -21,7 +21,7 @@ using namespace std;
 /************************ contract account ******************************/
 bool CContractDBCache::GetContractAccount(const CRegID &contractRegId, const string &accountKey,
                                           CAppUserAccount &appAccOut) {
-    auto key = std::make_pair(contractRegId.ToRawString(), accountKey);
+    auto key = std::make_pair(CRegIDKey(contractRegId), accountKey);
     return contractAccountCache.GetData(key, appAccOut);
 }
 
@@ -29,50 +29,50 @@ bool CContractDBCache::SetContractAccount(const CRegID &contractRegId, const CAp
     if (appAccIn.IsEmpty()) {
         return false;
     }
-    auto key = std::make_pair(contractRegId.ToRawString(), appAccIn.GetAccUserId());
+    auto key = std::make_pair(CRegIDKey(contractRegId), appAccIn.GetAccUserId());
     return contractAccountCache.SetData(key, appAccIn);
 }
 
 /************************ contract in cache ******************************/
 bool CContractDBCache::GetContract(const CRegID &contractRegId, CUniversalContract &contract) {
-    return contractCache.GetData(contractRegId.ToRawString(), contract);
+    return contractCache.GetData(contractRegId, contract);
 }
 
-bool CContractDBCache::GetContracts(map<string, CUniversalContract> &contracts) {
+bool CContractDBCache::GetContracts(map<CRegIDKey, CUniversalContract> &contracts) {
     return contractCache.GetAllElements(contracts);
 }
 
 bool CContractDBCache::SaveContract(const CRegID &contractRegId, const CUniversalContract &contract) {
-    return contractCache.SetData(contractRegId.ToRawString(), contract);
+    return contractCache.SetData(contractRegId, contract);
 }
 
 bool CContractDBCache::HaveContract(const CRegID &contractRegId) {
-    return contractCache.HaveData(contractRegId.ToRawString());
+    return contractCache.HaveData(contractRegId);
 }
 
 bool CContractDBCache::EraseContract(const CRegID &contractRegId) {
-    return contractCache.EraseData(contractRegId.ToRawString());
+    return contractCache.EraseData(contractRegId);
 }
 
 /************************ contract data ******************************/
 bool CContractDBCache::GetContractData(const CRegID &contractRegId, const string &contractKey, string &contractData) {
-    auto key = std::make_pair(contractRegId.ToRawString(), contractKey);
+    auto key = std::make_pair(CRegIDKey(contractRegId), contractKey);
     return contractDataCache.GetData(key, contractData);
 }
 
 bool CContractDBCache::SetContractData(const CRegID &contractRegId, const string &contractKey,
                                        const string &contractData) {
-    auto key = std::make_pair(contractRegId.ToRawString(), contractKey);
+    auto key = std::make_pair(CRegIDKey(contractRegId), contractKey);
     return contractDataCache.SetData(key, contractData);
 }
 
 bool CContractDBCache::HaveContractData(const CRegID &contractRegId, const string &contractKey) {
-    auto key = std::make_pair(contractRegId.ToRawString(), contractKey);
+    auto key = std::make_pair(CRegIDKey(contractRegId), contractKey);
     return contractDataCache.HaveData(key);
 }
 
 bool CContractDBCache::EraseContractData(const CRegID &contractRegId, const string &contractKey) {
-    auto key = std::make_pair(contractRegId.ToRawString(), contractKey);
+    auto key = std::make_pair(CRegIDKey(contractRegId), contractKey);
     return contractDataCache.EraseData(key);
 }
 

@@ -28,7 +28,7 @@ bool CAccountDBCache::GetAccount(const CRegID &regId, CAccount &account) const {
         return false;
 
     CKeyID keyId;
-    if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
+    if (regId2KeyIdCache.GetData(regId, keyId)) {
         return accountCache.GetData(keyId, account);
     }
 
@@ -74,7 +74,7 @@ bool CAccountDBCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
 
 bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
     CKeyID keyId;
-    if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
+    if (regId2KeyIdCache.GetData(regId, keyId)) {
         return accountCache.SetData(keyId, account);
     }
     return false;
@@ -94,7 +94,7 @@ bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
 }
 
 bool CAccountDBCache::HaveAccount(const CRegID &regId) const{
-    return regId2KeyIdCache.HaveData(regId.ToRawString());
+    return regId2KeyIdCache.HaveData(regId);
 }
 
 bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
@@ -132,11 +132,11 @@ bool CAccountDBCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
 }
 
 bool CAccountDBCache::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
-    return regId2KeyIdCache.SetData(regId.ToRawString(), keyId);
+    return regId2KeyIdCache.SetData(regId, keyId);
 }
 
 bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
-    return regId2KeyIdCache.GetData(regId.ToRawString(), keyId);
+    return regId2KeyIdCache.GetData(regId, keyId);
 }
 
 bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
@@ -164,11 +164,11 @@ bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
 }
 
 bool CAccountDBCache::EraseKeyId(const CRegID &regId) {
-    return regId2KeyIdCache.EraseData(regId.ToRawString());
+    return regId2KeyIdCache.EraseData(regId);
 }
 
 bool CAccountDBCache::SaveAccount(const CAccount &account) {
-    regId2KeyIdCache.SetData(account.regid.ToRawString(), account.keyid);
+    regId2KeyIdCache.SetData(account.regid, account.keyid);
     accountCache.SetData(account.keyid, account);
     return true ;
 }

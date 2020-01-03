@@ -17,9 +17,9 @@ bool CDelegateDBCache::GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates
 
     for (const auto &key : topKeys) {
         const string &votesStr = std::get<0>(key);
-        const string &regIdStr = std::get<1>(key);
+        const CRegIDKey &regIdKey = std::get<1>(key);
         VoteDelegate votedDelegate;
-        votedDelegate.regid.SetRegID(UnsignedCharArray(regIdStr.begin(), regIdStr.end()));
+        votedDelegate.regid = regIdKey.regid;
         votedDelegate.votes = std::strtoull(votesStr.c_str(), nullptr, 10);
         topVotedDelegates.push_back(votedDelegate);
     }
@@ -37,7 +37,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
     string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto key                  = std::make_pair(strVotes, regId.ToRawString());
+    auto key                  = std::make_pair(strVotes, CRegIDKey(regId));
     static uint8_t value      = 1;
 
     return voteRegIdCache.SetData(key, value);
@@ -53,7 +53,7 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
     string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto oldKey               = std::make_pair(strVotes, regId.ToRawString());
+    auto oldKey               = std::make_pair(strVotes, CRegIDKey(regId));
 
     return voteRegIdCache.EraseData(oldKey);
 }
@@ -111,14 +111,14 @@ bool CDelegateDBCache::SetActiveDelegates(const VoteDelegateVector &voteDelegate
 
 bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
                                        const vector<CCandidateReceivedVote> &candidateVotes) {
-    return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes);
+    return regId2VoteCache.SetData(regId, candidateVotes);
 }
 
 bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes) {
-    return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
+    return regId2VoteCache.GetData(regId, candidateVotes);
 }
 
-bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote) {
+bool CDelegateDBCache::GetVoterList(map<CRegIDKey, vector<CCandidateReceivedVote>> &regId2Vote) {
     return regId2VoteCache.GetAllElements(regId2Vote);
 }
 

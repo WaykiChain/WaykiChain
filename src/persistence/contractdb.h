@@ -35,7 +35,7 @@ typedef dbk::CDBTailKey<MAX_CONTRACT_KEY_SIZE> CDBContractKey;
 /*  CCompositeKVCache     prefixType                       key                       value         variable           */
 /*  -------------------- --------------------         ----------------------------  ---------   --------------------- */
     // pair<contractRegId, contractKey> -> contractData
-typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<string, CDBContractKey>, string>     DBContractDataCache;
+typedef CCompositeKVCache< dbk::CONTRACT_DATA,        pair<CRegIDKey, CDBContractKey>, string>     DBContractDataCache;
 
 class CDBContractDataIterator: public CDBPrefixIterator<DBContractDataCache, DBContractDataCache::KeyType> {
 private:
@@ -44,7 +44,7 @@ private:
 public:
     CDBContractDataIterator(DBContractDataCache &dbCache, const CRegID &regidIn,
                             const string &contractKeyPrefix)
-        : Base(dbCache, KeyType(regidIn.ToRawString(), contractKeyPrefix)) {}
+        : Base(dbCache, KeyType(CRegIDKey(regidIn), contractKeyPrefix)) {}
 
     bool SeekUpper(const string *pLastContractKey) {
         if (pLastContractKey == nullptr || db_util::IsEmpty(*pLastContractKey))
@@ -82,7 +82,7 @@ public:
     bool SetContractAccount(const CRegID &contractRegId, const CAppUserAccount &appAccIn);
 
     bool GetContract(const CRegID &contractRegId, CUniversalContract &contract);
-    bool GetContracts(map<string, CUniversalContract> &contracts);
+    bool GetContracts(map<CRegIDKey, CUniversalContract> &contracts);
     bool SaveContract(const CRegID &contractRegId, const CUniversalContract &contract);
     bool HaveContract(const CRegID &contractRegId);
     bool EraseContract(const CRegID &contractRegId);
@@ -126,13 +126,13 @@ private:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB
-    // contract $RegId.ToRawString() -> Contract
-    CCompositeKVCache< dbk::CONTRACT_DEF,         string,                   CUniversalContract >   contractCache;
+    // contract $RegIdKey -> Contract
+    CCompositeKVCache< dbk::CONTRACT_DEF,         CRegIDKey,                   CUniversalContract >   contractCache;
 
     // pair<contractRegId, contractKey> -> contractData
     DBContractDataCache contractDataCache;
     // pair<contractRegId, accountKey> -> appUserAccount
-    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<string, string>,     CAppUserAccount >      contractAccountCache;
+    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<CRegIDKey, string>,     CAppUserAccount >      contractAccountCache;
     // txid -> contract_traces
     CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     uint256,                  string >      contractTracesCache;
 };

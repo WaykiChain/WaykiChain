@@ -35,7 +35,7 @@ bool CCdpDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
 
 bool CCdpDBCache::GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList) {
     set<uint256> cdpTxids;
-    if (!regId2CDPCache.GetData(regId.ToRawString(), cdpTxids)) {
+    if (!regId2CDPCache.GetData(regId, cdpTxids)) {
         return false;
     }
 
@@ -58,19 +58,19 @@ bool CCdpDBCache::GetCDP(const uint256 cdpid, CUserCDP &cdp) {
 // Attention: update cdpCache and regId2CDPCache synchronously.
 bool CCdpDBCache::SaveCDPToDB(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
-    regId2CDPCache.GetData(cdp.owner_regid.ToRawString(), cdpTxids);
+    regId2CDPCache.GetData(cdp.owner_regid, cdpTxids);
     cdpTxids.insert(cdp.cdpid);   // failed to insert if txid existed.
 
-    return cdpCache.SetData(cdp.cdpid, cdp) && regId2CDPCache.SetData(cdp.owner_regid.ToRawString(), cdpTxids);
+    return cdpCache.SetData(cdp.cdpid, cdp) && regId2CDPCache.SetData(cdp.owner_regid, cdpTxids);
 }
 
 bool CCdpDBCache::EraseCDPFromDB(const CUserCDP &cdp) {
     set<uint256> cdpTxids;
-    regId2CDPCache.GetData(cdp.owner_regid.ToRawString(), cdpTxids);
+    regId2CDPCache.GetData(cdp.owner_regid, cdpTxids);
     cdpTxids.erase(cdp.cdpid);
 
     // If cdpTxids is empty, regId2CDPCache will erase the key automatically.
-    return cdpCache.EraseData(cdp.cdpid) && regId2CDPCache.SetData(cdp.owner_regid.ToRawString(), cdpTxids);
+    return cdpCache.EraseData(cdp.cdpid) && regId2CDPCache.SetData(cdp.owner_regid, cdpTxids);
 }
 
 bool CCdpDBCache::SaveCDPToRatioDB(const CUserCDP &userCdp) {

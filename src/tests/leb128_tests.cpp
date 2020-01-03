@@ -34,7 +34,6 @@ void CheckUint32Value(uint32_t val, const string& serializedStr) {
 
 BOOST_AUTO_TEST_CASE(fixed_uint32_test)
 {
-    BOOST_CHECK( typeid(CFixedUInt32::UnsignedInt) == typeid(uint32_t));
     vector<std::pair<uint32_t, string>> values {
         {0,             "0000000000"},
         {1,             "0000000001"},
