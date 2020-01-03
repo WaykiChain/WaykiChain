@@ -22,12 +22,12 @@ public:
     uint64_t asset_amount       = 0;                 //!< amount of asset to buy/sell
     uint64_t price              = 0;                 //!< price in coinType want to buy/sell asset
     DexID dex_id                = 0;                 //!< dex id
-    OrderOpt order_opt          = OrderOpt();        //!< order opt: is_public, has_fee_ratio
-    uint64_t match_fee_ratio    = 0;                 //!< match fee ratio, effective when order_opt.HasFeeRatio()==true, otherwith must be 0
-    CUserID operator_uid        = CUserID();                 //!< dex operator uid
-    string memo                 = "";                //!< memo
+    OrderOpt order_opt          = OrderOpt::IS_PUBLIC;  //!< order opt: is_public, has_fee_ratio
+    uint64_t match_fee_ratio    = 0;                    //!< match fee ratio, effective when order_opt.HasFeeRatio()==true, otherwith must be 0
+    CUserID operator_uid        = CUserID();            //!< dex operator uid
+    string memo                 = "";                   //!< memo
 
-    UnsignedCharArray operator_signature;           //!< dex operator signature
+    UnsignedCharArray operator_signature;               //!< dex operator signature
 
     using CBaseTx::CBaseTx;
 public:

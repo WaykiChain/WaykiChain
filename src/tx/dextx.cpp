@@ -158,7 +158,7 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
             return context.pState->DoS(100, ERRORMSG("%s(), dex operator uid must be empty when has_fee_ratio=false",
                 title, match_fee_ratio), REJECT_INVALID, "operator-uid-not-empty");
 
-        if (operator_signature.empty())
+        if (!operator_signature.empty())
             return context.pState->DoS(100, ERRORMSG("%s, the optional operator signature is not empty when has_fee_ratio=false",
                 title), REJECT_INVALID, "no-need-operator-signature");
 
@@ -390,12 +390,6 @@ bool CDEXSellLimitOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
-    // freeze user's asset for selling.
-    if (!txAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
-        return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::ExecuteTx, account has insufficient funds"),
-                         UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
-    }
-
     if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
 
     if (!cw.accountCache.SetAccount(CUserID(txAccount.keyid), txAccount))
@@ -473,11 +467,6 @@ bool CDEXBuyMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
-    // should freeze user's coin for buying the asset
-    if (!txAccount.OperateBalance(coin_symbol, FREEZE, coin_amount)) {
-        return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::ExecuteTx, account has insufficient funds"),
-                         UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
-    }
 
     if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
 
@@ -554,11 +543,6 @@ bool CDEXSellMarketOrderBaseTx::ExecuteTx(CTxExecuteContext &context) {
     if (!txAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-    }
-    // should freeze user's asset for selling
-    if (!txAccount.OperateBalance(asset_symbol, FREEZE, asset_amount)) {
-        return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::ExecuteTx, account has insufficient funds"),
-                         UPDATE_ACCOUNT_FAIL, "operate-dex-order-account-failed");
     }
 
     if (!ProcessOrder(context, txAccount, ERROR_TITLE(GetTxTypeName()))) return false;
