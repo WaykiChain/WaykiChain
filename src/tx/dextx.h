@@ -119,16 +119,10 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(asset_amount) << VARINT(price);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
+                   << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
+                   << VARINT(asset_amount) << VARINT(price);
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXBuyLimitOrderTx>(*this); }
@@ -173,17 +167,10 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(asset_amount) << VARINT(price) << VARINT(dex_id) << order_opt
-               << VARINT(match_fee_ratio) << operator_uid << memo;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(asset_amount) << VARINT(price)
+           << VARINT(dex_id) << order_opt << VARINT(match_fee_ratio) << operator_uid << memo;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXBuyLimitOrderExTx>(*this); }
@@ -257,16 +244,10 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(asset_amount) << VARINT(price);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(asset_amount)
+           << VARINT(price);
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSellLimitOrderTx>(*this); }
@@ -310,17 +291,10 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(asset_amount) << VARINT(price) << VARINT(dex_id) << order_opt
-               << VARINT(match_fee_ratio) << operator_uid << memo;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(asset_amount) << VARINT(price)
+           << VARINT(dex_id) << order_opt << VARINT(match_fee_ratio) << operator_uid << memo;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSellLimitOrderExTx>(*this); }
@@ -390,16 +364,9 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(coin_amount);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(coin_amount);
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXBuyMarketOrderTx>(*this); }
@@ -443,16 +410,10 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(coin_amount)
-               << VARINT(dex_id) << order_opt << VARINT(match_fee_ratio) << operator_uid << memo;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(coin_amount) << VARINT(dex_id)
+           << order_opt << VARINT(match_fee_ratio) << operator_uid << memo;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXBuyMarketOrderExTx>(*this); }
@@ -523,16 +484,9 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(asset_amount);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(asset_amount);
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSellMarketOrderTx>(*this); }
@@ -575,17 +529,10 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << coin_symbol << asset_symbol
-               << VARINT(asset_amount) << VARINT(dex_id) << order_opt << VARINT(match_fee_ratio)
-               << operator_uid << memo;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << coin_symbol << asset_symbol << VARINT(asset_amount)
+           << VARINT(dex_id) << order_opt << VARINT(match_fee_ratio) << operator_uid << memo;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSellMarketOrderExTx>(*this); }
@@ -619,15 +566,9 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << order_id;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << order_id;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXCancelOrderTx>(*this); }
@@ -683,15 +624,9 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid
-               << fee_symbol << VARINT(llFees) << dealItems;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << (uint8_t)nTxType << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << dealItems;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }

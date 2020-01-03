@@ -425,7 +425,7 @@ void static CommonTxGenerator(const int64_t period, const int64_t batchSize) {
             tx.valid_height = validHeight;
 
             // sign transaction
-            key.Sign(tx.ComputeSignatureHash(), tx.signature);
+            key.Sign(tx.GetHash(), tx.signature);
 
             generationQueue.get()->Push(std::move(tx));
         }
@@ -567,7 +567,7 @@ void static ContractTxGenerator(const string& regid, const int64_t period, const
             tx.valid_height = validHeight;
 
             // sign transaction
-            key.Sign(tx.ComputeSignatureHash(), tx.signature);
+            key.Sign(tx.GetHash(), tx.signature);
 
             generationContractQueue.get()->Push(std::move(tx));
         }

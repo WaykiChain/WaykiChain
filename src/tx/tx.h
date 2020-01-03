@@ -120,14 +120,23 @@ public:
     virtual ~CBaseTx() {}
 
     virtual std::pair<TokenSymbol, uint64_t> GetFees() const { return std::make_pair(fee_symbol, llFees); }
-    virtual TxID GetHash() const { return ComputeSignatureHash(); }
+
+    virtual TxID GetHash(bool recalculate = false) const {
+        if (recalculate || sigHash.IsNull()) {
+            CHashWriter hashWriter(SER_GETHASH, 0);
+            SerializeForHash(hashWriter);
+            sigHash = hashWriter.GetHash();
+        }
+        return sigHash;
+    }
+
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 
     virtual uint64_t GetFuel(int32_t height, uint32_t nFuelRate);
     virtual double GetPriority() const {
         return TRANSACTION_PRIORITY_CEILING / GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION);
     }
-    virtual TxID ComputeSignatureHash(bool recalculate = false) const = 0;
+    virtual void SerializeForHash(CHashWriter &hw) const = 0;
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const           = 0;
     virtual string ToString(CAccountDBCache &accountCache)            = 0;
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
@@ -343,7 +352,7 @@ public:
         return state.DoS(100, ERRORMSG("%s, tx signature size invalid", __FUNCTION__), REJECT_INVALID,               \
                          "bad-tx-sig-size");                                                                         \
     }                                                                                                                \
-    uint256 sighash = ComputeSignatureHash();                                                                        \
+    uint256 sighash = GetHash();                                                                        \
     if (!VerifySignature(sighash, signature, signatureVerifyPubKey)) {                                               \
         return state.DoS(100, ERRORMSG("%s, tx signature error", __FUNCTION__), REJECT_INVALID, "bad-tx-signature"); \
     }

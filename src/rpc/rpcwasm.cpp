@@ -138,7 +138,7 @@ void get_contract( CAccountDBCache*   database_account,
     //JSON_RPC_ASSERT(database_contract->HaveContract(contract.regid),                RPC_WALLET_ERROR,  strprintf("Cannot get contract %s", contract_name.to_string().c_str()))
     JSON_RPC_ASSERT(database_contract->GetContract(contract.regid, contract_store),
                     RPC_WALLET_ERROR,
-                    strprintf("cannot get contract '%s'", 
+                    strprintf("cannot get contract '%s'",
                     contract_name.to_string().c_str()))
     JSON_RPC_ASSERT(contract_store.vm_type == VMType::WASM_VM,
                     RPC_WALLET_ERROR, "must be wasm VM")
@@ -171,7 +171,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
             auto              payer_name = wasm::name(params[0].get_str());
             const ComboMoney& fee        = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
 
-            WASM_ASSERT(database->GetAccount(nick_name(payer_name.value), payer), 
+            WASM_ASSERT(database->GetAccount(nick_name(payer_name.value), payer),
                         account_operation_exception,
                         "payer '%s' does not exist ",
                         payer_name.to_string().c_str())
@@ -186,7 +186,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
             tx.signatures.push_back({payer_name.value, vector<uint8_t>()});
-            JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature),
+            JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.GetHash(), tx.signature),
                             RPC_WALLET_ERROR, "sign failed")
 
             tx.set_signature({payer_name.value, tx.signature});
@@ -225,7 +225,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
 
         EnsureWalletIsUnlocked();
         CWasmContractTx tx;
-        {      
+        {
             CAccount payer;
             auto     payer_name   = wasm::name(params[0].get_str());
             auto     action       = wasm::name(params[2].get_str());
@@ -235,7 +235,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             std::vector<char> action_data(params[3].get_str().begin(), params[3].get_str().end());
             JSON_RPC_ASSERT(!action_data.empty() && action_data.size() < MAX_CONTRACT_ARGUMENT_SIZE, RPC_WALLET_ERROR,
                             "arguments is empty or out of size")
-            if( abi.size() > 0 ) 
+            if( abi.size() > 0 )
                 action_data = wasm::abi_serializer::pack(abi, action.to_string(), params[3].get_str(), max_serialization_time);
 
             ComboMoney fee  = RPC_PARAM::GetFee(params, 4, TxType::WASM_CONTRACT_TX);
@@ -250,7 +250,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{payer_name.value, wasmio_owner}}, action_data});
 
             tx.signatures.push_back({payer_name.value, vector<uint8_t>()});
-            JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.ComputeSignatureHash(), tx.signature), RPC_WALLET_ERROR, "sign failed")
+            JSON_RPC_ASSERT(wallet->Sign(payer.keyid, tx.GetHash(), tx.signature), RPC_WALLET_ERROR, "sign failed")
             tx.set_signature({payer_name.value, tx.signature});
         }
 

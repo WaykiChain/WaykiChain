@@ -63,7 +63,7 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
 
     CAccount account;
     set<CPubKey> pubKeys;
-    uint256 sighash = ComputeSignatureHash();
+    uint256 sighash = GetHash();
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
         if (!cw.accountCache.GetAccount(item.regid, account))

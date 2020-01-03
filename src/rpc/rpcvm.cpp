@@ -184,7 +184,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         tx.nRunStep         = contract_size;
         tx.valid_height     = newHeight;
 
-        if (!pWalletMain->Sign(srcKeyId, tx.ComputeSignatureHash(), tx.signature)) {
+        if (!pWalletMain->Sign(srcKeyId, tx.GetHash(), tx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 
@@ -220,7 +220,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
         contractInvokeTx.valid_height = newHeight;
 
         vector<uint8_t> signature;
-        if (!pWalletMain->Sign(srcKeyId, contractInvokeTx.ComputeSignatureHash(), contractInvokeTx.signature)) {
+        if (!pWalletMain->Sign(srcKeyId, contractInvokeTx.GetHash(), contractInvokeTx.signature)) {
             throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
         }
 

@@ -65,15 +65,8 @@ public:
     }
     ~CCandidateVote() {}
 
-    uint256 GetHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-
-            ss << voteType << candidateUid << VARINT(votedBcoins);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << voteType << candidateUid << VARINT(votedBcoins);
     }
 
     friend bool operator<(const CCandidateVote &fa, const CCandidateVote &fb) {
