@@ -52,6 +52,7 @@
 #include "tx/tx.h"
 #include "tx/txmempool.h"
 #include "tx/assettx.h"
+#include "tx/proposaltx.h"
 
 // class CBlockIndex;
 class CBloomFilter;
@@ -250,8 +251,12 @@ public:
     CDBAccess           *pReceiptDb;
     CTxReceiptDBCache   *pReceiptCache;
 
+    CDBAccess           *pSysGovernDb ;
+    CSysGovernDBCache   *pSysGovernCache ;
+
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;
+
 
 public:
     CCacheDBManager(bool fReIndex, bool fMemory) {
@@ -290,6 +295,9 @@ public:
         pReceiptDb      = new CDBAccess(DBNameType::RECEIPT, false, fReIndex);
         pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
 
+        pSysGovernDb    = new CDBAccess(DBNameType::SYSGOVERN, false, fReIndex) ;
+        pSysGovernCache = new CSysGovernDBCache(pSysGovernDb) ;
+
         // memory-only cache
         pTxCache        = new CTxMemCache();
         pPpCache        = new CPricePointMemCache();
@@ -307,6 +315,7 @@ public:
         delete pBlockCache;     pBlockCache = nullptr;
         delete pLogCache;       pLogCache = nullptr;
         delete pReceiptCache;   pReceiptCache = nullptr;
+        delete pSysGovernCache; pSysGovernCache = nullptr ;
 
         delete pSysParamDb;     pSysParamDb = nullptr;
         delete pAccountDb;      pAccountDb = nullptr;
@@ -320,10 +329,12 @@ public:
         delete pBlockDb;        pBlockDb = nullptr;
         delete pLogDb;          pLogDb = nullptr;
         delete pReceiptDb;      pReceiptDb = nullptr;
+        delete pSysGovernDb; pSysGovernDb = nullptr ;
 
         // memory-only cache
         delete pTxCache;        pTxCache = nullptr;
         delete pPpCache;        pPpCache = nullptr;
+
     }
 
     bool Flush() {
@@ -350,6 +361,8 @@ public:
         if (pLogCache) pLogCache->Flush();
 
         if (pReceiptCache) pReceiptCache->Flush();
+
+        if (pSysGovernCache) pSysGovernCache->Flush();
 
         // Memory only cache, not bother to flush.
         // if (pTxCache)
@@ -773,6 +786,10 @@ void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, in
             Serialize(os, *((CDEXBuyMarketOrderTx *)(pa.get())), nType, nVersion); break;
         case DEX_MARKET_SELL_ORDER_TX:
             Serialize(os, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion); break;
+        case PROPOSAL_CREATE_TX:
+            Serialize(os, *((CProposalCreateTx *)(pa.get())),nType, nVersion); break ;
+        case PROPOSAL_ASSENT_TX:
+            Serialize(os, *((CProposalAssentTx *)(pa.get())),nType, nVersion); break ;
 
         default:
             throw ios_base::failure(strprintf("Serialize: nTxType(%d:%s) error.",
@@ -922,6 +939,17 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
         case DEX_MARKET_SELL_ORDER_TX: {
             pa = std::make_shared<CDEXSellMarketOrderTx>();
             Unserialize(is, *((CDEXSellMarketOrderTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case PROPOSAL_CREATE_TX: {
+            pa = std::make_shared<CProposalCreateTx>();
+            Unserialize(is, *((CProposalCreateTx *)(pa.get())), nType, nVersion);
+            break;
+        }
+        case PROPOSAL_ASSENT_TX: {
+            pa = std::make_shared<CProposalAssentTx>();
+            Unserialize(is, *((CProposalAssentTx *)(pa.get())), nType, nVersion);
             break;
         }
         default:

@@ -17,7 +17,8 @@
 #include "config/configuration.h"
 #include "miner/miner.h"
 #include "main.h"
-
+#include "tx/proposaltx.h"
+#include "config/scoin.h"
 #include <boost/assign/list_of.hpp>
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
@@ -285,6 +286,70 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
     }
 
     return SubmitTx(account.keyid, delegateVoteTx);
+}
+
+
+
+Value submitproposalcreatetx(const Array& params, bool fHelp){
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    string paramName = params[1].get_str() ;
+    uint64_t paramValue = AmountToRawValue(params[2]) ;
+    int64_t fee          = RPC_PARAM::GetWiccFee(params, 3, PROPOSAL_CREATE_TX);
+    int32_t validHegiht  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+
+    CProposalCreateTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee;
+    tx.fee_symbol    = SYMB::WICC ;
+    tx.valid_height = validHegiht;
+    tx.params.push_back(std::make_pair(paramName, paramValue)) ;
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
+Value submitproposalassenttx(const Array& params, bool fHelp){
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    uint256 proposalId = uint256S(params[1].get_str()) ;
+    int64_t fee          = RPC_PARAM::GetWiccFee(params, 3, PROPOSAL_CREATE_TX);
+    int32_t validHegiht  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+
+    CProposalAssentTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee;
+    tx.fee_symbol    = SYMB::WICC ;
+    tx.valid_height = validHegiht;
+    tx.txid = proposalId ;
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
+Value getsysparam(const Array& params, bool fHelp){
+
+    string paramName = params[0].get_str() ;
+    SysParamType st ;
+    auto itr = paramNameToSysParamTypeMap.find(paramName) ;
+    if( itr == paramNameToSysParamTypeMap.end()){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
+    }
+    st = itr->second ;
+    uint64_t pv ;
+    if(!pCdMan->pSysParamCache->GetParam(st, pv)){
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
+    }
+
+    Object obj ;
+    obj.push_back(Pair(paramName, pv));
+    return obj;
+
 }
 
 Value submitucontractdeploytx(const Array& params, bool fHelp) {

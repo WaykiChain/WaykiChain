@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <string>
 #include <cstdint>
-#include <tuple>
 
 using namespace std;
 
@@ -44,7 +43,12 @@ public:
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { sysParamCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
+    bool SetParam(const string& key, const uint64_t& value){
+        return sysParamCache.SetData(key, value) ;
+    }
+
     bool UndoData() { return sysParamCache.UndoData(); }
+
 
 private:
 /*       type               prefixType               key                     value                 variable               */

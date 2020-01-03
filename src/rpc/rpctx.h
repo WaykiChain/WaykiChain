@@ -48,4 +48,8 @@ extern Value listcontracts(const Array& params, bool fHelp);
 extern Value listtxcache(const Array& params, bool fHelp);
 extern Value listdelegates(const Array& params, bool fHelp);
 
+extern Value submitproposalcreatetx(const Array& params, bool fHelp) ;
+extern Value submitproposalassenttx(const Array& params, bool fHelp) ;
+extern Value getsysparam(const Array& params, bool fHelp) ;
+
 #endif  // RPC_RPCTX_H

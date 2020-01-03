@@ -18,6 +18,7 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
+#include "sysgoverndb.h"
 
 class CCacheDBManager;
 class CBlockUndo;
@@ -36,6 +37,7 @@ public:
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
+    CSysGovernDBCache   sysGovernCache;
 
     CTxUndo             txUndo;
 public:
@@ -54,7 +56,8 @@ public:
                   CDexDBCache* pDexCacheIn,
                   CTxReceiptDBCache* pReceiptCacheIn,
                   CTxMemCache *pTxCacheIn,
-                  CPricePointMemCache *pPpCacheIn);
+                  CPricePointMemCache *pPpCacheIn,
+                  CSysGovernDBCache *pSysGovernDBCacheIn);
     CCacheWrapper(CCacheWrapper* cwIn);
     CCacheWrapper(CCacheDBManager* pCdMan);
 

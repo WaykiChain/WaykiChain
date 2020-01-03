@@ -32,6 +32,7 @@ typedef leveldb::Slice Slice;
     DEFINE( DEX,                "dexes",          (50 << 20) )      /* dex */ \
     DEFINE( LOG,                "logs",           (100 << 10) )     /* log */ \
     DEFINE( RECEIPT,            "receipts",       (100 << 10) )     /* tx receipt */ \
+    DEFINE( SYSGOVERN,          "governs",         (100 << 10) )           \
     /*                                                                  */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "",               0)                  /* enum count, must be the last one */
@@ -66,9 +67,9 @@ namespace dbk {
         /*                                                                      */ \
         /**** single-value sys_conf db (global parameters)                      */ \
         DEFINE( SYS_PARAM,            "sysp",   SYSPARAM )       /* conf{$ParamName} --> $ParamValue */ \
-        DEFINE( SYS_GOVERN,           "govn",   SYSPARAM )       /* govn --> $list of governers */ \
-        DEFINE( GOVN_PROP,            "pgvn",   SYSPARAM )       /* pgvn{txid} --> proposal */ \
-        DEFINE( GOVN_SECOND,          "sgvn",   SYSPARAM )       /* sgvn{txid}{regid} --> 1 */ \
+        DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )       /* govn --> $list of governers */ \
+        DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )       /* pgvn{txid} --> proposal */ \
+        DEFINE( GOVN_SECOND,          "sgvn",   SYSGOVERN )       /* sgvn{txid}{regid} --> 1 */ \
         /*** Asset Registry DB */ \
         DEFINE( ASSET,                "asst",   ASSET )          /* asst{$AssetName} --> $Asset */ \
         DEFINE( ASSET_TRADING_PAIR,   "atdp",   ASSET )          /* asst{$AssetName} --> $Asset */ \

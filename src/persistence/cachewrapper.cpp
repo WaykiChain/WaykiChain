@@ -26,7 +26,8 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
                              CDexDBCache* pDexCacheIn,
                              CTxReceiptDBCache* pReceiptCacheIn,
                              CTxMemCache* pTxCacheIn,
-                             CPricePointMemCache *pPpCacheIn) {
+                             CPricePointMemCache *pPpCacheIn,
+                             CSysGovernDBCache *pSysGovernCacheIn) {
     sysParamCache.SetBaseViewPtr(pSysParamCacheIn);
     blockCache.SetBaseViewPtr(pBlockCacheIn);
     accountCache.SetBaseViewPtr(pAccountCacheIn);
@@ -37,9 +38,9 @@ CCacheWrapper::CCacheWrapper(CSysParamDBCache* pSysParamCacheIn,
     closedCdpCache.SetBaseViewPtr(pClosedCdpCacheIn);
     dexCache.SetBaseViewPtr(pDexCacheIn);
     txReceiptCache.SetBaseViewPtr(pReceiptCacheIn);
-
     txCache.SetBaseViewPtr(pTxCacheIn);
     ppCache.SetBaseViewPtr(pPpCacheIn);
+    sysGovernCache.SetBaseViewPtr(pSysGovernCacheIn);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
@@ -56,6 +57,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
 
     txCache.SetBaseViewPtr(&cwIn->txCache);
     ppCache.SetBaseViewPtr(&cwIn->ppCache);
+    sysGovernCache.SetBaseViewPtr(&cwIn->sysGovernCache);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
@@ -72,6 +74,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
+    sysGovernCache.SetBaseViewPtr(pCdMan->pSysGovernCache);
 }
 
 void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
@@ -88,6 +91,7 @@ void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
 
     txCache = *pCdMan->pTxCache;
     ppCache = *pCdMan->pPpCache;
+    sysGovernCache = *pCdMan->pSysGovernCache ;
 }
 
 CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
@@ -106,6 +110,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->txReceiptCache = other.txReceiptCache;
     this->txCache        = other.txCache;
     this->ppCache        = other.ppCache;
+    this->sysGovernCache = other.sysGovernCache;
 
     return *this;
 }
@@ -134,7 +139,8 @@ bool CCacheWrapper::UndoData(CBlockUndo &blockUndo) {
                     cdpCache.UndoData() &&
                     closedCdpCache.UndoData() &&
                     dexCache.UndoData() &&
-                    txReceiptCache.UndoData();
+                    txReceiptCache.UndoData() &&
+                    sysGovernCache.UndoData();
 
         if (!ret) {
             return ERRORMSG("CCacheWrapper::UndoData() : undo data of tx failed! txUndo=%s", txUndo.ToString());
@@ -158,6 +164,7 @@ void CCacheWrapper::Flush() {
 
     txCache.Flush();
     ppCache.Flush();
+    sysGovernCache.Flush();
 }
 
 void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
@@ -171,4 +178,5 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
+    sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
 }

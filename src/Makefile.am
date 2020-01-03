@@ -51,6 +51,7 @@ coin_CORE_H = \
   entities/key.h \
   entities/keystore.h \
   entities/receipt.h \
+  entities/proposal.h \
   entities/vote.h \
   addrman.h \
   alert.h \
@@ -106,6 +107,7 @@ coin_CORE_H = \
   persistence/dbiterator.h \
   persistence/dexdb.h \
   persistence/logdb.h \
+  persistence/sysgoverndb.h \
   random.h   \
   rpc/core/httpserver.h \
   rpc/core/rpcclient.h \
@@ -139,6 +141,7 @@ coin_CORE_H = \
   tx/pricefeedtx.h \
   tx/tx.h \
   tx/txmempool.h \
+  tx/proposaltx.h \
   sync.h \
   threadsafety.h \
   tinyformat.h \
@@ -249,6 +252,7 @@ libcoin_server_a_SOURCES = \
   entities/id.cpp \
   entities/key.cpp \
   entities/keystore.cpp \
+  entities/proposal.cpp \
   addrman.cpp \
   alert.cpp \
   config/configuration.cpp \
@@ -284,6 +288,7 @@ libcoin_server_a_SOURCES = \
   tx/dextx.cpp \
   tx/coinstaketx.cpp \
   tx/mulsigtx.cpp \
+  tx/proposaltx.cpp \
   tx/pricefeedtx.cpp \
   tx/tx.cpp \
   tx/txmempool.cpp \

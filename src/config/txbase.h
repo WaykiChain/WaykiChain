@@ -50,6 +50,9 @@ enum TxType: uint8_t {
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
     CDP_LIQUIDATE_TX            = 23,   //!< CDP Liquidation Tx (partial or full)
 
+    PROPOSAL_CREATE_TX          = 70,
+    PROPOSAL_ASSENT_TX          = 71,
+
     DEX_TRADEPAIR_PROPOSE_TX    = 81,   //!< Owner proposes a trade pair on DEX
     DEX_TRADEPAIR_LIST_TX       = 82,   //!< Owner lists a trade pair on DEX
     DEX_TRADEPAIR_DELIST_TX     = 83,   //!< Owner or validators delist a trade pair
@@ -136,6 +139,9 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ) },
 
 { DEX_TRADE_SETTLE_TX,      std::make_tuple("DEX_TRADE_SETTLE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
+
+{ PROPOSAL_CREATE_TX,      std::make_tuple("PROPOSAL_CREATE_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
+{ PROPOSAL_ASSENT_TX,      std::make_tuple("PROPOSAL_ASSENT_TX",      0,          0.0001*COIN,0.0001*COIN,0.0001*COIN ) },
 
 
 };
