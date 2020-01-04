@@ -86,12 +86,17 @@ public:
         }
     }
 
-    bool SetProposal(const uint256& txid, const CProposal& proposal ){
+    bool SetProposal(const uint256& txid,  shared_ptr<CProposal> proposal ){
         return proposalsCache.SetData(txid, proposal) ;
     }
 
     bool GetProposal(const uint256& txid, CProposal& proposal) {
-        return proposalsCache.GetData(txid, proposal) ;
+        std::shared_ptr<CProposal> p ;
+        bool b =  proposalsCache.GetData(txid, p) ;
+        if( b){
+            proposal = *(CProposal*)(p.get());
+        }
+        return b ;
     }
 
     int GetAssentionCount(const uint256& proposalId){
@@ -111,6 +116,13 @@ public:
         return secondsCache.SetData(proposalId,v) ;
     }
 
+    bool SetGoverners(const vector<CRegID> &governers){
+        return governersCache.SetData(governers) ;
+    }
+    bool GetGoverners(vector<CRegID>& governers){
+        return governersCache.GetData(governers);
+    }
+
 private:
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
@@ -120,7 +132,7 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // pgvn{txid} -> proposal
-    CCompositeKVCache< dbk::GOVN_PROP,             uint256,                    CProposal>          proposalsCache;
+    CCompositeKVCache< dbk::GOVN_PROP,             uint256,                    std::shared_ptr<CProposal>>          proposalsCache;
     // sgvn{txid}{regid} -> 1
     CCompositeKVCache< dbk::GOVN_SECOND,           uint256,     vector<CRegID> >            secondsCache;
 };

@@ -307,7 +307,7 @@ Value submitproposalcreatetx(const Array& params, bool fHelp){
     tx.llFees       = fee;
     tx.fee_symbol    = SYMB::WICC ;
     tx.valid_height = validHegiht;
-    tx.params.push_back(std::make_pair(paramName, paramValue)) ;
+    //tx.params.push_back(std::make_pair(paramName, paramValue)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -317,7 +317,7 @@ Value submitproposalassenttx(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint256 proposalId = uint256S(params[1].get_str()) ;
-    int64_t fee          = RPC_PARAM::GetWiccFee(params, 3, PROPOSAL_CREATE_TX);
+    int64_t fee          = RPC_PARAM::GetWiccFee(params, 2, PROPOSAL_CREATE_TX);
     int32_t validHegiht  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);

@@ -8,28 +8,22 @@
 #define TX_PROPROSALTX_H
 
 #include "tx/tx.h"
+#include "entities/proposal.h"
 
-struct paramItem{
-    string paramName ;
-    uint64_t paramValue ;
 
-    IMPLEMENT_SERIALIZE(
-            READWRITE(paramName) ;
-            READWRITE(VARINT(paramValue));
-            );
-};
+
 
 class CProposalCreateTx: public CBaseTx {
 public:
-    vector<std::pair<string, uint64_t>>  params;
+    shared_ptr<CProposal> proposal = nullptr;
 
 public:
     CProposalCreateTx(): CBaseTx(PROPOSAL_CREATE_TX) {}
 
     CProposalCreateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                 uint64_t feesIn, const vector<std::pair<string,uint64_t>> &paramsIn)
+                 uint64_t feesIn, shared_ptr<CProposal> proposalIn )
             : CBaseTx(PROPOSAL_CREATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
-              params(paramsIn){}
+              proposal(proposalIn) {}
 
     ~CProposalCreateTx() {}
 
@@ -39,9 +33,8 @@ public:
             READWRITE(VARINT(valid_height));
             READWRITE(txUid);
             READWRITE(VARINT(llFees));
-
             READWRITE(fee_symbol);
-            READWRITE(params);
+            READWRITE(proposal);
             READWRITE(signature);
     )
 
@@ -49,7 +42,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-               << fee_symbol << params;
+               << fee_symbol << proposal ;
             sigHash = ss.GetHash();
         }
 

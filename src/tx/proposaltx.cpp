@@ -22,7 +22,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
      CValidationState &state = *context.pState;
      IMPLEMENT_CHECK_TX_FEE;
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-     if(params.size() == 0)
+   /*  if(params.size() == 0)
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
                           "params-empty");
      for(auto pa: params){
@@ -30,7 +30,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
              return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                      REJECT_INVALID, "params-error");
          }
-     }
+     }*/
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount))
@@ -45,7 +45,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
  bool CProposalCreateTx::ExecuteTx(CTxExecuteContext &context) {
 
-     CCacheWrapper &cw       = *context.pCw;
+  /*   CCacheWrapper &cw       = *context.pCw;
      CValidationState &state = *context.pState;
 
      CAccount srcAccount;
@@ -58,11 +58,12 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
                           UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
      }
 
-     CProposal proposal ;
-     proposal.expire_block_height = context.height+1200;
+     CParamsGovernProposal proposal ;
+     proposal.expire_block_height = context.height + 1200;
+     proposal.need_governer_count = cw.sysGovernCache.GetNeedGovernerCount() ;
      for(auto pa: params){
          auto param = paramNameToKeyMap.find(pa.first) ;
-         proposal.paramValues.push_back({param->second , pa.second}) ;
+         proposal.param_values.push_back({param->second , pa.second}) ;
      }
 
      if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
@@ -72,7 +73,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
      if(!cw.sysGovernCache.SetProposal(ComputeSignatureHash(), proposal)){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set proposal info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-     }
+     }*/
     return true ;
 }
 
@@ -90,11 +91,9 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
      IMPLEMENT_CHECK_TX_FEE;
      IMPLEMENT_CHECK_TX_REGID(txUid.type());
 
-
-
      if(!cw.sysGovernCache.CheckIsGoverner(txUid.get<CRegID>())){
          return state.DoS(100, ERRORMSG("CProposalAssentTx::CheckTx, txUid(regid=%s)  is not a governer", txid.ToString()),
-                          WRITE_ACCOUNT_FAIL, "proposal-expired");
+                          WRITE_ACCOUNT_FAIL, "permission-deney");
      }
 
      CAccount srcAccount;
@@ -109,7 +108,7 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
 }
  bool CProposalAssentTx::ExecuteTx(CTxExecuteContext &context) {
 
-     CCacheWrapper &cw       = *context.pCw;
+    /* CCacheWrapper &cw       = *context.pCw;
      CValidationState &state = *context.pState;
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
@@ -142,14 +141,12 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
                           WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
      }
 
-
-
-     if(cw.sysGovernCache.GetAssentionCount(txid) == proposal.needGovernerCount){
+     if(cw.sysGovernCache.GetAssentionCount(txid) == proposal.need_governer_count){
          if(!proposal.ExecuteProposal(cw)){
              return state.DoS(100, ERRORMSG("CProposalAssentTx::ExecuteTx, proposal execute error"),
                               WRITE_ACCOUNT_FAIL, "proposal-execute-error");
          }
      }
-
+*/
      return true ;
 }

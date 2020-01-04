@@ -725,6 +725,7 @@ inline uint32_t GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int32_t nTy
     return pa->GetSerializeSize(nType, nVersion) + 1;
 }
 
+
 template <typename Stream>
 void Serialize(Stream &os, const std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_t nVersion) {
     uint8_t nTxType = pa->nTxType;
@@ -958,5 +959,49 @@ void Unserialize(Stream &is, std::shared_ptr<CBaseTx> &pa, int32_t nType, int32_
     }
     pa->nTxType = TxType(nTxType);
 }
+
+inline uint32_t GetSerializeSize(const std::shared_ptr<CProposal> &pa, int32_t nType, int32_t nVersion) {
+    return pa->GetSerializeSize(nType, nVersion) + 1;
+}
+
+template<typename Stream> void Serialize(Stream& os, const shared_ptr<CProposal> &pa, int nType, int nVersion){
+    uint8_t proptype = pa->proposalType;
+    Serialize(os, proptype, nType, nVersion);
+    switch (pa->proposalType) {
+        case PARAM_GOVERN:
+            Serialize(os, *((CParamsGovernProposal *) (pa.get())), nType, nVersion);
+            break;
+        case GOVERNER_UPDATE:
+            Serialize(os, *((CGovernerUpdateProposal *) (pa.get())), nType, nVersion);
+            break;
+        default:
+            throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
+                                              pa->proposalType));
+    }
+
+}
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CProposal> &pa, int nType, int nVersion){
+    uint8_t nProposalTye;
+    is.read((char *)&(nProposalTye), sizeof(nProposalTye));
+    switch((ProposalType)nProposalTye) {
+        case PARAM_GOVERN: {
+            pa = std::make_shared<CParamsGovernProposal>();
+            Unserialize(is, *((CParamsGovernProposal *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case GOVERNER_UPDATE: {
+            pa = std::make_shared<CGovernerUpdateProposal>();
+            Unserialize(is, *((CGovernerUpdateProposal *)(pa.get())), nType, nVersion);
+            break;
+        }
+        default:
+            throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
+                                              nProposalTye));
+    }
+    pa->proposalType = ProposalType(nProposalTye);
+
+}
+
 
 #endif

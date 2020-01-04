@@ -31,6 +31,7 @@
 class CAutoFile;
 class CDataStream;
 class CBaseTx;
+class CProposal ;
 
 static const uint32_t MAX_SIZE           = 0x02000000;
 static const uint32_t MAX_SERIALIZE_SIZE = MAX_BLOCK_SIZE;
@@ -490,6 +491,10 @@ template<typename Stream, typename K, typename Pred, typename A> void Unserializ
 extern inline unsigned int GetSerializeSize(const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
 template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CBaseTx> &pa, int nType, int nVersion);
+
+extern inline unsigned int GetSerializeSize(const  std::shared_ptr<CProposal>& p, int nType, int nVersion) ;
+template<typename Stream> void Serialize(Stream& os, const std::shared_ptr<CProposal> &p, int nType, int nVersion);
+template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CProposal> &p, int nType, int nVersion);
 
 class CSerActionGetSerializeSize { };
 class CSerActionSerialize { };
