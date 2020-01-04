@@ -134,7 +134,7 @@ private:
     // pair<contractRegId, accountKey> -> appUserAccount
     CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     pair<CRegIDKey, string>,     CAppUserAccount >      contractAccountCache;
     // txid -> contract_traces
-    CCompositeKVCache< dbk::CONTRACT_ACCOUNT,     uint256,                  string >      contractTracesCache;
+    CCompositeKVCache< dbk::CONTRACT_TRACES,     uint256,                  string >      contractTracesCache;
 };
 
 #endif  // PERSIST_CONTRACTDB_H
