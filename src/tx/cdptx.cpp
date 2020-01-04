@@ -254,12 +254,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
 
-        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
-                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
-                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
-        }
-
         // settle cdp state & persist
         cdp.AddStake(context.height, assetAmount, scoins_to_mint);
         if (!cw.cdpCache.UpdateCDP(oldCDP, cdp)) {
