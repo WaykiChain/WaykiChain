@@ -473,10 +473,11 @@ public:
         }
         auto it = GetDataIt(key);
         if (it == mapData.end()) {
-            AddOpLog(key, nullptr);
+            auto pEmptyValue = db_util::MakeEmptyValue<ValueType>();
+            AddOpLog(key, *pEmptyValue, &value);
             AddDataToMap(key, value);
         } else {
-            AddOpLog(key, &it->second);
+            AddOpLog(key, it->second, &value);
             UpdateDataSize(it->second, value);
             it->second = value;
         }
@@ -498,7 +499,7 @@ public:
         Iterator it = GetDataIt(key);
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
             DecDataSize(it->second);
-            AddOpLog(key, &it->second);
+            AddOpLog(key, it->second, nullptr);
             db_util::SetEmpty(it->second);
             IncDataSize(it->second);
         }
@@ -700,15 +701,17 @@ private:
         return true;
     }
 
-    inline void AddOpLog(const KeyType &key, const ValueType *pOldValue) {
+    inline void AddOpLog(const KeyType &key, const ValueType& oldValue, const ValueType *pNewValue) {
         if (pDbOpLogMap != nullptr) {
             CDbOpLog dbOpLog;
-            if (pOldValue != nullptr)
-                dbOpLog.Set(key, *pOldValue);
-            else { // new data
-                auto pEmptyValue = db_util::MakeEmptyValue<ValueType>();
-                dbOpLog.Set(key, *pEmptyValue);
-            }
+            #ifdef DB_OP_LOG_NEW_VALUE
+                if (pNewValue != nullptr)
+                    dbOpLog.Set(key, make_pair(oldValue, *pNewValue));
+                else
+                    dbOpLog.Set(key, make_pair(oldValue, ValueType()));
+            #else
+                dbOpLog.Set(key, oldValue);
+            #endif
             pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
         }
 
