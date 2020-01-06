@@ -257,7 +257,7 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, ERROR_TITLE(GetTxTypeName()), coin_symbol, asset_symbol)) return false;
@@ -351,7 +351,7 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, "CDEXSellLimitOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
@@ -431,7 +431,7 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, "CDEXBuyMarketOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
@@ -506,7 +506,7 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, "CDEXSellMarketOrderTx::CheckTx,", coin_symbol, asset_symbol))
@@ -575,7 +575,7 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (order_id.IsEmpty())
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
@@ -713,7 +713,7 @@ bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
         return state.DoS(100, ERRORMSG("CDEXSettleTx::CheckTx, account regId is not authorized dex match-svc regId"),

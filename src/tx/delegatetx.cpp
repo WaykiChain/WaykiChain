@@ -18,7 +18,7 @@
 bool CDelegateVoteTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (candidateVotes.empty() || candidateVotes.size() > IniCfg().GetMaxVoteCandidateNum()) {
         return state.DoS(100, ERRORMSG("CDelegateVoteTx::CheckTx, candidate votes out of range"), REJECT_INVALID,

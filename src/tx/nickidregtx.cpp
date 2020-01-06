@@ -22,7 +22,7 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
 
     if(cw.accountCache.HaveAccount(CNickID(nickId))){

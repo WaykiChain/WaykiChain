@@ -31,7 +31,7 @@ bool CAccountRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CAccountRegisterTx::CheckTx, register tx public key is invalid"),
                          REJECT_INVALID, "bad-tx-publickey");
 
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_SIGNATURE(txUid.get<CPubKey>());
 
     return true;

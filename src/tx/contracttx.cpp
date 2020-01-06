@@ -47,7 +47,7 @@ static bool GetFuelLimit(CBaseTx &tx, CTxExecuteContext &context, uint64_t &fuel
 bool CLuaContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_REGID(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (!contract.IsValid()) {
         return state.DoS(100, ERRORMSG("CLuaContractDeployTx::CheckTx, contract is invalid"),
@@ -167,7 +167,7 @@ bool CLuaContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_APPID(app_uid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CLuaContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,
@@ -296,7 +296,7 @@ bool CUniversalContractDeployTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (contract.vm_type != VMType::LUA_VM) {
         return state.DoS(100, ERRORMSG("CUniversalContractDeployTx::CheckTx, support LuaVM only"), REJECT_INVALID,
@@ -445,7 +445,7 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_ARGUMENTS;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_APPID(app_uid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, public key is invalid"), REJECT_INVALID,

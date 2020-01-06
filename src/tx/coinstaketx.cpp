@@ -13,7 +13,7 @@ bool CCoinStakeTx::CheckTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (stake_type != BalanceOpType::STAKE && stake_type != BalanceOpType::UNSTAKE) {
         return state.DoS(100, ERRORMSG("CCoinStakeTx::CheckTx, invalid stakeType"), REJECT_INVALID, "bad-stake-type");

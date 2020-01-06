@@ -18,7 +18,7 @@ bool CPriceFeedTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (price_points.size() == 0 || price_points.size() > 2) {  // FIXME: hardcode here
         return state.DoS(100, ERRORMSG("CPriceFeedTx::CheckTx, price points number not within 1..2"), REJECT_INVALID,

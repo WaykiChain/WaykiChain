@@ -13,7 +13,7 @@ bool CBaseCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
     IMPLEMENT_CHECK_TX_REGID_OR_KEYID(toUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (coin_amount < DUST_AMOUNT_THRESHOLD)
@@ -105,7 +105,7 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_MEMO;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
 
     if (transfers.empty() || transfers.size() > MAX_TRANSFER_SIZE) {
         return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers is empty or too large count=%d than %d",

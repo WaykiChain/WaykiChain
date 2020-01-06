@@ -161,6 +161,38 @@ bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) co
     }
 }
 
+bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
+    // check fee value range
+    if (!CheckBaseCoinRange(llFees))
+        return context.pState->DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,
+                         "bad-tx-fee-toolarge");
+    // check fee symbol valid
+    if (!kFeeSymbolSet.count(fee_symbol))
+        return context.pState->DoS(100,
+                         ERRORMSG("%s, not support fee symbol=%s, only supports:%s", __FUNCTION__, fee_symbol,
+                                  GetFeeSymbolSetStr()),
+                         REJECT_INVALID, "bad-tx-fee-symbol");
+
+    if (!CheckMinFee(context)) return false;
+    return true;
+}
+
+bool CBaseTx::CheckMinFee(CTxExecuteContext &context) const {
+    uint64_t minFee;
+    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee))
+        return context.pState->DoS(100, ERRORMSG("GetTxMinFee failed, tx=%s", GetTxTypeName()),
+            REJECT_INVALID, "get-tx-min-fee-failed");
+
+    if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3 && txUid.is<CPubKey>()) {
+        minFee = 2 * minFee;
+    }
+    if (llFees < minFee){
+        string err = strprintf("The given fee is too small: %llu < %llu sawi", llFees, minFee);
+        return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
+            err, GetTxTypeName(), context.height, fee_symbol), REJECT_INVALID, err);
+    }
+    return true;
+}
 
 /**################################ Universal Coin Transfer ########################################**/
 

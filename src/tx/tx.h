@@ -156,7 +156,7 @@ public:
     bool IsPriceFeedTx() { return nTxType == PRICE_FEED_TX; }
     bool IsCoinRewardTx() { return nTxType == UCOIN_REWARD_TX; }
 
-    const string& GetTxTypeName() { return ::GetTxTypeName(nTxType); }
+    const string& GetTxTypeName() const { return ::GetTxTypeName(nTxType); }
 public:
     static unsigned int GetSerializePtrSize(const std::shared_ptr<CBaseTx> &pBaseTx, int nType, int nVersion){
         return pBaseTx->GetSerializeSize(nType, nVersion) + 1;
@@ -171,6 +171,9 @@ protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
     bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
+    bool CheckFee(CTxExecuteContext &context) const;
+
+    virtual bool CheckMinFee(CTxExecuteContext &context) const;
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };
@@ -284,33 +287,6 @@ public:
     if (GetFeatureForkVersion(context.height) == MAJOR_VER_R1)                                                  \
         return state.DoS(100, ERRORMSG("%s, unsupported tx type in pre-stable coin release", __FUNCTION__),     \
                          REJECT_INVALID, "unsupported-tx-type-pre-stable-coin-release");
-
-#define IMPLEMENT_CHECK_TX_FEE                                                                                  \
-    if (!CheckBaseCoinRange(llFees))                                                                            \
-        return state.DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,                \
-                         "bad-tx-fee-toolarge");                                                                \
-    if (!kFeeSymbolSet.count(fee_symbol))                                                                       \
-        return state.DoS(100,                                                                                   \
-                         ERRORMSG("%s, not support fee symbol=%s, only supports:%s", __FUNCTION__, fee_symbol,  \
-                                  GetFeeSymbolSetStr()),                                                        \
-                         REJECT_INVALID, "bad-tx-fee-symbol");                                                  \
-    bool isPreV3Height = GetFeatureForkVersion(context.height) < MAJOR_VER_R3;                                  \
-    if (isPreV3Height || txUid.is<CRegID>()) {                                                                  \
-        if (!CheckTxFeeSufficient(fee_symbol, llFees, context.height))                                          \
-            return state.DoS(100,                                                                               \
-                         ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu)", __FUNCTION__,  \
-                                  context.height, fee_symbol, llFees), REJECT_INVALID, "bad-tx-fee-toosmall");  \
-    } else {                                                                                                    \
-        uint64_t minFee;                                                                                        \
-        if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee))                                \
-            return state.DoS(100, ERRORMSG("GetTxMinFee failed"), REJECT_INVALID, "GetTxMinFee-failed");        \
-        if (llFees < 2 * minFee){                                                                            \
-            string err =  strprintf("The given fee is too small: %llu < %llu sawi", llFees, 2*minFee);             \
-            return state.DoS(100, ERRORMSG("%s, tx fee too small(height: %d, fee symbol: %s, fee: %llu,         \
-                            reqFee: %llu)", __FUNCTION__, context.height, fee_symbol, llFees, 2*minFee),        \
-                            REJECT_INVALID, err);                                                               \
-        }                                                                                   \
-    }
 
 #define IMPLEMENT_CHECK_TX_REGID(txUid)                                                            \
     if (!txUid.is<CRegID>()) {                                                                     \
