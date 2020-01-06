@@ -63,7 +63,8 @@ public:
         ssValue >> valueOut;
     }
 
-    inline Slice GetValue() { return value; }
+    const string& GetKey() const { return key; }
+    const string& GetValue() const { return value; }
 
     IMPLEMENT_SERIALIZE(
         READWRITE(key);
