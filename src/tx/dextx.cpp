@@ -1192,7 +1192,7 @@ OrderSide CDEXSettleTx::GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const
         if (buyOrder.order_type == ORDER_MARKET_PRICE) {
             takerSide = OrderSide::ORDER_BUY;
         } else {
-            assert(buyOrder.order_type == ORDER_MARKET_PRICE);
+            assert(sellOrder.order_type == ORDER_MARKET_PRICE);
             takerSide = OrderSide::ORDER_SELL;
         }
     } else { // buyOrder.order_type == sellOrder.order_type
