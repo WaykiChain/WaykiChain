@@ -106,8 +106,8 @@ shared_ptr<CDEXOrderDetail> CDEXSysOrder::Create(OrderType orderType, OrderSide 
                                                  uint64_t assetAmountIn) {
     auto pSysOrder                = make_shared<CDEXOrderDetail>();
     pSysOrder->generate_type      = SYSTEM_GEN_ORDER;
-    pSysOrder->order_type         = ORDER_MARKET_PRICE;
-    pSysOrder->order_side         = ORDER_SELL;
+    pSysOrder->order_type         = orderType;
+    pSysOrder->order_side         = orderSide;
     pSysOrder->coin_symbol        = coinSymbol;
     pSysOrder->asset_symbol       = assetSymbol;
     pSysOrder->coin_amount        = coiAmountIn;
