@@ -33,6 +33,12 @@ namespace cdp_util {
     }
 }
 
+static uint64_t CalcCollateralRatio(uint64_t assetAmount, uint64_t scoinAmount, uint64_t price) {
+
+    return scoinAmount == 0 ? UINT64_MAX :
+        uint64_t(double(assetAmount) * price / PRICE_BOOST / scoinAmount * RATIO_BOOST);
+}
+
 /**
  *  Interest Ratio Formula: ( a / Log10(b + N) )
  *
@@ -164,12 +170,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
 
-    uint64_t partialCollateralRatio =
-        scoins_to_mint == 0
-            ? UINT64_MAX
-            : uint64_t(double(assetAmount) * bcoinMedianPrice / PRICE_BOOST / scoins_to_mint * RATIO_BOOST);
     vector<CReceipt> receipts;
-    uint64_t scoinsInterestToRepay = 0;
+    uint64_t mintScoinForInterest = 0;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (assetAmount == 0 || scoins_to_mint == 0) {
@@ -183,11 +185,12 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "has-open-cdp");
         }
 
-        if (partialCollateralRatio < startingCdpCollateralRatio)
+        uint64_t collateralRatio = CalcCollateralRatio(assetAmount, scoins_to_mint, bcoinMedianPrice);
+        if (collateralRatio < startingCdpCollateralRatio)
             return state.DoS(100,
                              ERRORMSG("CCDPStakeTx::ExecuteTx, 1st-time CDP creation, collateral ratio (%.2f%%) is "
                                       "smaller than the minimal (%.2f%%), price: %llu",
-                                      100.0 * partialCollateralRatio / RATIO_BOOST,
+                                      100.0 * collateralRatio / RATIO_BOOST,
                                       100.0 * startingCdpCollateralRatio / RATIO_BOOST, bcoinMedianPrice),
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
 
@@ -233,9 +236,23 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                     context.height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
+        uint64_t scoinsInterestToRepay = 0;
+        if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
+                             REJECT_INVALID, "compute-interest-error");
+        }
+
+        uint64_t ownerScoins = account.GetToken(scoin_symbol).free_amount;
+        if (scoinsInterestToRepay > ownerScoins) {
+            mintScoinForInterest = scoinsInterestToRepay - ownerScoins;
+            LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
+        }
+
+        uint64_t newMintScoins = scoins_to_mint + mintScoinForInterest;
         uint64_t totalBcoinsToStake   = cdp.total_staked_bcoins + assetAmount;
-        uint64_t totalScoinsToOwe     = cdp.total_owed_scoins + scoins_to_mint;
-        uint64_t totalCollateralRatio = uint64_t(double(totalBcoinsToStake) * bcoinMedianPrice / PRICE_BOOST / totalScoinsToOwe * RATIO_BOOST);
+        uint64_t totalScoinsToOwe     = cdp.total_owed_scoins + newMintScoins;
+        uint64_t partialCollateralRatio = CalcCollateralRatio(assetAmount, newMintScoins, bcoinMedianPrice);
+        uint64_t totalCollateralRatio = CalcCollateralRatio(totalBcoinsToStake, totalScoinsToOwe, bcoinMedianPrice);
 
         if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100,
@@ -246,13 +263,14 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
-        if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
-                             REJECT_INVALID, "compute-interest-error");
-        }
-
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
+
+        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, ownerScoins)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
+                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
+        }
 
         // settle cdp state & persist
         cdp.AddStake(context.height, assetAmount, scoins_to_mint);
@@ -272,22 +290,14 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                          "add-scoins-error");
     }
 
-    if (!cdp_txid.IsEmpty()) { // alter CDP
-        // support to pay the interest from the new mint soins in altering CDP mode
-        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
-                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
-                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
-        }
-    }
-
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
     }
 
     receipts.emplace_back(txUid, nullId, assetSymbol, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER);
-    receipts.emplace_back(nullId, txUid, scoin_symbol, scoins_to_mint, ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER);
+    receipts.emplace_back(nullId, txUid, scoin_symbol, scoins_to_mint + mintScoinForInterest,
+        ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER);
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
