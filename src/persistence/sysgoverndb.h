@@ -86,17 +86,12 @@ public:
         }
     }
 
-    bool SetProposal(const uint256& txid,  shared_ptr<CProposal> proposal ){
+    bool SetProposal(const uint256& txid,  shared_ptr<CProposal>& proposal ){
         return proposalsCache.SetData(txid, proposal) ;
     }
 
-    bool GetProposal(const uint256& txid, CProposal& proposal) {
-        std::shared_ptr<CProposal> p ;
-        bool b =  proposalsCache.GetData(txid, p) ;
-        if( b){
-            proposal = *(CProposal*)(p.get());
-        }
-        return b ;
+    bool GetProposal(const uint256& txid, shared_ptr<CProposal>& proposal) {
+        return proposalsCache.GetData(txid, proposal) ;
     }
 
     int GetAssentionCount(const uint256& proposalId){

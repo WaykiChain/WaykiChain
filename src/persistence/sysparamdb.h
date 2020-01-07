@@ -37,6 +37,13 @@ public:
         return true;
     }
 
+/*    bool GetData(const SysParamType &paramType, uint64_t& paramValue){
+        auto iter = SysParamTable.find(paramType);
+        string keyPostfix = std::get<0>(iter->second);
+        return sysParamCache.GetData(keyPostfix, paramValue);
+    }
+    */
+
     uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CSysParamDBCache *pBaseIn) { sysParamCache.SetBase(&pBaseIn->sysParamCache); }

@@ -10,7 +10,7 @@
 #include "tx/tx.h"
 #include "entities/proposal.h"
 
-
+bool CheckIsGoverner(CRegID account, ProposalType proposalType );
 
 
 class CProposalCreateTx: public CBaseTx {
@@ -42,7 +42,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-               << fee_symbol << proposal ;
+               << fee_symbol <<proposal;
             sigHash = ss.GetHash();
         }
 
@@ -79,8 +79,8 @@ public:
             nVersion = this->nVersion;
             READWRITE(VARINT(valid_height));
             READWRITE(txUid);
-            READWRITE(VARINT(llFees));
             READWRITE(fee_symbol);
+            READWRITE(VARINT(llFees));
             READWRITE(txid);
             READWRITE(signature);
     )
@@ -89,7 +89,7 @@ public:
         if (recalculate || sigHash.IsNull()) {
             CHashWriter ss(SER_GETHASH, 0);
             ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-               << fee_symbol << txid;
+               << fee_symbol << txid ;
             sigHash = ss.GetHash();
         }
 

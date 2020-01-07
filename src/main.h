@@ -966,8 +966,12 @@ inline uint32_t GetSerializeSize(const std::shared_ptr<CProposal> &pa, int32_t n
 
 template<typename Stream> void Serialize(Stream& os, const shared_ptr<CProposal> &pa, int nType, int nVersion){
     uint8_t proptype = pa->proposalType;
+
     Serialize(os, proptype, nType, nVersion);
     switch (pa->proposalType) {
+        case NULL_PROPOSAL:
+            Serialize(os,*((CNullProposal *)(pa.get())), nType, nVersion);
+            break;
         case PARAM_GOVERN:
             Serialize(os, *((CParamsGovernProposal *) (pa.get())), nType, nVersion);
             break;
@@ -984,6 +988,12 @@ template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CProposal
     uint8_t nProposalTye;
     is.read((char *)&(nProposalTye), sizeof(nProposalTye));
     switch((ProposalType)nProposalTye) {
+        case NULL_PROPOSAL: {
+            pa = std::make_shared<CNullProposal>() ;
+            Unserialize(is, *((CNullProposal *)(pa.get())), nType, nVersion) ;
+            break;
+
+        }
         case PARAM_GOVERN: {
             pa = std::make_shared<CParamsGovernProposal>();
             Unserialize(is, *((CParamsGovernProposal *)(pa.get())), nType, nVersion);
@@ -1002,6 +1012,7 @@ template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CProposal
     pa->proposalType = ProposalType(nProposalTye);
 
 }
+
 
 
 #endif

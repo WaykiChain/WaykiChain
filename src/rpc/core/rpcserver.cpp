@@ -326,6 +326,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcdp",                 &getcdp,                 true,      false,      false },
     { "getusercdp",             &getusercdp,             true,      false,      false },
     { "getsysparam",            &getsysparam,             true,      false,      false },
+    { "getproposal",            &getproposal,             true,      false,      false },
 
 
     /* for dex */

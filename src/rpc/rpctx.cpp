@@ -288,6 +288,14 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, delegateVoteTx);
 }
 
+Value getproposal(const Array& params, bool fHelp){
+    uint256 proposalId = uint256S(params[0].get_str()) ;
+    std::shared_ptr<CProposal> pp ;
+    if(pCdMan->pSysGovernCache->GetProposal(proposalId, pp)){
+        return pp->ToJson() ;
+    }
+    return Object();
+}
 
 
 Value submitproposalcreatetx(const Array& params, bool fHelp){
@@ -298,16 +306,19 @@ Value submitproposalcreatetx(const Array& params, bool fHelp){
     string paramName = params[1].get_str() ;
     uint64_t paramValue = AmountToRawValue(params[2]) ;
     int64_t fee          = RPC_PARAM::GetWiccFee(params, 3, PROPOSAL_CREATE_TX);
-    int32_t validHegiht  = chainActive.Height();
+    int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee);
+
+    CParamsGovernProposal proposal ;
+    proposal.param_values.push_back(std::make_pair(paramName, paramValue));
 
     CProposalCreateTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee;
     tx.fee_symbol    = SYMB::WICC ;
-    tx.valid_height = validHegiht;
-    //tx.params.push_back(std::make_pair(paramName, paramValue)) ;
+    tx.valid_height = validHeight;
+    tx.proposal = std::make_shared<CParamsGovernProposal>(proposal) ;
     return SubmitTx(account.keyid, tx) ;
 
 }

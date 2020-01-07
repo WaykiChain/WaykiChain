@@ -7,13 +7,18 @@
 #include "entities/proposal.h"
 #include "persistence/cachewrapper.h"
 #include <algorithm>
+#include "main.h"
 
 
 
 bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
 
     for( auto pa: param_values){
-        if(!cw.sysParamCache.SetParam(pa.first, pa.second)){
+        auto itr = paramNameToKeyMap.find(pa.first);
+        if(itr == paramNameToKeyMap.end())
+            return false ;
+
+        if(!cw.sysParamCache.SetParam(itr->second, pa.second)){
             return false ;
         }
     }
@@ -59,7 +64,17 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
 
  bool CParamsGovernProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state){
 
-    return true ;
+       if(param_values.size() == 0)
+       return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
+                        "params-empty");
+       for(auto pa: param_values){
+           if(paramNameToKeyMap.count(pa.first) == 0){
+               return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
+                       REJECT_INVALID, "params-error");
+           }
+       }
+
+     return true ;
 }
  bool CGovernerUpdateProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state){
     return true ;
