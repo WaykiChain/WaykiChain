@@ -32,6 +32,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
 
     txCache.SetBaseViewPtr(&cwIn->txCache);
     ppCache.SetBaseViewPtr(&cwIn->ppCache);
+    sysGovernCache.SetBaseViewPtr(&cwIn->sysGovernCache);
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
@@ -48,6 +49,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
+    sysGovernCache.SetBaseViewPtr(pCdMan->pSysGovernCache);
 }
 
 void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
@@ -64,6 +66,7 @@ void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
 
     txCache = *pCdMan->pTxCache;
     ppCache = *pCdMan->pPpCache;
+    sysGovernCache = *pCdMan->pSysGovernCache ;
 }
 
 CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
@@ -82,6 +85,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->txReceiptCache = other.txReceiptCache;
     this->txCache        = other.txCache;
     this->ppCache        = other.ppCache;
+    this->sysGovernCache = other.sysGovernCache;
 
     return *this;
 }
@@ -100,6 +104,7 @@ void CCacheWrapper::Flush() {
 
     txCache.Flush();
     ppCache.Flush();
+    sysGovernCache.Flush();
 }
 
 void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
@@ -113,6 +118,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
+    sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
 }
 
 UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
@@ -127,6 +133,7 @@ UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
     closedCdpCache.RegisterUndoFunc(undoDataFuncMap);
     dexCache.RegisterUndoFunc(undoDataFuncMap);
     txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
+    sysGovernCache.RegisterUndoFunc(undoDataFuncMap);
     return undoDataFuncMap;
 }
 
@@ -170,6 +177,9 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
     pReceiptDb      = new CDBAccess(dbDir, DBNameType::RECEIPT, false, fReIndex);
     pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
 
+    pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
+    pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);
+
     // memory-only cache
     pTxCache        = new CTxMemCache();
     pPpCache        = new CPricePointMemCache();
@@ -187,6 +197,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pBlockCache;     pBlockCache = nullptr;
     delete pLogCache;       pLogCache = nullptr;
     delete pReceiptCache;   pReceiptCache = nullptr;
+    delete pSysGovernCache; pSysGovernCache = nullptr;
 
     delete pSysParamDb;     pSysParamDb = nullptr;
     delete pAccountDb;      pAccountDb = nullptr;
@@ -200,6 +211,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pBlockDb;        pBlockDb = nullptr;
     delete pLogDb;          pLogDb = nullptr;
     delete pReceiptDb;      pReceiptDb = nullptr;
+    delete pSysGovernDb;    pSysGovernDb = nullptr;
 
     // memory-only cache
     delete pTxCache;        pTxCache = nullptr;
@@ -230,6 +242,8 @@ bool CCacheDBManager::Flush() {
     if (pLogCache) pLogCache->Flush();
 
     if (pReceiptCache) pReceiptCache->Flush();
+
+    if (pSysGovernCache) pSysGovernCache->Flush();
 
     // Memory only cache, not bother to flush.
     // if (pTxCache)

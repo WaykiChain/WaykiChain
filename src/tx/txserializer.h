@@ -29,6 +29,7 @@
 #include "tx/nickidregtx.h"
 #include "tx/einvalidtxtype.h"
 #include "tx/dexoperatortx.h"
+#include "tx/proposaltx.h"
 
 using namespace std;
 
@@ -118,7 +119,10 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXOperatorUpdateTx&)tx, serType, version); break;
         case DEX_OPERATOR_REGISTER_TX:
             ::Serialize(os, (const CDEXOperatorRegisterTx&)tx, serType, version); break;
-
+        case PROPOSAL_CREATE_TX:
+            ::Serialize(os, (const CProposalCreateTx&)tx,serType, version); break ;
+        case PROPOSAL_ASSENT_TX:
+            ::Serialize(os, (const CProposalAssentTx&)tx,serType, version); break ;
 
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -311,6 +315,18 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case DEX_OPERATOR_REGISTER_TX: {
             pBaseTx = std::make_shared<CDEXOperatorRegisterTx>();
             ::Unserialize(is, *((CDEXOperatorRegisterTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+
+        case PROPOSAL_CREATE_TX: {
+            pBaseTx = std::make_shared<CProposalCreateTx>();
+            ::Unserialize(is, *((CProposalCreateTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+        case PROPOSAL_ASSENT_TX: {
+            pBaseTx = std::make_shared<CProposalAssentTx>();
+            ::Unserialize(is, *((CProposalAssentTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

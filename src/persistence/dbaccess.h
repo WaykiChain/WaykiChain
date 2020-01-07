@@ -45,6 +45,14 @@ namespace db_util {
     // vector
     template<typename T, typename A> bool IsEmpty(const vector<T, A>& val);
     template<typename T, typename A> void SetEmpty(vector<T, A>& val);
+    //shared_ptr
+    template <typename T> bool  IsEmpty(const std::shared_ptr<T>& val) {return val == nullptr || (*val).IsEmpty(); }
+    template <typename T> void SetEmpty(shared_ptr<T>& val) {
+        if(val == nullptr){
+            val = make_shared<T>() ;
+        }
+        (*val).SetEmpty();
+    }
 
     //optional
     template<typename T> bool IsEmpty(const std::optional<T> val) { return val == std::nullopt; }

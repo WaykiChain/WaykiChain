@@ -230,6 +230,9 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitassetissuetx"       && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
 
+    if (strMethod == "submitproposalcreatetx"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitproposalcreatetx"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);
 

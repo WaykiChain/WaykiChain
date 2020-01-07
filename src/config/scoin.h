@@ -67,6 +67,53 @@ enum SysParamType : uint8_t {
 
 };
 
+static const unordered_map<string, string> paramNameToKeyMap = {
+        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           "A"},
+        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              "B"},
+        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        "C"},
+        {"PRICE_FEED_DEVIATE_RATIO_MAX",                   "D"},
+        {"PRICE_FEED_DEVIATE_PENALTY",                     "E"},
+        {"DEX_DEAL_FEE_RATIO",                             "F"},
+        {"SCOIN_RESERVE_FEE_RATIO",                        "G"},
+        {"GLOBAL_COLLATERAL_CEILING_AMOUNT",               "H"},
+        {"GLOBAL_COLLATERAL_RATIO_MIN",                    "I"},
+        {"CDP_START_COLLATERAL_RATIO",                     "J"},
+        {"CDP_START_LIQUIDATE_RATIO",                      "K"},
+        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  "L"},
+        {"CDP_FORCE_LIQUIDATE_RATIO",                      "M"},
+        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   "N"},
+        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          "O"},
+        {"CDP_INTEREST_PARAM_A",                           "P"},
+        {"CDP_INTEREST_PARAM_B",                           "Q"},
+        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   "R"},
+        {"ASSET_ISSUE_FEE",                                "S"},
+        {"ASSET_UPDATE_FEE",                               "T"}
+   };
+
+
+static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
+        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT},
+        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN},
+        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX},
+        {"PRICE_FEED_DEVIATE_RATIO_MAX",                   PRICE_FEED_DEVIATE_RATIO_MAX},
+        {"PRICE_FEED_DEVIATE_PENALTY",                     PRICE_FEED_DEVIATE_PENALTY},
+        {"DEX_DEAL_FEE_RATIO",                             DEX_DEAL_FEE_RATIO},
+        {"SCOIN_RESERVE_FEE_RATIO",                        SCOIN_RESERVE_FEE_RATIO},
+        {"GLOBAL_COLLATERAL_CEILING_AMOUNT",               GLOBAL_COLLATERAL_CEILING_AMOUNT},
+        {"GLOBAL_COLLATERAL_RATIO_MIN",                    GLOBAL_COLLATERAL_RATIO_MIN},
+        {"CDP_START_COLLATERAL_RATIO",                     CDP_START_COLLATERAL_RATIO},
+        {"CDP_START_LIQUIDATE_RATIO",                      CDP_START_LIQUIDATE_RATIO},
+        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  CDP_NONRETURN_LIQUIDATE_RATIO},
+        {"CDP_FORCE_LIQUIDATE_RATIO",                      CDP_FORCE_LIQUIDATE_RATIO},
+        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   CDP_LIQUIDATE_DISCOUNT_RATIO},
+        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN},
+        {"CDP_INTEREST_PARAM_A",                           CDP_INTEREST_PARAM_A},
+        {"CDP_INTEREST_PARAM_B",                           CDP_INTEREST_PARAM_B},
+        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   CDP_SYSORDER_PENALTY_FEE_MIN},
+        {"ASSET_ISSUE_FEE",                                ASSET_ISSUE_FEE},
+        {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE}
+};
+
 struct SysParamTypeHash {
     size_t operator()(const SysParamType &type) const noexcept {
         return std::hash<uint8_t>{}(type);
