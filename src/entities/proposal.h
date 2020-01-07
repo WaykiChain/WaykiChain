@@ -34,24 +34,24 @@ enum OperateType: uint8_t {
 class CProposal {
 public:
 
-    uint8_t proposalType = 0 ;
+    uint8_t proposal_type = 0 ;
     int8_t need_governer_count = 0;
     int32_t expire_block_height = 0;
 
 public:
 
     CProposal() {}
-    CProposal(uint8_t proposalTypeIn):proposalType(proposalTypeIn) {}
+    CProposal(uint8_t proposalTypeIn):proposal_type(proposalTypeIn) {}
 
     virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
     virtual bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) { return true ;};
     virtual bool CheckProposal(CCacheWrapper &cw, CValidationState& state) {return true ;};
     virtual bool IsEmpty() const { return  expire_block_height == 0
                                             && need_governer_count == 0
-                                            && proposalType == ProposalType ::NULL_PROPOSAL; };
+                                            && proposal_type == ProposalType ::NULL_PROPOSAL; };
     virtual Object ToJson(){
         Object o ;
-        o.push_back(Pair("proposal_type", proposalType)) ;
+        o.push_back(Pair("proposal_type", proposal_type)) ;
         o.push_back(Pair("need_governer_count", need_governer_count)) ;
         o.push_back(Pair("expire_block_height", expire_block_height)) ;
 
@@ -62,7 +62,7 @@ public:
     virtual void SetEmpty() {
         expire_block_height = 0 ;
         need_governer_count = 0 ;
-        proposalType = ProposalType ::NULL_PROPOSAL ;
+        proposal_type = ProposalType ::NULL_PROPOSAL ;
     }
 
 };
@@ -75,7 +75,7 @@ public:
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
     );
-    bool IsEmpty() const override { return proposalType == NULL_PROPOSAL || CProposal::IsEmpty(); };
+    bool IsEmpty() const override { return proposal_type == NULL_PROPOSAL || CProposal::IsEmpty(); };
     void SetEmpty() override {
         CProposal::SetEmpty();
     }
@@ -131,24 +131,24 @@ public:
 
 class CGovernerUpdateProposal: public CProposal{
 public:
-    CRegID governerRegId ;
-    uint8_t  operateType  = 0;
+    CRegID governer_regid ;
+    uint8_t  operate_type  = 0;
 
     CGovernerUpdateProposal(): CProposal(ProposalType::GOVERNER_UPDATE){}
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
-            READWRITE(governerRegId);
-            READWRITE(proposalType);
-            READWRITE(operateType);
+            READWRITE(governer_regid);
+            READWRITE(proposal_type);
+            READWRITE(operate_type);
     );
 
-    bool IsEmpty() const override { return operateType == NULL_OPT && governerRegId.IsEmpty() && CProposal::IsEmpty(); };
+    bool IsEmpty() const override { return operate_type == NULL_OPT && governer_regid.IsEmpty() && CProposal::IsEmpty(); };
     void SetEmpty() override {
         CProposal::SetEmpty() ;
-        operateType = NULL_OPT;
-        governerRegId.SetEmpty();
+        operate_type = NULL_OPT;
+        governer_regid.SetEmpty();
     }
 
     shared_ptr<CProposal> GetNewInstance(){ return make_shared<CGovernerUpdateProposal>(*this);} ;

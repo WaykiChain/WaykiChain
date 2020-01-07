@@ -965,10 +965,10 @@ inline uint32_t GetSerializeSize(const std::shared_ptr<CProposal> &pa, int32_t n
 }
 
 template<typename Stream> void Serialize(Stream& os, const shared_ptr<CProposal> &pa, int nType, int nVersion){
-    uint8_t proptype = pa->proposalType;
+    uint8_t proptype = pa->proposal_type;
 
     Serialize(os, proptype, nType, nVersion);
-    switch (pa->proposalType) {
+    switch (pa->proposal_type) {
         case NULL_PROPOSAL:
             Serialize(os,*((CNullProposal *)(pa.get())), nType, nVersion);
             break;
@@ -980,7 +980,7 @@ template<typename Stream> void Serialize(Stream& os, const shared_ptr<CProposal>
             break;
         default:
             throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
-                                              pa->proposalType));
+                                              pa->proposal_type));
     }
 
 }
@@ -1009,7 +1009,7 @@ template<typename Stream> void Unserialize(Stream& is, std::shared_ptr<CProposal
             throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
                                               nProposalTye));
     }
-    pa->proposalType = ProposalType(nProposalTye);
+    pa->proposal_type = ProposalType(nProposalTye);
 
 }
 

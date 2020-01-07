@@ -30,12 +30,12 @@ bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState&
 bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
 
 
-    if(operateType == OperateType::DISABLE){
+    if(operate_type == OperateType::DISABLE){
         vector<CRegID> governers ;
         if(cw.sysGovernCache.GetGoverners(governers)){
 
             for(auto itr = governers.begin();itr !=governers.end();){
-                if(*itr == governerRegId){
+                if(*itr == governer_regid){
                     governers.erase(itr);
                     break ;
                 }else
@@ -45,16 +45,16 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
         }
         return false ;
 
-    }else if(operateType == OperateType::ENABLE){
+    }else if(operate_type == OperateType::ENABLE){
 
         vector<CRegID> governers ;
         cw.sysGovernCache.GetGoverners(governers);
 
-        if(find( governers.begin(),governers.end(),governerRegId) == governers.end()){
+        if(find( governers.begin(),governers.end(),governer_regid) == governers.end()){
             return false ;
         }
 
-        governers.push_back(governerRegId) ;
+        governers.push_back(governer_regid) ;
         return cw.sysGovernCache.SetGoverners(governers) ;
     }
 

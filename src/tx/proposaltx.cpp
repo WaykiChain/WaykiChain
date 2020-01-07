@@ -32,7 +32,11 @@ string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
 }          // logging usage
 
 Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
-    return Object() ;
+
+    Object result = CBaseTx::ToJson(accountCache);
+    result.push_back(Pair("proposal", proposal->ToJson()));
+
+    return result;
 }  // json-rpc usage
 
  bool CProposalCreateTx::CheckTx(CTxExecuteContext &context) {
@@ -89,9 +93,12 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
 string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
     return "";
-}            // logging usage
+}
  Object CProposalAssentTx::ToJson(const CAccountDBCache &accountCache) const {
-    return Object() ;
+
+     Object result = CBaseTx::ToJson(accountCache);
+     result.push_back(Pair("proposal_id", txid.ToString()));
+     return result;
 } // json-rpc usage
 
  bool CProposalAssentTx::CheckTx(CTxExecuteContext &context) {
@@ -106,8 +113,8 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
                           WRITE_ACCOUNT_FAIL, "proposal-not-found");
      }
 
-     if(!CheckIsGoverner(txUid.get<CRegID>(), proposal->proposalType,cw)){
-         return state.DoS(100, ERRORMSG("CProposalAssentTx::CheckTx, the tx commiter is not a governer", txid.ToString()),
+     if(!CheckIsGoverner(txUid.get<CRegID>(), proposal->proposal_type,cw)){
+         return state.DoS(100, ERRORMSG("CProposalAssentTx::CheckTx, the tx commiter(%s) is not a governer", txid.ToString()),
                           WRITE_ACCOUNT_FAIL, "permission-deney");
      }
 
