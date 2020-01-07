@@ -5,7 +5,7 @@
 #include "wasm/types/varint.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/types/asset.hpp"
-#include "wasm/exceptions.hpp"
+// #include "wasm/exceptions.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/datastream.hpp"
 #include "wasm/wasm_serialize_reflect.hpp"

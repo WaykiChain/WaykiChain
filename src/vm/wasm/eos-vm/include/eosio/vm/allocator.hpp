@@ -17,6 +17,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+#include <iostream>
+
 namespace eosio { namespace vm {
    class bounded_allocator {
     public:
@@ -441,7 +443,9 @@ namespace eosio { namespace vm {
       template <typename T>
       inline T* create_pointer(uint32_t offset) { return reinterpret_cast<T*>(raw + offset); }
       inline int32_t get_current_page() const { return page; }
-      bool is_in_region(const char* p) { return p >= raw && p < raw + max_memory; }
-      bool is_in_range(const char* p) { return p >= raw && p < raw + page * page_size; }
+      bool is_in_region(const char* p) { return p >= raw && p < raw + max_memory;       }
+      bool is_in_range(const char* p)  { 
+         //std::cout << "page:" << page << " raw:" << reinterpret_cast<uint64_t>(raw) << " end:" << reinterpret_cast<uint64_t>(raw) +  page * page_size << std::endl;
+         return p >= raw && p < raw + page * page_size; }
    };
 }} // namespace eosio::vm

@@ -10,10 +10,12 @@
 #include "wasm/types/asset.hpp"
 #include "commons/json/json_spirit.h"
 #include "commons/json/json_spirit_value.h"
-#include "wasm/exceptions.hpp"
+//#include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
+
+#include "wasm/exception/exceptions.hpp"
 
 namespace wasm {
     using namespace json_spirit;
@@ -364,7 +366,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::name &t ) {
@@ -372,7 +374,7 @@ namespace wasm {
             t = wasm::name(v.get_str());
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::bytes &t ) {
@@ -381,7 +383,7 @@ namespace wasm {
             t.insert(t.begin(), str.begin(), str.end());
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
 
     }
 
@@ -402,7 +404,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or int")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string or int")
 
     }
 
@@ -418,7 +420,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or int")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string or int")
     }
 
 
@@ -427,7 +429,7 @@ namespace wasm {
             t = static_cast< int32_t >(v.get_int64());
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::unsigned_int &t ) {
@@ -435,7 +437,7 @@ namespace wasm {
             t = static_cast< uint32_t >(v.get_int64());
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
 
@@ -444,7 +446,7 @@ namespace wasm {
             t = v.get_bool();
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a boolean")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a boolean")
     }
 
     template<typename T, std::enable_if_t <std::is_floating_point<T>::value> * = nullptr>
@@ -453,7 +455,7 @@ namespace wasm {
             t = v.get_real();
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a real (floating point)")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a real (floating point)")
     }
 
 
@@ -463,7 +465,7 @@ namespace wasm {
             t = v.get_int64();
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an int")
     }
 
     static inline void from_variant( const wasm::variant &v, system_clock::time_point &t ) {
@@ -471,7 +473,7 @@ namespace wasm {
             t = std::chrono::system_clock::from_time_t(ToTime(v.get_str()));
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     template<typename T>
@@ -487,7 +489,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a array[]")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a array[]")
 
     }
 
@@ -517,7 +519,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::checksum256_type &t ) {
@@ -525,7 +527,7 @@ namespace wasm {
             FromHex(v.get_str()).copy((char *) &t, sizeof(t));
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
 
@@ -534,7 +536,7 @@ namespace wasm {
             FromHex(v.get_str()).copy((char *) &t, sizeof(t));
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
 
@@ -543,7 +545,7 @@ namespace wasm {
             t = wasm::symbol_code(v.get_str());
             return;
         }
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::symbol &t ) {
@@ -577,7 +579,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string or object")
     }
 
     static inline void from_variant( const wasm::variant &v, wasm::asset &t ) {
@@ -608,7 +610,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be a string or object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be a string or object")
     }
 
 
@@ -634,7 +636,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
     }
 
     static inline void from_variant( const wasm::variant &v, struct_def &s ) {
@@ -663,7 +665,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
@@ -697,7 +699,7 @@ namespace wasm {
 
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
@@ -737,7 +739,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
@@ -765,7 +767,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
 
     }
 
@@ -793,7 +795,7 @@ namespace wasm {
             return;
         }
 
-        WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+        CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
     }
 
 
@@ -847,10 +849,10 @@ namespace wasm {
                 return;
             }
 
-            WASM_THROW(abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
+            CHAIN_THROW(wasm_chain::abi_parse_exception, "abi parse fail:%s", "json variant must be an object")
         }
 
-        WASM_RETHROW_EXCEPTIONS(abi_parse_exception, "%s", "abi parse fail")
+        CHAIN_RETHROW_EXCEPTIONS(wasm_chain::abi_parse_exception, "%s", "abi parse fail")
     }
 
 

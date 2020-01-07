@@ -37,7 +37,7 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid,for zero"), REJECT_INVALID,
                              "bad-nickid");
         }
-    }catch (const wasm::exception& e ){
+    }catch (const wasm_chain::exception& e ){
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, nickid is invalid"), REJECT_INVALID,
                          "bad-nickid");
     }

@@ -13,7 +13,6 @@ using namespace boost;
 
 BOOST_AUTO_TEST_SUITE( test_api )
 
-//void print_tests(validating_tester &tester ) {
 BOOST_FIXTURE_TEST_CASE( print_tests, validating_tester ) {
 
     set_code(*this, N(testapi), "wasm/test_api.wasm");
@@ -132,7 +131,6 @@ BOOST_FIXTURE_TEST_CASE( print_tests, validating_tester ) {
 
 }
 
-//void types_tests(validating_tester &tester ) {
 BOOST_FIXTURE_TEST_CASE( types_tests, validating_tester ) {
 	set_code(*this, N(testapi), "wasm/test_api.wasm");
 	CALL_TEST_FUNCTION( *this, "test_types", "types_size", {});
@@ -140,7 +138,6 @@ BOOST_FIXTURE_TEST_CASE( types_tests, validating_tester ) {
 	CALL_TEST_FUNCTION( *this, "test_types", "string_to_name", {});
 }
 
-//void datastream_tests(validating_tester &tester ) {
 BOOST_FIXTURE_TEST_CASE( datastream_tests, validating_tester ) {
 	set_code(*this, N(testapi), "wasm/test_api.wasm");
 	CALL_TEST_FUNCTION( *this, "test_datastream", "test_basic", {} );
@@ -150,51 +147,55 @@ BOOST_FIXTURE_TEST_CASE( datastream_tests, validating_tester ) {
 #define DUMMY_ACTION_DEFAULT_B 0xab11cd1244556677
 #define DUMMY_ACTION_DEFAULT_C 0x7451ae12
 
-//void action_tests(validating_tester &tester ) {
 BOOST_FIXTURE_TEST_CASE( action_tests, validating_tester ) {
-  set_code(*this, N(testapi), "wasm/test_api.wasm");
-  CALL_TEST_FUNCTION( *this, "test_action", "assert_true", {} );
+    set_code(*this, N(testapi), "wasm/test_api.wasm");
+    CALL_TEST_FUNCTION( *this, "test_action", "assert_true", {} );
 
-  bool passed;
-  CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "assert_false", {} ), passed, wasm_assert_exception, "test_action::assert_false")
+    // WASM_TRACE("action_tests")
+    bool passed;
+    CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "assert_false", {} ), passed, wasm_assert_exception, "test_action::assert_false")
+    // WASM_TRACE("action_tests")
 
-  dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
-  CALL_TEST_FUNCTION( *this, "test_action", "read_action_normal", wasm::pack(dummy13));
+    dummy_action dummy13{DUMMY_ACTION_DEFAULT_A, DUMMY_ACTION_DEFAULT_B, DUMMY_ACTION_DEFAULT_C};
+    CALL_TEST_FUNCTION( *this, "test_action", "read_action_normal", wasm::pack(dummy13));
 
-  // test read_action_to_0
-  std::vector<char> raw_bytes((1<<16));
-  CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes );
+    // WASM_TRACE("action_tests")
+    // // test read_action_to_0
+    std::vector<char> raw_bytes((1<<16));
+    CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes );
 
-  // raw_bytes.resize((1<<16)+1);
-  // CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes), passed, wasm_exception,"access violation")
+    // std::vector<char> raw_bytes;
+    raw_bytes.resize((1<<16)+1);
+    CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_0", raw_bytes), passed, wasm_chain::wasm_memory_exception, "access violation")
 
-  // test read_action_to_64k
-  raw_bytes.resize(1);
-  CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes );
+    // // test read_action_to_64k
+    raw_bytes.resize(1);
+    CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes );
 
-  //test read_action_to_64k
-  // raw_bytes.resize(3);
-  // CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_exception,"access violation")
+    //test read_action_to_64k
+    raw_bytes.resize(3);
+    CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "read_action_to_64k", raw_bytes), passed, wasm_chain::wasm_memory_exception, "access violation")
 
     // test require_notice
-   auto test_require_notice = [](auto& test, std::vector<char>& data){
+    auto test_require_notice = [](auto& test, std::vector<char>& data){
       CALL_TEST_FUNCTION( test, "test_action", "require_notice", data);
-   };
+    };
 
-  CHECK_EXCEPTION(test_require_notice(*this, raw_bytes), passed, wasm_assert_exception, "Should've failed")
+    CHECK_EXCEPTION(test_require_notice(*this, raw_bytes), passed, wasm_assert_exception, "Should've failed")
 
-  // test test_current_receiver
-  CALL_TEST_FUNCTION( *this, "test_action", "test_current_receiver", wasm::pack(N(testapi)));
+    // test test_current_receiver
+    CALL_TEST_FUNCTION( *this, "test_action", "test_current_receiver", wasm::pack(N(testapi)));
 
-  // test test_abort
-  CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "test_abort", {} ), passed, abort_called, "abort() called")
+    // test test_abort
+    CHECK_EXCEPTION(CALL_TEST_FUNCTION( *this, "test_action", "test_abort", {} ), passed, abort_called, "abort() called")
 }
 
-//void require_notice_tests(validating_tester &tester ) {
 BOOST_FIXTURE_TEST_CASE( require_notice_tests, validating_tester ) {
   set_code(*this, N(testapi), "wasm/test_api.wasm");
   set_code(*this, N(acc5), "wasm/test_api.wasm");
   CALL_TEST_FUNCTION( *this, "test_action", "require_notice_tests", {});
+  // int i = 0;
+  // std::cout << i << std::endl;
 }
 
 BOOST_AUTO_TEST_SUITE_END()

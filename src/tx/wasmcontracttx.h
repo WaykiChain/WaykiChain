@@ -22,11 +22,12 @@ public:
     std::chrono::microseconds     billed_time              = chrono::microseconds(0);
     std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
     wasm::transaction_status_type transaction_status       = wasm::transaction_status_type::syncing;//block in syncing
+    //wasm::inline_transaction      trx_current              = nullptr;
 
     void                      pause_billing_timer();
     void                      resume_billing_timer();
     std::chrono::milliseconds get_max_transaction_duration() { return max_transaction_duration; }
-    void                      set_signature(uint64_t account, const vector<uint8_t>& signature);
+    void                      set_signature(const uint64_t& account, const vector<uint8_t>& signature);
     void                      set_signature(const wasm::signature_pair& signature);
 
 public:

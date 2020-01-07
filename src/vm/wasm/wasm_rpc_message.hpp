@@ -109,5 +109,16 @@ namespace wasm { namespace rpc{
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettxtrace", "params":"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W"}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
+    const char *abi_json_to_bin_wasm_rpc_help_message = R"=====(
+        abijsontobinwasm "abijson" 
+        1."abijson": (string, required) abi json file from cdt
+        Result:
+        "data":       (string in hex)
+        Examples: 
+        > ./coind abijsontobinwasm '{"____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",...}' 
+        As json rpc call 
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"abijsontobinwasm", "params":{"____comment": "This file was generated with wasm-abigen. DO NOT EDIT ",...}}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+    )=====";
+
 } // rpc
 } // wasm

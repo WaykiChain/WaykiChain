@@ -237,6 +237,23 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     return params;
 }
 
+inline string&   recover_enter(string& str, const string& old_value, const string& new_value, bool need_replace = true)     
+{     
+    while(true)   {     
+        string::size_type pos(0);     
+        if(   (pos=str.find(old_value))!=string::npos   ){  
+            // str.erase(pos, old_value.size());
+            // if(need_replace) str.insert(pos, new_value.size(), new_value);
+            str.replace(pos, old_value.size(), new_value);
+        }  
+        else {
+           break; 
+        }      
+    }     
+    return   str;     
+}
+
+
 int CommandLineRPC(int argc, char *argv[])
 {
     string strPrint;
@@ -299,7 +316,14 @@ int CommandLineRPC(int argc, char *argv[])
 
     if (strPrint != "")
     {
-        fprintf((nRet == 0 ? stdout : stderr), "%s\n", strPrint.c_str());
+       if(nRet != 0){
+           recover_enter(strPrint, R"(\n)", "\n        ");
+           recover_enter(strPrint, R"(\)", "", false);//delete "\"
+           std::cerr << strPrint <<std::endl;
+       } else {
+           std::cout << strPrint <<std::endl;
+       }
+       //fprintf((nRet == 0 ? stdout : stderr), "%s\n", strPrint.c_str());
     }
     return nRet;
 }

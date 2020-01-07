@@ -2,7 +2,6 @@
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
 #include "wasm/wasm_context.hpp"
-#include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/wasm_config.hpp"

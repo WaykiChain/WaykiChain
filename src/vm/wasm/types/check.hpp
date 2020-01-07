@@ -2,7 +2,7 @@
 
 #include <alloca.h>
 #include <string>
-#include "wasm/exceptions.hpp"
+#include "wasm/exception/exceptions.hpp"
 
 namespace wasm {
 
@@ -24,7 +24,7 @@ namespace wasm {
     */
    inline void check(bool pred, const char* msg) {
       if (!pred) {
-         WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg)
+         CHAIN_ASSERT(false, wasm_chain::wasm_assert_exception, "wasm-assert-fail:%s", msg)
       }
    }
 
@@ -40,7 +40,7 @@ namespace wasm {
     */
    inline void check(bool pred, const std::string& msg) {
       if (!pred) {
-         WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg.c_str())
+         CHAIN_ASSERT(false, wasm_chain::wasm_assert_exception, "wasm-assert-fail:%s", msg.c_str())
       }
    }
 
@@ -56,7 +56,7 @@ namespace wasm {
     */
    inline void check(bool pred, std::string&& msg) {
       if (!pred) {
-         WASM_ASSERT(false, wasm_assert_exception, "wasm-assert-fail:%s", msg.c_str())
+         CHAIN_ASSERT(false, wasm_chain::wasm_assert_exception, "wasm-assert-fail:%s", msg.c_str())
       }
    }
 

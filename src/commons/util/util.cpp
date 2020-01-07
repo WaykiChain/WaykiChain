@@ -560,7 +560,7 @@ bool WildcardMatch(const string& str, const string& mask) {
     return WildcardMatch(str.c_str(), mask.c_str());
 }
 
-static string FormatException(exception* pex, const char* pszThread) {
+static string FormatException(std::exception* pex, const char* pszThread) {
 #ifdef WIN32
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
@@ -574,12 +574,12 @@ static string FormatException(exception* pex, const char* pszThread) {
         return strprintf("UNKNOWN EXCEPTION       \n%s in %s       \n", pszModule, pszThread);
 }
 
-void LogException(exception* pex, const char* pszThread) {
+void LogException(std::exception* pex, const char* pszThread) {
     string message = FormatException(pex, pszThread);
     LogPrint(BCLog::INFO, "\n%s", message);
 }
 
-void PrintExceptionContinue(exception* pex, const char* pszThread) {
+void PrintExceptionContinue(std::exception* pex, const char* pszThread) {
     string message = FormatException(pex, pszThread);
     LogPrint(BCLog::INFO, "\n\n************************\n%s\n", message);
     fprintf(stderr, "\n\n************************\n%s\n", message.c_str());

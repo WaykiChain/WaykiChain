@@ -1,7 +1,7 @@
 #pragma once
 
 #include <eosio/vm/backend.hpp>
-#include"wasm_context_interface.hpp"
+#include "wasm/wasm_context_interface.hpp"
 
 namespace wasm {
 
@@ -31,6 +31,7 @@ namespace wasm {
     public:
         backend <wasm::wasm_context_interface, Backend> *_bkend = nullptr;  // non owning pointer to allow for immediate exit
     };
+
 
 } //wasm
 
