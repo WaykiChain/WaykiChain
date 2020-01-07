@@ -825,3 +825,74 @@ extern Value getdexoperatorbyowner(const Array& params, bool fHelp) {
     obj.insert(obj.begin(), Pair("id", (uint64_t)dexOrderId));
     return obj;
 }
+
+extern Value getdexorderfee(const Array& params, bool fHelp) {
+     if (fHelp || params.size() < 1 || params.size() > 1) {
+        throw runtime_error(
+            "getdexorderfee \"addr\"\n"
+            "\nget dex order fee by account.\n"
+            "\nArguments:\n"
+            "1.\"addr\":    (string, required) account address\n"
+            "\nResult: dex order fee info\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getdexorderfee", "10-1")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getdexorderfee", "10-1")
+        );
+    }
+
+    const CUserID& userId   = RPC_PARAM::GetUserId(params[0], true);
+
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+
+    const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[0]);
+
+    int32_t height = chainActive.Height();
+    uint64_t minFee = 0;
+    uint64_t defaultMinFee = 0;
+    bool isInit = false;
+    Object obj;
+    Array symbolArray;
+    Array txArray;
+
+    for (auto txType : DEX_ORDER_TX_SET) {
+        for (auto symbol : kFeeSymbolSet) {
+            if (!GetTxMinFee(txType, height, symbol, minFee))
+                throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("get default min fee of tx failed! "
+                    "tx=%s, height=%d, symbol=%s", GetTxTypeName(txType), height, symbol));
+            if (!isInit) {
+                defaultMinFee = minFee;
+            } else {
+                if (defaultMinFee != minFee)
+                    throw JSONRPCError(RPC_INTERNAL_ERROR, strprintf("the default min fee of tx is not same as others! "
+                        "tx=%s, height=%d, symbol=%s, min_fee=%llu, other_min_fee=%llu",
+                        GetTxTypeName(txType), height, symbol, minFee, defaultMinFee));
+            }
+        }
+        txArray.push_back(GetTxTypeName(txType));
+    }
+    for (auto symbol : kFeeSymbolSet)
+        symbolArray.push_back(symbol);
+
+    uint64_t actualMinFee = defaultMinFee;
+    auto token = account.GetToken(SYMB::WICC);
+    if (token.staked_amount > 0) {
+        actualMinFee = std::max(std::min(COIN * COIN / token.staked_amount, actualMinFee), (uint64_t)1);
+    }
+
+    Object accountObj;
+    accountObj.push_back(Pair("addr",  account.keyid.ToAddress()));
+    accountObj.push_back(Pair("regid", account.regid.ToString()));
+    accountObj.push_back(Pair("nickid", account.nickid.ToString()));
+
+    obj.push_back(Pair("block_height", height));
+    obj.push_back(Pair("staked_wicc_amount", token.staked_amount));
+    obj.push_back(Pair("actual_min_fee", actualMinFee));
+    obj.push_back(Pair("default_min_fee", defaultMinFee));
+    obj.push_back(Pair("min_fee_for_pubkey", defaultMinFee * 2));
+    obj.push_back(Pair("symbols", symbolArray));
+    obj.push_back(Pair("transactions", txArray));
+    obj.push_back(Pair("account", accountObj));
+
+    return obj;
+}

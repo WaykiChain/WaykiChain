@@ -12,6 +12,18 @@
 #include "persistence/dexdb.h"
 #include <optional>
 
+static const UnorderdEnumMap<TxType> DEX_ORDER_TX_SET = {
+    DEX_LIMIT_BUY_ORDER_TX,
+    DEX_LIMIT_SELL_ORDER_TX,
+    DEX_MARKET_BUY_ORDER_TX,
+    DEX_MARKET_SELL_ORDER_TX,
+    DEX_LIMIT_BUY_ORDER_EX_TX,
+    DEX_LIMIT_SELL_ORDER_EX_TX,
+    DEX_MARKET_BUY_ORDER_EX_TX,
+    DEX_MARKET_SELL_ORDER_EX_TX,
+    DEX_CANCEL_ORDER_TX
+};
+
 class CDEXOrderBaseTx : public CBaseTx {
 public:
     OrderType order_type        = ORDER_LIMIT_PRICE; //!< order type
