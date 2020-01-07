@@ -14,7 +14,7 @@ using uint128_t = unsigned __int128;
 
 #define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
 
-static bool CheckOrderFeeRateRange(CTxExecuteContext &context, const uint256 &orderId,
+static bool CheckOperatorFeeRatioRange(CTxExecuteContext &context, const uint256 &orderId,
                               uint64_t feeRatio, const string &title) {
     static_assert(DEX_ORDER_FEE_RATIO_MAX < 100 * PRICE_BOOST, "fee rate must < 100%");
     if (feeRatio > DEX_ORDER_FEE_RATIO_MAX)
@@ -31,6 +31,31 @@ static bool GetDexOperator(CTxExecuteContext &context, const DexID &dexId,
         return context.pState->DoS(100, ERRORMSG("%s(), the dex operator does not exist! dex_id=%u", title, dexId),
             REJECT_INVALID, "dex_operator_not_existed");
     return true;
+}
+
+//static const int SIZE64 = sizeof(uint64_t);
+static const int SIZE64 = sizeof(unsigned long);
+
+bool CheckOrderFee(CBaseTx &baseTx, CTxExecuteContext &context, const CAccount &txAccount) {
+
+    return baseTx.CheckFee(context, [&](CTxExecuteContext &context, uint64_t minFee) -> bool {
+        if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3 && baseTx.txUid.is<CPubKey>()) {
+            auto token = txAccount.GetToken(SYMB::WICC);
+
+            if (token.staked_amount > 0) {
+                minFee = std::max(std::min(COIN * COIN / token.staked_amount, minFee), (uint64_t)1);
+            }
+            if (baseTx.llFees < minFee){
+                string err = strprintf("The given fee is too small: %llu < %llu sawi when wicc staked_amount=%llu",
+                    baseTx.llFees, minFee, token.staked_amount);
+                return context.pState->DoS(100, ERRORMSG("%s, tx=%s, height=%d, fee_symbol=%s",
+                    err, baseTx.GetTxTypeName(), context.height, baseTx.fee_symbol), REJECT_INVALID, err);
+            }
+            return true;
+        } else {
+            return baseTx.CheckMinFee(context, minFee);
+        }
+    });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,18 +118,6 @@ bool CDEXOrderBaseTx::CheckDexOperatorExist(CTxExecuteContext &context) {
     return true;
 }
 
-bool CDEXOrderBaseTx::CheckOrderFeeRate(CTxExecuteContext &context, const string &title) {
-    if (order_opt.HasFeeRatio()) {
-        if (!CheckOrderFeeRateRange(context, GetHash(), match_fee_ratio, title))
-            return false;
-    } else {
-        if (match_fee_ratio != 0)
-            return context.pState->DoS(100, ERRORMSG("%s(), order fee ratio=%llu must be 0 when has_fee_ratio=false",
-                title, match_fee_ratio), REJECT_INVALID, "invalid-order-fee-ratio");
-    }
-    return true;
-}
-
 bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const string &title) {
 
     if (!order_opt.CheckValid())
@@ -113,7 +126,7 @@ bool CDEXOrderBaseTx::CheckOrderOperator(CTxExecuteContext &context, const strin
 
     if (order_opt.HasFeeRatio()) {
 
-        if (!CheckOrderFeeRateRange(context, GetHash(), match_fee_ratio, title))
+        if (!CheckOperatorFeeRatioRange(context, GetHash(), match_fee_ratio, title))
             return false;
 
         if (!operator_uid.is<CRegID>())
@@ -257,7 +270,6 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, ERROR_TITLE(GetTxTypeName()), coin_symbol, asset_symbol)) return false;
@@ -273,6 +285,7 @@ bool CDEXBuyLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s, read account failed", ERROR_TITLE(GetTxTypeName())),
             REJECT_INVALID, "bad-getaccount");
 
+    if (!CheckOrderFee(*this, context, txAccount)) return false;
     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -351,7 +364,6 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, "CDEXSellLimitOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
@@ -367,6 +379,7 @@ bool CDEXSellLimitOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXSellLimitOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
+    if (!CheckOrderFee(*this, context, srcAccount)) return false;
     CPubKey pubKey = ( txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey );
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -431,7 +444,6 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, "CDEXBuyMarketOrderTx::CheckTx,", coin_symbol, asset_symbol)) return false;
@@ -445,6 +457,7 @@ bool CDEXBuyMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXBuyMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
+    if (!CheckOrderFee(*this, context, txAccount)) return false;
     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -506,7 +519,6 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (!CheckOrderSymbols(state, "CDEXSellMarketOrderTx::CheckTx,", coin_symbol, asset_symbol))
@@ -522,6 +534,7 @@ bool CDEXSellMarketOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXSellMarketOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
+    if (!CheckOrderFee(*this, context, txAccount)) return false;
     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -575,7 +588,6 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-    if (!CheckFee(context)) return false;
 
     if (order_id.IsEmpty())
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, order_id is empty"), REJECT_INVALID,
@@ -585,6 +597,7 @@ bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CDEXCancelOrderTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
+    if (!CheckOrderFee(*this, context, txAccount)) return false;
     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : txAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
@@ -1033,7 +1046,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
 
         if (buyOperatorFeeRatio != 0) {
-            if (!CheckOrderFeeRateRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
+            if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
                 return false;
 
             uint64_t dealAssetFee;
@@ -1054,7 +1067,7 @@ bool CDEXSettleTx::ExecuteTx(CTxExecuteContext &context) {
         // 9.2 seller pay the fee from the received coins to settler
         uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
         if (sellOperatorFeeRatio != 0) {
-            if (!CheckOrderFeeRateRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
+            if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, ERROR_TITLE(GetTxTypeName())))
                 return false;
             uint64_t dealCoinFee;
             if (!CalcOrderFee(context, i, dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;

@@ -42,7 +42,6 @@ public:
 
     bool CheckDexOperatorExist(CTxExecuteContext &context);
 
-    bool CheckOrderFeeRate(CTxExecuteContext &context, const string &title);
     bool CheckOrderOperator(CTxExecuteContext &context, const string &title);
 
     bool ProcessOrder(CTxExecuteContext &context, CAccount &txAccount, const string &title);
@@ -51,7 +50,6 @@ public:
 
 public:
     static uint64_t CalcCoinAmount(uint64_t assetAmount, const uint64_t price);
-
 };
 
 ////////////////////////////////////////////////////////////////////////////////

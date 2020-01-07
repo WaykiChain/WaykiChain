@@ -161,7 +161,7 @@ bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) co
     }
 }
 
-bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
+bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> minFeeChecker) const {
     // check fee value range
     if (!CheckBaseCoinRange(llFees))
         return context.pState->DoS(100, ERRORMSG("%s, tx fee out of range", __FUNCTION__), REJECT_INVALID,
@@ -173,16 +173,20 @@ bool CBaseTx::CheckFee(CTxExecuteContext &context) const {
                                   GetFeeSymbolSetStr()),
                          REJECT_INVALID, "bad-tx-fee-symbol");
 
-    if (!CheckMinFee(context)) return false;
-    return true;
-}
-
-bool CBaseTx::CheckMinFee(CTxExecuteContext &context) const {
     uint64_t minFee;
     if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee))
         return context.pState->DoS(100, ERRORMSG("GetTxMinFee failed, tx=%s", GetTxTypeName()),
             REJECT_INVALID, "get-tx-min-fee-failed");
 
+    if (minFeeChecker != nullptr) {
+        if (!minFeeChecker(context, minFee)) return false;
+    } else {
+        if (!CheckMinFee(context, minFee)) return false;
+    }
+    return true;
+}
+
+bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
     if (GetFeatureForkVersion(context.height) > MAJOR_VER_R3 && txUid.is<CPubKey>()) {
         minFee = 2 * minFee;
     }
