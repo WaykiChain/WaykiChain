@@ -6,7 +6,7 @@
 #include <algorithm>
 
 #include "check.hpp"
-#include "wasm/exceptions.hpp"
+#include "wasm/exception/exceptions.hpp"
 
 namespace wasm {
 
@@ -60,7 +60,7 @@ namespace wasm {
             return result;
         } 
 
-        WASM_CAPTURE_AND_RETHROW( "%s", str )
+        CHAIN_CAPTURE_AND_RETHROW( "%s", str )
     }
 
     /**
@@ -350,7 +350,7 @@ namespace wasm {
 
         uint8_t decimals() const { return value & 0xFF; }
         uint64_t precision_in_10() const {
-            WASM_ASSERT( precision() <= max_precision, symbol_type_exception, "precision %d should be <= 18", decimals() );
+            CHAIN_ASSERT( precision() <= max_precision, symbol_type_exception, "precision %d should be <= 18", decimals() );
             uint64_t p10 = 1;
             uint64_t p = precision();
             while (p > 0) {
@@ -387,17 +387,17 @@ namespace wasm {
         static symbol from_string( const string &from ) {
             try {
                 string s = trim(from);
-                WASM_ASSERT(!s.empty(), symbol_type_exception, "%s","creating symbol from empty string");
+                CHAIN_ASSERT(!s.empty(), symbol_type_exception, "%s","creating symbol from empty string");
                 auto comma_pos = s.find(',');
-                WASM_ASSERT(comma_pos != string::npos, symbol_type_exception,"%s","missing comma in symbol");
+                CHAIN_ASSERT(comma_pos != string::npos, symbol_type_exception,"%s","missing comma in symbol");
                 auto prec_part = s.substr(0, comma_pos);
                 uint8_t p = atoi(prec_part.data());
                 string name_part = s.substr(comma_pos + 1);
-                WASM_ASSERT( p <= max_precision, symbol_type_exception, "precision %d should be <= 18", p);
+                CHAIN_ASSERT( p <= max_precision, symbol_type_exception, "precision %d should be <= 18", p);
                 return symbol(string_to_symbol(p, name_part.c_str()));
             } 
 
-            WASM_CAPTURE_AND_RETHROW( "%s", from.c_str() )
+            CHAIN_CAPTURE_AND_RETHROW( "%s", from.c_str() )
         }
 
         /**

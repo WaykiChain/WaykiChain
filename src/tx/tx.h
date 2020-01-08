@@ -31,6 +31,23 @@ namespace wasm{
     validating = 1,
     syncing    = 2,
   };
+
+
+inline string to_string(wasm::transaction_status_type type){
+    switch(type){
+        case wasm::transaction_status_type::mining: 
+            return string("mining");
+            break;
+        case wasm::transaction_status_type::validating:
+            return string("validating");
+            break;
+        case wasm::transaction_status_type::syncing:
+            return string("syncing");
+            break;
+        default:
+            return string("unknown");
+    }
+}
 }
 
 class CCacheWrapper;

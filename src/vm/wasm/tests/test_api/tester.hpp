@@ -29,12 +29,12 @@ if(! (t1 == t2)){                     \
  passed = false;                              \
  try{                                         \
      expr  ;                                  \
- } catch(wasm::exception &e){                 \
-     if( ex(msg).code() == e.code()) {        \
-         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.detail())   \
+ } catch(wasm_chain::exception &e){                 \
+     if( ex(CHAIN_LOG_MESSAGE( log_level::warn, msg )).code() == e.code()) {        \
+         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.to_detail_string())   \
          passed = true;                       \
      }else {                                  \
-          WASM_TRACE("%s", e.detail())        \
+          WASM_TRACE("%s", e.to_detail_string())        \
      }                                        \
  }  catch(...){                               \
     WASM_TRACE("%s", "exception")             \
@@ -48,12 +48,12 @@ if(! (t1 == t2)){                     \
  passed = false;                              \
  try{                                         \
      expr  ;                                  \
- } catch(wasm::exception &e){                 \
-     if( ex(msg).code() == e.code() && (string(e.detail()).find(string(msg),0)) != std::string::npos) {  \
-         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.detail())   \
+ } catch(wasm_chain::exception &e){                 \
+     if( ex(CHAIN_LOG_MESSAGE( log_level::warn, msg )).code() == e.code() && (string(e.to_detail_string()).find(string(msg),0)) != std::string::npos) {  \
+         WASM_TRACE("%s%s exception: %s", msg , "[ passed ]", e.to_detail_string())   \
          passed = true;                                                     \
      }else {                                                                \
-        WASM_TRACE("%s", e.detail())         \
+        WASM_TRACE("%s", e.to_detail_string())         \
      }                                       \
  } catch(...){                               \
     WASM_TRACE("%s", "exception")             \
@@ -109,13 +109,15 @@ struct test_api_action {
 template<typename T>
 shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const vector<char> &data, const vector <uint64_t> &scope = {N(testapi)} ) {
     {
+        //WASM_TRACE("%ld", data.size())
+
         shared_ptr<transaction_trace> trx_trace = make_shared<transaction_trace>(transaction_trace{});
         inline_transaction trx;
         trx.contract = ac.get_account();
-        trx.action = ac.get_name();
-        trx.data = data;
+        trx.action   = ac.get_name();
+        trx.data     = data;
 
-        //std::cout << "CallFunction:" << wasm::name(trx.contract).to_string() << std::endl;
+        //std::cout << "CallFunction:" << wasm::name(trx.action).to_string() << std::endl;
 
         for (auto a:scope) {
             trx.authorization.push_back(permission{a, wasmio_owner});
@@ -123,8 +125,8 @@ shared_ptr<transaction_trace> CallFunction( validating_tester &test, T ac, const
 
         try {
             test.ctrl.ExecuteTx(*trx_trace, trx);
-        } catch (wasm::exception &e) {
-            //WASM_TRACE("%s", e.detail())
+        } catch (wasm_chain::exception &e) {
+            WASM_TRACE("%s", e.to_detail_string())
             //WASM_CHECK(false, e.detail())
             throw;
         }
@@ -199,3 +201,5 @@ inline datastream<Stream> &operator>>( datastream<Stream> &ds, dummy_action &t )
 }
 
 #define CALL_TEST_FUNCTION( _TESTER, CLS, MTH, DATA ) CallFunction(_TESTER, test_api_action<TEST_METHOD(CLS, MTH)>{}, DATA)
+#define CALL_TEST_FUNCTION_ACTION( _TESTER, MTH, DATA ) CallFunction(_TESTER, test_api_action<MTH>{}, DATA)
+

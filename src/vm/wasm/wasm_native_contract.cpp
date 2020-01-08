@@ -3,7 +3,6 @@
 
 #include "config/errorcode.h"
 #include "wasm/wasm_native_contract.hpp"
-#include "wasm/exceptions.hpp"
 #include "wasm/datastream.hpp"
 #include "wasm/types/asset.hpp"
 #include "persistence/cachewrapper.h"
@@ -12,6 +11,8 @@
 #include "wasm/abi_def.hpp"
 #include "wasm/abi_serializer.hpp"
 
+#include "wasm/exception/exceptions.hpp"
+
 using namespace std;
 using namespace wasm;
 
@@ -19,10 +20,10 @@ namespace wasm {
 
     void wasmio_native_setcode(wasm_context &context) {
 
-         WASM_ASSERT( context._receiver == wasmio, 
-                      wasm_assert_exception, 
-                      "wasmio_native_setcode.setcode, Except contract wasmio, But get '%s'", 
-                      wasm::name(context._receiver).to_string());
+         CHAIN_ASSERT( context._receiver == wasmio, 
+                       wasm_chain::native_contract_assert_exception, 
+                       "expect contract wasmio, But get '%s'", 
+                       wasm::name(context._receiver).to_string());
 
         auto &database_account         = context.database.accountCache;
         auto &database_contract        = context.database.contractCache;
@@ -37,14 +38,14 @@ namespace wasm {
         context.require_auth(contract_name); 
 
         CAccount contract;
-        WASM_ASSERT(database_account.GetAccount(nick_name(contract_name), contract),
-                    account_operation_exception,
-                    "wasmio_native_setcode.setcode, Contract '%s' does not exist",
-                    wasm::name(contract_name).to_string()) 
+        CHAIN_ASSERT( database_account.GetAccount(nick_name(contract_name), contract),
+                      wasm_chain::account_access_exception,
+                      "contract '%s' does not exist",
+                      wasm::name(contract_name).to_string()) 
 
         CUniversalContract contract_store;
         // ban code reset
-        // WASM_ASSERT(!cw.contractCache.GetContract(contract.regid, contract_store),
+        // CHAIN_ASSERT(!cw.contractCache.GetContract(contract.regid, contract_store),
         //             account_operation_exception,
         //             "wasmnativecontract.Setcode, can not reset code, contract = %s",
         //             contract_name.c_str()) 
@@ -53,17 +54,18 @@ namespace wasm {
         contract_store.abi     = abi;
         contract_store.memo    = memo;
 
-        WASM_ASSERT(database_contract.SaveContract(contract.regid, contract_store), 
-                    account_operation_exception,
-                    "wasmio_native_setcode.setcode, Save account error")
+        CHAIN_ASSERT( database_contract.SaveContract(contract.regid, contract_store), 
+                      wasm_chain::account_access_exception,
+                      "save account '%s' error",
+                      wasm::name(contract_name).to_string())
     }
     
     void wasmio_bank_native_transfer(wasm_context &context) {
 
-        WASM_ASSERT( context._receiver == wasmio_bank,
-                     wasm_assert_exception, 
-                     "except contract wasmio.bank, but get '%s'", 
-                     wasm::name(context._receiver).to_string());
+        CHAIN_ASSERT( context._receiver == wasmio_bank,
+                      wasm_chain::native_contract_assert_exception, 
+                      "expect contract wasmio.bank, but get '%s'", 
+                      wasm::name(context._receiver).to_string());
 
         auto &database            = context.database.accountCache;
         context.control_trx.fuel += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
@@ -75,25 +77,24 @@ namespace wasm {
         auto memo                        = std::get<3>(transfer_data);
 
         context.require_auth(from); //from auth
-        WASM_ASSERT(from != to,             wasm_assert_exception, "cannot transfer to self");
-
-        WASM_ASSERT(context.is_account(to), wasm_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string() );
-        WASM_ASSERT(quantity.is_valid(),    wasm_assert_exception, "invalid quantity");
-        WASM_ASSERT(quantity.amount > 0,    wasm_assert_exception, "must transfer positive quantity");
-        WASM_ASSERT(memo.size()  <= 256,    wasm_assert_exception, "memo has more than 256 bytes");
+        CHAIN_ASSERT(from != to,             wasm_chain::native_contract_assert_exception, "cannot transfer to self");
+        CHAIN_ASSERT(context.is_account(to), wasm_chain::native_contract_assert_exception, "to account '%s' does not exist", wasm::name(to).to_string() );
+        CHAIN_ASSERT(quantity.is_valid(),    wasm_chain::native_contract_assert_exception, "invalid quantity");
+        CHAIN_ASSERT(quantity.amount > 0,    wasm_chain::native_contract_assert_exception, "must transfer positive quantity");
+        CHAIN_ASSERT(memo.size()  <= 256,    wasm_chain::native_contract_assert_exception, "memo has more than 256 bytes");
 
         CAccount from_account;
-        WASM_ASSERT(database.GetAccount(nick_name(from), from_account),
-                    account_operation_exception,
-                    "from account '%s' does not exist",
-                    wasm::name(from).to_string())
+        CHAIN_ASSERT( database.GetAccount(nick_name(from), from_account),
+                      wasm_chain::native_contract_assert_exception,
+                      "from account '%s' does not exist",
+                      wasm::name(from).to_string())
         sub_balance( from_account, quantity, database );
 
         CAccount to_account;
-        WASM_ASSERT(database.GetAccount(nick_name(to), to_account),
-                    account_operation_exception,
-                    "to account '%s' does not exist",
-                    wasm::name(to).to_string())
+        CHAIN_ASSERT( database.GetAccount(nick_name(to), to_account),
+                      wasm_chain::native_contract_assert_exception,
+                      "to account '%s' does not exist",
+                      wasm::name(to).to_string())
         add_balance( to_account, quantity, database );
 
         context.require_recipient(from);

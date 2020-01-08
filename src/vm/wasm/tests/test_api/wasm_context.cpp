@@ -1,6 +1,6 @@
 #include "wasm_context.hpp"
 //#include "wasm/wasm_native_contract.hpp"
-#include "wasm/exceptions.hpp"
+#include "wasm/exception/exceptions.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_config.hpp"
 
@@ -31,8 +31,7 @@ namespace wasm {
 
     bool CWasmContractTx::ExecuteTx(wasm::transaction_trace &trx_trace, wasm::inline_transaction& trx){
         trx_trace.traces.emplace_back();
-        vector<CReceipt> receipts;
-        execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, cache, receipts, state, 0);
+        execute_inline_transaction(trx_trace.traces.back(), trx, trx.contract, cache, state, 0);
         return true;
 
     };
@@ -40,11 +39,12 @@ namespace wasm {
                                     wasm::inline_transaction& trx,
                                      uint64_t receiver,
                                      CCacheWrapper &cache,
-                                     vector<CReceipt> &receipts,
                                      CValidationState &state,
                                      uint32_t recurse_depth){
 
-            wasm_context wasmContext(*this, trx, cache, receipts, state, false, recurse_depth);
+            //WASM_TRACE("%ld", receiver)
+
+            wasm_context wasmContext(*this, trx, cache, state, false, recurse_depth);
             wasmContext._receiver = receiver;
             wasmContext.execute(trace);
     };
@@ -72,11 +72,11 @@ namespace wasm {
     }
 
 
-    void wasm_context::execute_inline( inline_transaction t ) {
+    void wasm_context::execute_inline( const inline_transaction& t ) {
         inline_transactions.push_back(t);
     }
 
-    std::vector <uint8_t> wasm_context::get_code(const uint64_t account ) {
+    std::vector <uint8_t> wasm_context::get_code(const uint64_t& account ) {
        return cache.GetCode(account);
     }
 
@@ -105,14 +105,14 @@ namespace wasm {
             execute_one(trace.inline_traces.back());
         }
 
-        WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
-                    transaction_exception, "%s",
-                    "max inline transaction depth per transaction reached");
+        CHAIN_ASSERT( recurse_depth < wasm::max_inline_transaction_depth,
+                      transaction_exception, 
+                      "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
-            control_trx.execute_inline_transaction(trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
-                                                  receipts, state, recurse_depth + 1);
+            control_trx.execute_inline_transaction( trace.inline_traces.back(), inline_trx, inline_trx.contract, cache,
+                                                    state, recurse_depth + 1);
         }
 
     }
@@ -129,13 +129,9 @@ namespace wasm {
             if (code.size() > 0)
                 wasmif.execute(code, this);
         }
-        WASM_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str().c_str() )
+        CHAIN_RETHROW_EXCEPTIONS( wasm_exception, "pending console output: %s", _pending_console_output.str() )
 
-        //trace.trx_id = control_trx.GetHash();
-        //trace.elapsed =  std::chrono::duration_cast<std::chrono::microseconds>(system_clock::now() - start);
         trace.console = _pending_console_output.str();
-        // trace.block_height =
-        // trace.block_time =
 
         reset_console();
 
@@ -145,14 +141,14 @@ namespace wasm {
 
     }
 
-    bool wasm_context::has_recipient( uint64_t account ) const {
+    bool wasm_context::has_recipient( const uint64_t& account ) const {
         for (auto a : notified)
             if (a == account)
                 return true;
         return false;
     }
 
-    void wasm_context::require_recipient( uint64_t recipient ) {
+    void wasm_context::require_recipient( const uint64_t& recipient ) {
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
         }

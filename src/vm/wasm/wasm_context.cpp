@@ -1,10 +1,11 @@
 #include "wasm/wasm_context.hpp"
 #include "wasm/wasm_native_contract.hpp"
-#include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/wasm_config.hpp"
 #include "wasm/wasm_log.hpp"
 #include "entities/account.h"
+
+#include "wasm/exception/exceptions.hpp"
 
 using namespace std;
 using namespace wasm;
@@ -41,10 +42,10 @@ namespace wasm {
             auto action_s = name(trace.trx.action).to_string();
             auto receiver_s = name(receiver).to_string();
 
-            prefix << "[(" << contract_s << "," << action_s << ")->" << receiver_s << "]";
+            prefix << "[" << contract_s << "," << action_s << "]->" << receiver_s << "";
             std::cout << prefix.str()  << ": CONSOLE OUTPUT BEGIN =====================\n"
                       << trace.console << "\n"
-                      << prefix.str()  << ": CONSOLE OUTPUT END   =====================\n";
+                      << prefix.str()  << ": CONSOLE OUTPUT END   =====================\n\n";
         }
     }
 
@@ -57,22 +58,22 @@ namespace wasm {
         return std::find(trx.authorization.begin(), trx.authorization.end(), p) != trx.authorization.end();
     }
 
-    void wasm_context::execute_inline(inline_transaction t) {
+    void wasm_context::execute_inline(const inline_transaction& t) {
 
         //contract-self or wasmio_bank
-        WASM_ASSERT(t.contract == _receiver || t.contract == wasmio_bank ,
-                    wasm_assert_exception,
-                    "Inline transaction can be sent to/by contract self or wasmio.bank ");
+        CHAIN_ASSERT( t.contract == _receiver || t.contract == wasmio_bank ,
+                      wasm_chain::missing_auth_exception,
+                     "Inline transaction can be sent to/by contract self or wasmio.bank ");
 
         //check authorization
         for(const auto p: t.authorization){
 
             //inline wasmio.bank
             if(t.contract == wasmio_bank && p.account != _receiver){
-                WASM_ASSERT(false,
-                            missing_auth_exception,
-                            "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
-                            wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
+                CHAIN_ASSERT( false,
+                              wasm_chain::missing_auth_exception,
+                              "Inline to wasmio.bank can be only authorized by contract-self %s, but get %s",
+                              wasm::name(_receiver).to_string(), wasm::name(p.account).to_string());
             }
 
             //call contract-self and authorized by contract
@@ -80,10 +81,10 @@ namespace wasm {
 
             //call contract-self
             if(t.contract == _receiver && !has_permission_from_inline_transaction(p) ) {
-                WASM_ASSERT(false,
-                            missing_auth_exception,
-                            "Missing authorization by account %s in a new inline  transaction",
-                            wasm::name(p.account).to_string());
+                CHAIN_ASSERT( false,
+                              wasm_chain::missing_auth_exception,
+                              "Missing authorization by account %s in a new inline  transaction",
+                              wasm::name(p.account).to_string());
             }
 
             //call another contract
@@ -99,7 +100,7 @@ namespace wasm {
         inline_transactions.push_back(t);
     }
 
-    std::vector <uint8_t> wasm_context::get_code(uint64_t account) {
+    std::vector <uint8_t> wasm_context::get_code(const uint64_t& account) {
 
         vector <uint8_t> code;
         CUniversalContract contract;
@@ -144,9 +145,9 @@ namespace wasm {
             execute_one(trace.inline_traces.back());
         }
 
-        WASM_ASSERT(recurse_depth < wasm::max_inline_transaction_depth,
-                    transaction_exception,
-                    "max inline transaction depth per transaction reached");
+        CHAIN_ASSERT( recurse_depth < wasm::max_inline_transaction_depth,
+                      wasm_chain::transaction_exception,
+                      "max inline transaction depth per transaction reached");
 
         for (auto &inline_trx : inline_transactions) {
             trace.inline_traces.emplace_back();
@@ -167,6 +168,7 @@ namespace wasm {
 
         auto native    = find_native_handle(_receiver, trx.action);
 
+        //reset_console();
         try {
             if (native) {
                 (*native)(*this);
@@ -177,22 +179,22 @@ namespace wasm {
                     wasmif.execute(code, this);
                 }
             }
-        } catch (wasm::exception &e) {
-            std::ostringstream o;
-            o << e.detail();
-            if (_pending_console_output.str().size() > 0){
-                o << " , " << tfm::format("pending console output: %s",
-                                          _pending_console_output.str());
-            }
-            e.msg = o.str();
-            throw;
+        }  catch (wasm_chain::exception &e) {
+            string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
+            CHAIN_RETHROW_EXECPTION( e, log_level::warn, 
+                                     "[%s, %s]->%s%s",
+                                     name(contract()).to_string(),
+                                     name(action()).to_string(),
+                                     name(receiver()).to_string(),
+                                    console_output );
         } catch (...) {
-            if (_pending_console_output.str().size() > 0){
-                throw wasm_exception(
-                        tfm::format("pending console output: %s", _pending_console_output.str()).c_str());
-            } else {
-                throw;
-            }
+            string console_output = (_pending_console_output.str().size() == 0)?string(""):string(", console: ") + _pending_console_output.str();
+            CHAIN_THROW( wasm_chain::chain_exception, 
+                         "[%s, %s]->%s%s", 
+                         name(contract()).to_string(),
+                         name(action()).to_string(),
+                         name(receiver()).to_string(),
+                         console_output );
         }
 
         trace.trx_id  = control_trx.GetHash();
@@ -207,35 +209,35 @@ namespace wasm {
 
     }
 
-    bool wasm_context::has_recipient(uint64_t account) const {
+    bool wasm_context::has_recipient(const uint64_t& account) const {
         for (auto a : notified)
             if (a == account)
                 return true;
         return false;
     }
 
-    void wasm_context::require_recipient(uint64_t recipient) {
+    void wasm_context::require_recipient(const uint64_t& recipient) {
 
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
         }
 
-        WASM_ASSERT(notified.size() <= max_recipients_size, 
-                    missing_auth_exception, 
-                    "recipients size must be <= '%ld', but get '%ld'", max_recipients_size, notified.size() );
+        CHAIN_ASSERT( notified.size() <= max_recipients_size, 
+                      wasm_chain::recipients_size_exceeds_exception, 
+                      "recipients size must be <= '%ld', but get '%ld'", max_recipients_size, notified.size() );
 
     }
 
-    void wasm_context::require_auth( uint64_t account ){
+    void wasm_context::require_auth( const uint64_t& account ){
         for(auto p: trx.authorization){
             if(p.account == account){
                 return;
             }
         }
-        WASM_ASSERT(false, missing_auth_exception, "missing authority of %s", wasm::name(account).to_string());
+        CHAIN_ASSERT(false, wasm_chain::missing_auth_exception, "missing authority of %s", wasm::name(account).to_string());
     }
 
-    bool wasm_context::has_authorization( uint64_t account ) const {
+    bool wasm_context::has_authorization( const uint64_t& account ) const {
         for(auto p: trx.authorization){
             if(p.account == account){
                 return true;
@@ -245,7 +247,7 @@ namespace wasm {
         return false;
     }
 
-    bool wasm_context::is_account( uint64_t account ) {
+    bool wasm_context::is_account( const uint64_t& account ) {
 
         //auto account_name = wasm::name(account);
         return database.accountCache.HaveAccount(nick_name(account));
@@ -258,28 +260,28 @@ namespace wasm {
 
         std::vector<uint64_t> active_producers;
         VoteDelegateVector    producers;
-        WASM_ASSERT( database_delegate.GetActiveDelegates(producers), 
-                     account_operation_exception, 
-                     "fail to get top delegates for active producer");
+        CHAIN_ASSERT( database_delegate.GetActiveDelegates(producers), 
+                      wasm_chain::account_access_exception, 
+                      "fail to get top delegates for active producer");
 
         for( auto p: producers){
             CAccount producer;
-            WASM_ASSERT( database_account.GetAccount(p.regid, producer),
-                         account_operation_exception,
-                         "producer account get account error, regid = %s",
-                         p.regid.ToString())  
+            CHAIN_ASSERT( database_account.GetAccount(p.regid, producer),
+                          wasm_chain::account_access_exception, 
+                          "producer account get account error, regid = %s",
+                          p.regid.ToString())  
 
-            WASM_ASSERT( producer.nickid.value != 0,
-                         account_operation_exception,
-                         "producer account does not register nick_id, regid = %s",
-                         p.regid.ToString())  
+            CHAIN_ASSERT( producer.nickid.value != 0,
+                          wasm_chain::account_access_exception, 
+                          "producer account does not register nick_id, regid = %s",
+                          p.regid.ToString())  
 
             active_producers.push_back(producer.nickid.value);          
         }
         return active_producers;
     }
 
-    void wasm_context::update_storage_usage(uint64_t account, int64_t size_in_bytes){
+    void wasm_context::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){
 
         int64_t disk_usage  = size_in_bytes * store_fuel_fee_per_byte;
         control_trx.fuel   += (disk_usage < 0) ? 0 : disk_usage;

@@ -3,7 +3,8 @@
 #include"wasm/wasm_runtime.hpp"
 #include"eosio/vm/watchdog.hpp"
 #include"wasm/wasm_log.hpp"
-//#include"wasm_context.hpp"
+
+#include "wasm/exception/exceptions.hpp"
 
 
 using namespace eosio;
@@ -52,14 +53,12 @@ namespace wasm {
                 watchdog wd(pContext->get_max_transaction_duration());
                 _runtime->_bkend->timed_run(wd, fn);
             } catch (vm::timeout_exception &) {
-                //pContext->trx_pContext->checktime();
-                WASM_THROW(wasm_timeout_exception, "timeout exception");
-                //WASM_TRACE("receiver:%d contract:%d action:%d",pContext->receiver(), pContext->contract(), pContext->action() )
+                CHAIN_THROW(wasm_chain::wasm_timeout_exception, "timeout exception");
             } catch (vm::wasm_memory_exception &e) {
-                WASM_THROW(wasm_execution_error, "access violation");
-            } catch (vm::exception &e) {
+                CHAIN_THROW(wasm_chain::wasm_memory_exception, "access violation");
+            } catch ( vm::exception &e ) {
                 // FIXME: Do better translation
-                WASM_THROW(wasm_execution_error, "something went wrong...");
+                CHAIN_THROW(wasm_chain::wasm_execution_error, "something went wrong...");
             }
             _runtime->_bkend = nullptr;
         }
@@ -90,7 +89,7 @@ namespace wasm {
             registered_host_functions<wasm_context_interface>::resolve(bkend->get_module());
             return std::make_shared<wasm_vm_instantiated_module<Impl>>(this, std::move(bkend));
         } catch (vm::exception &e) {
-            WASM_THROW(wasm_execution_error, "Error building eos-vm interp: %s", e.what());
+            CHAIN_THROW(wasm_chain::wasm_execution_error, "Error building eos-vm interp: %s", e.what());
         }
     }
 

@@ -26,36 +26,36 @@ namespace wasm {
 
         string symbol     = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
-        WASM_ASSERT(precision == 8,
-                    account_operation_exception,
-                    "wasmnativecontract.sub_balance, The precision of system coin %s must be %d",
-                    symbol, 8)
+        CHAIN_ASSERT( precision == 8,
+                      account_access_exception,
+                      "The precision of system coin %s must be %d",
+                      symbol, 8)
 
-        WASM_ASSERT(owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount),
-                    account_operation_exception,
-                    "wasmnativecontract.sub_balance, Operate account %s failed",
-                    owner.nickid.ToString().c_str())
+        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::SUB_FREE, quantity.amount),
+                      account_access_exception,
+                      "Operate account %s failed",
+                      owner.nickid.ToString())
 
-        WASM_ASSERT(database.SetAccount(owner.regid, owner), account_operation_exception,
-                    "%s","wasmnativecontract.Setcode, Save account error")
+        CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
+                      "Save account error")
     }
 
     inline void add_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
 
         string symbol     = quantity.sym.code().to_string();
         uint8_t precision = quantity.sym.precision();
-        WASM_ASSERT(precision == 8,
-                    account_operation_exception,
-                    "wasmnativecontract.add_balance, The precision of system coin %s must be %d",
-                    symbol, 8)
+        CHAIN_ASSERT( precision == 8,
+                      account_access_exception,
+                      "The precision of system coin %s must be %d",
+                      symbol, 8)
 
-        WASM_ASSERT(owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount),
-                    account_operation_exception,
-                    "wasmnativecontract.add_balance, Operate account %s failed",
-                    owner.nickid.ToString().c_str())
+        CHAIN_ASSERT( owner.OperateBalance(symbol, BalanceOpType::ADD_FREE, quantity.amount),
+                      account_access_exception,
+                      "Operate account %s failed",
+                      owner.nickid.ToString().c_str())
 
-        WASM_ASSERT(database.SetAccount(owner.regid, owner), account_operation_exception,
-                    "%s","wasmnativecontract.Setcode, Save account error")
+        CHAIN_ASSERT( database.SetAccount(owner.regid, owner), account_access_exception,
+                      "Save account error")
     }
 
 };

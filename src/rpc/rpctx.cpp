@@ -139,8 +139,8 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
         if(wasm::name(nickid).value == 0) {
             throw JSONRPCError(RPC_WALLET_ERROR, "nickid's format is error");
         }
-    }catch (const wasm::exception& e ){
-        throw JSONRPCError(RPC_WALLET_ERROR, e.detail());
+    }catch (const wasm_chain::exception& e ){
+        throw JSONRPCError(RPC_WALLET_ERROR, e.to_detail_string());
     }catch(...){
         throw;
     }

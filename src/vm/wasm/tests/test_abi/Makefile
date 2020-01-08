@@ -1,9 +1,10 @@
 
-WASM_DIR = ../..
-VM_DIR = ../../..
-WAYKI_SRC_DIR = ../../../..
-WAYKI_COMMONS = ${WAYKI_SRC_DIR}/commons
+WASM_DIR       = ../..
+VM_DIR         = ../../..
+WAYKI_SRC_DIR  = ../../../..
+WAYKI_COMMONS  = ${WAYKI_SRC_DIR}/commons
 WASM_TYPES_DIR = $(WASM_DIR)/types
+EXCEPTION_DIR  = $(WASM_DIR)/exception
 
 # C_DEFINES = -DSOFTFLOAT_FAST_INT64 -DSOFTFLOAT_ROUND_EVEN -DINLINE_LEVEL=5 -DSOFTFLOAT_FAST_DIV32TO16 -DSOFTFLOAT_FAST_DIV64TO32 -DLITTLEENDIAN
 JSON_SPIRIT_SRC = \
@@ -26,15 +27,22 @@ ${WASM_TYPES_DIR}/uint128.cpp
 
 WASM_UINT128_OBJECT = uint128.o
 
+EXCEPTION_SRC = \
+${EXCEPTION_DIR}/log_message.cpp \
+${EXCEPTION_DIR}/exception.cpp 
 
-CXXFLAGS = -std=c++17 -I. -lboost_system -pthread -lboost_unit_test_framework -I${WASM_DIR} -I${VM_DIR} -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR} -I${WAYKI_COMMONS}
-JSON_CXXFLAGS = -std=c++17 -I. -pthread -I${WASM_DIR} -I${VM_DIR}  -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR}
+EXCEPTION_OBJECT = exception.o log_message.o
+
+
+CXXFLAGS = -std=c++17 -I. -lboost_system -pthread -lboost_unit_test_framework -I${WASM_DIR} -I${VM_DIR} -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR} -I${WAYKI_COMMONS} -I${EXCEPTION_DIR}
+JSON_CXXFLAGS = -std=c++17 -I. -pthread -I${WASM_DIR} -I${VM_DIR}  -I${WAYKI_SRC_DIR} -I${WASM_TYPES_DIR} 
 
 test:json_spirit.a test_abi.cpp
 	@echo "building tests"
 	@${CXX} -c $(CXXFLAGS) $(ABI_SERIALIZER_SRC)
 	@${CXX} -c $(CXXFLAGS) $(WASM_UINT128_SRC)
-	@${AR} rcs abi_serializer.a  $(JSON_SPIRIT_OBJECTS) $(ABI_SERIALIZER_OBJECT) $(WASM_UINT128_OBJECT)
+	@${CXX} -c $(CXXFLAGS) $(EXCEPTION_SRC)
+	@${AR} rcs abi_serializer.a  $(JSON_SPIRIT_OBJECTS) $(ABI_SERIALIZER_OBJECT) $(WASM_UINT128_OBJECT) $(EXCEPTION_OBJECT)
 	@${CXX} -o test $(CXXFLAGS) test_abi.cpp abi_serializer.a
 
 json_spirit.a:
@@ -42,6 +50,7 @@ json_spirit.a:
 	@${AR} rcs json_spirit.a $(JSON_SPIRIT_OBJECTS)
 
 
-
+clean:
+	rm -rf *.o *.a
 
 

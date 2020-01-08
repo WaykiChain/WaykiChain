@@ -13,7 +13,8 @@
 #include "wasm/wasm_variant.hpp"
 #include "wasm/datastream.hpp"
 #include "wasm/types/types.hpp"
-#include "wasm/exceptions.hpp"
+//#include "wasm/exceptions.hpp"
+#include "wasm/exception/exceptions.hpp"
 
 namespace wasm {
 
@@ -89,7 +90,7 @@ namespace wasm {
                 data = abis.variant_to_binary(action_type, data_v, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params)
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params)
 
             return data;
 
@@ -111,7 +112,7 @@ namespace wasm {
                 data_v = abis.binary_to_variant(action_type, data, max_serialization_time);
 
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", action)
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", action)
 
             return data_v;
         }
@@ -129,11 +130,11 @@ namespace wasm {
                 string t = wasm::name(table).to_string();
                 name = abis.get_table_type(t);
 
-                WASM_ASSERT(name.size() > 0, abi_parse_exception, "can not get table %s's type from abi", t.data());
+                CHAIN_ASSERT(name.size() > 0, wasm_chain::abi_parse_exception, "can not get table %s's type from abi", t.data());
 
                 data_v = abis.binary_to_variant(name, data, max_serialization_time);
             }
-            WASM_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name)
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name)
 
             return data_v;
         }
@@ -220,9 +221,9 @@ namespace wasm {
 
         static tuple<bool, shared_ptr<dag>> add( shared_ptr <dag> t, string n, wasm::abi_traverse_context &ctx ) {
 
-            WASM_ASSERT(!t->has_circle(n, ctx),
-                        abi_circular_def_exception,
-                        "Circular reference in struct %s", n);
+            CHAIN_ASSERT( !t->has_circle(n, ctx),
+                          wasm_chain::abi_circular_def_exception,
+                          "Circular reference in struct %s", n);
 
             for (auto child: t->childs) {
                 if (child->name == n)

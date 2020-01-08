@@ -44,15 +44,15 @@ namespace eosio { namespace vm {
 
       template <typename HostFunctions = nullptr_t>
       backend(wasm_code& code, HostFunctions = nullptr) : _ctx(typename Impl::template parser<Host>{ _mod.allocator }.parse_module(code, _mod)) {
-	 if constexpr (!std::is_same_v<HostFunctions, nullptr_t>)
-            HostFunctions::resolve(_mod);
-	 _mod.finalize();
+   	 if constexpr (!std::is_same_v<HostFunctions, nullptr_t>)
+               HostFunctions::resolve(_mod);
+   	 _mod.finalize();
       }
       template <typename HostFunctions = nullptr_t>
       backend(wasm_code_ptr& ptr, size_t sz, HostFunctions = nullptr) : _ctx(typename Impl::template parser<Host>{ _mod.allocator }.parse_module2(ptr, sz, _mod)) {
-	 if constexpr (!std::is_same_v<HostFunctions, nullptr_t>)
-            HostFunctions::resolve(_mod);
-	 _mod.finalize();
+   	 if constexpr (!std::is_same_v<HostFunctions, nullptr_t>)
+               HostFunctions::resolve(_mod);
+   	 _mod.finalize();
       }
 
       template <typename... Args>

@@ -418,7 +418,7 @@ bool CBaseParams::InitializeParams(int argc, const char* const argv[]) {
 
     try {
         ReadConfigFile(CBaseParams::m_mapArgs, CBaseParams::m_mapMultiArgs);
-    } catch (exception &e) {
+    } catch (std::exception &e) {
         fprintf(stderr, "Error: reading configuration file: %s\n", e.what());
         return false;
     }
