@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "commons/tinyformat.h"
 
 namespace wasm_chain {
