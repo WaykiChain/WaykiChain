@@ -312,9 +312,9 @@ bool CAccount::ProcessCandidateVotes(const vector<CCandidateVote> &candidateVote
         vector<CCandidateReceivedVote>::iterator itVote =
             find_if(candidateVotesInOut.begin(), candidateVotesInOut.end(),
                     [&voteId, &accountCache](const CCandidateReceivedVote &vote) {
-                        if (voteId.type() != vote.GetCandidateUid().type()) {
+                        if (!voteId.is_same_type(vote.GetCandidateUid())) {
                             CAccount account;
-                            if (voteId.type() == typeid(CRegID)) {
+                            if (voteId.is<CRegID>()) {
                                 accountCache.GetAccount(voteId, account);
                                 return vote.GetCandidateUid() == account.owner_pubkey;
 
@@ -475,13 +475,13 @@ bool CAccount::StakeVoteBcoins(VoteType type, const uint64_t votes) {
 }
 
 bool CAccount::IsMyUid(const CUserID &uid) {
-    if (uid.type() == typeid(CKeyID)) {
+    if (uid.is<CKeyID>()) {
         return keyid == uid.get<CKeyID>();
-    } else if (uid.type() == typeid(CRegID)) {
+    } else if (uid.is<CRegID>()) {
         return !regid.IsEmpty() && regid == uid.get<CRegID>();
-    } else if (uid.type() == typeid(CPubKey)) {
+    } else if (uid.is<CPubKey>()) {
         return owner_pubkey.IsValid() && owner_pubkey == uid.get<CPubKey>();
-    } else if (uid.type() == typeid(CNickID)) {
+    } else if (uid.is<CNickID>()) {
         return !nickid.IsEmpty() && nickid == uid.get<CNickID>();
     }
     return false;

@@ -82,7 +82,7 @@ private:
     // cdp{$cdpid} -> CUserCDP
     CCompositeKVCache<      dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
     // rcdp${CRegID} -> set<cdpid>
-    CCompositeKVCache<      dbk::REGID_CDP, string,                     set<uint256>>       regId2CDPCache;
+    CCompositeKVCache<      dbk::REGID_CDP, CRegIDKey,                     set<uint256>>       regId2CDPCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     RatioCDPIdCache           ratioCDPIdCache;
 };

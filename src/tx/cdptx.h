@@ -56,17 +56,12 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << assets_to_stake << scoin_symbol << VARINT(scoins_to_mint);
-            sigHash = ss.GetHash();
-        }
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+                   << fee_symbol << VARINT(llFees) << cdp_txid << assets_to_stake << scoin_symbol
+                   << VARINT(scoins_to_mint);
     }
 
-    virtual TxID GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPStakeTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
@@ -118,17 +113,12 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << VARINT(scoins_to_repay) << assets_to_redeem;
-            sigHash = ss.GetHash();
-        }
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+                   << fee_symbol << VARINT(llFees) << cdp_txid << VARINT(scoins_to_repay)
+                   << assets_to_redeem;
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPRedeemTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
@@ -178,17 +168,11 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
-               << cdp_txid << liquidate_asset_symbol << VARINT(scoins_to_liquidate);
-            sigHash = ss.GetHash();
-        }
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << cdp_txid << liquidate_asset_symbol << VARINT(scoins_to_liquidate);
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCDPLiquidateTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);

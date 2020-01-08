@@ -28,7 +28,7 @@ bool CAccountDBCache::GetAccount(const CRegID &regId, CAccount &account) const {
         return false;
 
     CKeyID keyId;
-    if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
+    if (regId2KeyIdCache.GetData(regId, keyId)) {
         return accountCache.GetData(keyId, account);
     }
 
@@ -48,19 +48,19 @@ bool CAccountDBCache::GetAccount(const CNickID &nickId,  CAccount &account) cons
 
 bool CAccountDBCache::GetAccount(const CUserID &userId, CAccount &account) const {
     bool ret = false;
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.is<CRegID>()) {
         ret = GetAccount(userId.get<CRegID>(), account);
 
-    } else if (userId.type() == typeid(CKeyID)) {
+    } else if (userId.is<CKeyID>()) {
         ret = GetAccount(userId.get<CKeyID>(), account);
 
-    } else if (userId.type() == typeid(CPubKey)) {
+    } else if (userId.is<CPubKey>()) {
         ret = GetAccount(userId.get<CPubKey>().GetKeyId(), account);
 
-    } else if (userId.type() == typeid(CNickID)) {
+    } else if (userId.is<CNickID>()) {
         ret = GetAccount(userId.get<CNickID>(), account);
 
-    } else if (userId.type() == typeid(CNullID)) {
+    } else if (userId.is<CNullID>()) {
         return ERRORMSG("GetAccount: userId can't be of CNullID type");
     }
 
@@ -74,7 +74,7 @@ bool CAccountDBCache::SetAccount(const CKeyID &keyId, const CAccount &account) {
 
 bool CAccountDBCache::SetAccount(const CRegID &regId, const CAccount &account) {
     CKeyID keyId;
-    if (regId2KeyIdCache.GetData(regId.ToRawString(), keyId)) {
+    if (regId2KeyIdCache.GetData(regId, keyId)) {
         return accountCache.SetData(keyId, account);
     }
     return false;
@@ -94,7 +94,7 @@ bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
 }
 
 bool CAccountDBCache::HaveAccount(const CRegID &regId) const{
-    return regId2KeyIdCache.HaveData(regId.ToRawString());
+    return regId2KeyIdCache.HaveData(regId);
 }
 
 bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
@@ -102,19 +102,19 @@ bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
 }
 
 bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.is<CRegID>()) {
         return HaveAccount(userId.get<CRegID>());
 
-    } else if (userId.type() == typeid(CKeyID)) {
+    } else if (userId.is<CKeyID>()) {
         return HaveAccount(userId.get<CKeyID>());
 
-    } else if (userId.type() == typeid(CPubKey)) {
+    } else if (userId.is<CPubKey>()) {
         return HaveAccount(userId.get<CPubKey>().GetKeyId());
 
-    } else if (userId.type() == typeid(CNickID)) {
+    } else if (userId.is<CNickID>()) {
         return HaveAccount(userId.get<CNickID>());
 
-    } else if (userId.type() == typeid(CNullID)) {
+    } else if (userId.is<CNullID>()) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");
     }
     return false;
@@ -125,18 +125,18 @@ bool CAccountDBCache::EraseAccount(const CKeyID &keyId) {
 }
 
 bool CAccountDBCache::SetKeyId(const CUserID &userId, const CKeyID &keyId) {
-    if (userId.type() == typeid(CRegID))
+    if (userId.is<CRegID>())
         return SetKeyId(userId.get<CRegID>(), keyId);
 
     return false;
 }
 
 bool CAccountDBCache::SetKeyId(const CRegID &regId, const CKeyID &keyId) {
-    return regId2KeyIdCache.SetData(regId.ToRawString(), keyId);
+    return regId2KeyIdCache.SetData(regId, keyId);
 }
 
 bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
-    return regId2KeyIdCache.GetData(regId.ToRawString(), keyId);
+    return regId2KeyIdCache.GetData(regId, keyId);
 }
 
 bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
@@ -148,15 +148,15 @@ bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
 }
 
 bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.is<CRegID>()) {
         return GetKeyId(userId.get<CRegID>(), keyId);
-    } else if (userId.type() == typeid(CPubKey)) {
+    } else if (userId.is<CPubKey>()) {
         keyId = userId.get<CPubKey>().GetKeyId();
         return true;
-    } else if (userId.type() == typeid(CKeyID)) {
+    } else if (userId.is<CKeyID>()) {
         keyId = userId.get<CKeyID>();
         return true;
-    } else if (userId.type() == typeid(CNullID)) {
+    } else if (userId.is<CNullID>()) {
         return ERRORMSG("GetKeyId: userId can't be of CNullID type");
     }
 
@@ -164,11 +164,11 @@ bool CAccountDBCache::GetKeyId(const CUserID &userId, CKeyID &keyId) const {
 }
 
 bool CAccountDBCache::EraseKeyId(const CRegID &regId) {
-    return regId2KeyIdCache.EraseData(regId.ToRawString());
+    return regId2KeyIdCache.EraseData(regId);
 }
 
 bool CAccountDBCache::SaveAccount(const CAccount &account) {
-    regId2KeyIdCache.SetData(account.regid.ToRawString(), account.keyid);
+    regId2KeyIdCache.SetData(account.regid, account.keyid);
     accountCache.SetData(account.keyid, account);
     return true ;
 }
@@ -213,18 +213,18 @@ bool CAccountDBCache::GetRegId(const CKeyID &keyId, CRegID &regId) const {
 }
 
 bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.is<CRegID>()) {
         regId = userId.get<CRegID>();
 
         return true;
-    } else if (userId.type() == typeid(CKeyID)) {
+    } else if (userId.is<CKeyID>()) {
         CAccount account;
         if (GetAccount(userId.get<CKeyID>(), account)) {
             regId = account.regid;
 
             return !regId.IsEmpty();
         }
-    } else if (userId.type() == typeid(CPubKey)) {
+    } else if (userId.is<CPubKey>()) {
         CAccount account;
         if (GetAccount(userId.get<CPubKey>().GetKeyId(), account)) {
             regId = account.regid;
@@ -237,28 +237,28 @@ bool CAccountDBCache::GetRegId(const CUserID &userId, CRegID &regId) const {
 }
 
 bool CAccountDBCache::SetAccount(const CUserID &userId, const CAccount &account) {
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.is<CRegID>()) {
         return SetAccount(userId.get<CRegID>(), account);
 
-    } else if (userId.type() == typeid(CKeyID)) {
+    } else if (userId.is<CKeyID>()) {
         return SetAccount(userId.get<CKeyID>(), account);
 
-    } else if (userId.type() == typeid(CPubKey)) {
+    } else if (userId.is<CPubKey>()) {
         return SetAccount(userId.get<CPubKey>().GetKeyId(), account);
 
-    } else if (userId.type() == typeid(CNickID)) {
+    } else if (userId.is<CNickID>()) {
         return SetAccount(userId.get<CNickID>(), account);
 
-    } else if (userId.type() == typeid(CNullID)) {
+    } else if (userId.is<CNullID>()) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");
     }
     return ERRORMSG("SetAccount input userid is unknow type");
 }
 
 bool CAccountDBCache::EraseAccount(const CUserID &userId) {
-    if (userId.type() == typeid(CKeyID)) {
+    if (userId.is<CKeyID>()) {
         return EraseAccount(userId.get<CKeyID>());
-    } else if (userId.type() == typeid(CPubKey)) {
+    } else if (userId.is<CPubKey>()) {
         return EraseAccount(userId.get<CPubKey>().GetKeyId());
     } else {
         return ERRORMSG("EraseAccount account type error!");
@@ -267,7 +267,7 @@ bool CAccountDBCache::EraseAccount(const CUserID &userId) {
 }
 
 bool CAccountDBCache::EraseKeyId(const CUserID &userId) {
-    if (userId.type() == typeid(CRegID)) {
+    if (userId.is<CRegID>()) {
         return EraseKeyId(userId.get<CRegID>());
     }
 

@@ -203,6 +203,8 @@ namespace wasm_chain {
                                     3040019, "Transaction execute error" )
       CHAIN_DECLARE_DERIVED_EXCEPTION( transaction_trace_access_exception, transaction_exception,
                                     3040020, "Transaction trace access exception" )
+      CHAIN_DECLARE_DERIVED_EXCEPTION( fee_exhausted_exception, transaction_exception,
+                                    3040021, "Transaction trace access exception" )
 
    CHAIN_DECLARE_DERIVED_EXCEPTION( inline_transaction_validate_exception, chain_exception,
                                  3050000, "Action validate exception" )

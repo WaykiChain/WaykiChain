@@ -56,7 +56,7 @@ public:
     bool GetCandidateVotes(const CRegID &regid, vector<CCandidateReceivedVote> &candidateVotes);
 
     // There’s no reason to worry about performance issues as it will used only in stable coin genesis height.
-    bool GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote);
+    bool GetVoterList(map<CRegIDKey, vector<CCandidateReceivedVote>> &regId2Vote);
 
     bool Flush();
     uint32_t GetCacheSize() const;
@@ -89,8 +89,8 @@ private:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
-    CCompositeKVCache<dbk::VOTE,       std::pair<string, string>,  uint8_t>                voteRegIdCache;
-    CCompositeKVCache<dbk::REGID_VOTE, string/* CRegID */,         vector<CCandidateReceivedVote>> regId2VoteCache;
+    CCompositeKVCache<dbk::VOTE,       std::pair<string, CRegIDKey>,  uint8_t>                voteRegIdCache;
+    CCompositeKVCache<dbk::REGID_VOTE, CRegIDKey,         vector<CCandidateReceivedVote>> regId2VoteCache;
 
     CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, CVarIntValue<uint32_t>> last_vote_height_cache;
     CSimpleKVCache<dbk::PENDING_DELEGATES, PendingDelegates> pending_delegates_cache;

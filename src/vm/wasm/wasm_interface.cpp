@@ -52,7 +52,7 @@ namespace wasm {
     void wasm_interface::execute(const vector <uint8_t> &code, wasm_context_interface *pWasmContext) {
 
         pWasmContext->pause_billing_timer();
-        std::shared_ptr <wasm_instantiated_module_interface> pInstantiated_module = get_instantiated_backend(code);
+        auto pInstantiated_module = get_instantiated_backend(code);
         pWasmContext->resume_billing_timer();
 
         //system_clock::time_point start = system_clock::now();

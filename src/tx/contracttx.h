@@ -31,18 +31,11 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << contract
-               << VARINT(llFees);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << contract
+           << VARINT(llFees);
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractDeployTx>(*this); }
     virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
@@ -74,17 +67,11 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << app_uid
-               << VARINT(llFees) << VARINT(coin_amount) << arguments;
-            sigHash = ss.GetHash();
-        }
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << app_uid
+            << VARINT(llFees) << VARINT(coin_amount) << arguments;
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CLuaContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;
@@ -115,18 +102,11 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees) << fee_symbol
-               << contract;
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+           << VARINT(llFees) << fee_symbol << contract;
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractDeployTx>(*this); }
     virtual uint64_t GetFuel(int32_t height, uint32_t fuelRate);
     virtual string ToString(CAccountDBCache &accountView);
@@ -163,17 +143,11 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << app_uid << arguments
-               << VARINT(llFees) << fee_symbol << coin_symbol << VARINT(coin_amount);
-            sigHash = ss.GetHash();
-        }
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << app_uid
+           << arguments << VARINT(llFees) << fee_symbol << coin_symbol << VARINT(coin_amount);
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUniversalContractInvokeTx>(*this); }
     virtual string ToString(CAccountDBCache &accountView);
     virtual Object ToJson(const CAccountDBCache &accountView) const;

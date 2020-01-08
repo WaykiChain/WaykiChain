@@ -1,6 +1,6 @@
 include Makefile.include
 
-AM_CPPFLAGS += -I$(builddir)
+AM_CPPFLAGS += -I$(builddir) 
 
 noinst_LIBRARIES = \
   liblua53.a \

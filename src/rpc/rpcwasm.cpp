@@ -196,7 +196,7 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
 
             tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.ComputeSignatureHash(), tx.signature), 
+            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature), 
                           wasm_chain::wallet_sign_exception, "wallet sign error")
 
             tx.set_signature({authorizer_name.value, tx.signature});
@@ -239,6 +239,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         {      
             CAccount authorizer;
             auto     authorizer_name   = wasm::name(params[0].get_str());
+
             auto     action       = wasm::name(params[2].get_str());
             CHAIN_ASSERT(database_account->GetAccount(nick_name(authorizer_name.value), authorizer), wasm_chain::account_access_exception,
                         "authorizer '%s' does not exist",authorizer_name.to_string())
@@ -262,7 +263,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{authorizer_name.value, wasmio_owner}}, action_data});
 
             tx.signatures.push_back({authorizer_name.value, vector<uint8_t>()});
-            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.ComputeSignatureHash(), tx.signature), 
+            CHAIN_ASSERT( wallet->Sign(authorizer.keyid, tx.GetHash(), tx.signature), 
                           wasm_chain::wallet_sign_exception, "wallet sign error")
             tx.set_signature({authorizer_name.value, tx.signature});
         }

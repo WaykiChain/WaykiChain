@@ -127,6 +127,7 @@ namespace dbk {
     #define DEF_DB_PREFIX_NAME_ARRAY(enumType, enumName, dbName) enumName,
     #define DEF_DB_PREFIX_NAME_MAP(enumType, enumName, dbName) { enumName, enumType },
     #define DEF_DB_PREFIX_DBNAME(enumType, enumName, dbName) DBNameType::dbName,
+    #define DEF_DB_PREFIX_MEMO(enumType, enumName, dbName) { #enumType },
 
     enum PrefixType {
         DBK_PREFIX_LIST(DEF_DB_PREFIX_ENUM)
@@ -134,6 +135,10 @@ namespace dbk {
 
     static const std::string kPrefixNames[PREFIX_COUNT + 1] = {
         DBK_PREFIX_LIST(DEF_DB_PREFIX_NAME_ARRAY)
+    };
+
+    static const std::string kPrefixMemos[PREFIX_COUNT + 1] = {
+        DBK_PREFIX_LIST(DEF_DB_PREFIX_MEMO)
     };
 
     static const std::map<std::string, PrefixType> gPrefixNameMap = {
@@ -147,6 +152,11 @@ namespace dbk {
     inline const std::string& GetKeyPrefix(PrefixType prefixType) {
         assert(prefixType >= 0 && prefixType <= PREFIX_COUNT);
         return kPrefixNames[prefixType];
+    };
+
+    inline const std::string& GetKeyPrefixMemo(PrefixType prefixType) {
+        assert(prefixType >= 0 && prefixType <= PREFIX_COUNT);
+        return kPrefixMemos[prefixType];
     };
 
     inline DBNameType GetDbNameEnumByPrefix(PrefixType prefixType) {

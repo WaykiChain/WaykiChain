@@ -358,7 +358,7 @@ CXXFLAGS += -std=gnu++1z -fPIC ${PLATFORM_CXXFLAGS} -I. -I$(EOSVM_INCLUDE_DIR) \
 								                      -I$(VM_DIR) \
 								                      -I$(WAYKI_SRC_DIR)
 
-LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system -lssl -lcrypto -g
+LDFLAGS += $(PLATFORM_LDFLAGS) -lboost_unit_test_framework -lboost_system -lssl -lcrypto
 
 WASM_EMPTY = 
 COMPILER_BUILTINS_PATH_SOURCE = $(COMPILER_BUILTINS)/
@@ -373,9 +373,9 @@ EOSVM_OBJECTS    =  wasm_interface.o wasm_runtime.o
 UINT128_OBJECTS  =  uint128.o
 EXCEPTION_OBJECT =  exception.o log_message.o
 
-test:libwasm.a test.cpp wasm_context.cpp
+test:libwasm.a test_api.cpp wasm_context.cpp
 	@echo "building tests"
-	@${CXX} -o test ${LDFLAGS} $(CXXFLAGS) test.cpp wasm_context.cpp libwasm.a 
+	@${CXX} -o test ${LDFLAGS} $(CXXFLAGS) test_api.cpp wasm_context.cpp libwasm.a 
 	@rm -rf *.o
 
 libwasm.a:$(WASM_INTERFACE) 

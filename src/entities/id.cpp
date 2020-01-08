@@ -6,6 +6,7 @@
 #include "id.h"
 #include "persistence/accountdb.h"
 #include "main.h"
+#include "vm/wasm/types/name.hpp"
 
 extern CCacheDBManager *pCdMan;
 
@@ -106,10 +107,6 @@ const vector<uint8_t> &CRegID::GetRegIdRaw() const {
     return vRegID;
 }
 
-string CRegID::ToRawString() const {
-    return string(vRegID.begin(), vRegID.end());  // TODO: change the vRegID to string
-}
-
 bool CRegID::Clear() {
     height = 0;
     index  = 0;
@@ -148,6 +145,12 @@ void CRegID::SetRegIDByCompact(const vector<uint8_t> &vIn) {
 ///////////////////////////////////////////////////////////////////////////////
 //class CNickID
 
+CNickID::CNickID() {}
+
+CNickID::CNickID(uint64_t nickIdIn): value(nickIdIn) {}
+
+CNickID::CNickID(string nickIdIn): value(wasm::name(nickIdIn).value) {}
+
 bool CNickID::IsMature(const uint32_t currHeight) const {
 
     uint32_t regHeight = 0 ;
@@ -157,24 +160,43 @@ bool CNickID::IsMature(const uint32_t currHeight) const {
     return false ;
 }
 
+
+bool CNickID::IsEmpty() const { return value == 0; }
+
+void CNickID::SetEmpty() { value = 0; }
+
+void CNickID::Clear() { value = 0; }
+
+string CNickID::ToString() const { return wasm::name(value).to_string(); }
+
 ///////////////////////////////////////////////////////////////////////////////
 // class CUserID
 
 const CUserID CUserID::NULL_ID = {};
+const EnumTypeMap<CUserID::VarIndex, string> CUserID::ID_NAME_MAP = {
+    {IDX_NULL_ID, "Null"},
+    {IDX_REG_ID, "RegID"},
+    {IDX_KEY_ID, "KeyID"},
+    {IDX_PUB_KEY_ID, "PubKey"},
+    {IDX_NICK_ID, "NickID"}
+};
 
 string CUserID::ToDebugString() const {
-        if (is<CRegID>()) {
-            return "R:" + get<CRegID>().ToString();
-        } else if (is<CKeyID>()) {
-            return "K:" + get<CKeyID>().ToString() + ", addr=" + get<CKeyID>().ToAddress();
-        } else if (is<CPubKey>()) {
-            return "P:" + get<CPubKey>().ToString() + ", addr=" + get<CPubKey>().GetKeyId().ToAddress();
-        } else if (is<CNickID>()) {
-            return "N:" + get<CNickID>().ToString();
-        } else {
-            assert(is<CNullID>());
+    return std::visit([&](auto&& idIn) -> string {
+        using ID = std::decay_t<decltype(idIn)>;
+        if constexpr (std::is_same_v<ID, CRegID>) {
+            return "R:" + idIn.ToString();
+        } else if constexpr (std::is_same_v<ID, CKeyID>) {
+            return "K:" + idIn.ToString() + ", addr=" + idIn.ToAddress();
+        } else if constexpr (std::is_same_v<ID, CPubKey>) {
+            return "P:" + idIn.ToString() + ", addr=" + idIn.GetKeyId().ToAddress();
+        } else if constexpr (std::is_same_v<ID, CNickID>) {
+            return "N:" + idIn.ToString();
+        } else {  // CNullID
+            assert( (std::is_same_v<ID, CNullID>) );
             return "Null";
         }
+    }, uid);
 }
 
 shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {

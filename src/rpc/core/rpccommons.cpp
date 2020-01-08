@@ -228,7 +228,7 @@ Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 
-    if (!pWalletMain->Sign(keyid, tx.ComputeSignatureHash(), tx.signature)) {
+    if (!pWalletMain->Sign(keyid, tx.GetHash(), tx.signature)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sign failed");
     }
 

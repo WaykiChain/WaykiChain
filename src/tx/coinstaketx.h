@@ -42,16 +42,9 @@ public:
         READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol
-               << VARINT(llFees) << (uint8_t)stake_type << coin_symbol << VARINT(coin_amount);
-
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol
+           << VARINT(llFees) << (uint8_t)stake_type << coin_symbol << VARINT(coin_amount);
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinStakeTx>(*this); }

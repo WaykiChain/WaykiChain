@@ -144,4 +144,41 @@ BOOST_AUTO_TEST_CASE(dbcache_scalar_value_Level3_test)
     BOOST_CHECK( value1 == "keyid-1" );
 }
 
+template <typename T>
+static uint32_t GetSerSize(const T &t) {
+    return ::GetSerializeSize(t, SER_DISK, CLIENT_VERSION);
+}
+
+template <typename CacheType>
+static uint32_t GetCacheSerializeSize(CacheType &cache) {
+    uint32_t ret = 0;
+    for (auto item : cache.GetMapData())
+        ret += GetSerSize(item);
+    return ret;
+}
+
+BOOST_AUTO_TEST_CASE(dbcache_cache_size_test)
+{
+    const bool isWipe = true;
+    const dbk::PrefixType prefix = dbk::REGID_KEYID;
+    shared_ptr<CDBAccess> pDBAccess = make_shared<CDBAccess>(
+        db_dir, DBNameType::ACCOUNT, false, isWipe);
+
+    auto pDBCache = make_shared< CCompositeKVCache<prefix, string, string> >(pDBAccess.get());
+    pDBCache->SetData("regid-1", "keyid-1");
+    BOOST_CHECK(pDBCache->GetCacheSize() == GetSerSize(make_pair<string, string>("regid-1", "keyid-1")));
+    pDBCache->SetData("regid-2", "keyid-2");
+    pDBCache->SetData("regid-3", "keyid-3");
+    BOOST_CHECK(pDBCache->GetCacheSize() == GetCacheSerializeSize(*pDBCache));
+    pDBCache->Flush();
+    BOOST_CHECK(pDBCache->GetCacheSize() == 0);
+    BOOST_CHECK(GetCacheSerializeSize(*pDBCache) == 0);
+
+    auto pDBCache2 = make_shared< CCompositeKVCache<prefix, string, string> >(pDBCache.get());
+    string value1;
+    BOOST_CHECK(pDBCache2->GetData(string("regid-1"), value1));
+    BOOST_CHECK(pDBCache->GetCacheSize() == GetSerSize(make_pair<string, string>("regid-1", "keyid-1")));
+    BOOST_CHECK(!pDBCache2->IsCalcSize() && pDBCache2->GetCacheSize() == 0);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

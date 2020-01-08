@@ -259,6 +259,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getblock",               &getblock,               true,      false,      false },
     { "getrawmempool",          &getrawmempool,          true,      false,      false },
     { "verifychain",            &verifychain,            true,      false,      false },
+    { "getblockundo",           &getblockundo,           true,      false,      false },
 
     { "gettotalcoins",          &gettotalcoins,          true,      false,      false },
     { "invalidateblock",        &invalidateblock,        true,      true,       false },
@@ -353,6 +354,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexorders",               &getdexorders,               true,      false,      false },
     { "getdexoperator",             &getdexoperator,             true,      false,      false },
     { "getdexoperatorbyowner",      &getdexoperatorbyowner,      true,      false,      false },
+    { "getdexorderfee",             &getdexorderfee,             true,      false,      false },
 
     /* for asset */
     { "submitassetissuetx",         &submitassetissuetx,         false,     false,      false },

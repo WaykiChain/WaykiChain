@@ -168,6 +168,7 @@ extern json_spirit::Value reconsiderblock(const json_spirit::Array& params, bool
 extern json_spirit::Value startcommontpstest(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value startcontracttpstest(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getblockfailures(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getblockundo(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitpricefeedtx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitcoinstaketx(const json_spirit::Array& params, bool fHelp);
@@ -185,6 +186,7 @@ extern json_spirit::Value submitdexoperatorregtx(const json_spirit::Array& param
 extern json_spirit::Value submitdexoperatorupdatetx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexoperator(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexoperatorbyowner(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value getdexorderfee(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value submitcdpstaketx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitcdpredeemtx(const json_spirit::Array& params, bool fHelp);

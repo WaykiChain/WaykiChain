@@ -837,7 +837,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
             assert(cw.accountCache.SaveAccount(account));
         } else if (block.vptx[i]->nTxType == DELEGATE_VOTE_TX) {
             CDelegateVoteTx *pDelegateTx = (CDelegateVoteTx *)block.vptx[i].get();
-            assert(pDelegateTx->txUid.type() == typeid(CRegID));  // Vote Tx must use RegId
+            assert(pDelegateTx->txUid.is<CRegID>());  // Vote Tx must use RegId
 
             CAccount voterAcct;
             assert(cw.accountCache.GetAccount(pDelegateTx->txUid, voterAcct));
@@ -864,7 +864,7 @@ static bool ProcessGenesisBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *p
                     votedAcct.SetRegId(votedRegId);
                     votedAcct.received_votes = vote.GetVotedBcoins();
 
-                    if (votedUid.type() == typeid(CPubKey)) {
+                    if (votedUid.is<CPubKey>()) {
                         votedAcct.owner_pubkey = votedUid.get<CPubKey>();
                         votedAcct.keyid  = votedAcct.owner_pubkey.GetKeyId();
                     }
@@ -913,7 +913,7 @@ bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state
 static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime,
                                                     CCacheWrapper &cw, CValidationState &state) {
     // acquire votes list
-    map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
+    map<CRegIDKey, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
     if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
         return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : failed to get vote list"),
                          REJECT_INVALID, "bad-get-vote-list");
@@ -922,7 +922,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
     // revoke votes if necessary
     map<CRegID, vector<CCandidateVote>> regId2CandidateVotes;
     for (auto &item : regId2ReceivedVotes) {
-        CRegID regId(UnsignedCharArray(item.first.begin(), item.first.end()));
+        const CRegID &regId = item.first.regid;
         auto &candidateReceivedVotes = item.second;
         vector<CCandidateVote> candidateVotes;
         assert(!candidateReceivedVotes.empty());

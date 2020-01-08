@@ -113,8 +113,8 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
 bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid);
+    if (!CheckFee(context)) return false;
 
     auto symbolErr = CAsset::CheckSymbol(asset.symbol);
     if (symbolErr) {
@@ -137,7 +137,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
             "owner-uid-type-error");
     }
 
-    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
+    if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
@@ -328,8 +328,8 @@ Object CAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) const {
 bool CAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID(txUid.type());
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID(txUid);
+    if (!CheckFee(context)) return false;
 
     if (asset_symbol.empty() || asset_symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_symbol is empty or len=%d greater than %d",

@@ -28,18 +28,11 @@ public:
         // READWRITE(signature);
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << median_price_points;
-
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+                   << median_price_points;
     }
 
-    virtual uint256 GetHash() const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBlockPriceMedianTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);

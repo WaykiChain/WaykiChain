@@ -140,6 +140,7 @@ CWasmContractTx::get_accounts_from_signatures(CCacheWrapper& database, std::vect
         }
 
         CAccount account;
+
         CHAIN_ASSERT( database.accountCache.GetAccount(nick_name(s.account), account),
                       wasm_chain::account_access_exception, "%s",
                       "can not get account from nickid '%s'", wasm::name(s.account).to_string())        
@@ -203,22 +204,22 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
 static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t fuel_rate    = context.fuel_rate;
-    CHAIN_ASSERT(fuel_rate > 0, wasm_chain::resource_exhausted_exception, "%s", "get_fuel_limit, fuel_rate cannot be 0")
+    CHAIN_ASSERT(fuel_rate > 0, wasm_chain::fee_exhausted_exception, "%s", "get_fuel_limit, fuel_rate cannot be 0")
 
     uint64_t min_fee;
-    CHAIN_ASSERT(GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee), wasm_chain::resource_exhausted_exception, "get_fuel_limit, get minFee failed")
-    CHAIN_ASSERT(tx.llFees >= min_fee, wasm_chain::resource_exhausted_exception, "get_fuel_limit, fee must >= min fee '%ld', but get '%ld'", min_fee, tx.llFees)
+    CHAIN_ASSERT(GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee), wasm_chain::fee_exhausted_exception, "get_fuel_limit, get minFee failed")
+    CHAIN_ASSERT(tx.llFees >= min_fee, wasm_chain::fee_exhausted_exception, "get_fuel_limit, fee must >= min fee '%ld', but get '%ld'", min_fee, tx.llFees)
 
     uint64_t fee_for_miner = min_fee * CONTRACT_CALL_RESERVED_FEES_RATIO / 100;
     uint64_t fee_for_gas   = tx.llFees - fee_for_miner;
     uint64_t fuel_limit    = std::min<uint64_t>(fee_for_gas / fuel_rate / 10 , MAX_BLOCK_RUN_STEP);//1.2 WICC
-    CHAIN_ASSERT(fuel_limit > 0, wasm_chain::resource_exhausted_exception, "get_fuel_limit, fuel limit equal 0")
+    CHAIN_ASSERT(fuel_limit > 0, wasm_chain::fee_exhausted_exception, "get_fuel_limit, fuel limit equal 0")
 
     return fuel_limit;
 }
 
-static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace, 
-                                     vector<CReceipt>&                     receipts, 
+static void inline_trace_to_receipts(const wasm::inline_transaction_trace& trace,
+                                     vector<CReceipt>&                     receipts,
                                      map<transfer_data_type,  uint64_t>&   receipts_duplicate_check) {
 
     if (trace.trx.contract == wasmio_bank && trace.trx.action == wasm::N(transfer)) {
@@ -283,6 +284,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         recipients_size        = 0;
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
+
         fuel                   = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
         std::vector<CReceipt>   receipts;
@@ -308,7 +310,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t fee    = get_fuel_limit(*this, context);
         fuel            = fuel + recipients_size * notice_fuel_fee_per_recipient;
 
-        CHAIN_ASSERT( fee > fuel, wasm_chain::wasm_timeout_exception, "fee is not enough to charge fuel");
+        CHAIN_ASSERT( fee > fuel, wasm_chain::fee_exhausted_exception, "fee '%ld' is not enough to charge fuel '%ld'", fee, fuel);
 
         //save trx trace
         std::vector<char> trace_bytes = wasm::pack<transaction_trace>(trx_trace);
@@ -410,7 +412,7 @@ string CWasmContractTx::ToString(CAccountDBCache &accountCache) {
 Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
 
     if (inline_transactions.size() == 0) return Object{};
-    
+
     CAccount payer;
     accountCache.GetAccount(txUid, payer);
 
@@ -442,7 +444,7 @@ Object CWasmContractTx::ToJson(const CAccountDBCache &accountCache) const {
         Value signatures_arr;
         to_variant(signatures, signatures_arr);
         result.push_back(Pair("signature_pairs", signatures_arr));
-    }     
+    }
 
     return result;
 }

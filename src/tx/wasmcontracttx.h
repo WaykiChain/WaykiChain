@@ -49,28 +49,16 @@ public:
         READWRITE(signature);
         )
 
-    uint256 ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) 
-               << uint8_t(nTxType) 
-               << VARINT(valid_height) 
-               << txUid
-               << inline_transactions
-               << VARINT(llFees);
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+           << inline_transactions << VARINT(llFees);
 
-            ss << VARINT(signatures.size());
-            for(const auto &s:signatures){
-               ss << VARINT(s.account);
-            }
-
-            sigHash = ss.GetHash();
+        WriteCompactSize(hw, signatures.size());
+        for (const auto &s : signatures) {
+            hw << VARINT(s.account);
         }
-
-        return sigHash;
     }
 
-    virtual uint256                    GetHash()        const { return ComputeSignatureHash(); }
     virtual std::shared_ptr<CBaseTx>   GetNewInstance() const { return std::make_shared<CWasmContractTx>(*this); }
     virtual map<TokenSymbol, uint64_t> GetValues()      const { return map<TokenSymbol, uint64_t>{{SYMB::WICC, 0}}; }
     virtual uint64_t                   GetFuel(int32_t height, uint32_t fuelRate);
@@ -86,7 +74,7 @@ public:
 public:
     void validate_contracts(CTxExecuteContext &context);
     void validate_authorization(const std::vector<uint64_t> &authorization_accounts);
-    void get_accounts_from_signatures(CCacheWrapper &database, 
+    void get_accounts_from_signatures(CCacheWrapper &database,
                                           std::vector<uint64_t> &authorization_accounts);
     void execute_inline_transaction( wasm::inline_transaction_trace &trace,
                                       wasm::inline_transaction &trx,

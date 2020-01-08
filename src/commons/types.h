@@ -32,6 +32,9 @@ struct EnumTypeHash {
 template <typename EnumType, typename ValueType, typename HashType = int32_t>
 using EnumTypeMap = std::unordered_map<EnumType, ValueType, EnumTypeHash<EnumType, HashType>>;
 
+template <typename EnumType, typename HashType = int32_t>
+using UnorderdEnumMap = std::unordered_set<EnumType, EnumTypeHash<EnumType, HashType>>;
+
 namespace container {
     template<typename Container>
     void Append(Container &dest, const Container &appended) {

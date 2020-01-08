@@ -20,7 +20,6 @@ namespace wasm {
 
     template<typename Impl>
     class wasm_vm_instantiated_module : public wasm_instantiated_module_interface {
-        //using backend_t = backend<wasm::wasm_context_interface_interface, Impl>;
         using backend_t = backend<wasm::wasm_context_interface, Impl>;
     public:
 

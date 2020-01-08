@@ -21,8 +21,8 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
 
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+    if (!CheckFee(context)) return false;
 
 
     if(cw.accountCache.HaveAccount(CNickID(nickId))){
@@ -42,7 +42,7 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
                          "bad-nickid");
     }
 
-    if ((txUid.type() == typeid(CPubKey)) && !txUid.get<CPubKey>().IsFullyValid())
+    if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, public key is invalid"), REJECT_INVALID,
                          "bad-publickey");
 
@@ -51,7 +51,7 @@ bool CNickIdRegisterTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CNickIdRegisterTx::CheckTx, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;

@@ -92,7 +92,7 @@ namespace eosio { namespace vm {
    };
 
    class jit_allocator {
-       static constexpr std::size_t segment_size = std::size_t{1024u} * 1024u * 1024u;
+      static constexpr std::size_t segment_size = std::size_t{1024u} * 1024u * 1024u;
    public:
       // allocates page aligned memory with executable permission
       void * alloc(std::size_t size) {
@@ -233,8 +233,9 @@ namespace eosio { namespace vm {
    };
 
    class growable_allocator {
-    public:
-      static constexpr size_t max_memory_size = 1024 * 1024 * 1024; // 1GB
+     public:
+    //   static constexpr size_t max_memory_size = 1024 * 1024 * 1024; // 1GB
+      static constexpr size_t max_memory_size = 4 * 1024 * 1024;    // 4MB
       static constexpr size_t chunk_size      = 128 * 1024;         // 128KB
       template<std::size_t align_amt>
       static constexpr size_t align_offset(size_t offset) { return (offset + align_amt - 1) & ~(align_amt - 1); }
@@ -261,7 +262,8 @@ namespace eosio { namespace vm {
       ~growable_allocator() {
          munmap(_base, _capacity);
          if (is_jit) {
-            jit_allocator::instance().free(_code_base);
+            //fixme:will crash while system out
+            //jit_allocator::instance().free(_code_base);
          }
       }
 

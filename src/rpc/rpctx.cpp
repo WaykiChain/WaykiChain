@@ -742,7 +742,7 @@ Value listcontracts(const Array& params, bool fHelp) {
 
     bool showDetail = params[0].get_bool();
 
-    map<string, CUniversalContract> contracts;
+    map<CRegIDKey, CUniversalContract> contracts;
     if (!pCdMan->pContractCache->GetContracts(contracts)) {
         throw JSONRPCError(RPC_DATABASE_ERROR, "Failed to acquire contracts from db.");
     }
@@ -752,8 +752,7 @@ Value listcontracts(const Array& params, bool fHelp) {
     for (const auto &item : contracts) {
         Object contractObject;
         const CUniversalContract &contract = item.second;
-        CRegID regid(item.first);
-        contractObject.push_back(Pair("contract_regid", regid.ToString()));
+        contractObject.push_back(Pair("contract_regid", item.first.regid.ToString()));
         contractObject.push_back(Pair("memo",           contract.memo));
 
         if (showDetail) {
@@ -1050,7 +1049,7 @@ Value signtxraw(const Array& params, bool fHelp) {
                 bool valid = false;
                 for (auto& signatureItem : signaturePairs) {
                     if (regId == signatureItem.regid) {
-                        if (!pWalletMain->Sign(keyIdItem, pTx->ComputeSignatureHash(),
+                        if (!pWalletMain->Sign(keyIdItem, pTx->GetHash(),
                                                signatureItem.signature)) {
                             throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
                         } else {
@@ -1072,7 +1071,7 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
 
         default: {
-            if (!pWalletMain->Sign(*keyIds.begin(), pBaseTx->ComputeSignatureHash(), pBaseTx->signature))
+            if (!pWalletMain->Sign(*keyIds.begin(), pBaseTx->GetHash(), pBaseTx->signature))
                 throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
 
             CDataStream ds(SER_DISK, CLIENT_VERSION);
@@ -1329,7 +1328,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
     uint64_t totalFCoins(0);
     std::tie(totalRegIds, totalBCoins, totalSCoins, totalFCoins) = pCdMan->pAccountCache->TraverseAccount();
     // auto [totalCoins, totalRegIds] = pCdMan->pAccountCache->TraverseAccount(); //C++17
-    
+
     obj.push_back(Pair("total_regids", totalRegIds));
     obj.push_back(Pair("total_bcoins",  ValueFromAmount(totalBCoins)));
     obj.push_back(Pair("total_scoins",  ValueFromAmount(totalSCoins)));

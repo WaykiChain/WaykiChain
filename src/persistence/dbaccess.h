@@ -392,7 +392,7 @@ public:
     };
 
     CCompositeKVCache(CDBAccess *pDbAccessIn): pBase(nullptr),
-        pDbAccess(pDbAccessIn) {
+        pDbAccess(pDbAccessIn), is_calc_size(true) {
         assert(pDbAccessIn != nullptr);
         assert(pDbAccess->GetDbNameType() == GetDbNameEnumByPrefix(PREFIX_TYPE));
     };
@@ -407,8 +407,10 @@ public:
         pDbOpLogMap = pDbOpLogMapIn;
     }
 
+    bool IsCalcSize() const { return is_calc_size; }
+
     uint32_t GetCacheSize() const {
-        return ::GetSerializeSize(mapData, SER_DISK, CLIENT_VERSION);
+        return size;
     }
 
     bool GetTopNElements(const uint32_t maxNum, set<KeyType> &keys) {
@@ -471,15 +473,14 @@ public:
         }
         auto it = GetDataIt(key);
         if (it == mapData.end()) {
-            auto emptyValue = db_util::MakeEmptyValue<ValueType>();
-            auto newRet = mapData.emplace(key, *emptyValue); // create new empty value
-            if (!newRet.second)
-                throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
-
-            it = newRet.first;
+            auto pEmptyValue = db_util::MakeEmptyValue<ValueType>();
+            AddOpLog(key, *pEmptyValue, &value);
+            AddDataToMap(key, value);
+        } else {
+            AddOpLog(key, it->second, &value);
+            UpdateDataSize(it->second, value);
+            it->second = value;
         }
-        AddOpLog(key, it->second);
-        it->second = value;
         return true;
     }
 
@@ -497,14 +498,17 @@ public:
         }
         Iterator it = GetDataIt(key);
         if (it != mapData.end() && !db_util::IsEmpty(it->second)) {
-            AddOpLog(key, it->second);
+            DecDataSize(it->second);
+            AddOpLog(key, it->second, nullptr);
             db_util::SetEmpty(it->second);
+            IncDataSize(it->second);
         }
         return true;
     }
 
     void Clear() {
         mapData.clear();
+        size = 0;
     }
 
     void Flush() {
@@ -526,7 +530,13 @@ public:
         KeyType key;
         ValueType value;
         dbOpLog.Get(key, value);
-        mapData[key] = value;
+        auto it = mapData.find(key);
+        if (it != mapData.end()) {
+            UpdateDataSize(it->second, value);
+            it->second = value;
+        } else {
+            AddDataToMap(key, value);
+        }
     }
 
     void UndoDataList(const CDbOpLogs &dbOpLogs) {
@@ -562,25 +572,57 @@ private:
             auto baseIt = pBase->GetDataIt(key);
             if (baseIt != pBase->mapData.end()) {
                 // the found key-value add to current mapData
-                auto newRet = mapData.emplace(key, baseIt->second);
-                if (!newRet.second)
-                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
-
-                return newRet.first;
+                return AddDataToMap(key, baseIt->second);
             }
         } else if (pDbAccess != NULL) {
             // TODO: need to save the empty value to mapData for search performance?
             auto pDbValue = db_util::MakeEmptyValue<ValueType>();
             if (pDbAccess->GetData(PREFIX_TYPE, key, *pDbValue)) {
-                auto newRet = mapData.emplace(key, *pDbValue);
-                if (!newRet.second)
-                    throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
-
-                return newRet.first;
+                return AddDataToMap(key, *pDbValue);
             }
         }
 
         return mapData.end();
+    }
+
+    inline Iterator AddDataToMap(const KeyType &keyIn, const ValueType &valueIn) const {
+        auto newRet = mapData.emplace(keyIn, valueIn);
+        if (!newRet.second)
+            throw runtime_error(strprintf("%s :  %s, alloc new cache item failed", __FUNCTION__, __LINE__));
+        IncDataSize(keyIn, valueIn);
+        return newRet.first;
+    }
+
+    inline void IncDataSize(const KeyType &keyIn, const ValueType &valueIn) const {
+        if (is_calc_size) {
+            size += CalcDataSize(keyIn);
+            size += CalcDataSize(valueIn);
+        }
+    }
+
+    inline void IncDataSize(const ValueType &valueIn) const {
+        if (is_calc_size)
+            size += CalcDataSize(valueIn);
+    }
+
+    inline void DecDataSize(const ValueType &valueIn) const {
+        if (is_calc_size) {
+            uint32_t sz = CalcDataSize(valueIn);
+            size = size > sz ? size - sz : 0;
+        }
+    }
+
+    inline void UpdateDataSize(const ValueType &oldValue, const ValueType &newVvalue) const {
+        if (is_calc_size) {
+            size += CalcDataSize(newVvalue);
+            uint32_t oldSz = CalcDataSize(oldValue);
+            size = size > oldSz ? size - oldSz : 0;
+        }
+    }
+
+    template <typename Data>
+    inline uint32_t CalcDataSize(const Data &d) const {
+        return ::GetSerializeSize(d, SER_DISK, CLIENT_VERSION);
     }
 
     bool GetTopNElements(const uint32_t maxNum, set<KeyType> &expiredKeys, set<KeyType> &keys) {
@@ -659,19 +701,28 @@ private:
         return true;
     }
 
-    inline void AddOpLog(const KeyType &key, const ValueType &oldValue) {
+    inline void AddOpLog(const KeyType &key, const ValueType& oldValue, const ValueType *pNewValue) {
         if (pDbOpLogMap != nullptr) {
             CDbOpLog dbOpLog;
-            dbOpLog.Set(key, oldValue);
+            #ifdef DB_OP_LOG_NEW_VALUE
+                if (pNewValue != nullptr)
+                    dbOpLog.Set(key, make_pair(oldValue, *pNewValue));
+                else
+                    dbOpLog.Set(key, make_pair(oldValue, ValueType()));
+            #else
+                dbOpLog.Set(key, oldValue);
+            #endif
             pDbOpLogMap->AddOpLog(PREFIX_TYPE, dbOpLog);
         }
 
     }
 private:
-    mutable CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase;
-    CDBAccess *pDbAccess;
+    mutable CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> *pBase = nullptr;
+    CDBAccess *pDbAccess = nullptr;
     mutable map<KeyType, ValueType> mapData;
     CDBOpLogMap *pDbOpLogMap = nullptr;
+    bool is_calc_size = false;
+    mutable uint32_t size = 0;
 };
 
 
@@ -834,7 +885,7 @@ private:
     mutable CSimpleKVCache<PREFIX_TYPE, ValueType> *pBase;
     CDBAccess *pDbAccess;
     mutable std::shared_ptr<ValueType> ptrData = nullptr;
-    CDBOpLogMap *pDbOpLogMap = nullptr;
+    CDBOpLogMap *pDbOpLogMap                   = nullptr;
 };
 
 #endif  // PERSIST_DB_ACCESS_H

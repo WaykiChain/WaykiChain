@@ -445,7 +445,7 @@ bool CDexDBCache::GetDexOperator(const DexID &id, DexOperatorDetail& detail) {
 
 bool CDexDBCache::GetDexOperatorByOwner(const CRegID &regid, DexID &idOut, DexOperatorDetail& detail) {
     decltype(operator_owner_map_cache)::ValueType dexID ;
-    if (operator_owner_map_cache.GetData(regid.ToRawString(), dexID)) {
+    if (operator_owner_map_cache.GetData(regid, dexID)) {
         idOut = dexID.value().get();
         return GetDexOperator(dexID.value().get(), detail);
     }else {
@@ -468,7 +468,7 @@ bool CDexDBCache::HaveDexOperator(const DexID &id) {
 }
 
 bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
-     bool dbHave = operator_owner_map_cache.HaveData(regid.ToRawString());
+     bool dbHave = operator_owner_map_cache.HaveData(regid);
 
      if(!dbHave){
          CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
@@ -495,7 +495,7 @@ bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& de
     }
 
     return  operator_detail_cache.SetData(idKey, detail) &&
-            operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), id);
+            operator_owner_map_cache.SetData(detail.owner_regid, id);
 }
 
 bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& old_detail,
@@ -503,8 +503,8 @@ bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& ol
     decltype(operator_detail_cache)::KeyType idKey(id);
     std::optional idValue{CVarIntValue<DexID>(id)};
     if (old_detail.owner_regid != detail.owner_regid) {
-        if (!operator_owner_map_cache.EraseData(old_detail.owner_regid.ToRawString()) ||
-            !operator_owner_map_cache.SetData(detail.owner_regid.ToRawString(), idValue)){
+        if (!operator_owner_map_cache.EraseData(old_detail.owner_regid) ||
+            !operator_owner_map_cache.SetData(detail.owner_regid, idValue)){
             return false;
         }
 

@@ -72,8 +72,8 @@ bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlo
 bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+    if (!CheckFee(context)) return false;
 
     if (assets_to_stake.size() != 1) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, only support to stake one asset!"),
@@ -92,7 +92,7 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -169,6 +169,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             ? UINT64_MAX
             : uint64_t(double(assetAmount) * bcoinMedianPrice / PRICE_BOOST / scoins_to_mint * RATIO_BOOST);
     vector<CReceipt> receipts;
+    uint64_t scoinsInterestToRepay = 0;
 
     if (cdp_txid.IsEmpty()) { // 1st-time CDP creation
         if (assetAmount == 0 || scoins_to_mint == 0) {
@@ -245,7 +246,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "CDP-collateral-ratio-toosmall");
         }
 
-        uint64_t scoinsInterestToRepay;
         if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
                              REJECT_INVALID, "compute-interest-error");
@@ -253,12 +253,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts))
             return false;
-
-        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
-                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
-                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
-        }
 
         // settle cdp state & persist
         cdp.AddStake(context.height, assetAmount, scoins_to_mint);
@@ -276,6 +270,15 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
+    }
+
+    if (!cdp_txid.IsEmpty()) { // alter CDP
+        // support to pay the interest from the new mint soins in altering CDP mode
+        if (!account.OperateBalance(scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, scoins balance < scoinsInterestToRepay: %llu",
+                            scoinsInterestToRepay), UPDATE_ACCOUNT_FAIL,
+                            strprintf("deduct-interest(%llu)-error", scoinsInterestToRepay));
+        }
     }
 
     if (!cw.accountCache.SaveAccount(account)) {
@@ -359,8 +362,8 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
 bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+    if (!CheckFee(context)) return false;
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account)) {
@@ -373,7 +376,7 @@ bool CCDPRedeemTx::CheckTx(CTxExecuteContext &context) {
                         REJECT_INVALID, "empty-cdpid");
     }
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;
@@ -627,8 +630,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
  bool CCDPLiquidateTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid.type());
-    IMPLEMENT_CHECK_TX_FEE;
+    IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
+    if (!CheckFee(context)) return false;
 
     if (scoins_to_liquidate == 0) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::CheckTx, invalid liquidate amount(0)"), REJECT_INVALID,
@@ -644,7 +647,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
         return state.DoS(100, ERRORMSG("CdpLiquidateTx::CheckTx, read txUid %s account info error", txUid.ToString()),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
-    CPubKey pubKey = (txUid.type() == typeid(CPubKey) ? txUid.get<CPubKey>() : account.owner_pubkey);
+    CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : account.owner_pubkey);
     IMPLEMENT_CHECK_TX_SIGNATURE(pubKey);
 
     return true;

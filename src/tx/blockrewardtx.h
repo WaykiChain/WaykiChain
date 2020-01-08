@@ -37,14 +37,8 @@ public:
         READWRITE(VARINT(reward_fees));
         READWRITE(VARINT(valid_height));)
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(reward_fees) << VARINT(valid_height);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << txUid << VARINT(reward_fees) << VARINT(valid_height);
     }
 
     std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBlockRewardTx>(*this); }
@@ -89,15 +83,9 @@ public:
         READWRITE(VARINT(inflated_bcoins));
     )
 
-    TxID ComputeSignatureHash(bool recalculate = false) const {
-        if (recalculate || sigHash.IsNull()) {
-            CHashWriter ss(SER_GETHASH, 0);
-            ss  << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-                << reward_fees << VARINT(inflated_bcoins);
-            sigHash = ss.GetHash();
-        }
-
-        return sigHash;
+    virtual void SerializeForHash(CHashWriter &hw) const {
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
+                   << reward_fees << VARINT(inflated_bcoins);
     }
 
     uint64_t GetInflatedBcoins() const { return inflated_bcoins; }

@@ -136,7 +136,7 @@ static bool CreateBlockRewardTx(Miner &miner, CBlock *pBlock) {
     pBlock->SetMerkleRootHash(pBlock->BuildMerkleTree());
 
     vector<uint8_t> signature;
-    if (miner.key.Sign(pBlock->ComputeSignatureHash(), signature)) {
+    if (miner.key.Sign(pBlock->GetHash(), signature)) {
         pBlock->SetSignature(signature);
         return true;
     } else {
@@ -233,7 +233,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, 
                             delegateAccount.regid.ToString(), account.regid.ToString());
         }
 
-        const auto &blockHash      = pBlock->ComputeSignatureHash();
+        const auto &blockHash      = pBlock->GetHash();
         const auto &blockSignature = pBlock->GetSignature();
 
         if (blockSignature.size() == 0 || blockSignature.size() > MAX_SIGNATURE_SIZE) {
@@ -489,7 +489,6 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                     spCW->ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints);
 
                     pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
-                    pPriceMedianTx->ComputeSignatureHash(true);
                 }
 
                 LogPrint(BCLog::MINER, "CreateNewBlockStableCoinRelease() : begin to pack transaction: %s\n",

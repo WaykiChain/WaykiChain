@@ -151,7 +151,7 @@ class wasm_context : public wasm_context_interface {
         };
 
         ~wasm_context() {
-            wasm_alloc.free();
+            //wasm_alloc.free();
         };
 
     public:

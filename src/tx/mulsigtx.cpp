@@ -16,7 +16,7 @@
 bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
-    IMPLEMENT_CHECK_TX_FEE;
+    if (!CheckFee(context)) return false;
     IMPLEMENT_CHECK_TX_MEMO;
 
     if (transfers.empty() || transfers.size() > MAX_TRANSFER_SIZE) {
@@ -26,7 +26,7 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
     }
 
     for (size_t i = 0; i < transfers.size(); i++) {
-        IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid.type());
+        IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
         auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(transfers[i].coin_symbol);
         if (pSymbolErr) {
             return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], invalid coin_symbol=%s, %s",
@@ -63,7 +63,7 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
 
     CAccount account;
     set<CPubKey> pubKeys;
-    uint256 sighash = ComputeSignatureHash();
+    uint256 sighash = GetHash();
     uint8_t valid   = 0;
     for (const auto &item : signaturePairs) {
         if (!cw.accountCache.GetAccount(item.regid, account))
