@@ -25,7 +25,7 @@
 
 using namespace std;
 
-namespace wasm{
+// namespace wasm{
   enum class transaction_status_type {
     mining     = 0,
     validating = 1,
@@ -33,22 +33,22 @@ namespace wasm{
   };
 
 
-inline string to_string(wasm::transaction_status_type type){
+inline string to_string(transaction_status_type type){
     switch(type){
-        case wasm::transaction_status_type::mining: 
+        case transaction_status_type::mining: 
             return string("mining");
             break;
-        case wasm::transaction_status_type::validating:
+        case transaction_status_type::validating:
             return string("validating");
             break;
-        case wasm::transaction_status_type::syncing:
+        case transaction_status_type::syncing:
             return string("syncing");
             break;
         default:
             return string("unknown");
     }
 }
-}
+// }
 
 class CCacheWrapper;
 class CValidationState;
@@ -72,7 +72,7 @@ public:
     uint32_t                      prev_block_time;
     CCacheWrapper*                pCw;
     CValidationState*             pState;
-    wasm::transaction_status_type transaction_status;
+    transaction_status_type       transaction_status;
 
     CTxExecuteContext()
         : height(0),
@@ -82,11 +82,11 @@ public:
           prev_block_time(0),
           pCw(nullptr),
           pState(nullptr),
-          transaction_status(wasm::transaction_status_type::syncing){}
+          transaction_status(transaction_status_type::syncing){}
 
     CTxExecuteContext(const int32_t heightIn, const int32_t indexIn, const uint32_t fuelRateIn,
                       const uint32_t blockTimeIn, const uint32_t preBlockTimeIn,
-                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const wasm::transaction_status_type trx_status = wasm::transaction_status_type::syncing)
+                      CCacheWrapper *pCwIn, CValidationState *pStateIn, const transaction_status_type trx_status = transaction_status_type::syncing)
         : height(heightIn),
           index(indexIn),
           fuel_rate(fuelRateIn),

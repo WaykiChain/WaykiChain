@@ -5,6 +5,8 @@
 #include "wasm/wasm_context_interface.hpp"
 #include "wasm/wasm_runtime.hpp"
 
+void wasm_code_cache_free();
+
 namespace wasm {
 
     enum class vm_type {

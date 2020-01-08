@@ -33,6 +33,8 @@
 #include <miniupnpc/upnpcommands.h>
 #include <miniupnpc/upnperrors.h>
 
+//#include "vm/wasm/wasm_interface.hpp"
+
 #ifndef MINIUPNPC_VERSION
 #define MINIUPNPC_VERSION "1.9"
 #endif
@@ -65,6 +67,8 @@ using namespace boost;
 CWallet *pWalletMain;
 
 static std::unique_ptr<ECCVerifyHandle> globalVerifyHandle;
+
+extern void wasm_code_cache_free();
 
 #ifdef WIN32
 // Win32 LevelDB doesn't use filedescriptors, and the ones used for
@@ -162,6 +166,8 @@ void Shutdown() {
     // Uninitialize elliptic curve code
     globalVerifyHandle.reset();
     ECC_Stop();
+
+    wasm_code_cache_free();
 
     LogPrint(BCLog::INFO, "Shutdown() : done\n");
 }

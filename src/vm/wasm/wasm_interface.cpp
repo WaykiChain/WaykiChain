@@ -23,24 +23,39 @@ namespace wasm {
     using code_version       = uint256;
     using backend_validate_t = backend<wasm::wasm_context_interface, vm::interpreter>;
     using rhf_t              = eosio::vm::registered_host_functions<wasm_context_interface>;
-    std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>> wasm_instantiation_cache;
-    std::shared_ptr <wasm_runtime_interface>                                     runtime_interface;
+    //std::optional<std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>> wasm_instantiation_cache;
+    //std::shared_ptr <wasm_runtime_interface>                                                    runtime_interface;
+
+    std::optional<std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>>& get_wasm_instantiation_cache(){
+        static std::optional<std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>> wasm_instantiation_cache;
+        return wasm_instantiation_cache;
+    }
+
+    std::shared_ptr <wasm_runtime_interface>& get_runtime_interface(){
+        static std::shared_ptr <wasm_runtime_interface> runtime_interface;
+        return runtime_interface;
+    }
+
 
     wasm_interface::wasm_interface() {}
     wasm_interface::~wasm_interface() {}
 
     void wasm_interface::exit() {
-        runtime_interface->immediately_exit_currently_running_module();
+        get_runtime_interface()->immediately_exit_currently_running_module();
     }
 
     std::shared_ptr <wasm_instantiated_module_interface> get_instantiated_backend(const vector <uint8_t> &code) {
 
         try {
+            if(!get_wasm_instantiation_cache().has_value()){
+                 get_wasm_instantiation_cache() = std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>{};
+            }
+
             auto code_id = Hash(code.begin(), code.end());
-            auto it = wasm_instantiation_cache.find(code_id);
-            if (it == wasm_instantiation_cache.end()) {
-                wasm_instantiation_cache[code_id] = runtime_interface->instantiate_module((const char*)code.data(), code.size());
-                return wasm_instantiation_cache[code_id];
+            auto it = get_wasm_instantiation_cache()->find(code_id);
+            if (it == get_wasm_instantiation_cache()->end()) {
+                get_wasm_instantiation_cache().value()[code_id] = get_runtime_interface()->instantiate_module((const char*)code.data(), code.size());
+                return get_wasm_instantiation_cache().value()[code_id];
             }
             return it->second;
         } catch (...) {
@@ -83,11 +98,11 @@ namespace wasm {
     void wasm_interface::initialize(vm_type vm) {
 
         if (vm == wasm::vm_type::eos_vm)
-            runtime_interface = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
         else if (vm == wasm::vm_type::eos_vm_jit)
-            runtime_interface = std::make_shared<wasm::wasm_vm_runtime<vm::jit>>();
+            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::jit>>();
         else
-            runtime_interface = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
+            get_runtime_interface() = std::make_shared<wasm::wasm_vm_runtime<vm::interpreter>>();
 
     }
 
@@ -931,3 +946,8 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, __unordtf2, __unordtf2) 
 
 }//wasm
+
+extern  void wasm_code_cache_free() {
+     //free heap before shut down
+     wasm::get_wasm_instantiation_cache().reset();
+}

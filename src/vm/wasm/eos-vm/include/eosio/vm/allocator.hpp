@@ -263,7 +263,7 @@ namespace eosio { namespace vm {
          munmap(_base, _capacity);
          if (is_jit) {
             //fixme:will crash while system out
-            //jit_allocator::instance().free(_code_base);
+            jit_allocator::instance().free(_code_base);
          }
       }
 

@@ -269,9 +269,9 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
     try {
 
-        if(transaction_status == wasm::transaction_status_type::mining ||
-           transaction_status == wasm::transaction_status_type::validating ){
-            max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_mining);
+        if(transaction_status == transaction_status_type::mining ||
+           transaction_status == transaction_status_type::validating ){
+            max_transaction_duration = std::chrono::milliseconds(max_wasm_execute_time_mining);
         }
 
         //charger fee
@@ -284,7 +284,6 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         recipients_size        = 0;
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
-
         fuel                   = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
         std::vector<CReceipt>   receipts;

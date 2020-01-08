@@ -21,7 +21,7 @@ public:
     system_clock::time_point      pseudo_start;
     std::chrono::microseconds     billed_time              = chrono::microseconds(0);
     std::chrono::milliseconds     max_transaction_duration = std::chrono::milliseconds(wasm::max_wasm_execute_time_infinite);
-    wasm::transaction_status_type transaction_status       = wasm::transaction_status_type::syncing;//block in syncing
+    transaction_status_type       transaction_status       = transaction_status_type::syncing;//block in syncing
     //wasm::inline_transaction      trx_current              = nullptr;
 
     void                      pause_billing_timer();

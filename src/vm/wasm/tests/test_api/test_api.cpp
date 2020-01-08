@@ -8,6 +8,7 @@
 #include"tester.hpp"
 #include<limits>
 
+extern void wasm_free();
 
 using namespace boost;
 
@@ -194,8 +195,14 @@ BOOST_FIXTURE_TEST_CASE( require_notice_tests, validating_tester ) {
   set_code(*this, N(testapi), "wasm/test_api.wasm");
   set_code(*this, N(acc5), "wasm/test_api.wasm");
   CALL_TEST_FUNCTION( *this, "test_action", "require_notice_tests", {});
+
+  wasm_free();
   // int i = 0;
   // std::cout << i << std::endl;
 }
+
+// BOOST_FIXTURE_TEST_CASE( close, validating_tester ) {
+//   //wasm_free();
+// }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -103,7 +103,7 @@ namespace wasm {
         }
 
         bool contracts_console() {
-            return SysCfg().GetBoolArg("-contracts_console", false) && control_trx.transaction_status == wasm::transaction_status_type::validating;
+            return SysCfg().GetBoolArg("-contracts_console", false) && control_trx.transaction_status == transaction_status_type::validating;
         }
 
         void console_append(const string& val) {
