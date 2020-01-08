@@ -109,6 +109,7 @@ uint32_t CBlockDBCache::GetCacheSize() const {
         flagCache.GetCacheSize() +
         bestBlockHashCache.GetCacheSize() +
         lastBlockFileCache.GetCacheSize() +
+        medianPricesCache.GetCacheSize() +
         reindexCache.GetCacheSize() +
         finalityBlockCache.GetCacheSize() ;
 }
@@ -118,6 +119,7 @@ bool CBlockDBCache::Flush() {
     flagCache.Flush();
     bestBlockHashCache.Flush();
     lastBlockFileCache.Flush();
+    medianPricesCache.Flush();
     reindexCache.Flush();
     finalityBlockCache.Flush();
     return true;
@@ -138,6 +140,28 @@ bool CBlockDBCache::WriteLastBlockFile(int32_t nFile) {
 }
 bool CBlockDBCache::ReadLastBlockFile(int32_t &nFile) {
     return lastBlockFileCache.GetData(nFile);
+}
+
+uint64_t CBlockDBCache::GetMedianPrice(const CoinPricePair &coinPricePair) const {
+    PriceMap medianPrices;
+    if (medianPricesCache.GetData(medianPrices)) {
+        auto it = medianPrices.find(coinPricePair);
+        if (it != medianPrices.end())
+            return it->second;
+    }
+    return 0;
+}
+
+PriceMap CBlockDBCache::GetMedianPrices() const {
+    PriceMap medianPrices;
+    if (medianPricesCache.GetData(medianPrices)) {
+        return medianPrices;
+    }
+    return {};
+}
+
+bool CBlockDBCache::SetMedianPrices(const PriceMap &medianPrices) {
+    return medianPricesCache.SetData(medianPrices);
 }
 
 bool CBlockDBCache::ReadTxIndex(const uint256 &txid, CDiskTxPos &pos) {

@@ -483,12 +483,12 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                 if (pBaseTx->IsPriceMedianTx()) {
                     CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)itor->baseTx.get();
 
-                    map<CoinPricePair, uint64_t> mapMedianPricePoints;
+                    PriceMap medianPrices;
                     uint64_t slideWindow = 0;
                     spCW->sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-                    spCW->ppCache.GetBlockMedianPricePoints(height, slideWindow, mapMedianPricePoints);
+                    spCW->ppCache.CalcBlockMedianPrices(height, slideWindow, medianPrices);
 
-                    pPriceMedianTx->SetMedianPricePoints(mapMedianPricePoints);
+                    pPriceMedianTx->SetMedianPrices(medianPrices);
                 }
 
                 LogPrint(BCLog::MINER, "CreateNewBlockStableCoinRelease() : begin to pack transaction: %s\n",

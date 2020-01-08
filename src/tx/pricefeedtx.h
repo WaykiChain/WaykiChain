@@ -7,6 +7,7 @@
 #define TX_PRICE_FEED_H
 
 #include "tx.h"
+#include "entities/price.h"
 
 class CPriceFeedTx : public CBaseTx {
 public:

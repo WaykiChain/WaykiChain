@@ -11,6 +11,7 @@
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
+#include "entities/price.h"
 #include "tx/tx.h"
 
 #include <map>
@@ -38,7 +39,7 @@ public:
 
 class CPricePointMemCache {
 public:
-    map<CoinPricePair, uint64_t> latestBlockMedianPricePoints;
+    PriceMap latestBlockMedianPricePoints;
 
 public:
     CPricePointMemCache() : pBase(nullptr) {}
@@ -46,7 +47,7 @@ public:
         : latestBlockMedianPricePoints(pBase->latestBlockMedianPricePoints), pBase(pBaseIn) {}
 
 public:
-    void SetLatestBlockMedianPricePoints(const map<CoinPricePair, uint64_t> &latestBlockMedianPricePoints);
+    void SetLatestBlockMedianPricePoints(const PriceMap &latestBlockMedianPricePoints);
     bool AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
     bool AddBlockToCache(const CBlock &block);
     // delete block price point by specific block height.
@@ -54,8 +55,9 @@ public:
     bool DeleteBlockFromCache(const CBlock &block);
 
     uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
-    bool GetBlockMedianPricePoints(const int32_t blockHeight, const uint64_t slideWindow,
-                                   map<CoinPricePair, uint64_t> &mapMedianPricePoints);
+
+    bool CalcBlockMedianPrices(const int32_t blockHeight, const uint64_t slideWindow,
+                                   PriceMap &medianPrices);
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();

@@ -113,18 +113,12 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    uint64_t slideWindow;
-    if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
-                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
-    }
-
     assert(assets_to_stake.size() == 1);
     const TokenSymbol &assetSymbol = assets_to_stake.begin()->first;
     uint64_t assetAmount = assets_to_stake.begin()->second.get();
 
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(assetSymbol, SYMB::USD));
+    uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(assetSymbol, SYMB::USD));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price!!"),
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -147,8 +141,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     LogPrint(BCLog::CDP,
-             "CCDPStakeTx::ExecuteTx, globalCollateralRatioMin: %llu, slideWindow: %llu, globalCollateralCeiling: %llu\n",
-             globalCollateralRatioMin, slideWindow, globalCollateralCeiling);
+             "CCDPStakeTx::ExecuteTx, globalCollateralRatioMin: %llu, bcoinMedianPrice: %llu, globalCollateralCeiling: %llu\n",
+             globalCollateralRatioMin, bcoinMedianPrice, globalCollateralCeiling);
 
     CAccount account;
     if (!cw.accountCache.GetAccount(txUid, account))
@@ -434,15 +428,12 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
                         READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
-    uint64_t slideWindow;
-    if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
-                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
-    }
+    uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+    if (bcoinMedianPrice == 0)
+        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
+                            REJECT_INVALID, "acquire-bcoin-median-price-err");
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
-            globalCollateralRatioFloor)) {
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
     }
@@ -521,11 +512,6 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         }
     } else { // partial redeem
         if (assetAmount != 0) {
-            uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
-            if (bcoinMedianPrice == 0) {
-                return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
-                                 REJECT_INVALID, "acquire-bcoin-median-price-err");
-            }
             uint64_t collateralRatio  = cdp.GetCollateralRatio(bcoinMedianPrice);
             if (collateralRatio < startingCdpCollateralRatio) {
                 return state.DoS(100,
@@ -716,15 +702,13 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
-    uint64_t slideWindow;
-    if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error!!"),
-                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
+    uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+    if (bcoinMedianPrice == 0) {
+        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
+                         REJECT_INVALID, "acquire-bcoin-median-price-err");
     }
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(
-            cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD)),
-            globalCollateralRatioFloor)) {
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
     }
@@ -740,12 +724,6 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }
-
-    uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
-    if (bcoinMedianPrice == 0) {
-        return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
-                         REJECT_INVALID, "acquire-bcoin-median-price-err");
     }
 
     uint64_t startingCdpLiquidateRatio;

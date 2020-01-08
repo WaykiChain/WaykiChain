@@ -79,9 +79,9 @@ map<TokenSymbol, uint64_t> CBlock::GetFees() const {
     return fees;
 }
 
-map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
+PriceMap CBlock::GetBlockMedianPrice() const {
     if (GetFeatureForkVersion(GetHeight()) == MAJOR_VER_R1) {
-        return map<CoinPricePair, uint64_t>();
+        return PriceMap();
     }
 
     for (size_t index = 1; index < vptx.size(); ++ index) {
@@ -97,7 +97,7 @@ map<CoinPricePair, uint64_t> CBlock::GetBlockMedianPrice() const {
     LogPrint(BCLog::ERROR, "GetBlockMedianPrice() : failed to acquire median price, height: %u, hash: %s\n", GetHeight(),
              GetHash().GetHex());
     assert(false && "block does not have price median tx");
-    return map<CoinPricePair, uint64_t>();
+    return PriceMap();
 }
 
 CUserID CBlock::GetMinerUserID() const {

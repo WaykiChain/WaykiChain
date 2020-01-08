@@ -19,15 +19,15 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
-    map<CoinPricePair, uint64_t> mapMedianPricePoints;
-    if (!cw.ppCache.GetBlockMedianPricePoints(context.height, slideWindow, mapMedianPricePoints)) {
+    PriceMap medianPrices;
+    if (!cw.ppCache.CalcBlockMedianPrices(context.height, slideWindow, medianPrices)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, failed to get block median price points"),
                          READ_PRICE_POINT_FAIL, "bad-read-price-points");
     }
 
-    if (mapMedianPricePoints != median_price_points) {
+    if (medianPrices != median_prices) {
         string pricePoints;
-        for (const auto item : mapMedianPricePoints) {
+        for (const auto item : medianPrices) {
             pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
                                      item.first.second, item.second);
         }
@@ -35,7 +35,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
         LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", context.height, pricePoints);
 
         pricePoints.clear();
-        for (const auto item : median_price_points) {
+        for (const auto item : median_prices) {
             pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first,
                                      item.first.second, item.second);
         }
@@ -46,17 +46,22 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          "bad-median-price-points");
     }
 
+    if (cw.blockCache.SetMedianPrices(medianPrices)) {
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
+                         "save-median-prices-failed");
+    }
+
     do {
 
         // 0. acquire median prices
         // TODO: multi stable coin
-        uint64_t bcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+        uint64_t bcoinMedianPrice = medianPrices[CoinPricePair(SYMB::WICC, SYMB::USD)];
         if (bcoinMedianPrice == 0) {
             LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, failed to acquire bcoin median price\n");
             break;
         }
 
-        uint64_t fcoinMedianPrice = cw.ppCache.GetMedianPrice(context.height, slideWindow, CoinPricePair(SYMB::WGRT, SYMB::USD));
+        uint64_t fcoinMedianPrice = medianPrices[CoinPricePair(SYMB::WGRT, SYMB::USD)];
         if (fcoinMedianPrice == 0) {
             LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
             break;
@@ -412,12 +417,12 @@ uint256 CBlockPriceMedianTx::GenOrderIdCompat(const uint256 &txid, uint32_t inde
 
 string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
     string pricePoints;
-    for (const auto item : median_price_points) {
+    for (const auto item : median_prices) {
         pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first, item.first.second,
                                  item.second);
     }
 
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_price_points=%s, valid_height=%d",
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_prices=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().GetHex(), nVersion, txUid.ToString(), llFees, pricePoints,
                      valid_height);
 }
@@ -426,7 +431,7 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
     Array pricePointArray;
-    for (const auto &item : median_price_points) {
+    for (const auto &item : median_prices) {
         Object subItem;
         subItem.push_back(Pair("coin_symbol",     item.first.first));
         subItem.push_back(Pair("price_symbol",    item.first.second));
@@ -438,4 +443,4 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }
 
-map<CoinPricePair, uint64_t> CBlockPriceMedianTx::GetMedianPrice() const { return median_price_points; }
+PriceMap CBlockPriceMedianTx::GetMedianPrice() const { return median_prices; }

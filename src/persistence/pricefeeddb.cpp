@@ -26,7 +26,7 @@ bool CConsecutiveBlockPrice::ExistBlockUserPrice(const int32_t blockHeight, cons
 }
 
 void CPricePointMemCache::SetLatestBlockMedianPricePoints(
-    const map<CoinPricePair, uint64_t> &latestBlockMedianPricePointsIn) {
+    const PriceMap &latestBlockMedianPricePointsIn) {
     latestBlockMedianPricePoints = latestBlockMedianPricePointsIn;
     string prices;
     for (const auto &item : latestBlockMedianPricePointsIn) {
@@ -254,22 +254,23 @@ uint64_t CPricePointMemCache::GetMedianPrice(const int32_t blockHeight, const ui
     return medianPrice;
 }
 
-bool CPricePointMemCache::GetBlockMedianPricePoints(const int32_t blockHeight, const uint64_t slideWindow,
-                                                    map<CoinPricePair, uint64_t> &mapMedianPricePoints) {
+
+bool CPricePointMemCache::CalcBlockMedianPrices(const int32_t blockHeight, const uint64_t slideWindow,
+                                                    PriceMap &medianPrices) {
     CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
     uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
-    mapMedianPricePoints.emplace(bcoinPricePair, bcoinMedianPrice);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::GetBlockMedianPricePoints, blockHeight: %d, price: %s/%s -> %llu\n",
+    medianPrices.emplace(bcoinPricePair, bcoinMedianPrice);
+    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
              blockHeight, SYMB::WICC, SYMB::USD, bcoinMedianPrice);
 
     CoinPricePair fcoinPricePair(SYMB::WGRT, SYMB::USD);
     uint64_t fcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, fcoinPricePair);
-    mapMedianPricePoints.emplace(fcoinPricePair, fcoinMedianPrice);
-    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::GetBlockMedianPricePoints, blockHeight: %d, price: %s/%s -> %llu\n",
+    medianPrices.emplace(fcoinPricePair, fcoinMedianPrice);
+    LogPrint(BCLog::PRICEFEED, "CPricePointMemCache::CalcBlockMedianPrices, blockHeight: %d, price: %s/%s -> %llu\n",
              blockHeight, SYMB::WGRT, SYMB::USD, fcoinMedianPrice);
 
     // Update latest block median price points.
-    SetLatestBlockMedianPricePoints(mapMedianPricePoints);
+    SetLatestBlockMedianPricePoints(medianPrices);
 
     return true;
 }
