@@ -228,6 +228,16 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitassetissuetx"       && n > 4) ConvertTo<int64_t>(params[4]);
     if (strMethod == "submitassetissuetx"       && n > 5) ConvertTo<bool>(params[5]);
 
+    if (strMethod == "submitparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+
+    if (strMethod == "submitgovernerupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitgovernerupdateproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+
+    if (strMethod == "submitdexswitchproposal"   && n > 1) ConvertTo<int64_t>(params[1]) ;
+    if (strMethod == "submitdexswitchproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
+    if (strMethod == "submitdexswitchproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
+
     /* vm functions work in vm simulator */
     if (strMethod == "vmexecutescript"          && n > 3) ConvertTo<int64_t>(params[3]);
 

@@ -18,6 +18,7 @@
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_writer_template.h"
 using namespace std;
+using namespace json_spirit ;
 class CBlockIndex;
 
 /* Start RPC Server */
@@ -211,6 +212,13 @@ extern json_spirit::Value getcodewasm(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value getabiwasm(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value gettxtrace(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value abijsontobinwasm(const json_spirit::Array& params, bool fHelp);
+
+extern Value submitparamgovernproposal(const Array& params, bool fHelp) ; //in rpcproposal.cpp
+extern Value submitgovernerupdateproposal(const Array& params, bool fHelp) ;
+extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
+extern Value submitproposalassenttx(const Array& params, bool fHelp) ;
+extern Value getsysparam(const Array& params, bool fHelp) ;
+extern Value getproposal(const Array& params, bool fHelp) ;
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 

@@ -218,6 +218,8 @@ struct DexOperatorDetail {
     uint64_t maker_fee_ratio = 0;
     uint64_t taker_fee_ratio = 0;
     string memo              = "";
+    bool activated           = false ;
+
     // TODO: state
 
     IMPLEMENT_SERIALIZE(
@@ -227,6 +229,7 @@ struct DexOperatorDetail {
         READWRITE(portal_url);
         READWRITE(VARINT(maker_fee_ratio));
         READWRITE(VARINT(taker_fee_ratio));
+        READWRITE(activated) ;
         READWRITE(memo);
     )
 
