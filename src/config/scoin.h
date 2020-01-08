@@ -87,7 +87,9 @@ static const unordered_map<string, string> paramNameToKeyMap = {
         {"CDP_INTEREST_PARAM_B",                           "Q"},
         {"CDP_SYSORDER_PENALTY_FEE_MIN",                   "R"},
         {"ASSET_ISSUE_FEE",                                "S"},
-        {"ASSET_UPDATE_FEE",                               "T"}
+        {"ASSET_UPDATE_FEE",                               "T"},
+        {"DEX_OPERATOR_REGISTER_FEE",                      "U"},
+        {"DEX_OPERATOR_UPDATE_FEE",                        "V"}
    };
 
 
@@ -111,7 +113,9 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"CDP_INTEREST_PARAM_B",                           CDP_INTEREST_PARAM_B},
         {"CDP_SYSORDER_PENALTY_FEE_MIN",                   CDP_SYSORDER_PENALTY_FEE_MIN},
         {"ASSET_ISSUE_FEE",                                ASSET_ISSUE_FEE},
-        {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE}
+        {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE},
+        {"DEX_OPERATOR_REGISTER_FEE",                      DEX_OPERATOR_REGISTER_FEE},
+        {"DEX_OPERATOR_UPDATE_FEE",                        DEX_OPERATOR_UPDATE_FEE}
 };
 
 struct SysParamTypeHash {

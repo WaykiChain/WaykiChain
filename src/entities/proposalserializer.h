@@ -6,12 +6,14 @@
 #ifndef ENTITIES_PROPOSALSERIALIZER_H
 #define ENTITIES_PROPOSALSERIALIZER_H
 
-#include "commons/serialize.h"
 #include "entities/proposal.h"
+#include "commons/serialize.h"
+
 using namespace std;
 
-template<typename Stream> void CProposal::SerializePtr(Stream& os, const shared_ptr<CProposal>& pa, int nType, int nVersion){
-    uint8_t proptype = pa->proposal_type;
+template<typename Stream>
+void CProposal::SerializePtr(Stream& os, const shared_ptr<CProposal>& pa, int nType, int nVersion){
+    uint8_t proptype = (uint8_t&)(pa->proposal_type);
 
     Serialize(os, proptype, nType, nVersion);
     switch (pa->proposal_type) {
@@ -24,13 +26,17 @@ template<typename Stream> void CProposal::SerializePtr(Stream& os, const shared_
         case GOVERNER_UPDATE:
             Serialize(os, *((CGovernerUpdateProposal *) (pa.get())), nType, nVersion);
             break;
+        case DEX_SWITCH:
+            Serialize(os, *((CDexSwitchProposal *) (pa.get())), nType, nVersion);
+            break;
         default:
             throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                               pa->proposal_type));
     }
 
 }
-template<typename Stream> void CProposal::UnserializePtr(Stream& is, std::shared_ptr<CProposal> &pa, int nType, int nVersion){
+template<typename Stream>
+void CProposal::UnserializePtr(Stream& is, std::shared_ptr<CProposal> &pa, int nType, int nVersion){
     uint8_t nProposalTye;
     is.read((char *)&(nProposalTye), sizeof(nProposalTye));
     switch((ProposalType)nProposalTye) {
@@ -51,6 +57,13 @@ template<typename Stream> void CProposal::UnserializePtr(Stream& is, std::shared
             Unserialize(is, *((CGovernerUpdateProposal *)(pa.get())), nType, nVersion);
             break;
         }
+
+        case DEX_SWITCH: {
+            pa = std::make_shared<CDexSwitchProposal>();
+            Unserialize(is, *((CDexSwitchProposal *)(pa.get())), nType, nVersion);
+            break;
+        }
+
         default:
             throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
                                               nProposalTye));
@@ -58,8 +71,5 @@ template<typename Stream> void CProposal::UnserializePtr(Stream& is, std::shared
     pa->proposal_type = ProposalType(nProposalTye);
 
 }
-
-
-
 
 #endif //ENTITIES_PROPOSALSERIALIZER_H

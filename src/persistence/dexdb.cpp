@@ -428,6 +428,7 @@ bool Dex0(DexOperatorDetail& detail){
     detail.portal_url = "https://dex.waykichain.com" ;
     detail.taker_fee_ratio = 40000 ;
     detail.maker_fee_ratio = 40000 ;
+    detail.activated = true ;
 
     return true ;
 }

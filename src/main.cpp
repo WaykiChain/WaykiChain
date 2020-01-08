@@ -28,6 +28,7 @@
 #include "chain/blockdelegates.h"
 #include "persistence/blockundo.h"
 #include "tx/txserializer.h"
+#include "entities/proposalserializer.h"
 
 #include <sstream>
 #include <algorithm>

@@ -10,8 +10,6 @@
 #include "tx/tx.h"
 #include "entities/proposal.h"
 
-bool CheckIsGoverner(CRegID account, ProposalType proposalType );
-
 
 class CProposalCreateTx: public CBaseTx {
 public:

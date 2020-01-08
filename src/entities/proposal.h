@@ -34,14 +34,14 @@ enum OperateType: uint8_t {
 class CProposal {
 public:
 
-    uint8_t proposal_type = 0 ;
+    ProposalType proposal_type = NULL_PROPOSAL ;
     int8_t need_governer_count = 0;
     int32_t expire_block_height = 0;
 
 public:
 
     CProposal() {}
-    CProposal(uint8_t proposalTypeIn):proposal_type(proposalTypeIn) {}
+    CProposal(uint8_t proposalTypeIn):proposal_type(ProposalType(proposalTypeIn)) {}
 
     virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
     virtual bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) { return true ;};
@@ -86,16 +86,16 @@ public:
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
     );
-    bool IsEmpty() const override { return proposal_type == NULL_PROPOSAL || CProposal::IsEmpty(); };
+    bool IsEmpty() const override { return proposal_type == NULL_PROPOSAL || CProposal::IsEmpty(); }
     void SetEmpty() override {
         CProposal::SetEmpty();
     }
 
-    shared_ptr<CProposal> GetNewInstance(){ return make_shared<CNullProposal>(*this);} ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CNullProposal>(*this);}
 
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override {return true ;};
+    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override {return true ;}
 
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override {return true ;};
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override {return true ;}
 };
 
 class CParamsGovernProposal: public CProposal {
@@ -109,7 +109,7 @@ public:
             READWRITE(need_governer_count);
             READWRITE(param_values);
     );
-    bool IsEmpty() const override { return param_values.size()== 0 && CProposal::IsEmpty(); };
+    bool IsEmpty() const override { return param_values.empty() && CProposal::IsEmpty(); };
     void SetEmpty() override {
         CProposal::SetEmpty();
         param_values.clear();
@@ -131,7 +131,7 @@ public:
         return o ;
     }
 
-    shared_ptr<CProposal> GetNewInstance(){ return make_shared<CParamsGovernProposal>(*this);} ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this);} ;
 
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
 
@@ -143,7 +143,7 @@ public:
 class CGovernerUpdateProposal: public CProposal{
 public:
     CRegID governer_regid ;
-    uint8_t  operate_type  = 0;
+     OperateType operate_type  = OperateType::NULL_OPT;
 
     CGovernerUpdateProposal(): CProposal(ProposalType::GOVERNER_UPDATE){}
 
@@ -151,8 +151,7 @@ public:
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
             READWRITE(governer_regid);
-            READWRITE(proposal_type);
-            READWRITE(operate_type);
+            READWRITE((uint8_t&)operate_type);
     );
 
     bool IsEmpty() const override { return operate_type == NULL_OPT && governer_regid.IsEmpty() && CProposal::IsEmpty(); };
@@ -162,12 +161,49 @@ public:
         governer_regid.SetEmpty();
     }
 
-    shared_ptr<CProposal> GetNewInstance(){ return make_shared<CGovernerUpdateProposal>(*this);} ;
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
 
+    Object ToJson(){
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("governer_regid",governer_regid.ToString())) ;
+        o.push_back(Pair("operate_type", operate_type));
+        return o ;
+
+    }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this);}
+    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 };
 
+class CDexSwitchProposal: public CProposal{
+public:
+    uint32_t dexid ;
+    OperateType operate_type = OperateType ::ENABLE;
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height));
+            READWRITE(need_governer_count);
+            READWRITE(VARINT(dexid));
+            READWRITE((uint8_t&)operate_type);
+    );
+
+    CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
+    bool IsEmpty() const override { return operate_type == NULL_OPT && CProposal::IsEmpty() ;}
+    void SetEmpty() override { operate_type = NULL_OPT;}
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
+
+    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+
+    Object ToJson(){
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("dexid",(uint64_t)dexid)) ;
+        o.push_back(Pair("operate_type", operate_type));
+        return o ;
+
+    }
+
+};
 
 
 #endif //ENTITIES_PROPOSAL_H

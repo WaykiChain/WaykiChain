@@ -409,8 +409,8 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
 
 
 
-    /* if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
-         return false;*/
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
+         return false;
 
     DexOperatorDetail detail = {
             oldDetail.owner_regid,
@@ -419,7 +419,8 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
             oldDetail.portal_url,
             oldDetail.maker_fee_ratio,
             oldDetail.taker_fee_ratio,
-            oldDetail.memo
+            oldDetail.memo,
+            oldDetail.activated
     };
     if(!update_data.UpdateToDexOperator(detail,cw) ){
         return state.DoS(100, ERRORMSG("%s, copy updated dex operator error! dex_id=%u", __func__, update_data.dexId),

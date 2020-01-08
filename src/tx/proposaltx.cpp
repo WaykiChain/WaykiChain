@@ -9,12 +9,11 @@
 #include "scoin.h"
 #include "entities/proposal.h"
 #include <algorithm>
+#include "entities/proposalserializer.h"
 
-bool CheckIsGoverner(CRegID account, uint8_t proposalType, CCacheWrapper& cw ){
+bool CheckIsGoverner(CRegID account, ProposalType proposalType, CCacheWrapper& cw ){
 
-    if(proposalType == ProposalType::PARAM_GOVERN){
-        return cw.sysGovernCache.CheckIsGoverner(account) ;
-    } else if(proposalType == ProposalType::GOVERNER_UPDATE){
+   if(proposalType == ProposalType::GOVERNER_UPDATE){
         VoteDelegateVector delegateList;
         if (!cw.delegateCache.GetActiveDelegates(delegateList)) {
             return false;
@@ -26,10 +25,27 @@ bool CheckIsGoverner(CRegID account, uint8_t proposalType, CCacheWrapper& cw ){
         return false ;
 
     } else{
-        return false ;
+        return cw.sysGovernCache.CheckIsGoverner(account) ;
     }
 
 }
+
+uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw ){
+
+    if(proposalType == ProposalType::GOVERNER_UPDATE){
+        VoteDelegateVector delegateList;
+        if (!cw.delegateCache.GetActiveDelegates(delegateList)) {
+            return 8 ;
+        }
+        if(delegateList.size() == 11 )
+            return 8 ;
+
+        return ((delegateList.size()/3)*2+1) ;
+    } else
+        return cw.sysGovernCache.GetNeedGovernerCount();
+
+}
+
 
 string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
     return "" ;
@@ -86,7 +102,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
      auto newProposal = proposal->GetNewInstance() ;
      newProposal->expire_block_height = context.height + 1200 ;
-     newProposal->need_governer_count = cw.sysGovernCache.GetNeedGovernerCount();
+     newProposal->need_governer_count = GetNeedGovernerCount(proposal->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set proposal info error"),
@@ -168,13 +184,21 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
                           WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
      }
 
-     if(cw.sysGovernCache.GetAssentionCount(txid) == proposal->need_governer_count){
+     auto assentedCount = cw.sysGovernCache.GetAssentionCount(txid);
+
+     if(assentedCount > proposal->need_governer_count){
+         return state.DoS(100, ERRORMSG("CProposalAssentTx::ExecuteTx, proposal executed already"),
+                          WRITE_ACCOUNT_FAIL, "proposal-executed-already");
+     }
+
+     if( assentedCount == proposal->need_governer_count){
 
          if(!proposal->ExecuteProposal(cw, state)){
              return state.DoS(100, ERRORMSG("CProposalAssentTx::ExecuteTx, proposal execute error"),
                               WRITE_ACCOUNT_FAIL, "proposal-execute-error");
          }
      }
+
 
      return true ;
 }
