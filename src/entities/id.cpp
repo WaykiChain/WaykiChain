@@ -149,7 +149,14 @@ CNickID::CNickID() {}
 
 CNickID::CNickID(uint64_t nickIdIn): value(nickIdIn) {}
 
-CNickID::CNickID(string nickIdIn): value(wasm::name(nickIdIn).value) {}
+CNickID::CNickID(string nickIdIn) {
+    try {
+        value = wasm::name(nickIdIn).value;
+    }catch (...){
+        value = 0 ;
+    }
+
+}
 
 bool CNickID::IsMature(const uint32_t currHeight) const {
 
@@ -215,6 +222,7 @@ shared_ptr<CUserID> CUserID::ParseUserId(const string &idStr) {
         return std::make_shared<CUserID>(pubKey);
 
     CNickID nickId(idStr) ;
+
     if( pCdMan->pAccountCache->GetKeyId(nickId, keyId)){
         return std::make_shared<CUserID>(keyId);
     }

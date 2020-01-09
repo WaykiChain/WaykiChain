@@ -141,7 +141,11 @@ bool CAccountDBCache::GetKeyId(const CRegID &regId, CKeyID &keyId) const {
 
 bool CAccountDBCache::GetKeyId(const CNickID &nickId, CKeyID &keyId) const{
     std::pair<CVarIntValue<uint32_t>, CKeyID> regHeightKeyID ;
+    if(nickId.IsEmpty())
+        return false;
+
     bool getResult =  nickId2KeyIdCache.GetData(nickId.value, regHeightKeyID) ;
+
     if(getResult)
         keyId = regHeightKeyID.second;
     return getResult ;

@@ -103,7 +103,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
 
 Value submitnickidregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 2)
-        throw runtime_error("submitnickidregistertx \"addr\" \"nickid\" [\"fee\"]\n"
+        throw runtime_error("submitnickidregistertx \"addr or regid\" \"nickid\" [\"fee\"]\n"
                             "\nregister account to acquire its regid\n"
                             "\nArguments:\n"
                             "1.\"addr or regid\":    (string, required)\n"
@@ -112,7 +112,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
                             "\nResult:\n"
                             "\"txid\":      (string) The transaction id.\n"
                             "\nExamples:\n"
-                            + HelpExampleCli("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" 1000000")
+                            + HelpExampleCli("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\" \"ccssddxx1122\" 1000000")
                             + "\nAs json rpc call\n"
                             + HelpExampleRpc("submitnickidregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 1000000"));
 
