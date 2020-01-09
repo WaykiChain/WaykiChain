@@ -21,10 +21,9 @@ static auto make(Api& api) {
         std::vector<char> abi;
         if (!get_native_contract_abi(account, abi)) {
             CUniversalContract contract_store;
-            CAccount contract_account;
+            CAccount           contract_account;
             if (api->accountCache.GetAccount(CNickID(wasm::name(account).to_string()), contract_account)
                 && api->contractCache.GetContract(contract_account.regid, contract_store)){
-
                 abi.insert(abi.end(), contract_store.abi.begin(), contract_store.abi.end());
             }
         }
@@ -111,10 +110,10 @@ static inline void to_variant(const wasm::inline_transaction &t, json_spirit::Va
     }
     json_spirit::Config::add(obj, "authorization", json_spirit::Value(arr));
 
-
     std::vector<char> abi = resolver(t.contract);
 
     if (abi.size() > 0 && t.action != wasm::N(setcode)) {
+    //if (abi.size() > 0 ) {
         if (t.data.size() > 0) {
             try {
                 val = wasm::abi_serializer::unpack(abi, wasm::name(t.action).to_string(), t.data,
@@ -148,7 +147,6 @@ static inline void to_variant(const wasm::inline_transaction_trace &t, json_spir
     to_variant(t.trx, val, resolver);
     json_spirit::Config::add(obj, "trx", val);
 
-    
     if(t.console.size() > 0){
         to_variant(t.console, val);
         json_spirit::Config::add(obj, "console", val);

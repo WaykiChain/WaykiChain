@@ -205,8 +205,26 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
         std::tuple<bool, string> ret = wallet->CommitTx((CBaseTx * ) & tx);
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))
 
+        // Object obj_return;
+        // json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
+        // return obj_return;
+
         Object obj_return;
-        json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
+        Value  v_trx_id, value_json;
+        json_spirit::read(std::get<1>(ret), value_json);
+
+        //if (value_json.type() == json_spirit::obj_type) {
+        auto o = value_json.get_obj();
+        for (json_spirit::Object::const_iterator iter = o.begin(); iter != o.end(); ++iter) {
+            string name = Config_type::get_name(*iter);
+            if (name == "trx_id") {
+                v_trx_id = Config_type::get_value(*iter);
+                break;
+            }
+        }
+        //}    
+
+        json_spirit::Config::add(obj_return, "trx_id", v_trx_id );
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;
@@ -274,7 +292,6 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         Object obj_return;
         Value  value_json;
         json_spirit::read(std::get<1>(ret), value_json);
-
         json_spirit::Config::add(obj_return, "result", value_json );
         return obj_return;
 
@@ -316,7 +333,6 @@ Value gettablewasm( const Array &params, bool fHelp ) {
         //                 "cannot get table from contract '%s'", contract_name.to_string())
         CHAIN_ASSERT( pContractDataIt, wasm_chain::table_not_found, 
                       "cannot get table '%s' from contract '%s'", contract_table.to_string(), contract_name.to_string() )
-
 
         bool                hasMore = false;
         json_spirit::Object object_return;
