@@ -12,6 +12,8 @@
 #include "commons/serialize.h"
 #include "entities/id.h"
 #include "commons/json/json_spirit.h"
+#include "config/const.h"
+#include "config/txbase.h"
 
 class CCacheWrapper ;
 class CValidationState ;
@@ -21,13 +23,14 @@ enum ProposalType: uint8_t{
     NULL_PROPOSAL     = 0 ,
     PARAM_GOVERN      = 1 ,
     GOVERNER_UPDATE   = 2 ,
-    DEX_SWITCH        = 3
+    DEX_SWITCH        = 3 ,
+    MINER_FEE_UPDATE  = 4
 };
 
 enum OperateType: uint8_t {
     NULL_OPT = 0,
-    ENABLE  = 1 ,
-    DISABLE = 2
+    ENABLE   = 1 ,
+    DISABLE  = 2
 };
 
 
@@ -177,7 +180,7 @@ public:
 
 class CDexSwitchProposal: public CProposal{
 public:
-    uint32_t dexid ;
+    uint32_t dexid;
     OperateType operate_type = OperateType ::ENABLE;
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
@@ -188,7 +191,7 @@ public:
 
     CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
     bool IsEmpty() const override { return operate_type == NULL_OPT && CProposal::IsEmpty() ;}
-    void SetEmpty() override { operate_type = NULL_OPT;}
+    void SetEmpty() override { operate_type = NULL_OPT; CProposal:: SetEmpty() ;}
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
 
@@ -204,6 +207,41 @@ public:
     }
 
 };
+
+class CMinerFeeProposal: public CProposal {
+public:
+    TxType tx_type = TxType::NULL_TX ;
+    string  fee_symbol = "" ;
+    uint64_t  fee_sawi_amount = 0 ;
+
+    CMinerFeeProposal():CProposal(ProposalType::MINER_FEE_UPDATE){}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height));
+            READWRITE(need_governer_count);
+            READWRITE((uint8_t&)tx_type);
+            READWRITE(fee_symbol);
+            READWRITE(VARINT(fee_sawi_amount));
+            )
+
+    bool IsEmpty() const override { return tx_type == 0 && CProposal::IsEmpty() ;}
+    void SetEmpty() override { tx_type = TxType ::NULL_TX; CProposal::SetEmpty() ;}
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
+
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+
+    Object ToJson(){
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("tx_type", tx_type));
+        o.push_back(Pair("fee_symbol", fee_symbol)) ;
+        o.push_back(Pair("fee_sawi_amount", fee_sawi_amount));
+        return o ;
+
+    }
+};
+
 
 
 #endif //ENTITIES_PROPOSAL_H

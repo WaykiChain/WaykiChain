@@ -25,6 +25,7 @@
 #include "config/version.h"
 
 using namespace json_spirit;
+extern CCacheDBManager *pCdMan;
 
 string GetTxType(const TxType txType) {
     auto it = kTxFeeTable.find(txType);
@@ -35,6 +36,11 @@ string GetTxType(const TxType txType) {
 }
 
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
+
+
+    if(pCdMan->pSysParamCache->GetMinerFee(nTxType, symbol, feeOut))
+        return true ;
+
     const auto &iter = kTxFeeTable.find(nTxType);
     if (iter != kTxFeeTable.end()) {
         FeatureForkVersionEnum version = GetFeatureForkVersion(height);

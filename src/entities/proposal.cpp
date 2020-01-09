@@ -8,6 +8,9 @@
 #include "persistence/cachewrapper.h"
 #include <algorithm>
 #include "main.h"
+#include <set>
+#include "config/txbase.h"
+
 
 extern bool CheckIsGoverner(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
 extern uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw );
@@ -88,7 +91,6 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, governer regid(%s) is not exist!", governer_regid.ToString()), REJECT_INVALID,
                           "governer-not-exist");
      }
-
      vector<CRegID> governers ;
      if(operate_type == OperateType ::DISABLE&&!CheckIsGoverner(governer_regid,ProposalType(proposal_type),cw)){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, regid(%s) is not a governer!", governer_regid.ToString()), REJECT_INVALID,
@@ -98,8 +100,6 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
 }
 
 bool CDexSwitchProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state) {
-    //uint32_t dexid ;
-    //OperateType operate_type = OperateType ::ENABLE;
 
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
@@ -152,11 +152,41 @@ bool CDexSwitchProposal::CheckProposal(CCacheWrapper &cw, CValidationState& stat
                          "need-not-update");
     }
 
-
-
     return true ;
 }
 
 
+bool CMinerFeeProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+
+  if(!kFeeSymbolSet.count(fee_symbol)) {
+      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
+                       REJECT_INVALID,
+                       "feesymbol-error");
+  }
+
+  auto itr = kTxFeeTable.find(tx_type);
+  if(itr == kTxFeeTable.end()){
+      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, the tx type (%d) is invalid!", tx_type),
+                       REJECT_INVALID,
+                       "txtype-error");
+  }
+
+  if(!std::get<5>(itr->second)){
+      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, the tx type (%d) miner fee can't be updated!", tx_type),
+                       REJECT_INVALID,
+                       "can-not-update");
+  }
+
+  if(fee_sawi_amount == 0 ){
+      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, the tx type (%d) miner fee can't be zero", tx_type),
+                       REJECT_INVALID,
+                       "can-not-be-zero");
+  }
+  return true ;
+}
+
+bool CMinerFeeProposal:: ExecuteProposal(CCacheWrapper &cw, CValidationState& state) {
+    return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
+}
 
 

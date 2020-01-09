@@ -29,6 +29,9 @@ void CProposal::SerializePtr(Stream& os, const shared_ptr<CProposal>& pa, int nT
         case DEX_SWITCH:
             Serialize(os, *((CDexSwitchProposal *) (pa.get())), nType, nVersion);
             break;
+        case MINER_FEE_UPDATE:
+            Serialize(os, *((CMinerFeeProposal *) (pa.get())), nType, nVersion);
+            break;
         default:
             throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                               pa->proposal_type));
@@ -61,6 +64,12 @@ void CProposal::UnserializePtr(Stream& is, std::shared_ptr<CProposal> &pa, int n
         case DEX_SWITCH: {
             pa = std::make_shared<CDexSwitchProposal>();
             Unserialize(is, *((CDexSwitchProposal *)(pa.get())), nType, nVersion);
+            break;
+        }
+
+        case MINER_FEE_UPDATE: {
+            pa = std::make_shared<CMinerFeeProposal>();
+            Unserialize(is, *((CMinerFeeProposal *)(pa.get())), nType, nVersion);
             break;
         }
 

@@ -6,7 +6,7 @@
 
 #include "proposaltx.h"
 #include "main.h"
-#include "scoin.h"
+//#include "scoin.h"
 #include "entities/proposal.h"
 #include <algorithm>
 #include "entities/proposalserializer.h"
