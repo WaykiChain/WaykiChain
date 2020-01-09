@@ -272,7 +272,10 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
         JSON_RPC_ASSERT(std::get<0>(ret), RPC_WALLET_ERROR, std::get<1>(ret))//fixme: should get exception from committx
 
         Object obj_return;
-        json_spirit::Config::add(obj_return, "txid", std::get<1>(ret) );
+        Value  value_json;
+        json_spirit::read(std::get<1>(ret), value_json);
+
+        json_spirit::Config::add(obj_return, "result", value_json );
         return obj_return;
 
     } JSON_RPC_CAPTURE_AND_RETHROW;

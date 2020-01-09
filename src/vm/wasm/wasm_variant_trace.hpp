@@ -148,8 +148,11 @@ static inline void to_variant(const wasm::inline_transaction_trace &t, json_spir
     to_variant(t.trx, val, resolver);
     json_spirit::Config::add(obj, "trx", val);
 
-    // to_variant(t.console, val);
-    // json_spirit::Config::add(obj, "console", val);
+    
+    if(t.console.size() > 0){
+        to_variant(t.console, val);
+        json_spirit::Config::add(obj, "console", val);
+    }
 
     if (t.inline_traces.size() > 0) {
         json_spirit::Array arr;

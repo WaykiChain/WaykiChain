@@ -326,19 +326,24 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       "set tx '%s' receipts failed",
                       GetHash().ToString())
 
-         execute_tx_to_return.SetReturn(GetHash().ToString());
+        //set runstep for block fuel sum
+        nRunStep = fuel;
 
-         //set runstep for block fuel sum
-         nRunStep = fuel;
+        auto database = std::make_shared<CCacheWrapper>(context.pCw);
+        auto resolver = make_resolver(database);
+
+        json_spirit::Value value_json;
+        to_variant(trx_trace, value_json, resolver);
+        string string_return = json_spirit::write(value_json);
+
+        //execute_tx_to_return.SetReturn(GetHash().ToString());
+        execute_tx_to_return.SetReturn(string_return);
     } catch (wasm_chain::exception &e) { 
 
         string trx_current_str("inline_tx:");
         if( trx_current_for_exception != nullptr ){
             //fixme:should check the action data can be unserialize
             Value trx;
-            // auto database = std::make_shared<CCacheWrapper>(context.pCw);
-            // auto resolver = make_resolver(database);
-            // to_variant(*trx_current_for_exception, trx, resolver);
             to_variant(*trx_current_for_exception, trx);
             trx_current_str = json_spirit::write(trx);
         }
