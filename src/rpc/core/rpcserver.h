@@ -216,6 +216,8 @@ extern json_spirit::Value abidefjsontobinwasm(const json_spirit::Array& params, 
 extern Value submitparamgovernproposal(const Array& params, bool fHelp) ; //in rpcproposal.cpp
 extern Value submitgovernerupdateproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
+extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
+
 extern Value submitproposalassenttx(const Array& params, bool fHelp) ;
 extern Value getsysparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;

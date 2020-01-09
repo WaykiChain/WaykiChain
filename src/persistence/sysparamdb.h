@@ -5,6 +5,7 @@
 
 #include "commons/serialize.h"
 #include "persistence/dbaccess.h"
+#include "persistence/dbconf.h"
 
 #include <cstdint>
 #include <unordered_map>
@@ -16,8 +17,8 @@ using namespace std;
 class CSysParamDBCache {
 public:
     CSysParamDBCache() {}
-    CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess) {}
-    CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache) {}
+    CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess),minerFeeCache(pDbAccess) {}
+    CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache), minerFeeCache(pBaseIn->minerFeeCache) {}
 
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
         if (SysParamTable.count(paramType) == 0)
@@ -25,8 +26,11 @@ public:
 
         auto iter = SysParamTable.find(paramType);
         string keyPostfix = std::get<0>(iter->second);
-        if (!sysParamCache.GetData(keyPostfix, paramValue)) {
+        CVarIntValue<uint64_t > value ;
+        if (!sysParamCache.GetData(keyPostfix, value)) {
             paramValue = std::get<1>(iter->second);
+        } else{
+            paramValue = value.get();
         }
 
         return true;
@@ -34,20 +38,46 @@ public:
 
     bool Flush() {
         sysParamCache.Flush();
+        minerFeeCache.Flush();
         return true;
     }
 
-    uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize(); }
+    uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize() + minerFeeCache.GetCacheSize(); }
 
-    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) { sysParamCache.SetBase(&pBaseIn->sysParamCache); }
+    void SetBaseViewPtr(CSysParamDBCache *pBaseIn) {
+        sysParamCache.SetBase(&pBaseIn->sysParamCache);
+        minerFeeCache.SetBase(&pBaseIn->minerFeeCache);
+    }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { sysParamCache.SetDbOpLogMap(pDbOpLogMapIn); }
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        sysParamCache.SetDbOpLogMap(pDbOpLogMapIn);
+        minerFeeCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         sysParamCache.RegisterUndoFunc(undoDataFuncMap);
+        minerFeeCache.RegisterUndoFunc(undoDataFuncMap);
     }
     bool SetParam(const string& key, const uint64_t& value){
         return sysParamCache.SetData(key, value) ;
+    }
+
+    bool SetMinerFee( const uint8_t txType, const string feeSymbol, const uint64_t feeSawiAmount) {
+
+        auto pa = std::make_pair(txType, feeSymbol) ;
+        return minerFeeCache.SetData(pa , CVarIntValue(feeSawiAmount)) ;
+
+    }
+
+    bool GetMinerFee( const uint8_t txType, const string feeSymbol, uint64_t& feeSawiAmount) {
+
+        auto pa = std::make_pair(txType, feeSymbol) ;
+        CVarIntValue<uint64_t > value ;
+        bool result =  minerFeeCache.GetData(pa , value) ;
+
+        if(result)
+            feeSawiAmount = value.get();
+        return result ;
     }
 
 
@@ -56,5 +86,7 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CCompositeKVCache< dbk::SYS_PARAM,             string,                 uint64_t >              sysParamCache;
+    CCompositeKVCache< dbk::SYS_PARAM,             string,                 CVarIntValue<uint64_t> >              sysParamCache;
+    CCompositeKVCache< dbk::MINER_FEE,             pair<uint8_t, string>,  CVarIntValue<uint64_t> >              minerFeeCache;
+
 };

@@ -174,14 +174,14 @@ bool CAccountDBCache::SaveAccount(const CAccount &account) {
 }
 
 bool CAccountDBCache::SetNickId(const CAccount account, const uint32_t height){
-    auto heightKeyId = std::make_pair(height,account.keyid);
-    nickId2KeyIdCache.SetData(account.nickid.value, heightKeyId);
+    auto heightKeyId = std::make_pair(CVarIntValue(height),account.keyid);
+    nickId2KeyIdCache.SetData(CVarIntValue(account.nickid.value), heightKeyId);
     return true;
 }
 
 bool CAccountDBCache::GetNickIdHeight(uint64_t nickIdValue, uint32_t& regHeight) {
     std::pair<CVarIntValue<uint32_t>, CKeyID> regHeightKeyID ;
-    bool getResult =  nickId2KeyIdCache.GetData(nickIdValue, regHeightKeyID) ;
+    bool getResult =  nickId2KeyIdCache.GetData(CVarIntValue(nickIdValue), regHeightKeyID) ;
     if(getResult)
         regHeight = regHeightKeyID.first.get();
     return getResult;
