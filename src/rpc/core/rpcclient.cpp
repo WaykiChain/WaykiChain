@@ -159,6 +159,7 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
 
     if (strMethod == "listcontracts"          && n > 0) ConvertTo<bool>(params[0]);
     if (strMethod == "getblock"               && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
+    if (strMethod == "getblockundo"           && n > 0) { if (params[0].get_str().size() < 32) ConvertTo<int32_t>(params[0]); }
 
     /********************************************************************************************************************/
     if (strMethod == "getcontractdata"        && n > 2) ConvertTo<bool>(params[2]);
