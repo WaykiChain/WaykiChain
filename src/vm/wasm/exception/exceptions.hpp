@@ -1,7 +1,7 @@
 #pragma once
 
 #include"wasm/exception/exception.hpp"
-#include"boost/core/typeinfo.hpp"
+//#include"boost/core/typeinfo.hpp"
 
 using namespace wasm_chain;
 
