@@ -389,7 +389,7 @@ namespace wasm {
                 string s = trim(from);
                 CHAIN_ASSERT(!s.empty(), symbol_type_exception, "%s","creating symbol from empty string");
                 auto comma_pos = s.find(',');
-                CHAIN_ASSERT(comma_pos != string::npos, symbol_type_exception,"%s","missing comma in symbol");
+                CHAIN_ASSERT(comma_pos != string::npos, symbol_type_exception,"%s","missing comma in symbol. ex. 8,WICC");
                 auto prec_part = s.substr(0, comma_pos);
                 uint8_t p = atoi(prec_part.data());
                 string name_part = s.substr(comma_pos + 1);
