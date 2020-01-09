@@ -41,7 +41,7 @@ namespace wasm_chain {
       wasm_chain::exception wasme( \
                 CHAIN_LOG_MESSAGE( log_level::warn,  ": " + tfm::format(__VA_ARGS__) + " " + e.what()), \
                 wasm_chain::std_exception_code,\
-                BOOST_CORE_TYPEID(decltype(e)).name(), \
+                "std_exception", \
                 e.what() ) ; throw wasme;\
    } catch( ... ) {  \
       throw wasm_chain::unhandled_exception( \
