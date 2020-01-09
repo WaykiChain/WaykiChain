@@ -15,7 +15,7 @@ namespace wasm { namespace rpc{
         Result:
         "txhash":            (string)
         Examples:
-        > ./coind submitwasmcontractdeploytx "walker222222" "walker222222" "/tmp/myapp.wasm" "/tmp/myapp.abi"
+        > ./coind submitwasmcontractdeploytx walker222222 walker222222 /tmp/myapp.wasm /tmp/myapp.abi
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"submitwasmcontractdeploytx", "params":["walker222222", "walker222222", "/tmp/myapp.wasm", "/tmp/myapp.bai"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
@@ -30,7 +30,7 @@ namespace wasm { namespace rpc{
         Result:
         "txid":       (string)
         Examples: 
-        > ./coind submitwasmcontractcalltx "xiaoyu111111" "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind submitwasmcontractcalltx xiaoyu111111 walker222222 transfer '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"setcodewasmcontracttx", "params":["xiaoyu111111", "walker222222", "transfer", '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
@@ -45,7 +45,7 @@ namespace wasm { namespace rpc{
         "rows":       (string)"
         "more":       (bool)"
         nExamples: 
-        > ./coind gettablewasm "walker222222" "accounts" 
+        > ./coind gettablewasm walker222222 accounts 
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettablewasm", "params":["walker222222", "accounts"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
@@ -58,7 +58,7 @@ namespace wasm { namespace rpc{
         Result:
         "data":       (string in hex)
         Examples: 
-        > ./coind jsontobinwasm "walker222222" "transfer" '["xiaoyu111111", "walker222222", "100000000 WICC","transfer to walker222222"]'
+        > ./coind jsontobinwasm walker222222 transfer '["xiaoyu111111", "walker222222", "100.00000000 WICC","transfer to walker222222"]'
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"jsontobinwasm", "params":["walker222222","transfer",'["xiaoyu111111","walker222222", "100000000 WICC", "transfer to walker222222"]']}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
@@ -71,9 +71,9 @@ namespace wasm { namespace rpc{
         Result:
         "data":       (string in json)
         Examples: 
-        > ./coind bintojsonwasm "walker222222" "transfer" "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"
+        > ./coind bintojsonwasm walker222222 transfer 10420821684f8deb208410425c05a3e100e40b54020000000857494343000000187472616e7366657220746f2077616c6b6572323232323232
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["walker222222","transfer", "000000809a438deb000000000000af91809698000000000004454f5300000000107472616e7366657220746f206d61726b"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"bintojsonwasm", "params":["walker222222","transfer", "10420821684f8deb208410425c05a3e100e40b54020000000857494343000000187472616e7366657220746f2077616c6b6572323232323232"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *get_code_wasm_rpc_help_message = R"=====(
@@ -82,7 +82,7 @@ namespace wasm { namespace rpc{
         Result:
         "code":        (string in hex)
         Examples:
-        > ./coind getcodewasm "walker222222" 
+        > ./coind getcodewasm walker222222
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getcodewasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
@@ -93,23 +93,23 @@ namespace wasm { namespace rpc{
         Result:
         "code":        (string)
         Examples:
-        > ./coind getabiwasm "walker222222" 
+        > ./coind getabiwasm walker222222"
         As json rpc call 
         > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"getabiwasm", "params":["walker222222"]}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
     const char *get_tx_trace_rpc_help_message = R"=====(
-        gettxtrace "txid" 
+        gettxtrace "trxid" 
         1."txid": (string, required)  The hash of transaction
         Result an object of the transaction detail
         "nResult":
         Examples:
-        > ./coind gettxtrace "wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W" 
+        > ./coind gettxtrace 68feb6a4097a45d6e56f5b84f6c381b0c638a1306eb95b7ee2354e19838461e4
         As json rpc call 
-        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettxtrace", "params":"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W"}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
+        > curl --user myusername -d '{"jsonrpc": "1.0", "id":"curltest", "method":"gettxtrace", "params":"68feb6a4097a45d6e56f5b84f6c381b0c638a1306eb95b7ee2354e19838461e4"}' -H 'Content-Type: application/json;' http://127.0.0.1:8332
     )=====";
 
-    const char *abi_json_to_bin_wasm_rpc_help_message = R"=====(
+    const char *abi_def_json_to_bin_wasm_rpc_help_message = R"=====(
         abijsontobinwasm "abijson" 
         1."abijson": (string, required) abi json file from cdt
         Result:

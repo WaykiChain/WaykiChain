@@ -524,9 +524,9 @@ Value gettxtrace( const Array &params, bool fHelp ) {
 
 }
 
-Value abijsontobinwasm( const Array &params, bool fHelp ) {
+Value abidefjsontobinwasm( const Array &params, bool fHelp ) {
 
-    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::abi_json_to_bin_wasm_rpc_help_message)
+    RESPONSE_RPC_HELP( fHelp || params.size() != 1 , wasm::rpc::abi_def_json_to_bin_wasm_rpc_help_message)
     RPCTypeCheck(params, list_of(str_type)(str_type)(str_type));
 
     try{
