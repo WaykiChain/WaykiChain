@@ -15,6 +15,8 @@
 #include "wasm/exception/exceptions.hpp"
 
 #include "crypto/hash.h"
+#include <openssl/ripemd.h>
+#include <openssl/sha.h>
 
 using namespace eosio;
 using namespace eosio::vm;
@@ -190,10 +192,67 @@ namespace wasm {
             return pWasmContext->receiver();
         }
 
-        void sha256( const void *data, uint32_t data_len, void *hash_val ) {
-            // string k = string((const char *) data, data_len);
-            // SHA256(k.data(), k.size(), hash_val.begin(./));
+        void sha1( const void *data, uint32_t data_len, void *hash_val ) {
+
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+
+            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+                          wasm_chain::wasm_api_data_size_exceeds_exception, 
+                          "value size must be < %ld, but get %ld",
+                          max_wasm_api_data_bytes, data_len)
+
+            SHA1((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
+
+
+        void sha256( const void *data, uint32_t data_len, void *hash_val ) {
+
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+
+            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+                          wasm_chain::wasm_api_data_size_exceeds_exception, 
+                          "value size must be < %ld, but get %ld",
+                          max_wasm_api_data_bytes, data_len)
+
+            SHA256((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+        }
+
+        void sha512( const void *data, uint32_t data_len, void *hash_val ) {
+
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 64 - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+
+            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+                          wasm_chain::wasm_api_data_size_exceeds_exception, 
+                          "value size must be < %ld, but get %ld",
+                          max_wasm_api_data_bytes, data_len)
+
+            SHA512((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+        }
+
+        void ripemd160( const void *data, uint32_t data_len, void *hash_val ) {
+
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
+                          wasm_chain::wasm_memory_exception,  "access violation")
+
+            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+                          wasm_chain::wasm_api_data_size_exceeds_exception, 
+                          "value size must be < %ld, but get %ld",
+                          max_wasm_api_data_bytes, data_len)
+
+            RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+        }
+
 
         //database
         int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
@@ -863,6 +922,11 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, read_action_data, read_action_data)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, action_data_size, action_data_size)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_receiver, current_receiver)
+
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha1,       sha1)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha256,     sha256)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha512,     sha512)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160,  ripemd160)
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_store,  db_store)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_remove, db_remove)
