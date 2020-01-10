@@ -217,19 +217,18 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 4 || params.size() > 5){
 
         throw runtime_error(
-                "submitdexswitchproposal \"addr\" \"tx_type\" \"fee_symbol\" \"fee_sawi_amount\" [\"fee\"]\n"
+                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_symbol\" \"fee_sawi_amount\" [\"fee\"]\n"
                 "create proposal about enable/disable dexoperator\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
-                "2.\"dexid\":            (numberic, required) the dexoperator's id\n"
-                "3.\"operate_type\":     (numberic, required) the operate type \n"
-                "                         1 stand for enable\n"
-                "                         2 stand for disable\n"
-                "4.\"fee\":              (combomoney, optional) the tx fee \n"
+                "2.\"tx_type\":          (numberic, required) the tx type you can get the lis by command \"gettxlist\" \n"
+                "3.\"fee_symbol\":       (string, required) the miner fee symbol, example:WICC, WUSD \n"
+                "4.\"fee_sawi_amount\"   (numberic,required)\n the minimum miner fee, the unit is 'sawi'\n"
+                "5.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitdexswitchproposal", "0-1 1 1  WICC:1:WI")
+                + HelpExampleCli("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitdexswitchproposal", "0-1 1 1  WICC:1:WI")
+                + HelpExampleRpc("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
 
         );
 
@@ -239,7 +238,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint8_t txType = params[1].get_int();
     string feeSymbol = params[2].get_str();
-    uint64_t feeSawiAmount = AmountToRawValue(params[3]) ;
+    uint64_t feeSawiAmount = (params[3].get_int()) ;
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_CREATE_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);

@@ -262,6 +262,8 @@ bool GetKeyId(const string &addr, CKeyID &keyId) {
         return true ;
     }
     CNickID nickId(addr) ;
+    if(nickId.IsEmpty())
+        return false ;
     return pCdMan->pAccountCache->GetKeyId(nickId, keyId);
 }
 
