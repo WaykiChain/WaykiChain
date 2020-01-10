@@ -192,6 +192,28 @@ namespace wasm {
             return pWasmContext->receiver();
         }
 
+
+      void assert_sha256(const void * data, uint32_t datalen, void* hash_val) {
+         // auto result = SHA1((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
+      }
+
+      void assert_sha1(const void * data, uint32_t datalen, void* hash_val) {
+         // auto result = SHA256((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
+      }
+
+      void assert_sha512(const void * data, uint32_t datalen, void* hash_val) {
+         // auto result = SHA512((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
+      }
+
+      void assert_ripemd160(const void * data, uint32_t datalen, void* hash_val) {
+         // auto result = RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)hash_val);
+         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
+      }
+
+
         void sha1( const void *data, uint32_t data_len, void *hash_val ) {
 
             CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
@@ -923,10 +945,15 @@ namespace wasm {
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, action_data_size, action_data_size)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, current_receiver, current_receiver)
 
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha1,       sha1)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha256,     sha256)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha512,     sha512)
-    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160,  ripemd160)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha1,      assert_sha1)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha256,    assert_sha256)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_sha512,    assert_sha512)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, assert_ripemd160, assert_ripemd160)
+
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha1,      sha1)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha256,    sha256)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, sha512,    sha512)
+    REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, ripemd160, ripemd160)
 
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_store,  db_store)
     REGISTER_WASM_VM_INTRINSIC(wasm_host_methods, env, db_remove, db_remove)
