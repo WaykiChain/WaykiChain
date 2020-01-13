@@ -7,7 +7,7 @@
 #include "wasm/datastream.hpp"
 #include "wasm/types/uint128.hpp"
 #include "wasm/wasm_log.hpp"
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_runtime.hpp"
 #include "wasm/wasm_interface.hpp"
 #include "wasm/wasm_variant.hpp"

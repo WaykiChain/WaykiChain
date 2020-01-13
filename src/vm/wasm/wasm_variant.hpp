@@ -12,7 +12,7 @@
 #include "commons/json/json_spirit_value.h"
 //#include "wasm/exceptions.hpp"
 #include "wasm/abi_def.hpp"
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_log.hpp"
 
 #include "wasm/exception/exceptions.hpp"

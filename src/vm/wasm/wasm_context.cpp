@@ -1,7 +1,7 @@
 #include "wasm/wasm_context.hpp"
 #include "wasm/wasm_native_contract.hpp"
 #include "wasm/types/name.hpp"
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "wasm/wasm_log.hpp"
 #include "entities/account.h"
 
@@ -283,8 +283,8 @@ namespace wasm {
 
     void wasm_context::update_storage_usage(const uint64_t& account, const int64_t& size_in_bytes){
 
-        int64_t disk_usage  = size_in_bytes * store_fuel_fee_per_byte;
-        control_trx.fuel   += (disk_usage < 0) ? 0 : disk_usage;
+        int64_t disk_usage    = size_in_bytes * store_fuel_fee_per_byte;
+        control_trx.run_cost += (disk_usage < 0) ? 0 : disk_usage;
     }
 
 }

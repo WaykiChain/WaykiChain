@@ -10,7 +10,6 @@
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/abi_def.hpp"
 #include "wasm/abi_serializer.hpp"
-
 #include "wasm/exception/exceptions.hpp"
 
 using namespace std;
@@ -67,8 +66,8 @@ namespace wasm {
                       "expect contract wasmio.bank, but get '%s'", 
                       wasm::name(context._receiver).to_string());
 
-        auto &database            = context.database.accountCache;
-        context.control_trx.fuel += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+        auto &database                = context.database.accountCache;
+        context.control_trx.run_cost += context.trx.GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
         transfer_data_type transfer_data = wasm::unpack<std::tuple<uint64_t, uint64_t, wasm::asset, string>>(context.trx.data);
         auto from                        = std::get<0>(transfer_data);

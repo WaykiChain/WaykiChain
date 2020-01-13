@@ -4,7 +4,7 @@
 #include "wasm/wasm_context.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/abi_def.hpp"
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
@@ -183,8 +183,8 @@ static inline void to_variant(const wasm::transaction_trace &t, json_spirit::Val
     to_variant(t.fuel_rate, val);
     json_spirit::Config::add(obj, "fuel_rate", val);
 
-    to_variant(t.fuel, val);
-    json_spirit::Config::add(obj, "fuel_step", val);
+    to_variant(t.run_cost, val);
+    json_spirit::Config::add(obj, "run_cost", val);
 
     if (t.traces.size() > 0) {
         json_spirit::Array arr;

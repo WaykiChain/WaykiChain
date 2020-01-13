@@ -15,10 +15,9 @@
 #include <sstream>
 
 #include "wasm/wasm_context.hpp"
-//#include "wasm/exceptions.hpp"
 #include "wasm/types/name.hpp"
 #include "wasm/abi_def.hpp"
-#include "wasm/wasm_config.hpp"
+// #include "wasm/wasm_constants.hpp"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_native_contract_abi.hpp"
 #include "wasm/wasm_native_contract.hpp"
@@ -201,7 +200,7 @@ bool CWasmContractTx::CheckTx(CTxExecuteContext& context) {
     return true;
 }
 
-static uint64_t get_fee_to_miner(CBaseTx& tx, CTxExecuteContext& context) {
+static uint64_t get_fuel_fee_to_miner(CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t min_fee;
     CHAIN_ASSERT(GetTxMinFee(tx.nTxType, context.height, tx.fee_symbol, min_fee), wasm_chain::fee_exhausted_exception, "get_fuel_limit, get minFee failed")
@@ -210,7 +209,7 @@ static uint64_t get_fee_to_miner(CBaseTx& tx, CTxExecuteContext& context) {
     return fee_for_miner;
 }
 
-static uint64_t get_fuel_limit(CBaseTx& tx, CTxExecuteContext& context) {
+static uint64_t get_fuel_fee_limit(CBaseTx& tx, CTxExecuteContext& context) {
 
     uint64_t fuel_rate    = context.fuel_rate;
     CHAIN_ASSERT(fuel_rate > 0, wasm_chain::fee_exhausted_exception, "%s", "fuel_rate cannot be 0")
@@ -298,7 +297,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
 
         recipients_size        = 0;
         pseudo_start           = system_clock::now();//pseudo start for reduce code loading duration
-        fuel                   = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
+        run_cost               = GetSerializeSize(SER_DISK, CLIENT_VERSION) * store_fuel_fee_per_byte;
 
         std::vector<CReceipt>   receipts;
         wasm::transaction_trace trx_trace;
@@ -320,18 +319,18 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       max_transaction_duration * 1000, trx_trace.elapsed.count())                   
 
         //check storage usage with the limited fuel
-        auto fee_to_miner = get_fee_to_miner(*this, context) ;
-        auto fee          = get_fuel_limit(*this, context);
-        fuel              = fuel + recipients_size * notice_fuel_fee_per_recipient;
+        auto fuel_fee_to_miner = get_fuel_fee_to_miner(*this, context) ;
+        auto fuel_fee          = get_fuel_fee_limit(*this, context);
+        run_cost               = run_cost + recipients_size * notice_fuel_fee_per_recipient;
 
-        CHAIN_ASSERT( fee > fuel, wasm_chain::fee_exhausted_exception, 
-                      "fee '%ld' is not enough to charge fuel '%ld', fuel_rate:%ld", 
-                      (fee == MAX_BLOCK_RUN_STEP)?fee:fee + fee_to_miner, 
-                      (fee == MAX_BLOCK_RUN_STEP)?fuel:fuel + fee_to_miner,
+        CHAIN_ASSERT( fuel_fee > run_cost, wasm_chain::fee_exhausted_exception, 
+                      "fuel fee '%ld' is not enough to charge cost '%ld', fuel_rate:%ld", 
+                      (fuel_fee == MAX_BLOCK_RUN_STEP)?fuel_fee:fuel_fee + fuel_fee_to_miner, 
+                      (fuel_fee == MAX_BLOCK_RUN_STEP)?run_cost:run_cost + fuel_fee_to_miner,
                       context.fuel_rate);
 
         trx_trace.fuel_rate = context.fuel_rate;
-        trx_trace.fuel      = fuel;
+        trx_trace.run_cost  = run_cost;
 
         // WASM_TRACE("fee: '%ld' ,fuel: '%ld'", 
         //               (fee == MAX_BLOCK_RUN_STEP)?fee:fee + fee_to_miner, 
@@ -353,7 +352,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       GetHash().ToString())
 
         //set runstep for block fuel sum
-        nRunStep = fuel;
+        nRunStep = run_cost;
 
         auto database = std::make_shared<CCacheWrapper>(context.pCw);
         auto resolver = make_resolver(database);

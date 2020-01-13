@@ -28,18 +28,16 @@
 #include "commons/json/json_spirit_reader.h"
 #include "commons/json/json_spirit_writer.h"
 
-#include "datastream.hpp"
-#include "abi_serializer.hpp"
-#include "wasm_context.hpp"
-// #include "exceptions.hpp"
-#include "types/name.hpp"
-#include "types/asset.hpp"
-#include "wasm_config.hpp"
-#include "wasm_native_contract_abi.hpp"
-#include "wasm_native_contract.hpp"
-#include "wasm_rpc_message.hpp"
-#include "wasm_variant_trace.hpp"
-
+#include "wasm/datastream.hpp"
+#include "wasm/abi_serializer.hpp"
+#include "wasm/wasm_context.hpp"
+#include "wasm/types/name.hpp"
+#include "wasm/types/asset.hpp"
+#include "wasm/wasm_constants.hpp"
+#include "wasm/wasm_native_contract_abi.hpp"
+#include "wasm/wasm_native_contract.hpp"
+#include "wasm/wasm_rpc_message.hpp"
+#include "wasm/wasm_variant_trace.hpp"
 #include "wasm/exception/exceptions.hpp"
 
 using namespace std;

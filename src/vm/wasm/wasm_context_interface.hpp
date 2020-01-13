@@ -7,7 +7,7 @@
 #include <map>
 #include <chrono>
 
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "wasm/types/inline_transaction.hpp"
 #include "eosio/vm/allocator.hpp"
 

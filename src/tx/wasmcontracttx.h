@@ -4,7 +4,7 @@
 #include "tx.h"
 #include "wasm/types/inline_transaction.hpp"
 #include "wasm/wasm_trace.hpp"
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "chrono"
 
 using std::chrono::microseconds;
@@ -16,7 +16,8 @@ public:
     vector<wasm::signature_pair>     signatures;
 
 public:
-    uint64_t                      fuel;
+    uint64_t                      run_cost;
+    // uint64_t                      fuel;
     uint64_t                      recipients_size;
     system_clock::time_point      pseudo_start;
     std::chrono::microseconds     billed_time              = chrono::microseconds(0);

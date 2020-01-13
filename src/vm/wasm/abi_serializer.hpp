@@ -13,7 +13,6 @@
 #include "wasm/wasm_variant.hpp"
 #include "wasm/datastream.hpp"
 #include "wasm/types/types.hpp"
-//#include "wasm/exceptions.hpp"
 #include "wasm/exception/exceptions.hpp"
 
 namespace wasm {
