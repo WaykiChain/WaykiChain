@@ -77,7 +77,7 @@ void read_file_limit(const string& path, string& data, uint64_t max_size){
 
         char byte;
         ifstream f(path, ios::binary);
-        CHAIN_ASSERT( f.is_open() , wasm_chain::file_not_found_exception, "file '%s' not found", path)
+        CHAIN_ASSERT( f.is_open() , wasm_chain::file_not_found_exception, "file '%s' not found, it must be file name with full path", path)
 
         streampos pos = f.tellg();
         f.seekg(0, ios::end);
