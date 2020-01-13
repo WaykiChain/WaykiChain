@@ -89,6 +89,7 @@ coin_CORE_H = \
   entities/id.h \
   entities/key.h \
   entities/keystore.h \
+  entities/price.h \
   entities/receipt.h \
   entities/proposal.h \
   entities/proposalserializer.h \

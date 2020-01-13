@@ -814,14 +814,13 @@ bool AppInit(boost::thread_group &threadGroup) {
     if (pBlockIndex) {
         if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
-        pCdMan->pPpCache->SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
     }
 
     while (pBlockIndex && nCacheHeight-- > 0) {
         if (!ReadBlockFromDisk(pBlockIndex, block))
             return InitError("Failed to read block from disk");
 
-        if (!pCdMan->pPpCache->AddBlockToCache(block))
+        if (!pCdMan->pPpCache->AddPriceByBlock(block))
             return InitError("Failed to add block to price point memory cache");
 
         pBlockIndex = pBlockIndex->pprev;

@@ -11,6 +11,7 @@
 #include "entities/account.h"
 #include "entities/asset.h"
 #include "entities/id.h"
+#include "entities/price.h"
 #include "tx/tx.h"
 
 #include <map>
@@ -38,30 +39,26 @@ public:
 
 class CPricePointMemCache {
 public:
-    map<CoinPricePair, uint64_t> latestBlockMedianPricePoints;
-
-public:
     CPricePointMemCache() : pBase(nullptr) {}
     CPricePointMemCache(CPricePointMemCache *pBaseIn)
-        : latestBlockMedianPricePoints(pBase->latestBlockMedianPricePoints), pBase(pBaseIn) {}
+        : pBase(pBaseIn) {}
 
 public:
-    void SetLatestBlockMedianPricePoints(const map<CoinPricePair, uint64_t> &latestBlockMedianPricePoints);
-    bool AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
-    bool AddBlockToCache(const CBlock &block);
+    bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
-    bool DeleteBlockPricePoint(const int32_t blockHeight);
     bool DeleteBlockFromCache(const CBlock &block);
 
-    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
-    bool GetBlockMedianPricePoints(const int32_t blockHeight, const uint64_t slideWindow,
-                                   map<CoinPricePair, uint64_t> &mapMedianPricePoints);
+    bool CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices);
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
-    void Reset();
 
 private:
+    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
+
+    bool DeleteBlockPricePoint(const int32_t blockHeight);
+
     bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);
 
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
@@ -78,6 +75,7 @@ private:
 private:
     CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
     CPricePointMemCache *pBase;
+    PriceMap latest_median_prices;
 };
 
 #endif  // PERSIST_PRICEFEED_H

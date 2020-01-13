@@ -16,6 +16,7 @@
 #include "sync.h"
 #include "disk.h"
 #include "entities/id.h"
+#include "entities/price.h"
 #include "tx/tx.h"
 
 
@@ -176,7 +177,7 @@ public:
     static uint256 CheckMerkleBranch(uint256 hash, const vector<uint256> &vMerkleBranch, int32_t index);
 
     map<TokenSymbol, uint64_t> GetFees() const;
-    map<CoinPricePair, uint64_t> GetBlockMedianPrice() const;
+    PriceMap GetBlockMedianPrice() const;
     CUserID GetMinerUserID() const;
 
     void Print() const;

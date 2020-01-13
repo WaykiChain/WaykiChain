@@ -8,11 +8,12 @@
 
 #include "tx.h"
 #include "entities/cdp.h"
+#include "entities/price.h"
 #include "persistence/cdpdb.h"
 
 class CBlockPriceMedianTx: public CBaseTx  {
 private:
-    map<CoinPricePair, uint64_t> median_price_points;
+    PriceMap median_prices;
 
 public:
     CBlockPriceMedianTx() : CBaseTx(PRICE_MEDIAN_TX) {}
@@ -24,13 +25,13 @@ public:
         READWRITE(VARINT(valid_height));
         READWRITE(txUid);
 
-        READWRITE(median_price_points);
+        READWRITE(median_prices);
         // READWRITE(signature);
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid
-                   << median_price_points;
+                   << median_prices;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CBlockPriceMedianTx>(*this); }
@@ -44,12 +45,11 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 public:
-    bool SetMedianPricePoints(map<CoinPricePair, uint64_t> &mapMedianPricePointsIn) {
-        median_price_points = mapMedianPricePointsIn;
-        return true;
+    void SetMedianPrices(PriceMap &mapMedianPricesIn) {
+        median_prices = mapMedianPricesIn;
     }
 
-    map<CoinPricePair, uint64_t> GetMedianPrice() const;
+    PriceMap GetMedianPrice() const;
 
 private:
     uint256 GenOrderId(CTxExecuteContext &context, const CUserCDP &cdp, TokenSymbol assetSymbol);

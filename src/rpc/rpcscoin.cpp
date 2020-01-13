@@ -324,14 +324,11 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
     }
 
-    map<CoinPricePair, uint64_t> medianPricePoints;
-    if (!pCdMan->pPpCache->GetBlockMedianPricePoints(height, slideWindow, medianPricePoints)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price error");
-    }
+    PriceMap medianPricePoints = pCdMan->pBlockCache->GetMedianPrices();
 
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice =
-        pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
+
     uint64_t globalCollateralRatio = pCdMan->pCdpCache->GetGlobalCollateralRatio(bcoinMedianPrice);
     bool globalCollateralRatioFloorReached =
         pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
@@ -413,11 +410,7 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
 
-    int32_t height = chainActive.Height();
-    uint64_t slideWindow;
-    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-    // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
 
     Object obj;
     Array cdps;
@@ -448,11 +441,7 @@ Value getcdp(const Array& params, bool fHelp){
         );
     }
 
-    int32_t height = chainActive.Height();
-    uint64_t slideWindow;
-    pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-    // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = pCdMan->pPpCache->GetMedianPrice(height, slideWindow, CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;

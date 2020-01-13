@@ -30,8 +30,6 @@ namespace db_util {
     inline bool IsEmpty(const bool val) { return val == false; }
     inline void SetEmpty(bool &val) { val = false; }
 
-
-
     DEFINE_NUMERIC_EMPTY(int32_t)
     DEFINE_NUMERIC_EMPTY(uint8_t)
     DEFINE_NUMERIC_EMPTY(uint16_t)
@@ -61,6 +59,12 @@ namespace db_util {
     // set
     template<typename K, typename Pred, typename A> bool IsEmpty(const set<K, Pred, A>& val);
     template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val);
+
+    // map
+    template<typename K, typename T, typename Pred, typename A>
+    bool IsEmpty(const map<K, T, Pred, A>& val);
+    template<typename K, typename T, typename Pred, typename A>
+    void SetEmpty(map<K, T, Pred, A>& val);
 
     // 2 pair
     template<typename K, typename T> bool IsEmpty(const std::pair<K, T>& val);
@@ -100,6 +104,16 @@ namespace db_util {
         return val.empty();
     }
     template<typename K, typename Pred, typename A> void SetEmpty(set<K, Pred, A>& val) {
+        val.clear();
+    }
+
+    template<typename K, typename T, typename Pred, typename A>
+    bool IsEmpty(const map<K, T, Pred, A>& val) {
+        return val.empty();
+    }
+
+    template<typename K, typename T, typename Pred, typename A>
+    void SetEmpty(map<K, T, Pred, A>& val) {
         val.clear();
     }
 

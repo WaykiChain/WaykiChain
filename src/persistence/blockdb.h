@@ -48,6 +48,7 @@ public:
         flagCache(pDbAccess),
         bestBlockHashCache(pDbAccess),
         lastBlockFileCache(pDbAccess),
+        medianPricesCache(pDbAccess),
         reindexCache(pDbAccess),
         finalityBlockCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::BLOCK);
@@ -58,6 +59,7 @@ public:
         flagCache(pBaseIn->flagCache),
         bestBlockHashCache(pBaseIn->bestBlockHashCache),
         lastBlockFileCache(pBaseIn->lastBlockFileCache),
+        medianPricesCache(pBaseIn->medianPricesCache),
         reindexCache(pBaseIn->reindexCache),
         finalityBlockCache(pBaseIn->finalityBlockCache){};
 
@@ -73,6 +75,7 @@ public:
         flagCache.SetBase(&pBaseIn->flagCache);
         bestBlockHashCache.SetBase(&pBaseIn->bestBlockHashCache);
         lastBlockFileCache.SetBase(&pBaseIn->lastBlockFileCache);
+        medianPricesCache.SetBase(&pBaseIn->medianPricesCache);
         reindexCache.SetBase(&pBaseIn->reindexCache);
         finalityBlockCache.SetBase(&pBaseIn->finalityBlockCache);
 
@@ -83,6 +86,7 @@ public:
         flagCache.SetDbOpLogMap(pDbOpLogMapIn);
         bestBlockHashCache.SetDbOpLogMap(pDbOpLogMapIn);
         lastBlockFileCache.SetDbOpLogMap(pDbOpLogMapIn);
+        medianPricesCache.SetDbOpLogMap(pDbOpLogMapIn);
         reindexCache.SetDbOpLogMap(pDbOpLogMapIn);
         finalityBlockCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
@@ -92,6 +96,7 @@ public:
         flagCache.RegisterUndoFunc(undoDataFuncMap);
         bestBlockHashCache.RegisterUndoFunc(undoDataFuncMap);
         lastBlockFileCache.RegisterUndoFunc(undoDataFuncMap);
+        medianPricesCache.RegisterUndoFunc(undoDataFuncMap);
         reindexCache.RegisterUndoFunc(undoDataFuncMap);
         finalityBlockCache.RegisterUndoFunc(undoDataFuncMap);
     }
@@ -102,6 +107,10 @@ public:
 
     bool ReadLastBlockFile(int32_t &nFile);
     bool WriteLastBlockFile(int nFile);
+
+    uint64_t GetMedianPrice(const CoinPricePair &coinPricePair) const;
+    PriceMap GetMedianPrices() const;
+    bool SetMedianPrices(const PriceMap &medianPrices);
 
     bool WriteReindexing(bool fReindex);
     bool ReadReindexing(bool &fReindex);
@@ -128,6 +137,7 @@ private:
 /*  -------------------- --------------------   -------------   --------------------- */
     CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      bestBlockHashCache;    // best blockHash
     CSimpleKVCache< dbk::LAST_BLOCKFILE,            int>          lastBlockFileCache;
+    CSimpleKVCache< dbk::MEDIAN_PRICES,             PriceMap>     medianPricesCache;
     CSimpleKVCache< dbk::REINDEX,                   bool>         reindexCache;
     CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finalityBlockCache ;
 };
