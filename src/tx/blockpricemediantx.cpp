@@ -41,7 +41,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          "bad-median-price-points");
     }
 
-    if (cw.blockCache.SetMedianPrices(medianPrices)) {
+    if (!cw.blockCache.SetMedianPrices(medianPrices)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
     }
