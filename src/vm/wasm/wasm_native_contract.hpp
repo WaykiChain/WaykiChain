@@ -15,12 +15,12 @@ namespace wasm {
     void wasmio_native_setcode( wasm_context & );
     void wasmio_bank_native_transfer( wasm_context & );
 
-    inline bool is_native_contract(uint64_t contract){
-        if(contract == wasmio ||
-           contract == wasmio_bank)
-            return true;
-        return false;
-    }
+    // inline bool is_native_contract(uint64_t contract){
+    //     if(contract == wasmio ||
+    //        contract == wasmio_bank)
+    //         return true;
+    //     return false;
+    // }
 
     inline void sub_balance(CAccount& owner, const wasm::asset& quantity, CAccountDBCache &database){
 
