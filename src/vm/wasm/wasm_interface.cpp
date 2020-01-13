@@ -21,6 +21,16 @@
 using namespace eosio;
 using namespace eosio::vm;
 
+#define CHECK_WASM_IN_MEMORY(DATA, LENGTH) \
+    CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(DATA) + LENGTH - 1), \
+                  wasm_chain::wasm_memory_exception, "access violation" )                                                      
+
+#define CHECK_WASM_DATA_SIZE(LENGTH, DATA_NAME ) \
+    CHAIN_ASSERT( LENGTH <= max_wasm_api_data_bytes,                 \
+                  wasm_chain::wasm_api_data_size_exceeds_exception,  \
+                  "%s size must be < %ld, but get %ld",              \
+                  DATA_NAME, max_wasm_api_data_bytes, LENGTH )
+
 namespace wasm {
     using code_version       = uint256;
     using backend_validate_t = backend<wasm::wasm_context_interface, vm::interpreter>;
@@ -135,14 +145,17 @@ namespace wasm {
 
         void wasm_assert_message( uint32_t test,  const void *msg, uint32_t msg_len ) {
             if (!test) {             
-                CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(msg) + msg_len), 
-                              wasm_chain::wasm_memory_exception, 
-                              "access violation")
+                // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(msg) + msg_len - 1), 
+                //               wasm_chain::wasm_memory_exception, 
+                //               "access violation")
 
-                CHAIN_ASSERT( msg_len <= max_wasm_api_data_bytes, 
-                              wasm_chain::wasm_api_data_size_exceeds_exception, 
-                              "msg size must be < %ld, but get %ld",
-                              max_wasm_api_data_bytes, msg_len)
+                // CHAIN_ASSERT( msg_len <= max_wasm_api_data_bytes, 
+                //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+                //               "msg size must be < %ld, but get %ld",
+                //               max_wasm_api_data_bytes, msg_len)
+
+                CHECK_WASM_IN_MEMORY( msg,     msg_len)
+                CHECK_WASM_DATA_SIZE( msg_len, "msg"  )
 
                 std::string str = string((const char *) msg, msg_len);
                 CHAIN_ASSERT( false, wasm_chain::wasm_assert_message_exception, str)
@@ -171,14 +184,14 @@ namespace wasm {
         //action
         uint32_t read_action_data( void* memory, uint32_t buf_len ) {
             uint32_t s = pWasmContext->get_action_data_size();
-            //WASM_TRACE("%ld", s)
             if (buf_len == 0) return s;
    
             uint32_t copy_len = std::min(buf_len, s);
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(memory) + copy_len - 1), 
-                          wasm_chain::wasm_memory_exception,  
-                          "access violation")
-            //WASM_TRACE("%ld", buf_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(memory) + copy_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  
+            //               "access violation")
+            CHECK_WASM_IN_MEMORY(memory, copy_len)
+
             std::memcpy(memory, pWasmContext->get_action_data(), copy_len);
             return copy_len;
         }
@@ -216,15 +229,17 @@ namespace wasm {
 
         void sha1( const void *data, uint32_t data_len, void *hash_val ) {
 
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-
-            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, data_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, data_len)
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             SHA1((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
@@ -232,45 +247,51 @@ namespace wasm {
 
         void sha256( const void *data, uint32_t data_len, void *hash_val ) {
 
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-
-            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, data_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 32 - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, data_len)
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 32      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             SHA256((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
 
         void sha512( const void *data, uint32_t data_len, void *hash_val ) {
 
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 64 - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-
-            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, data_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 64 - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, data_len)
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 64      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
             SHA512((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
 
         void ripemd160( const void *data, uint32_t data_len, void *hash_val ) {
 
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-
-            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, data_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(data) + data_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(hash_val) + 20 - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, data_len)
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )            
 
             RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
@@ -278,18 +299,23 @@ namespace wasm {
 
         //database
         int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(val) + val_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "key size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, key_len)
-            CHAIN_ASSERT( val_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, val_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(val) + val_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            CHECK_WASM_IN_MEMORY(key, key_len)
+            CHECK_WASM_IN_MEMORY(val, val_len)
+
+            // CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "key size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, key_len)
+            // CHAIN_ASSERT( val_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, val_len)
+            CHECK_WASM_DATA_SIZE(key_len, "key"  )  
+            CHECK_WASM_DATA_SIZE(val_len, "value") 
 
             string k        = string((const char *) key, key_len);
             string v        = string((const char *) val, val_len);
@@ -306,12 +332,14 @@ namespace wasm {
         }
 
         int32_t db_remove( const uint64_t payer, const void *key, uint32_t key_len ) {
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
-                          wasm_chain::wasm_memory_exception,  "access violation")
-            CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "key size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, key_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
+            //               wasm_chain::wasm_memory_exception,  "access violation")
+            // CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "key size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, key_len)
+            CHECK_WASM_IN_MEMORY(key,     key_len)
+            CHECK_WASM_DATA_SIZE(key_len, "key"  ) 
 
             string k        = string((const char *) key, key_len);
             auto   contract = pWasmContext->receiver();
@@ -326,18 +354,14 @@ namespace wasm {
         }
 
         int32_t db_get( const void *key, uint32_t key_len, void *val, uint32_t val_len ) {
-            //WASM_TRACE("key_len:%ld",key_len)
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
-                          wasm_chain::wasm_memory_exception, "access violation")
-            //WASM_TRACE("val_len:%ld",val_len)
-            CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception,
-                          "key size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, key_len)
-            CHAIN_ASSERT( val_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, val_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
+            //               wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception,
+            //               "key size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, key_len)
+            CHECK_WASM_IN_MEMORY(key,     key_len)
+            CHECK_WASM_DATA_SIZE(key_len, "key"  )          
 
             string k        = string((const char *) key, key_len);
             auto   contract = pWasmContext->receiver();
@@ -349,8 +373,14 @@ namespace wasm {
             auto size    = v.size();
             if (val_len == 0) return size;
 
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(val) + val_len - 1), 
-                          wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(val) + val_len - 1), 
+            //               wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( val_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, val_len)
+            CHECK_WASM_IN_MEMORY(val,     val_len)
+            CHECK_WASM_DATA_SIZE(val_len, "value")  
 
             auto val_size = val_len > size ? size : val_len;
             std::memcpy(val, v.data(), val_size);
@@ -360,18 +390,22 @@ namespace wasm {
         }
 
         int32_t db_update( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
-                          wasm_chain::wasm_memory_exception, "access violation")
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(val) + val_len - 1), 
-                          wasm_chain::wasm_memory_exception, "access violation")
-            CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception,
-                          "key size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, key_len)
-            CHAIN_ASSERT( val_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "value size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, val_len)
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(key) + key_len - 1), 
+            //               wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(val) + val_len - 1), 
+            //               wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( key_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception,
+            //               "key size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, key_len)
+            // CHAIN_ASSERT( val_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "value size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, val_len)
+            CHECK_WASM_IN_MEMORY(key,     key_len)
+            CHECK_WASM_IN_MEMORY(val,     val_len)
+            CHECK_WASM_DATA_SIZE(key_len, "key"  )  
+            CHECK_WASM_DATA_SIZE(val_len, "value")            
 
             string k        = string((const char *) key, key_len);
             string v        = string((const char *) val, val_len);
@@ -393,22 +427,30 @@ namespace wasm {
                           wasm_chain::overlapping_memory_error, 
                           "memcpy can only accept non-aliasing pointers");
 
-            //WASM_TRACE("dest:%ld len:%ld",reinterpret_cast<uint64_t>(dest), len)
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(dest) + len - 1), 
-                          wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(dest) + len - 1), 
+            //               wasm_chain::wasm_memory_exception, "access violation")
 
-            // WASM_TRACE("src:%ld len:%ld",reinterpret_cast<uint64_t>(src), len)
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(src) + len - 1), 
-                          wasm_chain::wasm_memory_exception, "access violation")
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(src) + len - 1), 
+            //               wasm_chain::wasm_memory_exception, "access violation")
+
+            CHECK_WASM_IN_MEMORY(dest, len)
+            CHECK_WASM_IN_MEMORY(src,  len)
 
             return (char *) std::memcpy(dest, src, len);
         }
 
         void *memmove( void *dest, const void *src, int len ) {
+            CHECK_WASM_IN_MEMORY(dest, len)
+            CHECK_WASM_IN_MEMORY(src,  len)
+
             return (char *) std::memmove(dest, src, len);
         }
 
         int memcmp( const void *dest, const void *src, int len ) {
+
+            CHECK_WASM_IN_MEMORY(dest, len)
+            CHECK_WASM_IN_MEMORY(src,  len)
+
             int ret = std::memcmp(dest, src, len);
             if (ret < 0)
                 return -1;
@@ -418,6 +460,9 @@ namespace wasm {
         }
 
         void *memset( void *dest, int val, int len ) {
+
+            CHECK_WASM_IN_MEMORY(dest, len)
+
             return (char *) std::memset(dest, val, len);
         }
 
@@ -445,10 +490,13 @@ namespace wasm {
 
         void prints( const void *str ) {
             auto size = strlen((const char*)str); 
-            CHAIN_ASSERT( size <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "wasm api data size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, size )
+            // CHAIN_ASSERT( size <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "wasm api data size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, size )
+
+            CHECK_WASM_IN_MEMORY(str,  size )
+            CHECK_WASM_DATA_SIZE(size, "str") 
 
             if (!print_ignore) {
                 std::ostringstream o;
@@ -458,13 +506,16 @@ namespace wasm {
         }
 
         void prints_l( const void *str, uint32_t str_len ) {
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(str) + str_len - 1), 
-                          wasm_chain::wasm_memory_exception,
-                          "access violation")
-            CHAIN_ASSERT( str_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception,
-                          "wasm api data size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, str_len )
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(str) + str_len - 1), 
+            //               wasm_chain::wasm_memory_exception,
+            //               "access violation")
+            // CHAIN_ASSERT( str_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception,
+            //               "wasm api data size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, str_len )
+
+            CHECK_WASM_IN_MEMORY(str,     str_len)
+            CHECK_WASM_DATA_SIZE(str_len, "str"  ) 
 
             if (!print_ignore) {
                 pWasmContext->console_append(string((const char*)str, str_len));
@@ -557,10 +608,13 @@ namespace wasm {
 
         void printhex( const char *data, uint32_t data_len ) {
 
-            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "wasm api data size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, data_len )
+            // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "wasm api data size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, data_len )
+
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_DATA_SIZE(data_len, "data"  ) 
 
             if (!print_ignore) {
                 string str((const char*)data, data_len);
@@ -600,10 +654,13 @@ namespace wasm {
 
         //transaction
         void send_inline( void *data, uint32_t data_len ) {
-            CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception,
-                          "wasm api data size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, data_len )
+            // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception,
+            //               "wasm api data size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, data_len )
+
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_DATA_SIZE(data_len, "data"  ) 
 
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
 
@@ -624,13 +681,16 @@ namespace wasm {
             if(data_len == 0) return len;
 
             auto copy_len = std::min( static_cast<size_t>(data_len), len );
-            CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(producers) + copy_len - 1), 
-                          wasm_chain::wasm_memory_exception, 
-                          "access violation")
-            CHAIN_ASSERT( copy_len <= max_wasm_api_data_bytes, 
-                          wasm_chain::wasm_api_data_size_exceeds_exception, 
-                          "wasm api data size must be < %ld, but get %ld",
-                          max_wasm_api_data_bytes, copy_len )
+            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(producers) + copy_len - 1), 
+            //               wasm_chain::wasm_memory_exception, 
+            //               "access violation")
+            // CHAIN_ASSERT( copy_len <= max_wasm_api_data_bytes, 
+            //               wasm_chain::wasm_api_data_size_exceeds_exception, 
+            //               "wasm api data size must be < %ld, but get %ld",
+            //               max_wasm_api_data_bytes, copy_len )
+
+            CHECK_WASM_IN_MEMORY(producers, copy_len)
+            CHECK_WASM_DATA_SIZE(copy_len,  "data"  ) 
 
             std::memcpy(producers, active_producers.data(), copy_len);
             return copy_len;
