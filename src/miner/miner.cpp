@@ -484,9 +484,8 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                     CBlockPriceMedianTx *pPriceMedianTx = (CBlockPriceMedianTx *)itor->baseTx.get();
 
                     PriceMap medianPrices;
-                    uint64_t slideWindow = 0;
-                    spCW->sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow);
-                    spCW->ppCache.CalcBlockMedianPrices(height, slideWindow, medianPrices);
+                    if (!spCW->ppCache.CalcBlockMedianPrices(*spCW, height, medianPrices))
+                        return ERRORMSG("%s(), calculate block median prices error", __func__);
 
                     pPriceMedianTx->SetMedianPrices(medianPrices);
                 }

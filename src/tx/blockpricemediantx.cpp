@@ -13,14 +13,9 @@ bool CBlockPriceMedianTx::CheckTx(CTxExecuteContext &context) { return true; }
  */
 bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    uint64_t slideWindow;
-    if (!cw.sysParamCache.GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
-        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::CheckTx, read MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error"),
-                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
-    }
 
     PriceMap medianPrices;
-    if (!cw.ppCache.CalcBlockMedianPrices(context.height, slideWindow, medianPrices)) {
+    if (!cw.ppCache.CalcBlockMedianPrices(cw, context.height, medianPrices)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, failed to get block median price points"),
                          READ_PRICE_POINT_FAIL, "bad-read-price-points");
     }

@@ -39,31 +39,26 @@ public:
 
 class CPricePointMemCache {
 public:
-    PriceMap latestBlockMedianPricePoints;
-
-public:
     CPricePointMemCache() : pBase(nullptr) {}
     CPricePointMemCache(CPricePointMemCache *pBaseIn)
-        : latestBlockMedianPricePoints(pBase->latestBlockMedianPricePoints), pBase(pBaseIn) {}
+        : pBase(pBaseIn) {}
 
 public:
-    void SetLatestBlockMedianPricePoints(const PriceMap &latestBlockMedianPricePoints);
-    bool AddBlockPricePointInBatch(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
-    bool AddBlockToCache(const CBlock &block);
+    bool AddPrice(const int32_t blockHeight, const CRegID &regId, const vector<CPricePoint> &pps);
+    bool AddPriceByBlock(const CBlock &block);
     // delete block price point by specific block height.
-    bool DeleteBlockPricePoint(const int32_t blockHeight);
     bool DeleteBlockFromCache(const CBlock &block);
 
-    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
-
-    bool CalcBlockMedianPrices(const int32_t blockHeight, const uint64_t slideWindow,
-                                   PriceMap &medianPrices);
+    bool CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t blockHeight, PriceMap &medianPrices);
 
     void SetBaseViewPtr(CPricePointMemCache *pBaseIn);
     void Flush();
-    void Reset();
 
 private:
+    uint64_t GetMedianPrice(const int32_t blockHeight, const uint64_t slideWindow, const CoinPricePair &coinPricePair);
+
+    bool DeleteBlockPricePoint(const int32_t blockHeight);
+
     bool ExistBlockUserPrice(const int32_t blockHeight, const CRegID &regId, const CoinPricePair &coinPricePair);
 
     void BatchWrite(const CoinPricePointMap &mapCoinPricePointCacheIn);
@@ -80,6 +75,7 @@ private:
 private:
     CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
     CPricePointMemCache *pBase;
+    PriceMap latest_median_prices;
 };
 
 #endif  // PERSIST_PRICEFEED_H

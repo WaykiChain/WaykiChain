@@ -745,7 +745,7 @@ bool DisconnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CVal
             return state.Abort(_("DisconnectBlock() : failed to read block"));
         }
 
-        if (!cw.ppCache.AddBlockToCache(reLoadblock)) {
+        if (!cw.ppCache.AddPriceByBlock(reLoadblock)) {
             return state.Abort(_("DisconnectBlock() : failed to add block into price point memory cache"));
         }
     }
@@ -1393,8 +1393,6 @@ bool static DisconnectTip(CValidationState &state) {
             if (!ReadBlockFromDisk(pPreBlockIndex, preBlock))
                 return ERRORMSG("DisconnectTip() : failed to read block [%d]: %s", pPreBlockIndex->height,
                                 pPreBlockIndex->GetBlockHash().ToString());
-
-            pCdMan->pPpCache->SetLatestBlockMedianPricePoints(preBlock.GetBlockMedianPrice());
         }
     }
     if (SysCfg().IsBenchmark())
@@ -1834,17 +1832,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
 
     {
         // Set base to null and rebuild memory cache.
-        spCW->ppCache.Reset();
-
         CBlockIndex *pBlockIndex = mapBlockIndex[forkChainBestBlockHash];
         CBlock block;
-        if (pBlockIndex) {
-            if (!ReadBlockFromDisk(pBlockIndex, block))
-                return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
-                                pBlockIndex->GetBlockHash().ToString());
-
-            spCW->ppCache.SetLatestBlockMedianPricePoints(block.GetBlockMedianPrice());
-        }
 
         // TODO: parameterize 11
         int32_t cacheHeight = 11;
@@ -1853,7 +1842,7 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
                 return ERRORMSG("ProcessForkedChain() : failed to read block [%d]: %s", pBlockIndex->height,
                                 pBlockIndex->GetBlockHash().ToString());
 
-            if (!spCW->ppCache.AddBlockToCache(block))
+            if (!spCW->ppCache.AddPriceByBlock(block))
                 return ERRORMSG("ProcessForkedChain() : failed to add block [%d]: %s to price point memory cache",
                                 pBlockIndex->height, pBlockIndex->GetBlockHash().ToString());
 
