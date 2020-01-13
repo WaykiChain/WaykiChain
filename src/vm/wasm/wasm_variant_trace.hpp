@@ -180,6 +180,12 @@ static inline void to_variant(const wasm::transaction_trace &t, json_spirit::Val
     to_variant(t.elapsed.count(), val);
     json_spirit::Config::add(obj, "elapsed", val);
 
+    to_variant(t.fuel_rate, val);
+    json_spirit::Config::add(obj, "fuel_rate", val);
+
+    to_variant(t.fuel, val);
+    json_spirit::Config::add(obj, "fuel_step", val);
+
     if (t.traces.size() > 0) {
         json_spirit::Array arr;
         for (const auto &trace :t.traces) {

@@ -330,6 +330,9 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
                       (fee == MAX_BLOCK_RUN_STEP)?fuel:fuel + fee_to_miner,
                       context.fuel_rate);
 
+        trx_trace.fuel_rate = context.fuel_rate;
+        trx_trace.fuel      = fuel;
+
         // WASM_TRACE("fee: '%ld' ,fuel: '%ld'", 
         //               (fee == MAX_BLOCK_RUN_STEP)?fee:fee + fee_to_miner, 
         //               (fee == MAX_BLOCK_RUN_STEP)?fuel:fuel + fee_to_miner);    
