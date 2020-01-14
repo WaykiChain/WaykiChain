@@ -55,7 +55,7 @@ namespace wasm {
             for (uint32_t i = 0; i < len; ++i) {
                 // All characters must be upper case alphabets
                 //WASM_ASSERT (str[i] >= 'A' && str[i] <= 'Z', symbol_type_exception, "%s", "invalid character in symbol name");
-                check (valid_character_in_symbol_name(str[i]), "invalid character in symbol name");
+                check (valid_character_in_symbol_name(str[i]),  "invalid character in symbol name, the character must be '0~9' 'A~Z' '-' '.' '#' '@'");
                 result |= (uint64_t(str[i]) << (8 * (i + 1)));
             }
             result |= uint64_t(precision);
@@ -115,7 +115,7 @@ namespace wasm {
                 //     check( false, "only uppercase letters allowed in symbol_code string" );
                 //     return;
                 // }
-                check (valid_character_in_symbol_name(*itr), "invalid character in symbol name");
+                check (valid_character_in_symbol_name(*itr), "invalid character in symbol name, the character must be '0~9' 'A~Z' '-' '.' '#' '@'");
                 value <<= 8;
                 value |= *itr;
             }

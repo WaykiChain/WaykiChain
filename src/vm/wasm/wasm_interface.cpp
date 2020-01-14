@@ -22,8 +22,9 @@ using namespace eosio;
 using namespace eosio::vm;
 
 #define CHECK_WASM_IN_MEMORY(DATA, LENGTH) \
-    CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(DATA) + LENGTH - 1), \
-                  wasm_chain::wasm_memory_exception, "access violation" )                                                      
+    if(LENGTH > 0){                        \
+        CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(DATA) + LENGTH - 1), \
+                      wasm_chain::wasm_memory_exception, "access violation" )}                                                     
 
 #define CHECK_WASM_DATA_SIZE(LENGTH, DATA_NAME ) \
     CHAIN_ASSERT( LENGTH <= max_wasm_api_data_bytes,                 \
@@ -423,6 +424,7 @@ namespace wasm {
 
         //memory
         void *memcpy( void *dest, const void *src, int len ) {
+
             CHAIN_ASSERT( (size_t)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
                           wasm_chain::overlapping_memory_error, 
                           "memcpy can only accept non-aliasing pointers");
