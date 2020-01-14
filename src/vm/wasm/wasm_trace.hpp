@@ -32,7 +32,7 @@ namespace wasm {
         uint64_t run_cost;
         vector <inline_transaction_trace> traces;
 
-        WASM_REFLECT( transaction_trace, (trx_id)(elapsed)(traces) )
+        WASM_REFLECT( transaction_trace, (trx_id)(elapsed)(fuel_rate)(run_cost)(traces) )
     };
 
    /**

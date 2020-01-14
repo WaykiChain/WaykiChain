@@ -194,29 +194,48 @@ namespace wasm {
         }
 
 
-      void assert_sha256(const void * data, uint32_t datalen, void* hash_val) {
-         // auto result = SHA1((const unsigned char*)data, data_len, (unsigned char *)hash_val);
-         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
-      }
+        void assert_sha1(const void * data, uint32_t data_len, void* hash_val) {
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
-      void assert_sha1(const void * data, uint32_t datalen, void* hash_val) {
-         // auto result = SHA256((const unsigned char*)data, data_len, (unsigned char *)hash_val);
-         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
-      }
+            checksum160_type checksum;
+            SHA1((const unsigned char*)data, data_len, (unsigned char *)&checksum);
+            CHAIN_ASSERT( std::memcmp((unsigned char *)&checksum, (unsigned char *)hash_val, 20) == 0, crypto_api_exception, "hash mismatch" );
 
-      void assert_sha512(const void * data, uint32_t datalen, void* hash_val) {
-         // auto result = SHA512((const unsigned char*)data, data_len, (unsigned char *)hash_val);
-         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
-      }
+        }
 
-      void assert_ripemd160(const void * data, uint32_t datalen, void* hash_val) {
-         // auto result = RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)hash_val);
-         // CHAIN_ASSERT( result == hash_val, crypto_api_exception, "hash mismatch" );
-      }
+        void assert_sha256(const void * data, uint32_t data_len, void* hash_val) {
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 32      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
 
+            checksum256_type checksum;
+            SHA256((const unsigned char*)data, data_len, (unsigned char *)&checksum);
+            CHAIN_ASSERT( std::memcmp((unsigned char *)&checksum, (unsigned char *)hash_val, 20) == 0, crypto_api_exception, "hash mismatch" );
+        }
+
+        void assert_sha512(const void * data, uint32_t data_len, void* hash_val) {
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 64      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
+
+            checksum512_type checksum;
+            SHA512((const unsigned char*)data, data_len, (unsigned char *)&checksum);
+            CHAIN_ASSERT( std::memcmp((unsigned char *)&checksum, (unsigned char *)hash_val, 20) == 0, crypto_api_exception, "hash mismatch" );
+        }
+
+        void assert_ripemd160(const void * data, uint32_t data_len, void* hash_val) {
+            CHECK_WASM_IN_MEMORY(data,     data_len)
+            CHECK_WASM_IN_MEMORY(hash_val, 20      )
+            CHECK_WASM_DATA_SIZE(data_len, "data"  )
+
+            checksum160_type checksum;
+            RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)&checksum);
+            CHAIN_ASSERT( std::memcmp((unsigned char *)&checksum, (unsigned char *)hash_val, 20) == 0, crypto_api_exception, "hash mismatch" );
+        }
 
         void sha1( const void *data, uint32_t data_len, void *hash_val ) {
-
             CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_IN_MEMORY(hash_val, 20      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
@@ -224,9 +243,7 @@ namespace wasm {
             SHA1((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
 
-
         void sha256( const void *data, uint32_t data_len, void *hash_val ) {
-
             CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_IN_MEMORY(hash_val, 32      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
@@ -235,7 +252,6 @@ namespace wasm {
         }
 
         void sha512( const void *data, uint32_t data_len, void *hash_val ) {
-
             CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_IN_MEMORY(hash_val, 64      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )
@@ -244,14 +260,12 @@ namespace wasm {
         }
 
         void ripemd160( const void *data, uint32_t data_len, void *hash_val ) {
-
             CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_IN_MEMORY(hash_val, 20      )
             CHECK_WASM_DATA_SIZE(data_len, "data"  )            
 
             RIPEMD160((const unsigned char*)data, data_len, (unsigned char *)hash_val);
         }
-
 
         //database
         int32_t db_store( const uint64_t payer, const void *key, uint32_t key_len, const void *val, uint32_t val_len ) {
