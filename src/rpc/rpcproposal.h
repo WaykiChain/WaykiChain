@@ -22,5 +22,7 @@ extern Value submitproposalassenttx(const Array& params, bool fHelp) ;
 extern Value getsysparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;
 
+extern Value getminminerfee(const Array& params, bool fHelp) ;
+
 
 #endif //RPC_RPCPROPOSAL_H

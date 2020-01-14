@@ -252,21 +252,6 @@ string RegIDToAddress(CUserID &userId) {
     return "cannot get address from given RegId";
 }
 
-bool GetKeyId(const string &addr, CKeyID &keyId) {
-
-    if(CRegID::GetKeyId(addr, keyId)){
-        return true ;
-    }
-    keyId = CKeyID(addr);
-    if (!keyId.IsEmpty()){
-        return true ;
-    }
-    CNickID nickId(addr) ;
-    if(nickId.IsEmpty())
-        return false ;
-    return pCdMan->pAccountCache->GetKeyId(nickId, keyId);
-}
-
 Object GetTxDetailJSON(const uint256& txid) {
     Object obj;
     {
@@ -535,6 +520,27 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
     }
 }
 
+CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue, const bool senderUid  ){
+
+    CKeyID keyid;
+    if(!RPC_PARAM::GetKeyId(jsonValue, keyid, senderUid))
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+    return keyid ;
+}
+
+bool RPC_PARAM::GetKeyId(const Value &jsonValue, CKeyID& keyid, const bool senderUid  ) {
+
+    CUserID uid = RPC_PARAM::GetUserId(jsonValue, senderUid);
+    if(uid.is<CKeyID>())
+        keyid =  uid.get<CKeyID>();
+    else if( uid.is<CPubKey>()) {
+        keyid =  uid.get<CPubKey>().GetKeyId();
+    }else if(uid.is<CRegID>()){
+        keyid =  uid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
+    }
+    return !keyid.IsEmpty();
+
+}
 string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {
     string filePath = GetAbsolutePath(jsonValue.get_str()).string();
     if (filePath.empty())

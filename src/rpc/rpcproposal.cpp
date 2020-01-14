@@ -27,9 +27,7 @@ Value getproposal(const Array& params, bool fHelp){
                 + HelpExampleRpc("getproposal", "02sov0efs3ewdsxcfresdfdsadfgdsasdfdsadfdsdfsdfsddfge32ewsrewsowekdsx")
 
         );
-
     }
-
     uint256 proposalId = uint256S(params[0].get_str()) ;
     std::shared_ptr<CProposal> pp ;
     if(pCdMan->pSysGovernCache->GetProposal(proposalId, pp)){
@@ -214,19 +212,18 @@ Value submitproposalassenttx(const Array& params, bool fHelp){
 }
 
 Value submitminerfeeproposal(const Array& params, bool fHelp) {
-    if(fHelp || params.size() < 4 || params.size() > 5){
+    if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_symbol\" \"fee_sawi_amount\" [\"fee\"]\n"
+                "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
                 "create proposal about enable/disable dexoperator\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
-                "2.\"tx_type\":          (numberic, required) the tx type you can get the lis by command \"gettxlist\" \n"
-                "3.\"fee_symbol\":       (string, required) the miner fee symbol, example:WICC, WUSD \n"
-                "4.\"fee_sawi_amount\"   (numberic,required)\n the minimum miner fee, the unit is 'sawi'\n"
-                "5.\"fee\":              (combomoney, optional) the tx fee \n"
+                "2.\"tx_type\":          (numberic, required) the tx type you can get the list by command \"getminminerfee\" \n"
+                "3.\"fee_info\":         (combomoney, required) the miner fee symbol, example:WICC, WUSD \n"
+                "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
+                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
 
@@ -237,17 +234,16 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint8_t txType = params[1].get_int();
-    string feeSymbol = params[2].get_str();
-    uint64_t feeSawiAmount = (params[3].get_int()) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_CREATE_TX);
+    ComboMoney feeInfo = RPC_PARAM::GetComboMoney(params[2],SYMB::WICC);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
     CMinerFeeProposal proposal ;
     proposal.tx_type = TxType(txType)  ;
-    proposal.fee_symbol = feeSymbol;
-    proposal.fee_sawi_amount = feeSawiAmount;
+    proposal.fee_symbol = feeInfo.symbol;
+    proposal.fee_sawi_amount = feeInfo.GetSawiAmount();
 
     CProposalCreateTx tx ;
     tx.txUid        = txUid;
@@ -261,13 +257,13 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 
 Value getsysparam(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() != 1){
+    if(fHelp || params.size() > 1){
 
         throw runtime_error(
                 "getsysparam \"param_name\"\n"
                 "create proposal about param govern\n"
                 "\nArguments:\n"
-                "1.\"param_name\":      (string, required) param name \n"
+                "1.\"param_name\":      (string, optional) param name, list all parameters when it's absent \n"
 
                 "\nExamples:\n"
                 + HelpExampleCli("getsysparam", "ASSET_UPDATE_FEE")
@@ -277,20 +273,66 @@ Value getsysparam(const Array& params, bool fHelp){
 
     }
 
-    string paramName = params[0].get_str() ;
-    SysParamType st ;
-    auto itr = paramNameToSysParamTypeMap.find(paramName) ;
-    if( itr == paramNameToSysParamTypeMap.end()){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
-    }
-    st = itr->second ;
-    uint64_t pv ;
-    if(!pCdMan->pSysParamCache->GetParam(st, pv)){
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
+    if(params.size() == 1){
+
+        string paramName = params[0].get_str() ;
+        SysParamType st ;
+        auto itr = paramNameToSysParamTypeMap.find(paramName) ;
+        if( itr == paramNameToSysParamTypeMap.end()){
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
+        }
+        st = itr->second ;
+        uint64_t pv ;
+        if(!pCdMan->pSysParamCache->GetParam(st, pv)){
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
+        }
+
+        Object obj ;
+        obj.push_back(Pair(paramName, pv));
+        return obj;
+    }else{
+        Object obj;
+        for(auto kv:paramNameToSysParamTypeMap){
+            auto paramName = kv.first ;
+            uint64_t pv ;
+            pCdMan->pSysParamCache->GetParam(kv.second, pv);
+
+            obj.push_back(Pair(paramName, pv)) ;
+
+        }
+        return obj ;
     }
 
-    Object obj ;
-    obj.push_back(Pair(paramName, pv));
-    return obj;
+
+}
+
+Value getminminerfee(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 0){
+
+        throw runtime_error(
+                "getminminerfee\n"
+                "\nget all tx minimum fee.\n"
+                "\nExamples:\n" +
+                HelpExampleCli("getinfo", "") + "\nAs json rpc\n" + HelpExampleRpc("getinfo", ""));
+    }
+
+    Array arr;
+    for(auto kv: kTxFeeTable){
+        Object o ;
+        o.push_back(Pair("tx_name", std::get<0>(kv.second)));
+        o.push_back(Pair("tx_code", kv.first));
+        uint64_t feeOut;
+        if(GetTxMinFee(kv.first,chainActive.Height(), SYMB::WICC,feeOut))
+            o.push_back(Pair("min_fee_wicc", feeOut));
+        if(GetTxMinFee(kv.first,chainActive.Height(), SYMB::WUSD,feeOut))
+            o.push_back(Pair("min_fee_wusd", feeOut));
+        o.push_back(Pair("can_update", std::get<5>(kv.second)));
+        arr.push_back(o);
+
+    }
+
+
+    return arr ;
+
 
 }

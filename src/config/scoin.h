@@ -47,10 +47,10 @@ enum SysParamType : uint8_t {
     PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX = 3,
     PRICE_FEED_DEVIATE_RATIO_MAX            = 4,
     PRICE_FEED_DEVIATE_PENALTY              = 5,
-    SCOIN_RESERVE_FEE_RATIO                 = 6,
+    CDP_SCOIN_RESERVE_FEE_RATIO             = 6,
     DEX_DEAL_FEE_RATIO                      = 7,
-    GLOBAL_COLLATERAL_CEILING_AMOUNT        = 8,
-    GLOBAL_COLLATERAL_RATIO_MIN             = 9,
+    CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    = 8,
+    CDP_GLOBAL_COLLATERAL_RATIO_MIN         = 9,
     CDP_START_COLLATERAL_RATIO              = 10,
     CDP_START_LIQUIDATE_RATIO               = 11,
     CDP_NONRETURN_LIQUIDATE_RATIO           = 12,
@@ -74,9 +74,9 @@ static const unordered_map<string, string> paramNameToKeyMap = {
         {"PRICE_FEED_DEVIATE_RATIO_MAX",                   "D"},
         {"PRICE_FEED_DEVIATE_PENALTY",                     "E"},
         {"DEX_DEAL_FEE_RATIO",                             "F"},
-        {"SCOIN_RESERVE_FEE_RATIO",                        "G"},
-        {"GLOBAL_COLLATERAL_CEILING_AMOUNT",               "H"},
-        {"GLOBAL_COLLATERAL_RATIO_MIN",                    "I"},
+        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    "G"},
+        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           "H"},
+        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                "I"},
         {"CDP_START_COLLATERAL_RATIO",                     "J"},
         {"CDP_START_LIQUIDATE_RATIO",                      "K"},
         {"CDP_NONRETURN_LIQUIDATE_RATIO",                  "L"},
@@ -100,9 +100,9 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"PRICE_FEED_DEVIATE_RATIO_MAX",                   PRICE_FEED_DEVIATE_RATIO_MAX},
         {"PRICE_FEED_DEVIATE_PENALTY",                     PRICE_FEED_DEVIATE_PENALTY},
         {"DEX_DEAL_FEE_RATIO",                             DEX_DEAL_FEE_RATIO},
-        {"SCOIN_RESERVE_FEE_RATIO",                        SCOIN_RESERVE_FEE_RATIO},
-        {"GLOBAL_COLLATERAL_CEILING_AMOUNT",               GLOBAL_COLLATERAL_CEILING_AMOUNT},
-        {"GLOBAL_COLLATERAL_RATIO_MIN",                    GLOBAL_COLLATERAL_RATIO_MIN},
+        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    CDP_SCOIN_RESERVE_FEE_RATIO},
+        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT},
+        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                CDP_GLOBAL_COLLATERAL_RATIO_MIN},
         {"CDP_START_COLLATERAL_RATIO",                     CDP_START_COLLATERAL_RATIO},
         {"CDP_START_LIQUIDATE_RATIO",                      CDP_START_LIQUIDATE_RATIO},
         {"CDP_NONRETURN_LIQUIDATE_RATIO",                  CDP_NONRETURN_LIQUIDATE_RATIO},
@@ -130,10 +130,9 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,      std::make_tuple("C",    10)         },  // after 10 times continuous deviate limit penetration all deposit be deducted
     { PRICE_FEED_DEVIATE_RATIO_MAX,                 std::make_tuple("D",    3000)       },  // must be < 30% * 10000, otherwise penalized
     { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
-    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    40000)      },  // 0.04% * 100000000
-    { SCOIN_RESERVE_FEE_RATIO,                      std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
-    { GLOBAL_COLLATERAL_CEILING_AMOUNT,             std::make_tuple("H",    52500000)   },  // 25% * 210000000
-    { GLOBAL_COLLATERAL_RATIO_MIN,                  std::make_tuple("I",    8000)       },  // 80% * 10000
+    { CDP_SCOIN_RESERVE_FEE_RATIO,                  std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
+    { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,         std::make_tuple("H",    52500000)   },  // 25% * 210000000
+    { CDP_GLOBAL_COLLATERAL_RATIO_MIN,              std::make_tuple("I",    8000)       },  // 80% * 10000
     { CDP_START_COLLATERAL_RATIO,                   std::make_tuple("J",    19000)      },  // 190% * 10000 : starting collateral ratio
     { CDP_START_LIQUIDATE_RATIO,                    std::make_tuple("K",    15000)      },  // 1.13 ~ 1.5  : common liquidation
     { CDP_NONRETURN_LIQUIDATE_RATIO,                std::make_tuple("L",    11300)      },  // 1.04 ~ 1.13 : Non-return to CDP owner
@@ -147,6 +146,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110 * COIN) },  // asset update fee = 110 WICC
     { DEX_OPERATOR_REGISTER_FEE,                    std::make_tuple("U",    1100 * COIN) }, // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                      std::make_tuple("V",    110 * COIN) },  // dex operator update fee = 110 WICC
+    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    40000)      },  // 0.04% * 100000000
 
 };
 

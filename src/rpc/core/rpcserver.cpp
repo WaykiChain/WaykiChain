@@ -345,8 +345,9 @@ static const CRPCCommand vRPCCommands[] =
     { "getscoininfo",           &getscoininfo,           true,      false,      false },
     { "getcdp",                 &getcdp,                 true,      false,      false },
     { "getusercdp",             &getusercdp,             true,      false,      false },
-    { "getsysparam",            &getsysparam,             true,      false,      false },
-    { "getproposal",            &getproposal,             true,      false,      false },
+    { "getsysparam",            &getsysparam,            true,      false,      false },
+    { "getproposal",            &getproposal,            true,      false,      false },
+    { "getminminerfee",         &getminminerfee,         true,      false,      false },
 
 
     /* for dex */
@@ -374,8 +375,8 @@ static const CRPCCommand vRPCCommands[] =
 
     /* for wasm */
     { "submitwasmcontractdeploytx", &submitwasmcontractdeploytx,       true,      false,      true },
-    { "submitwasmcontractcalltx",   &submitwasmcontractcalltx,          true,      false,      true },
-    { "gettablewasm",               &gettablewasm,      true,      false,      true },
+    { "submitwasmcontractcalltx",   &submitwasmcontractcalltx,         true,      false,      true },
+    { "gettablewasm",               &gettablewasm,                     true,      false,      true },
     { "jsontobinwasm",              &jsontobinwasm,     true,      false,      true },
     { "bintojsonwasm",              &bintojsonwasm,     true,      false,      true },
     { "getcodewasm",                &getcodewasm,       true,      false,      true },

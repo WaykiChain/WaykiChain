@@ -20,7 +20,6 @@ using namespace std;
 using namespace json_spirit;
 
 string RegIDToAddress(CUserID &userId);
-bool GetKeyId(const string &addr, CKeyID &keyId);
 Object GetTxDetailJSON(const uint256& txid);
 Array GetTxAddressDetail(std::shared_ptr<CBaseTx> pBaseTx);
 
@@ -47,6 +46,8 @@ namespace RPC_PARAM {
     CUserID GetUserId(const Value &jsonValue, const bool senderUid = false);
 
     string GetLuaContractScript(const Value &jsonValue);
+    CKeyID GetKeyId(const Value &jsonValue, const bool senderUid = false );
+    bool GetKeyId(const Value &jsonValue, CKeyID& keid, const bool senderUid = false );
 
     uint64_t GetPrice(const Value &jsonValue);
 

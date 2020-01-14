@@ -221,6 +221,7 @@ extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 extern Value submitproposalassenttx(const Array& params, bool fHelp) ;
 extern Value getsysparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;
+extern Value getminminerfee(const Array& params, bool fHelp) ;
 
 json_spirit::Object JSONRPCExecOne(const json_spirit::Value& req);
 
