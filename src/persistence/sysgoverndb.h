@@ -49,11 +49,6 @@ public:
         secondsCache.SetDbOpLogMap(pDbOpLogMapIn); }
 
 
-    bool addGoverner(CRegID &governerRegId) {
-        //check if existing
-        return true;
-    }
-
     bool CheckIsGoverner(const CRegID &candidateRegId) {
         if (!governersCache.HaveData()) {
             return candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2);

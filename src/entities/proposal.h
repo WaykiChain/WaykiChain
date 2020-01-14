@@ -52,6 +52,10 @@ public:
     virtual bool IsEmpty() const { return  expire_block_height == 0
                                             && need_governer_count == 0
                                             && proposal_type == ProposalType ::NULL_PROPOSAL; };
+    virtual string ToString(){
+        return strprintf("proposaltype=%d,needgoverneramount=%d,expire_height=%d",
+                proposal_type, need_governer_count, expire_block_height) ;
+    }
     virtual Object ToJson(){
         Object o ;
         o.push_back(Pair("proposal_type", proposal_type)) ;
@@ -99,6 +103,8 @@ public:
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override { return true ; }
 
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override { return true ; }
+
+    string ToString() override { return CProposal::ToString(); }
 };
 
 class CParamsGovernProposal: public CProposal {
@@ -118,10 +124,8 @@ public:
         param_values.clear();
     }
 
-    virtual Object ToJson(){
+    virtual Object ToJson() override {
         Object o = CProposal::ToJson();
-
-
         Array arrayItems;
         for (const auto &item : param_values) {
             Object subItem;
@@ -132,6 +136,14 @@ public:
 
         o.push_back(Pair("params",arrayItems)) ;
         return o ;
+    }
+
+    string ToString() override {
+        string baseString = CProposal::ToString();
+        for(auto itr: param_values){
+            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second ) ;
+        }
+        return baseString ;
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
@@ -167,7 +179,7 @@ public:
     }
 
 
-    Object ToJson(){
+    Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("governer_regid",governer_regid.ToString())) ;
         o.push_back(Pair("operate_type", operate_type));
@@ -175,6 +187,12 @@ public:
 
     }
 
+    string ToString() override {
+        string baseString = CProposal::ToString() ;
+        return strprintf("%s, governer_regid=%s, operate_type=%d", baseString,
+                governer_regid.ToString(),operate_type) ;
+
+    }
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this); }
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
@@ -200,12 +218,16 @@ public:
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 
-    Object ToJson(){
+    Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("dexid",(uint64_t)dexid)) ;
         o.push_back(Pair("operate_type", operate_type));
         return o ;
+    }
 
+    string ToString() override {
+        string baseString = CProposal::ToString() ;
+        return strprintf("%s, dexid=%d, operate_type=%d", baseString, dexid, operate_type) ;
     }
 
 };
@@ -234,12 +256,20 @@ public:
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
 
-    Object ToJson(){
+    Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("tx_type", tx_type));
         o.push_back(Pair("fee_symbol", fee_symbol)) ;
         o.push_back(Pair("fee_sawi_amount", fee_sawi_amount));
         return o ;
+
+    }
+
+    string ToString() override {
+
+        string baseString = CProposal::ToString() ;
+        return strprintf("%s, tx_type=%d, fee_symbo=%s ,fee_sawi_amount=%d",
+                baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
 
     }
 };

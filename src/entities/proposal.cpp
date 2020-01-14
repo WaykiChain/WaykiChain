@@ -92,7 +92,8 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
                           "governer-not-exist");
      }
      vector<CRegID> governers ;
-     if(operate_type == OperateType ::DISABLE&&!CheckIsGoverner(governer_regid,ProposalType(proposal_type),cw)){
+
+     if(operate_type == OperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGoverner(governer_regid)){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, regid(%s) is not a governer!", governer_regid.ToString()), REJECT_INVALID,
                           "regid-not-governer");
      }

@@ -48,7 +48,10 @@ uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw ){
 
 
 string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
-    return "" ;
+    string proposalString = proposal->ToString() ;
+    return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
+                     txUid.ToString(), valid_height);
 }          // logging usage
 
 Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -113,6 +116,10 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
 
 string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
+
+    return strprintf("txType=%s, hash=%s, ver=%d, proposalid=%s, llFees=%ld, keyid=%s, valid_height=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txid.GetHex(), llFees,
+                     txUid.ToString(), valid_height);
     return "";
 }
  Object CProposalAssentTx::ToJson(const CAccountDBCache &accountCache) const {
