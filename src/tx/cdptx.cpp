@@ -108,8 +108,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     //0. check preconditions
     uint64_t globalCollateralRatioMin;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read GLOBAL_COLLATERAL_RATIO_MIN error!!"),
+    if (!cw.sysParamCache.GetParam(CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read CDP_GLOBAL_COLLATERAL_RATIO_MIN error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
@@ -130,8 +130,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t globalCollateralCeiling;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read GLOBAL_COLLATERAL_CEILING_AMOUNT error!!"),
+    if (!cw.sysParamCache.GetParam(CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-err");
     }
 
@@ -423,7 +423,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     CUserCDP oldCDP = cdp; // copy before modify.
 
     uint64_t globalCollateralRatioFloor;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!cw.sysParamCache.GetParam(CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, read global collateral ratio floor error"),
                         READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
@@ -697,7 +697,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t globalCollateralRatioFloor;
-    if (!cw.sysParamCache.GetParam(GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!cw.sysParamCache.GetParam(CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read global collateral ratio floor error"),
                          READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }

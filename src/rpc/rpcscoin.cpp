@@ -315,12 +315,12 @@ Value getscoininfo(const Array& params, bool fHelp){
     }
 
     uint64_t globalCollateralCeiling = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
     }
 
     uint64_t globalCollateralRatioFloor = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
     }
 

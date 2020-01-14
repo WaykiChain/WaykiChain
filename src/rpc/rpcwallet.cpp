@@ -143,7 +143,7 @@ Value addmulsigaddr(const Array& params, bool fHelp) {
     CPubKey pubKey;
     set<CPubKey> pubKeys;
     for (uint32_t i = 0; i < keys.size(); i++) {
-        if (!GetKeyId(keys[i].get_str(), keyId)) {
+        if (!RPC_PARAM::GetKeyId(keys[i], keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
         }
 
@@ -217,7 +217,7 @@ Value createmulsig(const Array& params, bool fHelp) {
     CPubKey pubKey;
     set<CPubKey> pubKeys;
     for (uint32_t i = 0; i < keys.size(); i++) {
-        if (!GetKeyId(keys[i].get_str(), keyId)) {
+        if (!RPC_PARAM::GetKeyId(keys[i], keyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyId.");
         }
 

@@ -196,7 +196,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
     uint32_t new_id;
     if (!cw.dexCache.IncDexID(new_id))
-        return state.DoS(100, ERRORMSG("%s, increase dex id error! txUid=%s", __func__),
+        return state.DoS(100, ERRORMSG("%s, increase dex id error! txUid=%s", __func__,GetHash().ToString() ),
             UPDATE_ACCOUNT_FAIL, "inc_dex_id_error");
 
     DexOperatorDetail detail = {

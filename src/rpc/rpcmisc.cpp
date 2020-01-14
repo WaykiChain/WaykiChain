@@ -169,13 +169,11 @@ Value verifymessage(const Array& params, bool fHelp) {
             + HelpExampleRpc("verifymessage", "\"WiZx6rrsBn9sHjwpvdwtMNNX2o31s3DEHH\", \"signature\", \"my_message\"")
         );
 
-    string strAddress  = params[0].get_str();
+
     string strSign     = params[1].get_str();
     string strMessage  = params[2].get_str();
 
-    CKeyID keyId;
-    if (!GetKeyId(strAddress,keyId))
-        throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to key");
+    CKeyID keyId = RPC_PARAM::GetKeyId(params[0]);
 
     bool fInvalid = false;
     vector<unsigned char> vchSig = DecodeBase64(strSign.c_str(), &fInvalid);

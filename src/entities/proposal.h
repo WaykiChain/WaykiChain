@@ -94,11 +94,11 @@ public:
         CProposal::SetEmpty();
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CNullProposal>(*this);}
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CNullProposal>(*this); }
 
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override {return true ;}
+    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override { return true ; }
 
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override {return true ;}
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override { return true ; }
 };
 
 class CParamsGovernProposal: public CProposal {
@@ -134,7 +134,7 @@ public:
         return o ;
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this);} ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
 
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
 
@@ -157,7 +157,9 @@ public:
             READWRITE((uint8_t&)operate_type);
     );
 
-    bool IsEmpty() const override { return operate_type == NULL_OPT && governer_regid.IsEmpty() && CProposal::IsEmpty(); };
+    bool IsEmpty() const override { return operate_type == NULL_OPT
+                                    && governer_regid.IsEmpty()
+                                    && CProposal::IsEmpty(); };
     void SetEmpty() override {
         CProposal::SetEmpty() ;
         operate_type = NULL_OPT;
@@ -173,7 +175,7 @@ public:
 
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this);}
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this); }
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 };
@@ -190,7 +192,7 @@ public:
     );
 
     CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
-    bool IsEmpty() const override { return operate_type == NULL_OPT && CProposal::IsEmpty() ;}
+    bool IsEmpty() const override { return operate_type == NULL_OPT && CProposal::IsEmpty(); }
     void SetEmpty() override { operate_type = NULL_OPT; CProposal:: SetEmpty() ;}
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
@@ -224,8 +226,8 @@ public:
             READWRITE(VARINT(fee_sawi_amount));
             )
 
-    bool IsEmpty() const override { return tx_type == 0 && CProposal::IsEmpty() ;}
-    void SetEmpty() override { tx_type = TxType ::NULL_TX; CProposal::SetEmpty() ;}
+    bool IsEmpty() const override { return tx_type == 0 && CProposal::IsEmpty(); }
+    void SetEmpty() override { tx_type = TxType ::NULL_TX; CProposal::SetEmpty(); }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
 

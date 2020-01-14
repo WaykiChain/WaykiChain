@@ -216,9 +216,7 @@ Value importprivkey(const Array& params, bool fHelp) {
             keyCombi.SetMainKey(emptyMainKey);
             keyCombi.SetMinerKey(key);
 
-            CKeyID keyid;
-            if (!GetKeyId(params[1].get_str(), keyid))
-                throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid sendaddress");
+            CKeyID keyid = RPC_PARAM::GetKeyId(params[1]);
 
             if (!pWalletMain->AddKey(keyid, keyCombi))
                 throw JSONRPCError(RPC_WALLET_ERROR, "Failed to add key into wallet.");
@@ -267,9 +265,7 @@ Value dropprivkey(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    CKeyID keyid;
-    if (!GetKeyId(params[0].get_str(), keyid))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+    CKeyID keyid = RPC_PARAM::GetKeyId(params[0]);
 
     CKey key;
     if (!pWalletMain->GetKey(keyid, key))

@@ -64,7 +64,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
         // 1. Check Global Collateral Ratio floor & Collateral Ceiling if reached
         uint64_t globalCollateralRatioFloor = 0;
-        if (!cw.sysParamCache.GetParam(SysParamType::GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        if (!cw.sysParamCache.GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
             return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
                             READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
         }

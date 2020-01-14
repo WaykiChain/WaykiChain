@@ -320,7 +320,7 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
         }
         CKeyID delegateKeyId;
-        if (!GetKeyId(delegateAddr.get_str(), delegateKeyId)) {
+        if (!RPC_PARAM::GetKeyId(delegateAddr, delegateKeyId)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error");
         }
         CAccount delegateAcct;
@@ -615,12 +615,9 @@ Value getaccountinfo(const Array& params, bool fHelp) {
     }
 
     RPCTypeCheck(params, list_of(str_type));
-    CKeyID keyid;
+    CKeyID keyid = RPC_PARAM::GetKeyId(params[0]);
     CUserID userId;
-    string addr = params[0].get_str();
-    if (!GetKeyId(addr, keyid)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-    }
+
 
     userId = keyid;
     Object obj;
@@ -1017,7 +1014,7 @@ Value signtxraw(const Array& params, bool fHelp) {
     std::set<CKeyID> keyIds;
     CKeyID keyid;
     for (uint32_t i = 0; i < addresses.size(); i++) {
-        if (!GetKeyId(addresses[i].get_str(), keyid)) {
+        if (!RPC_PARAM::GetKeyId(addresses[i], keyid)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyid");
         }
         keyIds.insert(keyid);
@@ -1296,9 +1293,8 @@ Value validateaddr(const Array& params, bool fHelp) {
 
     Object obj;
 
-    string addr = params[0].get_str();
     CKeyID keyid;
-    if (!GetKeyId(addr, keyid)) {
+    if (!RPC_PARAM::GetKeyId(params[0], keyid)) {
         obj.push_back(Pair("is_valid", false));
     } else {
         obj.push_back(Pair("is_valid", true));
