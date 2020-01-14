@@ -424,17 +424,13 @@ namespace wasm {
 
         //memory
         void *memcpy( void *dest, const void *src, int len ) {
-
             CHAIN_ASSERT( (size_t)(std::abs((ptrdiff_t)dest - (ptrdiff_t)src)) >= len,
                           wasm_chain::overlapping_memory_error, 
                           "memcpy can only accept non-aliasing pointers");
-
             // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(dest) + len - 1), 
             //               wasm_chain::wasm_memory_exception, "access violation")
-
             // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(src) + len - 1), 
             //               wasm_chain::wasm_memory_exception, "access violation")
-
             CHECK_WASM_IN_MEMORY(dest, len)
             CHECK_WASM_IN_MEMORY(src,  len)
 
@@ -449,7 +445,6 @@ namespace wasm {
         }
 
         int memcmp( const void *dest, const void *src, int len ) {
-
             CHECK_WASM_IN_MEMORY(dest, len)
             CHECK_WASM_IN_MEMORY(src,  len)
 
@@ -462,7 +457,6 @@ namespace wasm {
         }
 
         void *memset( void *dest, int val, int len ) {
-
             CHECK_WASM_IN_MEMORY(dest, len)
 
             return (char *) std::memset(dest, val, len);
@@ -496,7 +490,6 @@ namespace wasm {
             //               wasm_chain::wasm_api_data_size_exceeds_exception, 
             //               "wasm api data size must be < %ld, but get %ld",
             //               max_wasm_api_data_bytes, size )
-
             CHECK_WASM_IN_MEMORY(str,  size )
             CHECK_WASM_DATA_SIZE(size, "str") 
 
@@ -515,7 +508,6 @@ namespace wasm {
             //               wasm_chain::wasm_api_data_size_exceeds_exception,
             //               "wasm api data size must be < %ld, but get %ld",
             //               max_wasm_api_data_bytes, str_len )
-
             CHECK_WASM_IN_MEMORY(str,     str_len)
             CHECK_WASM_DATA_SIZE(str_len, "str"  ) 
 
@@ -609,12 +601,10 @@ namespace wasm {
         }
 
         void printhex( const char *data, uint32_t data_len ) {
-
             // CHAIN_ASSERT( data_len <= max_wasm_api_data_bytes, 
             //               wasm_chain::wasm_api_data_size_exceeds_exception, 
             //               "wasm api data size must be < %ld, but get %ld",
             //               max_wasm_api_data_bytes, data_len )
-
             CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_DATA_SIZE(data_len, "data"  ) 
 
@@ -638,13 +628,10 @@ namespace wasm {
         }
 
         void require_recipient( uint64_t recipient ) {
-
-            //WASM_TRACE("%s", wasm::name(recipient).to_string())
             CHAIN_ASSERT( is_account(recipient), 
                           wasm_chain::account_access_exception, 
                           "can not send a receipt to a non-exist account '%s'",
                           wasm::name(recipient).to_string());
-            //WASM_TRACE("%s", wasm::name(recipient).to_string())
 
             pWasmContext->require_recipient(recipient);
 
@@ -660,13 +647,11 @@ namespace wasm {
             //               wasm_chain::wasm_api_data_size_exceeds_exception,
             //               "wasm api data size must be < %ld, but get %ld",
             //               max_wasm_api_data_bytes, data_len )
-
             CHECK_WASM_IN_MEMORY(data,     data_len)
             CHECK_WASM_DATA_SIZE(data_len, "data"  ) 
 
             inline_transaction trx = wasm::unpack<inline_transaction>((const char *) data, data_len);
 
-            //WASM_TRACE("contract:%s action:%s",wasm::name(trx.contract).to_string(), wasm::name(trx.action).to_string())
             pWasmContext->execute_inline(trx);
 
         }
@@ -675,9 +660,6 @@ namespace wasm {
             
             //get active producers
             std::vector<uint64_t> active_producers = pWasmContext->get_active_producers();
-            // active_producers.push_back(wasm::name("xiaoyu"));
-            // active_producers.push_back(wasm::name("walker"));
-            // active_producers = pWasmContext->get_active_producers();
 
             size_t len   = active_producers.size() * sizeof(uint64_t);
             if(data_len == 0) return len;
@@ -690,7 +672,6 @@ namespace wasm {
             //               wasm_chain::wasm_api_data_size_exceeds_exception, 
             //               "wasm api data size must be < %ld, but get %ld",
             //               max_wasm_api_data_bytes, copy_len )
-
             CHECK_WASM_IN_MEMORY(producers, copy_len)
             CHECK_WASM_DATA_SIZE(copy_len,  "data"  ) 
 
