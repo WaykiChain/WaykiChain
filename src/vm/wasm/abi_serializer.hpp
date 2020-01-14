@@ -85,11 +85,10 @@ namespace wasm {
                 if(action_type == string()){
                     action_type = action;
                 }
-                //data = abis.variant_to_binary(action, data_v, max_serialization_time);
                 data = abis.variant_to_binary(action_type, data_v, max_serialization_time);
 
             }
-            CHAIN_CAPTURE_AND_RETHROW("abi_serializer pack error in params %s", params)
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer pack error in action '%s' from params '%s'", action, params)
 
             return data;
 
@@ -107,11 +106,10 @@ namespace wasm {
                 if(action_type == string()){
                     action_type = action;
                 }
-                //data_v = abis.binary_to_variant(action, data, max_serialization_time);
                 data_v = abis.binary_to_variant(action_type, data, max_serialization_time);
 
             }
-            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack error in params %s", action)
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack error in action '%s' params '%s'", action, ToHex(data))
 
             return data_v;
         }
@@ -133,7 +131,7 @@ namespace wasm {
 
                 data_v = abis.binary_to_variant(name, data, max_serialization_time);
             }
-            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s", name)
+            CHAIN_CAPTURE_AND_RETHROW("abi_serializer unpack error in table %s from '%s'", name, ToHex(data))
 
             return data_v;
         }

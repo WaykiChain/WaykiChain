@@ -436,7 +436,7 @@ namespace wasm {
                              "Unknown type '%s', The type should be built-in , array or struct", type);
             }
         }
-        CHAIN_CAPTURE_AND_RETHROW("Can not convert '%s' to '%s'", type, json_spirit::write(var))
+        CHAIN_CAPTURE_AND_RETHROW("Can not convert '%s' from  '%s'", type, json_spirit::write(var))
 
     }
 

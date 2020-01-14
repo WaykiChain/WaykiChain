@@ -7,6 +7,7 @@
 #include "persistence/accountdb.h"
 #include "main.h"
 #include "vm/wasm/types/name.hpp"
+#include "vm/wasm/exception/exceptions.hpp"
 
 extern CCacheDBManager *pCdMan;
 
@@ -152,6 +153,10 @@ CNickID::CNickID(uint64_t nickIdIn): value(nickIdIn) {}
 CNickID::CNickID(string nickIdIn) {
     try {
         value = wasm::name(nickIdIn).value;
+    //} catch(wasm_chain::exception &e){
+    //     value = 0 ;
+    //     CHAIN_EXCEPTION_APPEND_LOG(e, log_level::warn,"'%s'", nickIdIn)
+    // 
     }catch (...){
         value = 0 ;
     }

@@ -88,40 +88,41 @@ namespace wasm {
          * @param str - The string value which validated then converted to unit64_t
          *
          */
-        constexpr explicit name( std::string_view str )
+        //constexpr explicit name( std::string_view str )
+        explicit name( std::string_view str )
                 : value(0) {
-            if (str.size() > 13) {
-                check( false, "string is too long to be a valid name" );
-            }
-
-            if (str.empty()) {
-                return;
-            }
-
-            //WASM_TRACE("%s", string(str).c_str())
-            //std::cout <<"name:" << str << std::endl;
-
-            uint8_t dot = 0;
-            auto n = std::min((uint32_t) str.size(), (uint32_t) 12u);
-            for (decltype(n) i = 0; i < n; ++i) {
-                value <<= 5;
-                value |= char_to_value(str[i]);
-                if(str[i] == '.'){
-                    check( ++dot <= 1, "the amount of dot can not be > 1");
-                }
-            }
-            value <<= (4 + 5 * (12 - n));
-            if (str.size() == 13) {
-                uint64_t v = char_to_value(str[12]);
-                if(str[12] == '.'){
-                    check( ++dot <= 1, "the amount of dot can not be > 1");
+            try {
+                if (str.size() > 13) {
+                    check( false, "string is too long to be a valid name" );
                 }
 
-                if (v > 0x0Full) {
-                    check(false, "thirteenth character in name cannot be a letter that comes after j");
+                if (str.empty()) {
+                    return;
                 }
-                value |= v;
+
+                uint8_t dot = 0;
+                auto n = std::min((uint32_t) str.size(), (uint32_t) 12u);
+                for (decltype(n) i = 0; i < n; ++i) {
+                    value <<= 5;
+                    value |= char_to_value(str[i]);
+                    if(str[i] == '.'){
+                        check( ++dot <= 1, "the amount of dot can not be > 1");
+                    }
+                }
+                value <<= (4 + 5 * (12 - n));
+                if (str.size() == 13) {
+                    uint64_t v = char_to_value(str[12]);
+                    if(str[12] == '.'){
+                        check( ++dot <= 1, "the amount of dot can not be > 1");
+                    }
+
+                    if (v > 0x0Full) {
+                        check(false, "thirteenth character in name cannot be a letter that comes after j");
+                    }
+                    value |= v;
+                }
             }
+            CHAIN_CAPTURE_AND_RETHROW("name convert error: '%s'", str)
         }
 
         /**
@@ -141,7 +142,8 @@ namespace wasm {
                 return (c - 'a') + 6;
             }
             else{
-                check( false, "character is not in allowed character set for names" );
+                check( false, "character is not in allowed character set for names, the character must be '.' 1~5' 'a-z'" );
+                //check( false, "character is not in allowed character set for names" );
             }
 
             return 0; // control flow will never reach here; just added to suppress warning
