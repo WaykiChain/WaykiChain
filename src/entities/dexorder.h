@@ -60,6 +60,68 @@ inline const std::string &GetOrderTypeName(OrderType orderType) {
     return EMPTY_STRING;
 }
 
+enum OrderPublicMode: uint8_t {
+    ORDER_PUBLIC,
+    ORDER_PRIVATE
+};
+
+static const EnumTypeMap<OrderSide, string> ORDER_PUBLIC_MODE_NAMES = {
+    {ORDER_BUY, "BUY"}, {ORDER_SELL, "SELL"}
+};
+
+template<typename EnumType, typename EnumBase>
+struct EnumHelper {
+    EnumTypeMap<EnumType, string, EnumBase> enum_map;
+    unordered_map<string, EnumType> name_map;
+    bool ignore_case = true;
+
+    EnumHelper(const vector<pair<EnumType, string>> enumPairs, bool ignoreCase = true) {
+        ignore_case = ignoreCase;
+        for (auto enumPair : enumPairs) {
+            string name = ignore_case ? StrToUpper(enumPair.second) : enumPair.second;
+
+            assert(enum_map.find(enumPair.first) == enum_map.end());
+            enum_map[enumPair.first] = name;
+
+            assert(name_map.find(name) == name_map.end());
+            name_map[name] = enumPair.first;
+        }
+    }
+
+    inline constexpr bool CheckEnum(EnumType enumValue) {
+        return enum_map.find(enumValue) != enum_map.end();
+    }
+
+    inline constexpr const std::string& GetName(EnumType enumValue) {
+        auto it = enum_map.find(enumValue);
+        if (it != enum_map.end())
+            return it->second;
+        return EMPTY_STRING;
+    }
+
+    inline constexpr bool Parse(const string &name, EnumType &enumValue) {
+        typename decltype(name_map)::const_iterator it;
+        if (ignore_case) {
+            it = name_map.find(StrToUpper(name));
+
+        } else {
+            it = name_map.find(name);
+        }
+        if (it == name_map.end())
+            return false;
+
+        enumValue = it->second;
+        return true;
+    }
+};
+
+static const EnumHelper<OrderPublicMode, uint8_t> ORDER_PUBLIC_MODE(
+    {
+        {ORDER_PUBLIC, "PUBLIC"},
+        {ORDER_PRIVATE, "PRIVATE"}
+    }
+);
+
 enum OrderGenerateType: uint8_t {
     EMPTY_ORDER         = 0,
     USER_GEN_ORDER      = 1,
@@ -109,6 +171,16 @@ struct OrderOpt {
     json_spirit::Object ToJson() const;
 };
 
+struct OperatorFeeRatios {
+    uint64_t maker_fee_ratio = 0; //!< match fee ratio
+    uint64_t taker_fee_ratio = 0; //!< match fee ratio
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(maker_fee_ratio));
+        READWRITE(VARINT(taker_fee_ratio));
+    )
+};
+
 struct CDEXOrderDetail {
     OrderGenerateType generate_type = EMPTY_ORDER;       //!< generate type
     OrderType order_type            = ORDER_LIMIT_PRICE; //!< order type
@@ -117,14 +189,16 @@ struct CDEXOrderDetail {
     TokenSymbol asset_symbol        = "";                //!< asset symbol
     uint64_t coin_amount            = 0;                 //!< amount of coin to buy/sell asset
     uint64_t asset_amount           = 0;                 //!< amount of asset to buy/sell
-    uint64_t price                  = 0;          //!< price in coinType want to buy/sell asset
-    OrderOpt order_opt              = OrderOpt(); //!< order opt: is_public, has_fee_ratio
-    DexID dex_id                    = 0;          //!< dex id of operator
-    uint64_t match_fee_ratio        = 0;          //!< match fee ratio, effective when order_opt.HasFeeRatio()==true, otherwith must be 0
-    CTxCord tx_cord                  = CTxCord(); //!< related tx cord
-    CRegID user_regid                = CRegID();  //!< user regid
-    uint64_t total_deal_coin_amount  = 0;         //!< total deal coin amount
-    uint64_t total_deal_asset_amount = 0;         //!< total deal asset amount
+    uint64_t price                  = 0;                //!< price in coinType want to buy/sell asset
+    OrderOpt order_opt              = OrderOpt();       //!< order opt: is_public, has_fee_ratio
+    DexID dex_id                    = 0;                //!< dex id of operator
+    OrderPublicMode public_mode     = ORDER_PUBLIC;     //!< order public mode
+    uint64_t match_fee_ratio        = 0;                //!< match fee ratio
+    optional<OperatorFeeRatios> operator_fee_ratios;    //!< operator_fee_ratios, optional
+    CTxCord tx_cord                  = CTxCord();       //!< related tx cord
+    CRegID user_regid                = CRegID();        //!< user regid
+    uint64_t total_deal_coin_amount  = 0;               //!< total deal coin amount
+    uint64_t total_deal_asset_amount = 0;               //!< total deal asset amount
 
 public:
     IMPLEMENT_SERIALIZE(
@@ -138,7 +212,7 @@ public:
         READWRITE(VARINT(price));
         READWRITE(order_opt);
         READWRITE(VARINT(dex_id));
-        READWRITE(VARINT(match_fee_ratio));
+        READWRITE(operator_fee_ratios);
         READWRITE(tx_cord);
         READWRITE(user_regid);
         READWRITE(VARINT(total_deal_coin_amount));
