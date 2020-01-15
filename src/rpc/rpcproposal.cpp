@@ -281,7 +281,7 @@ Value getsysparam(const Array& params, bool fHelp){
         if( itr == paramNameToSysParamTypeMap.end()){
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
         }
-        st = itr->second ;
+        st = std::get<1>(itr->second) ;
         uint64_t pv ;
         if(!pCdMan->pSysParamCache->GetParam(st, pv)){
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
@@ -295,7 +295,7 @@ Value getsysparam(const Array& params, bool fHelp){
         for(auto kv:paramNameToSysParamTypeMap){
             auto paramName = kv.first ;
             uint64_t pv ;
-            pCdMan->pSysParamCache->GetParam(kv.second, pv);
+            pCdMan->pSysParamCache->GetParam(std::get<1>(kv.second), pv);
 
             obj.push_back(Pair(paramName, pv)) ;
 

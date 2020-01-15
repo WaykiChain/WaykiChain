@@ -68,57 +68,32 @@ enum SysParamType : uint8_t {
 
 };
 
-static const unordered_map<string, string> paramNameToKeyMap = {
-        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           "A"},
-        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              "B"},
-        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        "C"},
-        {"PRICE_FEED_DEVIATE_RATIO_MAX",                   "D"},
-        {"PRICE_FEED_DEVIATE_PENALTY",                     "E"},
-        {"DEX_DEAL_FEE_RATIO",                             "F"},
-        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    "G"},
-        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           "H"},
-        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                "I"},
-        {"CDP_START_COLLATERAL_RATIO",                     "J"},
-        {"CDP_START_LIQUIDATE_RATIO",                      "K"},
-        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  "L"},
-        {"CDP_FORCE_LIQUIDATE_RATIO",                      "M"},
-        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   "N"},
-        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          "O"},
-        {"CDP_INTEREST_PARAM_A",                           "P"},
-        {"CDP_INTEREST_PARAM_B",                           "Q"},
-        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   "R"},
-        {"ASSET_ISSUE_FEE",                                "S"},
-        {"ASSET_UPDATE_FEE",                               "T"},
-        {"DEX_OPERATOR_REGISTER_FEE",                      "U"},
-        {"DEX_OPERATOR_UPDATE_FEE",                        "V"},
-        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    "W"}
-   };
 
 
-static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
-        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT},
-        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN},
-        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX},
-        {"PRICE_FEED_DEVIATE_RATIO_MAX",                   PRICE_FEED_DEVIATE_RATIO_MAX},
-        {"PRICE_FEED_DEVIATE_PENALTY",                     PRICE_FEED_DEVIATE_PENALTY},
-        {"DEX_DEAL_FEE_RATIO",                             DEX_DEAL_FEE_RATIO},
-        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    CDP_SCOIN_RESERVE_FEE_RATIO},
-        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT},
-        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                CDP_GLOBAL_COLLATERAL_RATIO_MIN},
-        {"CDP_START_COLLATERAL_RATIO",                     CDP_START_COLLATERAL_RATIO},
-        {"CDP_START_LIQUIDATE_RATIO",                      CDP_START_LIQUIDATE_RATIO},
-        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  CDP_NONRETURN_LIQUIDATE_RATIO},
-        {"CDP_FORCE_LIQUIDATE_RATIO",                      CDP_FORCE_LIQUIDATE_RATIO},
-        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   CDP_LIQUIDATE_DISCOUNT_RATIO},
-        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN},
-        {"CDP_INTEREST_PARAM_A",                           CDP_INTEREST_PARAM_A},
-        {"CDP_INTEREST_PARAM_B",                           CDP_INTEREST_PARAM_B},
-        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   CDP_SYSORDER_PENALTY_FEE_MIN},
-        {"ASSET_ISSUE_FEE",                                ASSET_ISSUE_FEE},
-        {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE},
-        {"DEX_OPERATOR_REGISTER_FEE",                      DEX_OPERATOR_REGISTER_FEE},
-        {"DEX_OPERATOR_UPDATE_FEE",                        DEX_OPERATOR_UPDATE_FEE},
-        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    PROPOSAL_EXPIRE_BLOCK_COUNT}
+static const unordered_map<string, std::tuple<string,SysParamType>> paramNameToSysParamTypeMap = {
+        {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           make_tuple("A", MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT)    },
+        {"PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN",              make_tuple("B", PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN)       },
+        {"PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX",        make_tuple("C", PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX) },
+        {"PRICE_FEED_DEVIATE_RATIO_MAX",                   make_tuple("D", PRICE_FEED_DEVIATE_RATIO_MAX)            },
+        {"PRICE_FEED_DEVIATE_PENALTY",                     make_tuple("E", PRICE_FEED_DEVIATE_PENALTY)              },
+        {"DEX_DEAL_FEE_RATIO",                             make_tuple("F", DEX_DEAL_FEE_RATIO)                      },
+        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    make_tuple("G", CDP_SCOIN_RESERVE_FEE_RATIO)             },
+        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           make_tuple("H", CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT)    },
+        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                make_tuple("I", CDP_GLOBAL_COLLATERAL_RATIO_MIN)         },
+        {"CDP_START_COLLATERAL_RATIO",                     make_tuple("J", CDP_START_COLLATERAL_RATIO)              },
+        {"CDP_START_LIQUIDATE_RATIO",                      make_tuple("K", CDP_START_LIQUIDATE_RATIO)               },
+        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  make_tuple("L", CDP_NONRETURN_LIQUIDATE_RATIO)           },
+        {"CDP_FORCE_LIQUIDATE_RATIO",                      make_tuple("M", CDP_FORCE_LIQUIDATE_RATIO)               },
+        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   make_tuple("N", CDP_LIQUIDATE_DISCOUNT_RATIO)            },
+        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          make_tuple("O", CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN)   },
+        {"CDP_INTEREST_PARAM_A",                           make_tuple("P", CDP_INTEREST_PARAM_A)                    },
+        {"CDP_INTEREST_PARAM_B",                           make_tuple("Q", CDP_INTEREST_PARAM_B)                    },
+        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   make_tuple("R", CDP_SYSORDER_PENALTY_FEE_MIN)            },
+        {"ASSET_ISSUE_FEE",                                make_tuple("S", ASSET_ISSUE_FEE)                         },
+        {"ASSET_UPDATE_FEE",                               make_tuple("T", ASSET_UPDATE_FEE)                        },
+        {"DEX_OPERATOR_REGISTER_FEE",                      make_tuple("U", DEX_OPERATOR_REGISTER_FEE)               },
+        {"DEX_OPERATOR_UPDATE_FEE",                        make_tuple("V", DEX_OPERATOR_UPDATE_FEE)                 },
+        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    make_tuple("W", PROPOSAL_EXPIRE_BLOCK_COUNT)             }
 };
 
 struct SysParamTypeHash {

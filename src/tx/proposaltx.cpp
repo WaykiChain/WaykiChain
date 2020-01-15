@@ -4,9 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "proposaltx.h"
+#include "tx/proposaltx.h"
 #include "main.h"
-//#include "scoin.h"
 #include "entities/proposal.h"
 #include <algorithm>
 #include "entities/proposalserializer.h"
@@ -63,9 +62,8 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalCreateTx::CheckTx(CTxExecuteContext &context) {
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
 
+     IMPLEMENT_DEFINE_CW_STATE
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
      if (!CheckFee(context)) return false;
 
@@ -86,8 +84,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
  bool CProposalCreateTx::ExecuteTx(CTxExecuteContext &context) {
 
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
+     IMPLEMENT_DEFINE_CW_STATE
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
@@ -136,8 +133,8 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
 } // json-rpc usage
 
  bool CProposalAssentTx::CheckTx(CTxExecuteContext &context) {
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
+
+     IMPLEMENT_DEFINE_CW_STATE
      IMPLEMENT_CHECK_TX_REGID(txUid);
      if (!CheckFee(context)) return false;
 
@@ -162,10 +159,10 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
 
     return true ;
 }
- bool CProposalAssentTx::ExecuteTx(CTxExecuteContext &context) {
 
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
+bool CProposalAssentTx::ExecuteTx(CTxExecuteContext &context) {
+
+     IMPLEMENT_DEFINE_CW_STATE
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
          return state.DoS(100, ERRORMSG("CProposalAssentTx::ExecuteTx, read source addr account info error"),
@@ -211,7 +208,6 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
                               WRITE_ACCOUNT_FAIL, "proposal-execute-error");
          }
      }
-
 
      return true ;
 }

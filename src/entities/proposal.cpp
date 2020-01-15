@@ -17,11 +17,11 @@ extern uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw
 bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
 
     for( auto pa: param_values){
-        auto itr = paramNameToKeyMap.find(pa.first);
-        if(itr == paramNameToKeyMap.end())
+        auto itr = paramNameToSysParamTypeMap.find(pa.first);
+        if(itr == paramNameToSysParamTypeMap.end())
             return false ;
 
-        if(!cw.sysParamCache.SetParam(itr->second, pa.second)){
+        if(!cw.sysParamCache.SetParam(std::get<0>(itr->second), pa.second)){
             return false ;
         }
     }
@@ -35,7 +35,7 @@ bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState&
             return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
                         "params-empty");
        for(auto pa: param_values){
-           if(paramNameToKeyMap.count(pa.first) == 0){
+           if(paramNameToSysParamTypeMap.count(pa.first) == 0){
                return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
            }

@@ -37,7 +37,7 @@ enum OperateType: uint8_t {
 class CProposal {
 public:
 
-    ProposalType proposal_type = NULL_PROPOSAL ;
+    ProposalType proposal_type = NULL_PROPOSAL;
     int8_t need_governer_count = 0;
     int32_t expire_block_height = 0;
 
@@ -266,7 +266,6 @@ public:
     }
 
     string ToString() override {
-
         string baseString = CProposal::ToString() ;
         return strprintf("%s, tx_type=%d, fee_symbo=%s ,fee_sawi_amount=%d",
                 baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
