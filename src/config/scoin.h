@@ -64,6 +64,7 @@ enum SysParamType : uint8_t {
     ASSET_UPDATE_FEE                        = 20,
     DEX_OPERATOR_REGISTER_FEE               = 21,
     DEX_OPERATOR_UPDATE_FEE                 = 22,
+    PROPOSAL_EXPIRE_BLOCK_COUNT             = 23
 
 };
 
@@ -89,7 +90,8 @@ static const unordered_map<string, string> paramNameToKeyMap = {
         {"ASSET_ISSUE_FEE",                                "S"},
         {"ASSET_UPDATE_FEE",                               "T"},
         {"DEX_OPERATOR_REGISTER_FEE",                      "U"},
-        {"DEX_OPERATOR_UPDATE_FEE",                        "V"}
+        {"DEX_OPERATOR_UPDATE_FEE",                        "V"},
+        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    "W"}
    };
 
 
@@ -115,7 +117,8 @@ static const unordered_map<string, SysParamType> paramNameToSysParamTypeMap = {
         {"ASSET_ISSUE_FEE",                                ASSET_ISSUE_FEE},
         {"ASSET_UPDATE_FEE",                               ASSET_UPDATE_FEE},
         {"DEX_OPERATOR_REGISTER_FEE",                      DEX_OPERATOR_REGISTER_FEE},
-        {"DEX_OPERATOR_UPDATE_FEE",                        DEX_OPERATOR_UPDATE_FEE}
+        {"DEX_OPERATOR_UPDATE_FEE",                        DEX_OPERATOR_UPDATE_FEE},
+        {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    PROPOSAL_EXPIRE_BLOCK_COUNT}
 };
 
 struct SysParamTypeHash {
@@ -130,6 +133,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,      std::make_tuple("C",    10)         },  // after 10 times continuous deviate limit penetration all deposit be deducted
     { PRICE_FEED_DEVIATE_RATIO_MAX,                 std::make_tuple("D",    3000)       },  // must be < 30% * 10000, otherwise penalized
     { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
+    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    40000)      },  // 0.04% * 100000000
     { CDP_SCOIN_RESERVE_FEE_RATIO,                  std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
     { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,         std::make_tuple("H",    52500000)   },  // 25% * 210000000
     { CDP_GLOBAL_COLLATERAL_RATIO_MIN,              std::make_tuple("I",    8000)       },  // 80% * 10000
@@ -146,7 +150,7 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamT
     { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110 * COIN) },  // asset update fee = 110 WICC
     { DEX_OPERATOR_REGISTER_FEE,                    std::make_tuple("U",    1100 * COIN) }, // dex operator register fee = 1100 WICC
     { DEX_OPERATOR_UPDATE_FEE,                      std::make_tuple("V",    110 * COIN) },  // dex operator update fee = 110 WICC
-    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    40000)      },  // 0.04% * 100000000
+    { PROPOSAL_EXPIRE_BLOCK_COUNT,                  std::make_tuple("W",    1200)       }   //
 
 };
 

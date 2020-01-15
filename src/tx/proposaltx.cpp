@@ -103,8 +103,15 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
          return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set account info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+     uint64_t expireBlockCount ;
+
+     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expireBlockCount)) {
+         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx,get proposal expire block count error"),
+                          WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
+     }
+
      auto newProposal = proposal->GetNewInstance() ;
-     newProposal->expire_block_height = context.height + 1200 ;
+     newProposal->expire_block_height = context.height + expireBlockCount ;
      newProposal->need_governer_count = GetNeedGovernerCount(proposal->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
@@ -120,7 +127,6 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, proposalid=%s, llFees=%ld, keyid=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txid.GetHex(), llFees,
                      txUid.ToString(), valid_height);
-    return "";
 }
  Object CProposalAssentTx::ToJson(const CAccountDBCache &accountCache) const {
 
