@@ -6,43 +6,20 @@
 #include "dexorder.h"
 #include "config/chainparams.h"
 
+using namespace dex;
+
 ////////////////////////////////////////////////////////////////////////////////
-// OrderOpt
+// OperatorFeeRatios
 
-bool OrderOpt::CheckValid() {
-    return bits <= BITS_MAX;
+string OperatorFeeRatios::ToString() const {
+    return  strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
+            strprintf("maker_fee_ratio=%s", maker_fee_ratio);
 }
 
-bool OrderOpt::IsPublic() const {
-    return (bits & IS_PUBLIC) != 0;
-}
-
-void OrderOpt::SetIsPublic(bool isPublic) {
-    SetBit(isPublic, IS_PUBLIC);
-}
-
-bool OrderOpt::HasFeeRatio() const {
-    return (bits & HAS_FEE) != 0;
-}
-
-void OrderOpt::SetHasFeeRatio(bool hasFee) {
-    SetBit(hasFee, HAS_FEE);
-}
-
-void OrderOpt::SetBit(bool enabled, uint8_t bit) {
-    if (enabled)
-        bits |= bit;
-    else
-        bits &= ~bit;
-}
-
-string OrderOpt::ToString() const {
-    return strprintf("is_public=%d, has_fee_ratio=%d", IsPublic(), HasFeeRatio());
-}
-json_spirit::Object OrderOpt::ToJson() const {
+Object OperatorFeeRatios::ToJson() const {
     json_spirit::Object obj;
-    obj.push_back(Pair("is_public", IsPublic()));
-    obj.push_back(Pair("has_fee_ratio", HasFeeRatio()));
+    obj.push_back(Pair("taker_fee_ratio", taker_fee_ratio));
+    obj.push_back(Pair("maker_fee_ratio", maker_fee_ratio));
     return obj;
 }
 
@@ -50,16 +27,23 @@ json_spirit::Object OrderOpt::ToJson() const {
 // class CDEXOrderDetail
 
 string CDEXOrderDetail::ToString() const {
-    return strprintf("generate_type=%s, order_side=%s, "
-                     "order_type=%s, coin_symbol=%d, asset_symbol=%s, coin_amount=%lu,"
-                     " asset_amount=%lu, price=%lu, order_opt={%s}, dex_id=%u, "
-                     "match_fee_ratio=%llu, tx_cord=%s, user_regid=%s, "
-                     "total_deal_coin_amount=%llu, total_deal_asset_amount=%llu",
-                     GetOrderGenTypeName(generate_type), GetOrderSideName(order_side),
-                     GetOrderTypeName(order_type), coin_symbol, asset_symbol, coin_amount,
-                     asset_amount, price, order_opt.ToString(), dex_id, match_fee_ratio,
-                     tx_cord.ToString(), user_regid.ToString(), total_deal_coin_amount,
-                     total_deal_asset_amount);
+    return  strprintf("generate_type=%s", GetOrderGenTypeName(generate_type)) + ", " +
+            strprintf("order_type=%s", GetOrderTypeName(order_type)) + ", " +
+            strprintf("order_side=%s", GetOrderSideName(order_side)) + ", " +
+            strprintf("coin_symbol=%s", coin_symbol) + ", " +
+            strprintf("asset_symbol=%s", asset_symbol) + ", " +
+            strprintf("coin_amount=%llu", coin_amount) + ", " +
+            strprintf("asset_amount=%llu", asset_amount) + ", " +
+            strprintf("price=%llu", price) + ", " +
+
+            strprintf("dex_id=%u", dex_id) + ", " +
+            strprintf("public_mode=%u", dex::kPublicModeHelper.GetName(public_mode)) + ", " +
+            strprintf("has_operator_config=%d", opt_operator_fee_ratios.has_value()) + ", " +
+            strprintf("operator_fee_ratios={%s}", opt_operator_fee_ratios ? opt_operator_fee_ratios->ToString() : "") + ", " +
+            strprintf("tx_cord=%s", tx_cord.ToString()) + ", " +
+            strprintf("user_regid=%s", user_regid.ToString()) + ", " +
+            strprintf("total_deal_coin_amount=%llu", total_deal_coin_amount) + ", " +
+            strprintf("total_deal_asset_amount=%llu", total_deal_asset_amount);
 }
 
 
@@ -72,9 +56,14 @@ void CDEXOrderDetail::ToJson(json_spirit::Object &obj) const {
     obj.push_back(Pair("coin_amount",               coin_amount));
     obj.push_back(Pair("asset_amount",              asset_amount));
     obj.push_back(Pair("price",                     price));
-    obj.push_back(Pair("order_opt",                 order_opt.ToJson()));
     obj.push_back(Pair("dex_id",                    (int64_t)dex_id));
-    obj.push_back(Pair("match_fee_ratio",           match_fee_ratio));
+    obj.push_back(Pair("public_mode",               dex::kPublicModeHelper.GetName(public_mode)));
+    obj.push_back(Pair("has_operator_config",       opt_operator_fee_ratios.has_value()));
+    if (opt_operator_fee_ratios) {
+        json_spirit::Object operatorObj;
+        operatorObj.push_back(Pair("fee_ratios",    opt_operator_fee_ratios.value().ToJson()));
+        obj.push_back(Pair("operator_config",       operatorObj));
+    }
     obj.push_back(Pair("tx_cord",                   tx_cord.ToString()));
     obj.push_back(Pair("user_regid",                user_regid.ToString()));
     obj.push_back(Pair("total_deal_coin_amount",    total_deal_coin_amount));
@@ -113,9 +102,9 @@ shared_ptr<CDEXOrderDetail> CDEXSysOrder::Create(OrderType orderType, OrderSide 
     pSysOrder->coin_amount        = coiAmountIn;
     pSysOrder->asset_amount       = assetAmountIn;
     pSysOrder->price              = 0;
-    pSysOrder->order_opt          = OrderOpt::IS_PUBLIC | OrderOpt::HAS_FEE;
+    pSysOrder->public_mode        = ORDER_PUBLIC;
     pSysOrder->dex_id             = 0;
-    pSysOrder->match_fee_ratio    = 0;
+    pSysOrder->opt_operator_fee_ratios = make_optional<OperatorFeeRatios>(0, 0); // no order fee for sys order
     pSysOrder->tx_cord            = txCord;
     pSysOrder->user_regid         = SysCfg().GetFcoinGenesisRegId();
     // other fields keep default value
