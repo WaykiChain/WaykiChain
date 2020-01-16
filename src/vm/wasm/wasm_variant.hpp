@@ -186,8 +186,6 @@ namespace wasm {
 
         std::time_t time = std::chrono::system_clock::to_time_t(t);
         v = wasm::variant(FromTime(time));
-
-        //WASM_TRACE("%s", FromTime(time).c_str());
     }
 
 

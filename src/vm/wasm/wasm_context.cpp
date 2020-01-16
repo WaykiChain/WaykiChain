@@ -39,7 +39,7 @@ namespace wasm {
             ostringstream prefix;
 
             auto contract_s = name(trace.trx.contract).to_string();
-            auto action_s = name(trace.trx.action).to_string();
+            auto action_s   = name(trace.trx.action).to_string();
             auto receiver_s = name(receiver).to_string();
 
             prefix << "[" << contract_s << "," << action_s << "]->" << receiver_s << "";
@@ -102,7 +102,7 @@ namespace wasm {
 
     std::vector <uint8_t> wasm_context::get_code(const uint64_t& account) {
 
-        vector <uint8_t> code;
+        vector <uint8_t>   code;
         CUniversalContract contract;
         CAccount contract_account ;
         if(database.accountCache.GetAccount(CNickID(account), contract_account)
@@ -216,7 +216,7 @@ namespace wasm {
         return false;
     }
 
-    void wasm_context::require_recipient(const uint64_t& recipient) {
+    void wasm_context::require_recipient(const uint64_t& recipient)  {
 
         if (!has_recipient(recipient)) {
             notified.push_back(recipient);
@@ -228,7 +228,7 @@ namespace wasm {
 
     }
 
-    void wasm_context::require_auth( const uint64_t& account ){
+    void wasm_context::require_auth( const uint64_t& account ) const {
         for(auto p: trx.authorization){
             if(p.account == account){
                 return;
@@ -247,7 +247,7 @@ namespace wasm {
         return false;
     }
 
-    bool wasm_context::is_account( const uint64_t& account ) {
+    bool wasm_context::is_account( const uint64_t& account ) const {
 
         //auto account_name = wasm::name(account);
         return database.accountCache.HaveAccount(nick_name(account));

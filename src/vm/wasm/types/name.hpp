@@ -122,7 +122,7 @@ namespace wasm {
                     value |= v;
                 }
             }
-            CHAIN_CAPTURE_AND_RETHROW("name convert error: '%s'", str)
+            CHAIN_CAPTURE_AND_RETHROW("'%s' can not convert to name", str)
         }
 
         /**

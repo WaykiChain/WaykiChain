@@ -33,12 +33,12 @@ using namespace eosio::vm;
                   DATA_NAME, max_wasm_api_data_bytes, LENGTH )
 
 namespace wasm {
-    using code_version       = uint256;
+    using code_version_t     = uint256;
     using backend_validate_t = backend<wasm::wasm_context_interface, vm::interpreter>;
     using rhf_t              = eosio::vm::registered_host_functions<wasm_context_interface>;
 
-    std::optional<std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>>& get_wasm_instantiation_cache(){
-        static std::optional<std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>> wasm_instantiation_cache;
+    std::optional<std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>>& get_wasm_instantiation_cache(){
+        static std::optional<std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>> wasm_instantiation_cache;
         return wasm_instantiation_cache;
     }
 
@@ -59,7 +59,7 @@ namespace wasm {
 
         try {
             if(!get_wasm_instantiation_cache().has_value()){
-                 get_wasm_instantiation_cache() = std::map <code_version, std::shared_ptr<wasm_instantiated_module_interface>>{};
+                 get_wasm_instantiation_cache() = std::map <code_version_t, std::shared_ptr<wasm_instantiated_module_interface>>{};
             }
 
             auto code_id = Hash(code.begin(), code.end());
@@ -170,17 +170,16 @@ namespace wasm {
         }
 
         //action
-        uint32_t read_action_data( void* memory, uint32_t buf_len ) {
+        uint32_t read_action_data( void* data, uint32_t data_len ) {
             uint32_t s = pWasmContext->get_action_data_size();
-            if (buf_len == 0) return s;
+            if (data_len == 0) return s;
    
-            uint32_t copy_len = std::min(buf_len, s);
-            // CHAIN_ASSERT( pWasmContext->is_memory_in_wasm_allocator(reinterpret_cast<uint64_t>(memory) + copy_len - 1), 
-            //               wasm_chain::wasm_memory_exception,  
-            //               "access violation")
-            CHECK_WASM_IN_MEMORY(memory, copy_len)
+            uint32_t copy_len = std::min(data_len, s);
 
-            std::memcpy(memory, pWasmContext->get_action_data(), copy_len);
+            CHECK_WASM_IN_MEMORY(data,     copy_len)
+            CHECK_WASM_DATA_SIZE(copy_len, "data"  )
+
+            std::memcpy(data, pWasmContext->get_action_data(), copy_len);
             return copy_len;
         }
 
@@ -202,7 +201,6 @@ namespace wasm {
             checksum160_type checksum;
             SHA1((const unsigned char*)data, data_len, (unsigned char *)&checksum);
             CHAIN_ASSERT( std::memcmp((unsigned char *)&checksum, (unsigned char *)hash_val, 20) == 0, crypto_api_exception, "hash mismatch" );
-
         }
 
         void assert_sha256(const void * data, uint32_t data_len, void* hash_val) {

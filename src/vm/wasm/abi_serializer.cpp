@@ -30,7 +30,6 @@ namespace wasm {
 
         json_spirit::Value var;
         wasm::to_variant(temp, var);
-       // WASM_TRACE("var:%s",json_spirit::write_formatted(var).c_str() )
         return var;
     }
 
@@ -569,14 +568,12 @@ namespace wasm {
         }
     }
 
-
     void abi_traverse_context::check_deadline() const {
         CHAIN_ASSERT( system_clock::now() < deadline, 
                       wasm_chain::abi_serialization_deadline_exception,
                       "Serialization time limit %ldms exceeded", 
                       max_serialization_time_us.count());
     }
-
 
     void abi_serializer::check_struct_in_recursion( const struct_def &s, shared_ptr <dag> &parent,
                                                     wasm::abi_traverse_context &ctx ) const {
