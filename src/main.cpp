@@ -1031,8 +1031,7 @@ bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state
 }
 
 // compute vote staking interest && revoke votes
-static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime,
-                                                    CCacheWrapper &cw, CValidationState &state) {
+static bool ComputeVoteStakingInterestAndRevokeVotes(CBlock &block, CCacheWrapper &cw, CValidationState &state) {
     // acquire votes list
     map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
     if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
@@ -1066,6 +1065,10 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
         regId2CandidateVotes.emplace(regId, candidateVotes);
     }
 
+    CBaseTx &rewardTx = *block.vptx.front();
+    vector<CReceipt> receipts;
+    cw.txReceiptCache.GetTxReceipts(rewardTx.GetHash(), receipts);
+
     // compute vote staking interest
     for (const auto &item : regId2CandidateVotes) {
         const auto &regId          = item.first;
@@ -1075,8 +1078,8 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
         cw.delegateCache.GetCandidateVotes(regId, candidateVotesInOut);
         CAccount account;
         cw.accountCache.GetAccount(regId, account);
-        vector<CReceipt> receipts;
-        if (!account.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, currHeight, currBlockTime,
+
+        if (!account.ProcessCandidateVotes(candidateVotes, candidateVotesInOut, block.GetHeight(), block.GetTime(),
                                            cw.accountCache, receipts)) {
             return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : operate candidate votes failed, regId=%s",
                             regId.ToString()), UPDATE_ACCOUNT_FAIL, "operate-candidate-votes-failed");
@@ -1122,6 +1125,10 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
         }
     }
 
+    if (!cw.txReceiptCache.SetTxReceipts(rewardTx.GetHash(), receipts)) {
+        return state.DoS(100, ERRORMSG("%s() : save receipts error! txid=%s", __func__,
+                rewardTx.GetHash().ToString()), UPDATE_ACCOUNT_FAIL, "save-receipts-error");
+    }
     return true;
 }
 
@@ -1289,7 +1296,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     if (pIndex->height + 1 == (int32_t)SysCfg().GetFeatureForkHeight() &&
-        !ComputeVoteStakingInterestAndRevokeVotes(pIndex->height, pIndex->nTime, cw, state)) {
+        !ComputeVoteStakingInterestAndRevokeVotes(block, cw, state)) {
         return state.Abort(_("ConnectBlock() : failed to compute vote staking interest"));
     }
 
