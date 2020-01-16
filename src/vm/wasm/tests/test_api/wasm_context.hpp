@@ -176,20 +176,19 @@ class wasm_context : public wasm_context_interface {
         uint64_t contract() { return trx.contract; }
         uint64_t action()   { return trx.action;   }
         const char *get_action_data()   { return trx.data.data(); }
-        uint32_t get_action_data_size() { 
-            //WASM_TRACE("get_action_data_size")
-            return trx.data.size(); 
-        }
-        bool set_data  ( const uint64_t& contract, const string& k, const string& v )  { return cache.SetContractData(contract, k, v); }
-        bool get_data  ( const uint64_t& contract, const string& k, string &v ) { return cache.GetContractData(contract, k, v); }
-        bool erase_data( const uint64_t& contract, const string& k ) { return cache.EraseContractData(contract, k); }
+        uint32_t get_action_data_size() { return trx.data.size(); }
 
-        bool is_account   (const uint64_t& account) { return true; }
-        void require_auth (const uint64_t& account ) {}
-        void require_auth2(const uint64_t& account, const uint64_t& permission ) {}
+        bool is_account   (const uint64_t& account)  const { return true; }
+        void require_auth (const uint64_t& account ) const {}
+        void require_auth2(const uint64_t& account, const uint64_t& permission ) const {}
         bool has_authorization( const uint64_t& account ) const {return true;}
         uint64_t block_time() { return 0;      }
         void     exit      () { wasmif.exit(); }
+
+
+        bool set_data  ( const uint64_t& contract, const string& k, const string& v )  { return cache.SetContractData(contract, k, v); }
+        bool get_data  ( const uint64_t& contract, const string& k, string &v ) { return cache.GetContractData(contract, k, v); }
+        bool erase_data( const uint64_t& contract, const string& k ) { return cache.EraseContractData(contract, k); }
 
         std::vector<uint64_t>    get_active_producers() { return std::vector<uint64_t>(); }
         vm::wasm_allocator*      get_wasm_allocator()   { return &wasm_alloc; }

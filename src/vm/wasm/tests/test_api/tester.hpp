@@ -1,6 +1,6 @@
 #pragma once
 #include <wasm/wasm_log.hpp>
-#include <wasm/wasm_config.hpp>
+#include <wasm/wasm_constants.hpp>
 #include <wasm/wasm_trace.hpp>
 #include <wasm/types/name.hpp>
 #include <wasm/types/uint128.hpp>

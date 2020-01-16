@@ -15,7 +15,7 @@
 #include "json/json_spirit_writer.h"
 #include "wasm/abi_serializer.hpp"
 #include "wasm/wasm_variant.hpp"
-#include "wasm/wasm_config.hpp"
+#include "wasm/wasm_constants.hpp"
 #include "wasm/exception/exceptions.hpp"
 
 #include "wasm/wasm_log.hpp"
