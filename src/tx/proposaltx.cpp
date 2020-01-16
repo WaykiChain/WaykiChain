@@ -4,9 +4,8 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
-#include "proposaltx.h"
+#include "tx/proposaltx.h"
 #include "main.h"
-//#include "scoin.h"
 #include "entities/proposal.h"
 #include <algorithm>
 #include "entities/proposalserializer.h"
@@ -48,7 +47,10 @@ uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw ){
 
 
 string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
-    return "" ;
+    string proposalString = proposal->ToString() ;
+    return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
+                     txUid.ToString(), valid_height);
 }          // logging usage
 
 Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -60,9 +62,8 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalCreateTx::CheckTx(CTxExecuteContext &context) {
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
 
+     IMPLEMENT_DEFINE_CW_STATE
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
      if (!CheckFee(context)) return false;
 
@@ -83,8 +84,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
  bool CProposalCreateTx::ExecuteTx(CTxExecuteContext &context) {
 
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
+     IMPLEMENT_DEFINE_CW_STATE
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
@@ -100,8 +100,15 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
          return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set account info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
+     uint64_t expireBlockCount ;
+
+     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expireBlockCount)) {
+         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx,get proposal expire block count error"),
+                          WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
+     }
+
      auto newProposal = proposal->GetNewInstance() ;
-     newProposal->expire_block_height = context.height + 1200 ;
+     newProposal->expire_block_height = context.height + expireBlockCount ;
      newProposal->need_governer_count = GetNeedGovernerCount(proposal->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
@@ -113,7 +120,10 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
 
 string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
-    return "";
+
+    return strprintf("txType=%s, hash=%s, ver=%d, proposalid=%s, llFees=%ld, keyid=%s, valid_height=%d",
+                     GetTxType(nTxType), GetHash().ToString(), nVersion, txid.GetHex(), llFees,
+                     txUid.ToString(), valid_height);
 }
  Object CProposalAssentTx::ToJson(const CAccountDBCache &accountCache) const {
 
@@ -123,8 +133,8 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
 } // json-rpc usage
 
  bool CProposalAssentTx::CheckTx(CTxExecuteContext &context) {
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
+
+     IMPLEMENT_DEFINE_CW_STATE
      IMPLEMENT_CHECK_TX_REGID(txUid);
      if (!CheckFee(context)) return false;
 
@@ -149,10 +159,10 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
 
     return true ;
 }
- bool CProposalAssentTx::ExecuteTx(CTxExecuteContext &context) {
 
-     CCacheWrapper &cw       = *context.pCw;
-     CValidationState &state = *context.pState;
+bool CProposalAssentTx::ExecuteTx(CTxExecuteContext &context) {
+
+     IMPLEMENT_DEFINE_CW_STATE
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
          return state.DoS(100, ERRORMSG("CProposalAssentTx::ExecuteTx, read source addr account info error"),
@@ -198,7 +208,6 @@ string CProposalAssentTx::ToString(CAccountDBCache &accountCache) {
                               WRITE_ACCOUNT_FAIL, "proposal-execute-error");
          }
      }
-
 
      return true ;
 }

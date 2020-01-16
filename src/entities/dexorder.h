@@ -11,7 +11,7 @@
 
 #include "id.h"
 #include "asset.h"
-#include "commons/types.h"
+#include "commons/util/enumhelper.hpp"
 #include "commons/json/json_spirit.h"
 
 typedef uint32_t DexID;
@@ -60,6 +60,22 @@ inline const std::string &GetOrderTypeName(OrderType orderType) {
     return EMPTY_STRING;
 }
 
+namespace dex {
+
+    enum PublicMode: uint8_t {
+        ORDER_PUBLIC,
+        ORDER_PRIVATE
+    };
+
+    static const EnumHelper<PublicMode, uint8_t> kPublicModeHelper (
+        {
+            {ORDER_PUBLIC, "PUBLIC"},
+            {ORDER_PRIVATE, "PRIVATE"}
+        }
+    );
+
+}
+
 enum OrderGenerateType: uint8_t {
     EMPTY_ORDER         = 0,
     USER_GEN_ORDER      = 1,
@@ -79,34 +95,23 @@ inline const string &GetOrderGenTypeName(OrderGenerateType genType) {
     return EMPTY_STRING;
 }
 
-struct OrderOpt {
-    uint8_t bits = 0;
+struct OperatorFeeRatios {
+    uint64_t maker_fee_ratio = 0; //!< match fee ratio
+    uint64_t taker_fee_ratio = 0; //!< match fee ratio
 
-    static const uint8_t IS_PUBLIC = 1 << 0;
-    static const uint8_t HAS_FEE   = 1 << 1;
-    static const uint8_t BITS_MAX  = (1 << 2) - 1;
 
-    OrderOpt() {}
-    OrderOpt(uint8_t bitsIn): bits(bitsIn) {}
+    OperatorFeeRatios() {}
+    OperatorFeeRatios(uint64_t makerFeeRatio, uint64_t takerFeeRatio)
+        : maker_fee_ratio(makerFeeRatio), taker_fee_ratio(takerFeeRatio) {}
+
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(bits);
+        READWRITE(VARINT(maker_fee_ratio));
+        READWRITE(VARINT(taker_fee_ratio));
     )
 
-    bool CheckValid();
-
-    bool IsPublic() const;
-
-    void SetIsPublic(bool isPublic);
-
-    bool HasFeeRatio() const;
-
-    void SetHasFeeRatio(bool hasFee);
-
-    void SetBit(bool enabled, uint8_t bit);
-
     string ToString() const;
-    json_spirit::Object ToJson() const;
+    Object ToJson() const;
 };
 
 struct CDEXOrderDetail {
@@ -117,14 +122,14 @@ struct CDEXOrderDetail {
     TokenSymbol asset_symbol        = "";                //!< asset symbol
     uint64_t coin_amount            = 0;                 //!< amount of coin to buy/sell asset
     uint64_t asset_amount           = 0;                 //!< amount of asset to buy/sell
-    uint64_t price                  = 0;          //!< price in coinType want to buy/sell asset
-    OrderOpt order_opt              = OrderOpt(); //!< order opt: is_public, has_fee_ratio
-    DexID dex_id                    = 0;          //!< dex id of operator
-    uint64_t match_fee_ratio        = 0;          //!< match fee ratio, effective when order_opt.HasFeeRatio()==true, otherwith must be 0
-    CTxCord tx_cord                  = CTxCord(); //!< related tx cord
-    CRegID user_regid                = CRegID();  //!< user regid
-    uint64_t total_deal_coin_amount  = 0;         //!< total deal coin amount
-    uint64_t total_deal_asset_amount = 0;         //!< total deal asset amount
+    uint64_t price                  = 0;                //!< price in coinType want to buy/sell asset
+    DexID dex_id                    = 0;                //!< dex id of operator
+    dex::PublicMode public_mode     = dex::ORDER_PUBLIC;//!< order public mode
+    optional<OperatorFeeRatios> opt_operator_fee_ratios;    //!< operator_fee_ratios, optional
+    CTxCord tx_cord                  = CTxCord();       //!< related tx cord
+    CRegID user_regid                = CRegID();        //!< user regid
+    uint64_t total_deal_coin_amount  = 0;               //!< total deal coin amount
+    uint64_t total_deal_asset_amount = 0;               //!< total deal asset amount
 
 public:
     IMPLEMENT_SERIALIZE(
@@ -136,9 +141,8 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE(VARINT(asset_amount));
         READWRITE(VARINT(price));
-        READWRITE(order_opt);
         READWRITE(VARINT(dex_id));
-        READWRITE(VARINT(match_fee_ratio));
+        READWRITE(opt_operator_fee_ratios);
         READWRITE(tx_cord);
         READWRITE(user_regid);
         READWRITE(VARINT(total_deal_coin_amount));

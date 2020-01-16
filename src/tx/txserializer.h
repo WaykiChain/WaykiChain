@@ -107,18 +107,16 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXBuyMarketOrderTx&)tx, serType, version); break;
         case DEX_MARKET_SELL_ORDER_TX:
             ::Serialize(os, (const CDEXSellMarketOrderTx&)tx, serType, version); break;
-        case DEX_LIMIT_BUY_ORDER_EX_TX:
-            ::Serialize(os, (const CDEXBuyLimitOrderExTx&)tx, serType, version); break;
-        case DEX_LIMIT_SELL_ORDER_EX_TX:
-            ::Serialize(os, (const CDEXSellLimitOrderExTx&)tx, serType, version); break;
-        case DEX_MARKET_BUY_ORDER_EX_TX:
-            ::Serialize(os, (const CDEXBuyMarketOrderExTx&)tx, serType, version); break;
-        case DEX_MARKET_SELL_ORDER_EX_TX:
-            ::Serialize(os, (const CDEXSellMarketOrderExTx&)tx, serType, version); break;
+        case DEX_ORDER_TX:
+            ::Serialize(os, (const CDEXOrderTx&)tx, serType, version); break;
+        case DEX_OPERATOR_ORDER_TX:
+            ::Serialize(os, (const CDEXOperatorOrderTx&)tx, serType, version); break;
+
         case DEX_OPERATOR_UPDATE_TX:
             ::Serialize(os, (const CDEXOperatorUpdateTx&)tx, serType, version); break;
         case DEX_OPERATOR_REGISTER_TX:
             ::Serialize(os, (const CDEXOperatorRegisterTx&)tx, serType, version); break;
+
         case PROPOSAL_CREATE_TX:
             ::Serialize(os, (const CProposalCreateTx&)tx,serType, version); break ;
         case PROPOSAL_ASSENT_TX:
@@ -285,24 +283,14 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CDEXSellMarketOrderTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case DEX_LIMIT_BUY_ORDER_EX_TX: {
-            pBaseTx = std::make_shared<CDEXBuyLimitOrderExTx>();
-            ::Unserialize(is, *((CDEXBuyLimitOrderExTx *)(pBaseTx.get())), serType, version);
+        case DEX_ORDER_TX: {
+            pBaseTx = std::make_shared<CDEXOrderTx>();
+            ::Unserialize(is, *((CDEXOrderTx *)(pBaseTx.get())), serType, version);
             break;
         }
-        case DEX_LIMIT_SELL_ORDER_EX_TX: {
-            pBaseTx = std::make_shared<CDEXSellLimitOrderExTx>();
-            ::Unserialize(is, *((CDEXSellLimitOrderExTx *)(pBaseTx.get())), serType, version);
-            break;
-        }
-        case DEX_MARKET_BUY_ORDER_EX_TX: {
-            pBaseTx = std::make_shared<CDEXBuyMarketOrderExTx>();
-            ::Unserialize(is, *((CDEXBuyMarketOrderExTx *)(pBaseTx.get())), serType, version);
-            break;
-        }
-        case DEX_MARKET_SELL_ORDER_EX_TX: {
-            pBaseTx = std::make_shared<CDEXSellMarketOrderExTx>();
-            ::Unserialize(is, *((CDEXSellMarketOrderExTx *)(pBaseTx.get())), serType, version);
+        case DEX_OPERATOR_ORDER_TX: {
+            pBaseTx = std::make_shared<CDEXOperatorOrderTx>();
+            ::Unserialize(is, *((CDEXOperatorOrderTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

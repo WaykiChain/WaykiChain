@@ -17,6 +17,8 @@
 #include "tx/dextx.h"
 #include "tx/dexoperatortx.h"
 
+using namespace dex;
+
 static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOperatorDetail &dexOperator) {
     Object result;
     CKeyID ownerKeyid;
@@ -65,15 +67,15 @@ namespace RPC_PARAM {
         return "";
     }
 
-    OrderOpt GetOrderOpt(const Array &params, const size_t isPublicIdx,
-                         const size_t hasFeeRatioIdx) {
+    PublicMode GetOrderPublicMode(const Array &params, const size_t index) {
 
-        bool isPublic    = params.size() > isPublicIdx ? params[isPublicIdx].get_bool() : true;
-        bool hasFeeRatio = params.size() > hasFeeRatioIdx ? params[hasFeeRatioIdx].get_bool() : false;
-        OrderOpt orderOpt;
-        orderOpt.SetIsPublic(isPublic);
-        orderOpt.SetHasFeeRatio(hasFeeRatio);
-        return orderOpt;
+        PublicMode ret = ORDER_PUBLIC;
+        if (params.size() > index) {
+            if (kPublicModeHelper.Parse(params[index].get_str(), ret))
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
+                    params[index].get_str()));
+        }
+        return ret;
     }
 
     DexOperatorDetail GetDexOperator(const DexID &dexId) {
@@ -97,7 +99,7 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
     }
 
     shared_ptr<CBaseTx> pBaseTx = static_pointer_cast<CBaseTx>(pOrderBaseTx);
-    if (pOrderBaseTx->order_opt.HasFeeRatio()) {
+    if (pOrderBaseTx->has_operator_config) {
         CAccount operatorAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, operatorDetail.fee_receiver_regid);
         const CKeyID &operatorKeyid = operatorAccount.keyid;
         if (!pWalletMain->HaveKey(operatorKeyid)) {
@@ -137,12 +139,9 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "   default symbol is WICC, default unit is sawi.\n"
             "4.\"price\": (numeric, required) bidding price willing to buy\n"
             "5.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "6.\"is_public\": (bool, optional) indicate the order is public, defualt is true\n"
-            "7.\"has_fee_ratio\": (bool, optional) indicate the order has fee_ratio, defualt is false\n"
-            "8.\"match_fee_ratio\": (numeric, optional) dex operator fee ratio, effective when has_fee_ratio=true, "
-                                                        "boost 100000000, MAX 50000000, default is 0\n"
-            "9.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "10.\"memo\": (string, optional) memo\n"
+            "6.\"public_mode\": (string, optional) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
+            "7.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "8.\"memo\": (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -157,17 +156,16 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
-    const TxType txType = version  < MAJOR_VER_R3 ? DEX_LIMIT_BUY_ORDER_TX : DEX_LIMIT_BUY_ORDER_EX_TX;
+    const TxType txType = version  < MAJOR_VER_R3 ? DEX_LIMIT_BUY_ORDER_TX : DEX_ORDER_TX;
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     uint64_t price                 = RPC_PARAM::GetPrice(params[3]);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 4);
-    OrderOpt orderOpt              = RPC_PARAM::GetOrderOpt(params, 5/*is_public*/, 6/*has_fee_ratio*/);
-    uint64_t operatorFeeRatio      = RPC_PARAM::GetOperatorFeeRatio(params, 7);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 8, txType);
-    string memo                    = RPC_PARAM::GetMemo(params, 9);
+    PublicMode publicMode     = RPC_PARAM::GetOrderPublicMode(params, 5);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 6, txType);
+    string memo                    = RPC_PARAM::GetMemo(params, 7);
 
     RPC_PARAM::CheckOrderSymbols(__func__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
@@ -180,16 +178,16 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
-        pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
-                        assetInfo.symbol, assetInfo.GetSawiAmount(), price);
-    } else {
-        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
-        pOrderBaseTx = make_shared<CDEXBuyLimitOrderExTx>(
+        // ignore dex_id, public_mode
+        pOrderBaseTx = make_shared<CDEXBuyLimitOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), price, dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
+            assetInfo.GetSawiAmount(), price);
+    } else {
+        pOrderBaseTx =
+            make_shared<CDEXOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(),
+                                     ORDER_LIMIT_PRICE, ORDER_BUY, coinSymbol, assetInfo.symbol,
+                                     0, assetInfo.GetSawiAmount(), price, dexId, publicMode, memo);
     }
-
     return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
 }
 
@@ -205,7 +203,7 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "   default symbol is WICC, default unit is sawi.\n"
             "4.\"price\": (numeric, required) bidding price willing to buy\n"
             "5.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "6.\"is_public\": (bool, optional) indicate the order is public, defualt is true\n"
+            "6.\"public_mode\": (string, optional) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
             "7.\"has_fee_ratio\": (bool, optional) indicate the order has fee_ratio, defualt is false\n"
             "8.\"match_fee_ratio\": (numeric, optional) dex operator fee ratio, effective when has_fee_ratio=true, "
                                                         "boost 100000000, MAX 50000000, default is 0\n"
@@ -225,17 +223,16 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
-    const TxType txType = version  < MAJOR_VER_R3 ? DEX_LIMIT_SELL_ORDER_TX : DEX_LIMIT_SELL_ORDER_EX_TX;
+    const TxType txType = version  < MAJOR_VER_R3 ? DEX_LIMIT_SELL_ORDER_TX : DEX_ORDER_TX;
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     uint64_t price                 = RPC_PARAM::GetPrice(params[3]);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 4);
-    OrderOpt orderOpt              = RPC_PARAM::GetOrderOpt(params, 5/*is_public*/, 6/*has_fee_ratio*/);
-    uint64_t operatorFeeRatio      = RPC_PARAM::GetOperatorFeeRatio(params, 7);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 8, txType);
-    string memo                    = RPC_PARAM::GetMemo(params, 9);
+    PublicMode publicMode     = RPC_PARAM::GetOrderPublicMode(params, 5);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 6, txType);
+    string memo                    = RPC_PARAM::GetMemo(params, 7);
 
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
@@ -247,14 +244,15 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
-        pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol,
-                        assetInfo.symbol, assetInfo.GetSawiAmount(), price);
-    } else {
-        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
-        pOrderBaseTx = make_shared<CDEXSellLimitOrderExTx>(
+        // ignore dex_id, public_mode
+        pOrderBaseTx = make_shared<CDEXSellLimitOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), price, dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
+            assetInfo.GetSawiAmount(), price);
+    } else {
+        pOrderBaseTx =
+            make_shared<CDEXOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(),
+                                     ORDER_LIMIT_PRICE, ORDER_SELL, coinSymbol, assetInfo.symbol,
+                                     0, assetInfo.GetSawiAmount(), price, dexId, publicMode, memo);
     }
 
     return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
@@ -272,12 +270,9 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "   default symbol is WUSD, default unit is sawi.\n"
             "3.\"asset_symbol\": (string required), asset type to buy\n"
             "4.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "5.\"is_public\": (bool, optional) indicate the order is public, defualt is true\n"
-            "6.\"has_fee_ratio\": (bool, optional) indicate the order has fee_ratio, defualt is false\n"
-            "7.\"match_fee_ratio\": (numeric, optional) dex operator fee ratio, effective when has_fee_ratio=true, "
-                                                        "boost 100000000, MAX 50000000, default is 0\n"
-            "8.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "9.\"memo\": (string, optional) memo\n"
+            "5.\"public_mode\": (string, optional) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
+            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "7.\"memo\": (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -292,16 +287,15 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
-    const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_BUY_ORDER_TX : DEX_MARKET_BUY_ORDER_EX_TX;
+    const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_BUY_ORDER_TX : DEX_ORDER_TX;
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     ComboMoney coinInfo            = RPC_PARAM::GetComboMoney(params[1], SYMB::WUSD);
     const TokenSymbol& assetSymbol = RPC_PARAM::GetOrderAssetSymbol(params[2]);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 3);
-    OrderOpt orderOpt              = RPC_PARAM::GetOrderOpt(params, 4/*is_public*/, 5/*has_fee_ratio*/);
-    uint64_t operatorFeeRatio      = RPC_PARAM::GetOperatorFeeRatio(params, 6);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 7, txType);
-    string memo                    = RPC_PARAM::GetMemo(params, 8);
+    PublicMode publicMode     = RPC_PARAM::GetOrderPublicMode(params, 4);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, txType);
+    string memo                    = RPC_PARAM::GetMemo(params, 6);
 
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinInfo.symbol, assetSymbol);
     // Get account for checking balance
@@ -313,15 +307,14 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
+        // ignore dex_id, public_mode
         pOrderBaseTx = make_shared<CDEXBuyMarketOrderTx>(userId, validHeight, cmFee.symbol,
                                                          cmFee.GetSawiAmount(), coinInfo.symbol,
                                                          assetSymbol, coinInfo.GetSawiAmount());
     } else {
-        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
-        pOrderBaseTx = make_shared<CDEXBuyMarketOrderExTx>(
-            userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinInfo.symbol, assetSymbol,
-            coinInfo.GetSawiAmount(), dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
+        pOrderBaseTx = make_shared<CDEXOrderTx>(
+            userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), ORDER_MARKET_PRICE, ORDER_BUY,
+            coinInfo.symbol, assetSymbol, coinInfo.GetSawiAmount(), 0, 0, dexId, publicMode, memo);
     }
 
     return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
@@ -339,12 +332,9 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "3.\"asset_symbol:asset_amount:unit\",(comboMoney,required) the target amount to sell, "
                                                   "default symbol is WICC, default unit is sawi.\n"
             "4.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
-            "5.\"is_public\": (bool, optional) indicate the order is public, defualt is true\n"
-            "6.\"has_fee_ratio\": (bool, optional) indicate the order has fee_ratio, defualt is false\n"
-            "7.\"match_fee_ratio\": (numeric, optional) dex operator fee ratio, effective when has_fee_ratio=true, "
-                                                        "boost 100000000, MAX 50000000, default is 0\n"
-            "8.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "9.\"memo\": (string, optional) memo\n"
+            "5.\"public_mode\": (string, optional) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
+            "6.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "7.\"memo\": (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
@@ -359,16 +349,15 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     int32_t validHeight = chainActive.Height();
     FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
-    const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_SELL_ORDER_TX : DEX_MARKET_SELL_ORDER_EX_TX;
+    const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_SELL_ORDER_TX : DEX_ORDER_TX;
 
     const CUserID& userId          = RPC_PARAM::GetUserId(params[0], true);
     const TokenSymbol& coinSymbol  = RPC_PARAM::GetOrderCoinSymbol(params[1]);
     ComboMoney assetInfo           = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     DexID dexId                    = RPC_PARAM::GetDexId(params, 3);
-    OrderOpt orderOpt              = RPC_PARAM::GetOrderOpt(params, 4/*is_public*/, 5/*has_fee_ratio*/);
-    uint64_t operatorFeeRatio      = RPC_PARAM::GetOperatorFeeRatio(params, 6);
-    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 7, txType);
-    string memo                    = RPC_PARAM::GetMemo(params, 8);
+    PublicMode publicMode     = RPC_PARAM::GetOrderPublicMode(params, 4);
+    ComboMoney cmFee               = RPC_PARAM::GetFee(params, 5, txType);
+    string memo                    = RPC_PARAM::GetMemo(params, 6);
 
     RPC_PARAM::CheckOrderSymbols(__FUNCTION__, coinSymbol, assetInfo.symbol);
     // Get account for checking balance
@@ -380,15 +369,15 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
 
     shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
     if (version < MAJOR_VER_R3) {
-        // ignore dex_id, is_public, has_fee_ratio, match_fee_ratio
+        // ignore dex_id, public_mode
         pOrderBaseTx = make_shared<CDEXSellMarketOrderTx>(
             userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
             assetInfo.GetSawiAmount());
     } else {
-        CUserID operatorUid = orderOpt.HasFeeRatio() ? CUserID(operatorDetail.fee_receiver_regid) : CUserID();
-        pOrderBaseTx = make_shared<CDEXSellMarketOrderExTx>(
-            userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), coinSymbol, assetInfo.symbol,
-            assetInfo.GetSawiAmount(), dexId, orderOpt, operatorFeeRatio, operatorUid, memo);
+        pOrderBaseTx =
+            make_shared<CDEXOrderTx>(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(),
+                                     ORDER_MARKET_PRICE, ORDER_SELL, coinSymbol, assetInfo.symbol,
+                                     0, assetInfo.GetSawiAmount(), 0, dexId, publicMode, memo);
     }
 
     return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);

@@ -2061,8 +2061,13 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
             pbftMan.UpdateGlobalFinBlock(pTip);
         }
 
-
+        if(chainActive.Height() % 50000 == 0 ){
+            LogInstance().ShrinkDebugFile() ;
+        }
     }
+
+
+
 
     return true;
 }

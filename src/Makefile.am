@@ -66,7 +66,7 @@ WASM_CPPFLAGS = -std=gnu++1z -I$(VM_PATH) \
                            -I$(WASM_OUTCOME_DIR) \
                            -I$(WASM_COMPILER_BUILTINS) \
                            -I$(WASM_BERKELEY_SOFTFLOAT) \
-                           -I$(WASM_EXCEPTION_INCLUDE) 
+                           -I$(WASM_EXCEPTION_INCLUDE)
 
 AM_CPPFLAGS +=   -I$(VM_PATH)
 
@@ -103,6 +103,7 @@ coin_CORE_H = \
   commons/serialize.h \
   commons/leb128.h \
   commons/types.h \
+  commons/util/enumhelper.hpp \
   commons/util/util.h \
   commons/util/threadnames.h \
   commons/util/time.h \
@@ -309,7 +310,7 @@ WASM_H = \
   vm/wasm/wasm_interface.hpp \
   vm/wasm/wasm_native_contract.hpp \
   vm/wasm/wasm_trace.hpp \
-  vm/wasm/wasm_rpc_message.hpp 
+  vm/wasm/wasm_rpc_message.hpp
 
 
 WASM_CPP = \
@@ -318,7 +319,7 @@ WASM_CPP = \
   vm/wasm/wasm_native_contract.cpp \
   vm/wasm/abi_serializer.cpp \
   vm/wasm/exception/exception.cpp \
-  vm/wasm/exception/log_message.cpp 
+  vm/wasm/exception/log_message.cpp
 
 liblua53_a_SOURCES = \
   $(VMLUA_C)

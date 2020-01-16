@@ -64,10 +64,9 @@ enum TxType: uint8_t {
     DEX_MARKET_SELL_ORDER_TX    = 87,   //!< dex sell market price order Tx
     DEX_CANCEL_ORDER_TX         = 88,   //!< dex cancel order Tx
     DEX_TRADE_SETTLE_TX         = 89,   //!< dex settle Tx
-    DEX_LIMIT_BUY_ORDER_EX_TX   = 90,   //!< dex buy limit price order ex Tx, support exid
-    DEX_LIMIT_SELL_ORDER_EX_TX  = 91,   //!< dex sell limit price order ex Tx, support exid
-    DEX_MARKET_BUY_ORDER_EX_TX  = 92,   //!< dex buy market price order ex Tx, support exid
-    DEX_MARKET_SELL_ORDER_EX_TX = 93,   //!< dex sell market price order ex Tx, support exid
+
+    DEX_ORDER_TX                = 90,   //!< dex common order tx, support BUY|SELL LIMIR|MARKET order
+    DEX_OPERATOR_ORDER_TX       = 91,   //!< dex operator order tx, need dex operator signing
 
     DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
     DEX_OPERATOR_UPDATE_TX      = 101 //!< dex operator update tx
@@ -143,10 +142,8 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_MARKET_BUY_ORDER_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_TX",  0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_MARKET_SELL_ORDER_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
-{ DEX_LIMIT_BUY_ORDER_EX_TX,   std::make_tuple("DEX_LIMIT_BUY_ORDER_EX_TX",   0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-{ DEX_LIMIT_SELL_ORDER_EX_TX,  std::make_tuple("DEX_LIMIT_SELL_ORDER_EX_TX",  0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-{ DEX_MARKET_BUY_ORDER_EX_TX,  std::make_tuple("DEX_MARKET_BUY_ORDER_EX_TX",  0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-{ DEX_MARKET_SELL_ORDER_EX_TX, std::make_tuple("DEX_MARKET_SELL_ORDER_EX_TX", 0,    0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
+{ DEX_ORDER_TX,             std::make_tuple("DEX_ORDER_TX",             0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
+{ DEX_OPERATOR_ORDER_TX,    std::make_tuple("DEX_OPERATOR_ORDER_TX",    0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
 { DEX_CANCEL_ORDER_TX,      std::make_tuple("DEX_CANCEL_ORDER_TX",      0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
