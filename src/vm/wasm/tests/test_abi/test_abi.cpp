@@ -1508,7 +1508,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
     auto abiJson = wasm::pack<wasm::abi_def>(def);
 
     string param = string(R"({"issuer":"walker","maximum_supply":"100.00000000 BTC"})");
-    wasm::variant var = wasm::abi_serializer::unpack(abiJson,
+    wasm::variant var = wasm::abi_serializer::unpack( abiJson,
                                                       "create",
                                                       wasm::abi_serializer::pack(abiJson, "create", param,
                                                                                  max_serialization_time),
@@ -1518,7 +1518,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
     WASM_TEST(param == json_spirit::write(var), "abi_token.create")
 
     param = string(R"({"to":"walker","quantity":"100.00000000 BTC","memo":"issue to walker"})");
-    var = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack( abiJson,
                                         "issue",
                                         wasm::abi_serializer::pack(abiJson, "issue", param, max_serialization_time),
                                         max_serialization_time);
@@ -1526,7 +1526,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
 
 
     param = string(R"({"to":"walker","quantity":"100.00000000 BTC","memo":"issue to walker"})");
-    var = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack( abiJson,
                                         "issue",
                                         wasm::abi_serializer::pack(abiJson, "issue", param, max_serialization_time),
                                         max_serialization_time);
@@ -1534,7 +1534,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
 
 
     param = string(R"({"quantity":"100.00000000 BTC","memo":"retire BTC"})");
-    var = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack( abiJson,
                                         "retire",
                                         wasm::abi_serializer::pack(abiJson, "retire", param, max_serialization_time),
                                         max_serialization_time);
@@ -1542,7 +1542,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
 
 
     param = string(R"({"from":"xiaoyu","to":"walker","quantity":"100.00000000 BTC","memo":"transfer BTC"})");
-    var = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack( abiJson,
                                         "transfer",
                                         wasm::abi_serializer::pack(abiJson, "transfer", param, max_serialization_time),
                                         max_serialization_time);
@@ -1550,7 +1550,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
 
 
     param = string(R"({"owner":"walker","symbol":"8,BTC","payer":"xiaoyu"})");
-    var = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack( abiJson,
                                         "open",
                                         wasm::abi_serializer::pack(abiJson, "open", param, max_serialization_time),
                                         max_serialization_time);
@@ -1558,7 +1558,7 @@ BOOST_AUTO_TEST_CASE( abi_token ) {
 
 
     param = string(R"({"owner":"walker","symbol":"8,BTC"})");
-    var = wasm::abi_serializer::unpack(abiJson,
+    var = wasm::abi_serializer::unpack( abiJson,
                                         "close",
                                         wasm::abi_serializer::pack(abiJson, "close", param, max_serialization_time),
                                         max_serialization_time);

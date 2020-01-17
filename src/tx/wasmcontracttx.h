@@ -17,6 +17,7 @@ public:
 
 public:
     uint64_t                      run_cost;
+    uint64_t                      pending_block_time;
     // uint64_t                      fuel;
     uint64_t                      recipients_size;
     system_clock::time_point      pseudo_start;

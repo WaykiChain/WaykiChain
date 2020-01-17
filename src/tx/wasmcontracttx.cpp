@@ -277,6 +277,7 @@ bool CWasmContractTx::ExecuteTx(CTxExecuteContext &context) {
     auto& database             = *context.pCw;
     auto& execute_tx_to_return = *context.pState;
     transaction_status         = context.transaction_status;
+    pending_block_time         = context.block_time;
 
     wasm::inline_transaction* trx_current_for_exception = nullptr;
 

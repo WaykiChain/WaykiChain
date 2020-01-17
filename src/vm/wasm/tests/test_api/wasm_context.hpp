@@ -182,8 +182,8 @@ class wasm_context : public wasm_context_interface {
         void require_auth (const uint64_t& account ) const {}
         void require_auth2(const uint64_t& account, const uint64_t& permission ) const {}
         bool has_authorization( const uint64_t& account ) const {return true;}
-        uint64_t block_time() { return 0;      }
-        void     exit      () { wasmif.exit(); }
+        uint64_t pending_block_time() { return 0;      }
+        void     exit() { wasmif.exit(); }
 
 
         bool set_data  ( const uint64_t& contract, const string& k, const string& v )  { return cache.SetContractData(contract, k, v); }

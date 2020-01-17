@@ -43,7 +43,6 @@ namespace wasm {
                                      uint32_t recurse_depth){
 
             //WASM_TRACE("%ld", receiver)
-
             wasm_context wasmContext(*this, trx, cache, state, false, recurse_depth);
             wasmContext._receiver = receiver;
             wasmContext.execute(trace);

@@ -166,7 +166,7 @@ namespace wasm {
             //return static_cast<uint64_t>( context.control.pending_block_time().time_since_epoch().count() );
             //std::cout << "current_time" << std::endl;
             //return 0;
-            return pWasmContext->block_time();
+            return pWasmContext->pending_block_time();
         }
 
         //action
