@@ -16,6 +16,9 @@ extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
 extern Value submitdexselllimitordertx(const Array& params, bool fHelp);
 extern Value submitdexbuymarketordertx(const Array& params, bool fHelp);
 extern Value submitdexsellmarketordertx(const Array& params, bool fHelp);
+
+extern Value gendexoperatorordertx(const Array& params, bool fHelp);
+
 extern Value submitdexcancelordertx(const Array& params, bool fHelp);
 extern Value submitdexoperatorregtx(const Array& params, bool fHelp);
 extern Value submitdexoperatorupdatetx(const Array& params, bool fHelp);

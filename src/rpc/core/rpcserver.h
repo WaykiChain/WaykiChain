@@ -178,6 +178,8 @@ extern json_spirit::Value submitdexbuylimitordertx(const json_spirit::Array& par
 extern json_spirit::Value submitdexselllimitordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexbuymarketordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexsellmarketordertx(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value gendexoperatorordertx(const json_spirit::Array& params, bool fHelp);
+
 extern json_spirit::Value submitdexcancelordertx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value submitdexsettletx(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdexorder(const json_spirit::Array& params, bool fHelp);

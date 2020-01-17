@@ -311,7 +311,7 @@ void dex::dex_order_create(wasm_context &context) {
 
     WASM_ASSERT(CheckOrderType(OrderType(args.order_type())), wasm_assert_exception,
         "order_type=%d is invalid", args.order_type())
-    WASM_ASSERT(CheckOrderSide(OrderSide(args.order_side())), wasm_assert_exception,
+    WASM_ASSERT(kOrderSideHelper.CheckEnum(OrderSide(args.order_side())), wasm_assert_exception,
         "order_side=%d is invalid", args.order_side())
 
     DexOperatorDetail operator_detail;
@@ -332,16 +332,16 @@ void dex::dex_order_create(wasm_context &context) {
     if (order_type == ORDER_MARKET_PRICE && order_side == ORDER_BUY) {
         WASM_ASSERT(asset_amount == 0, wasm_assert_exception,
                     "asset.amount=%llu must be 0 when order_type=%s, order_side=%s",
-                    asset_amount, GetOrderTypeName(order_type),
-                    GetOrderSideName(order_side));
+                    asset_amount, kOrderTypeHelper.GetName(order_type),
+                    kOrderSideHelper.GetName(order_side));
         coin_amount = args.coin().amount;
         check_order_amount_range(coin_sym, coin_amount, ERROR_TITLE("order.coin"));
     } else {
         check_order_amount_range(asset_sym, asset_amount, ERROR_TITLE("order.asset"));
         WASM_ASSERT(args.coin().amount == 0, wasm_assert_exception,
                     "coin.amount of sell order must be 0 when order_type=%s, order_side=%s",
-                    args.coin().amount, GetOrderTypeName(order_type),
-                    GetOrderSideName(order_side));
+                    args.coin().amount, kOrderTypeHelper.GetName(order_type),
+                    kOrderSideHelper.GetName(order_side));
         coin_amount = calc_coin_amount(asset_amount, args.price());
     }
 

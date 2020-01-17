@@ -10,6 +10,9 @@
 #include <unordered_set>
 #include <unordered_map>
 
+
+using uint128_t = unsigned __int128;
+
 // pair<> hash for unordered_set and unordered_map
 template <typename T1, typename T2>
 struct UnorderedPairHash {

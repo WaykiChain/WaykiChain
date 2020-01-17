@@ -41,19 +41,42 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
 
 namespace RPC_PARAM {
 
-    DexID GetDexId(const Array& params, const size_t index) {
-        return params.size() > 4? RPC_PARAM::GetUint32(params[4]) : DEX_RESERVED_ID;
+    OrderType GetOrderType(const Value &jsonValue) {
+        OrderType ret;
+        if (kOrderTypeHelper.Parse(jsonValue.get_str(), ret))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_type=%s is invalid",
+                jsonValue.get_str()));
+        return ret;
     }
 
+    OrderSide GetOrderSide(const Value &jsonValue) {
+        OrderSide ret;
+        if (kOrderSideHelper.Parse(jsonValue.get_str(), ret))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_side=%s is invalid",
+                jsonValue.get_str()));
+        return ret;
+    }
+
+    DexID GetDexId(const Value &jsonValue) {
+        return RPC_PARAM::GetUint32(jsonValue);
+    }
+
+    DexID GetDexId(const Array& params, const size_t index) {
+        return params.size() > index? GetDexId(params[index]) : DEX_RESERVED_ID;
+    }
+
+    uint64_t GetOperatorFeeRatio(const Value &jsonValue) {
+
+        uint64_t ratio = RPC_PARAM::GetUint64(jsonValue);
+        if (ratio > DEX_OPERATOR_FEE_RATIO_MAX)
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("match fee ratio=%llu is large than %llu",
+                ratio, DEX_OPERATOR_FEE_RATIO_MAX));
+        return ratio;
+    }
+
+
     uint64_t GetOperatorFeeRatio(const Array& params, const size_t index) {
-        if (params.size() > index) {
-            uint64_t ratio = RPC_PARAM::GetUint64(params[index]);
-            if (ratio > DEX_ORDER_FEE_RATIO_MAX)
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("match_fee_ratio=%llu is large than %llu",
-                    ratio, DEX_ORDER_FEE_RATIO_MAX));
-            return ratio;
-        }
-        return 0;
+        return params.size() > index ? GetOperatorFeeRatio(params[index]) : 0;
     }
 
     string GetMemo(const Array& params, const size_t index) {
@@ -67,15 +90,17 @@ namespace RPC_PARAM {
         return "";
     }
 
+    PublicMode GetOrderPublicMode(const Value &jsonValue) {
+        PublicMode ret;
+        if (kPublicModeHelper.Parse(jsonValue.get_str(), ret))
+            throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
+                jsonValue.get_str()));
+        return ret;
+    }
+
     PublicMode GetOrderPublicMode(const Array &params, const size_t index) {
 
-        PublicMode ret = ORDER_PUBLIC;
-        if (params.size() > index) {
-            if (kPublicModeHelper.Parse(params[index].get_str(), ret))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
-                    params[index].get_str()));
-        }
-        return ret;
+        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : ORDER_PUBLIC;
     }
 
     DexOperatorDetail GetDexOperator(const DexID &dexId) {
@@ -85,6 +110,26 @@ namespace RPC_PARAM {
                 dexId));
         return operatorDetail;
     }
+
+    void CheckOrderAmount(const TokenSymbol &symbol, const uint64_t amount, const char *pSymbolSide) {
+
+        if (amount < (int64_t)MIN_DEX_ORDER_AMOUNT)
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                strprintf("%s amount is too small, symbol=%s, amount=%llu, min_amount=%llu",
+                          pSymbolSide, symbol, amount, MIN_DEX_ORDER_AMOUNT));
+
+        CheckTokenAmount(symbol, amount);
+    }
+
+    uint64_t CalcCoinAmount(uint64_t assetAmount, const uint64_t price) {
+        uint128_t coinAmount = assetAmount * (uint128_t)price / PRICE_BOOST;
+        if (coinAmount > ULLONG_MAX)
+            throw JSONRPCError(RPC_INVALID_PARAMETER,
+                strprintf("the calculated coin amount out of range, asset_amount=%llu, price=%llu",
+                          assetAmount, price));
+        return (uint64_t)coinAmount;
+    }
+
 } // namespace RPC_PARAM
 
 Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDetail,
@@ -127,10 +172,10 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
 
 /*************************************************<< DEX >>**************************************************/
 Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 4 || params.size() > 10) {
+    if (fHelp || params.size() < 4 || params.size() > 8) {
         throw runtime_error(
             "submitdexbuylimitordertx \"addr\" \"coin_symbol\" \"symbol:asset_amount:unit\"  price"
-                " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit] [memo]\n"
+                " [dex_id] \"[public_mode]\" [symbol:fee:unit] \"[memo]\"\n"
             "\nsubmit a dex buy limit price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
@@ -146,10 +191,10 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\""
-                             " 200000000 0 true false 0\n")
+                             " 1 \"PRIVATE\"\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\","
-                             " 200000000, 0, true, false, 0\n")
+                             " 1, \"PRIVATE\"\n")
         );
     }
 
@@ -192,10 +237,10 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexselllimitordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 4 || params.size() > 10) {
+    if (fHelp || params.size() < 4 || params.size() > 8) {
         throw runtime_error(
             "submitdexselllimitordertx \"addr\" \"coin_symbol\" \"asset\" price"
-                " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"
+                " [dex_id] \"[public_mode]\" [symbol:fee:unit] \"[memo]\"\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
             "2.\"coin_symbol\": (string required) coin type to pay\n"
@@ -204,19 +249,16 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "4.\"price\": (numeric, required) bidding price willing to buy\n"
             "5.\"dex_id\": (numeric, optional) Decentralized Exchange(DEX) ID, default is 0\n"
             "6.\"public_mode\": (string, optional) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
-            "7.\"has_fee_ratio\": (bool, optional) indicate the order has fee_ratio, defualt is false\n"
-            "8.\"match_fee_ratio\": (numeric, optional) dex operator fee ratio, effective when has_fee_ratio=true, "
-                                                        "boost 100000000, MAX 50000000, default is 0\n"
-            "9.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
-            "10.\"memo\": (string, optional) memo\n"
+            "7.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "8.\"memo\": (string, optional) memo\n"
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\""
-                             " 200000000 0 true false 0\n")
+                             " 1 \"PRIVATE\"\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\","
-                             " 200000000, 0, true, false, 0\n")
+                             " 1, \"PRIVATE\"\n")
         );
     }
 
@@ -259,10 +301,10 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
-     if (fHelp || params.size() < 3 || params.size() > 9) {
+     if (fHelp || params.size() < 3 || params.size() > 7) {
         throw runtime_error(
             "submitdexbuymarketordertx \"addr\" \"coin_symbol\" coin_amount \"asset_symbol\" "
-                " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"
+                " [dex_id] \"[public_mode]\" [symbol:fee:unit] \"[memo]\"\n"
             "\nsubmit a dex buy market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
@@ -277,10 +319,10 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexbuymarketordertx", "\"10-3\" \"WUSD:200000000:sawi\"  \"WICC\""
-                             " 0 true false 0\n")
+                             " 1 \"PRIVATE\"\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexbuymarketordertx", "\"10-3\", \"WUSD:200000000:sawi\", \"WICC\","
-                             " 0, true, false, 0\n")
+                             " 1, \"PRIVATE\"\n")
         );
     }
 
@@ -321,10 +363,10 @@ Value submitdexbuymarketordertx(const Array& params, bool fHelp) {
 }
 
 Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
-    if (fHelp || params.size() < 3 || params.size() > 9) {
+    if (fHelp || params.size() < 3 || params.size() > 7) {
         throw runtime_error(
             "submitdexsellmarketordertx \"addr\" \"coin_symbol\" \"asset_symbol\" asset_amount "
-                " [dex_id] [is_public] [has_fee_ratio] [match_fee_ratio] [symbol:fee:unit]\n"
+                " [dex_id] \"[public_mode]\" [symbol:fee:unit] \"[memo]\"\n"
             "\nsubmit a dex sell market price order tx.\n"
             "\nArguments:\n"
             "1.\"addr\": (string required) order owner address\n"
@@ -339,10 +381,10 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
             + HelpExampleCli("submitdexsellmarketordertx", "\"10-3\" \"WUSD\" \"WICC:200000000:sawi\""
-                             " 0 true false 0\n")
+                             " 1 \"PRIVATE\"\n")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitdexsellmarketordertx", "\"10-3\", \"WUSD\", \"WICC:200000000:sawi\","
-                             " 0, true, false, 0\n")
+                             " 1, \"PRIVATE\"\n")
         );
     }
 
@@ -380,6 +422,127 @@ Value submitdexsellmarketordertx(const Array& params, bool fHelp) {
                                      0, assetInfo.GetSawiAmount(), 0, dexId, publicMode, memo);
     }
 
+    return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
+}
+
+Value gendexoperatorordertx(const Array& params, bool fHelp) {
+    if (fHelp || params.size() < 3 || params.size() > 11) {
+        throw runtime_error(
+            "gendexoperatorordertx \"addr\" \"order_type\" \"order_side\" \"coins\" \"assets\""
+                " dex_id \"pubilc_mode\" taker_fee_ratio maker_fee_ratio [symbol:fee:unit] \"[memo]\"\n"
+            "\ngenerator an operator dex order tx, support operator config, and must be signed by operator before sumiting.\n"
+            "\nArguments:\n"
+            "1.\"addr\": (string required) order owner address\n"
+            "2.\"order_type\": (string required) order type, must be in (LIMIT_PRICE, MARKET_PRICE)\n"
+            "3.\"order_side\": (string required) order side, must be in (BUY, SELL)\n"
+            "4.\"symbol:coins:unit\": (string:numeric:string, required) the coins(money) of order, coins=0 if not market buy order, \n"
+                                                  "default symbol is WUSD, default unit is sawi.\n"
+            "5.\"symbol:assets:unit\",(string:numeric:string, required) the assets of order, assets=0 if market buy order"
+                                                  "default symbol is WICC, default unit is sawi.\n"
+            "6.\"price\": (numeric, required) expected price of order\n"
+            "7.\"dex_id\": (numeric, required) Decentralized Exchange(DEX) ID, default is 0\n"
+            "8.\"public_mode\": (string, required) indicate the order is PUBLIC or PRIVATE, defualt is PUBLIC\n"
+            "9.\"taker_fee_ratio\": (numeric, required) taker fee ratio config by operator, boost 100000000\n"
+            "10.\"maker_fee_ratio\": (numeric, required) maker fee ratio config by operator, boost 100000000\n"
+            "11.\"symbol:fee:unit\":(string:numeric:string, optional) fee paid for miner, default is WICC:10000:sawi\n"
+            "12.\"memo\": (string, optional) memo\n"
+            "\nResult:\n"
+            "\"txid\" (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("gendexoperatorordertx", "\"10-3\" \"WUSD\" \"WICC:200000000:sawi\""
+                             " 1 \"PRIVATE\" 40000 80000\n")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("gendexoperatorordertx", "\"10-3\", \"WUSD\", \"WICC:200000000:sawi\","
+                             " 1, \"PRIVATE\", 40000, 80000\n")
+        );
+    }
+
+    EnsureWalletIsUnlocked();
+    int32_t validHeight = chainActive.Height();
+    FeatureForkVersionEnum version = GetFeatureForkVersion(validHeight);
+    const TxType txType = version  < MAJOR_VER_R3 ? DEX_MARKET_SELL_ORDER_TX : DEX_ORDER_TX;
+
+    const CUserID &userId    = RPC_PARAM::GetUserId(params[0], true);
+    OrderType orderType      = RPC_PARAM::GetOrderType(params[1]);
+    OrderSide orderSide      = RPC_PARAM::GetOrderSide(params[1]);
+    const ComboMoney &coins  = RPC_PARAM::GetComboMoney(params[1]);
+    const ComboMoney &assets = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    uint64_t price           = RPC_PARAM::GetPrice(params[3]);
+    DexID dexId              = RPC_PARAM::GetDexId(params[3]);
+    PublicMode publicMode    = RPC_PARAM::GetOrderPublicMode(params[4]);
+    uint64_t takerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[5]);
+    uint64_t makerFeeRatio   = RPC_PARAM::GetOperatorFeeRatio(params[6]);
+    ComboMoney cmFee         = RPC_PARAM::GetFee(params, 7, txType);
+    string memo              = RPC_PARAM::GetMemo(params, 8);
+
+    RPC_PARAM::CheckOrderSymbols(__func__, coins.symbol, assets.symbol);
+
+    static_assert(MIN_DEX_ORDER_AMOUNT < INT64_MAX, "minimum dex order amount out of range");
+    if (orderType == ORDER_MARKET_PRICE && orderSide == ORDER_BUY) {
+        if (assets.GetSawiAmount() != 0)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("asset amount=%llu must be 0 when "
+                "order_type=%s, order_side=%s", assets.GetSawiAmount(), kOrderTypeHelper.GetName(orderType),
+                kOrderSideHelper.GetName(orderSide)));
+        RPC_PARAM::CheckOrderAmount(coins.symbol, coins.GetSawiAmount(), "coin");
+    } else {
+        if (coins.GetSawiAmount() != 0)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("coin amount=%llu must be 0 when "
+                "order_type=%s, order_side=%s", coins.GetSawiAmount(), kOrderTypeHelper.GetName(orderType),
+                kOrderSideHelper.GetName(orderSide)));
+
+        RPC_PARAM::CheckOrderAmount(assets.symbol, assets.GetSawiAmount(), "asset");
+    }
+
+    if (orderType == ORDER_MARKET_PRICE) {
+        if (price != 0)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("price must be 0 when order_type=%s",
+                    price, kOrderTypeHelper.GetName(orderType)));
+    } else {
+        // TODO: should check the price range??
+        if (price <= 0)
+            throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("price=%llu out of range, order_type=%s",
+                    price, kOrderTypeHelper.GetName(orderType)));
+    }
+
+    DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
+
+    if (!pCdMan->pAccountCache->HaveAccount(operatorDetail.fee_receiver_regid))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("operator account not existed! operator_regid=%s",
+            operatorDetail.fee_receiver_regid.ToString()));
+
+    // Get account for checking balance
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
+    RPC_PARAM::CheckAccountBalance(txAccount, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+
+
+    if (orderSide == ORDER_BUY) {
+        uint64_t coinAmount = coins.GetSawiAmount();
+        if (orderType == ORDER_LIMIT_PRICE && orderSide == ORDER_BUY)
+            coinAmount = RPC_PARAM::CalcCoinAmount(assets.amount, price);
+        RPC_PARAM::CheckAccountBalance(txAccount, coins.symbol, FREEZE, coinAmount);
+    } else {
+        assert(orderSide == ORDER_SELL);
+        RPC_PARAM::CheckAccountBalance(txAccount, assets.symbol, FREEZE, assets.GetSawiAmount());
+    }
+
+
+    shared_ptr<CDEXOrderBaseTx> pOrderBaseTx;
+    if (version < MAJOR_VER_R3) {
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupport to call %s() before height=%d",
+            __func__, SysCfg().GetVer3ForkHeight()));
+    }
+
+    shared_ptr<CBaseTx> pTx = make_shared<CDEXOperatorOrderTx>(
+        userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), orderType, orderSide,
+        coins.symbol, assets.symbol, coins.GetSawiAmount(), assets.GetSawiAmount(), price, dexId,
+        publicMode, memo, OperatorFeeRatios(makerFeeRatio, takerFeeRatio),
+        operatorDetail.fee_receiver_regid);
+
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
+    ds << pTx;
+
+    Object obj;
+    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
     return SubmitOrderTx(txAccount.keyid, operatorDetail, pOrderBaseTx);
 }
 

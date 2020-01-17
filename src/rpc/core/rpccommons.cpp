@@ -408,6 +408,14 @@ uint64_t RPC_PARAM::GetUint64(const Value &jsonValue) {
     return uint64_t(ret);
 }
 
+
+void RPC_PARAM::CheckTokenAmount(const TokenSymbol &symbol, const uint64_t amount) {
+    if (!CheckCoinRange(symbol, amount))
+        throw JSONRPCError(RPC_INVALID_PARAMETER,
+            strprintf("token amount is too small, symbol=%s, amount=%llu, min_amount=%llu",
+                    symbol, amount, MIN_DEX_ORDER_AMOUNT));
+}
+
 ComboMoney RPC_PARAM::GetComboMoney(const Value &jsonValue,
                                     const TokenSymbol &defaultSymbol) {
     ComboMoney money;
