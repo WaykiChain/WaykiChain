@@ -8,7 +8,6 @@
 #include "main.h"
 #include "entities/proposal.h"
 #include <algorithm>
-#include "entities/proposalserializer.h"
 
 bool CheckIsGoverner(CRegID account, ProposalType proposalType, CCacheWrapper& cw ){
 
@@ -47,7 +46,7 @@ uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw ){
 
 
 string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
-    string proposalString = proposal->ToString() ;
+    string proposalString = proposalBean.proposalPtr->ToString() ;
     return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
                      txUid.ToString(), valid_height);
@@ -56,7 +55,7 @@ string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
 Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("proposal", proposal->ToJson()));
+    result.push_back(Pair("proposal", proposalBean.proposalPtr->ToJson()));
 
     return result;
 }  // json-rpc usage
@@ -67,7 +66,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
      if (!CheckFee(context)) return false;
 
-     if(!proposal->CheckProposal(cw ,state)){
+     if(!proposalBean.proposalPtr->CheckProposal(cw ,state)){
          return false ;
      }
 
@@ -107,9 +106,9 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
                           WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
      }
 
-     auto newProposal = proposal->GetNewInstance() ;
+     auto newProposal = proposalBean.proposalPtr->GetNewInstance() ;
      newProposal->expire_block_height = context.height + expireBlockCount ;
-     newProposal->need_governer_count = GetNeedGovernerCount(proposal->proposal_type, cw);
+     newProposal->need_governer_count = GetNeedGovernerCount(proposalBean.proposalPtr->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set proposal info error"),

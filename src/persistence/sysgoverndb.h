@@ -78,11 +78,18 @@ public:
     }
 
     bool SetProposal(const uint256& txid,  shared_ptr<CProposal>& proposal ){
-        return proposalsCache.SetData(txid, proposal) ;
+        return proposalsCache.SetData(txid, CProposalStorageBean(proposal)) ;
     }
 
     bool GetProposal(const uint256& txid, shared_ptr<CProposal>& proposal) {
-        return proposalsCache.GetData(txid, proposal) ;
+
+        CProposalStorageBean bean ;
+        if(proposalsCache.GetData(txid, bean) ){
+            proposal = bean.proposalPtr ;
+            return true;
+        }
+
+        return false ;
     }
 
     int GetAssentionCount(const uint256& proposalId){
@@ -123,7 +130,7 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // pgvn{txid} -> proposal
-    CCompositeKVCache< dbk::GOVN_PROP,             uint256,                    std::shared_ptr<CProposal>>          proposalsCache;
+    CCompositeKVCache< dbk::GOVN_PROP,             uint256,                    CProposalStorageBean>          proposalsCache;
     // sgvn{txid}{regid} -> 1
     CCompositeKVCache< dbk::GOVN_SECOND,           uint256,     vector<CRegID> >            secondsCache;
 };

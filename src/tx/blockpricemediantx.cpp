@@ -144,7 +144,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
-            auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
+            auto pBcoinSellMarketOrder = dex::CSysOrder::CreateSellMarketOrder(
                 CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
             uint256 bcoinSellMarketOrderId = GenOrderId(context, cdp, SYMB::WICC);
             if (!cw.dexCache.CreateActiveOrder(bcoinSellMarketOrderId, *pBcoinSellMarketOrder)) {
@@ -179,8 +179,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
                 }
 
-                auto pFcoinSellMarketOrder =
-                    CDEXSysOrder::CreateSellMarketOrder(CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
+                auto pFcoinSellMarketOrder = dex::CSysOrder::CreateSellMarketOrder(
+                    CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
                 uint256 fcoinSellMarketOrderId = GenOrderId(context, cdp, SYMB::WGRT);
                 if (!cw.dexCache.CreateActiveOrder(fcoinSellMarketOrderId, *pFcoinSellMarketOrder)) {
                     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed",
@@ -302,7 +302,7 @@ bool CBlockPriceMedianTx::ForceLiquidateCDPCompat(CTxExecuteContext &context, ui
             return state.DoS(100, ERRORMSG("%s(), account has insufficient funds", __FUNCTION__),
                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
-        auto pBcoinSellMarketOrder = CDEXSysOrder::CreateSellMarketOrder(
+        auto pBcoinSellMarketOrder = dex::CSysOrder::CreateSellMarketOrder(
             CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
         uint256 bcoinSellMarketOrderId = GenOrderIdCompat(txid, orderIndex++);
         if (!cw.dexCache.CreateActiveOrder(bcoinSellMarketOrderId, *pBcoinSellMarketOrder)) {
@@ -337,8 +337,8 @@ bool CBlockPriceMedianTx::ForceLiquidateCDPCompat(CTxExecuteContext &context, ui
                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
             }
 
-            auto pFcoinSellMarketOrder =
-                CDEXSysOrder::CreateSellMarketOrder(CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
+            auto pFcoinSellMarketOrder = dex::CSysOrder::CreateSellMarketOrder(
+                CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
             uint256 fcoinSellMarketOrderId = GenOrderIdCompat(txid, orderIndex++);
             if (!cw.dexCache.CreateActiveOrder(fcoinSellMarketOrderId, *pFcoinSellMarketOrder)) {
                 return state.DoS(100, ERRORMSG("%s(), create sys order for SellFcoinForScoin (%s) failed",

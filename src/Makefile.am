@@ -92,7 +92,6 @@ coin_CORE_H = \
   entities/price.h \
   entities/receipt.h \
   entities/proposal.h \
-  entities/proposalserializer.h \
   entities/vote.h \
   alert.h \
   allocators.h \

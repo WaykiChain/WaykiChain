@@ -350,7 +350,8 @@ bool CCDPStakeTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &c
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
+    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
+        SYMB::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -608,8 +609,8 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    auto pSysBuyMarketOrder =
-        CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
+    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
+        txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
     if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -987,7 +988,8 @@ bool CCDPLiquidateTx::ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
         }
 
-        auto pSysBuyMarketOrder = CDEXSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty);
+        auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord,
+            cdp.scoin_symbol, SYMB::WGRT, leftScoinPenalty);
         if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
             return state.DoS(100, ERRORMSG("CdpLiquidateTx::ProcessPenaltyFees, create system buy order failed"),
                             CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");

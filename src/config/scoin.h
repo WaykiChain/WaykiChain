@@ -37,7 +37,7 @@ static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex s
 
 
 static const uint64_t DEX_OPERATOR_RISK_FEE_RATIO  = 4000; // 40% * 10000, the ratio of DEX operator fee into the risk reserve
-static const uint64_t DEX_ORDER_FEE_RATIO_MAX = 50 * PRICE_BOOST;
+static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 50 * PRICE_BOOST;
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 
 enum SysParamType : uint8_t {
@@ -102,30 +102,30 @@ struct SysParamTypeHash {
     }
 };
 
-static const unordered_map<SysParamType, std::tuple<string, uint64_t>, SysParamTypeHash> SysParamTable = {
-    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,         std::make_tuple("A",    11)         },
-    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,            std::make_tuple("B",    210000)     },  // 1%: min 210K bcoins staked to be a price feeder for miner
-    { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,      std::make_tuple("C",    10)         },  // after 10 times continuous deviate limit penetration all deposit be deducted
-    { PRICE_FEED_DEVIATE_RATIO_MAX,                 std::make_tuple("D",    3000)       },  // must be < 30% * 10000, otherwise penalized
-    { PRICE_FEED_DEVIATE_PENALTY,                   std::make_tuple("E",    1000)       },  // deduct 1000 staked bcoins as penalty
-    { DEX_DEAL_FEE_RATIO,                           std::make_tuple("F",    40000)      },  // 0.04% * 100000000
-    { CDP_SCOIN_RESERVE_FEE_RATIO,                  std::make_tuple("G",    0)          },  // WUSD friction fee to risk reserve
-    { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,         std::make_tuple("H",    52500000)   },  // 25% * 210000000
-    { CDP_GLOBAL_COLLATERAL_RATIO_MIN,              std::make_tuple("I",    8000)       },  // 80% * 10000
-    { CDP_START_COLLATERAL_RATIO,                   std::make_tuple("J",    19000)      },  // 190% * 10000 : starting collateral ratio
-    { CDP_START_LIQUIDATE_RATIO,                    std::make_tuple("K",    15000)      },  // 1.13 ~ 1.5  : common liquidation
-    { CDP_NONRETURN_LIQUIDATE_RATIO,                std::make_tuple("L",    11300)      },  // 1.04 ~ 1.13 : Non-return to CDP owner
-    { CDP_FORCE_LIQUIDATE_RATIO,                    std::make_tuple("M",    10400)      },  // 0 ~ 1.04    : forced liquidation only
-    { CDP_LIQUIDATE_DISCOUNT_RATIO,                 std::make_tuple("N",    9700)       },  // discount: 97%
-    { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,        std::make_tuple("O",    90000000)   },  // 0.9 WUSD, dust amount (<0.9) rejected
-    { CDP_INTEREST_PARAM_A,                         std::make_tuple("P",    2)          },  // a = 2
-    { CDP_INTEREST_PARAM_B,                         std::make_tuple("Q",    1)          },  // b = 1
-    { CDP_SYSORDER_PENALTY_FEE_MIN,                 std::make_tuple("R",    10)         },  // min penalty fee = 10
-    { ASSET_ISSUE_FEE,                              std::make_tuple("S",    550 * COIN) },  // asset issuance fee = 550 WICC
-    { ASSET_UPDATE_FEE,                             std::make_tuple("T",    110 * COIN) },  // asset update fee = 110 WICC
-    { DEX_OPERATOR_REGISTER_FEE,                    std::make_tuple("U",    1100 * COIN) }, // dex operator register fee = 1100 WICC
-    { DEX_OPERATOR_UPDATE_FEE,                      std::make_tuple("V",    110 * COIN) },  // dex operator update fee = 110 WICC
-    { PROPOSAL_EXPIRE_BLOCK_COUNT,                  std::make_tuple("W",    1200)       }   //
+static const unordered_map<SysParamType, std::tuple<string, uint64_t,string >, SysParamTypeHash> SysParamTable = {
+    { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,     make_tuple("A",  11,           "MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT")    },
+    { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,        make_tuple("B",  210000,       "PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN")       },  // 1%: min 210K bcoins staked to be a price feeder for miner
+    { PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX,  make_tuple("C",  10,           "PRICE_FEED_CONTINUOUS_DEVIATE_TIMES_MAX") },  // after 10 times continuous deviate limit penetration all deposit be deducted
+    { PRICE_FEED_DEVIATE_RATIO_MAX,             make_tuple("D",  3000,         "PRICE_FEED_DEVIATE_RATIO_MAX")            },  // must be < 30% * 10000, otherwise penalized
+    { PRICE_FEED_DEVIATE_PENALTY,               make_tuple("E",  1000,         "PRICE_FEED_DEVIATE_PENALTY")              },  // deduct 1000 staked bcoins as penalty
+    { DEX_DEAL_FEE_RATIO,                       make_tuple("F",  40000,        "DEX_DEAL_FEE_RATIO")                      },  // 0.04% * 100000000
+    { CDP_SCOIN_RESERVE_FEE_RATIO,              make_tuple("G",  0,            "CDP_SCOIN_RESERVE_FEE_RATIO")             },  // WUSD friction fee to risk reserve
+    { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple("H",  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
+    { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple("I",  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
+    { CDP_START_COLLATERAL_RATIO,               make_tuple("J",  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
+    { CDP_START_LIQUIDATE_RATIO,                make_tuple("K",  15000,        "CDP_START_LIQUIDATE_RATIO")               },  // 1.13 ~ 1.5  : common liquidation
+    { CDP_NONRETURN_LIQUIDATE_RATIO,            make_tuple("L",  11300,        "CDP_NONRETURN_LIQUIDATE_RATIO")           },  // 1.04 ~ 1.13 : Non-return to CDP owner
+    { CDP_FORCE_LIQUIDATE_RATIO,                make_tuple("M",  10400,        "CDP_FORCE_LIQUIDATE_RATIO")               },  // 0 ~ 1.04    : forced liquidation only
+    { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple("N",  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
+    { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple("O",  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
+    { CDP_INTEREST_PARAM_A,                     make_tuple("P",  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
+    { CDP_INTEREST_PARAM_B,                     make_tuple("Q",  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
+    { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple("R",  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            },  // min penalty fee = 10
+    { ASSET_ISSUE_FEE,                          make_tuple("S",  550 * COIN,   "ASSET_ISSUE_FEE")                         },  // asset issuance fee = 550 WICC
+    { ASSET_UPDATE_FEE,                         make_tuple("T",  110 * COIN,   "ASSET_UPDATE_FEE")                        },  // asset update fee = 110 WICC
+    { DEX_OPERATOR_REGISTER_FEE,                make_tuple("U",  1100 * COIN,  "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
+    { DEX_OPERATOR_UPDATE_FEE,                  make_tuple("V",  110 * COIN,   "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
+    { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple("W",  1200,         "PROPOSAL_EXPIRE_BLOCK_COUNT")             }   //
 
 };
 

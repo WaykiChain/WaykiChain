@@ -355,6 +355,9 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdexselllimitordertx",  &submitdexselllimitordertx,  false,     false,      false },
     { "submitdexbuymarketordertx",  &submitdexbuymarketordertx,  false,     false,      false },
     { "submitdexsellmarketordertx", &submitdexsellmarketordertx, false,     false,      false },
+    { "gendexoperatorordertx",      &gendexoperatorordertx,      false,     false,      false },
+
+
     { "submitdexsettletx",          &submitdexsettletx,          false,     false,      false },
     { "submitdexcancelordertx",     &submitdexcancelordertx,     false,     false,      false },
     { "submitdexoperatorregtx",     &submitdexoperatorregtx,     false,     false,      false },

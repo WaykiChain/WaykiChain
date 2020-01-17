@@ -23,7 +23,7 @@ using namespace std;
 /*  ----------------   -------------------------  ---------------------------       ------------------   ------------------------ */
     /////////// DexDB
     // block orders: height generate_type txid -> active order
-typedef CCompositeKVCache<dbk::DEX_BLOCK_ORDERS,  tuple<CFixedUInt32, uint8_t, uint256>, CDEXOrderDetail>     DEXBlockOrdersCache;
+typedef CCompositeKVCache<dbk::DEX_BLOCK_ORDERS,  tuple<CFixedUInt32, uint8_t, uint256>, dex::CDEXOrderDetail>     DEXBlockOrdersCache;
 
 // DEX_DB
 namespace DEX_DB {
@@ -35,8 +35,8 @@ namespace DEX_DB {
         return std::get<0>(key).value;
     }
 
-    inline OrderGenerateType GetGenerateType(const DEXBlockOrdersCache::KeyType &key) {
-        return (OrderGenerateType)std::get<1>(key);
+    inline dex::OrderGenerateType GetGenerateType(const DEXBlockOrdersCache::KeyType &key) {
+        return (dex::OrderGenerateType)std::get<1>(key);
     }
 
     inline const uint256& GetOrderId(const DEXBlockOrdersCache::KeyType &key) {
@@ -48,7 +48,7 @@ namespace DEX_DB {
 
     shared_ptr<string> MakeLastPos(const DEXBlockOrdersCache::KeyType &lastKey, string &lastPosInfo);
 
-    void OrderToJson(const uint256 &orderId, const CDEXOrderDetail &order, Object &obj);
+    void OrderToJson(const uint256 &orderId, const dex::CDEXOrderDetail &order, Object &obj);
 
     void BlockOrdersToJson(const BlockOrders &orderList, Object &obj);
 };
@@ -100,11 +100,11 @@ public:
 
 
 public:
-    bool GetActiveOrder(const uint256 &orderTxId, CDEXOrderDetail& activeOrder);
+    bool GetActiveOrder(const uint256 &orderTxId, dex::CDEXOrderDetail& activeOrder);
     bool HaveActiveOrder(const uint256 &orderTxId);
-    bool CreateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail& activeOrder);
-    bool UpdateActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail& activeOrder);
-    bool EraseActiveOrder(const uint256 &orderTxId, const CDEXOrderDetail &activeOrder);
+    bool CreateActiveOrder(const uint256 &orderTxId, const dex::CDEXOrderDetail& activeOrder);
+    bool UpdateActiveOrder(const uint256 &orderTxId, const dex::CDEXOrderDetail& activeOrder);
+    bool EraseActiveOrder(const uint256 &orderTxId, const dex::CDEXOrderDetail &activeOrder);
 
     bool IncDexID(DexID &id);
     bool GetDexOperator(const DexID &id, DexOperatorDetail& detail);
@@ -165,7 +165,7 @@ public:
         return make_shared<CDEXSysOrdersGetter>(blockOrdersCache);
     }
 private:
-    DEXBlockOrdersCache::KeyType MakeBlockOrderKey(const uint256 &orderid, const CDEXOrderDetail &activeOrder) {
+    DEXBlockOrdersCache::KeyType MakeBlockOrderKey(const uint256 &orderid, const dex::CDEXOrderDetail &activeOrder) {
         return make_tuple(CFixedUInt32(activeOrder.tx_cord.GetHeight()), (uint8_t)activeOrder.generate_type, orderid);
     }
 private:
@@ -173,7 +173,7 @@ private:
 /*  ----------------   -----------------------------  ---------------------------  ------------------   ------------------------ */
     /////////// DexDB
     // order tx id -> active order
-    CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,          uint256,                     CDEXOrderDetail >     activeOrderCache;
+    CCompositeKVCache< dbk::DEX_ACTIVE_ORDER,          uint256,                     dex::CDEXOrderDetail >     activeOrderCache;
     DEXBlockOrdersCache    blockOrdersCache;
     CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       std::optional<CVarIntValue<DexID>> , DexOperatorDetail >   operator_detail_cache;
     CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    CRegIDKey,               std::optional<CVarIntValue<DexID>>> operator_owner_map_cache;

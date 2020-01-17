@@ -5,11 +5,19 @@
 
 #include "rpcproposal.h"
 #include "main.h"
-#include "entities/proposalserializer.h"
 #include "tx/proposaltx.h"
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 
+
+SysParamType  GetParamType(const string  paramName){
+    auto itr = paramNameToSysParamTypeMap.find(paramName);
+    if(itr == paramNameToSysParamTypeMap.end())
+        return NULL_SYS_PARAM_TYPE;
+    else
+        return std::get<1>(itr->second);
+
+}
 
 Value getproposal(const Array& params, bool fHelp){
 
@@ -70,14 +78,20 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
     CParamsGovernProposal proposal ;
-    proposal.param_values.push_back(std::make_pair(paramName, paramValue));
+
+
+    SysParamType  type = GetParamType(paramName) ;
+    if(type == SysParamType::NULL_SYS_PARAM_TYPE)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
+
+    proposal.param_values.push_back(std::make_pair(type, paramValue));
 
     CProposalCreateTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = std::make_shared<CParamsGovernProposal>(proposal) ;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CParamsGovernProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -117,14 +131,14 @@ Value submitgovernerupdateproposal(const Array& params , bool fHelp) {
 
     CGovernerUpdateProposal proposal ;
     proposal.governer_regid = governerId ;
-    proposal.operate_type = OperateType(operateType);
+    proposal.operate_type = ProposalOperateType(operateType);
 
     CProposalCreateTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposal = std::make_shared<CGovernerUpdateProposal>(proposal) ;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CGovernerUpdateProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -163,14 +177,14 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
     CDexSwitchProposal proposal ;
     proposal.dexid = dexId ;
-    proposal.operate_type = OperateType(operateType);
+    proposal.operate_type = ProposalOperateType(operateType);
 
     CProposalCreateTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposal = std::make_shared<CDexSwitchProposal>(proposal) ;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CDexSwitchProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 }
 
@@ -250,7 +264,9 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposal = std::make_shared<CMinerFeeProposal>(proposal) ;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CMinerFeeProposal>(proposal)) ;
+
+
     return SubmitTx(account.keyid, tx) ;
 
 }

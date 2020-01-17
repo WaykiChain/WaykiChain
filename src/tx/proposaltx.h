@@ -13,15 +13,15 @@
 
 class CProposalCreateTx: public CBaseTx {
 public:
-    shared_ptr<CProposal> proposal = nullptr;
+    CProposalStorageBean proposalBean ;
 
 public:
     CProposalCreateTx(): CBaseTx(PROPOSAL_CREATE_TX) {}
 
     CProposalCreateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                 uint64_t feesIn, shared_ptr<CProposal> proposalIn )
+                 uint64_t feesIn, CProposalStorageBean proposalIn )
             : CBaseTx(PROPOSAL_CREATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
-              proposal(proposalIn) {}
+              proposalBean(proposalIn) {}
 
     ~CProposalCreateTx() {}
 
@@ -32,13 +32,13 @@ public:
             READWRITE(txUid);
             READWRITE(VARINT(llFees));
             READWRITE(fee_symbol);
-            READWRITE(proposal);
+            READWRITE(proposalBean);
             READWRITE(signature);
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
         hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << VARINT(llFees)
-           << fee_symbol <<proposal;
+           << fee_symbol <<proposalBean;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalCreateTx>(*this); }

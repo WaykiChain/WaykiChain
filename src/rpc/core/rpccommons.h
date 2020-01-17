@@ -38,16 +38,23 @@ namespace RPC_PARAM {
     uint32_t GetUint32(const Value &jsonValue);
     uint64_t GetUint64(const Value &jsonValue);
 
+    void CheckTokenAmount(const TokenSymbol &symbol, const uint64_t amount);
+
     ComboMoney GetComboMoney(const Value &jsonValue, const TokenSymbol &defaultSymbol = SYMB::WICC);
 
     ComboMoney GetFee(const Array& params, const size_t index, const TxType txType);
     uint64_t GetWiccFee(const Array& params, const size_t index, const TxType txType);
+
+
+    CUserID ParseUserIdByAddr(const Value &jsonValue);
 
     CUserID GetUserId(const Value &jsonValue, const bool senderUid = false);
 
     string GetLuaContractScript(const Value &jsonValue);
     CKeyID GetKeyId(const Value &jsonValue, const bool senderUid = false );
     bool GetKeyId(const Value &jsonValue, CKeyID& keid, const bool senderUid = false );
+
+    CKeyID GetUserKeyId(const CUserID &userId);
 
     uint64_t GetPrice(const Value &jsonValue);
 

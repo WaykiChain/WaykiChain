@@ -176,27 +176,19 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "getminerbyblocktime"      && n > 1) ConvertTo<int64_t>(params[1]);
 
     /* for dex */
-    if (strMethod == "submitdexbuylimitordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexbuylimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "submitdexbuylimitordertx"     && n > 5) ConvertTo<bool>(params[5]);
-    if (strMethod == "submitdexbuylimitordertx"     && n > 6) ConvertTo<bool>(params[6]);
-    if (strMethod == "submitdexbuylimitordertx"     && n > 7) ConvertTo<int64_t>(params[7]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 5) ConvertTo<int64_t>(params[5]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 6) ConvertTo<int64_t>(params[6]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 8) ConvertTo<int64_t>(params[8]);
+    if (strMethod == "submitdexbuylimitordertx"     && n > 9) ConvertTo<int64_t>(params[9]);
 
     if (strMethod == "submitdexselllimitordertx"    && n > 3) ConvertTo<int64_t>(params[3]);
     if (strMethod == "submitdexselllimitordertx"     && n > 4) ConvertTo<int64_t>(params[4]);
-    if (strMethod == "submitdexselllimitordertx"     && n > 5) ConvertTo<bool>(params[5]);
-    if (strMethod == "submitdexselllimitordertx"     && n > 6) ConvertTo<bool>(params[6]);
-    if (strMethod == "submitdexselllimitordertx"     && n > 7) ConvertTo<int64_t>(params[7]);
 
     if (strMethod == "submitdexbuymarketordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexbuymarketordertx"     && n > 4) ConvertTo<bool>(params[4]);
-    if (strMethod == "submitdexbuymarketordertx"     && n > 5) ConvertTo<bool>(params[5]);
-    if (strMethod == "submitdexbuymarketordertx"     && n > 6) ConvertTo<int64_t>(params[6]);
 
     if (strMethod == "submitdexsellmarketordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
-    if (strMethod == "submitdexsellmarketordertx"     && n > 4) ConvertTo<bool>(params[4]);
-    if (strMethod == "submitdexsellmarketordertx"     && n > 5) ConvertTo<bool>(params[5]);
-    if (strMethod == "submitdexsellmarketordertx"     && n > 6) ConvertTo<int64_t>(params[6]);
+
+    if (strMethod == "gendexoperatorordertx"     && n > 3) ConvertTo<int64_t>(params[3]);
 
     if (strMethod == "submitdexsettletx"            && n > 1) ConvertTo<Array>(params[1]);
 
@@ -248,20 +240,20 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     return params;
 }
 
-inline string&   recover_enter(string& str, const string& old_value, const string& new_value, bool need_replace = true)     
-{     
-    while(true)   {     
-        string::size_type pos(0);     
-        if(   (pos=str.find(old_value))!=string::npos   ){  
+inline string&   recover_enter(string& str, const string& old_value, const string& new_value, bool need_replace = true)
+{
+    while(true)   {
+        string::size_type pos(0);
+        if(   (pos=str.find(old_value))!=string::npos   ){
             // str.erase(pos, old_value.size());
             // if(need_replace) str.insert(pos, new_value.size(), new_value);
             str.replace(pos, old_value.size(), new_value);
-        }  
+        }
         else {
-           break; 
-        }      
-    }     
-    return   str;     
+           break;
+        }
+    }
+    return   str;
 }
 
 
