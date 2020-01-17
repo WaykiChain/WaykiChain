@@ -28,7 +28,6 @@
 #include "chain/blockdelegates.h"
 #include "persistence/blockundo.h"
 #include "tx/txserializer.h"
-#include "entities/proposalserializer.h"
 
 #include <sstream>
 #include <algorithm>
@@ -2059,10 +2058,6 @@ bool AcceptBlock(CBlock &block, CValidationState &state, CDiskBlockPos *dbp, boo
         if(pbftMan.UpdateLocalFinBlock(pTip)){
             BroadcastBlockFinality(pTip);
             pbftMan.UpdateGlobalFinBlock(pTip);
-        }
-
-        if(chainActive.Height() % 50000 == 0 ){
-            LogInstance().ShrinkDebugFile() ;
         }
     }
 

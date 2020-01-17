@@ -22,7 +22,6 @@
 #include "tx/accountregtx.h"
 #include "tx/mulsigtx.h"
 #include "tx/txserializer.h"
-#include "entities/proposalserializer.h"
 #include "config/scoin.h"
 #include <boost/assign/list_of.hpp>
 #include "commons/json/json_spirit_utils.h"

@@ -11,14 +11,13 @@
 #include <set>
 #include "config/txbase.h"
 
-
 extern bool CheckIsGoverner(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
 extern uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw );
 bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
 
     for( auto pa: param_values){
-        auto itr = paramNameToSysParamTypeMap.find(pa.first);
-        if(itr == paramNameToSysParamTypeMap.end())
+        auto itr = SysParamTable.find(SysParamType(pa.first));
+        if(itr == SysParamTable.end())
             return false ;
 
         if(!cw.sysParamCache.SetParam(std::get<0>(itr->second), pa.second)){
@@ -35,7 +34,7 @@ bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState&
             return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
                         "params-empty");
        for(auto pa: param_values){
-           if(paramNameToSysParamTypeMap.count(pa.first) == 0){
+           if(SysParamTable.count(SysParamType(pa.first)) == 0){
                return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
            }
@@ -47,7 +46,7 @@ bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState&
 bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
 
 
-    if(operate_type == OperateType::DISABLE){
+    if(operate_type == ProposalOperateType::DISABLE){
         vector<CRegID> governers ;
         if(cw.sysGovernCache.GetGoverners(governers)){
 
@@ -62,7 +61,7 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
         }
         return false ;
 
-    }else if(operate_type == OperateType::ENABLE){
+    }else if(operate_type == ProposalOperateType::ENABLE){
 
         vector<CRegID> governers ;
         cw.sysGovernCache.GetGoverners(governers);
@@ -81,7 +80,7 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
 
  bool CGovernerUpdateProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state){
 
-     if(operate_type != OperateType::ENABLE && operate_type != OperateType::DISABLE){
+     if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
                           "operate_type-illegal");
      }
@@ -93,7 +92,7 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
      }
      vector<CRegID> governers ;
 
-     if(operate_type == OperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGoverner(governer_regid)){
+     if(operate_type == ProposalOperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGoverner(governer_regid)){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, regid(%s) is not a governer!", governer_regid.ToString()), REJECT_INVALID,
                           "regid-not-governer");
      }
@@ -107,8 +106,8 @@ bool CDexSwitchProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& st
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governer!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
-    if((dexOperator.activated && operate_type == OperateType::ENABLE)||
-       (!dexOperator.activated && operate_type == OperateType::DISABLE)){
+    if((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
+       (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE)){
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
     }
@@ -137,7 +136,7 @@ bool CDexSwitchProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& st
 bool CDexSwitchProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state) {
 
 
-    if(operate_type != OperateType::ENABLE && operate_type != OperateType::DISABLE){
+    if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, operate type error!"), REJECT_INVALID,
                          "operate-type-error");
     }
@@ -147,8 +146,8 @@ bool CDexSwitchProposal::CheckProposal(CCacheWrapper &cw, CValidationState& stat
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governer!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
-    if((dexOperator.activated && operate_type == OperateType::ENABLE)||
-        (!dexOperator.activated && operate_type == OperateType::DISABLE)){
+    if((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
+        (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE)){
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
     }

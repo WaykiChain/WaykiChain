@@ -898,7 +898,7 @@ void InitLogging()
     LogInstance().m_log_timestamps = SysCfg().GetBoolArg("-logtimestamps", DEFAULT_LOGTIMESTAMPS);
     LogInstance().m_log_time_micros = SysCfg().GetBoolArg("-logtimemicros", DEFAULT_LOGTIMEMICROS);
     LogInstance().m_log_threadnames = SysCfg().GetBoolArg("-logthreadnames", DEFAULT_LOGTHREADNAMES);
-
+    LogInstance().m_totoal_written_size = LogInstance().GetCurrentLogSize() ;
     fLogIPs = SysCfg().GetBoolArg("-logips", DEFAULT_LOGIPS);
 
     // TODO: ...

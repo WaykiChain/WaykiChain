@@ -9,11 +9,11 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include "commons/serialize.h"
 #include "entities/id.h"
 #include "commons/json/json_spirit.h"
 #include "config/const.h"
 #include "config/txbase.h"
+#include "config/scoin.h"
 
 class CCacheWrapper ;
 class CValidationState ;
@@ -27,7 +27,7 @@ enum ProposalType: uint8_t{
     MINER_FEE_UPDATE  = 4
 };
 
-enum OperateType: uint8_t {
+enum ProposalOperateType: uint8_t {
     NULL_OPT = 0,
     ENABLE   = 1 ,
     DISABLE  = 2
@@ -49,9 +49,6 @@ public:
     virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
     virtual bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) { return true ;};
     virtual bool CheckProposal(CCacheWrapper &cw, CValidationState& state) {return true ;};
-    virtual bool IsEmpty() const { return  expire_block_height == 0
-                                            && need_governer_count == 0
-                                            && proposal_type == ProposalType ::NULL_PROPOSAL; };
     virtual string ToString(){
         return strprintf("proposaltype=%d,needgoverneramount=%d,expire_height=%d",
                 proposal_type, need_governer_count, expire_block_height) ;
@@ -66,50 +63,13 @@ public:
 
     };
 
-    static unsigned int GetSerializePtrSize(const std::shared_ptr<CProposal> &pProposal, int nType, int nVersion){
-        return pProposal->GetSerializeSize(nType, nVersion) + 1;
-    }
-
-    template<typename Stream>
-    static void SerializePtr(Stream& os, const std::shared_ptr<CProposal> &pProposal, int nType, int nVersion);
-
-    template<typename Stream>
-    static void UnserializePtr(Stream& is, std::shared_ptr<CProposal> &pProposal, int nType, int nVersion);
-
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
-    virtual void SetEmpty() {
-        expire_block_height = 0 ;
-        need_governer_count = 0 ;
-        proposal_type = ProposalType ::NULL_PROPOSAL ;
-    }
-
 };
 
-class CNullProposal: public CProposal {
-public:
-    CNullProposal(): CProposal(ProposalType::NULL_PROPOSAL){}
-
-    IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
-    );
-    bool IsEmpty() const override { return proposal_type == NULL_PROPOSAL || CProposal::IsEmpty(); }
-    void SetEmpty() override {
-        CProposal::SetEmpty();
-    }
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CNullProposal>(*this); }
-
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override { return true ; }
-
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override { return true ; }
-
-    string ToString() override { return CProposal::ToString(); }
-};
 
 class CParamsGovernProposal: public CProposal {
 public:
-    vector<std::pair<string, uint64_t>> param_values;
+    vector<std::pair<uint8_t, uint64_t>> param_values;
 
     CParamsGovernProposal(): CProposal(ProposalType::PARAM_GOVERN){}
 
@@ -118,18 +78,20 @@ public:
             READWRITE(need_governer_count);
             READWRITE(param_values);
     );
-    bool IsEmpty() const override { return param_values.empty() && CProposal::IsEmpty(); };
-    void SetEmpty() override {
-        CProposal::SetEmpty();
-        param_values.clear();
-    }
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
         Array arrayItems;
         for (const auto &item : param_values) {
             Object subItem;
-            subItem.push_back(Pair("param_name", item.first));
+            subItem.push_back(Pair("param_code", item.first));
+
+            string param_name = "" ;
+            auto itr = SysParamTable.find(SysParamType(item.first)) ;
+            if(itr != SysParamTable.end())
+                param_name = std::get<2>(itr->second);
+
+            subItem.push_back(Pair("param_name", param_name));
             subItem.push_back(Pair("param_value", item.second));
             arrayItems.push_back(subItem);
         }
@@ -149,7 +111,6 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
 
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
-
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 };
 
@@ -158,7 +119,7 @@ public:
 class CGovernerUpdateProposal: public CProposal{
 public:
     CRegID governer_regid ;
-     OperateType operate_type  = OperateType::NULL_OPT;
+     ProposalOperateType operate_type  = ProposalOperateType::NULL_OPT;
 
     CGovernerUpdateProposal(): CProposal(ProposalType::GOVERNER_UPDATE){}
 
@@ -169,22 +130,11 @@ public:
             READWRITE((uint8_t&)operate_type);
     );
 
-    bool IsEmpty() const override { return operate_type == NULL_OPT
-                                    && governer_regid.IsEmpty()
-                                    && CProposal::IsEmpty(); };
-    void SetEmpty() override {
-        CProposal::SetEmpty() ;
-        operate_type = NULL_OPT;
-        governer_regid.SetEmpty();
-    }
-
-
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("governer_regid",governer_regid.ToString())) ;
         o.push_back(Pair("operate_type", operate_type));
         return o ;
-
     }
 
     string ToString() override {
@@ -193,6 +143,7 @@ public:
                 governer_regid.ToString(),operate_type) ;
 
     }
+
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this); }
     bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
@@ -201,7 +152,7 @@ public:
 class CDexSwitchProposal: public CProposal{
 public:
     uint32_t dexid;
-    OperateType operate_type = OperateType ::ENABLE;
+    ProposalOperateType operate_type = ProposalOperateType ::ENABLE;
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
@@ -210,8 +161,6 @@ public:
     );
 
     CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
-    bool IsEmpty() const override { return operate_type == NULL_OPT && CProposal::IsEmpty(); }
-    void SetEmpty() override { operate_type = NULL_OPT; CProposal:: SetEmpty() ;}
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
 
@@ -248,9 +197,6 @@ public:
             READWRITE(VARINT(fee_sawi_amount));
             )
 
-    bool IsEmpty() const override { return tx_type == 0 && CProposal::IsEmpty(); }
-    void SetEmpty() override { tx_type = TxType ::NULL_TX; CProposal::SetEmpty(); }
-
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
 
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
@@ -273,6 +219,106 @@ public:
     }
 };
 
+class CProposalStorageBean {
+
+public:
+    shared_ptr<CProposal> proposalPtr ;
+
+    CProposalStorageBean() {}
+
+    CProposalStorageBean( shared_ptr<CProposal> ptr): proposalPtr(ptr) {}
+
+    bool IsEmpty() const { return proposalPtr == nullptr; }
+    void SetEmpty() { proposalPtr = nullptr; }
+
+
+
+    unsigned int GetSerializeSize(int nType, int nVersion) const {
+
+        if(IsEmpty())
+            return 1 ;
+        else
+            return (*proposalPtr).GetSerializeSize(nType, nVersion) + 1 ;
+    }
+
+    template <typename Stream>
+    void Serialize(Stream &os, int nType, int nVersion) const {
+
+        uint8_t proposalType = ProposalType ::NULL_PROPOSAL ;
+
+        if(!IsEmpty())
+            proposalType = proposalPtr->proposal_type ;
+        uint8_t pt = (uint8_t&)proposalType;
+
+        ::Serialize(os, pt, nType, nVersion);
+
+        if(IsEmpty())
+            return ;
+
+        switch (proposalPtr->proposal_type) {
+            case PARAM_GOVERN:
+                ::Serialize(os, *((CParamsGovernProposal   *) (proposalPtr.get())), nType, nVersion);
+                break;
+            case GOVERNER_UPDATE:
+                ::Serialize(os, *((CGovernerUpdateProposal *) (proposalPtr.get())), nType, nVersion);
+                break;
+            case DEX_SWITCH:
+                ::Serialize(os, *((CDexSwitchProposal      *) (proposalPtr.get())), nType, nVersion);
+                break;
+            case MINER_FEE_UPDATE:
+                ::Serialize(os, *((CMinerFeeProposal       *) (proposalPtr.get())), nType, nVersion);
+                break;
+            default:
+                throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
+                                                  proposalPtr->proposal_type));
+        }
+
+
+    }
+
+    template <typename Stream>
+    void Unserialize(Stream &is, int nType, int nVersion) {
+
+        uint8_t nProposalTye;
+        is.read((char *)&(nProposalTye), sizeof(nProposalTye));
+        ProposalType proposalType = (ProposalType)nProposalTye ;
+        if(proposalType == ProposalType:: NULL_PROPOSAL)
+            return ;
+
+        switch(proposalType) {
+
+            case PARAM_GOVERN: {
+                proposalPtr = std::make_shared<CParamsGovernProposal>();
+                ::Unserialize(is, *((CParamsGovernProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case GOVERNER_UPDATE: {
+                proposalPtr = std::make_shared<CGovernerUpdateProposal>();
+                ::Unserialize(is, *((CGovernerUpdateProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case DEX_SWITCH: {
+                proposalPtr = std::make_shared<CDexSwitchProposal>();
+                ::Unserialize(is, *((CDexSwitchProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case MINER_FEE_UPDATE: {
+                proposalPtr = std::make_shared<CMinerFeeProposal>();
+                ::Unserialize(is, *((CMinerFeeProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            default:
+                throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
+                                                  nProposalTye));
+        }
+        proposalPtr->proposal_type = proposalType;
+    }
+
+};
 
 
 #endif //ENTITIES_PROPOSAL_H

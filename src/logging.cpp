@@ -116,6 +116,22 @@ bool BCLog::Logger::DisableCategory(const std::string& str)
     return true;
 }
 
+uint64_t BCLog::Logger::GetCurrentLogSize() {
+
+    // Scroll debug.log if it's getting too big
+    FILE* file = fsbridge::fopen(m_file_path, "r");
+    // Special files (e.g. device nodes) may not have a size.
+    size_t log_size = 0;
+    try {
+        log_size = fs::file_size(m_file_path);
+    } catch (const fs::filesystem_error&) {}
+
+    if(file != nullptr)
+        fclose(file);
+    return log_size ;
+
+}
+
 bool BCLog::Logger::WillLogCategory(BCLog::LogFlags category) const
 {
     return (m_categories.load(std::memory_order_relaxed) & category) != 0;
@@ -267,6 +283,7 @@ namespace BCLog {
 void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* file, int line,
     const std::string& str) {
 
+
     std::lock_guard<std::mutex> scoped_lock(m_cs);
     std::string str_prefixed = LogEscapeMessage(str);
 
@@ -298,68 +315,37 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
         cb(str_prefixed);
     }
     if (m_print_to_file) {
-        assert(m_fileout != nullptr);
 
+        assert(m_fileout != nullptr);
         // reopen the log file, if requested
         if (m_reopen_file) {
             m_reopen_file = false;
             FILE* new_fileout = fsbridge::fopen(m_file_path, "a");
             if (new_fileout) {
                 setbuf(new_fileout, nullptr); // unbuffered
-                fclose(m_fileout);
+                    fclose(m_fileout);
                 m_fileout = new_fileout;
             }
         }
+
         FileWriteStr(str_prefixed, m_fileout);
+        m_totoal_written_size += str_prefixed.size();
+
+        if(m_totoal_written_size > RECENT_DEBUG_HISTORY_SIZE){
+            ShrinkDebugFile();
+            m_totoal_written_size = 0 ;
+
+        }
+
     }
 }
 
 void BCLog::Logger::ShrinkDebugFile()
 {
-
-    // Amount of debug.log to save at end when shrinking (must fit in memory)
-    constexpr size_t RECENT_DEBUG_HISTORY_SIZE = 500*1024*1024;
-
     assert(!m_file_path.empty());
-
-    // Scroll debug.log if it's getting too big
-    FILE* file = fsbridge::fopen(m_file_path, "r");
-
-    // Special files (e.g. device nodes) may not have a size.
-    size_t log_size = 0;
-    try {
-        log_size = fs::file_size(m_file_path);
-    } catch (const fs::filesystem_error&) {}
-
-    // If debug.log file is more than 10% bigger the RECENT_DEBUG_HISTORY_SIZE
-    // trim it down by saving only the last RECENT_DEBUG_HISTORY_SIZE bytes
-    if (file && log_size > RECENT_DEBUG_HISTORY_SIZE)
-    {/*
-        // Restart the file with some of the end
-        std::vector<char> vch(RECENT_DEBUG_HISTORY_SIZE, 0);
-        if (fseek(file, -((long)vch.size()), SEEK_END)) {
-            LogPrint(ERROR, "Failed to shrink debug log file: fseek(...) failed\n");
-            fclose(file);
-            return;
-        }
-
-        int nBytes = fread(vch.data(), 1, vch.size(), file);
-        fclose(file);
-
-        file = fsbridge::fopen(m_file_path, "w");
-        if (file)
-        {
-            fwrite(vch.data(), 1, nBytes, file);
-            fclose(file);
-        }*/
-        fclose(file);
-        string new_path =  strprintf("%s%s",m_file_path.string(), ".1");
-        remove(new_path.c_str()) ;
-        rename(m_file_path.string().c_str(), new_path.c_str()) ;
-        m_reopen_file = true ;
-
-    }
-    else if (file != nullptr)
-        fclose(file);
+    string new_path =  strprintf("%s%s",m_file_path.string(), ".1");
+    remove(new_path.c_str()) ;
+    rename(m_file_path.string().c_str(), new_path.c_str()) ;
+    m_reopen_file = true ;
 
 }
