@@ -481,6 +481,14 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const Tx
     return fee;
 }
 
+CUserID RPC_PARAM::ParseUserIdByAddr(const Value &jsonValue) {
+    auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
+    if (!pUserId) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+    }
+    return *pUserId;
+}
+
 CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
@@ -547,8 +555,18 @@ bool RPC_PARAM::GetKeyId(const Value &jsonValue, CKeyID& keyid, const bool sende
         keyid =  uid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
     }
     return !keyid.IsEmpty();
-
 }
+
+CKeyID RPC_PARAM::GetUserKeyId(const CUserID &uid) {
+    CKeyID keyid;
+    pCdMan->pAccountCache->GetKeyId(uid, keyid);
+    if (!keyid.IsEmpty()) {
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
+                           strprintf("Get keyid by userid=%s failed", uid.ToString()));
+    }
+    return keyid;
+}
+
 string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {
     string filePath = GetAbsolutePath(jsonValue.get_str()).string();
     if (filePath.empty())

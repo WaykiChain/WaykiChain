@@ -21,6 +21,7 @@
 #include "tx/nickidregtx.h"
 #include "tx/accountregtx.h"
 #include "tx/mulsigtx.h"
+#include "tx/dextx.h"
 #include "tx/txserializer.h"
 #include "config/scoin.h"
 #include <boost/assign/list_of.hpp>
@@ -967,6 +968,59 @@ Value submittxraw(const Array& params, bool fHelp) {
     return obj;
 }
 
+class CTxMultiSigner {
+public:
+    struct SigningItem {
+        CUserID           uid;
+        UnsignedCharArray *pSignature;
+    };
+
+    struct Signedtem {
+        CKeyID keyid;
+        UnsignedCharArray *pSignature;
+    };
+
+private:
+    CBaseTx &tx;
+    set<CKeyID> &user_keyids;
+public:
+    vector<Signedtem> signed_list;
+
+    CTxMultiSigner(CBaseTx &txIn, set<CKeyID> &userKeyidsIn)
+        : tx(txIn), user_keyids(userKeyidsIn) {}
+
+    void Sign(vector<SigningItem> &signingList) {
+
+        vector<CKeyID> signingKeyids(signingList.size());
+        for (size_t i = 0; i < signingList.size(); i++) {
+            signingKeyids[i] = RPC_PARAM::GetUserKeyId(signingList[i].uid);
+        }
+
+        for (auto& keyid : user_keyids) {
+            bool found = false;
+            for (size_t i = 0; i < signingList.size(); i++) {
+                if (signingKeyids[i] == keyid) {
+                    signed_list.push_back({signingKeyids[i], signingList[i].pSignature});
+                    found = true;
+                }
+            }
+            if (!found) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the user address=%s is not in the signing list",
+                    keyid.ToAddress()));
+            }
+        }
+
+        const uint256 &txHash = tx.GetHash();
+        for (auto signedItem : signed_list) {
+            if (!pWalletMain->Sign(signedItem.keyid, txHash,
+                                    *signedItem.pSignature)) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Sign failed! addr=%s",
+                    signedItem.keyid.ToString()));
+            }
+        }
+    }
+};
+
 Value signtxraw(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 2) {
         throw runtime_error(
@@ -1010,21 +1064,17 @@ Value signtxraw(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "To many addresses provided");
     }
 
-    std::set<CKeyID> keyIds;
-    CKeyID keyid;
+    set<CKeyID> users;
     for (uint32_t i = 0; i < addresses.size(); i++) {
-        if (!RPC_PARAM::GetKeyId(addresses[i], keyid)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Failed to get keyid");
-        }
-        keyIds.insert(keyid);
+        CUserID uid = RPC_PARAM::ParseUserIdByAddr(addresses[i]);
+        users.insert(RPC_PARAM::GetUserKeyId(uid));
     }
 
-    if (keyIds.empty()) {
+    if (users.empty()) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No valid address provided");
     }
 
-    Object obj;
-
+    CTxMultiSigner signer(*pBaseTx, users);
     switch (pBaseTx.get()->nTxType) {
         case BLOCK_REWARD_TX:
         case UCOIN_REWARD_TX:
@@ -1033,47 +1083,45 @@ Value signtxraw(const Array& params, bool fHelp) {
         }
         case UCOIN_TRANSFER_MTX: {
             CMulsigTx *pTx = dynamic_cast<CMulsigTx*>(pBaseTx.get());
-
-            vector<CSignaturePair>& signaturePairs = pTx->signaturePairs;
-            for (const auto& keyIdItem : keyIds) {
-                CRegID regId;
-                if (!pCdMan->pAccountCache->GetRegId(CUserID(keyIdItem), regId)) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Address is unregistered");
-                }
-
-                bool valid = false;
-                for (auto& signatureItem : signaturePairs) {
-                    if (regId == signatureItem.regid) {
-                        if (!pWalletMain->Sign(keyIdItem, pTx->GetHash(),
-                                               signatureItem.signature)) {
-                            throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-                        } else {
-                            valid = true;
-                        }
-                    }
-                }
-
-                if (!valid) {
-                    throw JSONRPCError(RPC_INVALID_PARAMETER, "Provided address is unmatched");
-                }
+            vector<CTxMultiSigner::SigningItem> signingList;
+            for (auto& item : pTx->signaturePairs) {
+                signingList.push_back({CUserID(item.regid), &item.signature});
             }
-
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
-
+            signer.Sign(signingList);
             break;
         }
 
+        case DEX_OPERATOR_ORDER_TX: {
+            dex::CDEXOperatorOrderTx *pTx = dynamic_cast<dex::CDEXOperatorOrderTx*>(pBaseTx.get());
+            vector<CTxMultiSigner::SigningItem> signingList = {
+                {pTx->txUid, &pTx->signature},
+                {pTx->operator_uid, &pTx->operator_signature},
+            };
+            signer.Sign(signingList);
+            break;
+        }
         default: {
-            if (!pWalletMain->Sign(*keyIds.begin(), pBaseTx->GetHash(), pBaseTx->signature))
-                throw JSONRPCError(RPC_INVALID_PARAMETER, "Sign failed");
-
-            CDataStream ds(SER_DISK, CLIENT_VERSION);
-            ds << pBaseTx;
-            obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+            vector<CTxMultiSigner::SigningItem> signingList = {
+                {pBaseTx->txUid, &pBaseTx->signature}
+            };
+            signer.Sign(signingList);
         }
     }
+
+    Array signatureArray;
+    for (auto item : signer.signed_list) {
+        Object itemObj;
+        itemObj.push_back(Pair("addr", item.keyid.ToAddress()));
+        itemObj.push_back(Pair("signature", HexStr(*item.pSignature)));
+        signatureArray.push_back(itemObj);
+    }
+
+    CDataStream ds(SER_DISK, CLIENT_VERSION);
+    ds << pBaseTx;
+
+    Object obj;
+    obj.push_back(Pair("rawtx", HexStr(ds.begin(), ds.end())));
+    obj.push_back(Pair("signed_list", signatureArray));
     return obj;
 }
 

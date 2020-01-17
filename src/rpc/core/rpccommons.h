@@ -45,11 +45,16 @@ namespace RPC_PARAM {
     ComboMoney GetFee(const Array& params, const size_t index, const TxType txType);
     uint64_t GetWiccFee(const Array& params, const size_t index, const TxType txType);
 
+
+    CUserID ParseUserIdByAddr(const Value &jsonValue);
+
     CUserID GetUserId(const Value &jsonValue, const bool senderUid = false);
 
     string GetLuaContractScript(const Value &jsonValue);
     CKeyID GetKeyId(const Value &jsonValue, const bool senderUid = false );
     bool GetKeyId(const Value &jsonValue, CKeyID& keid, const bool senderUid = false );
+
+    CKeyID GetUserKeyId(const CUserID &userId);
 
     uint64_t GetPrice(const Value &jsonValue);
 
