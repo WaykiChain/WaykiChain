@@ -781,45 +781,43 @@ namespace dex {
             uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, *pBuyOperatorDetail, takerSide);
             uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
 
-            if (buyOperatorFeeRatio != 0) {
-                if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
-                    return false;
+            if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
+                return false;
 
-                uint64_t dealAssetFee;
-                if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee)) return false;
+            uint64_t dealAssetFee;
+            if (!CalcOrderFee(dealItem.dealAssetAmount, buyOperatorFeeRatio, dealAssetFee)) return false;
 
-                buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
-                // pay asset fee from seller to settler
-                if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
-                    return state.DoS(100, ERRORMSG("%s, pay asset fee from buyer to operator account failed!"
-                        " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
-                        DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
-                        REJECT_INVALID, "operate-account-failed");
-                }
-
-                receipts.emplace_back(pBuyOrderAccount->regid, pBuyMatchAccount->regid, buyOrder.asset_symbol,
-                                dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
+            buyerReceivedAssets = dealItem.dealAssetAmount - dealAssetFee;
+            // pay asset fee from seller to settler
+            if (!pBuyMatchAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, dealAssetFee)) {
+                return state.DoS(100, ERRORMSG("%s, pay asset fee from buyer to operator account failed!"
+                    " deal_info={%s}, asset_symbol=%s, asset_fee=%llu, buy_match_regid=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), buyOrder.asset_symbol, dealAssetFee, pBuyMatchAccount->regid.ToString()),
+                    REJECT_INVALID, "operate-account-failed");
             }
+
+            receipts.emplace_back(pBuyOrderAccount->regid, pBuyMatchAccount->regid, buyOrder.asset_symbol,
+                            dealAssetFee, ReceiptCode::DEX_ASSET_FEE_TO_SETTLER);
+
             // 9.2 seller pay the fee from the received coins to settler
             uint64_t sellerReceivedCoins = dealItem.dealCoinAmount;
-            if (sellOperatorFeeRatio != 0) {
-                if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
-                    return false;
-                uint64_t dealCoinFee;
-                if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
+            if (!CheckOperatorFeeRatioRange(context, dealItem.sellOrderId, sellOperatorFeeRatio, DEAL_ITEM_TITLE))
+                return false;
+            uint64_t dealCoinFee;
+            if (!CalcOrderFee(dealItem.dealCoinAmount, sellOperatorFeeRatio, dealCoinFee)) return false;
 
-                sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
-                // pay coin fee from buyer to settler
-                if (!pTxAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
-                    return state.DoS(100, ERRORMSG("%s, pay coin fee from seller to operator account failed!"
-                        " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_match_regid=%s",
-                        DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
-                        pSellMatchAccount->regid.ToString()),
-                        REJECT_INVALID, "operate-account-failed");
-                }
-                receipts.emplace_back(pSellOrderAccount->regid, pTxAccount->regid, sellOrder.coin_symbol,
-                                    dealCoinFee, ReceiptCode::DEX_COIN_FEE_TO_SETTLER);
+            sellerReceivedCoins = dealItem.dealCoinAmount - dealCoinFee;
+            // pay coin fee from buyer to settler
+            if (!pTxAccount->OperateBalance(sellOrder.coin_symbol, ADD_FREE, dealCoinFee)) {
+                return state.DoS(100, ERRORMSG("%s, pay coin fee from seller to operator account failed!"
+                    " deal_info={%s}, coin_symbol=%s, coin_fee=%llu, sell_match_regid=%s",
+                    DEAL_ITEM_TITLE, dealItem.ToString(), sellOrder.coin_symbol, dealCoinFee,
+                    pSellMatchAccount->regid.ToString()),
+                    REJECT_INVALID, "operate-account-failed");
             }
+            receipts.emplace_back(pSellOrderAccount->regid, pTxAccount->regid, sellOrder.coin_symbol,
+                                dealCoinFee, ReceiptCode::DEX_COIN_FEE_TO_SETTLER);
+
 
             // 10. add the buyer's assets and seller's coins
             if (   !pBuyOrderAccount->OperateBalance(buyOrder.asset_symbol, ADD_FREE, buyerReceivedAssets)    // + add buyer's assets
