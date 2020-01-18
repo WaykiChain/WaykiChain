@@ -331,7 +331,7 @@ void BCLog::Logger::LogPrintStr(const BCLog::LogFlags& category, const char* fil
         FileWriteStr(str_prefixed, m_fileout);
         m_totoal_written_size += str_prefixed.size();
 
-        if(m_totoal_written_size > RECENT_DEBUG_HISTORY_SIZE){
+        if(m_totoal_written_size > m_max_log_size){
             ShrinkDebugFile();
             m_totoal_written_size = 0 ;
 

@@ -63,7 +63,6 @@ namespace BCLog { //blockchain log
     class Logger
     {
     private:
-        size_t RECENT_DEBUG_HISTORY_SIZE = 500 * 1024 * 1024;
         mutable std::mutex m_cs;                   // Can not use Mutex from sync.h because in debug mode it would cause a deadlock when a potential deadlock was detected
         FILE* m_fileout = nullptr;                 // GUARDED_BY(m_cs)
         std::list<std::string> m_msgs_before_open; // GUARDED_BY(m_cs)
@@ -94,6 +93,7 @@ namespace BCLog { //blockchain log
         bool m_log_time_micros = DEFAULT_LOGTIMEMICROS;
         bool m_log_threadnames = DEFAULT_LOGTHREADNAMES;
         uint64_t m_totoal_written_size = 0 ;
+        uint64_t m_max_log_size = 0 ;
 
         fs::path m_file_path;
         std::atomic<bool> m_reopen_file{false};
