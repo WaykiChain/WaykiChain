@@ -43,7 +43,7 @@ test:json_spirit.a test_abi.cpp
 	@${CXX} -c $(CXXFLAGS) $(WASM_UINT128_SRC)
 	@${CXX} -c $(CXXFLAGS) $(EXCEPTION_SRC)
 	@${AR} rcs abi_serializer.a  $(JSON_SPIRIT_OBJECTS) $(ABI_SERIALIZER_OBJECT) $(WASM_UINT128_OBJECT) $(EXCEPTION_OBJECT)
-	@${CXX} -o test $(CXXFLAGS) test_abi.cpp abi_serializer.a
+	@${CXX} -o test test_abi.cpp abi_serializer.a $(CXXFLAGS)
 
 json_spirit.a:
 	@${CXX} -c $(JSON_CXXFLAGS) $(JSON_SPIRIT_SRC)

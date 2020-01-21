@@ -375,7 +375,7 @@ EXCEPTION_OBJECT =  exception.o log_message.o
 
 test:libwasm.a test_api.cpp wasm_context.cpp
 	@echo "building tests"
-	@${CXX} -o test ${LDFLAGS} $(CXXFLAGS) test_api.cpp wasm_context.cpp libwasm.a 
+	@${CXX} -o test $(CXXFLAGS) test_api.cpp wasm_context.cpp libwasm.a ${LDFLAGS}
 	@rm -rf *.o
 
 libwasm.a:$(WASM_INTERFACE) 
