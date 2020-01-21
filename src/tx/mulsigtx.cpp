@@ -78,7 +78,7 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
                     REJECT_INVALID, "bad-tx-sig-size");
             }
 
-            if (!VerifySignature(sighash, item.signature, account.owner_pubkey)) {
+            if (!::VerifySignature(sighash, item.signature, account.owner_pubkey)) {
                 return state.DoS(
                     100, ERRORMSG("CMulsigTx::CheckTx, account: %s, VerifySignature failed", item.regid.ToString()),
                     REJECT_INVALID, "bad-signscript-check");

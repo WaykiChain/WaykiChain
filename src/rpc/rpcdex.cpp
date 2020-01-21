@@ -628,9 +628,9 @@ Value submitdexsettletx(const Array& params, bool fHelp) {
     Array dealItemArray = params[1].get_array();
     ComboMoney fee = RPC_PARAM::GetFee(params, 2, DEX_TRADE_SETTLE_TX);
 
-    vector<DEXDealItem> dealItems;
+    vector<CDEXSettleTx::DealItem> dealItems;
     for (auto dealItemObj : dealItemArray) {
-        DEXDealItem dealItem;
+        CDEXSettleTx::DealItem dealItem;
         const Value& buy_order_id      = JSON::GetObjectFieldValue(dealItemObj, "buy_order_id");
         dealItem.buyOrderId            = RPC_PARAM::GetTxid(buy_order_id, "buy_order_id");
         const Value& sell_order_id     = JSON::GetObjectFieldValue(dealItemObj, "sell_order_id");

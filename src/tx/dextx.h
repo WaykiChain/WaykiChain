@@ -484,32 +484,33 @@ namespace dex {
 
     ////////////////////////////////////////////////////////////////////////////////
     // settle order tx
-    struct DEXDealItem  {
-        uint256 buyOrderId;
-        uint256 sellOrderId;
-        uint64_t dealPrice;
-        uint64_t dealCoinAmount;
-        uint64_t dealAssetAmount;
-
-        IMPLEMENT_SERIALIZE(
-            READWRITE(buyOrderId);
-            READWRITE(sellOrderId);
-            READWRITE(VARINT(dealPrice));
-            READWRITE(VARINT(dealCoinAmount));
-            READWRITE(VARINT(dealAssetAmount));
-        )
-
-        string ToString() const;
-    };
-
     class CDEXSettleTx: public CBaseTx {
-
     public:
+        struct DealItem  {
+            uint256 buyOrderId;
+            uint256 sellOrderId;
+            uint64_t dealPrice;
+            uint64_t dealCoinAmount;
+            uint64_t dealAssetAmount;
+
+            IMPLEMENT_SERIALIZE(
+                READWRITE(buyOrderId);
+                READWRITE(sellOrderId);
+                READWRITE(VARINT(dealPrice));
+                READWRITE(VARINT(dealCoinAmount));
+                READWRITE(VARINT(dealAssetAmount));
+            )
+
+            string ToString() const;
+        };
+    public:
+        vector<DealItem> dealItems;
+
         CDEXSettleTx() : CBaseTx(DEX_TRADE_SETTLE_TX) {}
 
         CDEXSettleTx(const CUserID &txUidIn, int32_t validHeightIn,
                     const TokenSymbol &feeSymbol, uint64_t fees,
-                    const vector<DEXDealItem> &dealItemsIn)
+                    const vector<DealItem> &dealItemsIn)
             : CBaseTx(DEX_TRADE_SETTLE_TX, txUidIn, validHeightIn, feeSymbol, fees), dealItems(dealItemsIn) {}
 
         IMPLEMENT_SERIALIZE(
@@ -532,33 +533,11 @@ namespace dex {
 
         virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CDEXSettleTx>(*this); }
 
-        void AddDealItem(const DEXDealItem& item) {
-            dealItems.push_back(item);
-        }
-
-        vector<DEXDealItem>& GetDealItems() { return dealItems; }
-
         virtual string ToString(CAccountDBCache &accountCache); //logging usage
         virtual Object ToJson(const CAccountDBCache &accountCache) const; //json-rpc usage
 
         virtual bool CheckTx(CTxExecuteContext &context);
         virtual bool ExecuteTx(CTxExecuteContext &context);
-
-    protected:
-        bool GetDealOrder(CCacheWrapper &cw, CValidationState &state, uint32_t index, const uint256 &order_id,
-            const OrderSide orderSide, CDEXOrderDetail &dealOrder);
-        bool CheckDexOperator(CTxExecuteContext &context, uint32_t i, const CDEXOrderDetail &buyOrder,
-                        const CDEXOrderDetail &sellOrder, const OrderSide &takerSide);
-
-        OrderSide GetTakerOrderSide(const CDEXOrderDetail &buyOrder, const CDEXOrderDetail &sellOrder);
-        uint64_t GetOperatorFeeRatio(const CDEXOrderDetail &order,
-                                    const DexOperatorDetail &operatorDetail,
-                                    const OrderSide &makerSide);
-        bool CalcOrderFee(CTxExecuteContext &context, uint32_t i, uint64_t amount, uint64_t fee_ratio,
-                        uint64_t &orderFee);
-
-    protected:
-        vector<DEXDealItem> dealItems;
     };
 
 } // namespace dex

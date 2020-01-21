@@ -35,7 +35,7 @@ using namespace std;
 
 inline string to_string(transaction_status_type type){
     switch(type){
-        case transaction_status_type::mining: 
+        case transaction_status_type::mining:
             return string("mining");
             break;
         case transaction_status_type::validating:
@@ -187,6 +187,8 @@ public:
 
     bool CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> = nullptr) const;
     bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
+
+    bool VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey);
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
@@ -293,14 +295,6 @@ public:
     }
 
 #define IMPLEMENT_CHECK_TX_SIGNATURE(signatureVerifyPubKey)                                                          \
-    if (!CheckSignatureSize(signature)) {                                                                            \
-        return state.DoS(100, ERRORMSG("%s, tx signature size invalid", __FUNCTION__), REJECT_INVALID,               \
-                         "bad-tx-sig-size");                                                                         \
-    }                                                                                                                \
-    uint256 sighash = GetHash();                                                                        \
-    if (!VerifySignature(sighash, signature, signatureVerifyPubKey)) {                                               \
-        return state.DoS(100, ERRORMSG("%s, tx signature error", __FUNCTION__), REJECT_INVALID, "bad-tx-signature"); \
-    }
-
+    if (!VerifySignature(context, signatureVerifyPubKey)) return false;
 
 #endif //COIN_BASETX_H

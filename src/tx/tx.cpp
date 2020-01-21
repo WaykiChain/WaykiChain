@@ -27,6 +27,10 @@
 using namespace json_spirit;
 extern CCacheDBManager *pCdMan;
 
+
+#define ERROR_TITLE(msg) (std::string(__FUNCTION__) + "(), " + msg)
+#define BASE_TX_TITLE ERROR_TITLE(GetTxTypeName())
+
 string GetTxType(const TxType txType) {
     auto it = kTxFeeTable.find(txType);
     if (it != kTxFeeTable.end())
@@ -202,6 +206,19 @@ bool CBaseTx::CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const {
             err, GetTxTypeName(), context.height, fee_symbol), REJECT_INVALID, err);
     }
     return true;
+}
+
+
+bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey) {
+    if (!CheckSignatureSize(signature)) {
+        return context.pState->DoS(100, ERRORMSG("%s, tx signature size invalid", BASE_TX_TITLE), REJECT_INVALID,
+                         "bad-tx-sig-size");
+    }
+    uint256 sighash = GetHash();
+    if (!::VerifySignature(sighash, signature, pubkey)) {
+        return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE),
+            REJECT_INVALID, "bad-tx-signature");
+    }
 }
 
 /**################################ Universal Coin Transfer ########################################**/
