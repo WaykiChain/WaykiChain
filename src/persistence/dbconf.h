@@ -21,18 +21,19 @@ typedef leveldb::Slice Slice;
 //         DBNameType            DBName             DBCacheSize           description
 //         ----------           --------------    --------------     ----------------------------
 #define DB_NAME_LIST(DEFINE) \
-    DEFINE( SYSPARAM,           "params",         (50 << 10) )      /* system params */ \
-    DEFINE( ACCOUNT,            "accounts",       (50 << 20) )      /* accounts & account assets */ \
+    DEFINE( SYSPARAM,           "params",         (50  << 10) )      /* system params */ \
+    DEFINE( ACCOUNT,            "accounts",       (50  << 20) )      /* accounts & account assets */ \
     DEFINE( ASSET,              "assets",         (100 << 10) )     /* asset registry */ \
     DEFINE( BLOCK,              "blocks",         (500 << 10) )     /* block & tx indexes */ \
-    DEFINE( CONTRACT,           "contracts",      (50 << 20) )      /* contract */ \
+    DEFINE( CONTRACT,           "contracts",      (50  << 20) )      /* contract */ \
     DEFINE( DELEGATE,           "delegates",      (100 << 10) )     /* delegates */ \
-    DEFINE( CDP,                "cdps",           (50 << 20) )      /* cdp */ \
-    DEFINE( CLOSEDCDP,          "closedcdps",     (1  << 20) )      /* closed cdp */ \
-    DEFINE( DEX,                "dexes",          (50 << 20) )      /* dex */ \
+    DEFINE( CDP,                "cdps",           (50  << 20) )      /* cdp */ \
+    DEFINE( CLOSEDCDP,          "closedcdps",     (1   << 20) )      /* closed cdp */ \
+    DEFINE( DEX,                "dexes",          (50  << 20) )      /* dex */ \
     DEFINE( LOG,                "logs",           (100 << 10) )     /* log */ \
     DEFINE( RECEIPT,            "receipts",       (100 << 10) )     /* tx receipt */ \
-    DEFINE( SYSGOVERN,          "governs",         (100 << 10) )           \
+    DEFINE( UTXO,               "utxo",           (50  << 20) )     /* tx receipt */ \
+    DEFINE( SYSGOVERN,          "governs",        (100 << 10) )           \
     /*                                                                  */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "",               0)                  /* enum count, must be the last one */
@@ -124,6 +125,8 @@ namespace dbk {
         DEFINE( TX_EXECUTE_FAIL,      "txef",   LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /**** tx receipt db                                                                    */ \
         DEFINE( TX_RECEIPT,           "txrc",   RECEIPT )       /* [prefix]{txid} --> {receipts} */ \
+        /**** tx coinutxo db                                                                    */ \
+        DEFINE( TX_UTXO,              "utxo",   UTXO )          /* [prefix]{txid} --> {receipts} */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,         "",       DB_NAME_NONE)   /* enum count, must be the last one */

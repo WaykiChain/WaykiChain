@@ -29,6 +29,7 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     closedCdpCache.SetBaseViewPtr(&cwIn->closedCdpCache);
     dexCache.SetBaseViewPtr(&cwIn->dexCache);
     txReceiptCache.SetBaseViewPtr(&cwIn->txReceiptCache);
+    txUtxoCache.SetBaseViewPtr(&cwIn->txUtxoCache);
 
     txCache.SetBaseViewPtr(&cwIn->txCache);
     ppCache.SetBaseViewPtr(&cwIn->ppCache);
@@ -46,6 +47,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     closedCdpCache.SetBaseViewPtr(pCdMan->pClosedCdpCache);
     dexCache.SetBaseViewPtr(pCdMan->pDexCache);
     txReceiptCache.SetBaseViewPtr(pCdMan->pReceiptCache);
+    txUtxoCache.SetBaseViewPtr(pCdMan->pUtxoCache);
 
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
@@ -63,6 +65,7 @@ void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
     closedCdpCache = *pCdMan->pClosedCdpCache;
     dexCache       = *pCdMan->pDexCache;
     txReceiptCache = *pCdMan->pReceiptCache;
+    txUtxoCache    = *pCdMan->pUtxoCache;
 
     txCache = *pCdMan->pTxCache;
     ppCache = *pCdMan->pPpCache;
@@ -83,6 +86,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->closedCdpCache = other.closedCdpCache;
     this->dexCache       = other.dexCache;
     this->txReceiptCache = other.txReceiptCache;
+    this->txUtxoCache    = other.txUtxoCache;
     this->txCache        = other.txCache;
     this->ppCache        = other.ppCache;
     this->sysGovernCache = other.sysGovernCache;
@@ -101,6 +105,7 @@ void CCacheWrapper::Flush() {
     closedCdpCache.Flush();
     dexCache.Flush();
     txReceiptCache.Flush();
+    txUtxoCache.Flush();
 
     txCache.Flush();
     ppCache.Flush();
@@ -118,6 +123,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     closedCdpCache.SetDbOpLogMap(pDbOpLogMap);
     dexCache.SetDbOpLogMap(pDbOpLogMap);
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
+    txUtxoCache.SetDbOpLogMap(pDbOpLogMap);
     sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
 }
 
@@ -133,6 +139,7 @@ UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
     closedCdpCache.RegisterUndoFunc(undoDataFuncMap);
     dexCache.RegisterUndoFunc(undoDataFuncMap);
     txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
+    txUtxoCache.RegisterUndoFunc(undoDataFuncMap);
     sysGovernCache.RegisterUndoFunc(undoDataFuncMap);
     return undoDataFuncMap;
 }
@@ -176,6 +183,9 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
 
     pReceiptDb      = new CDBAccess(dbDir, DBNameType::RECEIPT, false, fReIndex);
     pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
+
+    pUtxoDb         = new CDBAccess(dbDir, DBNameType::UTXO, false, fReIndex);
+    pUtxoCache      = new CTxReceiptDBCache(pUtxoDb);
 
     pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
     pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);

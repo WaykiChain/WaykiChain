@@ -263,5 +263,4 @@ bool ActivateBestChain(CValidationState &state, CBlockIndex* pNewIndex = nullptr
 /** Remove invalidity status from a block and its descendants. */
 bool ReconsiderBlock(CValidationState &state, CBlockIndex *pIndex);
 
-
 #endif

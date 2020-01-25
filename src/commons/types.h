@@ -10,6 +10,13 @@
 #include <unordered_set>
 #include <unordered_map>
 
+typedef string TokenSymbol;     //8 chars max, E.g. WICC, WCNY, WICC-01D
+typedef string TokenName;       //32 chars max, E.g. WaykiChain Coins
+typedef string CoinUnitName;    //defined in coin unit type table
+
+typedef std::pair<TokenSymbol, TokenSymbol> TradingPair;
+typedef string AssetSymbol;     //8 chars max, E.g. WICC
+typedef string PriceSymbol;     //8 chars max, E.g. USD, CNY, EUR, BTC
 
 using uint128_t = unsigned __int128;
 
@@ -43,5 +50,26 @@ namespace container {
         dest.insert(dest.end(), std::begin(appended), std::end(appended));
     }
 };
+
+//missing string printf
+//this is safe and convenient but not exactly efficient
+inline std::string format(const char* fmt, ...){
+    int size = 512;
+    char* buffer = 0;
+    buffer = new char[size];
+    va_list vl;
+    va_start(vl, fmt);
+    int nsize = vsnprintf(buffer, size, fmt, vl);
+    if(size<=nsize){ //fail delete buffer and try again
+        delete[] buffer;
+        buffer = 0;
+        buffer = new char[nsize+1]; //+1 for /0
+        nsize = vsnprintf(buffer, size, fmt, vl);
+    }
+    std::string ret(buffer);
+    va_end(vl);
+    delete[] buffer;
+    return ret;
+}
 
 #endif //COMMONS_TYPES_H

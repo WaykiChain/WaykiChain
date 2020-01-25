@@ -18,6 +18,7 @@
 #include "sysparamdb.h"
 #include "txdb.h"
 #include "txreceiptdb.h"
+#include "txutxodb.h"
 #include "sysgoverndb.h"
 #include "logdb.h"
 
@@ -35,6 +36,7 @@ public:
     CClosedCdpDBCache   closedCdpCache;
     CDexDBCache         dexCache;
     CTxReceiptDBCache   txReceiptCache;
+    CTxUTXODBCache      txUtxoCache;
     CSysGovernDBCache   sysGovernCache;
 
     CTxMemCache         txCache;
@@ -99,6 +101,9 @@ public:
     CDBAccess           *pReceiptDb;
     CTxReceiptDBCache   *pReceiptCache;
 
+    CDBAccess           *pUtxoDb;
+    CTxUTXODBCache      *pUtxoCache;
+    
     CDBAccess           *pSysGovernDb;
     CSysGovernDBCache   *pSysGovernCache;
 
