@@ -15,7 +15,7 @@ using namespace std;
 
 class HTLCCondition {
 public:
-    uint256   secret_hash = "";             //when not empty, hash = double-sha256(PubKey, secret, valid_height)
+    uint256   secret_hash = uint256();      //when not empty, hash = double-sha256(PubKey, secret, valid_height)
                                             // usually the secret is transmitted to the target user thru a spearate channel, E.g. email
     uint64_t collect_timeout = 0;           //afer timeout height it can be reclaimed by the Tx originator
                                             //timeout_height = block_height + lock_duration + timeout
@@ -25,7 +25,7 @@ public:
 public:
     HTLCCondition(): is_null(true) {};
 
-    HTLCCondition(string &secretHash, uint64_t collectTimeout): 
+    HTLCCondition(uint256 &secretHash, uint64_t collectTimeout): 
         secret_hash(secretHash), collect_timeout(collectTimeout), is_null(false) {};
 
 public: 

@@ -19,12 +19,13 @@ static CUserID nullId;
 //       -----------------              ----------  ----------------------------
 #define RECEIPT_CODE_LIST(DEFINE) \
     /**** reward */ \
-    DEFINE(BLOCK_REWORD_TO_MINER,               101, "block reward to miner") \
-    DEFINE(COIN_BLOCK_REWORD_TO_MINER,          102, "coin block reward to miner") \
+    DEFINE(BLOCK_REWARD_TO_MINER,               101, "block reward to miner") \
+    DEFINE(COIN_BLOCK_REWARD_TO_MINER,          102, "coin block reward to miner") \
     DEFINE(COIN_BLOCK_INFLATE,                  103, "inflate coins to user of tx") \
     /**** transfer */ \
     DEFINE(TRANSFER_FEE_TO_RESERVE,             201, "transferred fee to risk reserve") \
     DEFINE(TRANSFER_ACTUAL_COINS,               202, "actual transferred coins") \
+    DEFINE(TRANSFER_UTXO_COINS,                 203, "transferred utxo coins") \
     /**** delegate */ \
     DEFINE(DELEGATE_ADD_VOTE,                   301, "delegate add votes") \
     DEFINE(DELEGATE_SUB_VOTE,                   302, "delegate sub votes") \
