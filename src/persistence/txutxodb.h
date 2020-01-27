@@ -19,10 +19,12 @@ using namespace std;
 
 class CTxUTXODBCache {
 public:
-    CTxUTXODBCache() {}
-    CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess) {}
+    CTxUTXODBCache() {};
+    CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess) {};
 
 public:
+    bool DelUtoxTx(const TxID &txid);
+
     bool SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUTXOTx &utxo);
 
     bool GetUtxoTx(const TxID &txid, const uint64_t &blockHeight, CCoinUTXOTx &utxo);
@@ -43,7 +45,7 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // txid -> <block_height, CoinUtxoTx>
-    CCompositeKVCache< dbk::TX_UTXO,            TxID,                      <uint64_t, CCoinUTXOTx> >    txUtxoCache;
+    CCompositeKVCache< dbk::TX_UTXO,            TxID,                      std::tuple<uint64_t, CCoinUTXOTx> >    txUtxoCache;
 };
 
 #endif // PERSIST_TXUTXODB_H

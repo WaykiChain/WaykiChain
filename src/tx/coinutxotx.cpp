@@ -90,12 +90,17 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
         }
         
         if (!utxo.is_null) { //next UTXO exists
+            //2.2.1 check if coin symbol matches with prior utxo's
+            if (utxo.coin_symbol != priorUtxoTx.utxo.coin_symbol)
+                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_symobol mismatches with prior one!",
+                                REJECT_INVALID, "utxo-coin-symbol-mismatch"));
+                                
             //2.2.1 check if next UTXO amount not zero
             if (utxo.coin_amount == 0)
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_amount is zero!",
                                 REJECT_INVALID, "zero-utxo-coin-amount"));
 
-            //2.2.2 check if e prior UTXO has sufficient fund for subsequent UTXO
+            //2.2.3 check if e prior UTXO has sufficient fund for subsequent UTXO
             if (utxo.coin_amount > priorUtxoTx.utxo.coin_amount)
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo fund insufficient!",
                                 REJECT_INVALID, "prior-utxo-fund-insufficient"));
@@ -126,17 +131,59 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin_amount");
     }
 
-    if (prior_utxo_txid == uint256()) { //first-time utxo
-        //deduct amount accordingly
-        if (!srcAccount.OperateBalance(utxo.coin_symbol, SUB_FREE, utxo.coin_amount)) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
-                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
+    vector<CReceipt> receipts;
+    if (prior_utxo_txid == uint256()) { //first-time utxo originator
+        //1. deduct amount accordingly
+        if (!utxo.is_null) {
+            if (!srcAccount.OperateBalance(utxo.coin_symbol, SUB_FREE, utxo.coin_amount)) {
+                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
+                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
+            }
+        
+            receipts.emplace_back(txUid, utxo.to_uid, utxo.coin_symbol, utxo.coin_amount, ReceiptCode::TRANSFER_UTXO_COINS);
+        }
+        //2. add this utxo into state d/b
+        context.pCw->txUtxoCache.SetUtxoTx(GetHash(), context.height, (CCoinUTXOTx) *this);
+
+    } else { // to spend prior utxo
+        //load prior utxo
+        CCoinUTXOTx priorUtxoTx;
+        uint64_t priorTxBlockHeight;
+        if (!context.pCw->txUtxoCache.GetUtxoTx(prior_utxo_txid, priorTxBlockHeight, priorUtxoTx)) {
+            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, load prior utxo error!",
+                                REJECT_INVALID, "load-prior-utxo-err"));
+        }
+
+        //no current utxo
+        if (utxo.is_null) {
+            //2.1 withdraw all
+             if (!srcAccount.OperateBalance(priorUtxoTx.utxo.coin_symbol, ADD_FREE, priorUtxoTx.utxo.coin_amount)) {
+                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to withdraw coin_amount into txUid %s account",
+                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "withdraw-prior-utxo-err");
+            }
+            //2.2 delete prior utox tx
+            context.pCw->txUtxoCache.DelUtoxTx(prior_utxo_txid);
+
+            receipts.emplace_back(utxo.to_uid, txUid, priorUtxoTx.utxo.coin_symbol, priorUtxoTx.utxo.coin_amount, ReceiptCode::TRANSFER_UTXO_COINS);
+
+        } else {// next utxo existing
+            //2.2.1 double check if prior utxo has sufficient fund for next utxo
+            if (priorUtxoTx.utxo.coin_amount < utxo.coin_amount) {
+                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, prior utxo coin amount insufficient for new utxo",
+                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "prior-utxo-coin-insufficient");
+            }
+            //2.2.2 withdraw renaming coins to own account
+            uint64_t residuleCoinAmt =  priorUtxoTx.utxo.coin_amount - utxo.coin_amount;
+            if (residuleCoinAmt > 0 && !srcAccount.OperateBalance(priorUtxoTx.utxo.coin_symbol, ADD_FREE, residuleCoinAmt)) {
+                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to withdraw coin_amount into txUid %s account",
+                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "withdraw-prior-utxo-err");
+            }
+            //2.2.3 delete prior utxo from state d/b
+            context.pCw->txUtxoCache.DelUtoxTx(prior_utxo_txid);
+            //2.2.4 add current utxo tx into state d/b
+            context.pCw->txUtxoCache.SetUtxoTx(GetHash(), context.height, (CCoinUTXOTx) *this);
         }
     }
-
-    vector<CReceipt> receipts;
-    if (!utxo.is_null)
-        receipts.emplace_back(txUid, utxo.to_uid, utxo.coin_symbol, utxo.coin_amount, ReceiptCode::TRANSFER_UTXO_COINS);
 
     if (!cw.accountCache.SaveAccount(srcAccount))
         return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, write source addr %s account info error",
