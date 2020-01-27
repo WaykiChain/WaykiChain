@@ -167,15 +167,12 @@ coin_CORE_H = \
   rpc/core/rpcserver.h \
   rpc/rpcblockchain.h \
   rpc/rpcdump.h \
-  rpc/rpcdex.h \
+  rpc/rpcapi.h \
   rpc/rpcmining.h \
   rpc/rpcmisc.h \
   rpc/rpcnet.h \
-  rpc/rpcscoin.h \
-  rpc/rpctx.h \
   rpc/rpcvm.h \
   rpc/rpcwallet.h \
-  rpc/rpcproposal.h \
   commons/support/cleanse.h \
   sigcache.h \
   tx/assettx.h \
