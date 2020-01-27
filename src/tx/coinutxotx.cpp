@@ -73,11 +73,10 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                                 REJECT_INVALID, "prior-utxo-locked-err")); 
         }
         //2.1.3 secret must be supplied when its hash exists in prior utxo
+        //TODO && FIXME below!!!
         if (priorUtxoTx.utxo.htlc_cond.secret_hash != uint256()) {
-            //verify the height for collection
             string text = format("%s%s%d", priorUtxoTx.txUid.ToString(), prior_utxo_secret, priorUtxoTx.valid_height);
-            // string hash = SHA256(SHA256(text.c_str(), sizeof(text), NULL)); FIXME!!!
-            uint256 hash;
+            uint256 hash; //= SHA256(SHA256(text.c_str(), sizeof(text), NULL));
             if (hash != priorUtxoTx.utxo.htlc_cond.secret_hash) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, supplied wrong secret to prior utxo",
                             REJECT_INVALID, "wrong-secret-to-prior-utxo"));
@@ -219,19 +218,26 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
 }
 
 string CCoinUTXOTx::ToString(CAccountDBCache &accountCache) {
-    string coinUtxoStr = "";
-
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
-        "valid_height=%d, transfers=[%s], memo=%s",
+        "valid_height=%d, priorUtxoTxId=%s, priorUtxoSecret=%s, utxo=[%s], memo=%s",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
-        valid_height, coinUtxoStr, HexStr(memo));
+        valid_height, prior_utxo_txid, prior_utxo_secret, utxo.ToString(), HexStr(memo));
 }
 
 Object CCoinUTXOTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("memo",        memo));
+    result.push_back(Pair("prior_utxo_txid", prior_utxo_txid.ToString()));
+    result.push_back(Pair("prior_utxo_secret", prior_utxo_secret));
+
+    if (!utxo.is_null) {
+        Array utxoArray;
+        utxoArray.push_back(utxo.ToJson());
+        result.push_back("utxo", utxoArray);
+    }
+
+    result.push_back(Pair("memo", memo));
 
     return result;
 }

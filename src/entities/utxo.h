@@ -23,10 +23,19 @@ public:
     bool is_null;                           // mem only: no persistence!
 
 public:
-    HTLCCondition(): is_null(true) {};
-
+    HTLCCondition(): is_null(true) {}
     HTLCCondition(uint256 &secretHash, uint64_t collectTimeout): 
-        secret_hash(secretHash), collect_timeout(collectTimeout), is_null(false) {};
+        secret_hash(secretHash), collect_timeout(collectTimeout), is_null(false) {}
+
+    string ToString() { 
+        return strprintf("secretHash=%s, collectTimeout=%d", secret_hash.ToString(), collect_timeout);
+    }
+
+    Object ToJson() {
+        Object result;
+        result.push_back(Pair("secret_hash", secret_hash.ToString()));
+        result.push_back(Pair("collect_timeout", collect_timeout));
+    }
 
 public: 
     IMPLEMENT_SERIALIZE(
@@ -46,11 +55,30 @@ public:
     bool is_null;                           // mem only: no persistence!
 
 public:
-    UTXOEntity(): is_null(true) {};
+    UTXOEntity(): is_null(true) {}
     UTXOEntity(TokenSymbol &coinSymbol, uint64_t coinAmount, CUserID &toUid, 
         uint64_t lockDuration, HTLCCondition &htlcIn): 
         coin_symbol(coinSymbol), coin_amount(coinAmount), to_uid(toUid),
-        lock_duration(lockDuration), htlc_cond(htlcIn), is_null(false) {};
+        lock_duration(lockDuration), htlc_cond(htlcIn), is_null(false) {}
+
+    string ToString() { 
+        return strprintf("coinSymbol=%s, coinAmount=%d, toUid=%s, lockDuration=%d, htcl_cond=%s", 
+                        coin_symbol, coin_amount, to_uid, lock_duration, htlc_cond.ToString());
+    }
+
+    Object ToJson() {
+        Object result;
+        result.push_back(Pair("coin_symbol", coin_symbol));
+        result.push_back(Pair("coin_amount", coin_amount));
+        result.push_back(Pair("to_uid", to_uid.ToString()));
+        result.push_back(Pair("lock_duration", lock_duration));
+
+        if (!htlc_cond.is_null) {
+            Array htlcArray;
+            htlcArray.push_back(htlc_cond.ToJson());
+            result.push_back(Pair("htlc", htlcArray));
+        }
+    }
 
 public: 
     IMPLEMENT_SERIALIZE(
