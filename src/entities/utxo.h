@@ -27,11 +27,11 @@ public:
     HTLCCondition(uint256 &secretHash, uint64_t collectTimeout): 
         secret_hash(secretHash), collect_timeout(collectTimeout), is_null(false) {}
 
-    string ToString() { 
+    string ToString() const { 
         return strprintf("secretHash=%s, collectTimeout=%d", secret_hash.ToString(), collect_timeout);
     }
 
-    Object ToJson() {
+    Object ToJson() const {
         Object result;
         result.push_back(Pair("secret_hash", secret_hash.ToString()));
         result.push_back(Pair("collect_timeout", collect_timeout));
@@ -66,7 +66,7 @@ public:
                         coin_symbol, coin_amount, to_uid, lock_duration, htlc_cond.ToString());
     }
 
-    Object ToJson() {
+    Object ToJson() const {
         Object result;
         result.push_back(Pair("coin_symbol", coin_symbol));
         result.push_back(Pair("coin_amount", coin_amount));

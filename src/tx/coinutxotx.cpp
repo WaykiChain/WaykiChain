@@ -234,7 +234,7 @@ Object CCoinUTXOTx::ToJson(const CAccountDBCache &accountCache) const {
     if (!utxo.is_null) {
         Array utxoArray;
         utxoArray.push_back(utxo.ToJson());
-        result.push_back("utxo", utxoArray);
+        result.push_back(Pair("utxo", utxoArray));
     }
 
     result.push_back(Pair("memo", memo));
