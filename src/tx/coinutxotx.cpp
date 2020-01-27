@@ -31,8 +31,8 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
     if (prior_utxo_txid == uint256()) { //1. first-time utxo
         //1.1 ensure utxo is not null
         if (utxo.is_null)
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo is null!", REJECT_INVALID, 
-                        "utxo-is-null"));
+            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo is null!", REJECT_INVALID, "utxo-is-null"));
+
         //1.2 ensure utxo amount greater than 0
         if (utxo.coin_amount == 0)
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_amount is zero!",
@@ -44,6 +44,9 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                                 REJECT_INVALID, "insufficient-account-coin-amount"));
         }
 
+        if (llFees < minFee) {
+            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, tx fee too small!", REJECT_INVALID, "bad-tx-fee-toosmall"));
+        }
     } else { //2. pointing to an existing prior utxo for consumption
         //load prior utxo
         CCoinUTXOTx priorUtxoTx;
@@ -51,6 +54,12 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
         if (!context.pCw->txUtxoCache.GetUtxoTx(prior_utxo_txid, priorTxBlockHeight, priorUtxoTx)) {
             return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, load prior utxo error!",
                                 REJECT_INVALID, "load-prior-utxo-err"));
+        }
+
+        //check if prior utox coin amount can be used to cover miner fee gap
+        if (llFees < minFee && fee_symbol == priorUtxoTx.utxo.coin_symbol 
+            && priorUtxoTx.utxo.coin_amount < minFee - llFees) {
+            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, tx fee too small!", REJECT_INVALID, "bad-tx-fee-toosmall"));
         }
 
         //2.1.1 check if prior utxo is null
@@ -75,7 +84,7 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
             }
         }
         //2.1.4 prior utxo belongs to self, hence reclaiming the unspent prior utxo
-        if (txUid == priorUtxoTx.utxo.to_uid) {
+        if (txUid == priorUtxoTx.txUid) {
             //make sure utxo spending timeout window has passed first
             uint64_t timeout_height = priorTxBlockHeight 
                                     + priorUtxoTx.utxo.lock_duration 
@@ -85,11 +94,12 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo not yet timedout!",
                                 REJECT_INVALID, "prior-utxo-not-timeout")); 
             }
-        }
-        //2.1.5 ensure current txuid is the to_uid in prior utxo
-        if (priorUtxoTx.utxo.to_uid != txUid) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior-utxo-toUid != txUid!",
-                            REJECT_INVALID, "priro-utxo-wrong-txUid"));
+        } else {
+            //2.1.5 ensure current txUid is to_uid in prior utxo
+            if (priorUtxoTx.utxo.to_uid != txUid) {
+                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior-utxo-toUid != txUid!",
+                                REJECT_INVALID, "priro-utxo-wrong-txUid"));
+            }
         }
         
         if (!utxo.is_null) { //next UTXO exists
@@ -98,7 +108,7 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_symobol mismatches with prior one!",
                                 REJECT_INVALID, "utxo-coin-symbol-mismatch"));
 
-            //2.2.1 check if next UTXO amount not zero
+            //2.2.2 check if next UTXO amount not zero
             if (utxo.coin_amount == 0)
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_amount is zero!",
                                 REJECT_INVALID, "zero-utxo-coin-amount"));
@@ -127,11 +137,6 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!GenerateRegID(context, srcAccount)) {
         return false;
-    }
-
-    if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, insufficient coin_amount in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-coin_amount");
     }
 
     vector<CReceipt> receipts;
@@ -166,8 +171,8 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
             }
             //2.2 delete prior utox tx
             context.pCw->txUtxoCache.DelUtoxTx(prior_utxo_txid);
-
-            receipts.emplace_back(utxo.to_uid, txUid, priorUtxoTx.utxo.coin_symbol, priorUtxoTx.utxo.coin_amount, ReceiptCode::TRANSFER_UTXO_COINS);
+            receipts.emplace_back(utxo.to_uid, txUid, priorUtxoTx.utxo.coin_symbol, priorUtxoTx.utxo.coin_amount, 
+                ReceiptCode::TRANSFER_UTXO_COINS);
 
         } else {// next utxo existing
             //2.2.1 double check if prior utxo has sufficient fund for next utxo
@@ -176,8 +181,8 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
                                 txUid.ToString()), UPDATE_ACCOUNT_FAIL, "prior-utxo-coin-insufficient");
             }
             //2.2.2 withdraw renaming coins to own account
-            uint64_t residuleCoinAmt =  priorUtxoTx.utxo.coin_amount - utxo.coin_amount;
-            if (residuleCoinAmt > 0 && !srcAccount.OperateBalance(priorUtxoTx.utxo.coin_symbol, ADD_FREE, residuleCoinAmt)) {
+            uint64_t residualCoinAmt =  priorUtxoTx.utxo.coin_amount - utxo.coin_amount;
+            if (residualCoinAmt > 0 && !srcAccount.OperateBalance(priorUtxoTx.utxo.coin_symbol, ADD_FREE, residualCoinAmt)) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to withdraw coin_amount into txUid %s account",
                                 txUid.ToString()), UPDATE_ACCOUNT_FAIL, "withdraw-prior-utxo-err");
             }
@@ -185,9 +190,23 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
             context.pCw->txUtxoCache.DelUtoxTx(prior_utxo_txid);
             //2.2.4 add current utxo tx into state d/b
             context.pCw->txUtxoCache.SetUtxoTx(GetHash(), context.height, (CCoinUTXOTx) *this);
+
+            receipts.emplace_back(priorUtxoTx.txUid, utxo.to_uid, utxo.coin_symbol, utxo.coin_amount, 
+                ReceiptCode::TRANSFER_UTXO_COINS);
         }
     }
-
+    
+    uint64_t minFee, unpaidMinerFee;
+    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
+    unpaidMinerFee = (llFees < minFee) ? minFee - llFees : 0;
+    if (llFees > 0 && !srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, insufficient coin_amount in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-miner-fee");
+    }
+    if (unpaidMinerFee > 0 && !srcAccount.OperateBalance(fee_symbol, SUB_FREE, unpaidMinerFee))
+        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, insufficient coin_amount in txUid %s account",
+                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-miner-fee");
+    
     if (!cw.accountCache.SaveAccount(srcAccount))
         return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
