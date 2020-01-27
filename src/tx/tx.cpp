@@ -40,9 +40,7 @@ string GetTxType(const TxType txType) {
 }
 
 bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, uint64_t &feeOut) {
-
-
-    if(pCdMan->pSysParamCache->GetMinerFee(nTxType, symbol, feeOut))
+    if (pCdMan->pSysParamCache->GetMinerFee(nTxType, symbol, feeOut))
         return true ;
 
     const auto &iter = kTxFeeTable.find(nTxType);
@@ -67,7 +65,6 @@ bool GetTxMinFee(const TxType nTxType, int height, const TokenSymbol &symbol, ui
         }
     }
     return false;
-
 }
 
 bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {

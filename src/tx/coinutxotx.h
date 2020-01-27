@@ -29,11 +29,11 @@ public:
 
 public:
     CCoinUTXOTx()
-        : CBaseTx(COIN_UTXO_HTLC_TX) {};
+        : CBaseTx(UTXO_TRANSFER_TX) {};
 
     CCoinUTXOTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn, 
                 const UTXOEntity &utxoIn, string &memoIn)
-        : CBaseTx(COIN_UTXO_HTLC_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
+        : CBaseTx(UTXO_TRANSFER_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
           utxo(utxoIn), memo(memoIn) {};
 
     ~CCoinUTXOTx() {};

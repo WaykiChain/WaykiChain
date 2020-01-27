@@ -25,6 +25,9 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, read account failed"), REJECT_INVALID,
                         "bad-getaccount");
 
+    uint64_t minFee;
+    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
+
     if (prior_utxo_txid == uint256()) { //1. first-time utxo
         //1.1 ensure utxo is not null
         if (utxo.is_null)
@@ -94,7 +97,7 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
             if (utxo.coin_symbol != priorUtxoTx.utxo.coin_symbol)
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_symobol mismatches with prior one!",
                                 REJECT_INVALID, "utxo-coin-symbol-mismatch"));
-                                
+
             //2.2.1 check if next UTXO amount not zero
             if (utxo.coin_amount == 0)
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_amount is zero!",
