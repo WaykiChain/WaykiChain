@@ -23,11 +23,9 @@ public:
     CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess) {};
 
 public:
-    bool DelUtoxTx(const TxID &txid);
-
     bool SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUTXOTx &utxo);
-
-    bool GetUtxoTx(const TxID &txid, const uint64_t &blockHeight, CCoinUTXOTx &utxo);
+    bool GetUtxoTx(const TxID &txid, uint64_t &blockHeight, CCoinUTXOTx &utxo);
+    bool DelUtoxTx(const TxID &txid);
 
     void Flush();
 
