@@ -98,6 +98,11 @@ inline uint256 Hash(const T1 p1begin, const T1 p1end, const T2 p2begin, const T2
     return hash2;
 }
 
+template <typename C>
+inline uint256 Hash(const basic_string<C>& str) {
+    return Hash(str.begin(), str.end()) ;
+}
+
 template <typename T>
 uint256 SerializeHash(const T &obj, int32_t nType = SER_GETHASH, int32_t nVersion = PROTOCOL_VERSION) {
     CHashWriter ss(nType, nVersion);
