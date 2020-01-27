@@ -92,6 +92,7 @@ coin_CORE_H = \
   entities/price.h \
   entities/receipt.h \
   entities/proposal.h \
+  entities/utxo.h \
   entities/vote.h \
   alert.h \
   allocators.h \
@@ -145,18 +146,19 @@ coin_CORE_H = \
   persistence/cachewrapper.h \
   persistence/cdpdb.h \
   persistence/contractdb.h \
-  persistence/delegatedb.h \
-  persistence/txreceiptdb.h \
-  persistence/disk.h \
-  persistence/pricefeeddb.h \
-  persistence/sysparamdb.h \
-  persistence/txdb.h \
   persistence/dbaccess.h \
   persistence/dbconf.h \
   persistence/dbiterator.h \
   persistence/dexdb.h \
+  persistence/delegatedb.h \
+  persistence/txreceiptdb.h \
+  persistence/disk.h \
+  persistence/pricefeeddb.h \
+  persistence/txdb.h \
   persistence/logdb.h \
   persistence/sysgoverndb.h \
+  persistence/sysparamdb.h \
+  persistence/txutxodb.h \
   random.h   \
   rpc/core/httpserver.h \
   rpc/core/rpcclient.h \
@@ -185,6 +187,7 @@ coin_CORE_H = \
   tx/coinrewardtx.h \
   tx/contracttx.h \
   tx/cointransfertx.h \
+  tx/coinutxotx.h \
   tx/delegatetx.h \
   tx/dextx.h \
   tx/dexoperatortx.h \
@@ -377,6 +380,7 @@ libcoin_server_a_SOURCES = \
   tx/coinrewardtx.cpp \
   tx/contracttx.cpp \
   tx/cointransfertx.cpp \
+  tx/coinutxotx.cpp \
   tx/delegatetx.cpp \
   tx/dextx.cpp \
   tx/dexoperatortx.cpp \
@@ -425,22 +429,23 @@ libcoin_common_a_SOURCES = \
   fs.cpp \
   netbase.cpp \
   p2p/protocol.cpp \
+  persistence/accountdb.cpp \
+  persistence/assetdb.cpp \
   persistence/block.cpp \
   persistence/blockdb.cpp \
   persistence/blockundo.cpp \
-  persistence/cdpdb.cpp \
-  persistence/disk.cpp \
-  persistence/accountdb.cpp \
-  persistence/assetdb.cpp \
   persistence/cachewrapper.cpp \
+  persistence/cdpdb.cpp \
   persistence/contractdb.cpp \
   persistence/delegatedb.cpp \
+  persistence/dexdb.cpp \
+  persistence/disk.cpp \
   persistence/txreceiptdb.cpp \
   persistence/pricefeeddb.cpp \
   persistence/txdb.cpp \
   persistence/leveldbwrapper.cpp \
-  persistence/dexdb.cpp \
   persistence/logdb.cpp \
+  persistence/txutxodb.cpp \
   commons/support/cleanse.cpp \
   commons/support/events.cpp \
   commons/json/json_spirit_reader.cpp \
