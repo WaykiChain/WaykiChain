@@ -101,6 +101,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submittxraw",                    &submittxraw,                       true,       false,      false   },
     /* basic tx */                      
     { "submitsendtx",                   &submitsendtx,                      false,      false,      true    },
+    { "submitutxotx",                   &submitutxotx,                      false,      false,      true    },
     { "submitaccountregistertx",        &submitaccountregistertx,           false,      false,      true    },
     { "submitnickidregistertx",         &submitnickidregistertx,            false,      false,      true    },
 
