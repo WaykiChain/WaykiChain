@@ -16,7 +16,6 @@
 #include "wallet/wallet.h"
 #include "commons/json/json_spirit_writer_template.h"
 #include "httpserver.h"
-#include "rpc/rpcvm.h"
 
 using namespace std;
 using namespace json_spirit;

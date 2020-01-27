@@ -168,6 +168,7 @@ coin_CORE_H = \
   rpc/rpcblockchain.h \
   rpc/rpcdump.h \
   rpc/rpcapi.h \
+  rpc/rpcapiconf.h \
   rpc/rpcmining.h \
   rpc/rpcmisc.h \
   rpc/rpcnet.h \
