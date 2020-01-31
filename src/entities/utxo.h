@@ -35,6 +35,7 @@ public:
         Object result;
         result.push_back(Pair("secret_hash", secret_hash.ToString()));
         result.push_back(Pair("collect_timeout", collect_timeout));
+        return result;
     }
 
 public: 
@@ -63,7 +64,7 @@ public:
 
     string ToString() { 
         return strprintf("coinSymbol=%s, coinAmount=%d, toUid=%s, lockDuration=%d, htcl_cond=%s", 
-                        coin_symbol, coin_amount, to_uid, lock_duration, htlc_cond.ToString());
+                        coin_symbol, coin_amount, to_uid.ToDebugString(), lock_duration, htlc_cond.ToString());
     }
 
     Object ToJson() const {
@@ -78,6 +79,7 @@ public:
             htlcArray.push_back(htlc_cond.ToJson());
             result.push_back(Pair("htlc", htlcArray));
         }
+        return result;
     }
 
 public: 
