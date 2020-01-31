@@ -8,15 +8,6 @@
 
 #include "rpcapi.h"
 
-class CRPCCommand {
-public:
-    string name;
-    rpcfn_type actor;
-    bool okSafeMode;
-    bool threadSafe;
-    bool reqWallet;
-};
-
 //
 // Call Table
 //

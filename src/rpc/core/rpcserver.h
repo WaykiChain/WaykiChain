@@ -8,7 +8,6 @@
 
 #include "rpcprotocol.h"
 #include "commons/uint256.h"
-#include "rpc/rpcapiconf.h"
 
 #include <stdint.h>
 #include <list>
@@ -57,6 +56,15 @@ void RPCTypeCheck(const json_spirit::Object& o,
 void RPCRunLater(const std::string& name, std::function<void()> func, int64_t nSeconds);
 
 typedef json_spirit::Value (*rpcfn_type)(const json_spirit::Array& params, bool fHelp);
+
+class CRPCCommand {
+public:
+    string name;
+    rpcfn_type actor;
+    bool okSafeMode;
+    bool threadSafe;
+    bool reqWallet;
+};
 
 /**
  * Coin RPC command dispatcher.

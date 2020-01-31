@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "rpcserver.h"
+#include "rpc/rpcapiconf.h"
 
 #include "logging.h"
 #include "commons/base58.h"
