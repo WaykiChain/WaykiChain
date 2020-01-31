@@ -477,6 +477,13 @@ template<typename K, typename T> unsigned int GetSerializeSize(const pair<K, T>&
 template<typename Stream, typename K, typename T> void Serialize(Stream& os, const pair<K, T>& item, int nType, int nVersion);
 template<typename Stream, typename K, typename T> void Unserialize(Stream& is, pair<K, T>& item, int nType, int nVersion);
 
+
+// 2 tuple
+template<typename T0, typename T1> unsigned int GetSerializeSize(const std::tuple<T0, T1>& item, int nType, int nVersion);
+template<typename Stream, typename T0, typename T1> void Serialize(Stream& os, const std::tuple<T0, T1>& item, int nType, int nVersion);
+template<typename Stream, typename T0, typename T1> void Unserialize(Stream& is, std::tuple<T0, T1>& item, int nType, int nVersion);
+
+
 // 3 tuple
 template<typename T0, typename T1, typename T2> unsigned int GetSerializeSize(const std::tuple<T0, T1, T2>& item, int nType, int nVersion);
 template<typename Stream, typename T0, typename T1, typename T2> void Serialize(Stream& os, const std::tuple<T0, T1, T2>& item, int nType, int nVersion);
@@ -713,6 +720,31 @@ void Unserialize(Stream& is, pair<K, T>& item, int nType, int nVersion)
 }
 
 
+//
+// 2 tuple
+//
+template<typename T0, typename T1>
+unsigned int GetSerializeSize(const std::tuple<T0, T1>& item, int nType, int nVersion)
+{
+    unsigned int nSize = 0;
+    nSize += GetSerializeSize(std::get<0>(item), nType, nVersion);
+    nSize += GetSerializeSize(std::get<1>(item), nType, nVersion);
+    return nSize;
+}
+
+template<typename Stream, typename T0, typename T1>
+void Serialize(Stream& os, const std::tuple<T0, T1>& item, int nType, int nVersion)
+{
+    Serialize(os, std::get<0>(item), nType, nVersion);
+    Serialize(os, std::get<1>(item), nType, nVersion);
+}
+
+template<typename Stream, typename T0, typename T1>
+void Unserialize(Stream& is, std::tuple<T0, T1>& item, int nType, int nVersion)
+{
+    Unserialize(is, std::get<0>(item), nType, nVersion);
+    Unserialize(is, std::get<1>(item), nType, nVersion);
+}
 
 //
 // 3 tuple
