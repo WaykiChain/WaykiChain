@@ -68,14 +68,14 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                                 REJECT_INVALID, "prior-utxo-null-err")); 
         }
         //2.1.2 check if prior utxo's lock period has existed or not
-        if (context.height < priorTxBlockHeight + priorUtxoTx.utxo.lock_duration) {
+        if ((uint64_t)context.height < priorTxBlockHeight + priorUtxoTx.utxo.lock_duration) {
             return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo being locked!",
                                 REJECT_INVALID, "prior-utxo-locked-err")); 
         }
         //2.1.3 secret must be supplied when its hash exists in prior utxo
         //TODO && FIXME below!!!
         if (priorUtxoTx.utxo.htlc_cond.secret_hash != uint256()) {
-            string text = format("%s%s%d", priorUtxoTx.txUid.ToString(), prior_utxo_secret, priorUtxoTx.valid_height);
+            string text = strprintf("%s%s%d", priorUtxoTx.txUid.ToString(), prior_utxo_secret, priorUtxoTx.valid_height);
             uint256 hash; //= SHA256(SHA256(text.c_str(), sizeof(text), NULL));
             if (hash != priorUtxoTx.utxo.htlc_cond.secret_hash) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, supplied wrong secret to prior utxo",
@@ -89,7 +89,7 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                                     + priorUtxoTx.utxo.lock_duration 
                                     + priorUtxoTx.utxo.htlc_cond.collect_timeout;
 
-            if (context.height < timeout_height) {
+            if ((uint64_t)context.height < timeout_height) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo not yet timedout!",
                                 REJECT_INVALID, "prior-utxo-not-timeout")); 
             }
@@ -222,7 +222,7 @@ string CCoinUTXOTx::ToString(CAccountDBCache &accountCache) {
         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
         "valid_height=%d, priorUtxoTxId=%s, priorUtxoSecret=%s, utxo=[%s], memo=%s",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
-        valid_height, prior_utxo_txid, prior_utxo_secret, utxo.ToString(), HexStr(memo));
+        valid_height, prior_utxo_txid.ToString(), prior_utxo_secret, utxo.ToString(), HexStr(memo));
 }
 
 Object CCoinUTXOTx::ToJson(const CAccountDBCache &accountCache) const {
