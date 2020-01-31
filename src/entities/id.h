@@ -228,7 +228,7 @@ public:
         return id1.uid == id2.uid;
     }
     friend bool operator!=(const CUserID &id1, const CUserID &id2) {
-        return id1.uid != id2.uid;
+        return !(id1.uid == id2.uid);
     }
 
     json_spirit::Object ToJson() const {
