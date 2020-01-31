@@ -5,8 +5,8 @@
 
 #include "commons/base58.h"
 #include "config/const.h"
-#include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
+#include "rpc/rpcapi.h"
 #include "init.h"
 #include "net.h"
 #include "commons/util/util.h"

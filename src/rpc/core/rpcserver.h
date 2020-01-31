@@ -8,6 +8,7 @@
 
 #include "rpcprotocol.h"
 #include "commons/uint256.h"
+#include "rpc/rpcapi.h"
 
 #include <stdint.h>
 #include <list>
