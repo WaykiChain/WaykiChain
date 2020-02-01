@@ -73,10 +73,9 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
                                 REJECT_INVALID, "prior-utxo-locked-err")); 
         }
         //2.1.3 secret must be supplied when its hash exists in prior utxo
-        //TODO && FIXME below!!!
         if (priorUtxoTx.utxo.htlc_cond.secret_hash != uint256()) {
-            string text = strprintf("%s%s%d", priorUtxoTx.txUid.ToString(), prior_utxo_secret, priorUtxoTx.valid_height);
-            uint256 hash; //= SHA256(SHA256(text.c_str(), sizeof(text), NULL));
+            string text = strprintf("%s%d%s", priorUtxoTx.txUid.ToString(), priorUtxoTx.valid_height, prior_utxo_secret);
+            uint256 hash = Hash(text);
             if (hash != priorUtxoTx.utxo.htlc_cond.secret_hash) {
                 return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, supplied wrong secret to prior utxo",
                             REJECT_INVALID, "wrong-secret-to-prior-utxo"));
