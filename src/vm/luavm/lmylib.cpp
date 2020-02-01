@@ -2476,7 +2476,7 @@ int32_t ExGetAssetPriceFunc(lua_State *L) {
         return 0;
     }
 
-    auto pricePair = make_shared<CoinPricePair>(baseSymbol, quoteSymbol);
+    CoinPricePair pricePair(baseSymbol, quoteSymbol);
     auto pErr = CheckPricePair(pricePair);
     if (pErr) {
         LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid price pair! %s \n", __func__, *pErr);
