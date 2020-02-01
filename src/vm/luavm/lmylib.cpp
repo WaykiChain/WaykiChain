@@ -2441,6 +2441,63 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
     return 1;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// new function added in MAJOR_VER_R3
+
+/**
+ * GetAssetPrice - lua api
+ * int GetAssetPrice( paramTable )
+ * get asset price of baseSymbol/quoteSymbol pair
+ * @param paramTable: table     get asset price param table
+ * {
+ *   baseSymbol: (string, required)       base symbol of price, such as WICC
+ *   quoteSymbol: (array, required)        quote symbol of price, such as USD
+ * }
+ * @return price (int)
+ */
+int32_t ExGetAssetPriceFunc(lua_State *L) {
+
+    CLuaVMRunEnv* pVmRunEnv = GetVmRunEnvByContext(L);
+
+    if (!lua_istable(L, -1)) {
+        LogPrint(BCLog::LUAVM,"[ERROR]%s(), input param must be a table\n", __func__);
+        return 0;
+    }
+
+    TokenSymbol baseSymbol;
+    if (!(getStringInTable(L, "baseSymbol", baseSymbol))) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get baseSymbol failed\n", __func__);
+        return 0;
+    }
+
+    TokenSymbol quoteSymbol;
+    if (!(getStringInTable(L, "quoteSymbol", quoteSymbol))) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), get quoteSymbol failed\n", __func__);
+        return 0;
+    }
+
+    auto pricePair = make_shared<CoinPricePair>(baseSymbol, quoteSymbol);
+    auto pErr = CheckPricePair(pricePair);
+    if (pErr) {
+        LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid price pair! %s \n", __func__, *pErr);
+        return 0;
+    }
+    LUA_BurnAccount(L, FUEL_CALL_GetAssetPrice, BURN_VER_R2);
+
+    auto pAccount = make_shared<CAccount>();
+    uint64_t price = pVmRunEnv->GetCw()->blockCache.GetMedianPrice(pricePair);
+
+    // check stack to avoid stack overflow
+    if (!lua_checkstack(L, sizeof(lua_Integer))) {
+        LogPrint(BCLog::LUAVM, "[ERROR] lua stack overflow\n");
+        return 0;
+    }
+
+    lua_pushinteger(L, price);
+
+    return 1;    
+}
+
 static const luaL_Reg mylib[] = {
     {"Int64Mul",                    ExInt64MulFunc},
     {"Int64Add",                    ExInt64AddFunc},
@@ -2494,6 +2551,11 @@ static const luaL_Reg mylib[] = {
     {"TransferAccountAssets",       ExTransferAccountAssetsFunc},
     {"GetCurTxInputAsset",          ExGetCurTxInputAssetFunc},
     {"GetAccountAsset",             ExGetAccountAssetFunc},
+
+
+///////////////////////////////////////////////////////////////////////////////
+// new function added in MAJOR_VER_R3
+    {"GetAssetPrice",               ExGetAssetPriceFunc},
 
     {nullptr, nullptr}
 
