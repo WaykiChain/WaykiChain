@@ -185,7 +185,7 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
     pReceiptCache   = new CTxReceiptDBCache(pReceiptDb);
 
     pUtxoDb         = new CDBAccess(dbDir, DBNameType::UTXO, false, fReIndex);
-    pUtxoCache      = new CTxReceiptDBCache(pUtxoDb);
+    pUtxoCache      = new CTxUTXODBCache(pUtxoDb);
 
     pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
     pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);
