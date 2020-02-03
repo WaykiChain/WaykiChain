@@ -38,6 +38,14 @@ public:
         return result;
     }
 
+    bool IsEmpty() const {
+        return secret_hash.IsEmpty() && collect_timeout == 0;
+    }
+
+    void SetEmpty() {
+        secret_hash.SetEmpty();
+        collect_timeout = 0;
+    }
 public: 
     IMPLEMENT_SERIALIZE(
         READWRITE(secret_hash);
@@ -61,6 +69,19 @@ public:
         uint64_t lockDuration, HTLCCondition &htlcIn): 
         coin_symbol(coinSymbol), coin_amount(coinAmount), to_uid(toUid),
         lock_duration(lockDuration), htlc_cond(htlcIn), is_null(false) {}
+
+    bool IsEmpty() const {
+        return coin_symbol.empty() && coin_amount == 0 && to_uid.IsEmpty() && lock_duration == 0 
+            && htlc_cond.IsEmpty(); 
+    }
+
+    void SetEmpty() {
+        coin_symbol = "";
+        coin_amount = 0;
+        to_uid.SetEmpty();
+        lock_duration = 0; 
+        htlc_cond.SetEmpty(); 
+    }
 
     string ToString() { 
         return strprintf("coinSymbol=%s, coinAmount=%d, toUid=%s, lockDuration=%d, htcl_cond=%s", 

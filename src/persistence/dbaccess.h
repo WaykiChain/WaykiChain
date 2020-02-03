@@ -72,6 +72,11 @@ namespace db_util {
     template<typename K, typename T> bool IsEmpty(const std::pair<K, T>& val);
     template<typename K, typename T> void SetEmpty(std::pair<K, T>& val);
 
+
+    // 2 tuple
+    template<typename T0, typename T1> bool IsEmpty(const std::tuple<T0, T1>& val);
+    template<typename T0, typename T1> void SetEmpty(std::tuple<T0, T1>& val);
+
     // 3 tuple
     template<typename T0, typename T1, typename T2> bool IsEmpty(const std::tuple<T0, T1, T2>& val);
     template<typename T0, typename T1, typename T2> void SetEmpty(std::tuple<T0, T1, T2>& val);
@@ -128,6 +133,20 @@ namespace db_util {
     void SetEmpty(std::pair<K, T>& val) {
         SetEmpty(val.first);
         SetEmpty(val.second);
+    }
+
+
+    // 2 tuple
+    template<typename T0, typename T1>
+    bool IsEmpty(const std::tuple<T0, T1>& val) {
+        return IsEmpty(std::get<0>(val)) &&
+               IsEmpty(std::get<1>(val));
+    }
+    template<typename T0, typename T1>
+    void SetEmpty(std::tuple<T0, T1>& val) {
+        SetEmpty(std::get<0>(val));
+        SetEmpty(std::get<1>(val));
+        
     }
 
     // 3 tuple

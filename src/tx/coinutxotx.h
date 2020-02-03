@@ -63,6 +63,18 @@ public:
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
+
+
+    bool IsEmpty() const {
+        return prior_utxo_txid.IsEmpty() && prior_utxo_secret.empty() && utxo.IsEmpty() && memo.empty();
+    }
+
+    void SetEmpty() {
+        prior_utxo_txid.SetEmpty();
+        prior_utxo_secret = "";
+        utxo.SetEmpty();
+        memo = "";
+    }
 };
 
 #endif // TX_COIN_UTXO_H
