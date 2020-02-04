@@ -173,10 +173,11 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         vector<CUserCDP> userCdps;
-        if (cw.cdpCache.GetCDPList(account.regid, userCdps) && userCdps.size() > 0) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, has open cdp! txid=%s, regid=%s, old_cdpid=%s",
-                             GetHash().GetHex(), account.regid.ToString(), userCdps.at(0).cdpid.ToString()),
-                             REJECT_INVALID, "has-open-cdp");
+        if (cw.cdpCache.UserHaveCdp(account.regid, assetSymbol, scoin_symbol)) {
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the user cdp has created! txid=%s, regid=%s, "
+                            "asset_symbol=%s, scoin_symbol=%s",
+                             GetHash().GetHex(), account.regid.ToString(), assetSymbol, scoin_symbol),
+                             REJECT_INVALID, "user-cdp-created");
         }
 
         uint64_t collateralRatio = CalcCollateralRatio(assetAmount, scoins_to_mint, bcoinMedianPrice);
