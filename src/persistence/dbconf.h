@@ -104,7 +104,7 @@ namespace dbk {
         DEFINE( REGID_VOTE,           "ridv",   DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
-        DEFINE( REGID_CDP,            "rcdp",   CDP )           /* rcdp{$RegID} --> {set<cdpid>} */ \
+        DEFINE( USER_CDP,             "ucdp",   CDP )           /* ucdp{$RegID}{$AssetSymbol}{$ScoinSymbol} --> {set<cdpid>} */ \
         DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
         DEFINE( CDP_GLOBAL_STAKED_BCOINS,   "cgsb", CDP )       /* cgsb -> $amount */ \
         DEFINE( CDP_GLOBAL_OWED_SCOINS,     "cgos", CDP )       /* cgos -> $amount */ \

@@ -22,8 +22,6 @@ using namespace std;
 // cdpr{$Ratio}{$height}{$cdpid} -> CUserCDP
 typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<string, string, uint256>, CUserCDP>      RatioCDPIdCache;
 
-
-
 class CCdpDBCache {
 public:
     CCdpDBCache() {}
@@ -34,6 +32,7 @@ public:
     bool EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp);
     bool UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP);
 
+    bool UserHaveCdp(const CRegID &regId, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol);
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
 
@@ -56,7 +55,7 @@ public:
         globalStakedBcoinsCache.RegisterUndoFunc(undoDataFuncMap);
         globalOwedScoinsCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
-        regId2CDPCache.RegisterUndoFunc(undoDataFuncMap);
+        userCdpCache.RegisterUndoFunc(undoDataFuncMap);
         ratioCDPIdCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
@@ -77,12 +76,12 @@ private:
     CSimpleKVCache<         dbk::CDP_GLOBAL_STAKED_BCOINS,   uint64_t>      globalStakedBcoinsCache;
     CSimpleKVCache<         dbk::CDP_GLOBAL_OWED_SCOINS,     uint64_t>      globalOwedScoinsCache;
 
-    /*  CCompositeKVCache     prefixType     key                            value             variable  */
-    /*  ----------------   --------------   ------------                --------------    ----- --------*/
+    /*  CCompositeKVCache  prefixType     key                            value             variable  */
+    /*  ---------------- --------------   ------------                --------------    ----- --------*/
     // cdp{$cdpid} -> CUserCDP
-    CCompositeKVCache<      dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
-    // rcdp${CRegID} -> set<cdpid>
-    CCompositeKVCache<      dbk::REGID_CDP, CRegIDKey,                     set<uint256>>       regId2CDPCache;
+    CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
+    // ucdp${CRegID}{$AssetSymbol}{$ScoinSymbol} -> set<cdpid>
+    CCompositeKVCache<  dbk::USER_CDP, tuple<CRegIDKey, TokenSymbol, TokenSymbol>, optional<uint256>> userCdpCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     RatioCDPIdCache           ratioCDPIdCache;
 };
