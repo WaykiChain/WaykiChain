@@ -69,6 +69,8 @@ namespace dbk {
         /**** single-value sys_conf db (global parameters)                      */ \
         DEFINE( SYS_PARAM,            "sysp",   SYSPARAM )       /* conf{$ParamName} --> $ParamValue */ \
         DEFINE( MINER_FEE,            "minf",   SYSPARAM )         \
+        DEFINE( CDP_PARAM,            "cdpp",   SYSPARAM )         \
+        DEFINE( INTEREST_HISTORY,    "itht",   SYSPARAM )         \
         DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )       /* govn --> $list of governers */ \
         DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )       /* pgvn{txid} --> proposal */ \
         DEFINE( GOVN_SECOND,          "sgvn",   SYSGOVERN )       /* sgvn{txid}{regid} --> 1 */ \
@@ -89,11 +91,9 @@ namespace dbk {
         DEFINE( REGID_KEYID,          "rkey",   ACCOUNT )       /* rkey{$RegID} --> $KeyId */ \
         DEFINE( NICKID_KEYID,         "nkey",   ACCOUNT )       /* nkey{$NickID} --> $KeyId */ \
         DEFINE( KEYID_ACCOUNT,        "idac",   ACCOUNT )       /* idac{$KeyID} --> $CAccount */ \
-        DEFINE( KEYID_ACCOUNT_TOKEN,  "idat",   ACCOUNT )       /* idat{$KeyID}{tokenSymbol} --> $free_amount, $frozen_amount */ \
         /**** contract db                                                                      */ \
         DEFINE( CONTRACT_DEF,         "cdef",   CONTRACT )      /* cdef{$ContractRegId} --> $ContractContent */ \
         DEFINE( CONTRACT_DATA,        "cdat",   CONTRACT )      /* cdat{$RegId}{$DataKey} --> $Data */ \
-        DEFINE( CONTRACT_ITEM_NUM,    "citn",   CONTRACT )      /* citn{$ContractRegId} --> $total_num_of_contract_i */ \
         DEFINE( CONTRACT_ACCOUNT,     "cacc",   CONTRACT )      /* cacc{$ContractRegId}{$AccUserId} --> appUserAccount */ \
         DEFINE( CONTRACT_TRACES,      "ctrs",   CONTRACT )      /* [prefix]{$txid} --> contract_traces */ \
         /**** delegate db                                                                      */ \
@@ -103,15 +103,12 @@ namespace dbk {
         DEFINE( ACTIVE_DELEGATES,     "atds",   DELEGATE )      /* "[prefix] --> active_delegates */ \
         DEFINE( REGID_VOTE,           "ridv",   DELEGATE )      /* "ridv --> $votes" */ \
         /**** cdp db                                                                     */ \
-        DEFINE( STAKE_FCOIN,          "fcoin",  CDP )           /* fcoin{(uint64t)MAX - staked_fcoins}_{RegId} --> 1 */ \
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
         DEFINE( REGID_CDP,            "rcdp",   CDP )           /* rcdp{$RegID} --> {set<cdpid>} */ \
         DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
         DEFINE( CDP_GLOBAL_STAKED_BCOINS,   "cgsb", CDP )       /* cgsb -> $amount */ \
         DEFINE( CDP_GLOBAL_OWED_SCOINS,     "cgos", CDP )       /* cgos -> $amount */ \
         DEFINE( CDP_GLOBAL_HALT,      "cgh",    CDP )           /* cgh -> 0 | 1 */ \
-        DEFINE( CDP_IR_PARAM_A,       "ira",    CDP )           /* [prefix] --> param_a */ \
-        DEFINE( CDP_IR_PARAM_B,       "irb",    CDP )           /* [prefix] --> param_b */ \
         /**** cdp closed by redeem/forced or manned liquidate ***/  \
         DEFINE( CLOSED_CDP_TX,        "ctx",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
         DEFINE( CLOSED_TX_CDP,        "txc",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
@@ -121,6 +118,7 @@ namespace dbk {
         DEFINE( DEX_OPERATOR_LAST_ID, "doli",   DEX )           /* [prefix] --> dex_operator_new_id */ \
         DEFINE( DEX_OPERATOR_DETAIL,  "dode",   DEX )           /* [prefix]{dex_operator_id} --> dex_operator_detail */ \
         DEFINE( DEX_OPERATOR_OWNER_MAP, "doom",   DEX )         /* [prefix]{owner_name} --> dex_operator_id */ \
+        DEFINE( DEX_OPERATOR_TRADE_PAIR, "dotp",  DEX )               \
         /**** log db                                                                    */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",   LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
         /**** tx receipt db                                                                    */ \

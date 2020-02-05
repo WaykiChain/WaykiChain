@@ -14,9 +14,11 @@
 #include "config/const.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
+#include "entities/asset.h"
 
 class CCacheWrapper ;
 class CValidationState ;
+class CTxExecuteContext ;
 using namespace json_spirit;
 
 enum ProposalType: uint8_t{
@@ -24,7 +26,8 @@ enum ProposalType: uint8_t{
     PARAM_GOVERN      = 1 ,
     GOVERNER_UPDATE   = 2 ,
     DEX_SWITCH        = 3 ,
-    MINER_FEE_UPDATE  = 4
+    MINER_FEE_UPDATE  = 4 ,
+    CDP_PARAM_GOVERN  = 5
 };
 
 enum ProposalOperateType: uint8_t {
@@ -47,7 +50,7 @@ public:
     CProposal(uint8_t proposalTypeIn):proposal_type(ProposalType(proposalTypeIn)) {}
 
     virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
-    virtual bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) { return true ;};
+    virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
     virtual bool CheckProposal(CCacheWrapper &cw, CValidationState& state) {return true ;};
     virtual string ToString(){
         return strprintf("proposaltype=%d,needgoverneramount=%d,expire_height=%d",
@@ -110,7 +113,7 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
 
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 };
 
@@ -145,7 +148,7 @@ public:
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this); }
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 };
 
@@ -164,7 +167,7 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
 
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
 
     Object ToJson() override {
@@ -200,7 +203,7 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
 
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
-    bool ExecuteProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -217,6 +220,58 @@ public:
                 baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
 
     }
+};
+
+
+class CCdpParamGovernProposal: public CProposal {
+
+public:
+    vector<std::pair<uint8_t, uint64_t>> param_values;
+    CAssetTradingPair tradePair ;
+
+    CCdpParamGovernProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN){}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height));
+            READWRITE(need_governer_count);
+            READWRITE(param_values);
+    );
+
+    virtual Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("asset_pair", tradePair.ToString()));
+        Array arrayItems;
+        for (const auto &item : param_values) {
+            Object subItem;
+            subItem.push_back(Pair("param_code", item.first));
+
+            string param_name = "" ;
+            auto itr = SysParamTable.find(SysParamType(item.first)) ;
+            if(itr != SysParamTable.end())
+                param_name = std::get<2>(itr->second);
+
+            subItem.push_back(Pair("param_name", param_name));
+            subItem.push_back(Pair("param_value", item.second));
+            arrayItems.push_back(subItem);
+        }
+
+        o.push_back(Pair("params",arrayItems)) ;
+        return o ;
+    }
+
+    string ToString() override {
+        string baseString = CProposal::ToString();
+        for(auto itr: param_values){
+            baseString = strprintf("%s, %s:%d", baseString,itr.first, itr.second ) ;
+        }
+        return baseString ;
+    }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpParamGovernProposal>(*this); } ;
+
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+
 };
 
 class CProposalStorageBean {

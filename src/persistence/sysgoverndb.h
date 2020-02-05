@@ -34,19 +34,23 @@ public:
         return true;
     }
 
-    uint32_t GetCacheSize() const { return governersCache.GetCacheSize() 
-                                            + proposalsCache.GetCacheSize()
-                                            + secondsCache.GetCacheSize(); }
+    uint32_t GetCacheSize() const {
+        return governersCache.GetCacheSize()
+               + proposalsCache.GetCacheSize()
+               + secondsCache.GetCacheSize();
+    }
 
     void SetBaseViewPtr(CSysGovernDBCache *pBaseIn) { 
         governersCache.SetBase(&pBaseIn->governersCache);
         proposalsCache.SetBase(&pBaseIn->proposalsCache);
-        secondsCache.SetBase(&pBaseIn->secondsCache); }
+        secondsCache.SetBase(&pBaseIn->secondsCache);
+    }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { 
         governersCache.SetDbOpLogMap(pDbOpLogMapIn);
         proposalsCache.SetDbOpLogMap(pDbOpLogMapIn);
-        secondsCache.SetDbOpLogMap(pDbOpLogMapIn); }
+        secondsCache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
 
 
     bool CheckIsGoverner(const CRegID &candidateRegId) {

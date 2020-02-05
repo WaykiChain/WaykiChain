@@ -86,7 +86,11 @@ public:
         return a.base_asset_symbol < a.base_asset_symbol || b.quote_asset_symbol < b.quote_asset_symbol;
     }
 
-    string ToString() {
+    friend bool operator==(const CAssetTradingPair& a , const CAssetTradingPair& b) {
+        return a.base_asset_symbol == a.base_asset_symbol && b.quote_asset_symbol == b.quote_asset_symbol;
+    }
+
+    string ToString() const {
         return strprintf("%s-%s", base_asset_symbol, quote_asset_symbol);
     }
 

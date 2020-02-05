@@ -114,6 +114,7 @@ coin_CORE_H = \
   config/const.h \
   config/errorcode.h \
   config/scoin.h \
+  config/cdpparams.h \
   config/txbase.h \
   config/clientversion.h \
   config/version.h \

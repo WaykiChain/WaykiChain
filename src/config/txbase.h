@@ -70,7 +70,8 @@ enum TxType: uint8_t {
     DEX_OPERATOR_ORDER_TX       = 91,   //!< dex operator order tx, need dex operator signing
 
     DEX_OPERATOR_REGISTER_TX    = 100,  //!< dex operator register tx
-    DEX_OPERATOR_UPDATE_TX      = 101 //!< dex operator update tx
+    DEX_OPERATOR_UPDATE_TX      = 101, //!< dex operator update tx
+    DEX_OPERATOR_UPDATE_TRDE_PAIR_TX = 102
 };
 
 struct TxTypeHash {

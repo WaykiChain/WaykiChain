@@ -289,7 +289,6 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_
 
 bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
 
-
     auto uid = CUserID::ParseUserId(value ) ;
     if((*uid).is<CRegID>()){
         regid =  (*uid).get<CRegID>() ;
@@ -305,6 +304,7 @@ bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
 }
 
 bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) {
+
     if(field == FEE_RECEIVER_UID ) {
         CRegID regid ;
         if( GetRegID(cw ,regid)){
@@ -405,10 +405,6 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
     }
 
-
-
-
-
     if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
          return false;
 
@@ -440,3 +436,20 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
+
+string CDEXOperatorUpdateTradePairTx::ToString(CAccountDBCache &accountCache){
+
+    return "";
+};
+Object CDEXOperatorUpdateTradePairTx::ToJson(const CAccountDBCache &accountCache) const{
+
+    Object result = CBaseTx::ToJson(accountCache);
+
+    result.push_back(Pair("dex_id", (uint64_t&)dexid )) ;
+    result.push_back(Pair("trade_pair", tradePair.ToString())) ;
+    result.push_back(Pair("op_type", (uint8_t)op));
+    return result;
+};
+
+ bool CDEXOperatorUpdateTradePairTx::CheckTx(CTxExecuteContext &context){ return true; };
+ bool CDEXOperatorUpdateTradePairTx::ExecuteTx(CTxExecuteContext &context){ return true; };

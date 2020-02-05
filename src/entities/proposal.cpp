@@ -13,8 +13,9 @@
 
 extern bool CheckIsGoverner(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
 extern uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw );
-bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
+bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
+    IMPLEMENT_DEFINE_CW_STATE;
     for( auto pa: param_values){
         auto itr = SysParamTable.find(SysParamType(pa.first));
         if(itr == SysParamTable.end())
@@ -23,7 +24,12 @@ bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState&
         if(!cw.sysParamCache.SetParam(std::get<0>(itr->second), pa.second)){
             return false ;
         }
+
     }
+
+
+
+
     return true ;
 
 }
@@ -43,9 +49,52 @@ bool CParamsGovernProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState&
      return true ;
 }
 
-bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state){
+bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
+
+    IMPLEMENT_DEFINE_CW_STATE;
+    for( auto pa: param_values){
+        auto itr = SysParamTable.find(SysParamType(pa.first));
+        if(itr == SysParamTable.end())
+            return false ;
+
+        if(!cw.sysParamCache.SetParam(std::get<0>(itr->second), pa.second)){
+            return false ;
+        }
+        if(pa.first == SysParamType::CDP_INTEREST_PARAM_A
+           || pa.first == SysParamType::CDP_INTEREST_PARAM_B){
+
+            auto key = std::make_tuple(tradePair,std::get<0>(itr->second), context.height) ;
 
 
+        }
+    }
+
+
+
+
+    return true ;
+
+}
+
+bool CCdpParamGovernProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+
+    if (param_values.size() == 0)
+        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
+                         "params-empty");
+    for (auto pa: param_values) {
+        if (SysParamTable.count(SysParamType(pa.first)) == 0) {
+            return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ",
+                                           pa.first),
+                             REJECT_INVALID, "params-error");
+        }
+    }
+
+    return true;
+}
+
+bool CGovernerUpdateProposal::ExecuteProposal(CTxExecuteContext& context){
+
+    IMPLEMENT_DEFINE_CW_STATE
     if(operate_type == ProposalOperateType::DISABLE){
         vector<CRegID> governers ;
         if(cw.sysGovernCache.GetGoverners(governers)){
@@ -99,8 +148,9 @@ bool CGovernerUpdateProposal::ExecuteProposal(CCacheWrapper &cw, CValidationStat
     return true ;
 }
 
-bool CDexSwitchProposal::ExecuteProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
 
+    IMPLEMENT_DEFINE_CW_STATE
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governer!", dexid), REJECT_INVALID,
@@ -185,7 +235,8 @@ bool CMinerFeeProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& stat
   return true ;
 }
 
-bool CMinerFeeProposal:: ExecuteProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
+    IMPLEMENT_DEFINE_CW_STATE
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
 }
 

@@ -96,7 +96,8 @@ public:
           blockOrdersCache(pDbAccess),
           operator_detail_cache(pDbAccess),
           operator_owner_map_cache(pDbAccess),
-          operator_last_id_cache(pDbAccess){};
+          operator_trade_pair_cache(pDbAccess),
+          operator_last_id_cache(pDbAccess) {};
 
 
 public:
@@ -121,6 +122,7 @@ public:
         operator_detail_cache.Flush(),
         operator_owner_map_cache.Flush();
         operator_last_id_cache.Flush();
+        operator_trade_pair_cache.Flush();
         return true;
     }
 
@@ -129,7 +131,8 @@ public:
             blockOrdersCache.GetCacheSize() +
             operator_detail_cache.GetCacheSize() +
             operator_owner_map_cache.GetCacheSize() +
-            operator_last_id_cache.GetCacheSize();
+            operator_last_id_cache.GetCacheSize() +
+            operator_trade_pair_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CDexDBCache *pBaseIn) {
         activeOrderCache.SetBase(&pBaseIn->activeOrderCache);
@@ -137,6 +140,7 @@ public:
         operator_detail_cache.SetBase(&pBaseIn->operator_detail_cache);
         operator_owner_map_cache.SetBase(&pBaseIn->operator_owner_map_cache);
         operator_last_id_cache.SetBase(&pBaseIn->operator_last_id_cache);
+        operator_trade_pair_cache.SetBase(&pBaseIn->operator_trade_pair_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
@@ -145,6 +149,7 @@ public:
         operator_detail_cache.SetDbOpLogMap(pDbOpLogMapIn);
         operator_owner_map_cache.SetDbOpLogMap(pDbOpLogMapIn);
         operator_last_id_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        operator_trade_pair_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -153,6 +158,7 @@ public:
         operator_detail_cache.RegisterUndoFunc(undoDataFuncMap);
         operator_owner_map_cache.RegisterUndoFunc(undoDataFuncMap);
         operator_last_id_cache.RegisterUndoFunc(undoDataFuncMap);
+        operator_trade_pair_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CDEXOrdersGetter> CreateOrdersGetter() {
@@ -177,8 +183,11 @@ private:
     DEXBlockOrdersCache    blockOrdersCache;
     CCompositeKVCache< dbk::DEX_OPERATOR_DETAIL,       std::optional<CVarIntValue<DexID>> , DexOperatorDetail >   operator_detail_cache;
     CCompositeKVCache< dbk::DEX_OPERATOR_OWNER_MAP,    CRegIDKey,               std::optional<CVarIntValue<DexID>>> operator_owner_map_cache;
+    CCompositeKVCache< dbk::DEX_OPERATOR_TRADE_PAIR,   std::optional<CVarIntValue<DexID>>, vector<CAssetTradingPair>> operator_trade_pair_cache ;
 
     CSimpleKVCache<dbk::DEX_OPERATOR_LAST_ID, CVarIntValue<DexID>> operator_last_id_cache;
+
+
 };
 
 #endif //PERSIST_DEX_H

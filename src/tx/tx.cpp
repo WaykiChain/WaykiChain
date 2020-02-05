@@ -216,7 +216,7 @@ bool CBaseTx::VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey)
         return context.pState->DoS(100, ERRORMSG("%s, tx signature error", BASE_TX_TITLE),
             REJECT_INVALID, "bad-tx-signature");
     }
-    return true;
+    return true ;
 }
 
 /**################################ Universal Coin Transfer ########################################**/

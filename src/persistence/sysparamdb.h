@@ -17,8 +17,14 @@ using namespace std;
 class CSysParamDBCache {
 public:
     CSysParamDBCache() {}
-    CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess),minerFeeCache(pDbAccess) {}
-    CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache), minerFeeCache(pBaseIn->minerFeeCache) {}
+    CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess),
+                                             minerFeeCache(pDbAccess),
+                                             cdpParamCache(pDbAccess),
+                                             interestHistoryCache(pDbAccess){}
+    CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache),
+                                                  minerFeeCache(pBaseIn->minerFeeCache),
+                                                  cdpParamCache(pBaseIn->cdpParamCache),
+                                                  interestHistoryCache(){}
 
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
         if (SysParamTable.count(paramType) == 0)
@@ -59,7 +65,7 @@ public:
         minerFeeCache.RegisterUndoFunc(undoDataFuncMap);
     }
     bool SetParam(const string& key, const uint64_t& value){
-        return sysParamCache.SetData(key, value) ;
+        return sysParamCache.SetData(key, CVarIntValue(value)) ;
     }
 
     bool SetMinerFee( const uint8_t txType, const string feeSymbol, const uint64_t feeSawiAmount) {
@@ -86,7 +92,10 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CCompositeKVCache< dbk::SYS_PARAM,             string,                 CVarIntValue<uint64_t> >              sysParamCache;
-    CCompositeKVCache< dbk::MINER_FEE,             pair<uint8_t, string>,  CVarIntValue<uint64_t> >              minerFeeCache;
+    CCompositeKVCache< dbk::SYS_PARAM,     string,      CVarIntValue<uint64_t> >              sysParamCache;
+    CCompositeKVCache< dbk::MINER_FEE,     pair<uint8_t, string>,  CVarIntValue<uint64_t> >              minerFeeCache;
+    CCompositeKVCache< dbk::CDP_PARAM,     pair<CAssetTradingPair,string>, CVarIntValue<uint64_t> >      cdpParamCache;
+    CCompositeKVCache< dbk::INTEREST_HISTORY, tuple<CAssetTradingPair,string,CVarIntValue<uint64_t>>,
+                                   CVarIntValue<uint64_t>> interestHistoryCache ;
 
 };

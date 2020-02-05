@@ -202,7 +202,7 @@ bool CProposalAssentTx::ExecuteTx(CTxExecuteContext &context) {
 
      if( assentedCount == proposal->need_governer_count){
 
-         if(!proposal->ExecuteProposal(cw, state)){
+         if(!proposal->ExecuteProposal(context)){
              return state.DoS(100, ERRORMSG("CProposalAssentTx::ExecuteTx, proposal execute error"),
                               WRITE_ACCOUNT_FAIL, "proposal-execute-error");
          }
