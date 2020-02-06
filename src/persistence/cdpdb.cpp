@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "cdpdb.h"
+#include "persistence/dbiterator.h"
 
 CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
     : globalStakedBcoinsCache(pDbAccess),
@@ -21,10 +22,10 @@ CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
     assert(!cdpCache.HaveData(cdp.cdpid));
-    assert(!userCdpCache.HaveData(make_tuple(CRegIDKey(cdp.owner_regid), cdp.bcoin_symbol, cdp.scoin_symbol));
+    assert(!userCdpCache.HaveData(make_tuple(CRegIDKey(cdp.owner_regid), cdp.bcoin_symbol, cdp.scoin_symbol)));
 
     return cdpCache.SetData(cdp.cdpid, cdp) &&
-        userCdpCache.SetData(make_tuple(CRegIDKey(cdp.owner_regid), cdp.bcoin_symbol, cdp.scoin_symbol)) &&
+        userCdpCache.SetData(make_tuple(CRegIDKey(cdp.owner_regid), cdp.bcoin_symbol, cdp.scoin_symbol), cdp.cdpid) &&
         SaveCDPToRatioDB(cdp);
 }
 
@@ -37,20 +38,21 @@ bool CCdpDBCache::EraseCDP(const CUserCDP &oldCDP, const CUserCDP &cdp) {
 // Need to delete the old cdp(before updating cdp), then save the new cdp if necessary.
 bool CCdpDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
     assert(!newCDP.IsEmpty());
-    return cdpCache.SetData(cdp.cdpid, newCDP) && EraseCDPFromRatioDB(oldCDP) && SaveCDPToRatioDB(newCDP);
+    return cdpCache.SetData(newCDP.cdpid, newCDP) && EraseCDPFromRatioDB(oldCDP) && SaveCDPToRatioDB(newCDP);
 }
 
-bool CCdpDBCache::UserHaveCdp(const CRegID &regId, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol) {
+bool CCdpDBCache::UserHaveCdp(const CRegID &regid, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol) {
     return userCdpCache.HaveData(make_tuple(regid, assetSymbol, scoinSymbol));
 }
 
-bool CCdpDBCache::GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList) {
+bool CCdpDBCache::GetCDPList(const CRegID &regid, vector<CUserCDP> &cdpList) {
 
-    CDBPrefixIterator<CCdpDBCache, CRegIDKey> dbIt(*this, regid);
+    CRegIDKey prefixKey(regid);
+    CDBPrefixIterator<decltype(userCdpCache), CRegIDKey> dbIt(userCdpCache, prefixKey);
     dbIt.First();
     for(dbIt.First(); dbIt.IsValid(); dbIt.Next()) {
         CUserCDP userCdp;
-        if (!cdpCache.GetData(std::get<0>(dbIt.key), userCdp)) {
+        if (!cdpCache.GetData(dbIt.GetValue().value(), userCdp)) {
             return false; // has invalid data
         }
 

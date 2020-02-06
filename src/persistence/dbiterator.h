@@ -330,7 +330,7 @@ struct CommonPrefixMatcher {
     // 1/3: make 3 tuple key object by 1 prefix
     template<typename T1, typename T2, typename T3>
     static void MakeKeyByPrefix(const T1 &prefix, std::tuple<T1, T2, T3> &keyObj) {
-        keyObj = make_tuple<T1, T2, T3>(prefix, db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
+        keyObj = make_tuple<T1, T2, T3>(T1(prefix), db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
     }
 
     // 2/3: make 3 tuple key object by 2 pair prefix
