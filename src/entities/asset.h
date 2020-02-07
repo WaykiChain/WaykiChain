@@ -95,11 +95,11 @@ public:
     )
 
     friend bool operator<(const CAssetTradingPair& a, const CAssetTradingPair& b) {
-        return a.base_asset_symbol < a.base_asset_symbol || b.quote_asset_symbol < b.quote_asset_symbol;
+        return a.base_asset_symbol < b.base_asset_symbol || a.quote_asset_symbol < b.quote_asset_symbol;
     }
 
     friend bool operator==(const CAssetTradingPair& a , const CAssetTradingPair& b) {
-        return a.base_asset_symbol == a.base_asset_symbol && b.quote_asset_symbol == b.quote_asset_symbol;
+        return a.base_asset_symbol == b.base_asset_symbol && a.quote_asset_symbol == b.quote_asset_symbol;
     }
 
     string ToString() const {

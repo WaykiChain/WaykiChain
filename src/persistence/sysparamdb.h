@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <string>
 #include <cstdint>
+#include "config/sysparams.h"
 
 using namespace std;
 
@@ -42,6 +43,24 @@ public:
         return true;
     }
 
+    bool GetCdpParam(const CdpParamType &paramType, CCdpCoinPair& coinPair,uint64_t& paramValue) {
+        if (CdpParamTable.count(paramType) == 0)
+            return false;
+
+        auto iter = CdpParamTable.find(paramType);
+        string keyPostfix = std::get<0>(iter->second);
+        auto key = std::make_pair(coinPair, keyPostfix);
+        CVarIntValue<uint64_t > value ;
+        if (!cdpParamCache.GetData(key, value)) {
+            paramValue = std::get<1>(iter->second);
+        } else{
+            paramValue = value.get();
+        }
+
+        return true;
+    }
+
+
     bool Flush() {
         sysParamCache.Flush();
         minerFeeCache.Flush();
@@ -68,11 +87,20 @@ public:
         return sysParamCache.SetData(key, CVarIntValue(value)) ;
     }
 
+    bool SetCdpParam(const CCdpCoinPair& coinPair, const string& paramkey, const uint64_t& value) {
+        auto key = std::make_pair(coinPair,paramkey);
+        return cdpParamCache.SetData(key, value);
+    }
     bool SetMinerFee( const uint8_t txType, const string feeSymbol, const uint64_t feeSawiAmount) {
 
         auto pa = std::make_pair(txType, feeSymbol) ;
         return minerFeeCache.SetData(pa , CVarIntValue(feeSawiAmount)) ;
 
+    }
+
+    bool SetInterestHistory(tuple<CCdpCoinPair,string,CVarIntValue<uint64_t>> key, uint64_t& value){
+        auto vvalue = CVarIntValue(value) ;
+        return interestHistoryCache.SetData(key, vvalue) ;
     }
 
     bool GetMinerFee( const uint8_t txType, const string feeSymbol, uint64_t& feeSawiAmount) {
@@ -94,8 +122,8 @@ private:
     // order tx id -> active order
     CCompositeKVCache< dbk::SYS_PARAM,     string,      CVarIntValue<uint64_t> >              sysParamCache;
     CCompositeKVCache< dbk::MINER_FEE,     pair<uint8_t, string>,  CVarIntValue<uint64_t> >              minerFeeCache;
-    CCompositeKVCache< dbk::CDP_PARAM,     pair<CAssetTradingPair,string>, CVarIntValue<uint64_t> >      cdpParamCache;
-    CCompositeKVCache< dbk::INTEREST_HISTORY, tuple<CAssetTradingPair,string,CVarIntValue<uint64_t>>,
+    CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,string>, CVarIntValue<uint64_t> >      cdpParamCache;
+    CCompositeKVCache< dbk::INTEREST_HISTORY, tuple<CCdpCoinPair,string,CVarIntValue<uint64_t>>,
                                    CVarIntValue<uint64_t>> interestHistoryCache ;
 
 };

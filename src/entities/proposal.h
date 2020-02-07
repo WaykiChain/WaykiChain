@@ -1,7 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
 // Copyright (c) 2017-2019 The WaykiChain Developers
 // Distributed under the MIT/X11 software license, see the accompanying
-// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.'
 
 #ifndef ENTITIES_PROPOSAL_H
 #define ENTITIES_PROPOSAL_H
@@ -14,7 +14,7 @@
 #include "config/const.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
-#include "entities/asset.h"
+#include "config/sysparams.h"
 
 class CCacheWrapper ;
 class CValidationState ;
@@ -227,7 +227,7 @@ class CCdpParamGovernProposal: public CProposal {
 
 public:
     vector<std::pair<uint8_t, uint64_t>> param_values;
-    CAssetTradingPair tradePair ;
+    CCdpCoinPair coinPair ;
 
     CCdpParamGovernProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN){}
 
@@ -235,11 +235,12 @@ public:
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
             READWRITE(param_values);
+            READWRITE(coinPair);
     );
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("asset_pair", tradePair.ToString()));
+        o.push_back(Pair("asset_pair", coinPair.ToString()));
         Array arrayItems;
         for (const auto &item : param_values) {
             Object subItem;
@@ -314,6 +315,9 @@ public:
             case PARAM_GOVERN:
                 ::Serialize(os, *((CParamsGovernProposal   *) (proposalPtr.get())), nType, nVersion);
                 break;
+            case CDP_PARAM_GOVERN:
+                ::Serialize(os, *((CCdpParamGovernProposal *) (proposalPtr.get())), nType, nVersion);
+                break;
             case GOVERNER_UPDATE:
                 ::Serialize(os, *((CGovernerUpdateProposal *) (proposalPtr.get())), nType, nVersion);
                 break;
@@ -345,6 +349,12 @@ public:
             case PARAM_GOVERN: {
                 proposalPtr = std::make_shared<CParamsGovernProposal>();
                 ::Unserialize(is, *((CParamsGovernProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case CDP_PARAM_GOVERN: {
+                proposalPtr = std::make_shared<CCdpParamGovernProposal>();
+                ::Unserialize(is, *((CCdpParamGovernProposal *)(proposalPtr.get())), nType, nVersion);
                 break;
             }
 

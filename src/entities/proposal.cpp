@@ -15,7 +15,7 @@ extern bool CheckIsGoverner(CRegID account, ProposalType proposalType,CCacheWrap
 extern uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw );
 bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
-    IMPLEMENT_DEFINE_CW_STATE;
+    CCacheWrapper &cw       = *context.pCw;
     for( auto pa: param_values){
         auto itr = SysParamTable.find(SysParamType(pa.first));
         if(itr == SysParamTable.end())
@@ -26,9 +26,6 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
         }
 
     }
-
-
-
 
     return true ;
 
@@ -51,26 +48,25 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
 bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
-    IMPLEMENT_DEFINE_CW_STATE;
+    CCacheWrapper &cw       = *context.pCw;
     for( auto pa: param_values){
-        auto itr = SysParamTable.find(SysParamType(pa.first));
-        if(itr == SysParamTable.end())
+        auto itr = CdpParamTable.find(CdpParamType(pa.first));
+        if(itr == CdpParamTable.end())
             return false ;
 
-        if(!cw.sysParamCache.SetParam(std::get<0>(itr->second), pa.second)){
+        if(!cw.sysParamCache.SetCdpParam(coinPair,std::get<0>(itr->second), pa.second)){
             return false ;
         }
-        if(pa.first == SysParamType::CDP_INTEREST_PARAM_A
-           || pa.first == SysParamType::CDP_INTEREST_PARAM_B){
+        if(pa.first == CdpParamType ::CDP_INTEREST_PARAM_A
+           || pa.first == CdpParamType::CDP_INTEREST_PARAM_B){
 
-            auto key = std::make_tuple(tradePair,std::get<0>(itr->second), context.height) ;
-
+            auto key = std::make_tuple(coinPair,std::get<0>(itr->second), context.height) ;
+            if(!cw.sysParamCache.SetInterestHistory(key, pa.second)){
+                return false ;
+            }
 
         }
     }
-
-
-
 
     return true ;
 
@@ -94,7 +90,7 @@ bool CCdpParamGovernProposal::CheckProposal(CCacheWrapper &cw, CValidationState&
 
 bool CGovernerUpdateProposal::ExecuteProposal(CTxExecuteContext& context){
 
-    IMPLEMENT_DEFINE_CW_STATE
+    CCacheWrapper &cw       = *context.pCw;
     if(operate_type == ProposalOperateType::DISABLE){
         vector<CRegID> governers ;
         if(cw.sysGovernCache.GetGoverners(governers)){
@@ -236,7 +232,7 @@ bool CMinerFeeProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& stat
 }
 
 bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
-    IMPLEMENT_DEFINE_CW_STATE
+    CCacheWrapper &cw       = *context.pCw;
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
 }
 

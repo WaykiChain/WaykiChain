@@ -305,7 +305,9 @@ Value getscoininfo(const Array& params, bool fHelp){
             HelpExampleCli("getscoininfo", "") + "\nAs json rpc call\n" + HelpExampleRpc("getscoininfo", ""));
     }
 
-    int32_t height = chainActive.Height();
+    // TODO: multi stable coin
+
+   /* int32_t height = chainActive.Height();
 
     uint64_t slideWindow = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
@@ -313,18 +315,18 @@ Value getscoininfo(const Array& params, bool fHelp){
     }
 
     uint64_t globalCollateralCeiling = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
+    if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
     }
 
     uint64_t globalCollateralRatioFloor = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
     }
 
     PriceMap medianPricePoints = pCdMan->pBlockCache->GetMedianPrices();
 
-    // TODO: multi stable coin
+
     uint64_t bcoinMedianPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
 
     uint64_t globalCollateralRatio = pCdMan->pCdpCache->GetGlobalCollateralRatio(bcoinMedianPrice);
@@ -339,7 +341,7 @@ Value getscoininfo(const Array& params, bool fHelp){
 
     RatioCDPIdCache::Map forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
-    if (!pCdMan->pSysParamCache->GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+    if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
     }
 
@@ -377,7 +379,8 @@ Value getscoininfo(const Array& params, bool fHelp){
     obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
     obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
 
-    return obj;
+    return obj;*/
+   return Object();
 }
 
 Value listcdps(const Array& params, bool fHelp);

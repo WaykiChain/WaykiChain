@@ -95,6 +95,63 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
 }
 
+
+Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
+
+    if(fHelp || params.size() < 3 || params.size() > 4){
+
+        throw runtime_error(
+                "submitparamgovernproposal \"addr\" \"param_name\" \"param_value\" [\"fee\"]\n"
+                "create proposal about param govern\n"
+                "\nArguments:\n"
+                "1.\"addr\":             (string, required) the tx submitor's address\n"
+                "2.\"param_name\":       (string, required) the name of param, the param list can be found in document \n"
+                "3.\"param_value\":      (numberic, required) the param value that will be updated to \n"
+                "4.\"bcoin_symbo\":      (string,required) the base coin symbol\n"
+                "5.\"scoin_symbo\":      (string,required) the stable coin symbol\n"
+                "6.\"fee\":              (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
+
+        );
+
+    }
+
+
+    EnsureWalletIsUnlocked();
+
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    string paramName = params[1].get_str() ;
+    string bcoinSymbol = params[3].get_str() ;
+    string scoinSymbol = params[4].get_str() ;
+    uint64_t paramValue = AmountToRawValue(params[2]) ;
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    CCdpParamGovernProposal proposal ;
+
+
+    SysParamType  type = GetParamType(paramName) ;
+    if(type == SysParamType::NULL_SYS_PARAM_TYPE)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
+
+    proposal.param_values.push_back(std::make_pair(type, paramValue));
+    proposal.coinPair = CCdpCoinPair(bcoinSymbol, scoinSymbol) ;
+
+    CProposalCreateTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetSawiAmount();
+    tx.fee_symbol    = fee.symbol;
+    tx.valid_height = validHeight;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CCdpParamGovernProposal>(proposal)) ;
+    return SubmitTx(account.keyid, tx) ;
+
+}
+
 Value submitgovernerupdateproposal(const Array& params , bool fHelp) {
 
     if(fHelp || params.size() < 3 || params.size() > 4){
