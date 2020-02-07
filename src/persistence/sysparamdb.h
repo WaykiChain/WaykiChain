@@ -43,7 +43,7 @@ public:
         return true;
     }
 
-    bool GetCdpParam(const CdpParamType &paramType, CCdpCoinPair& coinPair,uint64_t& paramValue) {
+    bool GetCdpParam(const CCdpCoinPair& coinPair, const CdpParamType &paramType, uint64_t& paramValue) {
         if (CdpParamTable.count(paramType) == 0)
             return false;
 

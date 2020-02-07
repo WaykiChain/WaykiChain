@@ -176,17 +176,19 @@ bool CCdpForcedLiquidater::Execute() {
         return true;
     }
 
+    CCdpCoinPair cdpCoinPair(assetSymbol, scoinSymbol);
     // 1. Check Global Collateral Ratio floor & Collateral Ceiling if reached
     uint64_t globalCollateralRatioFloor = 0;
-    // TODO: get cdp global collateral ratio floor
-    // if (!cw.sysParamCache.GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
-    //     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
-    //                     READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
-    // }
+
+    if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        return state.DoS(100, ERRORMSG("%s(), read global collateral ratio floor param error! cdpCoinPair=%s",
+                __func__, cdpCoinPair.ToString()),
+                READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
+    }
 
     // check global collateral ratio
     if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
-        LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
+        LogPrint(BCLog::CDP, "%s(), GlobalCollateralFloorReached!!\n", __func__);
         return true;
     }
 
@@ -194,10 +196,11 @@ bool CCdpForcedLiquidater::Execute() {
     RatioCDPIdCache::Map cdpMap;
     uint64_t forceLiquidateRatio = 0;
     // TODO: get cdp CDP_FORCE_LIQUIDATE_RATIO
-    // if (!cw.sysParamCache.GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
-    //     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
-    //                     READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
-    // }
+    if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+        return state.DoS(100, ERRORMSG("%s(), read force liquidate ratio param error! cdpCoinPair=%s",
+                __func__, cdpCoinPair.ToString()),
+                READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
+    }
 
     // TODO: get liquidating cdp map
     cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, cdpMap);
