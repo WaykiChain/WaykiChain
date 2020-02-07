@@ -107,6 +107,12 @@ public:
         return cdpABParamChangeCache.SetData(key, heightValueMap) ;
     }
 
+    bool GetCdpABParamMap(CCdpCoinPair& coinPair, const string paramKey, map<CVarIntValue<int32_t>,CVarIntValue<uint64_t>>& heightValueMap){
+
+        auto key = std::make_pair(coinPair, paramKey) ;
+        return cdpABParamChangeCache.GetData(key, heightValueMap) ;
+    }
+
     bool GetMinerFee( const uint8_t txType, const string feeSymbol, uint64_t& feeSawiAmount) {
 
         auto pa = std::make_pair(txType, feeSymbol) ;
