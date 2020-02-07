@@ -12,7 +12,7 @@
 #include "persistence/cdpdb.h"
 
 class CBlockPriceMedianTx: public CBaseTx  {
-private:
+public:
     PriceMap median_prices;
 
 public:
@@ -48,16 +48,6 @@ public:
     void SetMedianPrices(PriceMap &mapMedianPricesIn) {
         median_prices = mapMedianPricesIn;
     }
-
-    PriceMap GetMedianPrice() const;
-
-private:
-    uint256 GenOrderId(CTxExecuteContext &context, const CUserCDP &cdp, TokenSymbol assetSymbol);
-
-    bool ForceLiquidateCDPCompat(CTxExecuteContext &context, uint64_t bcoinMedianPrice,
-        uint64_t fcoinMedianPrice, RatioCDPIdCache::Map &cdps);
-    uint256 GenOrderIdCompat(const uint256 &txid, const uint32_t index);
-
 };
 
 #endif //TX_PRICE_MEDIAN_H

@@ -61,6 +61,18 @@ static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCDPCoinPairSet = {
     // {SYMB::WEOS, SYMB::WCNY},
 };
 
+// cdp scoin symbol -> price quote symbol
+static const unordered_map<TokenSymbol, TokenSymbol> kCdpScoinToPriceQuoteMap = {
+    {SYMB::WUSD, SYMB::USD},
+};
+
+inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
+    auto it = kCdpScoinToPriceQuoteMap.find(scoinSymbol);
+    if (it != kCdpScoinToPriceQuoteMap.end())
+        return it->first;
+    return EMPTY_STRING;
+}
+
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kTradingPairSet = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WGRT, SYMB::WUSD}

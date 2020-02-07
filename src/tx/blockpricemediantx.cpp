@@ -6,6 +6,51 @@
 #include "blockpricemediantx.h"
 #include "main.h"
 
+using namespace dex;
+
+class CCdpForcedLiquidater {
+public:
+    // result:
+
+    uint64_t totalCloseoutScoins = 0;
+    uint64_t totalSelloutBcoins  = 0;
+    uint64_t totalInflateFcoins  = 0;
+public:
+    CCdpForcedLiquidater(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
+        vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn,
+        const TokenSymbol &assetSymbolIn, const TokenSymbol &scoinSymbolIn)
+    : tx(txIn),
+      context(contextIn),
+      receipts(receiptsIn),
+      fcoinGenesisAccount(fcoinGenesisAccountIn),
+      assetSymbol(assetSymbolIn),
+      scoinSymbol(scoinSymbolIn) {}
+
+    bool Execute();
+
+private:
+    CBlockPriceMedianTx &tx;
+    CTxExecuteContext &context;
+    vector<CReceipt> &receipts;
+    CAccount &fcoinGenesisAccount;
+    const TokenSymbol &assetSymbol;
+    const TokenSymbol &scoinSymbol;
+
+
+    bool SellAssetToRiskRevervePool();
+
+    bool SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
+        uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut);
+
+    uint256 GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol);
+
+
+    bool ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice, RatioCDPIdCache::Map &cdps);
+
+    uint256 GenOrderIdCompat(const uint256 &txid, uint32_t index);
+};
+
+
 bool CBlockPriceMedianTx::CheckTx(CTxExecuteContext &context) { return true; }
 
 /**
@@ -41,229 +86,281 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          "bad-median-price-points");
     }
 
-    if (!cw.blockCache.SetMedianPrices(medianPrices)) {
+    if (!cw.blockCache.SetMedianPrices(median_prices)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
     }
 
-    do {
+    vector<CReceipt> receipts;
+    CAccount fcoinGenesisAccount;
+    if (!cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount)) {
+        return state.DoS(100, ERRORMSG("%s(), get fcoin genesis account failed", __func__), REJECT_INVALID,
+                         "save-median-prices-failed");
 
-        // 0. acquire median prices
-        // TODO: multi stable coin
-        uint64_t bcoinMedianPrice = medianPrices[CoinPricePair(SYMB::WICC, SYMB::USD)];
-        if (bcoinMedianPrice == 0) {
-            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, failed to acquire bcoin median price\n");
-            break;
-        }
+    }
 
-        uint64_t fcoinMedianPrice = medianPrices[CoinPricePair(SYMB::WGRT, SYMB::USD)];
-        if (fcoinMedianPrice == 0) {
-            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, failed to acquire fcoin median price\n");
-            break;
-        }
+    // TODO: support multi asset/scoin cdp
+    CCdpForcedLiquidater forcedLiquidater(*this, context, receipts, fcoinGenesisAccount,
+        SYMB::WICC, SYMB::WUSD);
 
-        // 1. Check Global Collateral Ratio floor & Collateral Ceiling if reached
-        uint64_t globalCollateralRatioFloor = 0;
-        if (!cw.sysParamCache.GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
-                            READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
-        }
+    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount)) {
+        return state.DoS(100, ERRORMSG("%s(), save fcoin genesis account failed! addr=%s", __func__,
+                        fcoinGenesisAccount.keyid.ToAddress()), REJECT_INVALID, "set-tx-receipt-failed");
+    }
 
-        // check global collateral ratio
-        if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
-            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
-            break;
-        }
+    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
+        return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, set tx receipts failed!! txid=%s",
+                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
 
-        // 2. get all CDPs to be force settled
-        RatioCDPIdCache::Map cdpMap;
-        uint64_t forceLiquidateRatio = 0;
-        if (!cw.sysParamCache.GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
-                            READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
-        }
-
-        cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, cdpMap);
-
-        LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, tx_cord=%d-%d, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
-                "forceLiquidateRatio: %llu, cdpMap: %llu\n", context.height, context.index,
-                globalCollateralRatioFloor, bcoinMedianPrice, forceLiquidateRatio, cdpMap.size());
-
-        // 3. force settle each cdp
-        if (cdpMap.size() == 0) {
-            break;
-        } else {
-            // TODO: remove me.
-            LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, have %llu cdps to force settle, in detail:\n",
-                     cdpMap.size());
-            for (const auto &cdpKey : cdpMap) {
-                LogPrint(BCLog::CDP, "%s\n", cdpKey.second.ToString());
-            }
-        }
-
-        NET_TYPE netType = SysCfg().NetworkID();
-        if (netType == TEST_NET && context.height < 1800000) { // soft fork to compat old data of testnet
-            // TODO: remove me if reset testnet.
-            return ForceLiquidateCDPCompat(context, bcoinMedianPrice, fcoinMedianPrice, cdpMap);
-        }
-
-        int32_t cdpIndex             = 0;
-        uint64_t totalCloseoutScoins = 0;
-        uint64_t totalSelloutBcoins  = 0;
-        uint64_t totalInflateFcoins  = 0;
-        vector<CReceipt> receipts;
-        CAccount fcoinGenesisAccount;
-        cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
-        uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
-        for (auto &cdpPair : cdpMap) {
-            auto &cdp = cdpPair.second;
-            if (++cdpIndex > FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK)
-                break;
-
-            LogPrint(BCLog::CDP,
-                     "CBlockPriceMedianTx::ExecuteTx, begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
-                     "index: %u\n",
-                     cdp.ToString(), currRiskReserveScoins, cdpIndex);
-
-            // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
-            // then skip the 120 cdp and settle the 30 and 50 cdp.
-            if (currRiskReserveScoins < cdp.total_owed_scoins) {
-                LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
-                        currRiskReserveScoins, cdp.total_owed_scoins);
-                continue;
-            }
-
-            // a) sell WICC for WUSD to return to risk reserve pool
-            // send bcoin from cdp to fcoin genesis account
-            if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::ADD_FREE, cdp.total_staked_bcoins)) {
-                return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),
-                                 UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-            }
-            // should freeze user's asset for selling
-            if (!fcoinGenesisAccount.OperateBalance(SYMB::WICC, BalanceOpType::FREEZE, cdp.total_staked_bcoins)) {
-                return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
-                                    UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-            }
-            auto pBcoinSellMarketOrder = dex::CSysOrder::CreateSellMarketOrder(
-                CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WICC, cdp.total_staked_bcoins);
-            uint256 bcoinSellMarketOrderId = GenOrderId(context, cdp, SYMB::WICC);
-            if (!cw.dexCache.CreateActiveOrder(bcoinSellMarketOrderId, *pBcoinSellMarketOrder)) {
-                return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellBcoinForScoin (%s) failed",
-                                pBcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-            }
-
-            totalSelloutBcoins += cdp.total_staked_bcoins;
-
-            // b) inflate WGRT coins and sell them for WUSD to return to risk reserve pool if necessary
-            uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / PRICE_BOOST);
-            if (bcoinsValueInScoin >= cdp.total_owed_scoins) {  // 1 ~ 1.04
-                LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
-                    "Placed BcoinSellMarketOrder: %s, orderId: %s\n"
-                    "No need to infate WGRT coins: %llu vs %llu\n"
-                    "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
-                    pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId.GetHex(),
-                    bcoinsValueInScoin, cdp.total_owed_scoins,
-                    currRiskReserveScoins, currRiskReserveScoins - cdp.total_owed_scoins);
-            } else {  // 0 ~ 1
-                uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
-                assert(fcoinMedianPrice != 0);
-                uint64_t fcoinsToInflate = uint64_t(double(fcoinsValueToInflate) * PRICE_BOOST / fcoinMedianPrice);
-                // inflate fcoin to fcoin genesis account
-                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::ADD_FREE, fcoinsToInflate)) {
-                    return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, operate balance failed"),
-                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-                }
-                // should freeze user's asset for selling
-                if (!fcoinGenesisAccount.OperateBalance(SYMB::WGRT, BalanceOpType::FREEZE, fcoinsToInflate)) {
-                    return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, account has insufficient funds"),
-                                     UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-                }
-
-                auto pFcoinSellMarketOrder = dex::CSysOrder::CreateSellMarketOrder(
-                    CTxCord(context.height, context.index), SYMB::WUSD, SYMB::WGRT, fcoinsToInflate);
-                uint256 fcoinSellMarketOrderId = GenOrderId(context, cdp, SYMB::WGRT);
-                if (!cw.dexCache.CreateActiveOrder(fcoinSellMarketOrderId, *pFcoinSellMarketOrder)) {
-                    return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, create sys order for SellFcoinForScoin (%s) failed",
-                            pFcoinSellMarketOrder->ToString()), CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
-                }
-
-                totalInflateFcoins += fcoinsToInflate;
-
-                LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, Force settled CDP: "
-                    "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
-                    "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
-                    "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n",
-                    pBcoinSellMarketOrder->ToString(), bcoinSellMarketOrderId.GetHex(),
-                    pFcoinSellMarketOrder->ToString(), fcoinSellMarketOrderId.GetHex(),
-                    currRiskReserveScoins, currRiskReserveScoins - cdp.total_owed_scoins);
-            }
-
-            // c) Close the CDP
-            const CUserCDP &oldCDP = cdp;
-            cw.cdpCache.EraseCDP(oldCDP, cdp);
-            if (SysCfg().GetArg("-persistclosedcdp", false)) {
-                if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, uint256(), CDPCloseType::BY_FORCE_LIQUIDATE)) {
-                    LogPrint(BCLog::ERROR, "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
-                }
-            }
-
-            // d) minus scoins from the risk reserve pool to repay CDP scoins
-            currRiskReserveScoins -= cdp.total_owed_scoins;
-            totalCloseoutScoins += cdp.total_owed_scoins;
-        }
-
-        // 4. update fcoin genesis account
-        uint64_t prevScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
-        assert(prevScoins >= currRiskReserveScoins);
-        if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins)) {
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, opeate fcoin genesis account failed"),
-                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
-        }
-        cw.accountCache.SaveAccount(fcoinGenesisAccount);
-
-        if (totalCloseoutScoins > 0) {
-            receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalCloseoutScoins,
-                                  ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
-        }
-
-        if (totalSelloutBcoins > 0) {
-            receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WICC, totalSelloutBcoins,
-                                  ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE);
-        }
-
-        if (totalInflateFcoins > 0) {
-            receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
-                                  ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
-        }
-
-        if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-            return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, set tx receipts failed!! txid=%s",
-                            GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
-
-    } while (false);
 
     return true;
 }
 
-uint256 CBlockPriceMedianTx::GenOrderId(CTxExecuteContext &context, const CUserCDP &cdp,
-        TokenSymbol assetSymbol) {
+string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
+    string pricePoints;
+    for (const auto item : median_prices) {
+        pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first, item.first.second,
+                                 item.second);
+    }
+
+    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_prices=%s, valid_height=%d",
+                     GetTxType(nTxType), GetHash().GetHex(), nVersion, txUid.ToString(), llFees, pricePoints,
+                     valid_height);
+}
+
+Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
+    Object result = CBaseTx::ToJson(accountCache);
+
+    Array pricePointArray;
+    for (const auto &item : median_prices) {
+        Object subItem;
+        subItem.push_back(Pair("coin_symbol",     item.first.first));
+        subItem.push_back(Pair("price_symbol",    item.first.second));
+        subItem.push_back(Pair("price",           item.second));
+        pricePointArray.push_back(subItem);
+    }
+    result.push_back(Pair("median_price_points",   pricePointArray));
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// class CCdpForcedLiquidater
+
+
+bool CCdpForcedLiquidater::Execute() {
+
+    CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
+
+    CAccount fcoinGenesisAccount;
+    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
+
+
+    const TokenSymbol &quoteSymbol = GetPriceQuoteByCdpScoin(scoinSymbol);
+    if (quoteSymbol.empty()) {
+        return state.DoS(100, ERRORMSG("%s(), get price quote by cdp scoin=%s failed!", __func__, scoinSymbol),
+                        REJECT_INVALID, "get-price-quote-by-cdp-scoin-failed");
+    }
+
+    // 0. acquire median prices
+    // TODO: multi stable coin
+    uint64_t bcoinMedianPrice = tx.median_prices[CoinPricePair(assetSymbol, quoteSymbol)];
+    if (bcoinMedianPrice == 0) {
+        LogPrint(BCLog::CDP, "%s(), price of %s/%s is 0, ignore\n", assetSymbol, quoteSymbol);
+        return true;
+    }
+
+    uint64_t fcoinMedianPrice = tx.median_prices[CoinPricePair(SYMB::WGRT, quoteSymbol)];
+    if (fcoinMedianPrice == 0) {
+        LogPrint(BCLog::CDP, "%s(), price of fcoin(WGRT/USD) is 0, ignore\n");
+        return true;
+    }
+
+    // 1. Check Global Collateral Ratio floor & Collateral Ceiling if reached
+    uint64_t globalCollateralRatioFloor = 0;
+    // TODO: get cdp global collateral ratio floor
+    // if (!cw.sysParamCache.GetParam(SysParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+    //     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read global collateral ratio floor error"),
+    //                     READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
+    // }
+
+    // check global collateral ratio
+    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
+        LogPrint(BCLog::CDP, "CBlockPriceMedianTx::ExecuteTx, GlobalCollateralFloorReached!!\n");
+        return true;
+    }
+
+    // 2. get all CDPs to be force settled
+    RatioCDPIdCache::Map cdpMap;
+    uint64_t forceLiquidateRatio = 0;
+    // TODO: get cdp CDP_FORCE_LIQUIDATE_RATIO
+    // if (!cw.sysParamCache.GetParam(SysParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+    //     return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, read force liquidate ratio error"),
+    //                     READ_SYS_PARAM_FAIL, "read-force-liquidate-ratio-error");
+    // }
+
+    // TODO: get liquidating cdp map
+    cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, cdpMap);
+
+    LogPrint(BCLog::CDP, "%s(), tx_cord=%d-%d, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
+            "forceLiquidateRatio: %llu, cdpMap: %llu\n", __func__, context.height, context.index,
+            globalCollateralRatioFloor, bcoinMedianPrice, forceLiquidateRatio, cdpMap.size());
+
+    // 3. force settle each cdp
+    if (cdpMap.size() == 0) {
+        return true;
+    }
+
+    {
+        // TODO: remove me.
+        LogPrint(BCLog::CDP, "%s(), have %llu cdps to force settle, in detail:\n",
+                    __func__, cdpMap.size());
+        for (const auto &cdpKey : cdpMap) {
+            LogPrint(BCLog::CDP, "%s\n", cdpKey.second.ToString());
+        }
+    }
+
+    NET_TYPE netType = SysCfg().NetworkID();
+    if (netType == TEST_NET && context.height < 1800000  && assetSymbol == SYMB::WICC && scoinSymbol == SYMB::WUSD) {
+        // soft fork to compat old data of testnet
+        // TODO: remove me if reset testnet.
+        return ForceLiquidateCDPCompat(bcoinMedianPrice, fcoinMedianPrice, cdpMap);
+    }
+
+    int32_t count             = 0;
+    uint64_t totalCloseoutScoins = 0;
+    uint64_t totalSelloutBcoins  = 0;
+    uint64_t totalInflateFcoins  = 0;
+    for (auto &cdpPair : cdpMap) {
+        auto &cdp = cdpPair.second;
+        if (count + 1 > FORCE_SETTLE_CDP_MAX_COUNT_PER_BLOCK)
+            break;
+
+        // Suppose we have 120 (owed scoins' amount), 30, 50 three cdps, but current risk reserve scoins is 100,
+        // then skip the 120 cdp and settle the 30 and 50 cdp.
+        uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
+        if (currRiskReserveScoins < cdp.total_owed_scoins) {
+            LogPrint(BCLog::CDP, "%s(), currRiskReserveScoins(%lu) < cdp.total_owed_scoins(%lu) !!\n",
+                    __func__, currRiskReserveScoins, cdp.total_owed_scoins);
+            continue;
+        }
+
+        count++;
+        LogPrint(BCLog::CDP,
+                    "%s(), begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
+                    "count: %u\n", __func__,
+                    cdp.ToString(), currRiskReserveScoins, count);
+
+        // a) sell assets to get scoins and put them to risk reserve pool
+
+        uint256 assetSellOrderId;
+        shared_ptr<CDEXOrderDetail> pAssetSellOrder;
+        if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, cdp.total_staked_bcoins, scoinSymbol, assetSellOrderId, pAssetSellOrder))
+            return false;
+
+        totalSelloutBcoins += cdp.total_staked_bcoins;
+
+        // b) inflate WGRT coins to risk reserve pool and sell them to get WUSD  if necessary
+        uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / PRICE_BOOST);
+        if (bcoinsValueInScoin < cdp.total_owed_scoins) {  // 0 ~ 1
+            uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
+            assert(fcoinMedianPrice != 0);
+            uint64_t fcoinsToInflate = uint64_t(double(fcoinsValueToInflate) * PRICE_BOOST / fcoinMedianPrice);
+            // inflate fcoin to fcoin genesis account
+            uint256 fcoinSellOrderId;
+            shared_ptr<CDEXOrderDetail> pFcoinSellOrder;
+            if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, fcoinsToInflate, scoinSymbol, fcoinSellOrderId, pFcoinSellOrder))
+                return false;
+            totalInflateFcoins += fcoinsToInflate;
+
+            LogPrint(BCLog::CDP, "%s(), Force settled CDP: "
+                "Placed BcoinSellMarketOrder:  %s, orderId: %s\n"
+                "Placed FcoinSellMarketOrder:  %s, orderId: %s\n"
+                "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n", __func__,
+                pAssetSellOrder->ToString(), assetSellOrderId.GetHex(),
+                pFcoinSellOrder->ToString(), fcoinSellOrderId.GetHex(),
+                currRiskReserveScoins, currRiskReserveScoins - cdp.total_owed_scoins);
+        } else  {  // 1 ~ 1.04
+            // The sold assets are sufficient to pay off the debt
+            LogPrint(BCLog::CDP, "%s(), Force settled CDP: "
+                "Placed BcoinSellMarketOrder: %s, orderId: %s\n"
+                "No need to infate WGRT coins: %llu vs %llu\n"
+                "prevRiskReserveScoins: %lu -> currRiskReserveScoins: %lu\n", __func__,
+                pAssetSellOrder->ToString(), assetSellOrderId.GetHex(),
+                bcoinsValueInScoin, cdp.total_owed_scoins,
+                currRiskReserveScoins, currRiskReserveScoins - cdp.total_owed_scoins);
+        }
+
+        // c) Close the CDP
+        const CUserCDP &oldCDP = cdp;
+        cw.cdpCache.EraseCDP(oldCDP, cdp);
+        if (SysCfg().GetArg("-persistclosedcdp", false)) {
+            if (!cw.closedCdpCache.AddClosedCdpIndex(oldCDP.cdpid, uint256(), CDPCloseType::BY_FORCE_LIQUIDATE)) {
+                LogPrint(BCLog::ERROR, "persistclosedcdp add failed for force-liquidated cdpid (%s)", oldCDP.cdpid.GetHex());
+            }
+        }
+
+        totalCloseoutScoins += cdp.total_owed_scoins;
+    }
+
+    if (count > 0) {
+        receipts.emplace_back(fcoinGenesisAccount.regid, nullId, scoinSymbol, totalCloseoutScoins,
+                                ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
+
+        receipts.emplace_back(nullId, fcoinGenesisAccount.regid, assetSymbol, totalSelloutBcoins,
+                                ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE);
+
+        receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
+                                ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
+    }
+
+    return true;
+}
+
+
+bool CCdpForcedLiquidater::SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
+    uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut) {
+
+    if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::ADD_FREE, amount)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), add account balance failed", __func__),
+                            UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
+    }
+    // freeze account asset for selling
+    if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::FREEZE, amount)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), account has insufficient funds", __func__),
+                            UPDATE_ACCOUNT_FAIL, "account-insufficient");
+    }
+
+    pOrderOut = dex::CSysOrder::CreateSellMarketOrder(
+        CTxCord(context.height, context.index), coinSymbol, assetSymbol, amount);
+    orderId = GenOrderId(cdp, assetSymbol);
+    if (!context.pCw->dexCache.CreateActiveOrder(orderId, *pOrderOut)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), create sys sell market order failed, cdpid=%s, "
+                "assetSymbol=%s, coinSymbol=%s, amount=%llu",
+                __func__, cdp.cdpid.ToString(), assetSymbol, coinSymbol, amount),
+                CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
+    }
+    return true;
+}
+
+
+uint256 CCdpForcedLiquidater::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol) {
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << cdp.cdpid << assetSymbol;
     return ss.GetHash();
 }
 
-bool CBlockPriceMedianTx::ForceLiquidateCDPCompat(CTxExecuteContext &context, uint64_t bcoinMedianPrice,
-    uint64_t fcoinMedianPrice, RatioCDPIdCache::Map &cdps) {
+
+bool CCdpForcedLiquidater::ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice,
+    RatioCDPIdCache::Map &cdps) {
 
     int32_t cdpIndex             = 0;
     uint64_t totalCloseoutScoins = 0;
     uint64_t totalSelloutBcoins  = 0;
     uint64_t totalInflateFcoins  = 0;
-    vector<CReceipt> receipts;
-    CAccount fcoinGenesisAccount;
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
-    const uint256 &txid = GetHash();
+    const uint256 &txid = tx.GetHash();
 
     // sort by CUserCDP::operator<()
     set<CUserCDP> cdpSet;
@@ -271,7 +368,6 @@ bool CBlockPriceMedianTx::ForceLiquidateCDPCompat(CTxExecuteContext &context, ui
         cdpSet.insert(cdpPair.second);
     }
 
-    cw.accountCache.GetFcoinGenesisAccount(fcoinGenesisAccount);
     uint64_t currRiskReserveScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     uint32_t orderIndex            = 0;
     for (auto &cdp : cdpSet) {
@@ -370,72 +466,31 @@ bool CBlockPriceMedianTx::ForceLiquidateCDPCompat(CTxExecuteContext &context, ui
         totalCloseoutScoins += cdp.total_owed_scoins;
     }
 
-    // 4. update fcoin genesis account
+    // 4. operate fcoin genesis account
     uint64_t prevScoins = fcoinGenesisAccount.GetToken(SYMB::WUSD).free_amount;
     assert(prevScoins >= currRiskReserveScoins);
     if (!fcoinGenesisAccount.OperateBalance(SYMB::WUSD, SUB_FREE, prevScoins - currRiskReserveScoins)) {
         return state.DoS(100, ERRORMSG("%s(), opeate fcoin genesis account failed", __FUNCTION__),
                             UPDATE_ACCOUNT_FAIL, "operate-fcoin-genesis-account-failed");
     }
-    cw.accountCache.SaveAccount(fcoinGenesisAccount);
 
-    if (totalCloseoutScoins > 0) {
-        receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalCloseoutScoins,
-                                ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
-    }
+    receipts.emplace_back(fcoinGenesisAccount.regid, nullId, SYMB::WUSD, totalCloseoutScoins,
+                            ReceiptCode::CDP_TOTAL_CLOSEOUT_SCOIN_FROM_RESERVE);
+    receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WICC, totalSelloutBcoins,
+                            ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE);
+    receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
+                            ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
 
-    if (totalSelloutBcoins > 0) {
-        receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WICC, totalSelloutBcoins,
-                                ReceiptCode::CDP_TOTAL_ASSET_TO_RESERVE);
-    }
-
-    if (totalInflateFcoins > 0) {
-        receipts.emplace_back(nullId, fcoinGenesisAccount.regid, SYMB::WGRT, totalInflateFcoins,
-                                ReceiptCode::CDP_TOTAL_INFLATE_FCOIN_TO_RESERVE);
-    }
-
-    if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("%s(), set tx receipts failed!! txid=%s",
-                        __FUNCTION__, GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
 
+
 // gen orderid compat with testnet old data
-// Generally, index is an auto increment variable.
+// Generally, index is an auto increase variable.
 // TODO: remove me if reset testnet.
-uint256 CBlockPriceMedianTx::GenOrderIdCompat(const uint256 &txid, uint32_t index) {
+uint256 CCdpForcedLiquidater::GenOrderIdCompat(const uint256 &txid, uint32_t index) {
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << txid << VARINT(index);
     return ss.GetHash();
 }
-
-string CBlockPriceMedianTx::ToString(CAccountDBCache &accountCache) {
-    string pricePoints;
-    for (const auto item : median_prices) {
-        pricePoints += strprintf("{coin_symbol:%s, price_symbol:%s, price:%lld}", item.first.first, item.first.second,
-                                 item.second);
-    }
-
-    return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, median_prices=%s, valid_height=%d",
-                     GetTxType(nTxType), GetHash().GetHex(), nVersion, txUid.ToString(), llFees, pricePoints,
-                     valid_height);
-}
-
-Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
-
-    Array pricePointArray;
-    for (const auto &item : median_prices) {
-        Object subItem;
-        subItem.push_back(Pair("coin_symbol",     item.first.first));
-        subItem.push_back(Pair("price_symbol",    item.first.second));
-        subItem.push_back(Pair("price",           item.second));
-        pricePointArray.push_back(subItem);
-    }
-    result.push_back(Pair("median_price_points",   pricePointArray));
-
-    return result;
-}
-
-PriceMap CBlockPriceMedianTx::GetMedianPrice() const { return median_prices; }
