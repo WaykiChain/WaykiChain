@@ -28,7 +28,9 @@ enum SysParamType : uint8_t {
     DEX_OPERATOR_REGISTER_FEE               = 21,
     DEX_OPERATOR_UPDATE_FEE                 = 22,
     PROPOSAL_EXPIRE_BLOCK_COUNT             = 23,
-    TOTAL_DELEGATE_COUNT                    = 24
+    TOTAL_DELEGATE_COUNT                    = 24,
+
+    TRANSFER_SCOIN_RESERVE_FEE_RATIO        = 25,
 
 };
 
@@ -46,7 +48,8 @@ static const unordered_map<string, std::tuple<string,SysParamType>> paramNameToS
         {"DEX_OPERATOR_REGISTER_FEE",                      make_tuple("U", DEX_OPERATOR_REGISTER_FEE)               },
         {"DEX_OPERATOR_UPDATE_FEE",                        make_tuple("V", DEX_OPERATOR_UPDATE_FEE)                 },
         {"PROPOSAL_EXPIRE_BLOCK_COUNT",                    make_tuple("W", PROPOSAL_EXPIRE_BLOCK_COUNT)             },
-        {"TOTAL_DELEGATE_COUNT",                           make_tuple("X", TOTAL_DELEGATE_COUNT)                    }
+        {"TOTAL_DELEGATE_COUNT",                           make_tuple("X", TOTAL_DELEGATE_COUNT)                    },
+        {"TRANSFER_SCOIN_RESERVE_FEE_RATIO",               make_tuple("Y", TRANSFER_SCOIN_RESERVE_FEE_RATIO)        },
 };
 
 struct SysParamTypeHash {
@@ -67,7 +70,8 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t,string >, S
         { DEX_OPERATOR_REGISTER_FEE,                make_tuple("U",  1100 * COIN,  "DEX_OPERATOR_REGISTER_FEE")               }, // dex operator register fee = 1100 WICC
         { DEX_OPERATOR_UPDATE_FEE,                  make_tuple("V",  110 * COIN,   "DEX_OPERATOR_UPDATE_FEE")                 },  // dex operator update fee = 110 WICC
         { PROPOSAL_EXPIRE_BLOCK_COUNT,              make_tuple("W",  1200,         "PROPOSAL_EXPIRE_BLOCK_COUNT")             },   //
-        { TOTAL_DELEGATE_COUNT,                     make_tuple("X",  11,           "TOTAL_DELEGATE_COUNT")                    }
+        { TOTAL_DELEGATE_COUNT,                     make_tuple("X",  11,           "TOTAL_DELEGATE_COUNT")                    },
+        { TRANSFER_SCOIN_RESERVE_FEE_RATIO,         make_tuple("Y",  0,            "TRANSFER_SCOIN_RESERVE_FEE_RATIO")        },  // WUSD friction fee to risk reserve
 };
 
 

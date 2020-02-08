@@ -143,11 +143,10 @@ bool CMulsigTx::ExecuteTx(CTxExecuteContext &context) {
         uint64_t actualCoinsToSend = transfer.coin_amount;
         if (transfer.coin_symbol == SYMB::WUSD) {  // if transferring WUSD, must pay friction fees to the risk reserve
             uint64_t riskReserveFeeRatio;
-            //TODO resolve error
-            /*if (!cw.sysParamCache.GetParam(CDP_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
-                return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, transfers[%d], read CDP_SCOIN_RESERVE_FEE_RATIO error", i),
+            if (!cw.sysParamCache.GetParam(TRANSFER_SCOIN_RESERVE_FEE_RATIO, riskReserveFeeRatio)) {
+                return state.DoS(100, ERRORMSG("CMulsigTx::ExecuteTx, transfers[%d], read TRANSFER_SCOIN_RESERVE_FEE_RATIO error", i),
                                 READ_SYS_PARAM_FAIL, "bad-read-sysparamdb");
-            }*/
+            }
             uint64_t reserveFeeScoins = transfer.coin_amount * riskReserveFeeRatio / RATIO_BOOST;
             if (reserveFeeScoins > 0) {
                 actualCoinsToSend -= reserveFeeScoins;

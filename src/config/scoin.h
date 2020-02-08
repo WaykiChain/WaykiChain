@@ -46,7 +46,6 @@ static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 
 enum CdpParamType : uint8_t {
     NULL_CDP_PARAM_TYPE                     = 0,
-    CDP_SCOIN_RESERVE_FEE_RATIO             = 1,
     CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    = 2,
     CDP_GLOBAL_COLLATERAL_RATIO_MIN         = 3,
     CDP_START_COLLATERAL_RATIO              = 4,
@@ -65,7 +64,6 @@ enum CdpParamType : uint8_t {
 
 static const unordered_map<string, std::tuple<string,CdpParamType>> paramNameToCdpParamTypeMap = {
 
-        {"CDP_SCOIN_RESERVE_FEE_RATIO",                    make_tuple("A", CDP_SCOIN_RESERVE_FEE_RATIO)             },
         {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           make_tuple("B", CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT)    },
         {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                make_tuple("C", CDP_GLOBAL_COLLATERAL_RATIO_MIN)         },
         {"CDP_START_COLLATERAL_RATIO",                     make_tuple("D", CDP_START_COLLATERAL_RATIO)              },
@@ -86,7 +84,6 @@ struct CdpParamTypeHash {
 };
 
 static const unordered_map<CdpParamType, std::tuple<string, uint64_t,string >, CdpParamTypeHash> CdpParamTable = {
-        { CDP_SCOIN_RESERVE_FEE_RATIO,              make_tuple("A",  0,            "CDP_SCOIN_RESERVE_FEE_RATIO")             },  // WUSD friction fee to risk reserve
         { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple("B",  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
         { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple("C",  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
         { CDP_START_COLLATERAL_RATIO,               make_tuple("D",  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
