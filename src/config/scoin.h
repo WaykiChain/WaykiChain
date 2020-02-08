@@ -97,6 +97,11 @@ static const unordered_map<CdpParamType, std::tuple<string, uint64_t,string >, C
         { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple("L",  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            }  // min penalty fee = 10
 };
 
+inline const string& GetCdpParamName(CdpParamType paramType) {
+    auto it = CdpParamTable.find(paramType);
+    if (it != CdpParamTable.end())
+        return std::get<2>(it->second);
+}
 
 class CCdpCoinPair {
 public:

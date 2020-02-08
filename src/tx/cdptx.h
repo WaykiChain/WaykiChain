@@ -182,8 +182,8 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 
 private:
-    bool ProcessPenaltyFees(const CTxCord &txCord, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
-        CCacheWrapper &cw, CValidationState &state, vector<CReceipt> &receipts);
+    bool ProcessPenaltyFees(CTxExecuteContext &context, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
+        vector<CReceipt> &receipts);
 
 private:
     uint256     cdp_txid;            // target CDP to liquidate
