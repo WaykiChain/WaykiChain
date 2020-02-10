@@ -101,8 +101,8 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitparamgovernproposal \"addr\" \"param_name\" \"param_value\" [\"fee\"]\n"
-                "create proposal about param govern\n"
+                "submitcdpparamgovernproposal \"addr\" \"param_name\" \"param_value\" \"bcoin_symbole\" \"scoin_symbol\" [\"fee\"]\n"
+                "create proposal about cdp  param govern\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"param_name\":       (string, required) the name of param, the param list can be found in document \n"
@@ -111,9 +111,9 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
                 "5.\"scoin_symbo\":      (string,required) the stable coin symbol\n"
                 "6.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
+                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC:1:WI")
+                + HelpExampleRpc("submitcdpparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC WUSD WICC:1:WI")
 
         );
 

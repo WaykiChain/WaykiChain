@@ -96,7 +96,8 @@ extern Value getdexorderfee(const Array& params, bool fHelp);
 
 /*************************** Proposal ***********************************/
 extern Value submitparamgovernproposal(const Array& params, bool fHelp) ;
-extern Value submitgovernerupdateproposal(const Array& params, bool fHelp) ;
+
+extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 extern Value submitproposalassenttx(const Array& params, bool fHelp) ;
@@ -222,7 +223,6 @@ extern Value getabiwasm(const json_spirit::Array& params, bool fHelp);
 extern Value gettxtrace(const json_spirit::Array& params, bool fHelp);
 extern Value abidefjsontobinwasm(const json_spirit::Array& params, bool fHelp);
 
-extern Value submitparamgovernproposal(const Array& params, bool fHelp) ; //in rpcproposal.cpp
 extern Value submitgovernerupdateproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
