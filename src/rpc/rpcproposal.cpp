@@ -338,9 +338,9 @@ Value getsysparam(const Array& params, bool fHelp){
                 "1.\"param_name\":      (string, optional) param name, list all parameters when it's absent \n"
 
                 "\nExamples:\n"
-                + HelpExampleCli("getsysparam", "ASSET_UPDATE_FEE")
+                + HelpExampleCli("getsysparam", "")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getsysparam", "ASSET_UPDATE_FEE")
+                + HelpExampleRpc("getsysparam", "")
         );
 
     }
@@ -371,6 +371,63 @@ Value getsysparam(const Array& params, bool fHelp){
 
             obj.push_back(Pair(paramName, pv)) ;
 
+        }
+        return obj ;
+    }
+
+
+}
+
+
+Value getcdpparam(const Array& params, bool fHelp){
+
+    if(fHelp || params.size() > 1){
+
+        throw runtime_error(
+                "getcdpparam \"bcoin_symbol\" \"scoin_symbol\" \"param_name\" \n"
+                "create proposal about param govern\n"
+                "\nArguments:\n"
+                "1.\"bcoin_symbol\":     (string,required) the base coin symbol\n"
+                "2.\"scoin_symbol\":     (string,required) the stable coin symbol\n"
+                "3.\"param_name\":      (string, optional) param name, list all parameters when it's absent \n"
+
+                "\nExamples:\n"
+                + HelpExampleCli("getcdpparam", "WICC WUSD")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("getcdpparam", "WICC WUSD")
+        );
+
+    }
+
+    string bcoinSymbol = params[1].get_str();
+    string scoinSymbol = params[2].get_str();
+    CCdpCoinPair coinPair = CCdpCoinPair(bcoinSymbol,scoinSymbol) ;
+
+    if(params.size() == 1){
+
+        string paramName = params[0].get_str() ;
+        CdpParamType cpt ;
+        auto itr = paramNameToCdpParamTypeMap.find(paramName) ;
+        if( itr == paramNameToCdpParamTypeMap.end()){
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
+        }
+        cpt = std::get<1>(itr->second) ;
+
+        uint64_t pv ;
+        if(!pCdMan->pSysParamCache->GetCdpParam(coinPair,cpt, pv)){
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error or coin pair error");
+        }
+
+        Object obj ;
+        obj.push_back(Pair(paramName, pv));
+        return obj;
+    }else{
+        Object obj;
+        for(auto kv:paramNameToCdpParamTypeMap){
+            auto paramName = kv.first ;
+            uint64_t pv ;
+            pCdMan->pSysParamCache->GetCdpParam(coinPair,std::get<1>(kv.second), pv);
+            obj.push_back(Pair(paramName, pv)) ;
         }
         return obj ;
     }

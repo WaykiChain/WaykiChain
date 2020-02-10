@@ -150,6 +150,30 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, *pBaseTx);
 }
 
+Value submitutxotx(const Array& params, bool fHelp ){
+
+    if(fHelp || params.size() <1){
+        throw  runtime_error("");
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+
+
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, UTXO_TRANSFER_TX );
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    if(!account.nickid.IsEmpty()){
+        throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
+    }
+
+    auto pBaseTx = std::make_shared<CCoinUTXOTx>();
+
+
+    return SubmitTx(account.keyid, *pBaseTx);
+}
+
+
 
 Value submitcontractdeploytx(const Array& params, bool fHelp) {
     if (fHelp || params.size() < 3 || params.size() > 5) {
