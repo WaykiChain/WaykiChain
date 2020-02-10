@@ -70,7 +70,7 @@ namespace dbk {
         DEFINE( SYS_PARAM,            "sysp",   SYSPARAM )       /* conf{$ParamName} --> $ParamValue */ \
         DEFINE( MINER_FEE,            "minf",   SYSPARAM )         \
         DEFINE( CDP_PARAM,            "cdpp",   SYSPARAM )         \
-        DEFINE( INTEREST_HISTORY,    "itht",   SYSPARAM )         \
+        DEFINE( CDP_INTEREST_PARAMS,  "cips",   SYSPARAM )       /* [prefix]*/  \
         DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )       /* govn --> $list of governers */ \
         DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )       /* pgvn{txid} --> proposal */ \
         DEFINE( GOVN_SECOND,          "sgvn",   SYSGOVERN )       /* sgvn{txid}{regid} --> 1 */ \

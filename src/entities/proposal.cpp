@@ -60,7 +60,7 @@ bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
         if(pa.first == CdpParamType ::CDP_INTEREST_PARAM_A
            || pa.first == CdpParamType::CDP_INTEREST_PARAM_B){
 
-            if(!cw.sysParamCache.SetABParamChange(coinPair, std::get<0>(itr->second), context.height, pa.second)){
+            if(!cw.sysParamCache.SetCdpInterestParam(coinPair, CdpParamType(pa.first), context.height, pa.second)){
                 return false ;
             }
 

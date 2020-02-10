@@ -58,38 +58,50 @@ static uint64_t CalcCollateralRatio(uint64_t assetAmount, uint64_t scoinAmount, 
  *
  *  ==> ratio = a / Log10 (b+N)
  */
-bool ComputeCDPInterest(const int32_t currBlockHeight, const uint32_t cdpLastBlockHeight, CCacheWrapper &cw,
-                        const uint64_t total_owed_scoins, uint64_t &interestOut) {
-    if (total_owed_scoins == 0) {
-        interestOut = 0;
+uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t beginHeight, const uint32_t endHeight,
+                            uint64_t A, uint64_t B) {
 
+
+    int32_t blockInterval = endHeight - beginHeight;
+    int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / ::GetDayBlockCount(endHeight)));
+
+    uint64_t N                = total_owed_scoins;
+    double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
+    uint64_t interest               = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
+
+    LogPrint(BCLog::CDP, "ComputeCDPInterest, beginHeight=%d, endHeight=%d, loanedDays=%d, A=%llu, B=%llu, N="
+             "%llu, annualInterestRate=%f, interest=%llu\n",
+             beginHeight, endHeight, loanedDays, A, B, N, annualInterestRate, interest);
+
+    return interest;
+}
+
+/**
+ *  Interest Ratio Formula: ( a / Log10(b + N) )
+ *
+ *  ==> ratio = a / Log10 (b+N)
+ */
+bool ComputeCDPInterest(CTxExecuteContext &context, const CCdpCoinPair& coinPair, uint64_t total_owed_scoins,
+        int32_t beginHeight, int32_t endHeight, uint64_t &interestOut) {
+    if (total_owed_scoins == 0 || beginHeight >= endHeight) {
+        interestOut = 0;
         return true;
     }
 
-    int32_t blockInterval = currBlockHeight - cdpLastBlockHeight;
-    int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / ::GetDayBlockCount(currBlockHeight)));
+    list<CCdpInterestParamChange> changes;
+    if (!context.pCw->sysParamCache.GetCdpInterestParamChanges(coinPair, beginHeight, endHeight, changes)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), get cdp interest param changes error! coinPiar=%s",
+                __func__, coinPair.ToString()), REJECT_INVALID, "get-cdp-interest-param-changes-error");
+    }
 
-    uint64_t A;
+    interestOut = 0;
+    for (auto &change : changes) {
+        interestOut += ComputeCDPInterest(total_owed_scoins, change.begin_height, change.end_height,
+            change.param_a, change.param_b);
+    }
 
-    //TODO resolve error
-    /*
-    if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_A, A))
-        return false;*/
-
-    uint64_t B;
-    //TODO resolve error
-
-    /*  if (!cw.sysParamCache.GetParam(CDP_INTEREST_PARAM_B, B))
-        return false;
-     */
-    uint64_t N                = total_owed_scoins;
-    double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
-    interestOut               = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
-
-    LogPrint(BCLog::CDP, "ComputeCDPInterest, currBlockHeight: %d, cdpLastBlockHeight: %d, loanedDays: %d, A: %llu, B: %llu, N: "
-             "%llu, annualInterestRate: %f, interestOut: %llu\n",
-             currBlockHeight, cdpLastBlockHeight, loanedDays, A, B, N, annualInterestRate, interestOut);
-
+    LogPrint(BCLog::CDP, "ComputeCDPInterest, beginHeight: %d, endHeight: %d, totalInterest: %llu\n",
+             beginHeight, endHeight, interestOut);
     return true;
 }
 
@@ -258,9 +270,9 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         }
 
         uint64_t scoinsInterestToRepay = 0;
-        if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, ComputeCDPInterest error!"),
-                             REJECT_INVALID, "compute-interest-error");
+        if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
+                scoinsInterestToRepay)) {
+            return false;
         }
 
         uint64_t ownerScoins = account.GetToken(scoin_symbol).free_amount;
@@ -480,9 +492,9 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     uint64_t scoinsInterestToRepay = 0;
-    if (!ComputeCDPInterest(context.height, cdp.block_height, cw, cdp.total_owed_scoins, scoinsInterestToRepay)) {
-        return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, ComputeCDPInterest error!"),
-                         REJECT_INVALID, "compute-cdp-interest-error");
+    if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
+            scoinsInterestToRepay)) {
+        return false;
     }
 
     if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
