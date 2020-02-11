@@ -227,6 +227,25 @@ public:
         }
     }
 
+    friend bool operator<(const CUserID &id1, const CUserID &id2) {
+        const std::type_info& type1 = id1.type();
+        const std::type_info& type2 = id2.type();
+        if (type1 != type2) {
+            return type1.hash_code() < type2.hash_code();
+        }
+        if (id1.is<CRegID>()) {
+            return id1.get<CRegID>() < id2.get<CRegID>();
+        } else if (id1.is<CKeyID>()) {
+            return id1.get<CKeyID>() < id2.get<CKeyID>();
+        } else if (id1.is<CPubKey>()) {
+            return id1.get<CPubKey>() < id2.get<CPubKey>();
+        } else if (id1.is<CNickID>()) {
+            return id1.get<CNickID>() < id2.get<CNickID>();
+        } else {  // CNullID
+            return false;
+        }
+    }
+
     json_spirit::Object ToJson() const {
         json_spirit::Object obj;
         string id = ToString();

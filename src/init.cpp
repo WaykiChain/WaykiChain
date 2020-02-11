@@ -311,6 +311,9 @@ string HelpMessage() {
     strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
 
     strUsage += "  -rpcblacklist=<method>          " + _("Add Banned RPC method to blacklist ") + "\n";
+#ifdef TX_ACCOUNT_BLACKLIST
+    strUsage += "  -txaccountblacklist=<method>          " + _("tx account blacklist in mining, support multi setting") + "\n";
+#endif //TX_ACCOUNT_BLACKLIST
     return strUsage;
 }
 

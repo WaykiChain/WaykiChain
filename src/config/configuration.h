@@ -18,6 +18,12 @@
 
 using namespace std;
 
+/**
+ * define TX_ACCOUNT_BLACKLIST to support tx account black filter in mining processing
+ */
+#define TX_ACCOUNT_BLACKLIST 1
+
+
 class CBlockIndex;
 class uint256;
 class G_CONFIG_TABLE;

@@ -405,6 +405,55 @@ static bool CreateStableCoinGenesisBlock(std::unique_ptr<CBlock> &pBlock) {
     return true;
 }
 
+#ifdef TX_ACCOUNT_BLACKLIST
+
+class CMiningTxAccountFilter {
+public:
+    void Init(CCacheWrapper &cw) {
+        auto blackList = SysCfg().GetMultiArgs("-txaccountblacklist");
+        for (auto blackItem : blackList) {
+            auto pUserId = CUserID::ParseUserId(blackItem);
+            if (!pUserId) {
+                LogPrint("MINER", "[WARN] address=%s of txaccountblacklist is not a valid user id\n", blackItem);
+                continue;
+            }
+            shared_ptr<CAccount> pAccount = make_shared<CAccount>();
+            if (!cw.accountCache.GetAccount(*pUserId, *pAccount)) {
+                LogPrint("MINER", "[WARN] the account of address=%s of txaccountblacklist does not exist\n", blackItem);
+                continue;
+            }
+
+            LogPrint("MINER", "[trace] found tx account blacklist, blackItem=%s, regid=%s, addr=%s\n", blackItem,
+                pAccount->regid.ToString(), pAccount->keyid.ToAddress());
+            // pAccount->keyid is not empty
+            black_account_map[pAccount->keyid] = pAccount;
+            if (!pAccount->regid.IsEmpty())
+                black_account_map[pAccount->regid] = pAccount;
+            if (!pAccount->owner_pubkey.IsEmpty())
+                black_account_map[pAccount->owner_pubkey] = pAccount;
+            if (!pAccount->nickid.IsEmpty())
+                black_account_map[pAccount->nickid] = pAccount;
+        }
+    }
+
+    bool CheckValid(CBaseTx &tx) {
+        if (!tx.txUid.IsEmpty()) {
+            auto it = black_account_map.find(tx.txUid);
+            if (it != black_account_map.end()) {
+                LogPrint("MINER", "[forbid]the tx uid=%s is forbid by tx account black! addr=%s\n", tx.txUid.ToDebugString(),
+                    it->second->keyid.ToAddress());
+                return false;
+            }
+        }
+        return true;
+    }
+private:
+    std::map< CUserID, shared_ptr<CAccount> > black_account_map;
+
+};
+
+#endif //TX_ACCOUNT_BLACKLIST
+
 static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper &cwIn, std::unique_ptr<CBlock> &pBlock) {
     pBlock->vptx.push_back(std::make_shared<CUCoinBlockRewardTx>());
 
@@ -438,6 +487,11 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
         LogPrint("MINER", "CreateNewBlockStableCoinRelease() : got %lu transaction(s) sorted by priority rules\n",
                  txPriorities.size());
 
+#ifdef TX_ACCOUNT_BLACKLIST
+        CMiningTxAccountFilter filter;
+        filter.Init(cwIn);
+#endif //TX_ACCOUNT_BLACKLIST
+
         // Collect transactions into the block.
         for (auto itor = txPriorities.rbegin(); itor != txPriorities.rend(); ++itor) {
 
@@ -460,6 +514,14 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
 
             try {
                 CValidationState state;
+
+#ifdef TX_ACCOUNT_BLACKLIST
+                if (!filter.CheckValid(*pBaseTx)) {
+                    LogPrint("MINER", "%s(), the tx is forbid by txUid=%s\n",
+                             __func__, pBaseTx->txUid.ToDebugString());
+                    continue;
+                }
+#endif //TX_ACCOUNT_BLACKLIST
 
                 pBaseTx->nFuelRate = fuelRate;
 
