@@ -488,6 +488,20 @@ bool AppInit(boost::thread_group &threadGroup) {
             LogPrint("INFO", "AppInit : parameter interaction: -salvagewallet=1 -> setting -rescan=1\n");
     }
 
+#ifdef TX_ACCOUNT_BLACKLIST
+
+    auto blackList = SysCfg().GetMultiArgs("-txaccountblacklist");
+    for (auto blackItem : blackList) {
+        auto pUserId = CUserID::ParseUserId(blackItem);
+        if (!pUserId) {
+            LogPrint("ERROR", "[WARN] address=%s of txaccountblacklist is not a valid user id\n", blackItem);
+            continue;
+        }
+        GetTxUserBlacklist().insert(*pUserId);
+    }
+
+#endif //TX_ACCOUNT_BLACKLIST
+
     // Make sure enough file descriptors are available
     int32_t nBind   = max((int32_t)SysCfg().IsArgCount("-bind"), 1);
     nMaxConnections = SysCfg().GetArg("-maxconnections", 125);

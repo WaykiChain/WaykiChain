@@ -257,6 +257,11 @@ static const CRPCCommand vRPCCommands[] =
     { "getminedblocks",         &getminedblocks,         true,      true,       false },
     { "getminerbyblocktime",    &getminerbyblocktime,    true,      true,       false },
 
+#ifdef TX_ACCOUNT_BLACKLIST
+    { "settxaccountblacklist",  &settxaccountblacklist,  true,      true,       false },
+    { "gettxaccountblacklist",  &gettxaccountblacklist,  true,      true,       false },
+#endif //TX_ACCOUNT_BLACKLIST
+
     /* Raw transactions */
     { "genmulsigtx",            &genmulsigtx,            true,      false,     false },
 

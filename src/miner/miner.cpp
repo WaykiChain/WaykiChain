@@ -21,6 +21,15 @@
 
 extern CWallet *pWalletMain;
 extern void SetMinerStatus(bool bStatus);
+
+#ifdef TX_ACCOUNT_BLACKLIST
+std::set<CUserID> g_tx_user_blacklist;
+
+std::set<CUserID>& GetTxUserBlacklist() {
+    return g_tx_user_blacklist;
+}
+#endif //TX_ACCOUNT_BLACKLIST
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // CoinMiner
@@ -410,45 +419,44 @@ static bool CreateStableCoinGenesisBlock(std::unique_ptr<CBlock> &pBlock) {
 class CMiningTxAccountFilter {
 public:
     void Init(CCacheWrapper &cw) {
-        auto blackList = SysCfg().GetMultiArgs("-txaccountblacklist");
-        for (auto blackItem : blackList) {
-            auto pUserId = CUserID::ParseUserId(blackItem);
-            if (!pUserId) {
-                LogPrint("MINER", "[WARN] address=%s of txaccountblacklist is not a valid user id\n", blackItem);
+        for (auto &userId : g_tx_user_blacklist) {
+            if (userId.IsEmpty() || black_account_set.count(userId) > 0)
                 continue;
-            }
+
             shared_ptr<CAccount> pAccount = make_shared<CAccount>();
-            if (!cw.accountCache.GetAccount(*pUserId, *pAccount)) {
-                LogPrint("MINER", "[WARN] the account of address=%s of txaccountblacklist does not exist\n", blackItem);
+            if (!cw.accountCache.GetAccount(userId, *pAccount)) {
+                LogPrint("MINER", "[WARN] the account of userId=%s does not exist\n",
+                    userId.ToString());
+                black_account_set.insert(pAccount->keyid);
                 continue;
             }
 
-            LogPrint("MINER", "[trace] found tx account blacklist, blackItem=%s, regid=%s, addr=%s\n", blackItem,
+            LogPrint("MINER", "[trace] found tx account blacklist, userId=%s, regid=%s, addr=%s\n",
+                userId.ToString(),
                 pAccount->regid.ToString(), pAccount->keyid.ToAddress());
             // pAccount->keyid is not empty
-            black_account_map[pAccount->keyid] = pAccount;
+            black_account_set.insert(pAccount->keyid);
             if (!pAccount->regid.IsEmpty())
-                black_account_map[pAccount->regid] = pAccount;
+                black_account_set.insert(pAccount->regid);
             if (!pAccount->owner_pubkey.IsEmpty())
-                black_account_map[pAccount->owner_pubkey] = pAccount;
+                black_account_set.insert(pAccount->owner_pubkey);
             if (!pAccount->nickid.IsEmpty())
-                black_account_map[pAccount->nickid] = pAccount;
+                black_account_set.insert(pAccount->nickid);
         }
     }
 
     bool CheckValid(CBaseTx &tx) {
         if (!tx.txUid.IsEmpty()) {
-            auto it = black_account_map.find(tx.txUid);
-            if (it != black_account_map.end()) {
-                LogPrint("MINER", "[forbid]the tx uid=%s is forbid by tx account black! addr=%s\n", tx.txUid.ToDebugString(),
-                    it->second->keyid.ToAddress());
+            if (black_account_set.count(tx.txUid)) {
+                LogPrint("MINER", "[forbid]the tx uid is forbid by tx account black! addr=%s\n",
+                    tx.txUid.ToDebugString());
                 return false;
             }
         }
         return true;
     }
 private:
-    std::map< CUserID, shared_ptr<CAccount> > black_account_map;
+    std::set<CUserID> black_account_set;
 
 };
 
