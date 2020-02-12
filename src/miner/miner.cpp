@@ -456,7 +456,7 @@ public:
         return true;
     }
 private:
-    std::set<CUserID> black_account_set;
+    std::unordered_set<CUserID> black_account_set;
 
 };
 
