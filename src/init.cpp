@@ -490,11 +490,11 @@ bool AppInit(boost::thread_group &threadGroup) {
 
 #ifdef TX_ACCOUNT_BLACKLIST
 
-    auto blackList = SysCfg().GetMultiArgs("-txaccountblacklist");
+    auto blackList = SysCfg().GetMultiArgs("-blacklistaccount");
     for (auto blackItem : blackList) {
         auto pUserId = CUserID::ParseUserId(blackItem);
         if (!pUserId) {
-            LogPrint("ERROR", "[WARN] address=%s of txaccountblacklist is not a valid user id\n", blackItem);
+            LogPrint("ERROR", "[WARN] address=%s of blacklistaccount is not a valid user id\n", blackItem);
             continue;
         }
         GetTxUserBlacklist().insert(*pUserId);
