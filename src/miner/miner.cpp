@@ -23,10 +23,10 @@ extern CWallet *pWalletMain;
 extern void SetMinerStatus(bool bStatus);
 
 #ifdef TX_ACCOUNT_BLACKLIST
-std::set<CUserID> g_tx_user_blacklist;
+std::set<CUserID> g_blacklist_uids;
 
 std::set<CUserID>& GetTxUserBlacklist() {
-    return g_tx_user_blacklist;
+    return g_blacklist_uids;
 }
 #endif //TX_ACCOUNT_BLACKLIST
 
@@ -419,7 +419,7 @@ static bool CreateStableCoinGenesisBlock(std::unique_ptr<CBlock> &pBlock) {
 class CMiningTxAccountFilter {
 public:
     void Init(CCacheWrapper &cw) {
-        for (auto &userId : g_tx_user_blacklist) {
+        for (auto &userId : g_blacklist_uids) {
             if (userId.IsEmpty() || blacklist_accounts.count(userId) > 0)
                 continue;
 
