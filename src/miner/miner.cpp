@@ -425,13 +425,13 @@ public:
 
             shared_ptr<CAccount> pAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(userId, *pAccount)) {
-                LogPrint("MINER", "[WARN] the account of userId=%s does not exist\n",
+                LogPrint("MINER", "[WARN] the account by userId=%s does not exist\n",
                     userId.ToString());
                 blacklist_accounts.insert(pAccount->keyid);
                 continue;
             }
 
-            LogPrint("MINER", "[trace] found tx account blacklist, userId=%s, regid=%s, addr=%s\n",
+            LogPrint("MINER", "[trace] add blacklist tx account: userId=%s, regid=%s, addr=%s\n",
                 userId.ToString(),
                 pAccount->regid.ToString(), pAccount->keyid.ToAddress());
             // pAccount->keyid is not empty
@@ -448,7 +448,7 @@ public:
     bool CheckIsValid(CBaseTx &tx) {
         if (!tx.txUid.IsEmpty()) {
             if (blacklist_accounts.count(tx.txUid)) {
-                LogPrint("MINER", "[forbid]the tx uid is forbid by tx account black! addr=%s\n",
+                LogPrint("MINER", "[forbid] the tx sender (%s) blacklisted!\n",
                     tx.txUid.ToDebugString());
                 return false;
             }
