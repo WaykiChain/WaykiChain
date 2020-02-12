@@ -355,6 +355,18 @@ const Value& JSON::GetObjectFieldValue(const Value &jsonObj, const string &field
     return jsonValue;
 }
 
+
+bool JSON::GetObjectFieldValue(const Value &jsonObj, const string &fieldName,Value& returnValue) {
+    const Value& jsonValue = find_value(jsonObj.get_obj(), fieldName);
+    if (jsonValue.type() == null_type) {
+
+        return false ;
+    }
+    returnValue = jsonValue ;
+    return true ;
+
+}
+
 const char* JSON::GetValueTypeName(const Value_type &valueType) {
     if (valueType >= 0 && valueType <= json_spirit::Value_type::null_type) {
         return json_spirit::Value_type_name[valueType];

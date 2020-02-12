@@ -160,7 +160,8 @@ extern Value getnetworkinfo(const json_spirit::Array& params, bool fHelp);
 extern Value signmessage(const json_spirit::Array& params, bool fHelp);
 extern Value getcontractassets(const json_spirit:: Array& params, bool fHelp);
 extern Value submitsendtx(const json_spirit::Array& params, bool fHelp);
-extern Value submitutxotx(const json_spirit::Array& params, bool fHelp);
+extern Value submitcreateutxotx(const json_spirit::Array& params, bool fHelp);
+extern Value submitspendutxotx(const Array& params, bool fHelp) ;
 extern Value genmulsigtx(const json_spirit::Array& params, bool fHelp);
 
 extern Value submittxraw(const json_spirit::Array& params, bool fHelp);
