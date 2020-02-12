@@ -420,14 +420,14 @@ class CMiningTxAccountFilter {
 public:
     void Init(CCacheWrapper &cw) {
         for (auto &userId : g_tx_user_blacklist) {
-            if (userId.IsEmpty() || black_account_set.count(userId) > 0)
+            if (userId.IsEmpty() || blacklist_accounts.count(userId) > 0)
                 continue;
 
             shared_ptr<CAccount> pAccount = make_shared<CAccount>();
             if (!cw.accountCache.GetAccount(userId, *pAccount)) {
                 LogPrint("MINER", "[WARN] the account of userId=%s does not exist\n",
                     userId.ToString());
-                black_account_set.insert(pAccount->keyid);
+                blacklist_accounts.insert(pAccount->keyid);
                 continue;
             }
 
@@ -435,19 +435,19 @@ public:
                 userId.ToString(),
                 pAccount->regid.ToString(), pAccount->keyid.ToAddress());
             // pAccount->keyid is not empty
-            black_account_set.insert(pAccount->keyid);
+            blacklist_accounts.insert(pAccount->keyid);
             if (!pAccount->regid.IsEmpty())
-                black_account_set.insert(pAccount->regid);
+                blacklist_accounts.insert(pAccount->regid);
             if (!pAccount->owner_pubkey.IsEmpty())
-                black_account_set.insert(pAccount->owner_pubkey);
+                blacklist_accounts.insert(pAccount->owner_pubkey);
             if (!pAccount->nickid.IsEmpty())
-                black_account_set.insert(pAccount->nickid);
+                blacklist_accounts.insert(pAccount->nickid);
         }
     }
 
-    bool CheckValid(CBaseTx &tx) {
+    bool CheckIsValid(CBaseTx &tx) {
         if (!tx.txUid.IsEmpty()) {
-            if (black_account_set.count(tx.txUid)) {
+            if (blacklist_accounts.count(tx.txUid)) {
                 LogPrint("MINER", "[forbid]the tx uid is forbid by tx account black! addr=%s\n",
                     tx.txUid.ToDebugString());
                 return false;
@@ -456,7 +456,7 @@ public:
         return true;
     }
 private:
-    std::unordered_set<CUserID> black_account_set;
+    std::unordered_set<CUserID> blacklist_accounts;
 
 };
 
@@ -524,9 +524,8 @@ static bool CreateNewBlockStableCoinRelease(int64_t startMiningMs, CCacheWrapper
                 CValidationState state;
 
 #ifdef TX_ACCOUNT_BLACKLIST
-                if (!filter.CheckValid(*pBaseTx)) {
-                    LogPrint("MINER", "%s(), the tx is forbid by txUid=%s\n",
-                             __func__, pBaseTx->txUid.ToDebugString());
+                if (!filter.CheckIsValid(*pBaseTx)) {
+                    LogPrint("MINER", "%s(), txUid=%s blacklisted\n", __func__, pBaseTx->txUid.ToDebugString());
                     continue;
                 }
 #endif //TX_ACCOUNT_BLACKLIST
