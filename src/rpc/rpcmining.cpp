@@ -309,19 +309,19 @@ inline std::string StrToLower(const std::string &str) {
 
 #ifdef TX_ACCOUNT_BLACKLIST
 
-Value settxaccountblacklist(const Array& params, bool fHelp) {
+Value setblacklistaccount(const Array& params, bool fHelp) {
     if (fHelp || (params.size() < 1 || params.size() > 2))
         throw runtime_error(
-            "settxaccountblacklist \"addr\"\n"
+            "setblacklistaccount \"addr\"\n"
             "\nadd/remove tx account blacklist for mining.\n"
             "\nArguments:\n"
             "1. addr         (string, required) address to add to tx account blacklist.\n"
             "2. action       (string, required) add/remove action\n"
             "\nResult: \n"
             "\nExamples:\n" +
-            HelpExampleCli("settxaccountblacklist", "\"0-1\" \"add\"") +
+            HelpExampleCli("setblacklistaccount", "\"0-1\" \"add\"") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("settxaccountblacklist", "\"0-1\", \"add\""));
+            HelpExampleRpc("setblacklistaccount", "\"0-1\", \"add\""));
 
     auto pUserId = CUserID::ParseUserId(params[0].get_str());
     if (!pUserId || pUserId->IsEmpty()) {
@@ -340,17 +340,17 @@ Value settxaccountblacklist(const Array& params, bool fHelp) {
     return Object();
 }
 
-Value gettxaccountblacklist(const Array& params, bool fHelp) {
+Value getblacklistaccounts(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0)
         throw runtime_error(
-            "gettxaccountblacklist\n"
+            "getblacklistaccounts\n"
             "\nget all tx account blacklist.\n"
             "\nArguments:\n"
             "\nResult: tx account blacklist\n"
             "\nExamples:\n" +
-            HelpExampleCli("gettxaccountblacklist", "") +
+            HelpExampleCli("getblacklistaccounts", "") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("gettxaccountblacklist", ""));
+            HelpExampleRpc("getblacklistaccounts", ""));
 
     Object obj;
     Array blacklistArray;
