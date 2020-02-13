@@ -456,7 +456,7 @@ public:
         return true;
     }
 private:
-    std::unordered_set<CUserID> blacklist_accounts;
+    std::set<CUserID> blacklist_accounts;
 
 };
 
