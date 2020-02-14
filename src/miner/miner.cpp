@@ -614,14 +614,15 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, Miner &mi
         if (miner.account.miner_pubkey.IsValid() && pWalletMain->GetKey(miner.account.keyid, miner.key, true)) {
             isMinerKey = true;
         } else if (!pWalletMain->GetKey(miner.account.keyid, miner.key)) {
-            LogPrint(BCLog::MINER, "GetMiner() : [ignore] miner key does not exist in wallet! height=%d, time_ms=%lld, "
+            LogPrint(BCLog::DEBUG, "GetMiner() : [ignore] Not on-duty miner, height=%d, time_ms=%lld, "
                 "regid=%s, addr=%s\n",
                 blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress());
             return false;
         }
     }
-    LogPrint(BCLog::INFO, "GetMiner(), succeed to get the duty miner! height=%d, time_ms=%lld, regid=%s, addr=%s, use_miner_key=%d\n",
+    LogPrint(BCLog::DEBUG, "GetMiner(): on-duty miner, height=%d, time_ms=%lld, regid=%s, addr=%s, use_miner_key=%d\n",
         blockHeight, startMiningMs, miner.delegate.regid.ToString(), miner.account.keyid.ToAddress(), isMinerKey);
+
     return true;
 }
 
