@@ -259,7 +259,7 @@ static const CRPCCommand vRPCCommands[] =
 
 #ifdef TX_ACCOUNT_BLACKLIST
     { "setblacklistaccount",  &setblacklistaccount,  true,      true,       false },
-    { "getblacklistaccounts",  &getblacklistaccounts,  true,      true,       false },
+    { "listblacklistaccounts",  &listblacklistaccounts,  true,      true,       false },
 #endif //TX_ACCOUNT_BLACKLIST
 
     /* Raw transactions */

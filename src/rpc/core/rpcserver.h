@@ -131,7 +131,7 @@ extern json_spirit::Value getminerbyblocktime(const json_spirit::Array& params, 
 
 #ifdef TX_ACCOUNT_BLACKLIST
 extern json_spirit::Value setblacklistaccount(const json_spirit::Array& params, bool fHelp);
-extern json_spirit::Value getblacklistaccounts(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value listblacklistaccounts(const json_spirit::Array& params, bool fHelp);
 #endif //TX_ACCOUNT_BLACKLIST
 
 extern json_spirit::Value getnewaddr(const json_spirit::Array& params, bool fHelp); // in rpcwallet.cpp

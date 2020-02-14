@@ -312,7 +312,7 @@ inline std::string StrToLower(const std::string &str) {
 Value setblacklistaccount(const Array& params, bool fHelp) {
     if (fHelp || (params.size() < 1 || params.size() > 2))
         throw runtime_error(
-            "setblacklistaccount \"addr\"\n"
+            "setblacklistaccount \"addr\" \"action\"\n"
             "\nadd/remove tx account blacklist for mining.\n"
             "\nArguments:\n"
             "1. addr         (string, required) address to add to tx account blacklist.\n"
@@ -340,17 +340,17 @@ Value setblacklistaccount(const Array& params, bool fHelp) {
     return Object();
 }
 
-Value getblacklistaccounts(const Array& params, bool fHelp) {
+Value listblacklistaccounts(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0)
         throw runtime_error(
-            "getblacklistaccounts\n"
-            "\nget all tx account blacklist.\n"
+            "listblacklistaccounts\n"
+            "\nlist all blacklisted accounts to issue new transactions.\n"
             "\nArguments:\n"
             "\nResult: tx account blacklist\n"
             "\nExamples:\n" +
-            HelpExampleCli("getblacklistaccounts", "") +
+            HelpExampleCli("listblacklistaccounts", "") +
             "\nAs json rpc call\n" +
-            HelpExampleRpc("getblacklistaccounts", ""));
+            HelpExampleRpc("listblacklistaccounts", ""));
 
     Object obj;
     Array blacklistArray;
