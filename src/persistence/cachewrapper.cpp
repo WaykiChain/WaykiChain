@@ -208,6 +208,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pLogCache;       pLogCache = nullptr;
     delete pReceiptCache;   pReceiptCache = nullptr;
     delete pSysGovernCache; pSysGovernCache = nullptr;
+    delete pUtxoCache;      pUtxoCache = nullptr;
 
     delete pSysParamDb;     pSysParamDb = nullptr;
     delete pAccountDb;      pAccountDb = nullptr;
@@ -222,6 +223,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pLogDb;          pLogDb = nullptr;
     delete pReceiptDb;      pReceiptDb = nullptr;
     delete pSysGovernDb;    pSysGovernDb = nullptr;
+    delete pUtxoDb;         pUtxoDb = nullptr;
 
     // memory-only cache
     delete pTxCache;        pTxCache = nullptr;
@@ -254,6 +256,8 @@ bool CCacheDBManager::Flush() {
     if (pReceiptCache) pReceiptCache->Flush();
 
     if (pSysGovernCache) pSysGovernCache->Flush();
+
+    if (pUtxoCache) pUtxoCache->Flush();
 
     // Memory only cache, not bother to flush.
     // if (pTxCache)

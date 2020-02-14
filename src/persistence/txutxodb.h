@@ -21,6 +21,7 @@ class CTxUTXODBCache {
 public:
     CTxUTXODBCache() {};
     CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess) {};
+    CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache) {} ;
 
 public:
     bool SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUTXOTx &utxo);
