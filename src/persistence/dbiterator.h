@@ -318,7 +318,7 @@ struct CommonPrefixMatcher {
     // 1/2: make 2 pair key object by 1 prefix
     template<typename T1, typename T2>
     static void MakeKeyByPrefix(const T1 &prefix, std::pair<T1, T2> &keyObj) {
-        keyObj = make_pair<T1, T2>(prefix, db_util::MakeEmpty<T2>());
+        keyObj = pair<T1, T2>(prefix, db_util::MakeEmpty<T2>());
     }
 
     // 2/2: make 2 pair key object by 2 prefix, the 2nd prefix must support partial match
@@ -330,13 +330,13 @@ struct CommonPrefixMatcher {
     // 1/3: make 3 tuple key object by 1 prefix
     template<typename T1, typename T2, typename T3>
     static void MakeKeyByPrefix(const T1 &prefix, std::tuple<T1, T2, T3> &keyObj) {
-        keyObj = make_tuple<T1, T2, T3>(T1(prefix), db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
+        keyObj = tuple<T1, T2, T3>(prefix, db_util::MakeEmpty<T2>(), db_util::MakeEmpty<T3>());
     }
 
     // 2/3: make 3 tuple key object by 2 pair prefix
     template<typename T1, typename T2, typename T3>
     static void MakeKeyByPrefix(const std::pair<T1, T2> &prefix, std::tuple<T1, T2, T3> &keyObj) {
-        keyObj = make_tuple<T1, T2, T3>(prefix.first, prefix.second, db_util::MakeEmpty<T3>());
+        keyObj = tuple<T1, T2, T3>(prefix.first, prefix.second, db_util::MakeEmpty<T3>());
     }
 
     // empty prefix, will match all keys

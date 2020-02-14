@@ -161,7 +161,8 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
     }
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioMin)) {
+    CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioMin)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-collateral-floor-reached");
     }
@@ -172,7 +173,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    if (cw.cdpCache.CheckGlobalCollateralCeilingReached(assetAmount, globalCollateralCeiling)) {
+    if (cdpGlobalData.CheckGlobalCollateralCeilingReached(assetAmount, globalCollateralCeiling)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralCeilingReached!"),
                         REJECT_INVALID, "global-collateral-ceiling-reached");
     }
@@ -474,7 +475,8 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
                             REJECT_INVALID, "acquire-bcoin-median-price-err");
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
+    CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
     }
@@ -748,7 +750,8 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                          REJECT_INVALID, "acquire-bcoin-median-price-err");
     }
 
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
+    CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
+    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
                          "global-cdp-lock-is-on");
     }

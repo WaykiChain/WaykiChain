@@ -129,6 +129,51 @@ struct CUserCDP {
         total_staked_bcoins = 0;
         total_owed_scoins = 0;
     }
+
+    CCdpCoinPair GetCoinPair() const {
+        return CCdpCoinPair(bcoin_symbol, scoin_symbol);
+    }
+};
+
+class CCdpGlobalData {
+public:
+    uint64_t total_staked_assets;
+    uint64_t total_owed_scoins;
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(total_staked_assets));
+        READWRITE(VARINT(total_owed_scoins));
+    )
+
+    bool IsEmpty() const {
+        return total_staked_assets == 0 && total_owed_scoins == 0;
+    }
+
+    void SetEmpty() {
+        total_staked_assets = 0;
+        total_owed_scoins = 0;
+    }
+
+    uint64_t GetCollateralRatio(const uint64_t assetPrice) const {
+        // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
+        if (total_owed_scoins == 0) {
+            return UINT64_MAX;
+        }
+
+        return double(total_staked_assets) * assetPrice / PRICE_BOOST / total_owed_scoins * RATIO_BOOST;
+    }
+
+    // global collateral ratio floor check
+    bool CheckGlobalCollateralRatioFloorReached(const uint64_t assetPrice,
+                                                const uint64_t globalCollateralRatioLimit) const {
+        return GetCollateralRatio(assetPrice) < globalCollateralRatioLimit;
+    }
+
+    // global collateral amount ceiling check
+    bool CheckGlobalCollateralCeilingReached(const uint64_t newAssetsToStake,
+                                             const uint64_t globalCollateralCeiling) const {
+        return (newAssetsToStake + total_staked_assets) > globalCollateralCeiling * COIN;
+    }
 };
 
 #endif //ENTITIES_CDP_H

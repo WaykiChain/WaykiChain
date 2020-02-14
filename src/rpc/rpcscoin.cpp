@@ -335,7 +335,7 @@ Value getscoininfo(const Array& params, bool fHelp){
 
     uint64_t globalStakedBcoins = 0;
     uint64_t globalOwedScoins   = 0;
-    pCdMan->pCdpCache->GetGlobalItem(globalStakedBcoins, globalOwedScoins);
+    pCdMan->pCdpCache->GetCdpGlobalData(globalStakedBcoins, globalOwedScoins);
 
     bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
 

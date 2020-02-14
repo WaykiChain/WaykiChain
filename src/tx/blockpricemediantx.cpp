@@ -186,8 +186,9 @@ bool CCdpForcedLiquidater::Execute() {
                 READ_SYS_PARAM_FAIL, "read-global-collateral-ratio-floor-error");
     }
 
+    CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     // check global collateral ratio
-    if (cw.cdpCache.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
+    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
         LogPrint(BCLog::CDP, "%s(), GlobalCollateralFloorReached!!\n", __func__);
         return true;
     }
