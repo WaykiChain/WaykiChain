@@ -41,19 +41,13 @@ public:
 
     inline uint64_t GetGlobalStakedBcoins() const;
     inline uint64_t GetGlobalOwedScoins() const;
-    void GetGlobalItem(uint64_t &globalStakedBcoins, uint64_t &globalOwedScoins) const;
-    uint64_t GetGlobalCollateralRatio(const uint64_t bcoinMedianPrice) const;
-
-    bool CheckGlobalCollateralRatioFloorReached(const uint64_t bcoinMedianPrice,
-                                                const uint64_t globalCollateralRatioLimit);
-    bool CheckGlobalCollateralCeilingReached(const uint64_t newBcoinsToStake, const uint64_t globalCollateralCeiling);
+    CCdpGlobalData GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const;
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        globalStakedBcoinsCache.RegisterUndoFunc(undoDataFuncMap);
-        globalOwedScoinsCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpGlobalDataCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
         userCdpCache.RegisterUndoFunc(undoDataFuncMap);
         ratioCDPIdCache.RegisterUndoFunc(undoDataFuncMap);
@@ -71,17 +65,14 @@ private:
     bool EraseCDPFromRatioDB(const CUserCDP &userCdp);
 
 private:
-    /*  CSimpleKVCache          prefixType                     value               variable           */
-    /*  -------------------- --------------------           -------------       --------------------- */
-    CSimpleKVCache<         dbk::CDP_GLOBAL_STAKED_BCOINS,   uint64_t>      globalStakedBcoinsCache;
-    CSimpleKVCache<         dbk::CDP_GLOBAL_OWED_SCOINS,     uint64_t>      globalOwedScoinsCache;
-
-    /*  CCompositeKVCache  prefixType     key                            value             variable  */
+    /*  CCompositeKVCache  prefixType       key                            value             variable  */
     /*  ---------------- --------------   ------------                --------------    ----- --------*/
+    // cdpCoinPair -> total staked assets
+    CCompositeKVCache<  dbk::CDP_GLOBAL_DATA, CCdpCoinPair,   CCdpGlobalData>    cdpGlobalDataCache;
     // cdp{$cdpid} -> CUserCDP
     CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
-    // ucdp${CRegID}{$AssetSymbol}{$ScoinSymbol} -> set<cdpid>
-    CCompositeKVCache<  dbk::USER_CDP, tuple<CRegIDKey, TokenSymbol, TokenSymbol>, optional<uint256>> userCdpCache;
+    // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
+    CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     RatioCDPIdCache           ratioCDPIdCache;
 };

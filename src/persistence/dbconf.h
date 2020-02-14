@@ -106,8 +106,7 @@ namespace dbk {
         DEFINE( CDP,                  "cid",    CDP )           /* cid{$cdpid} --> CUserCDP */ \
         DEFINE( USER_CDP,             "ucdp",   CDP )           /* ucdp{$RegID}{$AssetSymbol}{$ScoinSymbol} --> {set<cdpid>} */ \
         DEFINE( CDP_RATIO,            "cdpr",   CDP )           /* cdpr{$Ratio}{$cdpid} --> CUserCDP */ \
-        DEFINE( CDP_GLOBAL_STAKED_BCOINS,   "cgsb", CDP )       /* cgsb -> $amount */ \
-        DEFINE( CDP_GLOBAL_OWED_SCOINS,     "cgos", CDP )       /* cgos -> $amount */ \
+        DEFINE( CDP_GLOBAL_DATA,      "cgdt",   CDP )           /* [prefix]cdpCoinPair -> $cdpGlobalDataCache */ \
         DEFINE( CDP_GLOBAL_HALT,      "cgh",    CDP )           /* cgh -> 0 | 1 */ \
         /**** cdp closed by redeem/forced or manned liquidate ***/  \
         DEFINE( CLOSED_CDP_TX,        "ctx",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
