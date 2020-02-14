@@ -666,13 +666,13 @@ static bool MineBlock(int64_t startMiningMs, CBlockIndex *pPrevIndex, Miner &min
         }
 
         if (!success) {
-            LogPrint(BCLog::MINER, "MineBlock() : fail to create new block! height=%d, regid=%s, "
+            LogPrint(BCLog::MINER, "MineBlock() : failed to add a new block: height=%d, regid=%s, "
                 "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(),
                 GetTimeMillis() - lastTime);
             return false;
         }
         LogPrint(BCLog::MINER,
-                 "MineBlock() : succeed to create new block! height=%d, regid=%s, tx_count=%u, "
+                 "MineBlock() : succeeded in adding a new block: height=%d, regid=%s, tx_count=%u, "
                  "used_time_ms=%lld\n", blockHeight, miner.account.regid.ToString(),
                  pBlock->vptx.size(), GetTimeMillis() - lastTime);
 
