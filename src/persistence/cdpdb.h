@@ -7,6 +7,7 @@
 #define PERSIST_CDPDB_H
 
 #include "commons/uint256.h"
+#include "commons/leb128.h"
 #include "entities/cdp.h"
 #include "dbaccess.h"
 
@@ -20,7 +21,8 @@ using namespace std;
 /*  CCompositeKVCache     prefixType        key                  value           variable  */
 /*  ----------------   --------------      -----------------    --------------   -----------*/
 // cdpr{$Ratio}{$height}{$cdpid} -> CUserCDP
-typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<string, string, uint256>, CUserCDP>      RatioCDPIdCache;
+// height: allows data of the same ratio to be sorted by height
+typedef CCompositeKVCache<dbk::CDP_RATIO, tuple<CCdpCoinPair, CFixedUInt64, CFixedUInt64, uint256>, CUserCDP>      CdpRatioSortedCache;
 
 class CCdpDBCache {
 public:
@@ -36,8 +38,8 @@ public:
     bool GetCDPList(const CRegID &regId, vector<CUserCDP> &cdpList);
     bool GetCDP(const uint256 cdpid, CUserCDP &cdp);
 
-    bool GetCdpListByCollateralRatio(const uint64_t collateralRatio, const uint64_t bcoinMedianPrice,
-                                     RatioCDPIdCache::Map &userCdps);
+    bool GetCdpListByCollateralRatio(const CCdpCoinPair &cdpCoinPair, const uint64_t collateralRatio,
+            const uint64_t bcoinMedianPrice, CdpRatioSortedCache::Map &userCdps);
 
     inline uint64_t GetGlobalStakedBcoins() const;
     inline uint64_t GetGlobalOwedScoins() const;
@@ -50,7 +52,7 @@ public:
         cdpGlobalDataCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
         userCdpCache.RegisterUndoFunc(undoDataFuncMap);
-        ratioCDPIdCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpRatioSortedCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     uint32_t GetCacheSize() const;
@@ -64,6 +66,7 @@ private:
     bool SaveCDPToRatioDB(const CUserCDP &userCdp);
     bool EraseCDPFromRatioDB(const CUserCDP &userCdp);
 
+    CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
 private:
     /*  CCompositeKVCache  prefixType       key                            value             variable  */
     /*  ---------------- --------------   ------------                --------------    ----- --------*/
@@ -74,7 +77,7 @@ private:
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
-    RatioCDPIdCache           ratioCDPIdCache;
+    CdpRatioSortedCache           cdpRatioSortedCache;
 };
 
 enum CDPCloseType: uint8_t {
@@ -132,6 +135,8 @@ public:
         closedCdpTxCache.RegisterUndoFunc(undoDataFuncMap);
         closedTxCdpCache.RegisterUndoFunc(undoDataFuncMap);
     }
+private:
+    CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
 private:
     /*  CCompositeKVCache     prefixType     key               value             variable  */
     /*  ----------------   --------------   ------------   --------------    ----- --------*/

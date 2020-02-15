@@ -81,6 +81,10 @@ namespace db_util {
     template<typename T0, typename T1, typename T2> bool IsEmpty(const std::tuple<T0, T1, T2>& val);
     template<typename T0, typename T1, typename T2> void SetEmpty(std::tuple<T0, T1, T2>& val);
 
+    // 4 tuple
+    template<typename T0, typename T1, typename T2, typename T3> bool IsEmpty(const std::tuple<T0, T1, T2, T3>& val);
+    template<typename T0, typename T1, typename T2, typename T3> void SetEmpty(std::tuple<T0, T1, T2, T3>& val);
+
     // common Object Type, must support T.IsEmpty() and T.SetEmpty()
     template<typename T> bool IsEmpty(const T& val);
     template<typename T> void SetEmpty(T& val);
@@ -146,7 +150,7 @@ namespace db_util {
     void SetEmpty(std::tuple<T0, T1>& val) {
         SetEmpty(std::get<0>(val));
         SetEmpty(std::get<1>(val));
-        
+
     }
 
     // 3 tuple
@@ -161,6 +165,22 @@ namespace db_util {
         SetEmpty(std::get<0>(val));
         SetEmpty(std::get<1>(val));
         SetEmpty(std::get<2>(val));
+    }
+
+    // 4 tuple
+    template<typename T0, typename T1, typename T2, typename T3>
+    bool IsEmpty(const std::tuple<T0, T1, T2, T3>& val) {
+        return IsEmpty(std::get<0>(val)) &&
+               IsEmpty(std::get<1>(val)) &&
+               IsEmpty(std::get<2>(val)) &&
+               IsEmpty(std::get<3>(val));
+    }
+    template<typename T0, typename T1, typename T2, typename T3>
+    void SetEmpty(std::tuple<T0, T1, T2, T3>& val) {
+        SetEmpty(std::get<0>(val));
+        SetEmpty(std::get<1>(val));
+        SetEmpty(std::get<2>(val));
+        SetEmpty(std::get<3>(val));
     }
 
     // common Object Type, must support T.IsEmpty() and T.SetEmpty()

@@ -339,7 +339,7 @@ Value getscoininfo(const Array& params, bool fHelp){
 
     bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
 
-    RatioCDPIdCache::Map forceLiquidateCdps;
+    CdpRatioSortedCache::Map forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
     if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
