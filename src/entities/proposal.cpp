@@ -235,6 +235,60 @@ bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// class CCdpCoinPairProposal
+
+ Object CCdpCoinPairProposal::ToJson() {
+    Object o = CProposal::ToJson();
+    o.push_back(Pair("cdp_coin_pair", cdpCoinPair.ToString()));
+
+    o.push_back(Pair("status", GetCdpCoinPairStatusName(status))) ;
+    return o ;
+}
+
+string CCdpCoinPairProposal::ToString() {
+    return  strprintf("cdp_coin_pair=%s", cdpCoinPair.ToString()) + ", " +
+            strprintf("status=%s", GetCdpCoinPairStatusName(status));
+}
+
+
+shared_ptr<string> CheckCdpAssetSymbol(CCacheWrapper &cw, const TokenSymbol &symbol) {
+    size_t coinSymbolSize = symbol.size();
+    if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
+        return make_shared<string>("empty or too long");
+    }
+
+    if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
+        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !cw.assetCache.HaveAsset(symbol)))
+        return make_shared<string>("unsupported symbol");
+
+    return nullptr;
+}
+
+
+bool CCdpCoinPairProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+
+    if (kScoinSymbolSet.count(cdpCoinPair.bcoin_symbol) == 0) {
+        return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
+                __func__, cdpCoinPair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
+    }
+
+    auto symbolErr = CheckCdpAssetSymbol(cw, cdpCoinPair.bcoin_symbol);
+    if (symbolErr) {
+        return state.DoS(100, ERRORMSG("%s(), unsupport cdp asset symbol=%s! %s", cdpCoinPair.bcoin_symbol, *symbolErr),
+            REJECT_INVALID, "unsupported-asset-symbol");
+    }
+
+    if (status == CdpCoinPairStatus::NONE || kCdpCoinPairStatusNames.count(status) == 0 ) {
+        return state.DoS(100, ERRORMSG("%s(), unsupport status=%d", (uint8_t)status), REJECT_INVALID, "unsupported-status");
+    }
+  return true ;
+}
+
+bool CCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
+    // TODO: save cdp coin pair ...
+    return true;
+}
 
 
 bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {

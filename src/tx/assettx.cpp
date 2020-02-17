@@ -118,7 +118,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
 
     auto symbolErr = CAsset::CheckSymbol(asset.symbol);
     if (symbolErr) {
-        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", symbolErr),
+        return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", *symbolErr),
             REJECT_INVALID, "invalid-asset-symbol");
     }
 
