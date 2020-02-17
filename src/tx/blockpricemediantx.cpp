@@ -45,7 +45,7 @@ private:
     uint256 GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol);
 
 
-    bool ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice, RatioCDPIdCache::Map &cdps);
+    bool ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice, CdpRatioSortedCache::Map &cdps);
 
     uint256 GenOrderIdCompat(const uint256 &txid, uint32_t index);
 };
@@ -194,7 +194,7 @@ bool CCdpForcedLiquidater::Execute() {
     }
 
     // 2. get all CDPs to be force settled
-    RatioCDPIdCache::Map cdpMap;
+    CdpRatioSortedCache::Map cdpMap;
     uint64_t forceLiquidateRatio = 0;
     // TODO: get cdp CDP_FORCE_LIQUIDATE_RATIO
     if (!cw.sysParamCache.GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
@@ -204,7 +204,7 @@ bool CCdpForcedLiquidater::Execute() {
     }
 
     // TODO: get liquidating cdp map
-    cw.cdpCache.GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice, cdpMap);
+    cw.cdpCache.GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, bcoinMedianPrice, cdpMap);
 
     LogPrint(BCLog::CDP, "%s(), tx_cord=%d-%d, globalCollateralRatioFloor: %llu, bcoinMedianPrice: %llu, "
             "forceLiquidateRatio: %llu, cdpMap: %llu\n", __func__, context.height, context.index,
@@ -357,7 +357,7 @@ uint256 CCdpForcedLiquidater::GenOrderId(const CUserCDP &cdp, TokenSymbol assetS
 
 
 bool CCdpForcedLiquidater::ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice,
-    RatioCDPIdCache::Map &cdps) {
+    CdpRatioSortedCache::Map &cdps) {
 
     int32_t cdpIndex             = 0;
     uint64_t totalCloseoutScoins = 0;

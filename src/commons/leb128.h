@@ -94,6 +94,7 @@ public:
     friend bool operator>(const CFixedLeb128 &a, const CFixedLeb128 &b) { return a.value > b.value; }
 };
 
+using CFixedUInt64 = CFixedLeb128<uint64_t>;
 using CFixedUInt32 = CFixedLeb128<uint32_t>;
 using CFixedUInt16 = CFixedLeb128<uint16_t>;
 

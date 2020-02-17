@@ -294,6 +294,53 @@ Value submitcdpliquidatetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
+Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoints) {
+
+    uint64_t globalCollateralCeiling = 0;
+    if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
+    }
+
+    uint64_t globalCollateralRatioFloor = 0;
+    if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
+    }
+
+    uint64_t assetPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
+    CCdpGlobalData cdpGlobalData = pCdMan->pCdpCache->GetCdpGlobalData(cdpCoinPair);
+    uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(assetPrice);
+    bool globalCollateralRatioFloorReached =
+        cdpGlobalData.CheckGlobalCollateralRatioFloorReached(assetPrice, globalCollateralRatioFloor);
+
+    bool global_collateral_ceiling_reached = cdpGlobalData.total_staked_assets >= globalCollateralCeiling * COIN;
+
+    CdpRatioSortedCache::Map forceLiquidateCdps;
+    uint64_t forceLiquidateRatio = 0;
+    if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
+        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
+    }
+
+    pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, assetPrice, forceLiquidateCdps);
+
+    Object obj;
+
+    obj.push_back(Pair("assets_symbol",                         cdpCoinPair.bcoin_symbol));
+    obj.push_back(Pair("scoin_symbol",                          cdpCoinPair.scoin_symbol));
+    obj.push_back(Pair("global_staked_assets",                  cdpGlobalData.total_staked_assets));
+    obj.push_back(Pair("global_owed_scoins",                    cdpGlobalData.total_owed_scoins));
+    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
+    obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
+
+    string gcr = cdpGlobalData.total_owed_scoins == 0 ? "INF" : strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100);
+    obj.push_back(Pair("global_collateral_ratio",               gcr));
+    obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.2f%%", (double)globalCollateralRatioFloor / RATIO_BOOST * 100)));
+    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
+
+    obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
+    obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
+    return obj;
+}
+
 Value getscoininfo(const Array& params, bool fHelp){
     if (fHelp || params.size() != 0) {
         throw runtime_error(
@@ -305,48 +352,19 @@ Value getscoininfo(const Array& params, bool fHelp){
             HelpExampleCli("getscoininfo", "") + "\nAs json rpc call\n" + HelpExampleRpc("getscoininfo", ""));
     }
 
-    // TODO: multi stable coin
 
-   /* int32_t height = chainActive.Height();
+   int32_t height = chainActive.Height();
 
     uint64_t slideWindow = 0;
     if (!pCdMan->pSysParamCache->GetParam(SysParamType::MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT, slideWindow)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price slide window blockcount error");
     }
 
-    uint64_t globalCollateralCeiling = 0;
-    if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT, globalCollateralCeiling)) {
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Acquire global collateral ceiling error");
-    }
-
-    uint64_t globalCollateralRatioFloor = 0;
-    if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioFloor)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire global collateral ratio floor error");
-    }
-
     PriceMap medianPricePoints = pCdMan->pBlockCache->GetMedianPrices();
 
-
-    uint64_t bcoinMedianPrice = medianPricePoints[CoinPricePair(SYMB::WICC, SYMB::USD)];
-
-    uint64_t globalCollateralRatio = pCdMan->pCdpCache->GetGlobalCollateralRatio(bcoinMedianPrice);
-    bool globalCollateralRatioFloorReached =
-        pCdMan->pCdpCache->CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor);
-
-    uint64_t globalStakedBcoins = 0;
-    uint64_t globalOwedScoins   = 0;
-    pCdMan->pCdpCache->GetCdpGlobalData(globalStakedBcoins, globalOwedScoins);
-
-    bool global_collateral_ceiling_reached = globalStakedBcoins >= globalCollateralCeiling * COIN;
-
-    RatioCDPIdCache::Map forceLiquidateCdps;
-    uint64_t forceLiquidateRatio = 0;
-    if (!pCdMan->pSysParamCache->GetCdpParam(CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
-        throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
-    }
-
-    pCdMan->pCdpCache->GetCdpListByCollateralRatio(forceLiquidateRatio, bcoinMedianPrice,
-                                                               forceLiquidateCdps);
+    // TODO: multi cdp coin pairs
+    Array cdpInfoArray;
+    cdpInfoArray.push_back(GetCdpInfoJson(CCdpCoinPair(SYMB::WICC, SYMB::WUSD), medianPricePoints));
 
     Object obj;
     Array prices;
@@ -365,22 +383,9 @@ Value getscoininfo(const Array& params, bool fHelp){
     obj.push_back(Pair("tipblock_height",                       height));
     obj.push_back(Pair("median_price",                          prices));
     obj.push_back(Pair("slide_window_block_count",              slideWindow));
+    obj.push_back(Pair("cdp_info_list",              cdpInfoArray));
 
-    obj.push_back(Pair("global_staked_bcoins",                  globalStakedBcoins));
-    obj.push_back(Pair("global_owed_scoins",                    globalOwedScoins));
-    obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
-    obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
-
-    string gcr = globalOwedScoins == 0 ? "INF" : strprintf("%.2f%%", (double)globalCollateralRatio / RATIO_BOOST * 100);
-    obj.push_back(Pair("global_collateral_ratio",               gcr));
-    obj.push_back(Pair("global_collateral_ratio_floor",         strprintf("%.2f%%", (double)globalCollateralRatioFloor / RATIO_BOOST * 100)));
-    obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
-
-    obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
-    obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
-
-    return obj;*/
-   return Object();
+    return obj;
 }
 
 Value listcdps(const Array& params, bool fHelp);
