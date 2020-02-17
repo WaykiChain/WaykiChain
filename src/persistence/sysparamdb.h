@@ -53,7 +53,7 @@ public:
         auto iter = SysParamTable.find(paramType);
         string keyPostfix = std::get<0>(iter->second);
         CVarIntValue<uint64_t > value ;
-        if (!sysParamCache.GetData(keyPostfix, value)) {
+        if (!sysParamCache.GetData(paramType, value)) {
             paramValue = std::get<1>(iter->second);
         } else{
             paramValue = value.get();
@@ -67,8 +67,7 @@ public:
             return false;
 
         auto iter = CdpParamTable.find(paramType);
-        string keyPostfix = std::get<0>(iter->second);
-        auto key = std::make_pair(coinPair, keyPostfix);
+        auto key = std::make_pair(coinPair, paramType);
         CVarIntValue<uint64_t > value ;
         if (!cdpParamCache.GetData(key, value)) {
             paramValue = std::get<1>(iter->second);
@@ -107,15 +106,15 @@ public:
         cdpParamCache.RegisterUndoFunc(undoDataFuncMap);
         cdpInterestParamChangesCache.RegisterUndoFunc(undoDataFuncMap);
     }
-    bool SetParam(const string& key, const uint64_t& value){
+    bool SetParam(const SysParamType& key, const uint64_t& value){
         return sysParamCache.SetData(key, CVarIntValue(value)) ;
     }
 
-    bool SetCdpParam(const CCdpCoinPair& coinPair, const string& paramkey, const uint64_t& value) {
+    bool SetCdpParam(const CCdpCoinPair& coinPair, const CdpParamType& paramkey, const uint64_t& value) {
         auto key = std::make_pair(coinPair,paramkey);
         return cdpParamCache.SetData(key, value);
     }
-    bool SetMinerFee( const uint8_t txType, const string feeSymbol, const uint64_t feeSawiAmount) {
+    bool SetMinerFee( const TxType txType, const string feeSymbol, const uint64_t feeSawiAmount) {
 
         auto pa = std::make_pair(txType, feeSymbol) ;
         return minerFeeCache.SetData(pa , CVarIntValue(feeSawiAmount)) ;
@@ -206,9 +205,9 @@ private:
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // order tx id -> active order
-    CCompositeKVCache< dbk::SYS_PARAM,     string,      CVarIntValue<uint64_t> >              sysParamCache;
+    CCompositeKVCache< dbk::SYS_PARAM,     uint8_t,      CVarIntValue<uint64_t> >              sysParamCache;
     CCompositeKVCache< dbk::MINER_FEE,     pair<uint8_t, string>,  CVarIntValue<uint64_t> >              minerFeeCache;
-    CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,string>, CVarIntValue<uint64_t> >      cdpParamCache;
+    CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> >      cdpParamCache;
     // [prefix]cdp_coin_pair -> cdp_interest_param_changes (contain all changes)
     CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap> cdpInterestParamChangesCache;
 

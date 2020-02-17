@@ -16,11 +16,11 @@ public:
     CProposalStorageBean proposalBean ;
 
 public:
-    CProposalCreateTx(): CBaseTx(PROPOSAL_CREATE_TX) {}
+    CProposalCreateTx(): CBaseTx(PROPOSAL_REQUEST_TX) {}
 
     CProposalCreateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                  uint64_t feesIn, CProposalStorageBean proposalIn )
-            : CBaseTx(PROPOSAL_CREATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
+            : CBaseTx(PROPOSAL_REQUEST_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
               proposalBean(proposalIn) {}
 
     ~CProposalCreateTx() {}
@@ -57,11 +57,11 @@ public:
     TxID txid;
 
 public:
-    CProposalAssentTx(): CBaseTx(PROPOSAL_ASSENT_TX) {}
+    CProposalAssentTx(): CBaseTx(PROPOSAL_APPROVAL_TX) {}
 
     CProposalAssentTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                       uint64_t feesIn, const TxID& txidIn)
-            : CBaseTx(PROPOSAL_ASSENT_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
+            : CBaseTx(PROPOSAL_APPROVAL_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
               txid(txidIn){}
 
     ~CProposalAssentTx() {}

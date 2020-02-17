@@ -71,7 +71,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string paramName = params[1].get_str() ;
     uint64_t paramValue = AmountToRawValue(params[2]) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -127,7 +127,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     string bcoinSymbol = params[3].get_str() ;
     string scoinSymbol = params[4].get_str() ;
     uint64_t paramValue = AmountToRawValue(params[2]) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -180,7 +180,7 @@ Value submitgovernerupdateproposal(const Array& params , bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     CRegID governerId = CRegID(params[1].get_str()) ;
     uint64_t operateType = AmountToRawValue(params[2]) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -226,7 +226,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint64_t dexId = params[1].get_int();
     uint64_t operateType = params[2].get_int();
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -244,20 +244,20 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx) ;
 }
 
-Value submitproposalassenttx(const Array& params, bool fHelp){
+Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
     if(fHelp || params.size() < 2 || params.size() > 3){
         throw runtime_error(
-                "submitproposalassenttx \"addr\" \"proposalid\" [\"fee\"]\n"
+                "submitproposalapprovaltx \"addr\" \"proposalid\" [\"fee\"]\n"
                 "assent a proposal\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"proposalid\":       (numberic, required) the dexoperator's id\n"
                 "3.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitproposalassenttx", "0-1 1 1  WICC:1:WI")
+                + HelpExampleCli("submitproposalapprovaltx", "0-1 1 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitproposalassenttx", "0-1 1 1  WICC:1:WI")
+                + HelpExampleRpc("submitproposalapprovaltx", "0-1 1 1  WICC:1:WI")
 
         );
     }
@@ -266,7 +266,7 @@ Value submitproposalassenttx(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint256 proposalId = uint256S(params[1].get_str()) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_CREATE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
     int32_t validHegiht  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -305,7 +305,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     uint8_t txType = params[1].get_int();
     ComboMoney feeInfo = RPC_PARAM::GetComboMoney(params[2],SYMB::WICC);
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_CREATE_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
@@ -324,6 +324,70 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 
 
     return SubmitTx(account.keyid, tx) ;
+
+}
+
+Value submitcointransferproposal( const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() < 4 || params.size() > 5){
+
+        throw runtime_error(
+                "submitcointransferproposal \"from_uid\" \"to_uid\" \"symbol:amount:unit\"  [\"fee\"]\n"
+                "create proposal about enable/disable dexoperator\n"
+                "\nArguments:\n"
+                "1.\"tx_uid\":                (string, required) the tx submitor's address\n"
+                "2.\"from_uid\":              (string, required) the address that transfer from\n"
+                "3.\"to_uid\":                (string, required) the address that tranfer to \n"
+                "4.\"amount\":                (combomoney, required) the tansfer amount \n"
+                "5.\"fee\":                   (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    const CUserID& fromUid = RPC_PARAM:: GetUserId(params[1]) ;
+    const CUserID& toUid = RPC_PARAM:: GetUserId(params[2]) ;
+
+    ComboMoney transferInfo = RPC_PARAM::GetComboMoney(params[3],SYMB::WICC);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+
+    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(transferInfo.symbol);
+    if (pSymbolErr)
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", transferInfo.symbol, *pSymbolErr));
+
+    if (transferInfo.GetSawiAmount() == 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
+
+    CAccount fromAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, fromUid);
+    RPC_PARAM::CheckAccountBalance(fromAccount, transferInfo.symbol, SUB_FREE, transferInfo.GetSawiAmount());
+
+    CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+
+    CCoinTransferProposal proposal ;
+    proposal.from_uid = fromUid ;
+    proposal.to_uid = toUid ;
+    proposal.token = transferInfo.symbol ;
+    proposal.amount = transferInfo.GetSawiAmount() ;
+
+
+    CProposalCreateTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetSawiAmount();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
+
+
+    return SubmitTx(txAccount.keyid, tx) ;
 
 }
 

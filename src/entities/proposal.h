@@ -27,7 +27,9 @@ enum ProposalType: uint8_t{
     GOVERNER_UPDATE   = 2 ,
     DEX_SWITCH        = 3 ,
     MINER_FEE_UPDATE  = 4 ,
-    CDP_PARAM_GOVERN  = 5
+    CDP_PARAM_GOVERN  = 5 ,
+    COIN_TRANSFER     = 6 ,
+    BP_COUNT_UPDATE   = 7
 };
 
 enum ProposalOperateType: uint8_t {
@@ -222,6 +224,47 @@ public:
     }
 };
 
+class CCoinTransferProposal: public CProposal {
+
+public:
+    uint64_t amount ;
+    TokenSymbol token ;
+    CUserID from_uid ;
+    CUserID to_uid ;
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height));
+            READWRITE(need_governer_count);
+            READWRITE(VARINT(amount));
+            READWRITE(token) ;
+            READWRITE(from_uid) ;
+            READWRITE(to_uid) ;
+    );
+
+
+    CCoinTransferProposal(): CProposal(ProposalType::COIN_TRANSFER){}
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCoinTransferProposal>(*this); } ;
+
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+
+    virtual Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("coin_symbol", token)) ;
+        o.push_back(Pair("amount", amount)) ;
+        o.push_back(Pair("from_uid", from_uid.ToString())) ;
+        o.push_back(Pair("to_uid", to_uid.ToString())) ;
+        return o ;
+    }
+
+    string ToString() override {
+        string baseString = CProposal::ToString();
+        return baseString ;
+    }
+
+
+};
 
 class CCdpParamGovernProposal: public CProposal {
 
@@ -272,6 +315,37 @@ public:
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+
+};
+
+class CBPCountUpdateProposal: public CProposal {
+public:
+    uint32_t bp_count ;
+
+    CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height));
+            READWRITE(need_governer_count);
+            READWRITE(VARINT(bp_count));
+    );
+
+
+    virtual Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("bp_count", (uint64_t)bp_count));
+        return o ;
+    }
+
+    string ToString() override {
+        string baseString = CProposal::ToString();
+        return baseString ;
+    }
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CBPCountUpdateProposal>(*this); }
+
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+
 
 };
 
@@ -327,6 +401,12 @@ public:
             case MINER_FEE_UPDATE:
                 ::Serialize(os, *((CMinerFeeProposal       *) (proposalPtr.get())), nType, nVersion);
                 break;
+            case COIN_TRANSFER:
+                ::Serialize(os, *((CCoinTransferProposal   *) (proposalPtr.get())), nType, nVersion);
+                break;
+            case BP_COUNT_UPDATE:
+                ::Serialize(os, *((CBPCountUpdateProposal   *) (proposalPtr.get())), nType, nVersion);
+                break;
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                                   proposalPtr->proposal_type));
@@ -373,6 +453,18 @@ public:
             case MINER_FEE_UPDATE: {
                 proposalPtr = std::make_shared<CMinerFeeProposal>();
                 ::Unserialize(is, *((CMinerFeeProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case COIN_TRANSFER: {
+                proposalPtr = std:: make_shared<CCoinTransferProposal>();
+                ::Unserialize(is,  *((CCoinTransferProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case BP_COUNT_UPDATE: {
+                proposalPtr = std:: make_shared<CBPCountUpdateProposal>();
+                ::Unserialize(is,  *((CBPCountUpdateProposal *)(proposalPtr.get())), nType, nVersion);
                 break;
             }
 

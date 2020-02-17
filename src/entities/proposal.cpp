@@ -21,7 +21,7 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
         if(itr == SysParamTable.end())
             return false ;
 
-        if(!cw.sysParamCache.SetParam(std::get<0>(itr->second), pa.second)){
+        if(!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second)){
             return false ;
         }
 
@@ -54,7 +54,7 @@ bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
         if(itr == CdpParamTable.end())
             return false ;
 
-        if(!cw.sysParamCache.SetCdpParam(coinPair,std::get<0>(itr->second), pa.second)){
+        if(!cw.sysParamCache.SetCdpParam(coinPair,CdpParamType(pa.first), pa.second)){
             return false ;
         }
         if(pa.first == CdpParamType ::CDP_INTEREST_PARAM_A
@@ -235,4 +235,77 @@ bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
 }
 
+
+
+bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
+
+
+    IMPLEMENT_DEFINE_CW_STATE;
+
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(from_uid, srcAccount)) {
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, read source addr account info error"),
+                         READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    }
+
+    uint64_t minusValue = amount;
+    if (!srcAccount.OperateBalance(token, BalanceOpType::SUB_FREE, minusValue)) {
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
+                         UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
+    }
+
+    if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"), WRITE_ACCOUNT_FAIL,
+                         "bad-write-accountdb");
+
+    CAccount desAccount;
+    if (!cw.accountCache.GetAccount(to_uid, desAccount)) {
+        if (to_uid.is<CKeyID>()) {  // first involved in transaction
+            desAccount.keyid = to_uid.get<CKeyID>();
+        } else {
+            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
+                             READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+    }
+
+    if (!desAccount.OperateBalance(token, BalanceOpType::ADD_FREE, amount)) {
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
+                         UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
+    }
+
+    if (!cw.accountCache.SetAccount(to_uid, desAccount))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
+                                       desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
+
+
+    return true ;
+}
+bool CCoinTransferProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+
+    if (amount < DUST_AMOUNT_THRESHOLD)
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", amount,
+                                       DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
+
+    CAccount srcAccount;
+    if (!cw.accountCache.GetAccount(from_uid, srcAccount))
+        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
+                         "bad-getaccount");
+
+
+
+    return true ;
+}
+
+
+
+bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
+
+    return true ;
+
+}
+bool CBPCountUpdateProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+
+
+    return true  ;
+}
 

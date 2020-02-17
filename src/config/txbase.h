@@ -53,8 +53,8 @@ enum TxType: uint8_t {
 
     WASM_CONTRACT_TX            = 60,   //!< wasm contract tx
 
-    PROPOSAL_CREATE_TX          = 70,
-    PROPOSAL_ASSENT_TX          = 71,
+    PROPOSAL_REQUEST_TX         = 70,
+    PROPOSAL_APPROVAL_TX        = 71,
 
     DEX_TRADEPAIR_PROPOSE_TX    = 81,   //!< Owner proposes a trade pair on DEX
     DEX_TRADEPAIR_LIST_TX       = 82,   //!< Owner lists a trade pair on DEX
@@ -155,8 +155,8 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 
-{ PROPOSAL_CREATE_TX,      std::make_tuple("PROPOSAL_CREATE_TX",       0,           0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
-{ PROPOSAL_ASSENT_TX,      std::make_tuple("PROPOSAL_ASSENT_TX",       0,           0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
+{ PROPOSAL_REQUEST_TX,      std::make_tuple("PROPOSAL_REQUEST_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
+{ PROPOSAL_APPROVAL_TX,     std::make_tuple("PROPOSAL_APPROVAL_TX",     0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
 
 };
 

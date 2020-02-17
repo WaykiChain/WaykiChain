@@ -11,7 +11,7 @@
 
 bool CheckIsGoverner(CRegID account, ProposalType proposalType, CCacheWrapper& cw ){
 
-   if(proposalType == ProposalType::GOVERNER_UPDATE){
+   if(proposalType == ProposalType::GOVERNER_UPDATE || proposalType == ProposalType::COIN_TRANSFER){
         VoteDelegateVector delegateList;
         if (!cw.delegateCache.GetActiveDelegates(delegateList)) {
             return false;
@@ -39,9 +39,15 @@ uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw ){
             return 8 ;
 
         return ((delegateList.size()/3)*2+1) ;
-    } else
+    } else if( proposalType  == ProposalType::COIN_TRANSFER){
+        VoteDelegateVector delegateList;
+        if (!cw.delegateCache.GetActiveDelegates(delegateList)) {
+            return 8 ;
+        }
+        return delegateList.size() ;
+    } else {
         return cw.sysGovernCache.GetNeedGovernerCount();
-
+    }
 }
 
 
