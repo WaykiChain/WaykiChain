@@ -14,6 +14,7 @@
 #include "config/const.h"
 #include "config/txbase.h"
 #include "config/scoin.h"
+#include "entities/cdp.h"
 #include "config/sysparams.h"
 
 class CCacheWrapper ;
@@ -27,9 +28,11 @@ enum ProposalType: uint8_t{
     GOVERNER_UPDATE   = 2 ,
     DEX_SWITCH        = 3 ,
     MINER_FEE_UPDATE  = 4 ,
-    CDP_PARAM_GOVERN  = 5 ,
-    COIN_TRANSFER     = 6 ,
-    BP_COUNT_UPDATE   = 7
+    CDP_COIN_PAIR     = 5, // govern cdpCoinPair, set the cdpCoinPair status
+    CDP_PARAM_GOVERN  = 6 ,
+    COIN_TRANSFER     = 7 ,
+    BP_COUNT_UPDATE   = 8 ,
+
 };
 
 enum ProposalOperateType: uint8_t {
@@ -349,27 +352,6 @@ public:
 
 };
 
-enum class CdpCoinPairStatus: uint8_t {
-    NONE                = 0,  // none
-    NORMAL              = 1,  // enable all operation (stake, redeem, liquidate, feed price)
-    DISABLE_ALL         = 2,  // Disable all cdp related operation (stake, redeem, liquidate, feed price)
-    DISABLE_STAKE_CDP   = 4,  // Disable staking cdp
-};
-
-static const EnumTypeMap<CdpCoinPairStatus, string, uint8_t> kCdpCoinPairStatusNames = {
-    {CdpCoinPairStatus::NONE, "NONE"},
-    {CdpCoinPairStatus::NORMAL, "NORMAL"},
-    {CdpCoinPairStatus::DISABLE_ALL, "DISABLE_ALL"},
-    {CdpCoinPairStatus::DISABLE_STAKE_CDP, "DISABLE_STAKE_CDP"},
-};
-
-inline const string& GetCdpCoinPairStatusName(const CdpCoinPairStatus &status) {
-    auto it = kCdpCoinPairStatusNames.find(status);
-    if (it != kCdpCoinPairStatusNames.end())
-        return it->second;
-    return EMPTY_STRING;
-}
-
 class CCdpCoinPairProposal: public CProposal {
 public:
     CCdpCoinPair cdpCoinPair;
@@ -433,6 +415,10 @@ public:
             case PARAM_GOVERN:
                 ::Serialize(os, *((CParamsGovernProposal   *) (proposalPtr.get())), nType, nVersion);
                 break;
+
+            case CDP_COIN_PAIR:
+                ::Serialize(os, *((CCdpCoinPairProposal *) (proposalPtr.get())), nType, nVersion);
+                break;
             case CDP_PARAM_GOVERN:
                 ::Serialize(os, *((CCdpParamGovernProposal *) (proposalPtr.get())), nType, nVersion);
                 break;
@@ -473,6 +459,12 @@ public:
             case PARAM_GOVERN: {
                 proposalPtr = std::make_shared<CParamsGovernProposal>();
                 ::Unserialize(is, *((CParamsGovernProposal *)(proposalPtr.get())), nType, nVersion);
+                break;
+            }
+
+            case CDP_COIN_PAIR: {
+                proposalPtr = std::make_shared<CCdpCoinPairProposal>();
+                ::Unserialize(is, *((CCdpCoinPairProposal *)(proposalPtr.get())), nType, nVersion);
                 break;
             }
 

@@ -10,12 +10,14 @@ CCdpDBCache::CCdpDBCache(CDBAccess *pDbAccess)
     : cdpGlobalDataCache(pDbAccess),
       cdpCache(pDbAccess),
       userCdpCache(pDbAccess),
+      cdpCoinPairsCache(pDbAccess),
       cdpRatioSortedCache(pDbAccess) {}
 
 CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
     : cdpGlobalDataCache(pBaseIn->cdpGlobalDataCache),
       cdpCache(pBaseIn->cdpCache),
       userCdpCache(pBaseIn->userCdpCache),
+      cdpCoinPairsCache(pBaseIn->cdpCoinPairsCache),
       cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache) {}
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
@@ -116,10 +118,25 @@ CCdpGlobalData CCdpDBCache::GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) co
     return ret;
 }
 
+bool CCdpDBCache::GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinPairStatus &status) {
+    // TODO: GetDefaultData
+    uint8_t value;
+    if (!cdpCoinPairsCache.GetData(cdpCoinPair, value))
+        return false;
+    status = (CdpCoinPairStatus)value;
+    return true;
+}
+
+bool CCdpDBCache::SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status) {
+    return cdpCoinPairsCache.SetData(cdpCoinPair, (uint8_t)status);
+}
+
 void CCdpDBCache::SetBaseViewPtr(CCdpDBCache *pBaseIn) {
     cdpGlobalDataCache.SetBase(&pBaseIn->cdpGlobalDataCache);
     cdpCache.SetBase(&pBaseIn->cdpCache);
     userCdpCache.SetBase(&pBaseIn->userCdpCache);
+    cdpCoinPairsCache.SetBase(&pBaseIn->cdpCoinPairsCache);
+
     cdpRatioSortedCache.SetBase(&pBaseIn->cdpRatioSortedCache);
 }
 
@@ -127,18 +144,20 @@ void CCdpDBCache::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
     cdpGlobalDataCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpCache.SetDbOpLogMap(pDbOpLogMapIn);
     userCdpCache.SetDbOpLogMap(pDbOpLogMapIn);
+    cdpCoinPairsCache.SetDbOpLogMap(pDbOpLogMapIn);
     cdpRatioSortedCache.SetDbOpLogMap(pDbOpLogMapIn);
 }
 
 uint32_t CCdpDBCache::GetCacheSize() const {
     return cdpGlobalDataCache.GetCacheSize() + cdpCache.GetCacheSize() + userCdpCache.GetCacheSize() +
-            cdpRatioSortedCache.GetCacheSize();
+            cdpCoinPairsCache.GetCacheSize() + cdpRatioSortedCache.GetCacheSize();
 }
 
 bool CCdpDBCache::Flush() {
     cdpGlobalDataCache.Flush();
     cdpCache.Flush();
     userCdpCache.Flush();
+    cdpCoinPairsCache.Flush();
     cdpRatioSortedCache.Flush();
 
     return true;

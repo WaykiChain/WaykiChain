@@ -176,4 +176,25 @@ public:
     }
 };
 
+enum class CdpCoinPairStatus: uint8_t {
+    NONE                = 0,  // none
+    NORMAL              = 1,  // enable all operation (stake, redeem, liquidate, feed price)
+    DISABLE_ALL         = 2,  // Disable all cdp related operation (stake, redeem, liquidate, feed price)
+    DISABLE_STAKE_CDP   = 4,  // Disable staking cdp
+};
+
+static const EnumTypeMap<CdpCoinPairStatus, string, uint8_t> kCdpCoinPairStatusNames = {
+    {CdpCoinPairStatus::NONE, "NONE"},
+    {CdpCoinPairStatus::NORMAL, "NORMAL"},
+    {CdpCoinPairStatus::DISABLE_ALL, "DISABLE_ALL"},
+    {CdpCoinPairStatus::DISABLE_STAKE_CDP, "DISABLE_STAKE_CDP"},
+};
+
+inline const string& GetCdpCoinPairStatusName(const CdpCoinPairStatus &status) {
+    auto it = kCdpCoinPairStatusNames.find(status);
+    if (it != kCdpCoinPairStatusNames.end())
+        return it->second;
+    return EMPTY_STRING;
+}
+
 #endif //ENTITIES_CDP_H

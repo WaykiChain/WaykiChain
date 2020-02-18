@@ -286,7 +286,12 @@ bool CCdpCoinPairProposal::CheckProposal(CCacheWrapper &cw, CValidationState& st
 }
 
 bool CCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
-    // TODO: save cdp coin pair ...
+
+    if (!context.pCw->cdpCache.SetCdpCoinPairStatus(cdpCoinPair, status)) {
+        return context.pState->DoS(100, ERRORMSG("%s(), save cdp coin pair failed! coin_pair=%s, status=%s",
+                cdpCoinPair.ToString(), GetCdpCoinPairStatusName(status)),
+            REJECT_INVALID, "unsupported-asset-symbol");
+    }
     return true;
 }
 

@@ -45,6 +45,10 @@ public:
     inline uint64_t GetGlobalOwedScoins() const;
     CCdpGlobalData GetCdpGlobalData(const CCdpCoinPair &cdpCoinPair) const;
 
+    bool GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinPairStatus &status);
+    //bool HaveCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair);
+    bool SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status);
+
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
 
@@ -52,6 +56,7 @@ public:
         cdpGlobalDataCache.RegisterUndoFunc(undoDataFuncMap);
         cdpCache.RegisterUndoFunc(undoDataFuncMap);
         userCdpCache.RegisterUndoFunc(undoDataFuncMap);
+        cdpCoinPairsCache.RegisterUndoFunc(undoDataFuncMap);
         cdpRatioSortedCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
@@ -76,6 +81,8 @@ private:
     CCompositeKVCache<  dbk::CDP,       uint256,                    CUserCDP>           cdpCache;
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
+    // [prefix]${cdpCoinPair} -> ${cdpCoinPairStatus}
+    CCompositeKVCache<  dbk::USER_CDP, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     CdpRatioSortedCache           cdpRatioSortedCache;
 };
