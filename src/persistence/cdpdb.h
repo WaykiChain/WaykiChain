@@ -10,6 +10,7 @@
 #include "commons/leb128.h"
 #include "entities/cdp.h"
 #include "dbaccess.h"
+#include "dbiterator.h"
 
 #include <map>
 #include <set>
@@ -48,6 +49,7 @@ public:
     bool GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinPairStatus &status);
     //bool HaveCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair);
     bool SetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, const CdpCoinPairStatus &status);
+    map<CCdpCoinPair, CdpCoinPairStatus> GetCdpCoinPairMap();
 
     void SetBaseViewPtr(CCdpDBCache *pBaseIn);
     void SetDbOpLogMap(CDBOpLogMap * pDbOpLogMapIn);
@@ -62,7 +64,6 @@ public:
 
     uint32_t GetCacheSize() const;
     bool Flush();
-
 private:
     bool SaveCDPToDB(const CUserCDP &cdp);
     bool EraseCDPFromDB(const CUserCDP &cdp);
@@ -82,7 +83,7 @@ private:
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // [prefix]${cdpCoinPair} -> ${cdpCoinPairStatus}
-    CCompositeKVCache<  dbk::USER_CDP, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
+    CCompositeKVCache<  dbk::CDP_COIN_PAIRS, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     CdpRatioSortedCache           cdpRatioSortedCache;
 };

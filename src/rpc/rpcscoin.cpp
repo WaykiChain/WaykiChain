@@ -727,14 +727,47 @@ extern Value getassets(const Array& params, bool fHelp) {
     }
 
     Array assetArray;
-    // TODO: need page??
-    int64_t count = 0;
-    for (pAssetsIt->First(); pAssetsIt->IsValid(); pAssetsIt->Next(), count++) {
+    for (pAssetsIt->First(); pAssetsIt->IsValid(); pAssetsIt->Next()) {
         assetArray.push_back(AssetToJson(*pCdMan->pAccountCache, pAssetsIt->GetAsset()));
     }
 
     Object obj;
-    obj.push_back(Pair("count",     count));
+    obj.push_back(Pair("count",     assetArray.size()));
     obj.push_back(Pair("assets",    assetArray));
+    return obj;
+}
+
+
+extern Value getcdpcoinpairs(const Array& params, bool fHelp) {
+     if (fHelp || params.size() > 0) {
+        throw runtime_error(
+            "getcdpcoinpairs\n"
+            "\nget all cdp coin pair.\n"
+            "\nArguments:\n"
+            "\nResult: a list of cdp_coin_pairs\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getcdpcoinpairs", "")
+            + "\nAs json rpc call\n"
+            + HelpExampleRpc("getcdpcoinpairs", "")
+        );
+    }
+
+
+
+    const map<CCdpCoinPair, CdpCoinPairStatus> &cdpCoinPairMap = pCdMan->pCdpCache->GetCdpCoinPairMap();
+
+    Array coinPairArray;
+    for (const auto &item : cdpCoinPairMap) {
+        Object coinPairObj;
+        coinPairObj.push_back(Pair("asset_symbol", item.first.bcoin_symbol));
+        coinPairObj.push_back(Pair("scoin_symbol", item.first.scoin_symbol));
+        coinPairObj.push_back(Pair("status",       GetCdpCoinPairStatusName(item.second)));
+
+        coinPairArray.push_back(coinPairObj);
+    }
+
+    Object obj;
+    obj.push_back(Pair("count",     coinPairArray.size()));
+    obj.push_back(Pair("cdp_coin_pairs",    coinPairArray));
     return obj;
 }

@@ -21,8 +21,8 @@ static const CRPCCommand vRPCCommands[] =
     { "stop",                           &stop,                              true,      true,        false   },
     { "validateaddr",                   &validateaddr,                      true,      true,        false   },
     { "createmulsig",                   &createmulsig,                      true,      true ,       false   },
-        
-    /* P2P networking */                
+
+    /* P2P networking */
     { "getnetworkinfo",                 &getnetworkinfo,                    true,      false,       false   },
     { "addnode",                        &addnode,                           true,      true,        false   },
     { "getaddednodeinfo",               &getaddednodeinfo,                  true,      true,        false   },
@@ -31,26 +31,26 @@ static const CRPCCommand vRPCCommands[] =
     { "getpeerinfo",                    &getpeerinfo,                       true,      false,       false   },
     { "ping",                           &ping,                              true,      false,       false   },
     { "getchaininfo",                   &getchaininfo,                      true,      false,       false   },
-        
-    /* Block chain and UTXO */      
+
+    /* Block chain and UTXO */
     { "getfcoingenesistxinfo",          &getfcoingenesistxinfo,             true,      true,        false   },
     { "getblockcount",                  &getblockcount,                     true,      true,        false   },
     { "getblock",                       &getblock,                          true,      false,       false   },
     { "getrawmempool",                  &getrawmempool,                     true,      false,       false   },
     { "verifychain",                    &verifychain,                       true,      false,       false   },
     { "getblockundo",                   &getblockundo,                      true,      false,       false   },
-        
+
     { "gettotalcoins",                  &gettotalcoins,                     true,      false,       false   },
     { "invalidateblock",                &invalidateblock,                   true,      true,        false   },
     { "reconsiderblock",                &reconsiderblock,                   true,      true,        false   },
-    /* Mining */            
+    /* Mining */
     { "getmininginfo",                  &getmininginfo,                     true,      false,       false    },
     { "submitblock",                    &submitblock,                       true,      false,       false    },
     { "getminedblocks",                 &getminedblocks,                    true,      true,        false    },
     { "getminerbyblocktime",            &getminerbyblocktime,               true,      true,        false    },
-    /* Raw transactions */                  
+    /* Raw transactions */
     { "genmulsigtx",                    &genmulsigtx,                       true,      false,       false   },
-    /* uses wallet if enabled */            
+    /* uses wallet if enabled */
     { "addmulsigaddr",                  &addmulsigaddr,                     false,     false,       true    },
     { "getaccountinfo",                 &getaccountinfo,                    true,      false,       true    },
     { "getnewaddr",                     &getnewaddr,                        false,     false,       true    },
@@ -88,9 +88,9 @@ static const CRPCCommand vRPCCommands[] =
     { "listdelegates",                  &listdelegates,                     true,      false,       true    },
     { "decodetxraw",                    &decodetxraw,                       true,       false,      false   },
     { "decodemulsigscript",             &decodemulsigscript,                true,       false,      false   },
-    /* submit raw tx */             
+    /* submit raw tx */
     { "submittxraw",                    &submittxraw,                       true,       false,      false   },
-    /* basic tx */                      
+    /* basic tx */
     { "submitsendtx",                   &submitsendtx,                      false,      false,      true    },
     { "submitcreateutxotx",             &submitcreateutxotx,                false,      false,      true    },
     { "submitspendutxotx",              &submitspendutxotx,                 false,      false,      true    },
@@ -120,11 +120,13 @@ static const CRPCCommand vRPCCommands[] =
     { "getscoininfo",                   &getscoininfo,                      true,       false,      false   },
     { "getcdp",                         &getcdp,                            true,       false,      false   },
     { "getusercdp",                     &getusercdp,                        true,       false,      false   },
+    { "getcdpcoinpairs",                &getcdpcoinpairs,                   true,       false,      false   },
+
     { "getsysparam",                    &getsysparam,                       true,       false,      false   },
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
     { "getproposal",                    &getproposal,                       true,       false,      false   },
     { "getminminerfee",                 &getminminerfee,                    true,       false,      false   },
-    /* for dex */       
+    /* for dex */
     { "submitdexbuylimitordertx",       &submitdexbuylimitordertx,          false,      false,      false   },
     { "submitdexselllimitordertx",      &submitdexselllimitordertx,         false,      false,      false   },
     { "submitdexbuymarketordertx",      &submitdexbuymarketordertx,         false,      false,      false   },
@@ -140,12 +142,12 @@ static const CRPCCommand vRPCCommands[] =
     { "getdexoperator",                 &getdexoperator,                    true,       false,      false   },
     { "getdexoperatorbyowner",          &getdexoperatorbyowner,             true,       false,      false   },
     { "getdexorderfee",                 &getdexorderfee,                    true,       false,      false   },
-    /* for asset */             
+    /* for asset */
     { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
     { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },
     { "getasset",                       &getasset,                          true,       false,      false   },
     { "getassets",                      &getassets,                         true,       false,      false   },
-    /* for wasm */  
+    /* for wasm */
     { "submitwasmcontractdeploytx",     &submitwasmcontractdeploytx,        true,       false,      true    },
     { "submitwasmcontractcalltx",       &submitwasmcontractcalltx,          true,       false,      true    },
     { "gettablewasm",                   &gettablewasm,                      true,       false,      true    },
@@ -155,7 +157,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getabiwasm",                     &getabiwasm,                        true,       false,      true    },
     { "gettxtrace",                     &gettxtrace,                        true,       false,      true    },
     { "abidefjsontobinwasm",            &abidefjsontobinwasm,               true,       false,      true    },
-    /* for test code */    
+    /* for test code */
     { "disconnectblock",                &disconnectblock,                   true,       false,      true    },
     { "reloadtxcache",                  &reloadtxcache,                     true,       false,      true    },
     { "getcontractregid",               &getcontractregid,                  true,       false,      false   },
@@ -164,7 +166,7 @@ static const CRPCCommand vRPCCommands[] =
     { "startcommontpstest",             &startcommontpstest,                true,       true,       false   },
     { "startcontracttpstest",           &startcontracttpstest,              true,       true,       false   },
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
-    /* vm functions work in vm simulator */        
+    /* vm functions work in vm simulator */
     { "vmexecutescript",                &vmexecutescript,                   true,       true,       true    },
 };
 

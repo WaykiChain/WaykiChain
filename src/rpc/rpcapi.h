@@ -73,6 +73,8 @@ extern Value submitassetupdatetx(const Array& params, bool fHelp);
 extern Value getasset(const Array& params, bool fHelp);
 extern Value getassets(const Array& params, bool fHelp);
 
+extern Value getcdpcoinpairs(const Array& params, bool fHelp);
+
 /******************************* DEX *******************************************/
 extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
 extern Value submitdexselllimitordertx(const Array& params, bool fHelp);
