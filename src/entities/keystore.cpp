@@ -66,7 +66,7 @@ bool CKeyCombi::CleanAll() {
     return true;
 }
 
-bool CKeyCombi::CleanMainKey() { return mMainCkey.Clear(); }
+bool CKeyCombi::PurgeMainKey() { return mMainCkey.Clear(); }
 
 CKeyCombi::CKeyCombi(const CKey& key, int32_t nVersion) {
     assert(key.IsValid());

@@ -577,9 +577,10 @@ bool CWallet::AddKey(const CKey &key) {
 
 bool CWallet::RemoveKey(const CKey &key) {
     CKeyID keyId = key.GetPubKey().GetKeyId();
-    mapKeys.erase(keyId);
-    if (!IsEncrypted()) {
+    
+    if (!IsEncrypted()) { //unencrypted or unlocked
         CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);
+        mapKeys.erase(keyId);
     } else {
         return ERRORMSG("wallet is encrypted hence remove key forbidden!");
     }
@@ -587,7 +588,7 @@ bool CWallet::RemoveKey(const CKey &key) {
     return true;
 }
 
-bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &accountView) const {
+bool CWallet::IsReadyForColdMining(const CAccountDBCache &accountView) const {
     CRegID regId;
     for (auto const &item : mapKeys) {
         if (item.second.HaveMinerKey() && accountView.GetRegId(item.first, regId)) {
@@ -598,9 +599,9 @@ bool CWallet::IsReadyForCoolMiner(const CAccountDBCache &accountView) const {
     return false;
 }
 
-bool CWallet::ClearAllMainKeysForCoolMiner() {
+bool CWallet::DropMainKeysForColdMining() {
     for (auto &item : mapKeys) {
-        if (item.second.CleanMainKey()) {
+        if (item.second.PurgeMainKey()) {
             CWalletDB(strWalletFile).WriteKeyStoreValue(item.first, item.second, nWalletVersion);
         }
     }

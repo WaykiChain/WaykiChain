@@ -131,7 +131,7 @@ extern Value dumpprivkey(const json_spirit::Array& params, bool fHelp); // in rp
 extern Value importprivkey(const json_spirit::Array& params, bool fHelp);
 extern Value dumpwallet(const json_spirit::Array& params, bool fHelp);
 extern Value importwallet(const json_spirit::Array& params, bool fHelp);
-extern Value dropminerkeys(const json_spirit::Array& params, bool fHelp);
+extern Value dropminermainkeys(const json_spirit::Array& params, bool fHelp);
 extern Value dropprivkey(const json_spirit::Array& params, bool fHelp);
 
 //extern Value getgenerate(const json_spirit::Array& params, bool fHelp); // in rpcmining.cpp

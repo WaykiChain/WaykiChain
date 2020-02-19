@@ -60,7 +60,7 @@ static const CRPCCommand vRPCCommands[] =
 
     { "dumpprivkey",                    &dumpprivkey,                       false,     false,       true    },
     { "importprivkey",                  &importprivkey,                     false,     false,       true    },
-    { "dropminerkeys",                  &dropminerkeys,                     false,     false,       true    },
+    { "dropminermainkeys",                  &dropminermainkeys,                     false,     false,       true    },
     { "dropprivkey",                    &dropprivkey,                       false,     false,       true    },
     { "backupwallet",                   &backupwallet,                      false,     false,       true    },
     { "dumpwallet",                     &dumpwallet,                        false,     false,       true    },

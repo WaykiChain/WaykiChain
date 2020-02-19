@@ -105,8 +105,8 @@ public:
     bool RemoveKey(const CKey &key);
 
     bool CleanAll(); //just for unit test
-    bool IsReadyForCoolMiner(const CAccountDBCache& accountView)const;
-    bool ClearAllMainKeysForCoolMiner();
+    bool IsReadyForColdMining(const CAccountDBCache& accountView)const;
+    bool DropMainKeysForColdMining();
 
     CWallet(string strWalletFileIn);
     void SetNull() ;

@@ -39,7 +39,7 @@ public:
     bool GetCKey(CKey &keyOut, bool isMiner = false) const;
     bool CreateANewKey();
     bool GetPubKey(CPubKey &mOutKey, bool isMiner = false) const;
-    bool CleanMainKey();
+    bool PurgeMainKey();
     bool CleanAll();
     bool HaveMinerKey() const;
     bool HaveMainKey() const;

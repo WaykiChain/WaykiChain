@@ -228,26 +228,26 @@ Value importprivkey(const Array& params, bool fHelp) {
     return ret;
 }
 
-Value dropminerkeys(const Array& params, bool fHelp) {
+Value dropminermainkeys(const Array& params, bool fHelp) {
     if (fHelp || params.size() != 0) {
         throw runtime_error(
-            "dropminerkeys\n"
-            "\ndrop all miner keys in a wallet for cool mining.\n"
+            "dropminermainkeys\n"
+            "\nDrop all miner keys of this wallet in order to operate in a cold mining mode.\n"
             "\nResult:\n"
             "\nExamples:\n" +
-            HelpExampleCli("dropminerkeys", "") + "\nAs a json rpc call\n" + HelpExampleRpc("dropminerkeys", ""));
+            HelpExampleCli("dropminermainkeys", "") + "\nAs a JSON RPC call\n" + HelpExampleRpc("dropminermainkeys", ""));
     }
 
     EnsureWalletIsUnlocked();
 
-    if (!pWalletMain->IsReadyForCoolMiner(*pCdMan->pAccountCache)) {
-        throw runtime_error("there is no cool miner key or miner key which has registered");
+    if (!pWalletMain->IsReadyForColdMining(*pCdMan->pAccountCache)) {
+        throw runtime_error("There is no miner key or cold miner key existing within this wallet!");
     }
 
-    pWalletMain->ClearAllMainKeysForCoolMiner();
+    pWalletMain->DropMainKeysForColdMining();
 
     Object ret;
-    ret.push_back(Pair("info", "wallet is ready for cool mining."));
+    ret.push_back(Pair("info", "wallet is ready for cold mining."));
 
     return ret;
 }

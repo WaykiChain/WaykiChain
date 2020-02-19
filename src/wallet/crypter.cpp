@@ -189,7 +189,7 @@ bool CCryptoKeyStore::AddKeyCombi(const CKeyID& keyId, const CKeyCombi& keyCombi
         CKey mainKey;
         keyCombi.GetCKey(mainKey, false);
         CKeyCombi newkeyCombi = keyCombi;
-        newkeyCombi.CleanMainKey();
+        newkeyCombi.PurgeMainKey();
         CBasicKeyStore::AddKeyCombi(keyId, keyCombi);
 
         vector<unsigned char> vchCryptedSecret;
@@ -290,7 +290,7 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn) {
                 return false;
             if (!AddCryptedKey(vchPubKey, vchCryptedSecret))
                 return false;
-            mKey.second.CleanMainKey();
+            mKey.second.PurgeMainKey();
         }
     }
     return true;
