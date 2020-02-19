@@ -582,7 +582,7 @@ bool CWallet::RemoveKey(const CKey &key) {
         CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);
         mapKeys.erase(keyId);
     } else {
-        return ERRORMSG("wallet is encrypted hence remove key forbidden!");
+        return ERRORMSG("wallet is being locked hence no key removal!");
     }
 
     return true;
