@@ -445,11 +445,25 @@ json_spirit::Value CRPCTable::execute(const string& strMethod,
     if (!SysCfg().GetBoolArg("-disablesafemode", false) && !pcmd->okSafeMode)
         throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, "Banned RPC method");
 
-
-    auto blackList = SysCfg().GetMultiArgs("-rpcblacklist");
-    for (auto blackItem : blackList) {
-        if (blackItem == strMethod)
-            throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, "Banned RPC method by blacklist");
+    auto whitelist = SysCfg().GetMultiArgs("-rpcwhitelistcmd");
+    if (!whitelist.empty()) {
+        // check whilelist
+        bool found = false;
+        for (auto whiteItem : whitelist) {
+            if (whiteItem == strMethod) {
+                found = true;
+                break;
+            }
+        }
+        if (!found)
+            throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, strprintf("Banned RPC method=%s by whitelist", strMethod));
+    } else {
+        // check blacklist
+        auto blacklist = SysCfg().GetMultiArgs("-rpcblacklistcmd");
+        for (auto blackItem : blacklist) {
+            if (blackItem == strMethod)
+                throw JSONRPCError(RPC_FORBIDDEN_BY_SAFE_MODE, strprintf("Banned RPC method=%s by blacklist", strMethod));
+        }
     }
 
     try {
