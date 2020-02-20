@@ -150,11 +150,11 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, *pBaseTx);
 }
 
-Value submitspendutxotx(const Array& params, bool fHelp) {
+Value submitutxospendtx(const Array& params, bool fHelp) {
 
     if (fHelp || (params.size() != 5 && params.size() != 6))
         throw runtime_error(
-                "submitspendutxotx \"prior_utxo_txid\" \"prior_utxo_secret\" \"symbol:coin:unit\" \"symbol:fee:unit\" \"utxo_info\" [\"memo\"]\n"
+                "submitutxospendtx \"prior_utxo_txid\" \"prior_utxo_secret\" \"symbol:coin:unit\" \"symbol:fee:unit\" \"utxo_info\" [\"memo\"]\n"
                 "\nSend coins to a given address.\n" +
                 HelpRequiringPassphrase() +
                 "\nArguments:\n"
@@ -170,11 +170,11 @@ Value submitspendutxotx(const Array& params, bool fHelp) {
                 "\nResult:\n"
                 "\"txid\"                   (string) The transaction id.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("submitspendutxotx",
+                HelpExampleCli("submitutxospendtx",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\" \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" "
                                "\"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"{}\" \"Hello, WaykiChain!\"") +
                 "\nAs json rpc call\n" +
-                HelpExampleRpc("submitspendutxotx",
+                HelpExampleRpc("submitutxospendtx",
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                                "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"{}\", \"Hello, WaykiChain!\""));
 
