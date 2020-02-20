@@ -73,7 +73,7 @@ static const unordered_map<TokenSymbol, TokenSymbol> kCdpScoinToPriceQuoteMap = 
 inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
     auto it = kCdpScoinToPriceQuoteMap.find(scoinSymbol);
     if (it != kCdpScoinToPriceQuoteMap.end())
-        return it->first;
+        return it->second;
     return EMPTY_STRING;
 }
 

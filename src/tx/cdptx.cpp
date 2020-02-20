@@ -157,14 +157,16 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     // TODO: multi stable coin
     uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(assetSymbol, quoteSymbol));
     if (bcoinMedianPrice == 0) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price!!"),
-                         REJECT_INVALID, "acquire-bcoin-median-price-err");
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price! coinPricePair=%s:%s",
+                assetSymbol, quoteSymbol), REJECT_INVALID, "acquire-asset-price-err");
     }
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
-    if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioMin)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralFloorReached!!"), REJECT_INVALID,
-                         "global-collateral-floor-reached");
+    uint64_t globalCollateralRatio = cdpGlobalData.GetCollateralRatio(bcoinMedianPrice);
+    if (globalCollateralRatio < globalCollateralRatioMin) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, GlobalCollateralFloorReached! ratio=%llu,"
+                " min=%llu", globalCollateralRatio, globalCollateralRatioMin),
+                REJECT_INVALID, "global-collateral-floor-reached");
     }
 
     uint64_t globalCollateralCeiling;
