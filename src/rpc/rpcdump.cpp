@@ -149,14 +149,8 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    string strAddress = params[0].get_str();
-    CCoinAddress address;
-    if (!address.SetString(strAddress))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address.");
-
-    CKeyID keyId;
-    if (!address.GetKeyId(keyId))
-        throw JSONRPCError(RPC_TYPE_ERROR, "The address is not associated with any private key.");
+    CUserID uid = RPC_PARAM::GetUserId(params[0], true);
+    CKeyID keyId = uid.get<CKeyID>();
 
     CKey vchSecret;
     if (!pWalletMain->GetKey(keyId, vchSecret))
