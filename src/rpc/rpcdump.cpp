@@ -154,11 +154,11 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
     CKey vchSecret;
     if (!pWalletMain->GetKey(keyId, vchSecret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for uid " + uid.ToString() + " is not known.");
 
     CKey vchSecret;
     if (!pWalletMain->GetKey(keyId, vchSecret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for address " + strAddress + " is not known.");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for uid " + uid.ToString() + " is not known.");
 
     CKey minerkey;
 	pWalletMain->GetKey(keyId, minerkey, true);
