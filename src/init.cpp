@@ -135,7 +135,7 @@ void Shutdown() {
 
     StopRPCServer();
 
-    GenerateCoinBlock(false, nullptr, 0);
+    GenerateProduceBlockThread(false, nullptr, 0);
     StartCommonGeneration(0, 0);
     StartContractGeneration("", 0, 0);
 
@@ -865,7 +865,7 @@ bool AppInit(boost::thread_group &threadGroup) {
 
     // Generate coins in the background
     if (pWalletMain) {
-        GenerateCoinBlock(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
+        GenerateProduceBlockThread(SysCfg().GetBoolArg("-genblock", false), pWalletMain, SysCfg().GetArg("-genblocklimit", -1));
         pWalletMain->ResendWalletTransactions();
         threadGroup.create_thread(boost::bind(&ThreadFlushWalletDB, boost::ref(pWalletMain->strWalletFile)));
 

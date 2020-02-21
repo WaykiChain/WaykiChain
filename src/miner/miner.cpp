@@ -813,7 +813,7 @@ void static ThreadProduceBlocks(CWallet *pWallet, int32_t targetHeight) {
     }
 }
 
-void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t targetHeight) {
+void GenerateProduceBlockThread(bool fGenerate, CWallet *pWallet, int32_t targetHeight) {
     static boost::thread_group *minerThreads = nullptr;
 
     if (minerThreads != nullptr) {
@@ -827,7 +827,7 @@ void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t targetHeight) {
 
     // // In mainnet, coin miner should generate blocks continuously regardless of target height.
     // if (SysCfg().NetworkID() != MAIN_NET && targetHeight <= 0) {
-    //     LogPrint(BCLog::ERROR, "GenerateCoinBlock() : target height <=0 (%d)", targetHeight);
+    //     LogPrint(BCLog::ERROR, "GenerateProduceBlockThread() : target height <=0 (%d)", targetHeight);
     //     return;
     // }
 

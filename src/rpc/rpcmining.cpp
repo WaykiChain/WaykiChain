@@ -84,13 +84,13 @@ Value setgenerate(const Array& params, bool fHelp) {
     }
     Object obj;
     if (fGenerate == false){
-        GenerateCoinBlock(false, pWalletMain, 1);
+        GenerateProduceBlockThread(false, pWalletMain, 1);
 
         obj.push_back(Pair("msg", "stoping  mining"));
         return obj;
     }
 
-    GenerateCoinBlock(true, pWalletMain, genBlockLimit);
+    GenerateProduceBlockThread(true, pWalletMain, genBlockLimit);
     obj.push_back(Pair("msg", "in  mining"));
     return obj;
 }

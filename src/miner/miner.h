@@ -83,7 +83,7 @@ public:
 vector<MinedBlockInfo> GetMinedBlocks(uint32_t count);
 
 /** Run the miner threads */
-void GenerateCoinBlock(bool fGenerate, CWallet *pWallet, int32_t nThreads);
+void GenerateProduceBlockThread(bool fGenerate, CWallet *pWallet, int32_t nThreads);
 
 bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, VoteDelegate &curDelegateOut);
 
