@@ -55,7 +55,7 @@ CCriticalSection cs_main;
 CTxMemPool mempool;
 map<uint256, CBlockIndex *> mapBlockIndex;
 int32_t nSyncTipHeight = 0;
-string externalIp;
+string publicIp;
 map<uint256/* blockhash */, std::shared_ptr<CCacheWrapper>> mapForkCache;
 CSignatureCache signatureCache;
 CChain chainActive;

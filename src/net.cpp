@@ -281,7 +281,7 @@ static string GetSystemInfo() {
     return json;
 }
 
-bool GetMyExternalIP(CNetAddr& ipRet) {
+bool GetMyPublicIP(CNetAddr& ipRet) {
     ipHost = SysCfg().GetArg("-ipserver", "");
     if (ipHost == "") {
         if (SysCfg().NetworkID() == MAIN_NET)
@@ -295,12 +295,12 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     if (ipHost.find("/") != std::string::npos) {
         string host = ipHost;
         ipHost = "";
-        return ERRORMSG("GetMyExternalIP() : ipserver (%s) contains /", host);
+        return ERRORMSG("GetMyPublicIP() : ipserver (%s) contains /", host);
     }
 
     CService addrConnect(ipHost, 80, true);
     if (!addrConnect.IsValid())
-        return ERRORMSG("GetMyExternalIP() : service is unavalable: %s\n", ipHost);
+        return ERRORMSG("GetMyPublicIP() : service is unavalable: %s\n", ipHost);
 
     stringstream stream;
     stream << "GET" << " " << "/ip" << " " << "HTTP/1.1\r\n";
@@ -311,7 +311,7 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
 
     SOCKET hSocket;
     if (!ConnectSocket(addrConnect, hSocket))
-        return ERRORMSG("GetMyExternalIP() : failed to connect IP server: %s", addrConnect.ToString());
+        return ERRORMSG("GetMyPublicIP() : failed to connect IP server: %s", addrConnect.ToString());
 
     send(hSocket, request.c_str(), request.length(), MSG_NOSIGNAL);
 
@@ -321,31 +321,31 @@ bool GetMyExternalIP(CNetAddr& ipRet) {
     closesocket(hSocket);
 
     if (strlen(buffer) == 0)
-        return ERRORMSG("GetMyExternalIP() : failed to receive data from server: %s", addrConnect.ToString());
+        return ERRORMSG("GetMyPublicIP() : failed to receive data from server: %s", addrConnect.ToString());
 
     static const char* const key = "\"ipAddress\":\"";
     char* from                   = strstr(buffer, key);
     if (from == nullptr) {
-        return ERRORMSG("GetMyExternalIP() : invalid message");
+        return ERRORMSG("GetMyPublicIP() : invalid message");
     }
     from += strlen(key);
     char* to   = strstr(from, "\"");
     string ip(from, to);
-    externalIp = ip;
-    CService ipAddr(externalIp, 0, true);
+    publicIp = ip;
+    CService ipAddr(publicIp, 0, true);
     if (!ipAddr.IsValid() /* || !ipAddr.IsRoutable() */)
-        return ERRORMSG("GetMyExternalIP() : invalid external ip address: %s", externalIp);
+        return ERRORMSG("GetMyPublicIP() : invalid external ip address: %s", publicIp);
 
     ipRet.SetIP(ipAddr);
 
-    LogPrint(BCLog::INFO, "GetMyExternalIP() : My External IP is: %s\n", externalIp);
+    LogPrint(BCLog::INFO, "GetMyPublicIP() : My External IP is: %s\n", publicIp);
 
     return true;
 }
 
-void ThreadGetMyExternalIP() {
+void ThreadGetMyPublicIP() {
     CNetAddr addrLocalHost;
-    if (GetMyExternalIP(addrLocalHost)) {
+    if (GetMyPublicIP(addrLocalHost)) {
         AddLocal(addrLocalHost, LOCAL_HTTP);
     }
 }
@@ -1377,7 +1377,7 @@ void static Discover(boost::thread_group& threadGroup) {
 
     // Don't use external IPv4 discovery, when -onlynet="IPv6"
     if (!IsLimited(NET_IPV4))
-        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "ext-ip", &ThreadGetMyExternalIP));
+        threadGroup.create_thread(boost::bind(&TraceThread<void (*)()>, "ext-ip", &ThreadGetMyPublicIP));
 }
 
 void StartNode(boost::thread_group& threadGroup) {

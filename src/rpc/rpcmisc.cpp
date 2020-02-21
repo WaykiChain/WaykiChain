@@ -72,7 +72,7 @@ Value getinfo(const Array& params, bool fHelp) {
             "  \"protocol_version\": xxxxx,     (numeric) the protocol version\n"
             "  \"net_type\": \"xxxxx\",         (string) the blockchain network type (MAIN_NET|TEST_NET|REGTEST_NET)\n"
             "  \"proxy\": \"host:port\",        (string) the proxy server used by the node program\n"
-            "  \"ext_ip\": \"xxxxx\",           (string) the external ip of the node\n"
+            "  \"public_ip\": \"xxxxx\",        (string) the public IP of this node\n"
             "  \"conf_dir\": \"xxxxx\",         (string) the conf directory\n"
             "  \"data_dir\": \"xxxxx\",         (string) the data directory\n"
             "  \"block_interval\": xxxxx,       (numeric) the time interval (in seconds) to add a new block into the "
@@ -108,7 +108,7 @@ Value getinfo(const Array& params, bool fHelp) {
     obj.push_back(Pair("protocol_version",      PROTOCOL_VERSION));
     obj.push_back(Pair("net_type",              NetTypeNames[SysCfg().NetworkID()]));
     obj.push_back(Pair("proxy",                 (proxy.first.IsValid() ? proxy.first.ToStringIPPort() : string())));
-    obj.push_back(Pair("ext_ip",                externalIp));
+    obj.push_back(Pair("public_ip",             publicIp));
     obj.push_back(Pair("conf_dir",              GetConfigFile().string().c_str()));
     obj.push_back(Pair("data_dir",              GetDataDir().string().c_str()));
     obj.push_back(Pair("block_interval",        (int32_t)::GetBlockInterval(chainActive.Height())));
