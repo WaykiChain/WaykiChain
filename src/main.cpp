@@ -1056,7 +1056,8 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
     }
 
     VoteDelegate curDelegate;
-    if (!VerifyRewardTx(&block, cw, false, curDelegate))
+    uint32_t totalDelegateNum;
+    if (!VerifyRewardTx(&block, cw, false, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ConnectBlock() : verify reward tx error"), REJECT_INVALID, "bad-reward-tx");
 
     CBlockUndo blockUndo;
@@ -1155,7 +1156,7 @@ bool ConnectBlock(CBlock &block, CCacheWrapper &cw, CBlockIndex *pIndex, CValida
         }
 
         // Verify profits
-        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate);
+        uint64_t profits = delegateAccount.ComputeBlockInflateInterest(block.GetHeight(), curDelegate, totalDelegateNum);
         if (pRewardTx->inflated_bcoins != profits) {
             return state.DoS(100, ERRORMSG("ConnectBlock() : invalid coinbase profits amount(actual=%d vs valid=%d)",
                              pRewardTx->inflated_bcoins, profits), REJECT_INVALID, "bad-reward-amount");
@@ -1877,7 +1878,8 @@ bool ProcessForkedChain(const CBlock &block, CBlockIndex *pPreBlockIndex, CValid
     }
 
     VoteDelegate curDelegate;
-    if (!VerifyRewardTx(&block, *spCW, false, curDelegate))
+    uint32_t totalDelegateNum ;
+    if (!VerifyRewardTx(&block, *spCW, false, curDelegate, totalDelegateNum))
         return state.DoS(100, ERRORMSG("ProcessForkedChain() : block[%u]: %s verify reward tx error",
             block.GetHeight(), block.GetHash().GetHex()), REJECT_INVALID, "bad-reward-tx");
 

@@ -40,11 +40,16 @@ public:
     CSysParamDBCache(CDBAccess *pDbAccess) : sysParamCache(pDbAccess),
                                              minerFeeCache(pDbAccess),
                                              cdpParamCache(pDbAccess),
-                                             cdpInterestParamChangesCache(pDbAccess){}
+                                             cdpInterestParamChangesCache(pDbAccess),
+                                             currentBpCountCache(pDbAccess),
+                                             newBpCountCache(pDbAccess){}
+
     CSysParamDBCache(CSysParamDBCache *pBaseIn) : sysParamCache(pBaseIn->sysParamCache),
                                                   minerFeeCache(pBaseIn->minerFeeCache),
                                                   cdpParamCache(pBaseIn->cdpParamCache),
-                                                  cdpInterestParamChangesCache(){}
+                                                  cdpInterestParamChangesCache(pBaseIn->cdpInterestParamChangesCache),
+                                                  currentBpCountCache(pBaseIn->currentBpCountCache),
+                                                  newBpCountCache(pBaseIn->newBpCountCache){}
 
     bool GetParam(const SysParamType &paramType, uint64_t& paramValue) {
         if (SysParamTable.count(paramType) == 0)
@@ -91,6 +96,8 @@ public:
         minerFeeCache.SetBase(&pBaseIn->minerFeeCache);
         cdpParamCache.SetBase(&pBaseIn->cdpParamCache);
         cdpInterestParamChangesCache.SetBase(&pBaseIn->cdpInterestParamChangesCache);
+        currentBpCountCache.SetBase(&pBaseIn->currentBpCountCache);
+        newBpCountCache.SetBase(&pBaseIn->newBpCountCache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
@@ -98,6 +105,9 @@ public:
         minerFeeCache.SetDbOpLogMap(pDbOpLogMapIn);
         cdpParamCache.SetDbOpLogMap(pDbOpLogMapIn);
         cdpInterestParamChangesCache.SetDbOpLogMap(pDbOpLogMapIn);
+        currentBpCountCache.SetDbOpLogMap(pDbOpLogMapIn);
+        newBpCountCache.SetDbOpLogMap(pDbOpLogMapIn);
+
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
@@ -105,6 +115,8 @@ public:
         minerFeeCache.RegisterUndoFunc(undoDataFuncMap);
         cdpParamCache.RegisterUndoFunc(undoDataFuncMap);
         cdpInterestParamChangesCache.RegisterUndoFunc(undoDataFuncMap);
+        currentBpCountCache.RegisterUndoFunc(undoDataFuncMap);
+        newBpCountCache.RegisterUndoFunc(undoDataFuncMap);
     }
     bool SetParam(const SysParamType& key, const uint64_t& value){
         return sysParamCache.SetData(key, CVarIntValue(value)) ;
@@ -198,6 +210,32 @@ public:
     }
 
 
+    bool SetNewBpCount(uint8_t newBpCount, uint32_t launchHeight) {
+        return newBpCountCache.SetData(std::make_pair(CVarIntValue(launchHeight), newBpCount)) ;
+    }
+    bool SetCurrentBpCount(uint8_t bpCount) {
+
+        return currentBpCountCache.SetData(bpCount) ;
+    }
+    uint8_t GetBpCount(uint32_t height) {
+
+        pair<CVarIntValue<uint32_t>,uint8_t> value ;
+        if(newBpCountCache.GetData(value)){
+            auto launchHeight = std::get<0>(value);
+            if(height >= launchHeight.get()) {
+                return std::get<1>(value) ;
+            }
+        }
+
+        uint8_t bpCount ;
+        if(currentBpCountCache.GetData(bpCount)){
+            return bpCount;
+        }
+
+        return 11 ;
+
+    }
+
 private:
 
 
@@ -210,5 +248,6 @@ private:
     CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> >      cdpParamCache;
     // [prefix]cdp_coin_pair -> cdp_interest_param_changes (contain all changes)
     CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap> cdpInterestParamChangesCache;
-
+    CSimpleKVCache<dbk:: BP_COUNT, uint8_t>             currentBpCountCache ;
+    CSimpleKVCache<dbk:: NEW_BP_COUNT, pair<CVarIntValue<uint32_t>,uint8_t>>  newBpCountCache ;
 };

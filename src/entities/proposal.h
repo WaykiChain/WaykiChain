@@ -323,13 +323,13 @@ public:
 
 class CBPCountUpdateProposal: public CProposal {
 public:
-    uint32_t bp_count ;
+    uint8_t bp_count ;
 
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
             READWRITE(need_governer_count);
-            READWRITE(VARINT(bp_count));
+            READWRITE(bp_count);
     );
 
 

@@ -36,13 +36,14 @@ public:
         pending_delegates_cache(pBaseIn->pending_delegates_cache),
         active_delegates_cache(pBaseIn->active_delegates_cache) {}
 
-    bool GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates);
+    bool GetTopVoteDelegates(uint32_t delegateNum, VoteDelegateVector &topVotedDelegates);
 
     bool SetDelegateVotes(const CRegID &regid, const uint64_t votes);
     bool EraseDelegateVotes(const CRegID &regid, const uint64_t votes);
 
     int32_t GetLastVoteHeight();
     bool SetLastVoteHeight(int32_t height);
+    uint32_t GetActivedDelegateNum() ;
 
     bool GetPendingDelegates(PendingDelegates &delegates);
     bool SetPendingDelegates(const PendingDelegates &delegates);

@@ -23,8 +23,9 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
 
     pendingDelegates.counted_vote_height = block.GetHeight();
     VoteDelegateVector topVoteDelegates;
-    if (!cw.delegateCache.GetTopVoteDelegates(topVoteDelegates) ||
-        topVoteDelegates.size() != IniCfg().GetTotalDelegateNum()) {
+    auto delegateNum = cw.sysParamCache.GetBpCount(block.GetHeight()) ;
+    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, topVoteDelegates) ||
+        topVoteDelegates.size() != delegateNum ) {
 
         LogPrint(BCLog::ERROR, "[WARNING] %s, the got top vote delegates is invalid! block=%d:%s, got_num=%d, definitive_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString());
@@ -43,7 +44,7 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
     if (!activeDelegates.empty() && pendingDelegates.top_vote_delegates == activeDelegates) {
         LogPrint(BCLog::INFO, "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
-                pendingDelegates.top_vote_delegates.size(), IniCfg().GetTotalDelegateNum());
+                pendingDelegates.top_vote_delegates.size(), delegateNum);
         // update counted_vote_height and top_vote_delegates to skip unchanged delegates to next count vote slot height
         return true;
     }

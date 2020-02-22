@@ -9,7 +9,7 @@ Coding
 |global variables| All small cases, starting with ```g_```.| ```g_cs_main```|
 |local variables| Camel case | ```freeAmount```, ```delegateVotes```|
 |classes| Pascal case, starting with ```C``` |```CCDPStakeTx``` |
-|class fields| All small case, using ```_``` to connect words| ```tx_uid```, ```free_amount``` |
+delegate|class fields| All small case, using ```_``` to connect words| ```tx_uid```, ```free_amount``` |
 |constants| All capital letters, using ```_``` to connect words| ```ASSET_RISK_FEE_RATIO```|
 
 

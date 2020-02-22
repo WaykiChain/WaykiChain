@@ -7,11 +7,11 @@
 
 #include "config/configuration.h"
 
-bool CDelegateDBCache::GetTopVoteDelegates(VoteDelegateVector &topVotedDelegates) {
+bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum ,VoteDelegateVector &topVotedDelegates) {
 
     // votes{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
     set<decltype(voteRegIdCache)::KeyType> topKeys;
-    voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), topKeys);
+    voteRegIdCache.GetTopNElements(delegateNum, topKeys);
 
     // assert(regIds.size() == IniCfg().GetTotalDelegateNum());
 
@@ -78,6 +78,13 @@ bool CDelegateDBCache::GetPendingDelegates(PendingDelegates &delegates) {
 bool CDelegateDBCache::SetPendingDelegates(const PendingDelegates &delegates) {
     return pending_delegates_cache.SetData(delegates);
 
+}
+uint32_t CDelegateDBCache::GetActivedDelegateNum() {
+    VoteDelegateVector dv ;
+    if(GetActiveDelegates(dv)){
+        return dv.size() ;
+    }
+    return 11 ;
 }
 
 bool CDelegateDBCache::IsActiveDelegate(const CRegID &regid) {

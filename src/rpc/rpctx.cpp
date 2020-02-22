@@ -1578,10 +1578,12 @@ Value listdelegates(const Array& params, bool fHelp) {
             HelpExampleCli("listdelegates", "11") + "\nAs json rpc call\n" + HelpExampleRpc("listdelegates", "11"));
     }
 
-    int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : IniCfg().GetTotalDelegateNum();
+    uint32_t defaultDelegateNum = pCdMan->pDelegateCache->GetActivedDelegateNum() ;
+
+    int32_t delegateNum = (params.size() == 1) ? params[0].get_int() : defaultDelegateNum; //IniCfg().GetTotalDelegateNum();
     if (delegateNum < 1 || delegateNum > 11) {
         throw JSONRPCError(RPC_INVALID_PARAMETER,
-                           strprintf("Delegate number not between 1 and %u", IniCfg().GetTotalDelegateNum()));
+                           strprintf("Delegate number not between 1 and %u", defaultDelegateNum));
     }
 
     VoteDelegateVector delegates;

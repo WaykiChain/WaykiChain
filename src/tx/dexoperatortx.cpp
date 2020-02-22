@@ -19,7 +19,7 @@ static const uint32_t MAX_NAME_LEN = 32;
 static const uint64_t MAX_MATCH_FEE_RATIO_VALUE = 50000000; // 50%
 
 static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, const string &action,
-    CAccount &txAccount, vector<CReceipt> &receipts) {
+    CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {
 
     uint64_t exchangeFee = 0;
     if (action == OPERATOR_ACTION_REGISTER) {
@@ -64,7 +64,7 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
         return state.DoS(100, ERRORMSG("%s(), GetActiveDelegates failed", __func__),
             REJECT_INVALID, "get-delegates-failed");
     }
-    assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
+    assert(delegates.size() != 0 );
 
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegateRegid = delegates[i].regid;
@@ -191,7 +191,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         return state.DoS(100, ERRORMSG("%s, the owner already has a dex operator! owner_regid=%s", __func__,
             pOwnerAccount->regid.ToString()), REJECT_INVALID, "owner-had-dexoperator-already");
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts,context.height))
         return false;
 
     uint32_t new_id;
@@ -405,7 +405,7 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                                UPDATE_ACCOUNT_FAIL, "dexoperator-update-permession-deny");
     }
 
-    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts))
+    if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts,context.height))
          return false;
 
     DexOperatorDetail detail = {

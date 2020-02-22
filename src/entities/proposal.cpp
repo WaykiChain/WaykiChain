@@ -303,18 +303,18 @@ bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(from_uid, srcAccount)) {
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, read source addr account info error"),
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::ExecuteProposal, read source addr account info error"),
                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
     }
 
     uint64_t minusValue = amount;
     if (!srcAccount.OperateBalance(token, BalanceOpType::SUB_FREE, minusValue)) {
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, account has insufficient funds"),
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::ExecuteProposal, account has insufficient funds"),
                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account info error"), WRITE_ACCOUNT_FAIL,
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::ExecuteProposal, save account info error"), WRITE_ACCOUNT_FAIL,
                          "bad-write-accountdb");
 
     CAccount desAccount;
@@ -322,18 +322,18 @@ bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
         if (to_uid.is<CKeyID>()) {  // first involved in transaction
             desAccount.keyid = to_uid.get<CKeyID>();
         } else {
-            return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, get account info failed"),
+            return state.DoS(100, ERRORMSG("CCoinTransferProposal::ExecuteProposal, get account info failed"),
                              READ_ACCOUNT_FAIL, "bad-read-accountdb");
         }
     }
 
     if (!desAccount.OperateBalance(token, BalanceOpType::ADD_FREE, amount)) {
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, operate accounts error"),
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::ExecuteProposal, operate accounts error"),
                          UPDATE_ACCOUNT_FAIL, "operate-add-account-failed");
     }
 
     if (!cw.accountCache.SetAccount(to_uid, desAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::ExecuteTx, save account error, kyeId=%s",
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::ExecuteProposal, save account error, kyeId=%s",
                                        desAccount.keyid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
 
 
@@ -342,12 +342,12 @@ bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
 bool CCoinTransferProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
 
     if (amount < DUST_AMOUNT_THRESHOLD)
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, dust amount, %llu < %llu", amount,
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::CheckProposal, dust amount, %llu < %llu", amount,
                                        DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(from_uid, srcAccount))
-        return state.DoS(100, ERRORMSG("CBaseCoinTransferTx::CheckTx, read account failed"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CCoinTransferProposal::CheckProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
 
 
@@ -359,11 +359,28 @@ bool CCoinTransferProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& 
 
 bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
+    IMPLEMENT_DEFINE_CW_STATE;
+    uint32_t launch_height = (uint32_t)context.height + 5000 ;
+
+    auto currentBpCount = cw.delegateCache.GetActivedDelegateNum() ;
+    if(!cw.sysParamCache.SetCurrentBpCount(currentBpCount)) {
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::ExecuteProposal, save current bp count failed!"),
+                REJECT_INVALID, "save-currbpcount-failed");
+    }
+
+    if(!cw.sysParamCache.SetNewBpCount(bp_count,launch_height)){
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::ExecuteProposal, save new bp count failed!"),
+                REJECT_INVALID, "save-newbpcount-failed");
+    }
+
     return true ;
 
 }
 bool CBPCountUpdateProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
 
+    if( bp_count == 0)
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,bp_count must be more than 0"),
+                REJECT_INVALID,"bad-bp-count") ;
 
     return true  ;
 }

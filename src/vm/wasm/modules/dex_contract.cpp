@@ -118,7 +118,9 @@ static void process_dex_operator_fee(wasm_context &context, const wasm::asset &f
     VoteDelegateVector delegates;
     WASM_ASSERT(context.database.delegateCache.GetActiveDelegates(delegates), wasm_assert_exception,
         "%s(), GetActiveDelegates failed", __func__);
-    assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
+   // auto delegateNum = context.database.sysParamCache.GetBpCount()
+   //TODO replace IniCfg().GetTotalDelegateNum
+   assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
 
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegate_regid = delegates[i].regid;

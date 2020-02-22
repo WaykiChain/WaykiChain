@@ -34,7 +34,7 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
 }
 
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
-    CAccount &txAccount, vector<CReceipt> &receipts) {
+    CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {
 
     uint64_t assetFee = 0;
     if (action == ASSET_ACTION_ISSUE) {
@@ -78,7 +78,7 @@ static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const st
         return state.DoS(100, ERRORMSG("ProcessAssetFee, GetActiveDelegates failed"),
             REJECT_INVALID, "get-delegates-failed");
     }
-    assert(delegates.size() != 0 && delegates.size() == IniCfg().GetTotalDelegateNum());
+    assert(delegates.size() != 0 );
 
     for (size_t i = 0; i < delegates.size(); i++) {
         const CRegID &delegateRegid = delegates[i].regid;
@@ -187,7 +187,7 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
             asset.owner_uid.get<CRegID>().ToString()), REJECT_INVALID, "owner-account-unregistered-or-immature");
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, receipts)) {
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_ISSUE, *pTxAccount, receipts,context.height)) {
         return false;
     }
 
@@ -451,7 +451,7 @@ bool CAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                         txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, account, receipts)) {
+    if (!ProcessAssetFee(cw, state, ASSET_ACTION_UPDATE, account, receipts,context.height)) {
         return false;
     }
 
