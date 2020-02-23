@@ -6,12 +6,12 @@
 #include "txutxodb.h"
 #include "config/chainparams.h"
 
-bool CTxUTXODBCache::SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUTXOTx &utxo) {
+bool CTxUTXODBCache::SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUtxoTx &utxo) {
     return txUtxoCache.SetData(txid, std::make_tuple(blockHeight, utxo));
 }
 
-bool CTxUTXODBCache::GetUtxoTx(const TxID &txid, uint64_t &blockHeight, CCoinUTXOTx &utxo) {
-    std::tuple<uint64_t, CCoinUTXOTx> data;
+bool CTxUTXODBCache::GetUtxoTx(const TxID &txid, uint64_t &blockHeight, CCoinUtxoTx &utxo) {
+    std::tuple<uint64_t, CCoinUtxoTx> data;
     bool result = txUtxoCache.GetData(txid, data);
     if (!result)
         return false;

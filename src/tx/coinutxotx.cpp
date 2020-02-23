@@ -9,7 +9,117 @@
 #include <string>
 #include <cstdarg>
 
-bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
+inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext &context, 
+                                const CUserID &prevUtxoTxUid, const CUserID &txUid,
+                                const CUtxoInput &input, CUtxoCond &cond) {
+    CValidationState &state = *context.pState;
+
+    switch (cond.cond_type) {
+        case UtxoCondType::P2SA : {
+            CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (cond);
+
+            if (isCheckInput) {
+                if (theCond.uid != txUid) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid mismatches error!"), REJECT_INVALID, 
+                                    "uid-mismatches-err");
+                }
+            } else {
+                if (theCond.uid.IsEmpty()) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
+                                    "uid-empty-err");
+                }
+            }
+            break;
+        }
+        case UtxoCondType::P2MA : {
+            CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (cond);
+
+            if (isCheckInput) {
+                //TODO must verify signatures one by one below!!!
+
+
+
+            } else {
+                if (theCond.uid.IsEmpty()) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
+                                    "uid-empty-err");
+                }
+            }
+            break;
+        }
+        case UtxoCondType::P2PH : {
+            CPasswordHashLockCondOut& theCond = dynamic_cast< CPasswordHashLockCondOut& > (cond);
+
+            if (isCheckInput) {
+                bool found = false;
+                for (auto cond : input.conds) {
+                    if (cond.cond_type == UtxoCondType::P2PH) {
+                        found = true;
+                        CPasswordHashLockCondIn& inCond = dynamic_cast< CPasswordHashLockCondIn& > (cond);
+                        string text = strprintf("%s%s", inCond.password, txUid.ToString());
+                        uint256 hash = Hash(text); 
+                        if (theCond.password_hash != hash) {
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, secret mismatches error!"), REJECT_INVALID, 
+                                            "secret-mismatches-err");
+                        }
+                    } else
+                        continue;
+                }
+                if (!found) {
+                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond mismatches error!"), REJECT_INVALID, 
+                                    "cond-mismatches-err");
+                }
+            } else { //output cond
+                if (theCond.password_hash == uint256()) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, empty hash lock error!"), REJECT_INVALID, 
+                                    "empty-hash-lock-err");
+                }
+            }
+            break;
+        }
+        case UtxoCondType::CLAIM_LOCK : { 
+            CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (cond);
+            
+            if (isCheckInput) {
+                if (context.height <= theCond.height) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to claim error!"), REJECT_INVALID, 
+                                    "too-early-to-claim-err");
+                }
+            } else { //output cond
+                if (theCond.height == 0) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, claim lock empty error!"), REJECT_INVALID, 
+                                    "claim-lock-empty-err");
+                }
+            }
+            break; 
+        }
+        case UtxoCondType::RECLAIM_LOCK : {
+            CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (cond);
+
+            if (isCheckInput) {
+                if (prevUtxoTxUid == txUid) { // for reclaiming the coins
+                    if (theCond.height == 0 || context.height <= theCond.height) {
+                        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to reclaim error!"), REJECT_INVALID, 
+                                        "too-early-to-claim-err");
+                    } 
+                }
+            } else { //output cond
+                if (theCond.height == 0) {
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, reclaim lock empty error!"), REJECT_INVALID, 
+                                    "reclaim-lock-empty-err");
+                }
+            }
+            break; 
+        }
+        default: {
+            string strInOut = isCheckInput ? "input" : "output";
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, %s cond type error!", strInOut), REJECT_INVALID, 
+                                "cond-type-err");
+        }
+    }
+}
+
+bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_DEFINE_CW_STATE;
     IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
     IMPLEMENT_CHECK_TX_MEMO;
@@ -17,105 +127,70 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     if ((txUid.is<CPubKey>()) && !txUid.get<CPubKey>().IsFullyValid())
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, public key is invalid"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, public key is invalid"), REJECT_INVALID,
                         "bad-publickey");
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount)) //unrecorded account not allowed to participate
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, read account failed"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, read account failed"), REJECT_INVALID,
                         "bad-getaccount");
 
+    if (vins.size() > 100) //FIXME: need to use sysparam to replace 100
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, vins size > 100 error"), REJECT_INVALID,
+                        "vins-size-too-large");
+
+    if (vouts.size() > 100) //FIXME: need to use sysparam to replace 100
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, vouts size > 100 error"), REJECT_INVALID,
+                        "vouts-size-too-large");
+
+    if (vins.size() == 0 && vouts.size() == 0)
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, empty utxo error"), REJECT_INVALID,
+                        "utxo-empty-err");
+
     uint64_t minFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
+    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); }
+    uint64_t minerMinFees = (2 * vins.size() + vouts.size()) * minFee;
+    if (llFees < minerMinFees)
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, tx fee too small!"), REJECT_INVALID, 
+                        "bad-tx-fee-toosmall");
 
-    if (prior_utxo_txid == uint256()) { //1. first-time utxo
-        //1.1 ensure utxo is not null
-        if (utxo.is_null)
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo is null!", REJECT_INVALID, "utxo-is-null"));
+    uint64_t totalInAmount = 0;
+    uint64_t totalOutAmount = 0;
+    for (auto input : vins) {
+        CCoinUtxoTx prevUtxoTx;
+        uint64_t prevTxBlockHeight;
+        if (!context.pCw->txUtxoCache.GetUtxoTx(input.prev_utxo_txid, prevTxBlockHeight, prevUtxoTx))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, load prev utxo error!"), REJECT_INVALID, 
+                            "load-prev-utxo-err");
 
-        //1.2 ensure utxo amount greater than 0
-        if (utxo.coin_amount == 0)
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_amount is zero!",
-                                REJECT_INVALID, "zero-utxo-coin-amount"));
+        if (prevUtxoTx.vouts.size() < input.prev_utxo_out_index + 1)
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, prev utxo index OOR error!"), REJECT_INVALID, 
+                            "prev-utxo-index-OOR-err");
 
-        //1.3 ensure account balance is no less than utxo coin amount
-        if (srcAccount.GetBalance(utxo.coin_symbol, BalanceType::FREE_VALUE) < utxo.coin_amount) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, account balance coin_amount insufficient!",
-                                REJECT_INVALID, "insufficient-account-coin-amount"));
-        }
+        //enumerate the prev tx out conditions to check if current input meets 
+        //the output conditions of the previous Tx
+        for (auto cond : prevUtxoTx.vouts[input.prev_utxo_out_index].conds)
+            CheckUtxoCondition(true, context, prevUtxoTx.txUid, txUid, input, cond);
+    
+        totalInAmount += prevUtxoTx.vouts[input.prev_utxo_out_index].coin_amount;
+    }
 
-        if (llFees < minFee) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, tx fee too small!", REJECT_INVALID, "bad-tx-fee-toosmall"));
-        }
-    } else { //2. pointing to an existing prior utxo for consumption
-        //load prior utxo
-        CCoinUTXOTx priorUtxoTx;
-        uint64_t priorTxBlockHeight;
-        if (!context.pCw->txUtxoCache.GetUtxoTx(prior_utxo_txid, priorTxBlockHeight, priorUtxoTx)) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, load prior utxo error!",
-                                REJECT_INVALID, "load-prior-utxo-err"));
-        }
+    for (auto output : vouts) {
+        if (output.coin_amount == 0)
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, zeror output amount error!"), REJECT_INVALID, 
+                            "zero-output-amount-err");
 
-        //check if prior utox coin amount can be used to cover miner fee gap
-        if (llFees < minFee && fee_symbol == priorUtxoTx.utxo.coin_symbol 
-            && priorUtxoTx.utxo.coin_amount < minFee - llFees) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, tx fee too small!", REJECT_INVALID, "bad-tx-fee-toosmall"));
-        }
+        //check each cond's validity
+        for (auto cond : output.conds)
+            CheckUtxoCondition(false, context, CUserID(), txUid, CUtxoInput(), cond);
 
-        //2.1.1 check if prior utxo is null
-        if (priorUtxoTx.utxo.is_null) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo being null!",
-                                REJECT_INVALID, "prior-utxo-null-err")); 
-        }
-        //2.1.2 check if prior utxo's lock period has existed or not
-        if ((uint64_t)context.height < priorTxBlockHeight + priorUtxoTx.utxo.lock_duration) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo being locked!",
-                                REJECT_INVALID, "prior-utxo-locked-err")); 
-        }
-        //2.1.3 secret must be supplied when its hash exists in prior utxo
-        if (priorUtxoTx.utxo.htlc_cond.secret_hash != uint256()) {
-            string text = strprintf("%s%d%s", priorUtxoTx.txUid.ToString(), priorUtxoTx.valid_height, prior_utxo_secret);
-            uint256 hash = Hash(text);
-            if (hash != priorUtxoTx.utxo.htlc_cond.secret_hash) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, supplied wrong secret to prior utxo",
-                            REJECT_INVALID, "wrong-secret-to-prior-utxo"));
-            }
-        }
-        //2.1.4 prior utxo belongs to self, hence reclaiming the unspent prior utxo
-        if (txUid == priorUtxoTx.txUid) {
-            //make sure utxo spending timeout window has passed first
-            uint64_t timeout_height = priorTxBlockHeight 
-                                    + priorUtxoTx.utxo.lock_duration 
-                                    + priorUtxoTx.utxo.htlc_cond.collect_timeout;
+        totalOutAmount += output.coin_amount;
+    }
 
-            if ((uint64_t)context.height < timeout_height) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo not yet timedout!",
-                                REJECT_INVALID, "prior-utxo-not-timeout")); 
-            }
-        } else {
-            //2.1.5 ensure current txUid is to_uid in prior utxo
-            if (priorUtxoTx.utxo.to_uid != txUid) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior-utxo-toUid != txUid!",
-                                REJECT_INVALID, "priro-utxo-wrong-txUid"));
-            }
-        }
-        
-        if (!utxo.is_null) { //next UTXO exists
-            //2.2.1 check if coin symbol matches with prior utxo's
-            if (utxo.coin_symbol != priorUtxoTx.utxo.coin_symbol)
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_symobol mismatches with prior one!",
-                                REJECT_INVALID, "utxo-coin-symbol-mismatch"));
-
-            //2.2.2 check if next UTXO amount not zero
-            if (utxo.coin_amount == 0)
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, utxo.coin_amount is zero!",
-                                REJECT_INVALID, "zero-utxo-coin-amount"));
-
-            //2.2.3 check if e prior UTXO has sufficient fund for subsequent UTXO
-            if (utxo.coin_amount > priorUtxoTx.utxo.coin_amount)
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, prior utxo fund insufficient!",
-                                REJECT_INVALID, "prior-utxo-fund-insufficient"));
-        }
+    uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
+    if (accountBalance + totalInAmount < totalOutAmount + llFees) {
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID, 
+                        "insufficient-account-coin-amount");
     }
 
     CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
@@ -124,13 +199,16 @@ bool CCoinUTXOTx::CheckTx(CTxExecuteContext &context) {
     return true;
 }
 
-bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
+/**
+ * only deal with account balance states change...nothing on UTXO
+ */
+bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
     CCacheWrapper &cw       = *context.pCw;
     CValidationState &state = *context.pState;
 
     CAccount srcAccount;
     if (!cw.accountCache.GetAccount(txUid, srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, read txUid %s account info error",
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, read txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
 
     if (!GenerateRegID(context, srcAccount)) {
@@ -138,75 +216,45 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     vector<CReceipt> receipts;
-    if (prior_utxo_txid == uint256()) { //first-time utxo originator
-        //1. deduct amount accordingly
-        if (!utxo.is_null) {
-            if (!srcAccount.OperateBalance(utxo.coin_symbol, SUB_FREE, utxo.coin_amount)) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
-                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
-            }
-        
-            receipts.emplace_back(txUid, utxo.to_uid, utxo.coin_symbol, utxo.coin_amount, ReceiptCode::TRANSFER_UTXO_COINS);
+
+    uint64_t totalInAmount = 0;
+    uint64_t totalOutAmount = 0;
+    for (auto input : vins) {
+        CCoinUtxoTx prevUtxoTx;
+        uint64_t prevTxBlockHeight;
+        if (!context.pCw->txUtxoCache.GetUtxoTx(input.prev_utxo_txid, prevTxBlockHeight, prevUtxoTx))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, load prev utxo error!"), REJECT_INVALID, 
+                            "load-prev-utxo-err");
+
+        totalInAmount += prevUtxoTx.vouts[input.prev_utxo_out_index].coin_amount;
+    }
+
+    for (auto output : vouts) {
+        totalOutAmount += output.coin_amount;
+    }
+
+    uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);
+    if (accountBalance + totalInAmount < totalOutAmount + llFees) {
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, account balance coin_amount insufficient!"), REJECT_INVALID, 
+                        "insufficient-account-coin-amount");
+    }
+    int diff = totalInAmount - totalOutAmount - llFees;
+    if (diff < 0) {
+        if (!srcAccount.OperateBalance(coin_symbol, SUB_FREE, abs(diff))) {
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
+                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
-        //2. add this utxo into state d/b
-        context.pCw->txUtxoCache.SetUtxoTx(GetHash(), context.height, (CCoinUTXOTx) *this);
-
-    } else { // to spend prior utxo
-        //load prior utxo
-        CCoinUTXOTx priorUtxoTx;
-        uint64_t priorTxBlockHeight;
-        if (!context.pCw->txUtxoCache.GetUtxoTx(prior_utxo_txid, priorTxBlockHeight, priorUtxoTx)) {
-            return state.DoS(100, ERRORMSG("CCoinUTXOTx::CheckTx, load prior utxo error!",
-                                REJECT_INVALID, "load-prior-utxo-err"));
-        }
-
-        //no current utxo
-        if (utxo.is_null) {
-            //2.1 withdraw all
-             if (!srcAccount.OperateBalance(priorUtxoTx.utxo.coin_symbol, ADD_FREE, priorUtxoTx.utxo.coin_amount)) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to withdraw coin_amount into txUid %s account",
-                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "withdraw-prior-utxo-err");
-            }
-            //2.2 delete prior utox tx
-            context.pCw->txUtxoCache.DelUtoxTx(prior_utxo_txid);
-            receipts.emplace_back(utxo.to_uid, txUid, priorUtxoTx.utxo.coin_symbol, priorUtxoTx.utxo.coin_amount, 
-                ReceiptCode::TRANSFER_UTXO_COINS);
-
-        } else {// next utxo existing
-            //2.2.1 double check if prior utxo has sufficient fund for next utxo
-            if (priorUtxoTx.utxo.coin_amount < utxo.coin_amount) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, prior utxo coin amount insufficient for new utxo",
-                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "prior-utxo-coin-insufficient");
-            }
-            //2.2.2 withdraw renaming coins to own account
-            uint64_t residualCoinAmt =  priorUtxoTx.utxo.coin_amount - utxo.coin_amount;
-            if (residualCoinAmt > 0 && !srcAccount.OperateBalance(priorUtxoTx.utxo.coin_symbol, ADD_FREE, residualCoinAmt)) {
-                return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, failed to withdraw coin_amount into txUid %s account",
-                                txUid.ToString()), UPDATE_ACCOUNT_FAIL, "withdraw-prior-utxo-err");
-            }
-            //2.2.3 delete prior utxo from state d/b
-            context.pCw->txUtxoCache.DelUtoxTx(prior_utxo_txid);
-            //2.2.4 add current utxo tx into state d/b
-            context.pCw->txUtxoCache.SetUtxoTx(GetHash(), context.height, (CCoinUTXOTx) *this);
-
-            receipts.emplace_back(priorUtxoTx.txUid, utxo.to_uid, utxo.coin_symbol, utxo.coin_amount, 
-                ReceiptCode::TRANSFER_UTXO_COINS);
+    } else if (diff > 0) {
+        if (!srcAccount.OperateBalance(coin_symbol, ADD_FREE, diff)) {
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, failed to add coin_amount in txUid %s account",
+                            txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
     }
     
-    uint64_t minFee, unpaidMinerFee;
-    if (!GetTxMinFee(nTxType, context.height, fee_symbol, minFee)) { assert(false); /* has been check before */ }
-    unpaidMinerFee = (llFees < minFee) ? minFee - llFees : 0;
-    if (llFees > 0 && !srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, insufficient coin_amount in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-miner-fee");
-    }
-    if (unpaidMinerFee > 0 && !srcAccount.OperateBalance(fee_symbol, SUB_FREE, unpaidMinerFee))
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, insufficient coin_amount in txUid %s account",
-                        txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-miner-fee");
+    receipts.emplace_back(txUid, utxo.to_uid, utxo.coin_symbol, abs(diff), ReceiptCode::TRANSFER_UTXO_COINS);
     
     if (!cw.accountCache.SaveAccount(srcAccount))
-        return state.DoS(100, ERRORMSG("CCoinUTXOTx::ExecuteTx, write source addr %s account info error",
+        return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, write source addr %s account info error",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-read-accountdb");
 
     if (!receipts.empty() && !cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
@@ -216,7 +264,7 @@ bool CCoinUTXOTx::ExecuteTx(CTxExecuteContext &context) {
     return true;
 }
 
-string CCoinUTXOTx::ToString(CAccountDBCache &accountCache) {
+string CCoinUtxoTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
         "valid_height=%d, priorUtxoTxId=%s, priorUtxoSecret=%s, utxo=[%s], memo=%s",
@@ -224,7 +272,7 @@ string CCoinUTXOTx::ToString(CAccountDBCache &accountCache) {
         valid_height, prior_utxo_txid.ToString(), prior_utxo_secret, utxo.ToString(), HexStr(memo));
 }
 
-Object CCoinUTXOTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CCoinUtxoTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
     result.push_back(Pair("prior_utxo_txid", prior_utxo_txid.ToString()));
