@@ -56,10 +56,28 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
         case UtxoCondType::P2MA : {
             CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (cond);
 
-            if (isCheckInput) {
-                //TODO must verify signatures one by one below!!!
+            if (isCheckInput) { //theCond is the previous UTXO output
+                bool found = false;
+                for (auto inputCond : input.conds) {
+                    if (inputCond.cond_type == UtxoCondType::P2MA) {
+                        found = true;
+                        CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (inputCond);
+                        if ((uint160) theCond.uid.get<CKeyID>() != p2maCondIn.GetRedeemScriptHash()) {
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisign addr mismatch error!"), REJECT_INVALID, 
+                                    "cond-multsign-addr-mismatch-err");
+                        }
 
-
+                        for (auto signature : p2maCondIn.signatures) {
+                             //TODO must verify signatures one by one below!!!
+                        }
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisign missing error!"), REJECT_INVALID, 
+                                    "cond-multsign-missing-err");
+                }
 
             } else {
                 if (theCond.uid.IsEmpty()) {
@@ -74,18 +92,19 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
 
             if (isCheckInput) {
                 bool found = false;
-                for (auto cond : input.conds) {
+                for (auto inputCond : input.conds) {
                     if (cond.cond_type == UtxoCondType::P2PH) {
                         found = true;
-                        CPasswordHashLockCondIn& inCond = dynamic_cast< CPasswordHashLockCondIn& > (cond);
+                        CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (inputCond);
 
                         //hash of (TxUid,Password)
-                        string text = strprintf("%s%s", prevUtxoTxUid.ToString(), inCond.password);
+                        string text = strprintf("%s%s", prevUtxoTxUid.ToString(), p2phCondIn.password);
                         uint256 hash = Hash(text); 
                         if (theCond.password_hash != hash) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, secret mismatches error!"), REJECT_INVALID, 
                                             "secret-mismatches-err");
                         }
+                        break;
                     } else
                         continue;
                 }

@@ -111,9 +111,10 @@ struct CMultiSignAddressCondIn : CUtxoCond {
     CMultiSignAddressCondIn(uint8_t mIn, uint8_t nIn, std::vector<CUserID> &uidsIn, std::vector<byte[]> &signaturesIn): 
         CUtxoCond(UtxoCondType::P2MA), m(mIn),n(nIn),uids(uidsIn),signatures(signaturesIn) {};
 
-    uint256 GetRedeemScriptHash() {
+    uint160 GetRedeemScriptHash() {
         string redeemScript = strprintf("%u8%s%u8", m, uids, n);
-        return Hash(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
+        
+        return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
     }
 
     // bool VerifySignature(string multiSignAddr) { 
