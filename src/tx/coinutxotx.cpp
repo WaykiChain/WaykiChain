@@ -78,7 +78,9 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
                     if (cond.cond_type == UtxoCondType::P2PH) {
                         found = true;
                         CPasswordHashLockCondIn& inCond = dynamic_cast< CPasswordHashLockCondIn& > (cond);
-                        string text = strprintf("%s%s", inCond.password, txUid.ToString());
+
+                        //hash of (TxUid,Password)
+                        string text = strprintf("%s%s", prevUtxoTxUid.ToString(), inCond.password);
                         uint256 hash = Hash(text); 
                         if (theCond.password_hash != hash) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, secret mismatches error!"), REJECT_INVALID, 
