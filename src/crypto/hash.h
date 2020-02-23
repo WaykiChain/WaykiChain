@@ -123,6 +123,10 @@ inline uint160 Hash160(const T1 pbegin, const T1 pend) {
 
 inline uint160 Hash160(const vector<uint8_t> &vch) { return Hash160(vch.begin(), vch.end()); }
 
+inline uint160 Hash160(std::string str) {
+    return Hash160(std::vector<uint8_t> vec(str.begin(), str.end());
+}
+
 uint32_t MurmurHash3(uint32_t nHashSeed, const vector<uint8_t> &vDataToHash);
 
 typedef struct {
