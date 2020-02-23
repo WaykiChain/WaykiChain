@@ -264,14 +264,14 @@ string DbCacheToString(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> &cache
     for(it.First(); it.IsValid(); it.Next()) {
         str += strprintf("%s={%s},\n", db_util::ToString(it.GetKey()), db_util::ToString(it.GetValue()));
     }
-    return str;
+    return strprintf("-->%s, data={%s}\n", GetKeyPrefix(cache.PREFIX_TYPE), str);
 }
 
 template<int32_t PREFIX_TYPE, typename ValueType>
 string DbCacheToString(CSimpleKVCache<PREFIX_TYPE, ValueType> &cache) {
     auto pData = cache.GetDataPtr();
     if (pData) {
-        return db_util::ToString(*pData);
+        return strprintf("-->%s, data={%s}\n", GetKeyPrefix(cache.PREFIX_TYPE), db_util::ToString(*pData));
     }
     return "";
 }
@@ -301,12 +301,12 @@ static void DumpDbAll(FILE *f) {
 
 
 Value dumpdb(const Array& params, bool fHelp) {
-    if (fHelp || params.size() > 2) {}
+    if (fHelp || params.size() > 2)
         throw runtime_error(
             "dumpdb \"[key_prefix_type]\" \"[file_path]\"\n"
             "\ndump db data to file\n"
             "\nArguments:\n"
-            "1. \"key_prefix_type\"   (string, optional) the data key prefix type, if empty get all data, default is empty\n"
+            "1. \"key_prefix_type\"   (string, optional) the data key prefix type, * is all data, default is *\n"
             "2. \"file_path\"       (string, optional) the output file path, if empty output to stdout, default is empty.\n"
             "\nResult:\n"
             "\nExamples:\n"
@@ -318,18 +318,32 @@ Value dumpdb(const Array& params, bool fHelp) {
         prefixTypeStr = params[0].get_str();
     string filePath = "";
     if (params.size() > 1)
-        filePath = params[0].get_str();
+        filePath = params[1].get_str();
 
-    FILE *file = stdout;
+    struct FileCloser {
+        FILE *file = nullptr;
+        ~FileCloser() {
+            if (file != nullptr) {
+                fclose(file);
+                file = nullptr;
+            }
+        }
+    };
+
+    FILE *file = nullptr;
+    FileCloser fileCloser;
     if (!filePath.empty()) {
         file = fopen(filePath.c_str(), "w");
         if (file == nullptr) {
             throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("opten file error! file=%s",
                 filePath));
         }
+        fileCloser.file = file;
+    } else {
+        file = stdout;
     }
 
-    if (!prefixTypeStr.empty()) {
+    if (!prefixTypeStr.empty() && prefixTypeStr != "*") {
         dbk::PrefixType prefixType = dbk::ParseKeyPrefixType(prefixTypeStr);
         if (prefixType == dbk::EMPTY)
             throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("unsupported db data key prefix type=%s",
