@@ -230,6 +230,17 @@ struct DexOperatorDetail {
         owner_regid.SetEmpty(); fee_receiver_regid.SetEmpty(); name = ""; portal_url = ""; maker_fee_ratio = 0;
         taker_fee_ratio = 0; memo = "";
     }
+
+    string ToString() const {
+        return strprintf("owner_regid=%s", owner_regid.ToString()) + ", " +
+        strprintf("fee_receiver_regid=%s", fee_receiver_regid.ToString()) + ", " +
+        strprintf("name=%s", name) + ", " +
+        strprintf("portal_url=%s", portal_url) + ", " +
+        strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
+        strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
+        strprintf("memo=%s", memo) + ", " +
+        strprintf("activated=%d", activated);
+    }
 };
 
 #endif //ENTITIES_DEX_ORDER_H

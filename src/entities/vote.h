@@ -180,6 +180,11 @@ struct VoteDelegate {
     friend bool operator==(const VoteDelegate &a, const VoteDelegate &b) {
         return (a.regid == b.regid && a.votes == b.votes);
     }
+
+    string ToString() const {
+        return strprintf("regid=%s", regid.ToString()) + ", " +
+                strprintf("votes=%llu", votes);
+    }
 };
 
 enum class VoteDelegateState: uint8_t {
@@ -228,6 +233,15 @@ struct PendingDelegates {
         state = VoteDelegateState::NONE;
         counted_vote_height = 0;
         top_vote_delegates.clear();
+    }
+
+    string ToString() const {
+        string delegatesStr;
+        for (const auto &item : top_vote_delegates)
+            delegatesStr += "{" + item.ToString() + "},\n";
+        return strprintf("state=%d", (int)state/*TODO:... */) + "," +
+                strprintf("counted_vote_height=%d", counted_vote_height) + ", " +
+                strprintf("top_vote_delegates=[%s]", counted_vote_height);
     }
 };
 

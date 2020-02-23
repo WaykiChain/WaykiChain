@@ -73,7 +73,7 @@ private:
     bool EraseCDPFromRatioDB(const CUserCDP &userCdp);
 
     CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
-private:
+public:
     /*  CCompositeKVCache  prefixType       key                            value             variable  */
     /*  ---------------- --------------   ------------                --------------    ----- --------*/
     // cdpCoinPair -> total staked assets
@@ -145,7 +145,7 @@ public:
     }
 private:
     CdpRatioSortedCache::KeyType MakeCdpRatioSortedKey(const CUserCDP &cdp);
-private:
+public:
     /*  CCompositeKVCache     prefixType     key               value             variable  */
     /*  ----------------   --------------   ------------   --------------    ----- --------*/
     // ccdp${closed_cdpid} -> <closedCdpTxId, closeType>

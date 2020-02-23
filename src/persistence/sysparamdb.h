@@ -23,6 +23,12 @@ struct CCdpInterestParams {
             READWRITE(VARINT(param_a));
             READWRITE(VARINT(param_b));
     )
+
+    string ToString() const {
+        return strprintf("param_a=%llu", param_a) + ", " +
+        strprintf("param_a=%llu", param_a);
+
+    }
 };
 
 typedef map<CVarIntValue<int32_t>, CCdpInterestParams> CCdpInterestParamChangeMap;
@@ -210,6 +216,7 @@ public:
     }
 
 
+public:
     bool SetNewBpCount(uint8_t newBpCount, uint32_t launchHeight) {
         return newBpCountCache.SetData(std::make_pair(CVarIntValue(launchHeight), newBpCount)) ;
     }

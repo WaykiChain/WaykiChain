@@ -84,6 +84,7 @@ public:
 
     bool IsEmpty() const { return value == 0; }
     void SetEmpty() { value = 0; }
+    string ToString() const { return std::to_string(value); }
 
     bool operator==(I i) { return value == i; }
     bool operator<(I i) { return value < i; }

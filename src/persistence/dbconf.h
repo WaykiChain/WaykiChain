@@ -262,6 +262,10 @@ namespace dbk {
 
         void SetEmpty() { key.clear(); }
 
+        string ToString() const {
+            return key;
+        }
+
     };
 }
 

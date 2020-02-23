@@ -168,6 +168,9 @@ static const CRPCCommand vRPCCommands[] =
     { "getblockfailures",               &getblockfailures,                  true,       false,      false   },
     /* vm functions work in vm simulator */
     { "vmexecutescript",                &vmexecutescript,                   true,       true,       true    },
+
+    /* debug */
+    { "dumpdb",                         &dumpdb,                            true,       true,       true    },
 };
 
 #endif //RPC_APICONF_H_

@@ -124,7 +124,7 @@ public:
     uint256 GetBestBlockHash() const;
     bool SetBestBlock(const uint256 &blockHash);
 
-private:
+public:
 /*  CCompositeKVCache      prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     // txId -> DiskTxPos
@@ -136,7 +136,7 @@ private:
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
     CSimpleKVCache< dbk::BEST_BLOCKHASH,            uint256>      bestBlockHashCache;    // best blockHash
-    CSimpleKVCache< dbk::LAST_BLOCKFILE,            int>          lastBlockFileCache;
+    CSimpleKVCache< dbk::LAST_BLOCKFILE,            int32_t>          lastBlockFileCache;
     CSimpleKVCache< dbk::MEDIAN_PRICES,             PriceMap>     medianPricesCache;
     CSimpleKVCache< dbk::REINDEX,                   bool>         reindexCache;
     CSimpleKVCache< dbk::FINALITY_BLOCK,            std::pair<int32_t,uint256>> finalityBlockCache ;

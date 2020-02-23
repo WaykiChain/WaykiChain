@@ -83,7 +83,7 @@ public:
     shared_ptr<CUserAssetsIterator> CreateUserAssetsIterator() {
         return make_shared<CUserAssetsIterator>(assetCache);
     }
-private:
+public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>

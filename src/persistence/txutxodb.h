@@ -24,9 +24,9 @@ public:
     CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache) {} ;
 
 public:
-    bool SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUTXOTx &utxo);
-    bool GetUtxoTx(const TxID &txid, uint64_t &blockHeight, CCoinUTXOTx &utxo);
-    bool DelUtoxTx(const TxID &txid);
+    bool SetUtxoTx(const pair<TxID, uint16_t> &utoxIndex);
+    bool GetUtxoTx(const pair<TxID, uint16_t> &utoxIndex);
+    bool DelUtoxTx(const pair<TxID, uint16_t> &utoxIndex);
 
     void Flush();
 
@@ -39,12 +39,12 @@ public:
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         txUtxoCache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
-    /////////// SysParamDB
-    // txid -> <block_height, CoinUtxoTx>
-    CCompositeKVCache< dbk::TX_UTXO,            TxID,                      std::tuple<uint64_t, CCoinUTXOTx> >    txUtxoCache;
+    /////////// UTXO DB
+    // $txid$vout_index -> 1
+    CCompositeKVCache<   dbk::TX_UTXO,            pair<TxID, uint16_t>,      uint8_t >             txUtxoCache;
 };
 
 #endif // PERSIST_TXUTXODB_H

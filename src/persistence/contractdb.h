@@ -122,7 +122,7 @@ public:
     shared_ptr<CDBContractDataIterator> CreateContractDataIterator(const CRegID &contractRegid,
         const string &contractKeyPrefix);
 
-private:
+public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// ContractDB

@@ -9,6 +9,7 @@
 
 #include "commons/serialize.h"
 #include "config/version.h"
+#include "commons/util/util.h"
 
 #include <string>
 
@@ -118,6 +119,14 @@ public:
     )
 
     bool IsValid();
+
+    string ToString() const {
+        return strprintf("vm_type=%d", vm_type) + ", " +
+        strprintf("upgradable=%d", upgradable) + ", " +
+        strprintf("code=%s", code) + ", " +
+        strprintf("memo=%s", memo) + ", " +
+        strprintf("abi=%d", abi);
+    }
 };
 
 #endif  // ENTITIES_CONTRACT_H

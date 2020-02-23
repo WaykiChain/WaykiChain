@@ -440,6 +440,8 @@ public:
 
     void SetEmpty() { n = 0; }
     friend bool operator<(const CVarIntValue&  c1 ,const CVarIntValue& c2) { return c1.n < c2.n; }
+
+    string ToString() const { return std::to_string(n); }
 };
 
 template<typename I>

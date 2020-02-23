@@ -112,6 +112,7 @@ public:
 
     inline bool IsEmpty() const { return regid.IsEmpty(); }
     void SetEmpty() { regid.SetEmpty(); }
+    string ToString() const { return regid.ToString(); }
 
 
     bool operator==(const CRegIDKey &other) const { return this->regid == other.regid; }
