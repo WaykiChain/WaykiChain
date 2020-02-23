@@ -160,8 +160,7 @@ void Shutdown() {
     boost::filesystem::remove(GetPidFile());
     UnregisterAllWallets();
 
-    if (pWalletMain)
-        delete pWalletMain;
+    delete pWalletMain;
 
     // Uninitialize elliptic curve code
     globalVerifyHandle.reset();

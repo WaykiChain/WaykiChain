@@ -34,14 +34,11 @@ void init() {
 
 void closedb() {
 
-	if (pTestView != NULL) {
-		delete pTestView;
-		pTestView = NULL;
-	}
-	if (pTestDB != NULL) {
-		delete pTestDB;
-		pTestDB = NULL;
-	}
+	delete pTestView;
+	pTestView = NULL;
+	delete pTestDB;
+	pTestDB = NULL;
+	
 	const boost::filesystem::path p=GetDataDir() / "blocks" / "testdb";
 	boost::filesystem::remove_all(p);
 
