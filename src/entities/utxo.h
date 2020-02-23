@@ -101,6 +101,11 @@ struct CSingleAddressCondOut : CUtxoCond {
 
 };
 
+bool VerifySignature(byte[] signature, uint160 &hash, CUserID &uid) {
+        //TODO: move this to crypto util 
+        return true;
+}
+
 //////////////////////////////////////////////////
 struct CMultiSignAddressCondIn : CUtxoCond {
     uint8_t m;
@@ -113,23 +118,29 @@ struct CMultiSignAddressCondIn : CUtxoCond {
 
     uint160 GetRedeemScriptHash() {
         string redeemScript = strprintf("%u8%s%u8", m, uids, n);
-        
         return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
     }
 
-    // bool VerifySignature(string multiSignAddr) { 
-    //     //TODO
-    //     if (signatures.size < m)
-    //         return false;
+    bool VerifyMultiSig(const CUserID &txUid) { 
+        if (signatures.size < m)
+            return false;
         
-    //     uint256 redeemScriptHash = GetRedeemScriptHash();
+        string content = strprintf("u8%s%u8%s", m, uids, n, txUid.ToString());
+        uint160 hash = Hash160(content);
 
-    //     for (const auto signature : signatures) {
+        int verifyPassNum = 0;
+        for (const auto signature : signatures) {
+            for (const auto uid : uids) {
+                if (VerifySignature(signature, hash, uid)) {
+                    verifyPassNum++;
+                    break;
+                }
+            }
+        }
+        bool verified = (verifyPassNum >= m);
 
-    //     }
-
-    //     return true;
-    // }
+        return verified;
+    }
 
     IMPLEMENT_SERIALIZE(
         READWRITE((uint8_t&) cond_type);

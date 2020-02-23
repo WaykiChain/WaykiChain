@@ -62,13 +62,25 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
                     if (inputCond.cond_type == UtxoCondType::P2MA) {
                         found = true;
                         CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (inputCond);
-                        if ((uint160) theCond.uid.get<CKeyID>() != p2maCondIn.GetRedeemScriptHash()) {
-                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisign addr mismatch error!"), REJECT_INVALID, 
-                                    "cond-multsign-addr-mismatch-err");
+                        if (p2maCondIn.m > p2maCondIn.n) {
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig m > n error!"), REJECT_INVALID, 
+                                    "cond-multsig-m-larger-than-n-err");  
                         }
-
-                        for (auto signature : p2maCondIn.signatures) {
-                             //TODO must verify signatures one by one below!!!
+                        if (p2maCondIn.m > 20 || p2maCondIn.n > 20) { //FIXME: replace 20 w/ sysparam
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig m/n too large!"), REJECT_INVALID, 
+                                    "cond-multsig-mn-too-large-err");
+                        }
+                        if (p2maCondIn.uids.size() != p2maCondIn.n) {
+                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig uids size mismatch!"), REJECT_INVALID, 
+                                    "cond-multsig-uids-size-mismatch-err");
+                        }
+                        if ((uint160) theCond.uid.get<CKeyID>() != p2maCondIn.GetRedeemScriptHash()) {
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig addr mismatch error!"), REJECT_INVALID, 
+                                    "cond-multsig-addr-mismatch-err");
+                        }
+                        if (!p2maCondIn.VerifyMultiSig(txUid)) {
+                            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID, 
+                                    "cond-multsig-verify-fail");
                         }
                         break;
                     }
