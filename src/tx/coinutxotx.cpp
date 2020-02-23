@@ -9,6 +9,28 @@
 #include <string>
 #include <cstdarg>
 
+bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> pTx) {
+    if (!SysCfg().IsTxIndex()) 
+        return false;
+    
+    CDiskTxPos txPos;
+    if (pCdMan->pBlockCache->ReadTxIndex(txid, txPos)) {
+        LOCK(cs_main);
+        CAutoFile file(OpenBlockFile(txPos, true), SER_DISK, CLIENT_VERSION);
+        CBlockHeader header;
+
+        try {
+            file >> header;
+            fseek(file, txPos.nTxOffset, SEEK_CUR);
+            file >> pTx;
+            
+        } catch (std::exception &e) {
+            throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
+        }
+    }
+    return true;
+}
+
 inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext &context, 
                                 const CUserID &prevUtxoTxUid, const CUserID &txUid,
                                 const CUtxoInput &input, CUtxoCond &cond) {
@@ -157,22 +179,22 @@ bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
     uint64_t totalInAmount = 0;
     uint64_t totalOutAmount = 0;
     for (auto input : vins) {
-        CCoinUtxoTx prevUtxoTx;
-        uint64_t prevTxBlockHeight;
-        if (!context.pCw->txUtxoCache.GetUtxoTx(input.prev_utxo_txid, prevTxBlockHeight, prevUtxoTx))
-            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, load prev utxo error!"), REJECT_INVALID, 
-                            "load-prev-utxo-err");
+        //load prevUtxoTx from blockchain
+        std::shared_ptr<CCoinUtxoTx> pPrevUtxoTx;
+        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID, 
+                            "failed-to-load-prev-utxo-err");
 
-        if (prevUtxoTx.vouts.size() < input.prev_utxo_out_index + 1)
+        if (pPrevUtxoTx->vouts.size() < input.prev_utxo_out_index + 1)
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, prev utxo index OOR error!"), REJECT_INVALID, 
                             "prev-utxo-index-OOR-err");
 
         //enumerate the prev tx out conditions to check if current input meets 
         //the output conditions of the previous Tx
-        for (auto cond : prevUtxoTx.vouts[input.prev_utxo_out_index].conds)
-            CheckUtxoCondition(true, context, prevUtxoTx.txUid, txUid, input, cond);
+        for (auto cond : pPrevUtxoTx->vouts[input.prev_utxo_out_index].conds)
+            CheckUtxoCondition(true, context, pPrevUtxoTx->txUid, txUid, input, cond);
     
-        totalInAmount += prevUtxoTx.vouts[input.prev_utxo_out_index].coin_amount;
+        totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_out_index].coin_amount;
     }
 
     for (auto output : vouts) {
@@ -220,20 +242,19 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
     uint64_t totalInAmount = 0;
     uint64_t totalOutAmount = 0;
     for (auto input : vins) {
-        CCoinUtxoTx prevUtxoTx;
-        if (!context.pCw->txUtxoCache.GetUtxoTx(input.prev_utxo_txid, input.prev_utxo_out_index))
+        if (!context.pCw->txUtxoCache.GetUtxoTx(std::make_pair(input.prev_utxo_txid, input.prev_utxo_out_index)))
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, prev utxo already spent error!"), REJECT_INVALID, 
                             "double-spend-prev-utxo-err");
 
-        // TODO: load prevUtxoTx from blockchain
-        {
+        //load prevUtxoTx from blockchain
+        std::shared_ptr<CCoinUtxoTx> pPrevUtxoTx;
+        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID, 
+                            "failed-to-load-prev-utxo-err");
 
+        totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_out_index].coin_amount;
 
-        }
-
-        totalInAmount += prevUtxoTx.vouts[input.prev_utxo_out_index].coin_amount;
-
-        if (!context.pCw->txUtxoCache.DelUtoxTx(input.prev_utxo_txid, input.prev_utxo_out_index))
+        if (!context.pCw->txUtxoCache.DelUtoxTx(std::make_pair(input.prev_utxo_txid, input.prev_utxo_out_index)))
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, del prev utxo error!"), REJECT_INVALID, 
                             "del-prev-utxo-err");
     }
@@ -242,7 +263,7 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
         CUtxoOutput output = vouts[i];
         totalOutAmount += output.coin_amount;
 
-        if (!context.pCw->txUtxoCache.SetUtxoTx(GetHash(), i))
+        if (!context.pCw->txUtxoCache.SetUtxoTx(std::make_pair(GetHash(), i)))
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, set utxo error!"), REJECT_INVALID, 
                             "set-utxo-err");
     }

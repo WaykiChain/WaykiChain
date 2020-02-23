@@ -6,21 +6,21 @@
 #include "txutxodb.h"
 #include "config/chainparams.h"
 
-bool CTxUTXODBCache::SetUtxoTx(const TxID &txid, const uint16_t voutIndex) {
-    return txUtxoCache.SetData(std::make_pair(txid, voutIndex), 1);
+bool CTxUTXODBCache::SetUtxoTx(const pair<TxID, uint16_t> &utxoIndex) {
+    return txUtxoCache.SetData(utxoIndex, 1);
 }
 
-bool CTxUTXODBCache::GetUtxoTx(const TxID &txid, const uint16_t voutIndex) {
+bool CTxUTXODBCache::GetUtxoTx(const pair<TxID, uint16_t> &utxoIndex) {
     uint8_t data;
-    bool result = txUtxoCache.GetData(std::make_pair(txid, voutIndex), data);
+    bool result = txUtxoCache.GetData(utxoIndex, data);
     if (!result)
         return false;
     
     return true;
 }
 
-bool CTxUTXODBCache::DelUtoxTx(const TxID &txid, const uint16_t voutIndex) {
-    return txUtxoCache.EraseData(std::make_pair(txid, voutIndex));
+bool CTxUTXODBCache::DelUtoxTx(const pair<TxID, uint16_t> &utxoIndex) {
+    return txUtxoCache.EraseData(utxoIndex);
 }
 
 void CTxUTXODBCache::Flush() { txUtxoCache.Flush(); }

@@ -24,9 +24,9 @@ public:
     CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache) {} ;
 
 public:
-    bool SetUtxoTx(const TxID &txid, const uint16_t voutIndex);
-    bool GetUtxoTx(const TxID &txid, const uint16_t voutIndex);
-    bool DelUtoxTx(const TxID &txid, const uint16_t voutIndex);
+    bool SetUtxoTx(const pair<TxID, uint16_t> &utoxIndex);
+    bool GetUtxoTx(const pair<TxID, uint16_t> &utoxIndex);
+    bool DelUtoxTx(const pair<TxID, uint16_t> &utoxIndex);
 
     void Flush();
 
