@@ -41,7 +41,7 @@ public:
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         executeFailCache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*  CCompositeKVCache    prefixType             key                 value                        variable      */
 /*  -------------------- --------------------- ------------------  ---------------------------  -------------- */
     // [prefix]{height}{txid} --> {error code, error message}

@@ -23,6 +23,12 @@ struct CCdpInterestParams {
             READWRITE(VARINT(param_a));
             READWRITE(VARINT(param_b));
     )
+
+    string ToString() const {
+        return strprintf("param_a=%llu", param_a) + ", " +
+        strprintf("param_a=%llu", param_a);
+
+    }
 };
 
 typedef map<CVarIntValue<int32_t>, CCdpInterestParams> CCdpInterestParamChangeMap;
@@ -198,7 +204,7 @@ public:
     }
 
 
-private:
+public:
 
 
 /*       type               prefixType               key                     value                 variable               */

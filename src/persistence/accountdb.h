@@ -107,7 +107,7 @@ public:
         nickId2KeyIdCache.RegisterUndoFunc(undoDataFuncMap);
         accountCache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <prefix$RegID -> KeyID>

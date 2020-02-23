@@ -158,6 +158,13 @@ public:
         return nullptr;
     }
 
+    string ToString() const {
+        return strprintf("symbol=%s", symbol) + ", " +
+        strprintf("owner_uid=%s", owner_uid.ToString()) + ", " +
+        strprintf("name=%s", name) + ", " +
+        strprintf("total_supply=%llu", total_supply) + ", " +
+        strprintf("mintable=%d", mintable);
+    }
 };
 
 class CAsset: public CBaseAsset {
@@ -194,6 +201,12 @@ public:
         total_supply = 0;
         max_order_amount = 0;
         min_order_amount = 0;
+    }
+
+    string ToString() const {
+        return CBaseAsset::ToString()+ ", " +
+                strprintf("min_order_amount=%llu", min_order_amount) + ", " +
+                strprintf("min_order_amount=%llu", min_order_amount);
     }
 };
 

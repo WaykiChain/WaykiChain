@@ -6,6 +6,7 @@
 #ifndef PERSIST_DISK_H
 #define PERSIST_DISK_H
 
+#include "commons/util/util.h"
 #include "commons/serialize.h"
 
 struct CDiskBlockPos {
@@ -41,6 +42,11 @@ struct CDiskBlockPos {
     bool IsNull() const { return (nFile == -1); }
 
     bool IsEmpty() const { return IsNull(); }
+
+    string ToString() const {
+        return strprintf("file=%d", nFile) + ", " +
+        strprintf("pos=%d", nPos);
+    }
 };
 
 struct CDiskTxPos : public CDiskBlockPos {
@@ -64,6 +70,11 @@ struct CDiskTxPos : public CDiskBlockPos {
     }
 
     void SetEmpty() { SetNull(); }
+
+    string ToString() const {
+        return  CDiskBlockPos::ToString() + ", " +
+                strprintf("tx_offset=%d", nTxOffset);
+    }
 };
 
 class CBlockFileInfo {

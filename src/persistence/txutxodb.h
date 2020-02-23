@@ -39,7 +39,7 @@ public:
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         txUtxoCache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB

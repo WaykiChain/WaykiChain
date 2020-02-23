@@ -85,7 +85,7 @@ public:
         pending_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
         active_delegates_cache.RegisterUndoFunc(undoDataFuncMap);
     }
-private:
+public:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1

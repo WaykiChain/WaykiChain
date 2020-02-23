@@ -103,7 +103,7 @@ public:
 
     CDBAccess           *pUtxoDb;
     CTxUTXODBCache      *pUtxoCache;
-    
+
     CDBAccess           *pSysGovernDb;
     CSysGovernDBCache   *pSysGovernCache;
 

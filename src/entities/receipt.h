@@ -113,6 +113,14 @@ public:
         READWRITE(VARINT(coin_amount));
         READWRITE_CONVERT(uint16_t, code);
     )
+
+    string ToString() const {
+        return strprintf("from_uid=%s", from_uid.ToString()) + ", " +
+        strprintf("to_uid=%s", to_uid.ToString()) + ", " +
+        strprintf("coin_symbol=%s", coin_symbol) + ", " +
+        strprintf("coin_amount=%llu", coin_amount) + ", " +
+        strprintf("code=%s", GetReceiptCodeName(code));
+    }
 };
 
 #endif  // ENTITIES_RECEIPT_H

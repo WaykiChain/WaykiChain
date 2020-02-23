@@ -154,6 +154,12 @@ public:
         total_owed_scoins = 0;
     }
 
+    string ToString() const {
+        return strprintf("total_staked_assets=%llu", total_staked_assets) + ", " +
+        strprintf("total_owed_scoins=%llu", total_owed_scoins);
+
+    }
+
     uint64_t GetCollateralRatio(const uint64_t assetPrice) const {
         // If total owed scoins equal to zero, the global collateral ratio becomes infinite.
         if (total_owed_scoins == 0) {

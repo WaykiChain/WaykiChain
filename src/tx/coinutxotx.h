@@ -31,7 +31,7 @@ public:
     CCoinUTXOTx()
         : CBaseTx(UTXO_TRANSFER_TX) {};
 
-    CCoinUTXOTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn, 
+    CCoinUTXOTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn,
                 const UTXOEntity &utxoIn, string &memoIn)
         : CBaseTx(UTXO_TRANSFER_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
           utxo(utxoIn), memo(memoIn) {};
@@ -53,13 +53,15 @@ public:
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
-        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees) 
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
            << utxo << memo;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUTXOTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
+
+    string ToString() const { return ""; } // TODO: fix me
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
