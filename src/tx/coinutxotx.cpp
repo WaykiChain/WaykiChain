@@ -221,16 +221,30 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
     uint64_t totalOutAmount = 0;
     for (auto input : vins) {
         CCoinUtxoTx prevUtxoTx;
-        uint64_t prevTxBlockHeight;
-        if (!context.pCw->txUtxoCache.GetUtxoTx(input.prev_utxo_txid, prevTxBlockHeight, prevUtxoTx))
-            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, load prev utxo error!"), REJECT_INVALID, 
-                            "load-prev-utxo-err");
+        if (!context.pCw->txUtxoCache.GetUtxoTx(input.prev_utxo_txid, input.prev_utxo_out_index))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, prev utxo already spent error!"), REJECT_INVALID, 
+                            "double-spend-prev-utxo-err");
+
+        // TODO: load prevUtxoTx from blockchain
+        {
+
+
+        }
 
         totalInAmount += prevUtxoTx.vouts[input.prev_utxo_out_index].coin_amount;
+
+        if (!context.pCw->txUtxoCache.DelUtoxTx(input.prev_utxo_txid, input.prev_utxo_out_index))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, del prev utxo error!"), REJECT_INVALID, 
+                            "del-prev-utxo-err");
     }
 
-    for (auto output : vouts) {
+    for (int i = 0; i < vouts.size(); i++) {
+        CUtxoOutput output = vouts[i];
         totalOutAmount += output.coin_amount;
+
+        if (!context.pCw->txUtxoCache.SetUtxoTx(GetHash(), i))
+            return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, set utxo error!"), REJECT_INVALID, 
+                            "set-utxo-err");
     }
 
     uint64_t accountBalance = srcAccount.GetBalance(coin_symbol, BalanceType::FREE_VALUE);

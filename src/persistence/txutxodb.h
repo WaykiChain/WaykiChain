@@ -24,9 +24,9 @@ public:
     CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache) {} ;
 
 public:
-    bool SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUtxoTx &utxo);
-    bool GetUtxoTx(const TxID &txid, uint64_t &blockHeight, CCoinUtxoTx &utxo);
-    bool DelUtoxTx(const TxID &txid);
+    bool SetUtxoTx(const TxID &txid, const uint16_t voutIndex);
+    bool GetUtxoTx(const TxID &txid, const uint16_t voutIndex);
+    bool DelUtoxTx(const TxID &txid, const uint16_t voutIndex);
 
     void Flush();
 
@@ -42,9 +42,9 @@ public:
 public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
-    /////////// SysParamDB
-    // txid -> <block_height, CoinUtxoTx>
-    CCompositeKVCache< dbk::TX_UTXO,            TxID,                      std::tuple<uint64_t, CCoinUtxoTx> >    txUtxoCache;
+    /////////// UTXO DB
+    // $txid$vout_index -> 1
+    CCompositeKVCache<   dbk::TX_UTXO,            pair<TxID, uint16_t>,      uint8_t >             txUtxoCache;
 };
 
 #endif // PERSIST_TXUTXODB_H

@@ -6,24 +6,21 @@
 #include "txutxodb.h"
 #include "config/chainparams.h"
 
-bool CTxUTXODBCache::SetUtxoTx(const TxID &txid, const uint64_t &blockHeight, const CCoinUtxoTx &utxo) {
-    return txUtxoCache.SetData(txid, std::make_tuple(blockHeight, utxo));
+bool CTxUTXODBCache::SetUtxoTx(const TxID &txid, const uint16_t voutIndex) {
+    return txUtxoCache.SetData(std::make_pair(txid, voutIndex), 1);
 }
 
-bool CTxUTXODBCache::GetUtxoTx(const TxID &txid, uint64_t &blockHeight, CCoinUtxoTx &utxo) {
-    std::tuple<uint64_t, CCoinUtxoTx> data;
-    bool result = txUtxoCache.GetData(txid, data);
+bool CTxUTXODBCache::GetUtxoTx(const TxID &txid, const uint16_t voutIndex) {
+    uint8_t data;
+    bool result = txUtxoCache.GetData(std::make_pair(txid, voutIndex), data);
     if (!result)
         return false;
     
-    blockHeight = get<0>(data);
-    utxo = get<1>(data);
-
     return true;
 }
 
-bool CTxUTXODBCache::DelUtoxTx(const TxID &txid) {
-    return txUtxoCache.EraseData(txid);
+bool CTxUTXODBCache::DelUtoxTx(const TxID &txid, const uint16_t voutIndex) {
+    return txUtxoCache.EraseData(std::make_pair(txid, voutIndex));
 }
 
 void CTxUTXODBCache::Flush() { txUtxoCache.Flush(); }
