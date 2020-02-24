@@ -331,17 +331,4 @@ public:
         }
     }
 };
-
-
-bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signature, const CPubKey &pubKey) {
-    if (signatureCache.Get(sigHash, signature, pubKey))
-        return true;
-
-    if (!pubKey.Verify(sigHash, signature))
-        return false;
-
-    signatureCache.Set(sigHash, signature, pubKey);
-    return true;
-}
-
 #endif //ENTITIES_ID_H
