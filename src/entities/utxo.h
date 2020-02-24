@@ -122,7 +122,8 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         
         string redeemScript = strprintf("u8%s%u8%s", m, uids, n);
         string content = strprintf("%s%u16%s%s", prevUtxoTxId.ToString(), prevUtxoTxVoutIndex, txUid.ToString(), redeemScript);
-        uint256 hash = Hash256(content);
+        uint256 hash;
+        Hash256(content, hash));
 
         int verifyPassNum = 0;
         for (const auto signature : signatures) {
