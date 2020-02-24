@@ -48,7 +48,7 @@ public:
         READWRITE(VARINT(llFees));
 
         READWRITE(vins);
-        READWRITE(outs);
+        READWRITE(vouts);
 
         READWRITE(memo);
         READWRITE(signature);

@@ -14,7 +14,7 @@
 using namespace std;
 
 enum UtxoCondType : uint8_t {
-    NULL_TYPE           = 0,
+    NULL_UTXOCOND_TYPE = 0,
     //input cond types
     IP2SA              = 11,   //pay 2 single addr
     IP2MA              = 12,   //pay 2 multisign addr
@@ -118,7 +118,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
     }
 
     bool VerifyMultiSig(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid) { 
-        if (signatures.size < m)
+        if (signatures.size() < m)
             return false;
         
         string redeemScript = strprintf("u8%s%u8%s", m, uids, n);
@@ -209,14 +209,12 @@ struct CReClaimLockCondOut : CUtxoCond {
 
 };
 
-class CUtxoCondStorageBean {
-
-public:
-    shared_ptr<CUtxoCond> utxoCondPtr ;
+struct CUtxoCondStorageBean {
+    std::shared_ptr<CUtxoCond> utxoCondPtr ;
 
     CUtxoCondStorageBean() {}
 
-    CUtxoCondStorageBean( shared_ptr<CUtxoCond> ptr): utxoCondPtr(ptr) {}
+    CUtxoCondStorageBean( std::shared_ptr<CUtxoCond> ptr): utxoCondPtr(ptr) {}
 
     bool IsEmpty() const { return utxoCondPtr == nullptr; }
     void SetEmpty() { utxoCondPtr = nullptr; }
@@ -231,7 +229,7 @@ public:
     template <typename Stream>
     void Serialize(Stream &os, int nType, int nVersion) const {
 
-        uint8_t utxoCondType = UtxoCondType::NULL_TYPE;
+        uint8_t utxoCondType = UtxoCondType::NULL_UTXOCOND_TYPE;
 
         if(!IsEmpty())
             utxoCondType = utxoCondPtr->cond_type;
@@ -278,14 +276,13 @@ public:
     template <typename Stream>
     void Unserialize(Stream &is, int nType, int nVersion) {
 
-        uint8_t utxoCondType = UtxoCondType::NULL_TYPE;
-
+        uint8_t utxoCondType = UtxoCondType::NULL_UTXOCOND_TYPE;
         is.read((char *)&(utxoCondType), sizeof(utxoCondType));
-        UtxoCondType utxoCondType = (UtxoCondType) utxoCondType;
-        if(utxoCondType == UtxoCondType:: NULL_TYPE)
+        UtxoCondType condType = (UtxoCondType) utxoCondType;
+        if(condType == UtxoCondType::NULL_UTXOCOND_TYPE)
             return;
 
-        switch(utxoCondType) {
+        switch(condType) {
             case UtxoCondType::IP2SA: {
                 utxoCondPtr = std::make_shared<CSingleAddressCondIn>();
                 ::Unserialize(is, *((CSingleAddressCondIn *)(utxoCondPtr.get())), nType, nVersion);
