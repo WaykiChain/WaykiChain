@@ -11,12 +11,12 @@
 #include "tx/tx.h"
 
 #include "tx/accountregtx.h"
-#include "tx/cointransfertx.h"
 #include "tx/blockpricemediantx.h"
 #include "tx/blockrewardtx.h"
 #include "tx/cdptx.h"
 #include "tx/coinrewardtx.h"
 #include "tx/cointransfertx.h"
+#include "tx/coinutxotx.h"
 #include "tx/contracttx.h"
 #include "tx/delegatetx.h"
 #include "tx/dextx.h"
@@ -66,6 +66,9 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CAssetIssueTx&)tx, serType, version); break;
         case ASSET_UPDATE_TX:
             ::Serialize(os, (const CAssetUpdateTx&)tx, serType, version); break;
+
+        case UTXO_TRANSFER_TX:
+            ::Serialize(os, (const CCoinUtxoTx&)tx, serType, version); break;
 
         case UCOIN_TRANSFER_TX:
             ::Serialize(os, (const CCoinTransferTx&)tx, serType, version); break;
@@ -186,6 +189,12 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         case ASSET_UPDATE_TX: {
             pBaseTx = std::make_shared<CAssetUpdateTx>();
             ::Unserialize(is, *((CAssetUpdateTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case UTXO_TRANSFER_TX: {
+            pBaseTx = std::make_shared<CCoinUtxoTx>();
+            ::Unserialize(is, *((CCoinUtxoTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

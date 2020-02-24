@@ -101,7 +101,7 @@ struct CSingleAddressCondOut : CUtxoCond {
 
 };
 
-bool VerifySignature(byte[] signature, uint160 &hash, CUserID &uid) {
+bool VerifySignature(UnsignedCharArray signature, uint160 &hash, CUserID &uid) {
         //TODO: move this to crypto util 
         return true;
 }
@@ -111,9 +111,9 @@ struct CMultiSignAddressCondIn : CUtxoCond {
     uint8_t m;
     uint8_t n; // m <= n
     std::vector<CUserID> uids;
-    std::vector<byte[]> signatures; //m signatures, each of which corresponds to redeemscript signature
+    std::vector<UnsignedCharArray> signatures; //m signatures, each of which corresponds to redeemscript signature
 
-    CMultiSignAddressCondIn(uint8_t mIn, uint8_t nIn, std::vector<CUserID> &uidsIn, std::vector<byte[]> &signaturesIn): 
+    CMultiSignAddressCondIn(uint8_t mIn, uint8_t nIn, std::vector<CUserID> &uidsIn, std::vector<UnsignedCharArray> &signaturesIn): 
         CUtxoCond(UtxoCondType::P2MA), m(mIn),n(nIn),uids(uidsIn),signatures(signaturesIn) {};
 
     uint160 GetRedeemScriptHash() {
