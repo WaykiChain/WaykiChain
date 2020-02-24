@@ -101,11 +101,6 @@ struct CSingleAddressCondOut : CUtxoCond {
 
 };
 
-bool VerifySignature(UnsignedCharArray signature, uint160 &hash, CUserID &uid) {
-        //TODO: move this to crypto util 
-        return true;
-}
-
 //////////////////////////////////////////////////
 struct CMultiSignAddressCondIn : CUtxoCond {
     uint8_t m;
@@ -127,12 +122,12 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         
         string redeemScript = strprintf("u8%s%u8%s", m, uids, n);
         string content = strprintf("%s%u16%s%s", prevUtxoTxId.ToString(), prevUtxoTxVoutIndex, txUid.ToString(), redeemScript);
-        uint160 hash = Hash160(content);
+        uint256 hash = Hash256(content);
 
         int verifyPassNum = 0;
         for (const auto signature : signatures) {
             for (const auto uid : uids) {
-                if (VerifySignature(signature, hash, uid)) {
+                if (VerifySignature(hash, signature, uid.get<CPubKey>())) {
                     verifyPassNum++;
                     break;
                 }
