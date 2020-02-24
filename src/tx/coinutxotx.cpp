@@ -90,7 +90,6 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
                      return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisign missing error!"), REJECT_INVALID, 
                                     "cond-multsign-missing-err");
                 }
-
             } else {
                 if (theCond.uid.IsEmpty()) {
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
