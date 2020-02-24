@@ -121,11 +121,12 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
     }
 
-    bool VerifyMultiSig(const CUserID &txUid) { 
+    bool VerifyMultiSig(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid) { 
         if (signatures.size < m)
             return false;
         
-        string content = strprintf("u8%s%u8%s", m, uids, n, txUid.ToString());
+        string redeemScript = strprintf("u8%s%u8%s", m, uids, n);
+        string content = strprintf("%s%u16%s", prevUtxoTxId.ToString(), prevUtxoTxVoutIndex, txUid.ToString());
         uint160 hash = Hash160(content);
 
         int verifyPassNum = 0;

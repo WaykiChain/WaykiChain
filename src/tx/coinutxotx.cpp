@@ -78,7 +78,7 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig addr mismatch error!"), REJECT_INVALID, 
                                     "cond-multsig-addr-mismatch-err");
                         }
-                        if (!p2maCondIn.VerifyMultiSig(txUid)) {
+                        if (!p2maCondIn.VerifyMultiSig(input.prev_utxo_txid, input.prev_utxo_out_index, txUid)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID, 
                                     "cond-multsig-verify-fail");
                         }
