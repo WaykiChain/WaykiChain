@@ -121,14 +121,14 @@ struct CMultiSignAddressCondIn : CUtxoCond {
             return false;
         
         string redeemScript = strprintf("u8%s%u8%s", m, uids, n);
-        string content = strprintf("%s%u16%s%s", prevUtxoTxId.ToString(), prevUtxoTxVoutIndex, txUid.ToString(), redeemScript);
-        uint256 hash;
-        Hash256(content, hash));
 
+        CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
+        ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
+ 
         int verifyPassNum = 0;
         for (const auto signature : signatures) {
             for (const auto uid : uids) {
-                if (VerifySignature(hash, signature, uid.get<CPubKey>())) {
+                if (VerifySignature(ss.GetHash(), signature, uid.get<CPubKey>())) {
                     verifyPassNum++;
                     break;
                 }
