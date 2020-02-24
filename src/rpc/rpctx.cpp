@@ -178,67 +178,69 @@ Value submitutxospendtx(const Array& params, bool fHelp) {
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                                "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"{}\", \"Hello, WaykiChain!\""));
 
-    EnsureWalletIsUnlocked();
+    // EnsureWalletIsUnlocked();
 
-    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
-    uint256 prior_utxo_txid = uint256S(params[1].get_str()) ;
-    string prior_utxo_secret = params[2].get_str() ;
-    ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
-    Object utxoInfo = params[4].get_obj() ;
-    string memo = "";
-    if(params.size()>5){
-        memo = params[5].get_str();
-    }
-
-
-    Value lock_durationValue ;
-    Value secret_hashValue ;
-    Value collect_timeoutValue ;
-
-    uint256 secret_hash = uint256();
-    uint64_t collect_timeout = 0 ;
-    uint64_t lock_duration = 0;
-
-    if(JSON::GetObjectFieldValue(utxoInfo, "lock_duration",lock_durationValue)){
-        lock_duration = lock_durationValue.get_int();
-    }
+    // CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
+    // uint256 prior_utxo_txid = uint256S(params[1].get_str()) ;
+    // string prior_utxo_secret = params[2].get_str() ;
+    // ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
+    // Object utxoInfo = params[4].get_obj() ;
+    // string memo = "";
+    // if(params.size()>5){
+    //     memo = params[5].get_str();
+    // }
 
 
-    if(JSON::GetObjectFieldValue(utxoInfo, "secret_hash",secret_hashValue)){
-        secret_hash = uint256S(secret_hashValue.get_str()) ;
-    }
+    // Value lock_durationValue ;
+    // Value secret_hashValue ;
+    // Value collect_timeoutValue ;
+
+    // uint256 secret_hash = uint256();
+    // uint64_t collect_timeout = 0 ;
+    // uint64_t lock_duration = 0;
+
+    // if(JSON::GetObjectFieldValue(utxoInfo, "lock_duration",lock_durationValue)){
+    //     lock_duration = lock_durationValue.get_int();
+    // }
 
 
-    if(JSON::GetObjectFieldValue(utxoInfo, "collect_timeout", collect_timeoutValue)){
-        collect_timeout = collect_timeoutValue.get_int() ;
-    }
+    // if(JSON::GetObjectFieldValue(utxoInfo, "secret_hash",secret_hashValue)){
+    //     secret_hash = uint256S(secret_hashValue.get_str()) ;
+    // }
 
 
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    if(!account.nickid.IsEmpty()){
-        throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
-    }
+    // if(JSON::GetObjectFieldValue(utxoInfo, "collect_timeout", collect_timeoutValue)){
+    //     collect_timeout = collect_timeoutValue.get_int() ;
+    // }
 
 
-    HTLCCondition hc ;
-    hc.secret_hash = secret_hash;
-    hc.collect_timeout = collect_timeout ;
-    if(hc.secret_hash != uint256() || hc.collect_timeout != 0)
-        hc.is_null = false ;
+    // CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
+    // RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    // if(!account.nickid.IsEmpty()){
+    //     throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
+    // }
 
 
-    UTXOEntity entity ;
-    entity.lock_duration = lock_duration ;
-    entity.htlc_cond = hc ;
-    entity.is_null     = false ;
+    // HTLCCondition hc ;
+    // hc.secret_hash = secret_hash;
+    // hc.collect_timeout = collect_timeout ;
+    // if(hc.secret_hash != uint256() || hc.collect_timeout != 0)
+    //     hc.is_null = false ;
 
-    auto pBaseTx = std::make_shared<CCoinUtxoTx>(sendUserId,chainActive.Height(),
-                                                 cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
-    pBaseTx->prior_utxo_secret = prior_utxo_secret ;
-    pBaseTx->prior_utxo_txid   = prior_utxo_txid ;
 
-    return SubmitTx(account.keyid, *pBaseTx);
+    // UTXOEntity entity ;
+    // entity.lock_duration = lock_duration ;
+    // entity.htlc_cond = hc ;
+    // entity.is_null     = false ;
+
+    // auto pBaseTx = std::make_shared<CCoinUtxoTx>(sendUserId,chainActive.Height(),
+    //                                              cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
+    // pBaseTx->prior_utxo_secret = prior_utxo_secret ;
+    // pBaseTx->prior_utxo_txid   = prior_utxo_txid ;
+
+    // return SubmitTx(account.keyid, *pBaseTx);
+    Object obj;
+    return obj;
 
 }
 
@@ -271,69 +273,71 @@ Value submitcreateutxotx(const Array& params, bool fHelp ){
                                "\"wLKf2NqwtHk3BfzK5wMDfbKYN1SC3weyR4\", \"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\", "
                                "\"WICC:1000000:sawi\", \"WICC:10000:sawi\", \"{}\", \"Hello, WaykiChain!\""));
 
-    EnsureWalletIsUnlocked();
+    // EnsureWalletIsUnlocked();
 
-    CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
-    CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
-    ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
-    ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
-    Object utxoInfo = params[4].get_obj() ;
-    string memo = "";
-    if(params.size()>5){
-        memo = params[5].get_str();
-    }
-
-
-    Value lock_durationValue ;
-    Value secret_hashValue ;
-    Value collect_timeoutValue ;
-
-    uint256 secret_hash = uint256();
-    uint64_t collect_timeout = 0 ;
-    uint64_t lock_duration = 0;
-
-    if(JSON::GetObjectFieldValue(utxoInfo, "lock_duration",lock_durationValue)){
-        lock_duration = lock_durationValue.get_int();
-    }
+    // CUserID sendUserId = RPC_PARAM::GetUserId(params[0], true);
+    // CUserID recvUserId = RPC_PARAM::GetUserId(params[1]);
+    // ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
+    // ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
+    // Object utxoInfo = params[4].get_obj() ;
+    // string memo = "";
+    // if(params.size()>5){
+    //     memo = params[5].get_str();
+    // }
 
 
-    if(JSON::GetObjectFieldValue(utxoInfo, "secret_hash",secret_hashValue)){
-        secret_hash = uint256S(secret_hashValue.get_str()) ;
-    }
+    // Value lock_durationValue ;
+    // Value secret_hashValue ;
+    // Value collect_timeoutValue ;
+
+    // uint256 secret_hash = uint256();
+    // uint64_t collect_timeout = 0 ;
+    // uint64_t lock_duration = 0;
+
+    // if(JSON::GetObjectFieldValue(utxoInfo, "lock_duration",lock_durationValue)){
+    //     lock_duration = lock_durationValue.get_int();
+    // }
 
 
-    if(JSON::GetObjectFieldValue(utxoInfo, "collect_timeout", collect_timeoutValue)){
-        collect_timeout = collect_timeoutValue.get_int() ;
-    }
+    // if(JSON::GetObjectFieldValue(utxoInfo, "secret_hash",secret_hashValue)){
+    //     secret_hash = uint256S(secret_hashValue.get_str()) ;
+    // }
 
 
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
-    if(!account.nickid.IsEmpty()){
-        throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
-    }
+    // if(JSON::GetObjectFieldValue(utxoInfo, "collect_timeout", collect_timeoutValue)){
+    //     collect_timeout = collect_timeoutValue.get_int() ;
+    // }
 
 
-    HTLCCondition hc ;
-    hc.secret_hash = secret_hash;
-    hc.collect_timeout = collect_timeout ;
-    if(hc.secret_hash != uint256() || hc.collect_timeout != 0)
-        hc.is_null = false ;
+    // CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
+    // RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    // if(!account.nickid.IsEmpty()){
+    //     throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
+    // }
 
 
-    UTXOEntity entity ;
-    entity.coin_symbol = cmCoin.symbol ;
-    entity.coin_amount = cmCoin.GetSawiAmount() ;
-    entity.to_uid      = recvUserId ;
-    entity.lock_duration = lock_duration ;
-    entity.htlc_cond = hc ;
-    entity.is_null     = false ;
-
-    auto pBaseTx = std::make_shared<CCoinUtxoTx>(sendUserId,chainActive.Height(),
-            cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
+    // HTLCCondition hc ;
+    // hc.secret_hash = secret_hash;
+    // hc.collect_timeout = collect_timeout ;
+    // if(hc.secret_hash != uint256() || hc.collect_timeout != 0)
+    //     hc.is_null = false ;
 
 
-    return SubmitTx(account.keyid, *pBaseTx);
+    // UTXOEntity entity ;
+    // entity.coin_symbol = cmCoin.symbol ;
+    // entity.coin_amount = cmCoin.GetSawiAmount() ;
+    // entity.to_uid      = recvUserId ;
+    // entity.lock_duration = lock_duration ;
+    // entity.htlc_cond = hc ;
+    // entity.is_null     = false ;
+
+    // auto pBaseTx = std::make_shared<CCoinUtxoTx>(sendUserId,chainActive.Height(),
+    //         cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
+
+
+    // return SubmitTx(account.keyid, *pBaseTx);
+    Object obj;
+    return obj;
 }
 
 
