@@ -9,6 +9,12 @@
 #include <string>
 #include <cstdarg>
 
+template <typename T>
+std::string VectorToString(vector<T> &vec) {
+    std::string s(vec.begin(), vec.end());
+    return s;
+}
+
 bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> pTx) {
     if (!SysCfg().IsTxIndex()) 
         return false;
@@ -31,37 +37,36 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> pTx) {
     return true;
 }
 
-inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext &context, 
-                                const CUserID &prevUtxoTxUid, const CUserID &txUid,
-                                const CUtxoInput &input, CUtxoCond &cond) {
+inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool isPrevUtxoOut,
+                                const CUserID &prevUtxoTxUid, const CUserID &txUid, 
+                                const CUtxoInput &input, CUtxoCondStorageBean &cond) {
     CValidationState &state = *context.pState;
 
-    switch (cond.cond_type) {
-        case UtxoCondType::P2SA : {
-            CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (cond);
+    switch (cond.utxoCondPtr->cond_type) {
+        case UtxoCondType::OP2SA : {
+            CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (*cond.utxoCondPtr);
 
-            if (isCheckInput) {
-                if (theCond.uid != txUid) {
+            if(isPrevUtxoOut) {
+                if (theCond.uid != txUid)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid mismatches error!"), REJECT_INVALID, 
-                                    "uid-mismatches-err");
-                }
+                                "uid-mismatches-err");
             } else {
-                if (theCond.uid.IsEmpty()) {
-                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
-                                    "uid-empty-err");
-                }
+                if (theCond.uid.IsEmpty())
+                        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
+                                        "uid-empty-err");
             }
             break;
         }
-        case UtxoCondType::P2MA : {
-            CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (cond);
+       
+        case UtxoCondType::OP2MA : {
+            CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (*cond.utxoCondPtr);
 
-            if (isCheckInput) { //theCond is the previous UTXO output
+            if (isPrevUtxoOut) { //theCond is the previous UTXO output
                 bool found = false;
                 for (auto inputCond : input.conds) {
-                    if (inputCond.cond_type == UtxoCondType::P2MA) {
+                    if (inputCond.utxoCondPtr->cond_type == UtxoCondType::IP2MA) {
                         found = true;
-                        CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (inputCond);
+                        CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (*inputCond.utxoCondPtr);
                         if (p2maCondIn.m > p2maCondIn.n) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond multisig m > n error!"), REJECT_INVALID, 
                                     "cond-multsig-m-larger-than-n-err");  
@@ -98,15 +103,16 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
             }
             break;
         }
-        case UtxoCondType::P2PH : {
-            CPasswordHashLockCondOut& theCond = dynamic_cast< CPasswordHashLockCondOut& > (cond);
 
-            if (isCheckInput) {
+        case UtxoCondType::OP2PH : {
+            CPasswordHashLockCondOut& theCond = dynamic_cast< CPasswordHashLockCondOut& > (*cond.utxoCondPtr);
+
+            if (isPrevUtxoOut) {
                 bool found = false;
                 for (auto inputCond : input.conds) {
-                    if (cond.cond_type == UtxoCondType::P2PH) {
+                    if (cond.utxoCondPtr->cond_type == UtxoCondType::IP2PH) {
                         found = true;
-                        CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (inputCond);
+                        CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (*inputCond.utxoCondPtr);
 
                         //hash of (TxUid,Password)
                         string text = strprintf("%s%s", prevUtxoTxUid.ToString(), p2phCondIn.password);
@@ -131,10 +137,10 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
             }
             break;
         }
-        case UtxoCondType::CLAIM_LOCK : { 
-            CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (cond);
+        case UtxoCondType::OCLAIM_LOCK : { 
+            CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (*cond.utxoCondPtr);
             
-            if (isCheckInput) {
+            if (isPrevUtxoOut) {
                 if (context.height <= theCond.height) {
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to claim error!"), REJECT_INVALID, 
                                     "too-early-to-claim-err");
@@ -147,10 +153,10 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
             }
             break; 
         }
-        case UtxoCondType::RECLAIM_LOCK : {
-            CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (cond);
+        case UtxoCondType::ORECLAIM_LOCK : {
+            CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (*cond.utxoCondPtr);
 
-            if (isCheckInput) {
+            if (isPrevUtxoOut) {
                 if (prevUtxoTxUid == txUid) { // for reclaiming the coins
                     if (theCond.height == 0 || context.height <= theCond.height) {
                         return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to reclaim error!"), REJECT_INVALID, 
@@ -166,7 +172,7 @@ inline bool CheckUtxoCondition( const bool isCheckInput, const CTxExecuteContext
             break; 
         }
         default: {
-            string strInOut = isCheckInput ? "input" : "output";
+            string strInOut = isPrevUtxoOut ? "input" : "output";
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, %s cond type error!", strInOut), REJECT_INVALID, 
                                 "cond-type-err");
         }
@@ -224,7 +230,7 @@ bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
         //enumerate the prev tx out conditions to check if current input meets 
         //the output conditions of the previous Tx
         for (auto cond : pPrevUtxoTx->vouts[input.prev_utxo_out_index].conds)
-            CheckUtxoCondition(true, context, pPrevUtxoTx->txUid, txUid, input, cond);
+            CheckUtxoOutCondition(context, true, pPrevUtxoTx->txUid, txUid, input, cond);
     
         totalInAmount += pPrevUtxoTx->vouts[input.prev_utxo_out_index].coin_amount;
     }
@@ -236,7 +242,7 @@ bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
 
         //check each cond's validity
         for (auto cond : output.conds)
-            CheckUtxoCondition(false, context, CUserID(), txUid, CUtxoInput(), cond);
+            CheckUtxoOutCondition(context, false, CUserID(), txUid, CUtxoInput(), cond);
 
         totalOutAmount += output.coin_amount;
     }
@@ -311,14 +317,14 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, failed to deduct coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
+        receipts.emplace_back(txUid, CNullID(), coin_symbol, abs(diff), ReceiptCode::TRANSFER_UTXO_COINS);
     } else if (diff > 0) {
         if (!srcAccount.OperateBalance(coin_symbol, ADD_FREE, diff)) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, failed to add coin_amount in txUid %s account",
                             txUid.ToString()), UPDATE_ACCOUNT_FAIL, "insufficient-fund-utxo");
         }
+        receipts.emplace_back(CNullID(), txUid, coin_symbol, abs(diff), ReceiptCode::TRANSFER_UTXO_COINS);
     }
-    
-    receipts.emplace_back(txUid, utxo.to_uid, utxo.coin_symbol, abs(diff), ReceiptCode::TRANSFER_UTXO_COINS);
     
     if (!cw.accountCache.SaveAccount(srcAccount))
         return state.DoS(100, ERRORMSG("CCoinUtxoTx::ExecuteTx, write source addr %s account info error",
@@ -334,23 +340,16 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
 string CCoinUtxoTx::ToString(CAccountDBCache &accountCache) {
     return strprintf(
         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
-        "valid_height=%d, priorUtxoTxId=%s, priorUtxoSecret=%s, utxo=[%s], memo=%s",
+        "valid_height=%d, vins=[%s], vouts=[%s], memo=%s",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
-        valid_height, prior_utxo_txid.ToString(), prior_utxo_secret, utxo.ToString(), HexStr(memo));
+        valid_height, VectorToString(vins), VectorToString(vouts), HexStr(memo));
 }
 
 Object CCoinUtxoTx::ToJson(const CAccountDBCache &accountCache) const {
     Object result = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("prior_utxo_txid", prior_utxo_txid.ToString()));
-    result.push_back(Pair("prior_utxo_secret", prior_utxo_secret));
-
-    if (!utxo.is_null) {
-        Array utxoArray;
-        utxoArray.push_back(utxo.ToJson());
-        result.push_back(Pair("utxo", utxoArray));
-    }
-
+    result.push_back(Pair("vins", VectorToString(vins)));
+    result.push_back(Pair("vouts", VectorToString(vouts)));
     result.push_back(Pair("memo", memo));
 
     return result;

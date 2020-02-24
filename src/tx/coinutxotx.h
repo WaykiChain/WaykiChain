@@ -47,13 +47,8 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(llFees));
 
-        //FIXME!!
-        // for (auto input : vins) {
-        //     READWRITE(input);
-        // }
-        // for (auto output: vouts) {
-        //     READWRITE(output);
-        // }
+        READWRITE(vins);
+        READWRITE(outs);
 
         READWRITE(memo);
         READWRITE(signature);
