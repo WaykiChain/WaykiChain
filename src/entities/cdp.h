@@ -137,8 +137,8 @@ struct CUserCDP {
 
 class CCdpGlobalData {
 public:
-    uint64_t total_staked_assets;
-    uint64_t total_owed_scoins;
+    uint64_t total_staked_assets = 0;
+    uint64_t total_owed_scoins = 0;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(total_staked_assets));

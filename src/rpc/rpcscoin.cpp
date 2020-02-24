@@ -326,7 +326,7 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoin
 
     obj.push_back(Pair("assets_symbol",                         cdpCoinPair.bcoin_symbol));
     obj.push_back(Pair("scoin_symbol",                          cdpCoinPair.scoin_symbol));
-    obj.push_back(Pair("global_staked_assets",                  cdpGlobalData.total_staked_assets));
+    obj.push_back(Pair("global_staked_asset",                  cdpGlobalData.total_staked_assets));
     obj.push_back(Pair("global_owed_scoins",                    cdpGlobalData.total_owed_scoins));
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
     obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
