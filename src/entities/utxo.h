@@ -126,7 +126,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
             return false;
         
         string redeemScript = strprintf("u8%s%u8%s", m, uids, n);
-        string content = strprintf("%s%u16%s", prevUtxoTxId.ToString(), prevUtxoTxVoutIndex, txUid.ToString());
+        string content = strprintf("%s%u16%s%s", prevUtxoTxId.ToString(), prevUtxoTxVoutIndex, txUid.ToString(), redeemScript);
         uint160 hash = Hash160(content);
 
         int verifyPassNum = 0;
