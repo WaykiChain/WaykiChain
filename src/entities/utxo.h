@@ -106,6 +106,17 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
     }
 
+    bool VerifySignature(const uint256 &sigHash, const std::vector<uint8_t> &signature, const CPubKey &pubKey) {
+        // if (signatureCache.Get(sigHash, signature, pubKey))
+        //     return true;
+
+        if (!pubKey.Verify(sigHash, signature))
+            return false;
+
+        // signatureCache.Set(sigHash, signature, pubKey);
+        return true;
+    }
+
     bool VerifyMultiSig(const TxID &prevUtxoTxId, uint16_t prevUtxoTxVoutIndex, const CUserID &txUid) { 
         if (signatures.size < m)
             return false;
