@@ -128,17 +128,17 @@ inline uint160 Hash160(std::string str) {
     return Hash160(vec);
 }
 
-inline bool Hash256(std::string str, uint256 &hash) {
-    uint8_t rnd[8];
-    GetRandBytes(rnd, sizeof(rnd));
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
-    SHA256_Update(&ctx, str.data(), str.size());
-    SHA256_Update(&ctx, rnd, sizeof(rnd));
-    SHA256_Final(hash.begin(), &ctx);
+// inline bool Hash256(std::string str, uint256 &hash) {
+//     uint8_t rnd[8];
+//     GetRandBytes(rnd, sizeof(rnd));
+//     SHA256_CTX ctx;
+//     SHA256_Init(&ctx);
+//     SHA256_Update(&ctx, str.data(), str.size());
+//     SHA256_Update(&ctx, rnd, sizeof(rnd));
+//     SHA256_Final(hash.begin(), &ctx);
 
-    return true;
-}
+//     return true;
+// }
 
 uint32_t MurmurHash3(uint32_t nHashSeed, const vector<uint8_t> &vDataToHash);
 
