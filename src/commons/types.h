@@ -7,6 +7,7 @@
 #define COMMONS_TYPES_H
 
 #include <string>
+#include <vector>
 #include <utility>
 #include <unordered_set>
 #include <unordered_map>
@@ -55,7 +56,7 @@ namespace container {
 };
 
 template <typename T>
-std::string VectorToString(vector<T> &vec) {
+std::string VectorToString(std::vector<T> &vec) {
     std::string s(vec.begin(), vec.end());
     return s;
 }
