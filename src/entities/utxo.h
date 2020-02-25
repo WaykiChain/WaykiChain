@@ -73,8 +73,6 @@ struct CUtxoOutput {
 
 //////////////////////////////////////////////////
 struct CSingleAddressCondIn : CUtxoCond {
-    CSingleAddressCondIn();
-
     //uid to be covered in BaseTx
     CSingleAddressCondIn() : CUtxoCond(UtxoCondType::IP2SA) {};
 
