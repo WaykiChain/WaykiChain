@@ -300,34 +300,79 @@ uint32_t CAccountDBCache::GetCacheSize() const {
         nickId2KeyIdCache.GetCacheSize();
 }
 
-std::tuple< uint64_t /* total regids */,
-            uint64_t /* total bcoins */,
-            uint64_t /* total soins */,
-            uint64_t /* total foins */> CAccountDBCache::TraverseAccount() {
+Object CAccountDBCache::GetAccountDBStats() {
+    uint64_t totalRegIds(0);
+    uint64_t totalBCoins(0);
+    uint64_t totalSCoins(0);
+    uint64_t totalFCoins(0);
+    uint64_t bcoinsStates[5];
+    uint64_t scoinsStates[5];
+    uint64_t fcoinsStates[5];
 
     map<CKeyID, CAccount> items;
-
     accountCache.GetAllElements(items);
-
-    uint64_t totalRegIds = 0;
-    uint64_t totalBCoins = 0;
-    uint64_t totalSCoins = 0;
-    uint64_t totalFCoins = 0;
-
-
     for (auto &item : items) {
+        totalRegIds++;
+
         CAccountToken wicc = item.second.GetToken(SYMB::WICC);
         CAccountToken wusd = item.second.GetToken(SYMB::WUSD);
         CAccountToken wgrt = item.second.GetToken(SYMB::WGRT);
+        
+        bcoinsStates[0] += wicc.free_amount;
+        bcoinsStates[1] += wicc.voted_amount;
+        bcoinsStates[2] += wicc.frozen_amount;
+        bcoinsStates[3] += wicc.staked_amount;
+        bcoinsStates[4] += wicc.pledged_amount;
+        
+        scoinsStates[0] += wusd.free_amount;
+        scoinsStates[1] += wusd.voted_amount;
+        scoinsStates[2] += wusd.frozen_amount;
+        scoinsStates[3] += wusd.staked_amount;
+        scoinsStates[4] += wusd.pledged_amount;
 
-        totalRegIds++;
+        fcoinsStates[0] += wgrt.free_amount;
+        fcoinsStates[1] += wgrt.voted_amount;
+        fcoinsStates[2] += wgrt.frozen_amount;
+        fcoinsStates[3] += wgrt.staked_amount;
+        fcoinsStates[4] += wgrt.pledged_amount;
 
-        totalBCoins += wicc.free_amount + wicc.voted_amount + wicc.frozen_amount + wicc.staked_amount;
-        totalSCoins += wusd.free_amount + wusd.voted_amount + wusd.frozen_amount + wusd.staked_amount;
-        totalFCoins += wgrt.free_amount + wgrt.voted_amount + wgrt.frozen_amount + wgrt.staked_amount;
+        totalBCoins += wicc.free_amount + wicc.voted_amount + wicc.frozen_amount + wicc.staked_amount + wicc.pledged_amount;
+        totalSCoins += wusd.free_amount + wusd.voted_amount + wusd.frozen_amount + wusd.staked_amount + wicc.pledged_amount;
+        totalFCoins += wgrt.free_amount + wgrt.voted_amount + wgrt.frozen_amount + wgrt.staked_amount + wicc.pledged_amount;
     }
 
-    return std::tie(totalRegIds, totalBCoins, totalSCoins, totalFCoins);
+    Object obj_wicc;
+    obj_wicc.push_back(Pair("free_amount",      ValueFromAmount(bcoinsStates[0])));
+    obj_wicc.push_back(Pair("voted_amount",     ValueFromAmount(bcoinsStates[1])));
+    obj_wicc.push_back(Pair("frozen_amount",    ValueFromAmount(bcoinsStates[2])));
+    obj_wicc.push_back(Pair("staked_amount",    ValueFromAmount(bcoinsStates[3])));
+    obj_wicc.push_back(Pair("pledged_amount",   ValueFromAmount(bcoinsStates[4])));
+    obj_wicc.push_back(Pair("total_amount",     ValueFromAmount(totalBCoins)));
+
+    Object obj_wusd;
+    obj_wusd.push_back(Pair("free_amount",      ValueFromAmount(scoinsStates[0])));
+    obj_wusd.push_back(Pair("voted_amount",     ValueFromAmount(scoinsStates[1])));
+    obj_wusd.push_back(Pair("frozen_amount",    ValueFromAmount(scoinsStates[2])));
+    obj_wusd.push_back(Pair("staked_amount",    ValueFromAmount(scoinsStates[3])));
+    obj_wusd.push_back(Pair("pledged_amount",   ValueFromAmount(scoinsStates[4])));
+    obj_wicc.push_back(Pair("total_amount",     ValueFromAmount(totalSCoins)));
+
+    Object obj_wgrt;
+    obj_wgrt.push_back(Pair("free_amount",      ValueFromAmount(fcoinsStates[0])));
+    obj_wgrt.push_back(Pair("voted_amount",     ValueFromAmount(fcoinsStates[1])));
+    obj_wgrt.push_back(Pair("frozen_amount",    ValueFromAmount(fcoinsStates[2])));
+    obj_wgrt.push_back(Pair("staked_amount",    ValueFromAmount(fcoinsStates[3])));
+    obj_wgrt.push_back(Pair("pledged_amount",   ValueFromAmount(fcoinsStates[4])));
+    obj_wicc.push_back(Pair("total_amount",     ValueFromAmount(totalFCoins)));
+
+    Object obj;
+    obj.push_back(Pair("WICC",          obj_wicc));
+    obj.push_back(Pair("WUSD",          obj_wusd));
+    obj.push_back(Pair("WGRT",          obj_wgrt));
+    obj.push_back(Pair("total_regids",  totalRegIds));
+
+    return obj;
+    
 }
 
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {
