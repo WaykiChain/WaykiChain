@@ -73,6 +73,8 @@ struct CUtxoOutput {
 
 //////////////////////////////////////////////////
 struct CSingleAddressCondIn : CUtxoCond {
+    CSingleAddressCondIn();
+
     //uid to be covered in BaseTx
     CSingleAddressCondIn() : CUtxoCond(UtxoCondType::IP2SA) {};
 
@@ -84,6 +86,7 @@ struct CSingleAddressCondIn : CUtxoCond {
 struct CSingleAddressCondOut : CUtxoCond {
     CUserID  uid;
 
+    CSingleAddressCondOut();
     CSingleAddressCondOut(CUserID &uidIn) : CUtxoCond(UtxoCondType::OP2SA), uid(uidIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -100,6 +103,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
     std::vector<CUserID> uids;
     std::vector<UnsignedCharArray> signatures; //m signatures, each of which corresponds to redeemscript signature
 
+    CMultiSignAddressCondIn();
     CMultiSignAddressCondIn(uint8_t mIn, uint8_t nIn, std::vector<CUserID> &uidsIn, std::vector<UnsignedCharArray> &signaturesIn): 
         CUtxoCond(UtxoCondType::IP2MA), m(mIn),n(nIn),uids(uidsIn),signatures(signaturesIn) {};
 
@@ -154,6 +158,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
 struct CMultiSignAddressCondOut : CUtxoCond {
     CUserID uid;
 
+    CMultiSignAddressCondOut();
     CMultiSignAddressCondOut(CUserID &uidIn) : CUtxoCond(UtxoCondType::OP2MA), uid(uidIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -167,6 +172,7 @@ struct CMultiSignAddressCondOut : CUtxoCond {
 struct CPasswordHashLockCondIn : CUtxoCond {
     std::string password; //no greater than 256 chars
 
+    CPasswordHashLockCondIn();
     CPasswordHashLockCondIn(string& passwordIn) : CUtxoCond(UtxoCondType::IP2PH), password(passwordIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -178,6 +184,7 @@ struct CPasswordHashLockCondIn : CUtxoCond {
 struct CPasswordHashLockCondOut: CUtxoCond {
     uint256 password_hash; //hashed with salt
 
+    CPasswordHashLockCondOut();
     CPasswordHashLockCondOut(uint256& passwordHash): CUtxoCond(UtxoCondType::OP2PH), password_hash(passwordHash) {};
 
     IMPLEMENT_SERIALIZE(
@@ -190,6 +197,7 @@ struct CPasswordHashLockCondOut: CUtxoCond {
 struct CClaimLockCondOut : CUtxoCond {
     uint64_t height;
 
+    CClaimLockCondOut();
     CClaimLockCondOut(uint64_t &heightIn): CUtxoCond(UtxoCondType::OCLAIM_LOCK), height(heightIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -202,6 +210,7 @@ struct CClaimLockCondOut : CUtxoCond {
 struct CReClaimLockCondOut : CUtxoCond {
     uint64_t height;
 
+    CReClaimLockCondOut();
     CReClaimLockCondOut(uint64_t &heightIn): CUtxoCond(UtxoCondType::ORECLAIM_LOCK), height(heightIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -214,8 +223,7 @@ struct CReClaimLockCondOut : CUtxoCond {
 struct CUtxoCondStorageBean {
     std::shared_ptr<CUtxoCond> utxoCondPtr ;
 
-    CUtxoCondStorageBean() {}
-
+    CUtxoCondStorageBean();
     CUtxoCondStorageBean( std::shared_ptr<CUtxoCond> ptr): utxoCondPtr(ptr) {}
 
     bool IsEmpty() const { return utxoCondPtr == nullptr; }
