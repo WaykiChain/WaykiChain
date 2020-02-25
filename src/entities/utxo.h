@@ -60,6 +60,8 @@ struct CUtxoOutput {
     uint64_t coin_amount;
     std::vector<CUtxoCondStorageBean> conds;
 
+    CUtxoOutput();  //empty instance
+
     CUtxoOutput(uint64_t &coinAmount, std::vector<CUtxoCondStorageBean> &condsIn) : 
         conds(condsIn), coin_amount(coinAmount) {};
 
