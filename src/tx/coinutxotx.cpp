@@ -9,12 +9,6 @@
 #include <string>
 #include <cstdarg>
 
-template <typename T>
-std::string VectorToString(vector<T> &vec) {
-    std::string s(vec.begin(), vec.end());
-    return s;
-}
-
 bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> pTx) {
     if (!SysCfg().IsTxIndex()) 
         return false;

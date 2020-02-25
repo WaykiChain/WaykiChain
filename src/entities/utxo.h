@@ -102,7 +102,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         CUtxoCond(UtxoCondType::IP2MA), m(mIn),n(nIn),uids(uidsIn),signatures(signaturesIn) {};
 
     uint160 GetRedeemScriptHash() {
-        string redeemScript = strprintf("%u8%s%u8", m, uids, n);
+        string redeemScript = strprintf("%u%s%u", m, VectorToString(uids), n);
         return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
     }
 

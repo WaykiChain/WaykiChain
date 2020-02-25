@@ -54,4 +54,10 @@ namespace container {
     }
 };
 
+template <typename T>
+std::string VectorToString(vector<T> &vec) {
+    std::string s(vec.begin(), vec.end());
+    return s;
+}
+
 #endif //COMMONS_TYPES_H
