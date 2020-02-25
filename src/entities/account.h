@@ -72,12 +72,15 @@ public:
     uint64_t frozen_amount;     // for coins held in DEX buy/sell orders
     uint64_t staked_amount;     // for staking
     uint64_t voted_amount;      // for voting
+    uint64_t pledged_amount;    //for CDP collateral amount
 
 public:
-    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0) { }
+    CAccountToken() : free_amount(0), frozen_amount(0), staked_amount(0), voted_amount(0), pledged_amount(0) { }
 
-    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, uint64_t& votedAmount)
-        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), voted_amount(votedAmount) {}
+    CAccountToken(uint64_t& freeAmount, uint64_t& frozenAmount, uint64_t& stakedAmount, 
+                uint64_t& votedAmount, uint64_t& pledgedAmount )
+        : free_amount(freeAmount), frozen_amount(frozenAmount), staked_amount(stakedAmount), 
+            voted_amount(votedAmount), pledged_amount(pledgedAmount) {}
 
     CAccountToken& operator=(const CAccountToken& other) {
         if (this == &other)
@@ -87,6 +90,7 @@ public:
         this->frozen_amount = other.frozen_amount;
         this->staked_amount = other.staked_amount;
         this->voted_amount  = other.voted_amount;
+        this->pledged_amount= other.pledged_amount;
 
         return *this;
     }
@@ -96,6 +100,7 @@ public:
         READWRITE(VARINT(frozen_amount));
         READWRITE(VARINT(staked_amount));
         READWRITE(VARINT(voted_amount));
+        READWRITE(VARINT(pledged_amount));
     )
 };
 
