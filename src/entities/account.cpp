@@ -26,6 +26,7 @@ bool CAccount::GetBalance(const TokenSymbol &tokenSymbol, const BalanceType bala
             case STAKED_VALUE:  value = accountToken.staked_amount; return true;
             case FROZEN_VALUE:  value = accountToken.frozen_amount; return true;
             case VOTED_VALUE:   value = accountToken.voted_amount;  return true;
+            case PLEDGED_VALUE: value = accountToken.pledged_amount; return true;
             default: return false;
         }
     }
@@ -101,6 +102,24 @@ bool CAccount::OperateBalance(const TokenSymbol &tokenSymbol, const BalanceOpTyp
 
             accountToken.free_amount += value;
             accountToken.voted_amount -= value;
+            return true;
+        }
+        case PLEDGE: {
+            if (accountToken.free_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, free_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.free_amount, value, tokenSymbol);
+
+            accountToken.free_amount -= value;
+            accountToken.pledged_amount += value;
+            return true;
+        }
+        case UNPLEDGE: {
+            if (accountToken.pledged_amount < value)
+                return ERRORMSG("CAccount::OperateBalance, pledged_amount insufficient(%llu vs %llu) of %s",
+                                accountToken.pledged_amount, value, tokenSymbol);
+
+            accountToken.free_amount += value;
+            accountToken.pledged_amount -= value;
             return true;
         }
         default: return false;

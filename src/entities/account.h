@@ -31,7 +31,8 @@ enum BalanceType : uint8_t {
     FREE_VALUE   = 1,
     STAKED_VALUE = 2,
     FROZEN_VALUE = 3,
-    VOTED_VALUE  = 4
+    VOTED_VALUE  = 4,
+    PLEDGED_VALUE= 5
 };
 
 enum BalanceOpType : uint8_t {
@@ -41,9 +42,11 @@ enum BalanceOpType : uint8_t {
     STAKE    = 3,  //!< free   -> staked
     UNSTAKE  = 4,  //!< staked -> free
     FREEZE   = 5,  //!< free   -> frozen
-    UNFREEZE = 6,  //!< frozen -> free
+    UNFREEZE = 6,  //!< frozen -> free, and then SUB_FREE for further ops
     VOTE     = 7,  //!< free -> voted
-    UNVOTE   = 8   //!< voted -> free
+    UNVOTE   = 8,  //!< voted -> free
+    PLEDGE   = 9,  //!< free -> pledged
+    UNPLEDGE = 10  //!< pledged -> free, and then SUB_FREE for further ops
 };
 
 struct BalanceOpTypeHash {
@@ -59,7 +62,9 @@ static const unordered_map<BalanceOpType, string, BalanceOpTypeHash> kBalanceOpT
     { FREEZE,   "FREEZE"    },
     { UNFREEZE, "UNFREEZE"  },
     { VOTE,     "VOTE"      },
-    { UNVOTE,   "UNVOTE"    }
+    { UNVOTE,   "UNVOTE"    },
+    { PLEDGE,   "PLEDGE"    },
+    { UNPLEDGE, "UNPLEDGE"  }
 };
 
 inline string GetBalanceOpTypeName(const BalanceOpType opType) {
