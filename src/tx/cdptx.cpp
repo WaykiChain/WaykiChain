@@ -841,18 +841,28 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                              "add-bcoins-failed");
         }
 
-        if (account.regid != cdpOwnerAccount.regid) {
-            if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner)) {
-                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add bcoins failed"), UPDATE_ACCOUNT_FAIL,
-                                 "add-bcoins-failed");
+        // clean up cdp owner's pledged_amount
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToReturnLiquidator)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
+                             "unpledge-bcoins-failed");
+        }
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, totalBcoinsToReturnLiquidator)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub unpledged bcoins failed"), UPDATE_ACCOUNT_FAIL,
+                             "deduct-bcoins-failed");
+        }
+
+        if (account.regid != cdpOwnerAccount.regid) { //liquidate by others
+            if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner)) {
+                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
+                                 "unpledge-bcoins-failed");
             }
             if (!cw.accountCache.SetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount))
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
                                 cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         } else {  // liquidate by oneself
-            if (!account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, totalBcoinsToCdpOwner)) {
-                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, add bcoins failed"), UPDATE_ACCOUNT_FAIL,
-                                 "add-bcoins-failed");
+            if (!account.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToCdpOwner)) {
+                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
+                                 "unpledge-bcoins-failed");
             }
         }
 
@@ -897,19 +907,29 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
                              UPDATE_ACCOUNT_FAIL, "add-bcoins-to-liquidator-failed");
         }
 
+        // clean up cdp owner's pledged_amount
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, totalBcoinsToReturnLiquidator)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins failed"), UPDATE_ACCOUNT_FAIL,
+                             "unpledge-bcoins-failed");
+        }
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, totalBcoinsToReturnLiquidator)) {
+            return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub unpledged bcoins failed"), UPDATE_ACCOUNT_FAIL,
+                             "deduct-bcoins-failed");
+        }
+
         uint64_t bcoinsToCDPOwner = totalBcoinsToCdpOwner * liquidateRate;
         if (account.regid != cdpOwnerAccount.regid) {
-            if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, ADD_FREE, bcoinsToCDPOwner)) {
-                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub bcoins to cdp owner failed"),
-                                 UPDATE_ACCOUNT_FAIL, "sub-bcoins-to-cdp-owner-failed");
+            if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner)) {
+                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins to cdp owner failed"),
+                                 UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-to-cdp-owner-failed");
             }
             if (!cw.accountCache.SetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount))
                 return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, write cdp owner account info error! owner_regid=%s",
                                 cdp.owner_regid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-write-accountdb");
         } else {  // liquidate by oneself
-            if (!account.OperateBalance(cdp.bcoin_symbol, ADD_FREE, bcoinsToCDPOwner)) {
-                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, sub bcoins to cdp owner failed"),
-                                 UPDATE_ACCOUNT_FAIL, "sub-bcoins-to-cdp-owner-failed");
+            if (!account.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, bcoinsToCDPOwner)) {
+                return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, unpledge bcoins to cdp owner failed"),
+                                 UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-to-cdp-owner-failed");
             }
         }
 
@@ -922,7 +942,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         uint64_t bcoinsToStakeAmountMinInScoin;
         if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,
-                bcoinsToStakeAmountMinInScoin))
+                        bcoinsToStakeAmountMinInScoin))
             return false;
 
         uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
@@ -985,7 +1005,7 @@ Object CCDPLiquidateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CCDPLiquidateTx::ProcessPenaltyFees(CTxExecuteContext &context, const CUserCDP &cdp, uint64_t scoinPenaltyFees,
-    vector<CReceipt> &receipts) {
+                                        vector<CReceipt> &receipts) {
 
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
     CTxCord txCord = CTxCord(context.height, context.index);
