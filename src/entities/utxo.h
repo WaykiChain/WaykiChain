@@ -121,7 +121,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         if (signatures.size() < m)
             return false;
         
-        string redeemScript = strprintf("u%s%u%s", m, VectorToString(uids), n);
+        string redeemScript = strprintf("u%s%s%u", m, VectorToString(uids), n);
 
         CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
         ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
