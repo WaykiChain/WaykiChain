@@ -61,13 +61,12 @@ static uint64_t CalcCollateralRatio(uint64_t assetAmount, uint64_t scoinAmount, 
 uint64_t ComputeCDPInterest(const uint64_t total_owed_scoins, const int32_t beginHeight, const uint32_t endHeight,
                             uint64_t A, uint64_t B) {
 
-
     int32_t blockInterval = endHeight - beginHeight;
     int32_t loanedDays    = std::max<int32_t>(1, ceil((double)blockInterval / ::GetDayBlockCount(endHeight)));
 
     uint64_t N                = total_owed_scoins;
     double annualInterestRate = 0.1 * A / log10(1.0 + B * N / (double)COIN);
-    uint64_t interest               = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
+    uint64_t interest         = (uint64_t)(((double)N / 365) * loanedDays * annualInterestRate);
 
     LogPrint(BCLog::CDP, "ComputeCDPInterest, beginHeight=%d, endHeight=%d, loanedDays=%d, A=%llu, B=%llu, N="
              "%llu, annualInterestRate=%f, interest=%llu\n",
@@ -200,7 +199,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
     //2. check collateral ratio: parital or total >= 200%
     uint64_t startingCdpCollateralRatio;
-
     if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_START_COLLATERAL_RATIO, startingCdpCollateralRatio))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, read CDP_START_COLLATERAL_RATIO error!!"),
                         READ_SYS_PARAM_FAIL, "read-sysparamdb-error");
@@ -215,7 +213,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         vector<CUserCDP> userCdps;
         if (cw.cdpCache.UserHaveCdp(account.regid, assetSymbol, scoin_symbol)) {
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the user cdp has created! txid=%s, regid=%s, "
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the user (regid=%s) has existing CDP (txid=%s)!"
                             "asset_symbol=%s, scoin_symbol=%s",
                              GetHash().GetHex(), account.regid.ToString(), assetSymbol, scoin_symbol),
                              REJECT_INVALID, "user-cdp-created");
@@ -251,19 +249,17 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         }
     } else { // further staking on one's existing CDP
         CUserCDP cdp;
-        if (!cw.cdpCache.GetCDP(cdp_txid, cdp)) {
+        if (!cw.cdpCache.GetCDP(cdp_txid, cdp))
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
                              REJECT_INVALID, "cdp-not-exist");
-        }
-
+        
         if (assetSymbol != cdp.bcoin_symbol)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the asset symbol=%s is not match with the existed one=%s",
-                assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
+                            assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
 
-        if (account.regid != cdp.owner_regid) {
+        if (account.regid != cdp.owner_regid)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, permission denied! cdp_txid=%s, owner(%s) vs operator(%s)",
-                cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
-        }
+                            cdp_txid.ToString(), cdp.owner_regid.ToString(), txUid.ToString()), REJECT_INVALID, "permission-denied");
 
         CUserCDP oldCDP = cdp; // copy before modify.
 
@@ -284,11 +280,11 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
             LogPrint(BCLog::CDP, "Mint scoins=%llu for interest!\n", mintScoinForInterest);
         }
 
-        uint64_t newMintScoins = scoins_to_mint + mintScoinForInterest;
-        uint64_t totalBcoinsToStake   = cdp.total_staked_bcoins + assetAmount;
-        uint64_t totalScoinsToOwe     = cdp.total_owed_scoins + newMintScoins;
+        uint64_t newMintScoins          = scoins_to_mint + mintScoinForInterest;
+        uint64_t totalBcoinsToStake     = cdp.total_staked_bcoins + assetAmount;
+        uint64_t totalScoinsToOwe       = cdp.total_owed_scoins + newMintScoins;
         uint64_t partialCollateralRatio = CalcCollateralRatio(assetAmount, newMintScoins, bcoinMedianPrice);
-        uint64_t totalCollateralRatio = CalcCollateralRatio(totalBcoinsToStake, totalScoinsToOwe, bcoinMedianPrice);
+        uint64_t totalCollateralRatio   = CalcCollateralRatio(totalBcoinsToStake, totalScoinsToOwe, bcoinMedianPrice);
 
         if (partialCollateralRatio < startingCdpCollateralRatio && totalCollateralRatio < startingCdpCollateralRatio) {
             return state.DoS(100,
@@ -333,7 +329,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
     receipts.emplace_back(txUid, nullId, assetSymbol, assetAmount, ReceiptCode::CDP_STAKED_ASSET_FROM_OWNER);
     receipts.emplace_back(nullId, txUid, scoin_symbol, scoins_to_mint + mintScoinForInterest,
-        ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER);
+                        ReceiptCode::CDP_MINTED_SCOIN_TO_OWNER);
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, set tx receipts failed!! txid=%s",
