@@ -337,7 +337,7 @@ struct CUtxoCondStorageBean {
                 throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.", utxoCondType));
         }
 
-        utxoCondPtr->cond_type = utxoCondType;
+        utxoCondPtr->cond_type = condType;
     }
 
 };
