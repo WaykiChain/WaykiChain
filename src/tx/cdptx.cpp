@@ -237,7 +237,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         uint64_t bcoinsToStakeAmountMinInScoin;
         if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,
-                bcoinsToStakeAmountMinInScoin)) {
+                        bcoinsToStakeAmountMinInScoin)) {
             return false;
         }
 
@@ -254,7 +254,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
                              REJECT_INVALID, "cdp-not-exist");
         
         if (assetSymbol != cdp.bcoin_symbol)
-            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the asset symbol=%s is not match with the existed one=%s",
+            return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the asset symbol=%s does not match with the current CDP's=%s",
                             assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
 
         if (account.regid != cdp.owner_regid)
@@ -265,12 +265,12 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
 
         if (context.height < cdp.block_height) {
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, height: %d < cdp.block_height: %d",
-                    context.height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
+                            context.height, cdp.block_height), UPDATE_ACCOUNT_FAIL, "height-error");
         }
 
         uint64_t scoinsInterestToRepay = 0;
         if (!ComputeCDPInterest(context, cdpCoinPair, cdp.total_owed_scoins, cdp.block_height, context.height,
-                scoinsInterestToRepay)) {
+                                scoinsInterestToRepay)) {
             return false;
         }
 
@@ -313,15 +313,14 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // update account accordingly
-    if (!account.OperateBalance(assetSymbol, BalanceOpType::SUB_FREE, assetAmount)) {
-        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins insufficient"), UPDATE_ACCOUNT_FAIL,
+    if (!account.OperateBalance(assetSymbol, BalanceOpType::PLEDGE, assetAmount)) {
+        return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, bcoins insufficient to pledge"), UPDATE_ACCOUNT_FAIL,
                          "bcoins-insufficient-error");
     }
     if (!account.OperateBalance(scoin_symbol, BalanceOpType::ADD_FREE, scoins_to_mint)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, add scoins failed"), UPDATE_ACCOUNT_FAIL,
                          "add-scoins-error");
     }
-
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, update account %s failed",
                         txUid.ToString()), UPDATE_ACCOUNT_FAIL, "bad-save-account");
@@ -471,7 +470,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
     if (bcoinMedianPrice == 0)
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
-                            REJECT_INVALID, "acquire-bcoin-median-price-err");
+                        REJECT_INVALID, "acquire-bcoin-median-price-err");
 
     CCdpGlobalData cdpGlobalData = cw.cdpCache.GetCdpGlobalData(cdpCoinPair);
     if (cdpGlobalData.CheckGlobalCollateralRatioFloorReached(bcoinMedianPrice, globalCollateralRatioFloor)) {
@@ -499,13 +498,13 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, scoinsInterestToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, Deduct interest error!"),
-                         REJECT_INVALID, "deduct-interest-error");
+                        REJECT_INVALID, "deduct-interest-error");
     }
 
     vector<CReceipt> receipts;
     if (!SellInterestForFcoins(CTxCord(context.height, context.index), cdp, scoinsInterestToRepay, cw, state, receipts)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, SellInterestForFcoins error!"),
-                            REJECT_INVALID, "sell-interest-for-fcoins-error");
+                        REJECT_INVALID, "sell-interest-for-fcoins-error");
     }
 
     uint64_t startingCdpCollateralRatio;
@@ -515,13 +514,15 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
     //3. redeem in scoins and update cdp
     if (assetAmount > cdp.total_staked_bcoins) {
         LogPrint(BCLog::CDP, "CCDPRedeemTx::ExecuteTx, the redeemed bcoins=%llu is bigger than total_staked_bcoins=%llu, use the min one",
-                        assetAmount, cdp.total_staked_bcoins);
+                assetAmount, cdp.total_staked_bcoins);
+
         assetAmount = cdp.total_staked_bcoins;
     }
     uint64_t actualScoinsToRepay = scoins_to_repay;
     if (actualScoinsToRepay > cdp.total_owed_scoins) {
         LogPrint(BCLog::CDP, "CCDPRedeemTx::ExecuteTx, the repay scoins=%llu is bigger than total_owed_scoins=%llu, use the min one",
-                        actualScoinsToRepay, cdp.total_staked_bcoins);
+                actualScoinsToRepay, cdp.total_staked_bcoins);
+
         actualScoinsToRepay = cdp.total_owed_scoins;
     }
 
@@ -565,13 +566,13 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
             uint64_t bcoinsToStakeAmountMinInScoin;
 
            if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,
-                    bcoinsToStakeAmountMinInScoin))
+                            bcoinsToStakeAmountMinInScoin))
                 return false;
 
             uint64_t bcoinsToStakeAmountMin = bcoinsToStakeAmountMinInScoin / (double(bcoinMedianPrice) / PRICE_BOOST);
             if (cdp.total_staked_bcoins < bcoinsToStakeAmountMin) {
                 return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, total staked bcoins (%llu vs %llu) is too small",
-                                 cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
+                                cdp.total_staked_bcoins, bcoinsToStakeAmountMin), REJECT_INVALID, "total-staked-bcoins-too-small");
             }
         }
 
@@ -583,11 +584,11 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
 
     if (!account.OperateBalance(cdp.scoin_symbol, BalanceOpType::SUB_FREE, actualScoinsToRepay)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) SUB WUSD(%lu) failed",
-                        account.regid.ToString(), actualScoinsToRepay), UPDATE_CDP_FAIL, "bad-operate-account");
+                        account.regid.ToString(), actualScoinsToRepay), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
     }
-    if (!account.OperateBalance(cdp.bcoin_symbol, BalanceOpType::ADD_FREE, assetAmount)) {
+    if (!account.OperateBalance(cdp.bcoin_symbol, BalanceOpType::UNPLEDGE, assetAmount)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account(%s) ADD WICC(%lu) failed",
-                        account.regid.ToString(), assetAmount), UPDATE_CDP_FAIL, "bad-operate-account");
+                        account.regid.ToString(), assetAmount), UPDATE_ACCOUNT_FAIL, "bad-operate-account");
     }
     if (!cw.accountCache.SaveAccount(account)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, update account %s failed",
@@ -648,8 +649,9 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(
-        txCord, cdp.scoin_symbol, SYMB::WGRT, scoinsInterestToRepay);
+    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, 
+                                                                SYMB::WGRT, scoinsInterestToRepay);
+
     if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, create system buy order failed"),
                         CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
@@ -916,7 +918,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
         assert(cdp.total_owed_scoins > scoinsToCloseout);
         assert(cdp.total_staked_bcoins > bcoinsToLiquidate);
-        cdp.LiquidatePartial(context.height, bcoinsToLiquidate, scoinsToCloseout);
+        cdp.PartialLiquidate(context.height, bcoinsToLiquidate, scoinsToCloseout);
 
         uint64_t bcoinsToStakeAmountMinInScoin;
         if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,

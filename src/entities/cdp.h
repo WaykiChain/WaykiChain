@@ -114,7 +114,7 @@ struct CUserCDP {
 
     void AddStake(int32_t blockHeight, uint64_t bcoinsToStake, uint64_t mintedScoins);
 
-    void LiquidatePartial(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate);
+    void PartialLiquidate(int32_t blockHeight, uint64_t bcoinsToLiquidate, uint64_t scoinsToLiquidate);
 
     bool IsFinished() const { return total_owed_scoins == 0 && total_staked_bcoins == 0; }
 
