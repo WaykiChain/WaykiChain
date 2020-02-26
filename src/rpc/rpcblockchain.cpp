@@ -145,14 +145,14 @@ Value getrawmempool(const Array& params, bool fHelp)
         Object obj;
         for (const auto& entry : mempool.memPoolTxs) {
             const uint256& hash      = entry.first;
-            const CTxMemPoolEntry& e = entry.second;
+            const CTxMemPoolEntry& mpe = entry.second;
             Object info;
-            info.push_back(Pair("size",         (int)e.GetTxSize()));
-            info.push_back(Pair("fees_type",    std::get<0>(e.GetFees())));
-            info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(e.GetFees()))));
-            info.push_back(Pair("time",         e.GetTime()));
-            info.push_back(Pair("height",       (int)e.GetHeight()));
-            info.push_back(Pair("priority",     e.GetPriority()));
+            info.push_back(Pair("size",         (int) mpe.GetTxSize()));
+            info.push_back(Pair("fees_type",    std::get<0>(mpe.GetFees())));
+            info.push_back(Pair("fees",         ValueFromAmount(std::get<1>(mpe.GetFees()))));
+            info.push_back(Pair("time",         mpe.GetTime()));
+            info.push_back(Pair("height",       (int) mpe.GetHeight()));
+            info.push_back(Pair("priority",     mpe.GetPriority()));
 
             obj.push_back(Pair(hash.ToString(), info));
         }

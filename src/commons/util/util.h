@@ -462,6 +462,6 @@ inline std::string StrToUpper(const std::string &str) {
     return ret;
 }
 
-json_spirit::Value ValueFromAmount(int64_t amount) { return (double)amount / (double)COIN; }
+json_spirit::Value ValueFromAmount(uint64_t amount) { return (double)amount / (double)COIN; }
 
 #endif
