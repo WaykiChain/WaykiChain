@@ -40,7 +40,7 @@ static Object DexOperatorToJson(const CAccountDBCache &accountCache, const DexOp
 namespace RPC_PARAM {
 
     OrderType GetOrderType(const Value &jsonValue) {
-        OrderType ret;
+        OrderType ret = OrderType::ORDER_TYPE_NULL;
         if (kOrderTypeHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_type=%s is invalid",
                 jsonValue.get_str()));
@@ -89,7 +89,7 @@ namespace RPC_PARAM {
     }
 
     PublicMode GetOrderPublicMode(const Value &jsonValue) {
-        PublicMode ret;
+        PublicMode ret = PublicMode::PUBLIC_MODE_NULL;
         if (kPublicModeHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
                 jsonValue.get_str()));

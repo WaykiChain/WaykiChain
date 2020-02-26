@@ -33,6 +33,7 @@ namespace dex {
     };
 
     enum OrderType: uint8_t {
+        ORDER_TYPE_NULL     = 0,
         ORDER_LIMIT_PRICE   = 1, //!< limit price order type
         ORDER_MARKET_PRICE  = 2  //!< market price order type
     };
@@ -46,8 +47,9 @@ namespace dex {
 
 
     enum PublicMode: uint8_t {
-        ORDER_PUBLIC,
-        ORDER_PRIVATE
+        PUBLIC_MODE_NULL    = 0,
+        ORDER_PUBLIC        = 1,
+        ORDER_PRIVATE       = 2
     };
 
     static const EnumHelper<PublicMode, uint8_t> kPublicModeHelper (
