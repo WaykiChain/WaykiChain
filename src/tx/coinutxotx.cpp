@@ -9,7 +9,7 @@
 #include <string>
 #include <cstdarg>
 
-bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> &pUtxoTx) {
+bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CBaseTx> &pBaseTx) {
     if (!SysCfg().IsTxIndex()) 
         return false;
     
@@ -22,7 +22,7 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> &pUtxoTx) {
         try {
             file >> header;
             fseek(file, txPos.nTxOffset, SEEK_CUR);
-            file >> pUtxoTx;
+            file >> pBaseTx;
             
         } catch (std::exception &e) {
             throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
@@ -214,7 +214,8 @@ bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
     for (auto input : vins) {
         //load prevUtxoTx from blockchain
         std::shared_ptr<CCoinUtxoTx> pPrevUtxoTx;
-        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
+        std::shared_ptr<CBaseTx> pBaseTx = pPrevUtxoTx;
+        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pBaseTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID, 
                             "failed-to-load-prev-utxo-err");
 
