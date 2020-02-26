@@ -203,6 +203,13 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             ::Unserialize(is, *((CCoinTransferTx *)(pBaseTx.get())), serType, version);
             break;
         }
+
+        case UTXO_TRANSFER_TX: {
+            pBaseTx = std::make_shared<CCoinUtxoTx>();
+            ::Unserialize(is, *((CCoinUtxoTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
         case UCOIN_REWARD_TX: {
             pBaseTx = std::make_shared<CCoinRewardTx>();
             ::Unserialize(is, *((CCoinRewardTx *)(pBaseTx.get())), serType, version);

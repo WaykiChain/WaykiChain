@@ -43,7 +43,7 @@ enum TxType: uint8_t {
     UCONTRACT_INVOKE_TX         = 15,   //!< universal VM contract invocation
     PRICE_FEED_TX               = 16,   //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
     PRICE_MEDIAN_TX             = 17,   //!< Price Median Value on each block Tx
-    UTXO_TRANSFER_TX           = 18,   //!< UTXO & HTLC Coin
+    UTXO_TRANSFER_TX            = 18,   //!< UTXO & HTLC Coin
 
     CDP_STAKE_TX                = 21,   //!< CDP Staking/Restaking Tx
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
