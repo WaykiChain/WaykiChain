@@ -169,16 +169,16 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
     set<CRegID> miners;
 
 
-    if(pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
+    if (pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
        && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
-        if(messageSet.size() >= needConfirmCount){
-            int count =0;
-            for(auto msg: messageSet){
-                if(miners.count(msg.miner))
+        if (messageSet.size() >= needConfirmCount){
+            uint32_t count =0;
+            for (auto msg: messageSet){
+                if (miners.count(msg.miner))
                     count++ ;
-                if(count >= needConfirmCount){
+
+                if (count >= needConfirmCount)
                     return UpdateLocalFinBlock(pIndex->height) ;
-                }
             }
         }
 
@@ -188,30 +188,29 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32
 
 bool CPBFTMan::UpdateGlobalFinBlock(const CBlockIndex* pIndex){
 
-    if(pIndex == nullptr|| pIndex->height==0)
+    if (pIndex == nullptr|| pIndex->height==0)
         return false ;
+
     int32_t height = pIndex->height;
+    uint32_t needConfirmCount = GetFinalBlockMinerCount() ;
 
-    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
-
-    while(height > GetGlobalFinIndex()->height&& height>0 &&height > pIndex->height-50){
-
+    while (height > GetGlobalFinIndex()->height&& height>0 &&height > pIndex->height-50) {
         CBlockIndex* pTemp = chainActive[height] ;
 
         set<CBlockFinalityMessage> messageSet ;
         set<CRegID> miners;
 
-        if(pbftContext.finalityMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
+        if (pbftContext.finalityMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
            && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
 
-            if(messageSet.size() >= needConfirmCount){
+            if (messageSet.size() >= needConfirmCount){
                 int count =0;
-                for(auto msg: messageSet){
-                    if(miners.count(msg.miner))
+                for (auto msg: messageSet){
+                    if (miners.count(msg.miner))
                         count++ ;
-                    if(count >= needConfirmCount){
+
+                    if (count >= needConfirmCount)
                         return UpdateGlobalFinBlock( height) ;
-                    }
                 }
             }
 
