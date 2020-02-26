@@ -63,7 +63,7 @@ struct CUtxoOutput {
     CUtxoOutput();  //empty instance
 
     CUtxoOutput(uint64_t &coinAmount, std::vector<CUtxoCondStorageBean> &condsIn) : 
-        conds(condsIn), coin_amount(coinAmount) {};
+        coin_amount(coinAmount), conds(condsIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(coin_amount));
