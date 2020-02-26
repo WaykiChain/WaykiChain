@@ -99,10 +99,8 @@ extern uint256 ParseHashV(const json_spirit::Value& v, string strName);
 extern uint256 ParseHashO(const json_spirit::Object& o, string strKey);
 extern vector<unsigned char> ParseHexV(const json_spirit::Value& v, string strName);
 extern vector<unsigned char> ParseHexO(const json_spirit::Object& o, string strKey);
-
 extern int64_t nWalletUnlockTime;
 extern int64_t AmountToRawValue(const json_spirit::Value& value);
-extern json_spirit::Value ValueFromAmount(int64_t amount);
 extern string HexBits(unsigned int nBits);
 extern string HelpRequiringPassphrase();
 extern string HelpExampleCli(string methodname, string args);

@@ -13,8 +13,6 @@
 #include "commons/util/util.h"
 #include "tx/blockrewardtx.h"
 
-#include "commons/json/json_spirit_value.h"
-
 #include <boost/foreach.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/assign/list_of.hpp>

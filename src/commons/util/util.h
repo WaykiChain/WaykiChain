@@ -15,6 +15,7 @@
 #include "commons/serialize.h"
 #include "commons/tinyformat.h"
 #include "commons/compat/compat.h"
+#include "commons/json/json_spirit_value.h"
 
 #include <stdarg.h>
 #include <stdint.h>
@@ -460,5 +461,7 @@ inline std::string StrToUpper(const std::string &str) {
 	});
     return ret;
 }
+
+Value ValueFromAmount(int64_t amount) { return (double)amount / (double)COIN; }
 
 #endif

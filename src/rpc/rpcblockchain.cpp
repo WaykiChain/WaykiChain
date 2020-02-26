@@ -9,9 +9,9 @@
 
 #include "commons/messagequeue.h"
 #include "commons/uint256.h"
+#include "commons/util/util.h"
 #include "config/configuration.h"
 #include "init.h"
-#include "commons/json/json_spirit_value.h"
 #include "main.h"
 #include "rpc/core/rpcserver.h"
 #include "sync.h"
