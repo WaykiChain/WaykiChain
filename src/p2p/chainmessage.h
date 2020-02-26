@@ -853,10 +853,8 @@ bool ProcessBlockConfirmMessage(CNode *pFrom, CDataStream &vRecv) {
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
 
-    bool updateFinalitySuccess = false ;
-    if(messageCount >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
-       updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message) ;
-    }
+    bool updateFinalitySuccess = pbftMan.UpdateLocalFinBlock(message,  messageCount) ;
+
 
     if(CheckPBFTMessageSignaturer(message))
         RelayBlockConfirmMessage(message) ;
@@ -896,9 +894,8 @@ bool ProcessBlockFinalityMessage(CNode *pFrom, CDataStream &vRecv) {
 
     msgMan.AddMessageKnown(message);
     int messageCount = msgMan.SaveMessageByBlock(message.blockHash, message);
-    if(messageCount>= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
-        pbftMan.UpdateGlobalFinBlock(message) ;
-    }
+    pbftMan.UpdateGlobalFinBlock(message, messageCount) ;
+
     if(CheckPBFTMessageSignaturer(message))
         RelayBlockFinalityMessage(message) ;
 

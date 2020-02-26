@@ -102,10 +102,12 @@ extern Value submitparamgovernproposal(const Array& params, bool fHelp) ;
 extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
+extern Value submitbpcountupdateproposal(const Array& params, bool fHelp) ;
+
 
 extern Value getcdpparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;
-
+extern Value getgovernors(const Array& params, bool fHelp);
 extern Value getminminerfee(const Array& params, bool fHelp) ;
 
 /******************************  WASM VM *********************************/
@@ -225,7 +227,7 @@ extern Value getabiwasm(const json_spirit::Array& params, bool fHelp);
 extern Value gettxtrace(const json_spirit::Array& params, bool fHelp);
 extern Value abidefjsontobinwasm(const json_spirit::Array& params, bool fHelp);
 
-extern Value submitgovernerupdateproposal(const Array& params, bool fHelp) ;
+extern Value submitgovernorupdateproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 

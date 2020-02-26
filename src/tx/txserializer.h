@@ -123,7 +123,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case PROPOSAL_REQUEST_TX:
             ::Serialize(os, (const CProposalCreateTx&)tx,serType, version); break ;
         case PROPOSAL_APPROVAL_TX:
-            ::Serialize(os, (const CProposalAssentTx&)tx,serType, version); break ;
+            ::Serialize(os, (const CProposalApprovalTx&)tx,serType, version); break ;
 
         default:
             throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
@@ -323,8 +323,8 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
             break;
         }
         case PROPOSAL_APPROVAL_TX: {
-            pBaseTx = std::make_shared<CProposalAssentTx>();
-            ::Unserialize(is, *((CProposalAssentTx *)(pBaseTx.get())), serType, version);
+            pBaseTx = std::make_shared<CProposalApprovalTx>();
+            ::Unserialize(is, *((CProposalApprovalTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

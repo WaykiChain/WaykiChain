@@ -52,19 +52,19 @@ public:
 
 
 
-class CProposalAssentTx: public CBaseTx {
+class CProposalApprovalTx: public CBaseTx {
 public:
     TxID txid;
 
 public:
-    CProposalAssentTx(): CBaseTx(PROPOSAL_APPROVAL_TX) {}
+    CProposalApprovalTx(): CBaseTx(PROPOSAL_APPROVAL_TX) {}
 
-    CProposalAssentTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+    CProposalApprovalTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                       uint64_t feesIn, const TxID& txidIn)
             : CBaseTx(PROPOSAL_APPROVAL_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
               txid(txidIn){}
 
-    ~CProposalAssentTx() {}
+    ~CProposalApprovalTx() {}
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(this->nVersion));
@@ -84,7 +84,7 @@ public:
     }
 
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalAssentTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalApprovalTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);            // logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
 

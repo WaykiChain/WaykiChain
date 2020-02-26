@@ -20,45 +20,45 @@ using namespace std;
 class CSysGovernDBCache {
 public:
     CSysGovernDBCache() {}
-    CSysGovernDBCache(CDBAccess *pDbAccess) : governersCache(pDbAccess),
+    CSysGovernDBCache(CDBAccess *pDbAccess) : governorsCache(pDbAccess),
                                               proposalsCache(pDbAccess),
-                                              secondsCache(pDbAccess) {}
-    CSysGovernDBCache(CSysGovernDBCache *pBaseIn) : governersCache(pBaseIn->governersCache), 
+                                              approvalListCache(pDbAccess) {}
+    CSysGovernDBCache(CSysGovernDBCache *pBaseIn) : governorsCache(pBaseIn->governorsCache),
                                                     proposalsCache(pBaseIn->proposalsCache),
-                                                    secondsCache(pBaseIn->secondsCache) {};
+                                                    approvalListCache(pBaseIn->approvalListCache) {};
 
     bool Flush() {
-        governersCache.Flush();
+        governorsCache.Flush();
         proposalsCache.Flush();
-        secondsCache.Flush();
+        approvalListCache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const {
-        return governersCache.GetCacheSize()
+        return governorsCache.GetCacheSize()
                + proposalsCache.GetCacheSize()
-               + secondsCache.GetCacheSize();
+               + approvalListCache.GetCacheSize();
     }
 
     void SetBaseViewPtr(CSysGovernDBCache *pBaseIn) { 
-        governersCache.SetBase(&pBaseIn->governersCache);
+        governorsCache.SetBase(&pBaseIn->governorsCache);
         proposalsCache.SetBase(&pBaseIn->proposalsCache);
-        secondsCache.SetBase(&pBaseIn->secondsCache);
+        approvalListCache.SetBase(&pBaseIn->approvalListCache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { 
-        governersCache.SetDbOpLogMap(pDbOpLogMapIn);
+        governorsCache.SetDbOpLogMap(pDbOpLogMapIn);
         proposalsCache.SetDbOpLogMap(pDbOpLogMapIn);
-        secondsCache.SetDbOpLogMap(pDbOpLogMapIn);
+        approvalListCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
 
-    bool CheckIsGoverner(const CRegID &candidateRegId) {
-        if (!governersCache.HaveData()) {
+    bool CheckIsGovernor(const CRegID &candidateRegId) {
+        if (!governorsCache.HaveData()) {
             return candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2);
         } else {
             vector<CRegID> regids;
-            if(governersCache.GetData(regids)){
+            if(governorsCache.GetData(regids)){
                 auto itr = find(regids.begin(), regids.end(), candidateRegId);
                 return ( itr != regids.end());
             }
@@ -68,12 +68,12 @@ public:
     }
 
 
-    uint8_t GetNeedGovernerCount(){
-        if (!governersCache.HaveData()) {
+    uint8_t GetNeedGovernorCount(){
+        if (!governorsCache.HaveData()) {
             return 1 ;
         } else {
             vector<CRegID> regids;
-            if(governersCache.GetData(regids)){
+            if(governorsCache.GetData(regids)){
                 uint8_t cnt = (regids.size()/3)*2 +2 ;
                 return cnt>regids.size()?regids.size():cnt;
             } else
@@ -96,45 +96,49 @@ public:
         return false ;
     }
 
-    int GetAssentionCount(const uint256& proposalId){
+    int GetApprovalCount(const uint256 &proposalId){
         vector<CRegID> v ;
-        secondsCache.GetData(proposalId, v) ;
+        approvalListCache.GetData(proposalId, v) ;
         return  v.size();
     }
-    bool SetAssention(const uint256 &proposalId, const CRegID &governer){
+
+    bool GetApprovalList(const uint256& proposalId, vector<CRegID>& v){
+        return  approvalListCache.GetData(proposalId, v) ;
+    }
+    bool SetApproval(const uint256 &proposalId, const CRegID &governor){
 
         vector<CRegID> v  ;
-        if(secondsCache.GetData(proposalId, v)){
-            if(find(v.begin(),v.end(),governer) != v.end()){
-                return ERRORMSG("governer(regid= %s) had assented this proposal(proposalid=%s)", governer.ToString(), proposalId.ToString());
+        if(approvalListCache.GetData(proposalId, v)){
+            if(find(v.begin(),v.end(),governor) != v.end()){
+                return ERRORMSG("governor(regid= %s) had assented this proposal(proposalid=%s)", governor.ToString(), proposalId.ToString());
             }
         }
-        v.push_back(governer) ;
-        return secondsCache.SetData(proposalId,v) ;
+        v.push_back(governor) ;
+        return approvalListCache.SetData(proposalId,v) ;
     }
 
-    bool SetGoverners(const vector<CRegID> &governers){
-        return governersCache.SetData(governers) ;
+    bool SetGovernors(const vector<CRegID> &governors){
+        return governorsCache.SetData(governors) ;
     }
-    bool GetGoverners(vector<CRegID>& governers){
-        return governersCache.GetData(governers);
+    bool GetGovernors(vector<CRegID>& governors){
+        return governorsCache.GetData(governors);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
-        governersCache.RegisterUndoFunc(undoDataFuncMap);
+        governorsCache.RegisterUndoFunc(undoDataFuncMap);
         proposalsCache.RegisterUndoFunc(undoDataFuncMap);
-        secondsCache.RegisterUndoFunc(undoDataFuncMap);
+        approvalListCache.RegisterUndoFunc(undoDataFuncMap);
     }
 private:
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
-    CSimpleKVCache< dbk::SYS_GOVERN,            vector<CRegID>>        governersCache;    // list of governers
+    CSimpleKVCache< dbk::SYS_GOVERN,            vector<CRegID>>        governorsCache;    // list of governors
 
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// SysParamDB
     // pgvn{txid} -> proposal
-    CCompositeKVCache< dbk::GOVN_PROP,             uint256,                    CProposalStorageBean>          proposalsCache;
-    // sgvn{txid}{regid} -> 1
-    CCompositeKVCache< dbk::GOVN_SECOND,           uint256,     vector<CRegID> >            secondsCache;
+    CCompositeKVCache< dbk::GOVN_PROP,             uint256,     CProposalStorageBean>          proposalsCache;
+    // sgvn{txid}->vector(regid)
+    CCompositeKVCache< dbk::GOVN_APPROVAL_LIST,    uint256,     vector<CRegID> >            approvalListCache;
 };

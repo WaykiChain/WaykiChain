@@ -25,7 +25,7 @@ using namespace json_spirit;
 enum ProposalType: uint8_t{
     NULL_PROPOSAL     = 0 ,
     PARAM_GOVERN      = 1 ,
-    GOVERNER_UPDATE   = 2 ,
+    GOVERNOR_UPDATE   = 2 ,
     DEX_SWITCH        = 3 ,
     MINER_FEE_UPDATE  = 4 ,
     CDP_COIN_PAIR     = 5, // govern cdpCoinPair, set the cdpCoinPair status
@@ -46,7 +46,7 @@ class CProposal {
 public:
 
     ProposalType proposal_type = NULL_PROPOSAL;
-    int8_t need_governer_count = 0;
+    int8_t need_governor_count = 0;
     int32_t expire_block_height = 0;
 
 public:
@@ -56,15 +56,15 @@ public:
 
     virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
     virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
-    virtual bool CheckProposal(CCacheWrapper &cw, CValidationState& state) {return true ;};
+    virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
     virtual string ToString(){
-        return strprintf("proposaltype=%d,needgoverneramount=%d,expire_height=%d",
-                proposal_type, need_governer_count, expire_block_height) ;
+        return strprintf("proposaltype=%d,needgovernoramount=%d,expire_height=%d",
+                proposal_type, need_governor_count, expire_block_height) ;
     }
     virtual Object ToJson(){
         Object o ;
         o.push_back(Pair("proposal_type", proposal_type)) ;
-        o.push_back(Pair("need_governer_count", need_governer_count)) ;
+        o.push_back(Pair("need_governor_count", need_governor_count)) ;
         o.push_back(Pair("expire_block_height", expire_block_height)) ;
 
         return o ;
@@ -83,7 +83,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
+            READWRITE(need_governor_count);
             READWRITE(param_values);
     );
 
@@ -119,42 +119,42 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
 };
 
 
 
-class CGovernerUpdateProposal: public CProposal{
+class CGovernorUpdateProposal: public CProposal{
 public:
-    CRegID governer_regid ;
+    CRegID governor_regid ;
      ProposalOperateType operate_type  = ProposalOperateType::NULL_OPT;
 
-    CGovernerUpdateProposal(): CProposal(ProposalType::GOVERNER_UPDATE){}
+    CGovernorUpdateProposal(): CProposal(ProposalType::GOVERNOR_UPDATE){}
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
-            READWRITE(governer_regid);
+            READWRITE(need_governor_count);
+            READWRITE(governor_regid);
             READWRITE((uint8_t&)operate_type);
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("governer_regid",governer_regid.ToString())) ;
+        o.push_back(Pair("governor_regid",governor_regid.ToString())) ;
         o.push_back(Pair("operate_type", operate_type));
         return o ;
     }
 
     string ToString() override {
         string baseString = CProposal::ToString() ;
-        return strprintf("%s, governer_regid=%s, operate_type=%d", baseString,
-                governer_regid.ToString(),operate_type) ;
+        return strprintf("%s, governor_regid=%s, operate_type=%d", baseString,
+                governor_regid.ToString(),operate_type) ;
 
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernerUpdateProposal>(*this); }
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernorUpdateProposal>(*this); }
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
 };
 
 class CDexSwitchProposal: public CProposal{
@@ -163,7 +163,7 @@ public:
     ProposalOperateType operate_type = ProposalOperateType ::ENABLE;
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
+            READWRITE(need_governor_count);
             READWRITE(VARINT(dexid));
             READWRITE((uint8_t&)operate_type);
     );
@@ -172,8 +172,8 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool ExecuteProposal(CTxExecuteContext& context ) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -199,7 +199,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
+            READWRITE(need_governor_count);
             READWRITE((uint8_t&)tx_type);
             READWRITE(fee_symbol);
             READWRITE(VARINT(fee_sawi_amount));
@@ -207,7 +207,7 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
 
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
     Object ToJson() override {
@@ -237,7 +237,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
+            READWRITE(need_governor_count);
             READWRITE(VARINT(amount));
             READWRITE(token) ;
             READWRITE(from_uid) ;
@@ -250,7 +250,7 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCoinTransferProposal>(*this); } ;
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -279,7 +279,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
+            READWRITE(need_governor_count);
             READWRITE(param_values);
             READWRITE(coinPair);
     );
@@ -317,19 +317,22 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpParamGovernProposal>(*this); } ;
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
 
 };
 
 class CBPCountUpdateProposal: public CProposal {
 public:
     uint8_t bp_count ;
+    uint32_t launch_height ;
 
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governer_count);
+            READWRITE(need_governor_count);
             READWRITE(bp_count);
+            READWRITE(VARINT(launch_height));
+
     );
 
 
@@ -347,7 +350,8 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CBPCountUpdateProposal>(*this); }
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+
+    bool CheckProposal(CTxExecuteContext& context) override;
 
 
 };
@@ -371,7 +375,7 @@ public:
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CCacheWrapper &cw, CValidationState& state) override;
+    bool CheckProposal(CTxExecuteContext& context) override;
 
 };
 
@@ -422,8 +426,8 @@ public:
             case CDP_PARAM_GOVERN:
                 ::Serialize(os, *((CCdpParamGovernProposal *) (proposalPtr.get())), nType, nVersion);
                 break;
-            case GOVERNER_UPDATE:
-                ::Serialize(os, *((CGovernerUpdateProposal *) (proposalPtr.get())), nType, nVersion);
+            case GOVERNOR_UPDATE:
+                ::Serialize(os, *((CGovernorUpdateProposal *) (proposalPtr.get())), nType, nVersion);
                 break;
             case DEX_SWITCH:
                 ::Serialize(os, *((CDexSwitchProposal      *) (proposalPtr.get())), nType, nVersion);
@@ -474,9 +478,9 @@ public:
                 break;
             }
 
-            case GOVERNER_UPDATE: {
-                proposalPtr = std::make_shared<CGovernerUpdateProposal>();
-                ::Unserialize(is, *((CGovernerUpdateProposal *)(proposalPtr.get())), nType, nVersion);
+            case GOVERNOR_UPDATE: {
+                proposalPtr = std::make_shared<CGovernorUpdateProposal>();
+                ::Unserialize(is, *((CGovernorUpdateProposal *)(proposalPtr.get())), nType, nVersion);
                 break;
             }
 

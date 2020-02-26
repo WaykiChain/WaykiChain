@@ -38,9 +38,50 @@ Value getproposal(const Array& params, bool fHelp){
     uint256 proposalId = uint256S(params[0].get_str()) ;
     std::shared_ptr<CProposal> pp ;
     if(pCdMan->pSysGovernCache->GetProposal(proposalId, pp)){
-        return pp->ToJson() ;
+        auto proposalObject  = pp->ToJson() ;
+        vector<CRegID> approvalList ;
+        pCdMan->pSysGovernCache->GetApprovalList(proposalId, approvalList);
+
+        proposalObject.push_back(Pair("approvaled_count", (uint64_t)approvalList.size()));
+
+            Array a ;
+            for ( CRegID i: approvalList) {
+              a.push_back(i.ToString()) ;
+            }
+        proposalObject.push_back(Pair("approvaled_governors", a));
+
+        return proposalObject ;
+
     }
     return Object();
+}
+
+Value getgovernors(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 0 ) {
+        throw runtime_error(
+                "getgovernors \n"
+                " get thee governors list \n"
+                "\nArguments:\n "
+                "\nExamples:\n"
+                + HelpExampleCli("getgovernors", "")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("getgovernors", "")
+
+        );
+    }
+
+
+    Object o ;
+    vector<CRegID> governors ;
+    pCdMan->pSysGovernCache->GetGovernors(governors) ;
+    Array arr ;
+    for(auto id: governors) {
+        arr.push_back(id.ToString()) ;
+    }
+    o.push_back(Pair("governors", arr)) ;
+
+    return o ;
+
 }
 
 
@@ -152,24 +193,24 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
 }
 
-Value submitgovernerupdateproposal(const Array& params , bool fHelp) {
+Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitgovernerupdateproposal \"addr\" \"governer_uid\" \"operate_type\" [\"fee\"]\n"
-                "create proposal about  add/remove a governer \n"
+                "submitgovernorupdateproposal \"addr\" \"governor_uid\" \"operate_type\" [\"fee\"]\n"
+                "create proposal about  add/remove a governor \n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
-                "2.\"governer_uid\":     (string, required) the governer's uid\n"
+                "2.\"governor_uid\":     (string, required) the governor's uid\n"
                 "3.\"operate_type\":     (numberic, required) the operate type \n"
                 "                         1 stand for add\n"
                 "                         2 stand for remove\n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitgovernerupdateproposal", "0-1 100-2 1  WICC:1:WI")
+                + HelpExampleCli("submitgovernorupdateproposal", "0-1 100-2 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitgovernerupdateproposal", "0-1 100-2 1  WICC:1:WI")
+                + HelpExampleRpc("submitgovernorupdateproposal", "0-1 100-2 1  WICC:1:WI")
 
         );
 
@@ -178,15 +219,15 @@ Value submitgovernerupdateproposal(const Array& params , bool fHelp) {
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    CRegID governerId = CRegID(params[1].get_str()) ;
+    CRegID governorId = CRegID(params[1].get_str()) ;
     uint64_t operateType = AmountToRawValue(params[2]) ;
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-    CGovernerUpdateProposal proposal ;
-    proposal.governer_regid = governerId ;
+    CGovernorUpdateProposal proposal ;
+    proposal.governor_regid = governorId ;
     proposal.operate_type = ProposalOperateType(operateType);
 
     CProposalCreateTx tx ;
@@ -194,7 +235,7 @@ Value submitgovernerupdateproposal(const Array& params , bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CGovernerUpdateProposal>(proposal)) ;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CGovernorUpdateProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -271,7 +312,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-    CProposalAssentTx tx ;
+    CProposalApprovalTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol;
@@ -281,6 +322,49 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 
 }
 
+Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
+    if(fHelp || params.size() < 3 || params.size() > 4){
+        throw runtime_error(
+                "submitbpcountupdateproposal \"addr\" \"bp_count\" \"launch_height\"  [\"fee\"]\n"
+                "create proposal about enable/disable dexoperator\n"
+                "\nArguments:\n"
+                "1.\"addr\":             (string, required) the tx submitor's address\n"
+                "2.\"bp_count\":         (numberic, required) the count of block producer(miner)  \n"
+                "3.\"launch_height\":    (numberic, required) the height of the proposal launch \n"
+                "4.\"fee\":              (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitbpcountupdateproposal", "0-1 21 45002020202  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitbpcountupdateproposal", "0-1 4332222233223  WICC:1:WI")
+
+        );
+
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true ) ;
+    uint8_t bpCount = params[1].get_int() ;
+    uint32_t launchHeight = params[2].get_int() ;
+    ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    CBPCountUpdateProposal proposal ;
+    proposal.bp_count = bpCount ;
+    proposal.launch_height = launchHeight ;
+
+    CProposalCreateTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetSawiAmount();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposalBean = CProposalStorageBean(std::make_shared<CBPCountUpdateProposal>(proposal)) ;
+
+    return SubmitTx(account.keyid, tx) ;
+
+
+}
 Value submitminerfeeproposal(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
 

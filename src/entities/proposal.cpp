@@ -11,8 +11,8 @@
 #include <set>
 #include "config/txbase.h"
 
-extern bool CheckIsGoverner(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
-extern uint8_t GetNeedGovernerCount(ProposalType proposalType, CCacheWrapper& cw );
+extern bool CheckIsGovernor(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
+extern uint8_t GetNeedGovernorCount(ProposalType proposalType, CCacheWrapper& cw );
 bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
     CCacheWrapper &cw       = *context.pCw;
@@ -31,9 +31,11 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
 }
 
- bool CParamsGovernProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state){
+ bool CParamsGovernProposal::CheckProposal(CTxExecuteContext& context ) {
 
-       if(param_values.size() == 0)
+     CValidationState &state = *context.pState;
+
+     if(param_values.size() == 0)
             return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
                         "params-empty");
        for(auto pa: param_values){
@@ -71,10 +73,12 @@ bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
 }
 
-bool CCdpParamGovernProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {
 
-    if (param_values.size() == 0)
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
+    CValidationState &state = *context.pState;
+
+    if (param_values.size() == 0 || param_values.size() > 50)
+        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty or size >50"), REJECT_INVALID,
                          "params-empty");
     for (auto pa: param_values) {
         if (SysParamTable.count(SysParamType(pa.first)) == 0) {
@@ -87,58 +91,60 @@ bool CCdpParamGovernProposal::CheckProposal(CCacheWrapper &cw, CValidationState&
     return true;
 }
 
-bool CGovernerUpdateProposal::ExecuteProposal(CTxExecuteContext& context){
+bool CGovernorUpdateProposal::ExecuteProposal(CTxExecuteContext& context){
 
     CCacheWrapper &cw       = *context.pCw;
     if(operate_type == ProposalOperateType::DISABLE){
-        vector<CRegID> governers ;
-        if(cw.sysGovernCache.GetGoverners(governers)){
+        vector<CRegID> governors ;
+        if(cw.sysGovernCache.GetGovernors(governors)){
 
-            for(auto itr = governers.begin();itr !=governers.end();){
-                if(*itr == governer_regid){
-                    governers.erase(itr);
+            for(auto itr = governors.begin();itr !=governors.end();){
+                if(*itr == governor_regid){
+                    governors.erase(itr);
                     break ;
                 }else
                     itr++ ;
             }
-            return cw.sysGovernCache.SetGoverners(governers) ;
+            return cw.sysGovernCache.SetGovernors(governors) ;
         }
         return false ;
 
     }else if(operate_type == ProposalOperateType::ENABLE){
 
-        vector<CRegID> governers ;
-        cw.sysGovernCache.GetGoverners(governers);
+        vector<CRegID> governors ;
+        cw.sysGovernCache.GetGovernors(governors);
 
-        if(find( governers.begin(),governers.end(),governer_regid) != governers.end()){
+        if(find( governors.begin(),governors.end(),governor_regid) != governors.end()){
             return false ;
         }
 
-        governers.push_back(governer_regid) ;
-        return cw.sysGovernCache.SetGoverners(governers) ;
+        governors.push_back(governor_regid) ;
+        return cw.sysGovernCache.SetGovernors(governors) ;
     }
 
     return false  ;
 
 }
 
- bool CGovernerUpdateProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state){
+ bool CGovernorUpdateProposal::CheckProposal(CTxExecuteContext& context ){
+
+    IMPLEMENT_DEFINE_CW_STATE
 
      if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
          return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
                           "operate_type-illegal");
      }
 
-     CAccount governer_account ;
-     if(!cw.accountCache.GetAccount(governer_regid,governer_account)){
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, governer regid(%s) is not exist!", governer_regid.ToString()), REJECT_INVALID,
-                          "governer-not-exist");
+     CAccount governor_account ;
+     if(!cw.accountCache.GetAccount(governor_regid,governor_account)){
+         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, governor regid(%s) is not exist!", governor_regid.ToString()), REJECT_INVALID,
+                          "governor-not-exist");
      }
      vector<CRegID> governers ;
 
-     if(operate_type == ProposalOperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGoverner(governer_regid)){
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, regid(%s) is not a governer!", governer_regid.ToString()), REJECT_INVALID,
-                          "regid-not-governer");
+     if(operate_type == ProposalOperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGovernor(governor_regid)){
+         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, regid(%s) is not a governor!", governor_regid.ToString()), REJECT_INVALID,
+                          "regid-not-governor");
      }
     return true ;
 }
@@ -148,7 +154,7 @@ bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governer!", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
     if((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
@@ -178,8 +184,9 @@ bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
 
     return true ;
 }
-bool CDexSwitchProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CDexSwitchProposal::CheckProposal(CTxExecuteContext& context ) {
 
+    IMPLEMENT_DEFINE_CW_STATE
 
     if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, operate type error!"), REJECT_INVALID,
@@ -188,7 +195,7 @@ bool CDexSwitchProposal::CheckProposal(CCacheWrapper &cw, CValidationState& stat
 
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governer!", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
     if((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
@@ -201,7 +208,9 @@ bool CDexSwitchProposal::CheckProposal(CCacheWrapper &cw, CValidationState& stat
 }
 
 
-bool CMinerFeeProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CMinerFeeProposal:: CheckProposal(CTxExecuteContext& context ) {
+
+    CValidationState& state = *context.pState ;
 
   if(!kFeeSymbolSet.count(fee_symbol)) {
       return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
@@ -266,7 +275,9 @@ shared_ptr<string> CheckCdpAssetSymbol(CCacheWrapper &cw, const TokenSymbol &sym
 }
 
 
-bool CCdpCoinPairProposal::CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
+
+    IMPLEMENT_DEFINE_CW_STATE
 
     if (kScoinSymbolSet.count(cdpCoinPair.bcoin_symbol) == 0) {
         return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
@@ -339,7 +350,9 @@ bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
     return true ;
 }
-bool CCoinTransferProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
+
+    IMPLEMENT_DEFINE_CW_STATE
 
     if (amount < DUST_AMOUNT_THRESHOLD)
         return state.DoS(100, ERRORMSG("CCoinTransferProposal::CheckProposal, dust amount, %llu < %llu", amount,
@@ -360,7 +373,6 @@ bool CCoinTransferProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& 
 bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
     IMPLEMENT_DEFINE_CW_STATE;
-    uint32_t launch_height = (uint32_t)context.height + 5000 ;
 
     auto currentBpCount = cw.delegateCache.GetActivedDelegateNum() ;
     if(!cw.sysParamCache.SetCurrentBpCount(currentBpCount)) {
@@ -376,11 +388,19 @@ bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return true ;
 
 }
-bool CBPCountUpdateProposal:: CheckProposal(CCacheWrapper &cw, CValidationState& state) {
+bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
 
-    if( bp_count == 0)
-        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,bp_count must be more than 0"),
+    CValidationState& state = *context.pState ;
+
+    if( bp_count == 0 || bp_count>=255)
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,bp_count must be between 0 and 255"),
                 REJECT_INVALID,"bad-bp-count") ;
+
+    if(launch_height < (uint32_t)context.height +3600){
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,launch_height must more than current height + 3600"),
+                         REJECT_INVALID,"bad-bp-count") ;
+
+    }
 
     return true  ;
 }

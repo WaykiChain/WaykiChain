@@ -201,7 +201,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( CDP_PARAM,            pSysParamCache, cdpParamCache )         \
     DEFINE( CDP_INTEREST_PARAMS,  pSysParamCache, cdpInterestParamChangesCache ) \
     /*DEFINE( BP_COUNT,             "bpct",   SYSPARAM )*/           \
-    /*DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )*/       /* govn --> $list of governers */ \
+    /*DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )*/       /* govn --> $list of governors */ \
     /*DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )*/       /* pgvn{txid} --> proposal */ \
     /*DEFINE( GOVN_SECOND,          "sgvn",   SYSGOVERN )*/       /* sgvn{txid}{regid} --> 1 */ \
     /*** Asset Registry DB */ \

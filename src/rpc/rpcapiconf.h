@@ -102,11 +102,10 @@ static const CRPCCommand vRPCCommands[] =
     { "submitdelegatevotetx",           &submitdelegatevotetx,              false,      false,      true    },
     { "submitucontractdeploytx",        &submitucontractdeploytx,           false,      false,      true    },
     { "submitucontractcalltx",          &submitucontractcalltx,             false,      false,      true    },
-
     { "submitparamgovernproposal",      &submitparamgovernproposal,         false,      false,      true    },
     { "submitcdpparamgovernproposal",   &submitcdpparamgovernproposal,      false,      false,      true    },
-
-    { "submitgovernerupdateproposal",   &submitgovernerupdateproposal,      false,      false,      true    },
+    { "submitbpcountupdateproposal",    &submitbpcountupdateproposal,       false,      false,      true    },
+    { "submitgovernorupdateproposal",   &submitgovernorupdateproposal,      false,      false,      true    },
     { "submitdexswitchproposal",        &submitdexswitchproposal,           false,      false,      true    },
     { "submitminerfeeproposal",         &submitminerfeeproposal,            false,      false,      true    },
 
@@ -125,6 +124,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getsysparam",                    &getsysparam,                       true,       false,      false   },
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
     { "getproposal",                    &getproposal,                       true,       false,      false   },
+    { "getgovernors",                   &getgovernors,                      true,       false,      false   },
     { "getminminerfee",                 &getminminerfee,                    true,       false,      false   },
     /* for dex */
     { "submitdexbuylimitordertx",       &submitdexbuylimitordertx,          false,      false,      false   },

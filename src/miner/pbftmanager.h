@@ -32,9 +32,9 @@ public:
 //    bool UpdateFinalityBlock() ;
     bool SetLocalFinTimeout() ;
     bool UpdateLocalFinBlock(const CBlockIndex* pIndex);
-    bool UpdateLocalFinBlock(const CBlockConfirmMessage& msg);
+    bool UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount);
     bool UpdateGlobalFinBlock(const CBlockIndex* pIndex);
-    bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg);
+    bool UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount);
     int64_t  GetLocalFinLastUpdate() const ;
 };
 

@@ -16,6 +16,11 @@ extern CPBFTContext pbftContext;
 extern CWallet *pWalletMain;
 extern CCacheDBManager *pCdMan;
 
+uint32_t GetFinalBlockMinerCount() {
+    uint32_t totalBpCount =  pCdMan->pDelegateCache->GetActivedDelegateNum() ;
+    return totalBpCount - totalBpCount/3 ;
+}
+
 CBlockIndex* CPBFTMan::GetLocalFinIndex(){
 
     if(!localFinIndex) {
@@ -106,9 +111,12 @@ bool CPBFTMan::UpdateGlobalFinBlock(const uint32_t height) {
 
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 
+
     if(pIndex == nullptr|| pIndex->height==0)
         return false ;
     int32_t height = pIndex->height;
+
+    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
 
     while(height > GetLocalFinIndex()->height&& height>0 &&height > pIndex->height-10){
 
@@ -120,12 +128,12 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
         if(pbftContext.confirmMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
            && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
 
-            if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+            if(messageSet.size() >= needConfirmCount){
                 int count =0;
                 for(auto msg: messageSet){
                     if(miners.count(msg.miner))
                         count++ ;
-                    if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                    if(count >= needConfirmCount){
                         return UpdateLocalFinBlock( height) ;
                     }
                 }
@@ -139,7 +147,11 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
     return false ;
 }
 
-bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg){
+bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
+
+    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
+    if( needConfirmCount > messageCount)
+        return false ;
 
     CBlockIndex* fi = GetLocalFinIndex();
 
@@ -156,14 +168,15 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg){
     set<CBlockConfirmMessage> messageSet ;
     set<CRegID> miners;
 
+
     if(pbftContext.confirmMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
        && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
-        if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+        if(messageSet.size() >= needConfirmCount){
             int count =0;
             for(auto msg: messageSet){
                 if(miners.count(msg.miner))
                     count++ ;
-                if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                if(count >= needConfirmCount){
                     return UpdateLocalFinBlock(pIndex->height) ;
                 }
             }
@@ -179,6 +192,8 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockIndex* pIndex){
         return false ;
     int32_t height = pIndex->height;
 
+    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
+
     while(height > GetGlobalFinIndex()->height&& height>0 &&height > pIndex->height-50){
 
         CBlockIndex* pTemp = chainActive[height] ;
@@ -189,12 +204,12 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockIndex* pIndex){
         if(pbftContext.finalityMessageMan.GetMessagesByBlockHash(pTemp->GetBlockHash(), messageSet)
            && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
 
-            if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+            if(messageSet.size() >= needConfirmCount){
                 int count =0;
                 for(auto msg: messageSet){
                     if(miners.count(msg.miner))
                         count++ ;
-                    if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                    if(count >= needConfirmCount){
                         return UpdateGlobalFinBlock( height) ;
                     }
                 }
@@ -213,7 +228,11 @@ int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
     return localFinLastUpdate ;
 }
 
-bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg){
+bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount ){
+
+    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
+    if(needConfirmCount > messageCount)
+        return false ;
 
     CBlockIndex* fi = GetGlobalFinIndex();
 
@@ -227,17 +246,19 @@ bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg){
     if(pIndex->GetBlockHash() != msg.blockHash)
         return false;
 
+
+
     set<CBlockFinalityMessage> messageSet ;
     set<CRegID> miners;
 
     if(pbftContext.finalityMessageMan.GetMessagesByBlockHash(pIndex->GetBlockHash(), messageSet)
        && pbftContext.GetMinerListByBlockHash(pIndex->pprev->GetBlockHash(),miners)) {
-        if(messageSet.size() >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+        if(messageSet.size() >= needConfirmCount){
             int count =0;
             for(auto msg: messageSet){
                 if(miners.count(msg.miner))
                     count++ ;
-                if(count >= FINALITY_BLOCK_CONFIRM_MINER_COUNT){
+                if(count >= needConfirmCount){
                     return UpdateGlobalFinBlock(pIndex->height) ;
                 }
             }
