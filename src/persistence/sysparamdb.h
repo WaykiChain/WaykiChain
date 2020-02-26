@@ -243,7 +243,7 @@ public:
 
     }
 
-private:
+public:
 
 
 /*       type               prefixType               key                     value                 variable               */
