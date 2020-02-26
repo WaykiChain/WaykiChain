@@ -57,7 +57,7 @@ struct CUtxoInput {
         READWRITE(conds);
     )
 
-    std::string ToString() {
+    std::string ToString() const {
         return strprintf("prev_utxo_txid=%s, prev_utxo_out_index=%d, conds=%s", prev_utxo_txid.ToString(), 
                         prev_utxo_out_index, db_util::ToString(conds));
     }
@@ -76,7 +76,7 @@ struct CUtxoOutput {
         READWRITE(conds);
     )
 
-    std::string ToString() {
+    std::string ToString() const {
         return strprintf("coin_amount=%llu, conds=%s", coin_amount, db_util::ToString(conds));
     }
 };

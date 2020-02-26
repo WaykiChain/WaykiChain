@@ -9,7 +9,7 @@
 #include <string>
 #include <cstdarg>
 
-bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> pTx) {
+bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> &pUtxoTx) {
     if (!SysCfg().IsTxIndex()) 
         return false;
     
@@ -22,7 +22,7 @@ bool GetUtxoTxFromChain(TxID &txid, std::shared_ptr<CCoinUtxoTx> pTx) {
         try {
             file >> header;
             fseek(file, txPos.nTxOffset, SEEK_CUR);
-            file >> pTx;
+            file >> pUtxoTx;
             
         } catch (std::exception &e) {
             throw runtime_error(tfm::format("%s : Deserialize or I/O error - %s", __func__, e.what()).c_str());
