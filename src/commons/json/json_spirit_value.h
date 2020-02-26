@@ -417,7 +417,7 @@ namespace json_spirit
     }
 
     template< class Config >
-    int Value_impl< Config >::get_uint32() const
+    uint32_t Value_impl< Config >::get_uint32() const
     {
         check_type(  int_type );
 
