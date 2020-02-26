@@ -430,7 +430,7 @@ Value getsysparam(const Array& params, bool fHelp){
         Object obj;
         for(auto kv:paramNameToSysParamTypeMap){
             auto paramName = kv.first ;
-            uint64_t pv ;
+            uint64_t pv = 0;
             pCdMan->pSysParamCache->GetParam(std::get<1>(kv.second), pv);
 
             obj.push_back(Pair(paramName, pv)) ;
