@@ -45,7 +45,9 @@ namespace json_spirit
         Value_impl( const Array&        value );
         Value_impl( bool                value );
         Value_impl( int                 value );
+        Value_impl( int32_t             value );
         Value_impl( int64_t             value );
+        Value_impl( uint32_t            value );
         Value_impl( uint64_t            value );
         Value_impl( double              value );
 
@@ -65,6 +67,8 @@ namespace json_spirit
         const Array&        get_array()  const;
         bool                get_bool()   const;
         int                 get_int()    const;
+        int32_t             get_int32() const;
+        uint32_t            get_uint32() const;
         int64_t             get_int64()  const;
         uint64_t            get_uint64() const;
         double              get_real()   const;
@@ -262,6 +266,22 @@ namespace json_spirit
     ,   is_uint64_( false )
     {
     }
+    
+    template< class Config >
+    Value_impl< Config >::Value_impl( int32_t value )
+    :   type_( int_type )
+    ,   v_( static_cast< int64_t >( value ) )
+    ,   is_uint64_( false )
+    {
+    }
+
+    template< class Config >
+    Value_impl< Config >::Value_impl( uint32_t value )
+    :   type_( int_type )
+    ,   v_( static_cast< int64_t >( value ) )
+    ,   is_uint64_( false )
+    {
+    }
 
     template< class Config >
     Value_impl< Config >::Value_impl( int64_t value )
@@ -387,7 +407,23 @@ namespace json_spirit
 
         return static_cast< int >( get_int64() );
     }
-    
+
+    template< class Config >
+    int Value_impl< Config >::get_int32() const
+    {
+        check_type(  int_type );
+
+        return static_cast< int >( get_int64() );
+    }
+
+    template< class Config >
+    int Value_impl< Config >::get_uint32() const
+    {
+        check_type(  int_type );
+
+        return static_cast< int >( get_int64() );
+    }
+
     template< class Config >
     int64_t Value_impl< Config >::get_int64() const
     {
@@ -477,6 +513,18 @@ namespace json_spirit
         int get_value( const Value& value, Type_to_type< int > )
         {
             return value.get_int();
+        }
+
+        template< class Value > 
+        int get_value( const Value& value, Type_to_type< int32_t > )
+        {
+            return value.get_int32();
+        }
+       
+        template< class Value > 
+        int get_value( const Value& value, Type_to_type< uint32_t > )
+        {
+            return value.get_uint32();
         }
        
         template< class Value > 

@@ -446,7 +446,7 @@ Object CDEXOperatorUpdateTradePairTx::ToJson(const CAccountDBCache &accountCache
 
     Object result = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("dex_id", (uint32_t) dexid )) ;
+    result.push_back(Pair("dex_id", (uint32_t) dexid)) ;
     result.push_back(Pair("trade_pair", tradePair.ToString())) ;
     result.push_back(Pair("op_type", (uint8_t)op));
     return result;
