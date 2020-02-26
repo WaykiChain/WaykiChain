@@ -368,7 +368,7 @@ struct CUtxoCondStorageBean {
         utxoCondPtr->cond_type = condType;
     }
 
-    std::string ToString() {
+    std::string ToString() const {
         switch (utxoCondPtr->cond_type) {
             case UtxoCondType::IP2SA:
                 return ((CSingleAddressCondIn *) utxoCondPtr.get())->ToString();
