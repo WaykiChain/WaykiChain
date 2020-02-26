@@ -426,7 +426,8 @@ Value getsysparam(const Array& params, bool fHelp){
         Object obj ;
         obj.push_back(Pair(paramName, pv));
         return obj;
-    }else{
+
+    } else {
         Object obj;
         for(auto kv:paramNameToSysParamTypeMap){
             auto paramName = kv.first ;
@@ -438,8 +439,6 @@ Value getsysparam(const Array& params, bool fHelp){
         }
         return obj ;
     }
-
-
 }
 
 

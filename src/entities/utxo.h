@@ -10,6 +10,7 @@
 #include <string>
 #include <cstdint>
 #include "id.h"
+#include "persistence/dbaccess.h"
 
 using namespace std;
 
@@ -55,6 +56,11 @@ struct CUtxoInput {
         READWRITE(VARINT(prev_utxo_out_index));
         READWRITE(conds);
     )
+
+    std::string ToString() {
+        return strprintf("prev_utxo_txid=%s, prev_utxo_out_index=%d, conds=%s", prev_utxo_txid.ToString(), 
+                        prev_utxo_out_index, db_util::ToString(conds));
+    }
 };
 struct CUtxoOutput {
     uint64_t coin_amount;
@@ -69,6 +75,10 @@ struct CUtxoOutput {
         READWRITE(VARINT(coin_amount));
         READWRITE(conds);
     )
+
+    std::string ToString() {
+        return strprintf("coin_amount=%llu, conds=%s", coin_amount, db_util::ToString(conds));
+    }
 };
 
 //////////////////////////////////////////////////
