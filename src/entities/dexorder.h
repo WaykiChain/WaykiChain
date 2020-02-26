@@ -21,8 +21,9 @@ static const DexID DEX_RESERVED_ID = 0;
 namespace dex {
 
     enum OrderSide: uint8_t {
-        ORDER_BUY  = 1,
-        ORDER_SELL = 2,
+        ORDER_SIDE_NULL = 0,
+        ORDER_BUY       = 1,
+        ORDER_SELL      = 2,
     };
 
     static const EnumHelper<OrderSide, uint8_t> kOrderSideHelper = {

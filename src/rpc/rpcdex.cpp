@@ -48,7 +48,7 @@ namespace RPC_PARAM {
     }
 
     OrderSide GetOrderSide(const Value &jsonValue) {
-        OrderSide ret;
+        OrderSide ret = OrderSide::ORDER_SIDE_NULL;
         if (kOrderSideHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_side=%s is invalid",
                 jsonValue.get_str()));
