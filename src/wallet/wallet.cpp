@@ -250,8 +250,8 @@ DBErrors CWallet::LoadWallet(bool fFirstRunRet) {
     return CWalletDB(strWalletFile, "cr+").LoadWallet(this);
 }
 
-int64_t CWallet::GetFreeCoins(TokenSymbol coinCymbol, bool isConfirmed) const {
-    int64_t ret = 0;
+uint64_t CWallet::GetFreeCoins(TokenSymbol coinCymbol, bool isConfirmed) const {
+    uint64_t ret = 0;
     {
         LOCK2(cs_main, cs_wallet);
         set<CKeyID> setKeyId;
