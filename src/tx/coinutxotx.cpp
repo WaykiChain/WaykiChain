@@ -171,6 +171,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                                 "cond-type-err");
         }
     }
+    return true;
 }
 
 bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
