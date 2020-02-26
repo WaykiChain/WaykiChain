@@ -135,7 +135,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (*cond.utxoCondPtr);
             
             if (isPrevUtxoOut) {
-                if (context.height <= theCond.height) {
+                if ((uint64_t) context.height <= theCond.height) {
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to claim error!"), REJECT_INVALID, 
                                     "too-early-to-claim-err");
                 }
@@ -340,11 +340,11 @@ string CCoinUtxoTx::ToString(CAccountDBCache &accountCache) {
 }
 
 Object CCoinUtxoTx::ToJson(const CAccountDBCache &accountCache) const {
-    Object result = CBaseTx::ToJson(accountCache);
+    Object obj = CBaseTx::ToJson(accountCache);
 
-    result.push_back(Pair("vins", VectorToString(vins)));
-    result.push_back(Pair("vouts", VectorToString(vouts)));
-    result.push_back(Pair("memo", memo));
+    obj.push_back(Pair("vins", VectorToString(vins)));
+    obj.push_back(Pair("vouts", VectorToString(vouts)));
+    obj.push_back(Pair("memo", memo));
 
-    return result;
+    return obj;
 }
