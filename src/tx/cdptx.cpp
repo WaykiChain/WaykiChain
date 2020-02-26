@@ -252,7 +252,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         if (!cw.cdpCache.GetCDP(cdp_txid, cdp))
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the cdp not exist! cdp_txid=%s", cdp_txid.ToString()),
                              REJECT_INVALID, "cdp-not-exist");
-        
+
         if (assetSymbol != cdp.bcoin_symbol)
             return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, the asset symbol=%s does not match with the current CDP's=%s",
                             assetSymbol, cdp.bcoin_symbol), REJECT_INVALID, "invalid-asset-symbol");
@@ -649,7 +649,7 @@ bool CCDPRedeemTx::SellInterestForFcoins(const CTxCord &txCord, const CUserCDP &
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::SellInterestForFcoins, set account info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol, 
+    auto pSysBuyMarketOrder = dex::CSysOrder::CreateBuyMarketOrder(txCord, cdp.scoin_symbol,
                                                                 SYMB::WGRT, scoinsInterestToRepay);
 
     if (!cw.dexCache.CreateActiveOrder(GetHash(), *pSysBuyMarketOrder)) {
@@ -764,18 +764,16 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
 
     //2. pay penalty fees: 0.13lN --> 50% burn, 50% to Risk Reserve
     CAccount cdpOwnerAccount;
-    //TODO resolve error
-   /* if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
+    if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, read CDP Owner txUid %s account info error",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
-    }*/
+    }
 
     uint64_t startingCdpLiquidateRatio;
     if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_START_LIQUIDATE_RATIO, startingCdpLiquidateRatio))
         return false;
 
     uint64_t nonReturnCdpLiquidateRatio;
-    //TODO resolve error
     if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_NONRETURN_LIQUIDATE_RATIO, nonReturnCdpLiquidateRatio))
         return false;
 
@@ -784,7 +782,6 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
 
     uint64_t forcedCdpLiquidateRatio;
-    //TODO resolve error
     if (!ReadCdpParam(*this, context, cdpCoinPair, CDP_FORCE_LIQUIDATE_RATIO, forcedCdpLiquidateRatio))
         return false;
 
