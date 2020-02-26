@@ -116,7 +116,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
         return false ;
     int32_t height = pIndex->height;
 
-    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
+    uint32_t needConfirmCount = GetFinalBlockMinerCount() ;
 
     while(height > GetLocalFinIndex()->height&& height>0 &&height > pIndex->height-10){
 
@@ -129,7 +129,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
            && pbftContext.GetMinerListByBlockHash(pTemp->pprev->GetBlockHash(),miners)){
 
             if(messageSet.size() >= needConfirmCount){
-                int count =0;
+                uint32_t count =0;
                 for(auto msg: messageSet){
                     if(miners.count(msg.miner))
                         count++ ;
@@ -149,7 +149,7 @@ bool CPBFTMan::UpdateLocalFinBlock(const CBlockIndex* pIndex){
 
 bool CPBFTMan::UpdateLocalFinBlock(const CBlockConfirmMessage& msg, const uint32_t messageCount){
 
-    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
+    uint32_t needConfirmCount = GetFinalBlockMinerCount() ;
     if( needConfirmCount > messageCount)
         return false ;
 
@@ -230,7 +230,7 @@ int64_t  CPBFTMan::GetLocalFinLastUpdate() const {
 
 bool CPBFTMan::UpdateGlobalFinBlock(const CBlockFinalityMessage& msg, const uint32_t messageCount ){
 
-    int32_t needConfirmCount = GetFinalBlockMinerCount() ;
+    uint32_t needConfirmCount = GetFinalBlockMinerCount() ;
     if(needConfirmCount > messageCount)
         return false ;
 
