@@ -86,7 +86,7 @@ public:
         }
     )
     virtual ~CWallet(){};
-    int64_t GetFreeCoins(TokenSymbol coinSymbol, bool isConfirmed = true) const;
+    uint64_t GetFreeCoins(TokenSymbol coinSymbol, bool isConfirmed = true) const;
 
     bool Sign(const CKeyID &keyId, const uint256 &hash, vector<unsigned char> &signature, bool isMiner = false) const;
     bool SignCompact(const CKeyID &keyId, const uint256 &hash, vector<uint8_t> &signature, bool isMiner = false) const; 

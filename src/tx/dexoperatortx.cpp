@@ -441,6 +441,7 @@ string CDEXOperatorUpdateTradePairTx::ToString(CAccountDBCache &accountCache){
 
     return "";
 };
+
 Object CDEXOperatorUpdateTradePairTx::ToJson(const CAccountDBCache &accountCache) const{
 
     Object result = CBaseTx::ToJson(accountCache);
