@@ -90,6 +90,7 @@ struct CSingleAddressCondIn : CUtxoCond {
         READWRITE((uint8_t&) cond_type);
     )
     
+    std::string ToString() { return "cond_type=\"IP2SA\""; }
 };
 struct CSingleAddressCondOut : CUtxoCond {
     CUserID  uid;
@@ -102,6 +103,7 @@ struct CSingleAddressCondOut : CUtxoCond {
         READWRITE(uid);
     )
 
+    std::string ToString() { return strprintf("cond_type=\"OP2SA\", uid=%s", uid.ToString()); }
 };
 
 //////////////////////////////////////////////////
@@ -162,6 +164,10 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         READWRITE(signatures);
     )
 
+    std::string ToString() { 
+        return strprintf("cond_type=\"IP2MA\", m=%d, n=%d, uids=%s, signatures=[omitted]", 
+                        m, n, db_util::ToString(uids)); 
+    }
 };
 struct CMultiSignAddressCondOut : CUtxoCond {
     CUserID uid;
@@ -173,6 +179,8 @@ struct CMultiSignAddressCondOut : CUtxoCond {
         READWRITE((uint8_t&) cond_type);
         READWRITE(uid);
     )
+
+    std::string ToString() { return strprintf("cond_type=\"OP2MA\",uid=\"%s\"", uid.ToString()); }
 
 };
 
@@ -188,6 +196,7 @@ struct CPasswordHashLockCondIn : CUtxoCond {
         READWRITE(password);
     )
 
+    std::string ToString() { return strprintf("cond_type=\"IP2PH\",password=\"%s\"", password); }
 };
 struct CPasswordHashLockCondOut: CUtxoCond {
     uint256 password_hash; //hashed with salt
@@ -200,6 +209,7 @@ struct CPasswordHashLockCondOut: CUtxoCond {
         READWRITE(password_hash);
     )
 
+    std::string ToString() { return strprintf("cond_type=\"OP2PH\",password_hash=\"%s\"", password_hash); }
 };
 //////////////////////////////////////////////////
 struct CClaimLockCondOut : CUtxoCond {
@@ -213,6 +223,7 @@ struct CClaimLockCondOut : CUtxoCond {
         READWRITE(VARINT(height));
     )
 
+    std::string ToString() { return strprintf("cond_type=\"OCLAIM_LOCK\", height=%llu", height); }
 };
 
 struct CReClaimLockCondOut : CUtxoCond {
@@ -226,10 +237,11 @@ struct CReClaimLockCondOut : CUtxoCond {
         READWRITE(VARINT(height));
     )
 
+    std::string ToString() { return strprintf("cond_type=\"ORECLAIM_LOCK\", height=%llu", height); }
 };
 
 struct CUtxoCondStorageBean {
-    std::shared_ptr<CUtxoCond> utxoCondPtr ;
+    std::shared_ptr<CUtxoCond> utxoCondPtr;
 
     CUtxoCondStorageBean();
     CUtxoCondStorageBean( std::shared_ptr<CUtxoCond> ptr): utxoCondPtr(ptr) {}
@@ -354,6 +366,29 @@ struct CUtxoCondStorageBean {
         }
 
         utxoCondPtr->cond_type = condType;
+    }
+
+    std::string ToString() {
+        switch (utxoCondPtr->cond_type) {
+            case UtxoCondType::IP2SA:
+                return ((CSingleAddressCondIn *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::IP2MA:
+                return ((CMultiSignAddressCondIn *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::IP2PH:
+                return ((CPasswordHashLockCondIn *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::OP2SA:
+                return ((CSingleAddressCondOut *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::OP2MA:
+                return ((CMultiSignAddressCondOut *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::OP2PH:
+                return ((CPasswordHashLockCondOut *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::OCLAIM_LOCK:
+                return ((CClaimLockCondOut *) utxoCondPtr.get())->ToString();
+            case UtxoCondType::ORECLAIM_LOCK:
+                return ((CReClaimLockCondOut *) utxoCondPtr.get())->ToString();
+            default:
+                throw ios_base::failure(strprintf("ToString: utxoCondType(%d) error.", utxoCondPtr->cond_type));
+        }
     }
 
 };
