@@ -342,8 +342,8 @@ string CCoinUtxoTx::ToString(CAccountDBCache &accountCache) {
 Object CCoinUtxoTx::ToJson(const CAccountDBCache &accountCache) const {
     Object obj = CBaseTx::ToJson(accountCache);
 
-    obj.push_back(Pair("vins", VectorToString(vins)));
-    obj.push_back(Pair("vouts", VectorToString(vouts)));
+    obj.push_back(Pair("vins", db_util::ToString(vins)));
+    obj.push_back(Pair("vouts", db_util::ToString(vouts)));
     obj.push_back(Pair("memo", memo));
 
     return obj;
