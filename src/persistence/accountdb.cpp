@@ -305,9 +305,9 @@ Object CAccountDBCache::GetAccountDBStats() {
     uint64_t totalBCoins(0);
     uint64_t totalSCoins(0);
     uint64_t totalFCoins(0);
-    uint64_t bcoinsStates[5];
-    uint64_t scoinsStates[5];
-    uint64_t fcoinsStates[5];
+    uint64_t bcoinsStates[5] = {0};
+    uint64_t scoinsStates[5] = {0};
+    uint64_t fcoinsStates[5] = {0};
 
     map<CKeyID, CAccount> items;
     accountCache.GetAllElements(items);
