@@ -282,7 +282,8 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
 
         //load prevUtxoTx from blockchain
         std::shared_ptr<CCoinUtxoTx> pPrevUtxoTx;
-        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pPrevUtxoTx))
+        std::shared_ptr<CBaseTx> pBaseTx = pPrevUtxoTx;
+        if (!GetUtxoTxFromChain(input.prev_utxo_txid, pBaseTx))
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID, 
                             "failed-to-load-prev-utxo-err");
 
