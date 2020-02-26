@@ -209,7 +209,7 @@ struct CPasswordHashLockCondOut: CUtxoCond {
         READWRITE(password_hash);
     )
 
-    std::string ToString() { return strprintf("cond_type=\"OP2PH\",password_hash=\"%s\"", password_hash); }
+    std::string ToString() { return strprintf("cond_type=\"OP2PH\",password_hash=\"%s\"", password_hash.ToString()); }
 };
 //////////////////////////////////////////////////
 struct CClaimLockCondOut : CUtxoCond {
