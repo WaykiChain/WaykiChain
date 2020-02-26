@@ -152,7 +152,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
             if (isPrevUtxoOut) {
                 if (prevUtxoTxUid == txUid) { // for reclaiming the coins
-                    if (theCond.height == 0 || context.height <= theCond.height) {
+                    if (theCond.height == 0 || (uint64_t) context.height <= theCond.height) {
                         return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to reclaim error!"), REJECT_INVALID, 
                                         "too-early-to-claim-err");
                     } 
@@ -217,7 +217,7 @@ bool CCoinUtxoTx::CheckTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, failed to load prev utxo from chain!"), REJECT_INVALID, 
                             "failed-to-load-prev-utxo-err");
 
-        if (pPrevUtxoTx->vouts.size() < input.prev_utxo_out_index + 1)
+        if ((uint16_t) pPrevUtxoTx->vouts.size() < input.prev_utxo_out_index + 1)
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, prev utxo index OOR error!"), REJECT_INVALID, 
                             "prev-utxo-index-OOR-err");
 
@@ -291,7 +291,7 @@ bool CCoinUtxoTx::ExecuteTx(CTxExecuteContext &context) {
                             "del-prev-utxo-err");
     }
 
-    for (int i = 0; i < vouts.size(); i++) {
+    for (size_t i = 0; i < vouts.size(); i++) {
         CUtxoOutput output = vouts[i];
         totalOutAmount += output.coin_amount;
 
@@ -336,7 +336,7 @@ string CCoinUtxoTx::ToString(CAccountDBCache &accountCache) {
         "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
         "valid_height=%d, vins=[%s], vouts=[%s], memo=%s",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
-        valid_height, VectorToString(vins), VectorToString(vouts), HexStr(memo));
+        valid_height, db_util::ToString(vins), db_util::ToString(vouts), HexStr(memo));
 }
 
 Object CCoinUtxoTx::ToJson(const CAccountDBCache &accountCache) const {

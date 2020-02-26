@@ -106,7 +106,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         CUtxoCond(UtxoCondType::IP2MA), m(mIn),n(nIn),uids(uidsIn),signatures(signaturesIn) {};
 
     uint160 GetRedeemScriptHash() {
-        string redeemScript = strprintf("%u%s%u", m, VectorToString(uids), n);
+        string redeemScript = strprintf("%u%s%u", m, db_util::ToString(uids), n);
         return Hash160(redeemScript); //redeemScriptHash = RIPEMD160(SHA256(redeemScript): TODO doublecheck hash algorithm
     }
 
@@ -125,7 +125,7 @@ struct CMultiSignAddressCondIn : CUtxoCond {
         if (signatures.size() < m)
             return false;
         
-        string redeemScript = strprintf("u%s%s%u", m, VectorToString(uids), n);
+        string redeemScript = strprintf("u%s%s%u", m, db_util::ToString(uids), n);
 
         CHashWriter ss(SER_GETHASH, CLIENT_VERSION);
         ss << prevUtxoTxId.ToString() << prevUtxoTxVoutIndex << txUid.ToString() << redeemScript;
