@@ -29,9 +29,9 @@ public:
     bool GetUtxoTx(const pair<TxID, uint16_t> &utxoKey);
     bool DelUtoxTx(const pair<TxID, uint16_t> &utxoKey);
 
-    bool SetUtxoPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey, uint256 &proof);
-    bool GetUtxoPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey, uint256 &proof);
-    bool DelUtoxPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey);
+    bool SetUtxoPasswordProof(const tuple<TxID, uint16_t, CRegIDKey> &proofKey, uint256 &proof);
+    bool GetUtxoPasswordProof(const tuple<TxID, uint16_t, CRegIDKey> &proofKey, uint256 &proof);
+    bool DelUtoxPasswordProof(const tuple<TxID, uint16_t, CRegIDKey> &proofKey);
 
     void Flush() { 
         txUtxoCache.Flush(); 
@@ -64,8 +64,8 @@ public:
     // $txid$vout_index -> 1
     CCompositeKVCache<   dbk::TX_UTXO,            pair<TxID, uint16_t>,      uint8_t >             txUtxoCache;
 
-    // $txid$vout_index -> (txUid, hash)
-    CCompositeKVCache<   dbk::UTXO_PWSDPRF,       tuple<TxID, uint16_t, CUserID>, uint256 >         txUtxoPasswordProofCache;
+    // $txid$vout_index$userID -> (hash)
+    CCompositeKVCache<   dbk::UTXO_PWSDPRF,       tuple<TxID, uint16_t, CRegIDKey>, uint256 >       txUtxoPasswordProofCache;
 };
 
 #endif // PERSIST_TXUTXODB_H

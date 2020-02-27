@@ -28,17 +28,17 @@ bool CTxUTXODBCache::DelUtoxTx(const pair<TxID, uint16_t> &utxoKey) {
 //////////////////////////////////
 //// Password Proof Cache
 /////////////////////////////////
-bool CTxUTXODBCache::SetUtxoPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey, uint256 &proof) {
+bool CTxUTXODBCache::SetUtxoPasswordProof(const tuple<TxID, uint16_t, CRegIDKey> &proofKey, uint256 &proof) {
     return txUtxoPasswordProofCache.SetData(proofKey, proof);
 }
 
-bool CTxUTXODBCache::GetUtxoPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey, uint256 &proof) {
+bool CTxUTXODBCache::GetUtxoPasswordProof(const tuple<TxID, uint16_t, CRegIDKey> &proofKey, uint256 &proof) {
     bool result = txUtxoPasswordProofCache.GetData(proofKey, proof);
     if (!result)
         return false;
     
     return true;
 }
-bool CTxUTXODBCache::DelUtoxPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey) {
+bool CTxUTXODBCache::DelUtoxPasswordProof(const tuple<TxID, uint16_t, CRegIDKey> &proofKey) {
     return txUtxoPasswordProofCache.EraseData(proofKey);
 }

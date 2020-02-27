@@ -119,8 +119,9 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
                             uint256 hash = Hash(text);
                             uint256 proof = uint256();
+                            CRegIDKey regIdKey(txUid.get<CRegID>());
                             if (context.pCw->txUtxoCache.GetUtxoPasswordProof(std::make_tuple(input.prev_utxo_txid, 
-                                                                            input.prev_utxo_vout_index, txUid), proof))
+                                                                            input.prev_utxo_vout_index, regIdKey), proof))
                                 return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, password proof not existing!"), REJECT_INVALID, 
                                                 "password-proof-not-exist-err");
 
@@ -399,7 +400,8 @@ bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
     if (!GenerateRegID(context, srcAccount))
         return false;
 
-    if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, utxo_vout_index, txUid), password_proof))
+    CRegIDKey regIdKey(txUid.get<CRegID>());
+    if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, utxo_vout_index, regIdKey), password_proof))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, bad saving utxo proof",
                         txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");
     
