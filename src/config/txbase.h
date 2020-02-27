@@ -44,6 +44,7 @@ enum TxType: uint8_t {
     PRICE_FEED_TX               = 16,   //!< Price Feed Tx: WICC/USD | WGRT/USD | WUSD/USD
     PRICE_MEDIAN_TX             = 17,   //!< Price Median Value on each block Tx
     UTXO_TRANSFER_TX            = 18,   //!< UTXO & HTLC Coin
+    UTXO_PASSWORD_PROOF_TX      = 19,   //!< UTXO password proof
 
     CDP_STAKE_TX                = 21,   //!< CDP Staking/Restaking Tx
     CDP_REDEEM_TX               = 22,   //!< CDP Redemption Tx (partial or full)
@@ -122,7 +123,7 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 { ASSET_UPDATE_TX,          std::make_tuple("ASSET_UPDATE_TX",          0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) }, //plus 110 WICC
 { UCOIN_TRANSFER_TX,        std::make_tuple("UCOIN_TRANSFER_TX",        0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { UTXO_TRANSFER_TX,         std::make_tuple("UTXO_TRANSFER_TX",         0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-
+{ UTXO_PASSWORD_PROOF_TX,   std::make_tuple("UTXO_PASSWORD_PROOF_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
 { UCOIN_REWARD_TX,          std::make_tuple("UCOIN_REWARD_TX",          0,          0,          0,          0           ,false) },
 { UCOIN_BLOCK_REWARD_TX,    std::make_tuple("UCOIN_BLOCK_REWARD_TX",    0,          0,          0,          0           ,false) },
 

@@ -44,23 +44,23 @@ struct CUtxoCond {
 
 struct CUtxoInput {
     TxID prev_utxo_txid;
-    uint16_t prev_utxo_out_index = 0;
+    uint16_t prev_utxo_vout_index = 0;
     std::vector<CUtxoCondStorageBean> conds; //needs to meet all conditions set in previous utxo vout
 
     CUtxoInput() {}   //empty instance
 
     CUtxoInput(TxID &prevUtxoTxId, uint16_t prevUtxoOutIndex, std::vector<CUtxoCondStorageBean> &condsIn) :
-        prev_utxo_txid(prevUtxoTxId), prev_utxo_out_index(prevUtxoOutIndex), conds(condsIn) {};
+        prev_utxo_txid(prevUtxoTxId), prev_utxo_vout_index(prevUtxoOutIndex), conds(condsIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(prev_utxo_txid);
-        READWRITE(VARINT(prev_utxo_out_index));
+        READWRITE(VARINT(prev_utxo_vout_index));
         READWRITE(conds);
     )
 
     std::string ToString() const {
-        return strprintf("prev_utxo_txid=%s, prev_utxo_out_index=%d, conds=%s", prev_utxo_txid.ToString(),
-                        prev_utxo_out_index, db_util::ToString(conds));
+        return strprintf("prev_utxo_txid=%s, prev_utxo_vout_index=%d, conds=%s", prev_utxo_txid.ToString(),
+                        prev_utxo_vout_index, db_util::ToString(conds));
     }
 };
 struct CUtxoOutput {

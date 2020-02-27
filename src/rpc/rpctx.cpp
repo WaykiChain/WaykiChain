@@ -233,7 +233,7 @@ Value submitutxospendtx(const Array& params, bool fHelp) {
     // entity.htlc_cond = hc ;
     // entity.is_null     = false ;
 
-    // auto pBaseTx = std::make_shared<CCoinUtxoTx>(sendUserId,chainActive.Height(),
+    // auto pBaseTx = std::make_shared<CCoinUtxoTransferTx>(sendUserId,chainActive.Height(),
     //                                              cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
     // pBaseTx->prior_utxo_secret = prior_utxo_secret ;
     // pBaseTx->prior_utxo_txid   = prior_utxo_txid ;
@@ -331,7 +331,7 @@ Value submitcreateutxotx(const Array& params, bool fHelp ){
     // entity.htlc_cond = hc ;
     // entity.is_null     = false ;
 
-    // auto pBaseTx = std::make_shared<CCoinUtxoTx>(sendUserId,chainActive.Height(),
+    // auto pBaseTx = std::make_shared<CCoinUtxoTransferTx>(sendUserId,chainActive.Height(),
     //         cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
 
 

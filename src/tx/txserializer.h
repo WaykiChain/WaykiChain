@@ -68,8 +68,10 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CAssetUpdateTx&)tx, serType, version); break;
 
         case UTXO_TRANSFER_TX:
-            ::Serialize(os, (const CCoinUtxoTx&)tx, serType, version); break;
-
+            ::Serialize(os, (const CCoinUtxoTransferTx&)tx, serType, version); break;
+         case UTXO_PASSWORD_PROOF_TX:
+            ::Serialize(os, (const CCoinUtxoPasswordProofTx&)tx, serType, version); break;
+        
         case UCOIN_TRANSFER_TX:
             ::Serialize(os, (const CCoinTransferTx&)tx, serType, version); break;
         case UCOIN_REWARD_TX:
@@ -199,8 +201,14 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         }
 
         case UTXO_TRANSFER_TX: {
-            pBaseTx = std::make_shared<CCoinUtxoTx>();
-            ::Unserialize(is, *((CCoinUtxoTx *)(pBaseTx.get())), serType, version);
+            pBaseTx = std::make_shared<CCoinUtxoTransferTx>();
+            ::Unserialize(is, *((CCoinUtxoTransferTx *)(pBaseTx.get())), serType, version);
+            break;
+        }
+
+        case UTXO_PASSWORD_PROOF_TX: {
+            pBaseTx = std::make_shared<CCoinUtxoPasswordProofTx>();
+            ::Unserialize(is, *((CCoinUtxoPasswordProofTx *)(pBaseTx.get())), serType, version);
             break;
         }
 
