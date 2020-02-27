@@ -204,8 +204,8 @@ struct CPasswordHashLockCondOut: CUtxoCond {
     uint256 password_hash; //hashed with salt
 
     CPasswordHashLockCondOut(): CUtxoCond(UtxoCondType::OP2PH), password_proof_required(false), password_hash(uint256()) {};
-    CPasswordHashLockCondOut(bool passwordProofRequired, uint256& passwordHash) : 
-        password_proof_required(passwordProofRequired), CUtxoCond(UtxoCondType::OP2PH), password_hash(passwordHash) {};
+    CPasswordHashLockCondOut(bool passwordProofRequired, uint256& passwordHash) : CUtxoCond(UtxoCondType::OP2PH),
+        password_proof_required(passwordProofRequired), password_hash(passwordHash) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(password_proof_required);
