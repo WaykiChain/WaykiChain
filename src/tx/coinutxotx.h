@@ -128,7 +128,7 @@ public:
            << utxo_txid << utxo_vout_index << password_proof;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUtxoTransferTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUtxoPasswordProofTx>(*this); }
     
     virtual Object ToJson(const CAccountDBCache &accountCache) const {
         Object obj = CBaseTx::ToJson(accountCache);
