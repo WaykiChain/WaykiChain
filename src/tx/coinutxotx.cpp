@@ -132,39 +132,34 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         // further check if password_hash matches the hash of (TxUid,Password)
                         string text = strprintf("%s%s", prevUtxoTxUid.ToString(), p2phCondIn.password);
                         uint256 hash = Hash(text); 
-                        if (theCond.password_hash != hash) {
+                        if (theCond.password_hash != hash)
                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, secret mismatches error!"), REJECT_INVALID, 
                                             "secret-mismatches-err");
-                        }
                         break;
                     } else
                         continue;
                 }
-                if (!found) {
+                if (!found)
                      return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, cond mismatches error!"), REJECT_INVALID, 
                                     "cond-mismatches-err");
-                }
             } else { //output cond
-                if (theCond.password_hash == uint256()) {
+                if (theCond.password_hash == uint256())
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, empty hash lock error!"), REJECT_INVALID, 
                                     "empty-hash-lock-err");
-                }
             }
             break;
         }
         case UtxoCondType::OCLAIM_LOCK : { 
             CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (*cond.utxoCondPtr);
             
-            if (isPrevUtxoOut) {
+            if (isPrevUtxoOut)
                 if ((uint64_t) context.height <= theCond.height) {
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to claim error!"), REJECT_INVALID, 
                                     "too-early-to-claim-err");
-                }
             } else { //output cond
-                if (theCond.height == 0) {
+                if (theCond.height == 0)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, claim lock empty error!"), REJECT_INVALID, 
                                     "claim-lock-empty-err");
-                }
             }
             break; 
         }
@@ -173,23 +168,21 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
 
             if (isPrevUtxoOut) {
                 if (prevUtxoTxUid == txUid) { // for reclaiming the coins
-                    if (theCond.height == 0 || (uint64_t) context.height <= theCond.height) {
+                    if (theCond.height == 0 || (uint64_t) context.height <= theCond.height)
                         return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, too early to reclaim error!"), REJECT_INVALID, 
                                         "too-early-to-claim-err");
-                    } 
                 }
             } else { //output cond
-                if (theCond.height == 0) {
+                if (theCond.height == 0)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, reclaim lock empty error!"), REJECT_INVALID, 
                                     "reclaim-lock-empty-err");
-                }
             }
             break; 
         }
         default: {
             string strInOut = isPrevUtxoOut ? "input" : "output";
             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, %s cond type error!", strInOut), REJECT_INVALID, 
-                                "cond-type-err");
+                            "cond-type-err");
         }
     }
     return true;
