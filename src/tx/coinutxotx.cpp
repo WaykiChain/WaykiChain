@@ -153,8 +153,8 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
         case UtxoCondType::OCLAIM_LOCK : { 
             CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (*cond.utxoCondPtr);
             
-            if (isPrevUtxoOut)
-                if ((uint64_t) context.height <= theCond.height) {
+            if (isPrevUtxoOut) {
+                if ((uint64_t) context.height <= theCond.height)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, too early to claim error!"), REJECT_INVALID, 
                                     "too-early-to-claim-err");
             } else { //output cond
