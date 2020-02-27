@@ -200,17 +200,23 @@ struct CPasswordHashLockCondIn : CUtxoCond {
     std::string ToString() { return strprintf("cond_type=\"IP2PH\",password=\"%s\"", password); }
 };
 struct CPasswordHashLockCondOut: CUtxoCond {
+    bool password_proof_required;
     uint256 password_hash; //hashed with salt
 
-    CPasswordHashLockCondOut() {};
-    CPasswordHashLockCondOut(uint256& passwordHash): CUtxoCond(UtxoCondType::OP2PH), password_hash(passwordHash) {};
+    CPasswordHashLockCondOut(): CUtxoCond(UtxoCondType::OP2PH), password_proof_required(false), password_hash(uint256()) {};
+    CPasswordHashLockCondOut(bool passwordProofRequired, uint256& passwordHash) : 
+        password_proof_required(passwordProofRequired), CUtxoCond(UtxoCondType::OP2PH), password_hash(passwordHash) {};
 
     IMPLEMENT_SERIALIZE(
+        READWRITE(password_proof_required);
         READWRITE((uint8_t&) cond_type);
         READWRITE(password_hash);
     )
 
-    std::string ToString() { return strprintf("cond_type=\"OP2PH\",password_hash=\"%s\"", password_hash.ToString()); }
+    std::string ToString() { 
+        return strprintf("cond_type=\"OP2PH\",password_proof_required=%d, password_hash=\"%s\"", 
+                        password_proof_required, password_hash.ToString());
+    }
 };
 //////////////////////////////////////////////////
 struct CClaimLockCondOut : CUtxoCond {

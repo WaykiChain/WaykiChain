@@ -20,31 +20,52 @@ using namespace std;
 class CTxUTXODBCache {
 public:
     CTxUTXODBCache() {};
-    CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess) {};
-    CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache) {} ;
+    CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess), txUtxoPasswordProofCache(pDbAccess) {};
+    CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache), 
+        txUtxoPasswordProofCache(pBaseIn->txUtxoPasswordProofCache) {} ;
 
 public:
-    bool SetUtxoTx(const pair<TxID, uint16_t> &utoxIndex);
-    bool GetUtxoTx(const pair<TxID, uint16_t> &utoxIndex);
-    bool DelUtoxTx(const pair<TxID, uint16_t> &utoxIndex);
+    bool SetUtxoTx(const pair<TxID, uint16_t> &utxoKey);
+    bool GetUtxoTx(const pair<TxID, uint16_t> &utxoKey);
+    bool DelUtoxTx(const pair<TxID, uint16_t> &utxoKey);
 
-    void Flush();
+    bool SetUtxoPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey, uint256 &proof);
+    bool GetUtxoPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey, uint256 &proof);
+    bool DelUtoxPasswordProof(const tuple<TxID, uint16_t, CUserID> &proofKey);
 
-    uint32_t GetCacheSize() const { return txUtxoCache.GetCacheSize(); }
+    void Flush() { 
+        txUtxoCache.Flush(); 
+        txUtxoPasswordProofCache.Flush(); 
+    }
 
-    void SetBaseViewPtr(CTxUTXODBCache *pBaseIn) { txUtxoCache.SetBase(&pBaseIn->txUtxoCache); }
+    uint32_t GetCacheSize() const { 
+        return txUtxoCache.GetCacheSize() + txUtxoPasswordProofCache.GetCacheSize(); 
+    }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { txUtxoCache.SetDbOpLogMap(pDbOpLogMapIn); }
+    void SetBaseViewPtr(CTxUTXODBCache *pBaseIn) { 
+        txUtxoCache.SetBase(&pBaseIn->txUtxoCache);
+        txUtxoPasswordProofCache.SetBase(&pBaseIn->txUtxoPasswordProofCache); 
+    }
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { 
+        txUtxoCache.SetDbOpLogMap(pDbOpLogMapIn); 
+        txUtxoPasswordProofCache.SetDbOpLogMap(pDbOpLogMapIn); 
+    }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         txUtxoCache.RegisterUndoFunc(undoDataFuncMap);
+        txUtxoPasswordProofCache.RegisterUndoFunc(undoDataFuncMap);
     }
+
 public:
 /*       type               prefixType               key                     value                 variable               */
 /*  ----------------   -------------------------   -----------------------  ------------------   ------------------------ */
     /////////// UTXO DB
     // $txid$vout_index -> 1
     CCompositeKVCache<   dbk::TX_UTXO,            pair<TxID, uint16_t>,      uint8_t >             txUtxoCache;
+
+    // $txid$vout_index -> (txUid, hash)
+    CCompositeKVCache<   dbk::UTXO_PWSDPRF,       tuple<TxID, uint16_t, CUserID>, uint256 >         txUtxoPasswordProofCache;
 };
 
 #endif // PERSIST_TXUTXODB_H

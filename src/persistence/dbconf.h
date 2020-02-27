@@ -23,16 +23,16 @@ typedef leveldb::Slice Slice;
 #define DB_NAME_LIST(DEFINE) \
     DEFINE( SYSPARAM,           "params",         (50  << 10) )      /* system params */ \
     DEFINE( ACCOUNT,            "accounts",       (50  << 20) )      /* accounts & account assets */ \
-    DEFINE( ASSET,              "assets",         (100 << 10) )     /* asset registry */ \
-    DEFINE( BLOCK,              "blocks",         (500 << 10) )     /* block & tx indexes */ \
+    DEFINE( ASSET,              "assets",         (100 << 10) )      /* asset registry */ \
+    DEFINE( BLOCK,              "blocks",         (500 << 10) )      /* block & tx indexes */ \
     DEFINE( CONTRACT,           "contracts",      (50  << 20) )      /* contract */ \
-    DEFINE( DELEGATE,           "delegates",      (100 << 10) )     /* delegates */ \
+    DEFINE( DELEGATE,           "delegates",      (100 << 10) )      /* delegates */ \
     DEFINE( CDP,                "cdps",           (50  << 20) )      /* cdp */ \
     DEFINE( CLOSEDCDP,          "closedcdps",     (1   << 20) )      /* closed cdp */ \
     DEFINE( DEX,                "dexes",          (50  << 20) )      /* dex */ \
-    DEFINE( LOG,                "logs",           (100 << 10) )     /* log */ \
-    DEFINE( RECEIPT,            "receipts",       (100 << 10) )     /* tx receipt */ \
-    DEFINE( UTXO,               "utxo",           (50  << 20) )     /* tx receipt */ \
+    DEFINE( LOG,                "logs",           (100 << 10) )      /* log */ \
+    DEFINE( RECEIPT,            "receipts",       (100 << 10) )      /* tx receipt */ \
+    DEFINE( UTXO,               "utxo",           (50  << 20) )      /* utxo tx track db */ \
     DEFINE( SYSGOVERN,          "governs",        (100 << 10) )           \
     /*                                                                  */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
@@ -115,21 +115,23 @@ namespace dbk {
         DEFINE( CLOSED_CDP_TX,        "ctx",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
         DEFINE( CLOSED_TX_CDP,        "txc",    CLOSEDCDP )     /* ccdp{cdpid} -> 1 */ \
         /**** dex db                                                                    */ \
-        DEFINE( DEX_ACTIVE_ORDER,     "dato",   DEX )           /* [prefix]{txid} --> active order */ \
-        DEFINE( DEX_BLOCK_ORDERS,     "dbos",   DEX )           /* [prefix]{height, generate_type, txid} --> active order */ \
-        DEFINE( DEX_OPERATOR_LAST_ID, "doli",   DEX )           /* [prefix] --> dex_operator_new_id */ \
-        DEFINE( DEX_OPERATOR_DETAIL,  "dode",   DEX )           /* [prefix]{dex_operator_id} --> dex_operator_detail */ \
-        DEFINE( DEX_OPERATOR_OWNER_MAP, "doom",   DEX )         /* [prefix]{owner_name} --> dex_operator_id */ \
-        DEFINE( DEX_OPERATOR_TRADE_PAIR, "dotp",  DEX )               \
+        DEFINE( DEX_ACTIVE_ORDER,     "dato",       DEX )        /* [prefix]{txid} --> active order */ \
+        DEFINE( DEX_BLOCK_ORDERS,     "dbos",       DEX )        /* [prefix]{height, generate_type, txid} --> active order */ \
+        DEFINE( DEX_OPERATOR_LAST_ID, "doli",       DEX )        /* [prefix] --> dex_operator_new_id */ \
+        DEFINE( DEX_OPERATOR_DETAIL,  "dode",       DEX )        /* [prefix]{dex_operator_id} --> dex_operator_detail */ \
+        DEFINE( DEX_OPERATOR_OWNER_MAP, "doom",     DEX )        /* [prefix]{owner_name} --> dex_operator_id */ \
+        DEFINE( DEX_OPERATOR_TRADE_PAIR, "dotp",    DEX )              \
         /**** log db                                                                    */ \
-        DEFINE( TX_EXECUTE_FAIL,      "txef",   LOG )           /* [prefix]{height}{txid} --> {error code, error message} */ \
-        /**** tx receipt db                                                                    */ \
-        DEFINE( TX_RECEIPT,           "txrc",   RECEIPT )       /* [prefix]{txid} --> {receipts} */ \
-        /**** tx coinutxo db                                                                    */ \
-        DEFINE( TX_UTXO,              "utxo",   UTXO )          /* [prefix]{txid} --> {receipts} */ \
+        DEFINE( TX_EXECUTE_FAIL,      "txef",       LOG )        /* [prefix]{height}{txid} --> {error code, error message} */ \
+        /**** tx receipt db                                                                 */ \
+        DEFINE( TX_RECEIPT,           "txrc",       RECEIPT )    /* [prefix]{txid} --> {receipts} */ \
+        /**** tx coinutxo db                                                                 */ \
+        DEFINE( TX_UTXO,              "utxo",       UTXO )       /* [prefix]{txid-voutindex} --> 1 */ \
+        /**** tx coinutxo db                                                                 */ \
+        DEFINE( UTXO_PWSDPRF,         "pwdp",       UTXO )       /* [prefix]{txid-voutindex} --> {passwordProof} */ \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
-        DEFINE( PREFIX_COUNT,         "",       DB_NAME_NONE)   /* enum count, must be the last one */
+        DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */
 
 
     #define DEF_DB_PREFIX_ENUM(enumType, enumName, dbName) enumType,

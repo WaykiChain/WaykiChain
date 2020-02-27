@@ -46,7 +46,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                                 "uid-mismatches-err");
             } else {
                 if (theCond.uid.IsEmpty())
-                        return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
+                    return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, uid empty error!"), REJECT_INVALID, 
                                         "uid-empty-err");
             }
             break;
@@ -108,7 +108,28 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         found = true;
                         CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (*inputCond.utxoCondPtr);
 
-                        //hash of (TxUid,Password)
+                        if (p2phCondIn.password.size() > 256) { //FIXME: sysparam
+                             return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, secret size too large error!"), REJECT_INVALID, 
+                                            "secret-size-toolarge-err");
+                        }
+                        if (theCond.password_proof_required) { //check if existing password ownership proof
+                            string text = strprintf("%s%s%s%s%d", p2phCondIn.password,
+                                                    prevUtxoTxUid.ToString(), txUid.ToString(),
+                                                    input.prev_utxo_txid.ToString(), input.prev_utxo_out_index);
+
+                            uint256 hash = Hash(text);
+                            uint256 proof = uint256();
+                            if (context.pCw->txUtxoCache.GetUtxoPasswordProof(std::make_tuple(input.prev_utxo_txid, 
+                                                                            input.prev_utxo_out_index, txUid), proof))
+                                return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, password proof not existing!"), REJECT_INVALID, 
+                                                "password-proof-not-exist-err");
+
+                            if (hash != proof)
+                                return state.DoS(100, ERRORMSG("CCoinUtxoTx::CheckTx, password proof not match!"), REJECT_INVALID, 
+                                            "password-proof-not-match-err");
+
+                        }
+                        // further check if password_hash matches the hash of (TxUid,Password)
                         string text = strprintf("%s%s", prevUtxoTxUid.ToString(), p2phCondIn.password);
                         uint256 hash = Hash(text); 
                         if (theCond.password_hash != hash) {
