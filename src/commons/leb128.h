@@ -67,4 +67,7 @@ public:
 
 using CFixedUInt32 = CFixedLeb128<uint32_t>;
 
+#define READWRITE_FIXED_UINT32(n) READWRITE_FUNC(n, CFixedUInt32::SerReadWrite)
+#define READWRITE_FIXED_UINT16(n) READWRITE_FUNC(n, CFixedUInt16::SerReadWrite)
+
 #endif  // COMMONS_HEXINT_H
