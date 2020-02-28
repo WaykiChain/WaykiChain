@@ -88,6 +88,7 @@ private:
     void SetRegIDByCompact(const vector<uint8_t> &vIn);
 
     friend CUserID;
+    friend class CRegIDKey;
 };
 
 class CRegIDKey {
