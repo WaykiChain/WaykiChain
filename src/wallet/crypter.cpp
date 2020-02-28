@@ -262,12 +262,15 @@ bool CCryptoKeyStore::GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut, bo
 
 bool CCryptoKeyStore::GetKeyCombi(const CKeyID& address, CKeyCombi& keyCombiOut) const {
     CBasicKeyStore::GetKeyCombi(address, keyCombiOut);
+
     if (!IsEncrypted())
         return true;
+
     CKey keyOut;
     if (!IsLocked()) {
         if (!GetKey(address, keyOut))
             return false;
+
         keyCombiOut.SetMainKey(keyOut);
     }
     return true;
@@ -278,6 +281,7 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn) {
         LOCK(cs_KeyStore);
         if (!mapCryptedKeys.empty() || IsEncrypted())
             return false;
+
         fUseCrypto = true;
         for (auto& mKey : mapKeys) {
             CKey mainKey;
@@ -287,8 +291,10 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn) {
             vector<unsigned char> vchCryptedSecret;
             if (!EncryptSecret(vMasterKeyIn, vchSecret, vchPubKey.GetHash(), vchCryptedSecret))
                 return false;
+
             if (!AddCryptedKey(vchPubKey, vchCryptedSecret))
                 return false;
+                
             mKey.second.PurgeMainKey();
         }
     }

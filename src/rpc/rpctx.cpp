@@ -51,6 +51,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
             + HelpExampleCli("gettxdetail","\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\"")
             + "\nAs json rpc call\n"
             + HelpExampleRpc("gettxdetail","\"c5287324b89793fdf7fa97b6203dfd814b8358cfa31114078ea5981916d7a8ac\""));
+            
     return GetTxDetailJSON(uint256S(params[0].get_str()));
 }
 
