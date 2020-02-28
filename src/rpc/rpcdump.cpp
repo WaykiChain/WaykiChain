@@ -151,7 +151,7 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
     CUserID uid = RPC_PARAM::GetUserId(params[0], true);
     CKeyID keyId;
-    if (!*pCdMan->pAccountCache->GetKeyId(uid, keyId))
+    if (!pCdMan->pAccountCache->GetKeyId(uid, keyId))
         throw JSONRPCError(RPC_WALLET_ERROR, "KeyID not found for uid " + uid.ToString());
 
     CKey vchSecret;
