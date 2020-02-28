@@ -318,7 +318,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
 
     if (cmCoin.amount == 0)
-        throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Zero amount error!");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
     RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
