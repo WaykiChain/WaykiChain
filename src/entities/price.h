@@ -18,6 +18,15 @@
 typedef std::pair<TokenSymbol, TokenSymbol> CoinPricePair;
 typedef std::map<CoinPricePair, uint64_t> PriceMap;
 
+static const CoinPricePair kDefaultFcoinPricePair = {SYMB::WGRT, SYMB::USD};
+
+static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCoinPricePairSet = {
+    {SYMB::WICC, SYMB::USD},
+    kDefaultFcoinPricePair,
+};
+
+static const uint32_t COIN_PRICE_PAIR_COUNT_MAX = 100;
+
 class CPricePoint {
 public:
     CoinPricePair coin_price_pair;
@@ -76,15 +85,15 @@ inline const string& GetPriceQuoteSymbol(const CoinPricePair &pricePair) {
 
 /**
  * check price pair.
- * @return err_msg(string) return nullptr or error msg ptr 
- * 
+ * @return err_msg(string) return nullptr or error msg ptr
+ *
  */
 inline shared_ptr<string> CheckPricePair(const CoinPricePair &pricePair) {
     // TODO: support more price pair
-    if (GetPriceBaseSymbol(pricePair) != SYMB::WICC && GetPriceBaseSymbol(pricePair) != SYMB::WGRT) 
+    if (GetPriceBaseSymbol(pricePair) != SYMB::WICC && GetPriceBaseSymbol(pricePair) != SYMB::WGRT)
         return make_shared<string>("unsupport base symbol " + GetPriceBaseSymbol(pricePair) + " of price pair");
 
-    if (GetPriceQuoteSymbol(pricePair) != SYMB::USD) 
+    if (GetPriceQuoteSymbol(pricePair) != SYMB::USD)
         return make_shared<string>("unsupport quote symbol " + GetPriceQuoteSymbol(pricePair) + " of price pair");
     return nullptr;
 }
