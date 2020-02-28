@@ -90,7 +90,10 @@ public:
 /*  CCompositeKVCache  prefixType     key                              value                   variable       */
 /*  -------------------- -------------- --------------------------  ----------------------- -------------- */
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} -> 1
+    // must use fixed width string as the key prefix to avoid conflict
+    // also prevent big vs little endian compatibility issues across machines when copying state db for speed sync purposes
     CCompositeKVCache<dbk::VOTE,       std::pair<string, CRegIDKey>,  uint8_t>                voteRegIdCache;
+
     CCompositeKVCache<dbk::REGID_VOTE, CRegIDKey,         vector<CCandidateReceivedVote>> regId2VoteCache;
 
     CSimpleKVCache<dbk::LAST_VOTE_HEIGHT, CVarIntValue<uint32_t>> last_vote_height_cache;
