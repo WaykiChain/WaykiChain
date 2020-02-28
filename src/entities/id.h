@@ -14,6 +14,7 @@
 #include "crypto/hash.h"
 #include "commons/json/json_spirit_utils.h"
 #include "commons/json/json_spirit_value.h"
+#include "commons/leb128.h"
 #include "key.h"
 
 class CAccountDBCache;
