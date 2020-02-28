@@ -71,19 +71,19 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     delegateRegIds.clear();
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto oldKey               = std::make_pair(strVotes, regId.ToRawString());
+    uint64_t votes            = maxNumber - votes;
+    auto oldKey               = std::make_pair(votes, CRegIDKey(regId));
 
     return voteRegIdCache.EraseData(oldKey);
 }
 
 bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
                                        const vector<CCandidateReceivedVote> &candidateVotes) {
-    return regId2VoteCache.SetData(regId.ToRawString(), candidateVotes);
+    return regId2VoteCache.SetData(CRegIDKey(regId), candidateVotes);
 }
 
 bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes) {
-    return regId2VoteCache.GetData(regId.ToRawString(), candidateVotes);
+    return regId2VoteCache.GetData(CRegIDKey(regId), candidateVotes);
 }
 
 bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote) {
