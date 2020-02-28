@@ -90,6 +90,29 @@ private:
     friend CUserID;
 };
 
+class CRegIDKey {
+public:
+    CRegID regid;
+
+    CRegIDKey() {}
+
+    CRegIDKey(const CRegID &regidIn): regid(regidIn) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE_FIXED_UINT32(regid.height);
+        READWRITE_FIXED_UINT16(regid.index);
+    )
+
+    inline bool IsEmpty() const { return regid.IsEmpty(); }
+    void SetEmpty() { regid.SetEmpty(); }
+    string ToString() const { return regid.ToString(); }
+
+
+    bool operator==(const CRegIDKey &other) const { return this->regid == other.regid; }
+    bool operator!=(const CRegIDKey &other) const { return this->regid != other.regid; }
+    bool operator<(const CRegIDKey &other) const { return this->regid < other.regid; }
+};
+
 class CNickID {
 private:
     string nickId;

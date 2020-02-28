@@ -11,14 +11,14 @@ bool CDelegateDBCache::LoadTopDelegateList() {
     delegateRegIds.clear();
 
     // vote{(uint64t)MAX - $votedBcoins}{$RegId} --> 1
-    set<std::pair<string, string> > regIds;
+    set<std::pair<uint64_t, CRegIDKey> > regIds;
     voteRegIdCache.GetTopNElements(IniCfg().GetTotalDelegateNum(), regIds);
 
     // assert(regIds.size() == IniCfg().GetTotalDelegateNum());
 
     for (const auto &regId : regIds) {
-        string strRegId = std::get<1>(regId);
-        delegateRegIds.emplace_back(CRegID(UnsignedCharArray(strRegId.begin(), strRegId.end())));
+        CRegIDKey regIdKey = std::get<1>(regId);
+        delegateRegIds.emplace_back(regIdKey.regid);
     }
 
     return true;
@@ -56,8 +56,7 @@ bool CDelegateDBCache::SetDelegateVotes(const CRegID &regId, const uint64_t vote
     delegateRegIds.clear();
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    string strVotes           = strprintf("%016x", maxNumber - votes);
-    auto key                  = std::make_pair(strVotes, regId.ToRawString());
+    auto key                  = std::make_pair(maxNumber - votes, CRegIDKey(regId));
     static uint8_t value      = 1;
 
     return voteRegIdCache.SetData(key, value);
