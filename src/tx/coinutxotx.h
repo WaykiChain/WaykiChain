@@ -35,7 +35,7 @@ public:
     CCoinUtxoTransferTx()
         : CBaseTx(UTXO_TRANSFER_TX) {};
 
-    CCoinUtxoTransferTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn, 
+    CCoinUtxoTransferTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn,
                 const TokenSymbol &coinSymbol, std::vector<CUtxoInput> &vinsIn, std::vector<CUtxoOutput> &voutsIn, string &memoIn)
         : CBaseTx(UTXO_TRANSFER_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
           coin_symbol(coinSymbol), vins(vinsIn), vouts(voutsIn), memo(memoIn) {};
@@ -58,7 +58,7 @@ public:
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
-        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees) 
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
            << vins << vouts << memo;
     }
 
@@ -74,14 +74,13 @@ public:
         return obj;
     }
 
-    string ToString() const {
+    virtual string ToString(CAccountDBCache &accountCache) {
         return strprintf(
                 "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
                 "valid_height=%d, vins=[%s], vouts=[%s], memo=%s",
                 GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
                 valid_height, db_util::ToString(vins), db_util::ToString(vouts), HexStr(memo));
     }
-    virtual string ToString(CAccountDBCache &accountCache);
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
@@ -101,7 +100,7 @@ public:
     CCoinUtxoPasswordProofTx()
         : CBaseTx(UTXO_PASSWORD_PROOF_TX) {};
 
-    CCoinUtxoPasswordProofTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn, 
+    CCoinUtxoPasswordProofTx(const CUserID &txUidIn, const int32_t validHeightIn, const TokenSymbol &feeSymbol, const uint64_t feesIn,
                 TxID &utoxTxid, uint16_t utxoOutIndex, uint256 &passwordProof)
         : CBaseTx(UTXO_PASSWORD_PROOF_TX, txUidIn, validHeightIn, feeSymbol, feesIn),
           utxo_txid(utoxTxid), utxo_vout_index(utxoOutIndex), password_proof(passwordProof) {};
@@ -124,12 +123,12 @@ public:
     )
 
     virtual void SerializeForHash(CHashWriter &hw) const {
-        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees) 
+        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol << VARINT(llFees)
            << utxo_txid << utxo_vout_index << password_proof;
     }
 
     virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CCoinUtxoPasswordProofTx>(*this); }
-    
+
     virtual Object ToJson(const CAccountDBCache &accountCache) const {
         Object obj = CBaseTx::ToJson(accountCache);
 
@@ -140,14 +139,13 @@ public:
         return obj;
     }
 
-    string ToString() const {
+    virtual string ToString(CAccountDBCache &accountCache) {
         return strprintf(
                 "txType=%s, hash=%s, ver=%d, txUid=%s, fee_symbol=%s, llFees=%llu, "
                 "valid_height=%d, utxo_txid=[%s], utxo_vout_index=[%d], password_proof=%s",
                 GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToString(), fee_symbol, llFees,
                 valid_height, utxo_txid.ToString(), utxo_vout_index, password_proof.ToString());
     }
-    virtual string ToString(CAccountDBCache &accountCache);
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
