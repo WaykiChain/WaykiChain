@@ -150,7 +150,9 @@ Value dumpprivkey(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
 
     CUserID uid = RPC_PARAM::GetUserId(params[0], true);
-    CKeyID keyId = uid.get<CKeyID>();
+    CKeyID keyId;
+    if (*pCdMan->pAccountCache->GetKeyId(uid, keyId))
+        throw JSONRPCError(RPC_WALLET_ERROR, "KeyID not found for uid " + uid.ToString());
 
     CKey vchSecret;
     if (!pWalletMain->GetKey(keyId, vchSecret))
