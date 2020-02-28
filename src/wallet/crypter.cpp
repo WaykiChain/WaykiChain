@@ -245,17 +245,16 @@ bool CCryptoKeyStore::GetKey(const CKeyID& address, CKey& keyOut, bool isMiner) 
 bool CCryptoKeyStore::GetPubKey(const CKeyID& address, CPubKey& vchPubKeyOut, bool isMiner) const {
     {
         LOCK(cs_KeyStore);
-        if (isMiner) {
+        if (isMiner)
             return CKeyStore::GetPubKey(address, vchPubKeyOut, isMiner);
-        } else {
-            if (!IsEncrypted())
-                return CKeyStore::GetPubKey(address, vchPubKeyOut, isMiner);
 
-            CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
-            if (mi != mapCryptedKeys.end()) {
-                vchPubKeyOut = (*mi).second.first;
-                return true;
-            }
+        if (!IsEncrypted())
+            return CKeyStore::GetPubKey(address, vchPubKeyOut, isMiner);
+
+        CryptedKeyMap::const_iterator mi = mapCryptedKeys.find(address);
+        if (mi != mapCryptedKeys.end()) {
+            vchPubKeyOut = (*mi).second.first;
+            return true;
         }
     }
     return false;

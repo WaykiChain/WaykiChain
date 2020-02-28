@@ -54,6 +54,7 @@ Value gettxdetail(const Array& params, bool fHelp) {
     return GetTxDetailJSON(uint256S(params[0].get_str()));
 }
 
+/* Deprecated for common usages but still required for cold mining account registration */
 Value submitaccountregistertx(const Array& params, bool fHelp) {
     if (fHelp || params.size() == 0)
         throw runtime_error("submitaccountregistertx \"addr\" [\"fee\"]\n"
@@ -68,12 +69,10 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
             + "\nAs json rpc call\n"
             + HelpExampleRpc("submitaccountregistertx", "\"wTtCsc5X9S5XAy1oDuFiEAfEwf8bZHur1W\", 10000"));
 
-
-
     EnsureWalletIsUnlocked();
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 1, ACCOUNT_REGISTER_TX);
+    ComboMoney fee       = RPC_PARAM::GetFee(params, 1, ACCOUNT_REGISTER_TX);
     int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
