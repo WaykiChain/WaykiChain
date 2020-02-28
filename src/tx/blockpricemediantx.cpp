@@ -72,7 +72,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      item.first.second, item.second);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", context.height, pricePoints);
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", 
+                context.height, pricePoints);
 
         pricePoints.clear();
         for (const auto item : median_prices) {
@@ -80,7 +81,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      item.first.second, item.second);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", context.height, pricePoints);
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", 
+                context.height, pricePoints);
 
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
                          "bad-median-price-points");
@@ -100,8 +102,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // TODO: support multi asset/scoin cdp
-    CCdpForcedLiquidater forcedLiquidater(*this, context, receipts, fcoinGenesisAccount,
-        SYMB::WICC, SYMB::WUSD);
+    CCdpForcedLiquidater forcedLiquidater(*this, context, receipts, fcoinGenesisAccount, SYMB::WICC, SYMB::WUSD);
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount)) {
         return state.DoS(100, ERRORMSG("%s(), save fcoin genesis account failed! addr=%s", __func__,
