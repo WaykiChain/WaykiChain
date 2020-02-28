@@ -135,6 +135,8 @@ enum
     }
 
 #define READWRITE(obj)      (nSerSize += ::SerReadWrite(s, (obj), nType, nVersion, ser_action))
+#define READWRITE_FUNC(obj, func)      (nSerSize += func(s, (obj), nType, nVersion, ser_action))
+#define READWRITE_ENUM(value, IntType) READWRITE(VARINT((IntType&)value))
 
 #define READWRITE_CONVERT(SerializeType, originValue) { \
     SerializeType value = originValue; \
