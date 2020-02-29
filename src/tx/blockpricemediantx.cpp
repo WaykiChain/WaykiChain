@@ -266,11 +266,11 @@ bool CCdpForceLiquidator::Execute() {
 
         // b) sell bcoins for risk reserve pool
         // b.1) clean up cdp owner's pledged_amount
-        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_owed_scoins)) {
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_staked_bcoins)) {
             return state.DoS(100, ERRORMSG("%s(), unpledge bcoins failed! cdp={%s}", __func__, cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-failed");
         }
-        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_owed_scoins)) {
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_staked_bcoins)) {
             return state.DoS(100, ERRORMSG("$s(), sub unpledged bcoins failed! cdp={%s}", __func__, cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "deduct-bcoins-failed");
         }
