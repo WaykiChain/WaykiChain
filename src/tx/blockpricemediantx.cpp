@@ -72,7 +72,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      item.first.second, item.second);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n", 
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from cache, height: %d, price points: %s\n",
                 context.height, pricePoints);
 
         pricePoints.clear();
@@ -81,7 +81,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                                      item.first.second, item.second);
         }
 
-        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n", 
+        LogPrint(BCLog::ERROR, "CBlockPriceMedianTx::ExecuteTx, from median tx, height: %d, price points: %s\n",
                 context.height, pricePoints);
 
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, invalid median price points"), REJECT_INVALID,
@@ -103,6 +103,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
     // TODO: support multi asset/scoin cdp
     CCdpForcedLiquidater forcedLiquidater(*this, context, receipts, fcoinGenesisAccount, SYMB::WICC, SYMB::WUSD);
+    if (!forcedLiquidater.Execute()) return false;
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount)) {
         return state.DoS(100, ERRORMSG("%s(), save fcoin genesis account failed! addr=%s", __func__,
@@ -250,14 +251,32 @@ bool CCdpForcedLiquidater::Execute() {
             continue;
         }
 
+        CAccount cdpOwnerAccount;
+        if (!cw.accountCache.GetAccount(CUserID(cdp.owner_regid), cdpOwnerAccount)) {
+            return state.DoS(100, ERRORMSG("%s(), read CDP Owner account info error! uid=%s",
+                    __func__, cdp.owner_regid.ToString()), READ_ACCOUNT_FAIL, "bad-read-accountdb");
+        }
+
         count++;
         LogPrint(BCLog::CDP,
-                    "%s(), begin to force settle CDP (%s), currRiskReserveScoins: %llu, "
-                    "count: %u\n", __func__,
-                    cdp.ToString(), currRiskReserveScoins, count);
+                    "%s(), begin to force settle CDP {%s}, currRiskReserveScoins: %llu, "
+                    "index: %u\n", __func__,
+                    cdp.ToString(), currRiskReserveScoins, count - 1);
+        // a) get scoins from risk reserve pool for closeout
+        fcoinGenesisAccount.OperateBalance(SYMB::WUSD, BalanceOpType::SUB_FREE, cdp.total_owed_scoins);
 
-        // a) sell assets to get scoins and put them to risk reserve pool
+        // b) sell bcoins for risk reserve pool
+        // b.1) clean up cdp owner's pledged_amount
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, UNPLEDGE, cdp.total_owed_scoins)) {
+            return state.DoS(100, ERRORMSG("%s(), unpledge bcoins failed! cdp={%s}", __func__, cdp.ToString()),
+                    UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-failed");
+        }
+        if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_owed_scoins)) {
+            return state.DoS(100, ERRORMSG("$s(), sub unpledged bcoins failed! cdp={%s}", __func__, cdp.ToString()),
+                    UPDATE_ACCOUNT_FAIL, "deduct-bcoins-failed");
+        }
 
+        // b.2) sell bcoins to get scoins and put them to risk reserve pool
         uint256 assetSellOrderId;
         shared_ptr<CDEXOrderDetail> pAssetSellOrder;
         if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, cdp.total_staked_bcoins, scoinSymbol, assetSellOrderId, pAssetSellOrder))
@@ -265,7 +284,7 @@ bool CCdpForcedLiquidater::Execute() {
 
         totalSelloutBcoins += cdp.total_staked_bcoins;
 
-        // b) inflate WGRT coins to risk reserve pool and sell them to get WUSD  if necessary
+        // c) inflate WGRT coins to risk reserve pool and sell them to get WUSD  if necessary
         uint64_t bcoinsValueInScoin = uint64_t(double(cdp.total_staked_bcoins) * bcoinMedianPrice / PRICE_BOOST);
         if (bcoinsValueInScoin < cdp.total_owed_scoins) {  // 0 ~ 1
             uint64_t fcoinsValueToInflate = cdp.total_owed_scoins - bcoinsValueInScoin;
