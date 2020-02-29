@@ -103,17 +103,16 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
     // TODO: support multi asset/scoin cdp
     CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount, SYMB::WICC, SYMB::WUSD);
-    if (!forceLiquidator.Execute()) return false;
+    if (!forceLiquidator.Execute()) 
+        return false;
 
-    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount)) {
+    if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))
         return state.DoS(100, ERRORMSG("%s(), save fcoin genesis account failed! addr=%s", __func__,
                         fcoinGenesisAccount.keyid.ToAddress()), REJECT_INVALID, "set-tx-receipt-failed");
-    }
 
     if (!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
-
 
     return true;
 }
