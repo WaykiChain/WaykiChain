@@ -8,7 +8,7 @@
 
 using namespace dex;
 
-class CCdpForcedLiquidator {
+class CCdpForceLiquidator {
 public:
     // result:
 
@@ -16,7 +16,7 @@ public:
     uint64_t totalSelloutBcoins  = 0;
     uint64_t totalInflateFcoins  = 0;
 public:
-    CCdpForcedLiquidator(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
+    CCdpForceLiquidator(CBlockPriceMedianTx &txIn, CTxExecuteContext &contextIn,
         vector<CReceipt> &receiptsIn, CAccount &fcoinGenesisAccountIn,
         const TokenSymbol &assetSymbolIn, const TokenSymbol &scoinSymbolIn)
     : tx(txIn),
@@ -102,8 +102,8 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     // TODO: support multi asset/scoin cdp
-    CCdpForcedLiquidator forcedLiquidator(*this, context, receipts, fcoinGenesisAccount, SYMB::WICC, SYMB::WUSD);
-    if (!forcedLiquidator.Execute()) return false;
+    CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount, SYMB::WICC, SYMB::WUSD);
+    if (!forceLiquidator.Execute()) return false;
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount)) {
         return state.DoS(100, ERRORMSG("%s(), save fcoin genesis account failed! addr=%s", __func__,
@@ -147,10 +147,10 @@ Object CBlockPriceMedianTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CCdpForcedLiquidator
+// class CCdpForceLiquidator
 
 
-bool CCdpForcedLiquidator::Execute() {
+bool CCdpForceLiquidator::Execute() {
 
     CCacheWrapper &cw = *context.pCw; CValidationState &state = *context.pState;
 
@@ -342,7 +342,7 @@ bool CCdpForcedLiquidator::Execute() {
 }
 
 
-bool CCdpForcedLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
+bool CCdpForceLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
     uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut) {
 
     if (!fcoinGenesisAccount.OperateBalance(assetSymbol, BalanceOpType::ADD_FREE, amount)) {
@@ -368,7 +368,7 @@ bool CCdpForcedLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp, const
 }
 
 
-uint256 CCdpForcedLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol) {
+uint256 CCdpForceLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetSymbol) {
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << cdp.cdpid << assetSymbol;
@@ -376,7 +376,7 @@ uint256 CCdpForcedLiquidator::GenOrderId(const CUserCDP &cdp, TokenSymbol assetS
 }
 
 
-bool CCdpForcedLiquidator::ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice,
+bool CCdpForceLiquidator::ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, uint64_t fcoinMedianPrice,
     CdpRatioSortedCache::Map &cdps) {
 
     int32_t cdpIndex             = 0;
@@ -512,7 +512,7 @@ bool CCdpForcedLiquidator::ForceLiquidateCDPCompat(uint64_t bcoinMedianPrice, ui
 // gen orderid compat with testnet old data
 // Generally, index is an auto increase variable.
 // TODO: remove me if reset testnet.
-uint256 CCdpForcedLiquidator::GenOrderIdCompat(const uint256 &txid, uint32_t index) {
+uint256 CCdpForceLiquidator::GenOrderIdCompat(const uint256 &txid, uint32_t index) {
 
     CHashWriter ss(SER_GETHASH, 0);
     ss << txid << VARINT(index);
