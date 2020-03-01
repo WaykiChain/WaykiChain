@@ -221,7 +221,7 @@ string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d, "
         "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToDebugString(), llFees, valid_height,
-        asset.owner_uid.ToDebugString(), asset.asset_symbol, asset.name, asset.total_supply, asset.mintable);
+        asset.owner_uid.ToDebugString(), asset.asset_symbol, asset.asset_name, asset.total_supply, asset.mintable);
 }
 
 Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
@@ -425,7 +425,7 @@ bool CAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
             break;
         }
         case CAssetUpdateData::NAME: {
-            asset.name = update_data.get<string>();
+            asset.asset_name = update_data.get<string>();
             break;
         }
         case CAssetUpdateData::MINT_AMOUNT: {
