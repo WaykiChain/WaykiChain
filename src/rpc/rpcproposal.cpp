@@ -526,38 +526,36 @@ Value getsysparam(const Array& params, bool fHelp){
 }
 
 
-Value getcdpparam(const Array& params, bool fHelp){
-
+Value getcdpparam(const Array& params, bool fHelp) {
     if(fHelp || params.size() > 1){
-
         throw runtime_error(
-                "getcdpparam \"bcoin_symbol\" \"scoin_symbol\" \"param_name\" \n"
+                "getcdpparam $bcoin_scoin_pair $param_name \n"
                 "create proposal about param govern\n"
                 "\nArguments:\n"
-                "1.\"bcoin_symbol\":     (string,required) the base coin symbol\n"
-                "2.\"scoin_symbol\":     (string,required) the stable coin symbol\n"
-                "3.\"param_name\":      (string, optional) param name, list all parameters when it's absent \n"
+                "1.$bcoin_scoin_pair: (string,required) a CDP type denoted by boin:scoin symbol pair\n"
+                "2.$param_name:       (string, optional)a param name. list all parameters when $param_name is omitted\n"
 
                 "\nExamples:\n"
-                + HelpExampleCli("getcdpparam", "WICC WUSD")
+                + HelpExampleCli("getcdpparam", "WICC:WUSD")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("getcdpparam", "WICC WUSD")
+                + HelpExampleRpc("getcdpparam", "WICC:WUSD")
         );
-
     }
 
-    string bcoinSymbol = params[1].get_str();
-    string scoinSymbol = params[2].get_str();
-    CCdpCoinPair coinPair = CCdpCoinPair(bcoinSymbol,scoinSymbol) ;
+    string strBCoinScoin = params[0].get_str();
+    auto vCoinPair = split(strBCoinScoin, ":");
+    if (vCoinPair.size() != 2)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "ill-formatted CDP coin-pair: " + strBCoinScoin);
 
-    if(params.size() == 1){
+    CCdpCoinPair coinPair = CCdpCoinPair(vCoinPair[0], vCoinPair[1]);
 
-        string paramName = params[0].get_str() ;
+    if(params.size() == 2){
+        string paramName = params[1].get_str() ;
         CdpParamType cpt ;
         auto itr = paramNameToCdpParamTypeMap.find(paramName) ;
-        if( itr == paramNameToCdpParamTypeMap.end()){
+        if( itr == paramNameToCdpParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
-        }
+        
         cpt = std::get<1>(itr->second) ;
 
         uint64_t pv ;
@@ -578,13 +576,10 @@ Value getcdpparam(const Array& params, bool fHelp){
         }
         return obj ;
     }
-
-
 }
 
 Value listmintxfees(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0){
-
         throw runtime_error(
                 "listmintxfees\n"
                 "\nget all tx minimum fee.\n"

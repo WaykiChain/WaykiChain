@@ -467,4 +467,13 @@ inline json_spirit::Value ValueFromAmount(uint64_t amount) {
     return val;
 }
 
+template <size_t N>
+void splitString(string (&arr)[N], string str)
+{
+    int n = 0;
+    istringstream iss(str);
+    for (auto it = istream_iterator<string>(iss); it != istream_iterator<string>() && n < N; ++it, ++n)
+        arr[n] = *it;
+}
+
 #endif
