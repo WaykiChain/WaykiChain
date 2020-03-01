@@ -382,14 +382,14 @@ public:
 class CProposalStorageBean {
 
 public:
-    shared_ptr<CProposal> ptr_proposal ;
+    shared_ptr<CProposal> sp_proposal ;
 
     CProposalStorageBean() {}
 
-    CProposalStorageBean( shared_ptr<CProposal> ptr): ptr_proposal(ptr) {}
+    CProposalStorageBean( shared_ptr<CProposal> ptr): sp_proposal(ptr) {}
 
-    bool IsEmpty() const { return ptr_proposal == nullptr; }
-    void SetEmpty() { ptr_proposal = nullptr; }
+    bool IsEmpty() const { return sp_proposal == nullptr; }
+    void SetEmpty() { sp_proposal = nullptr; }
 
 
 
@@ -398,7 +398,7 @@ public:
         if(IsEmpty())
             return 1 ;
         else
-            return (*ptr_proposal).GetSerializeSize(nType, nVersion) + 1 ;
+            return (*sp_proposal).GetSerializeSize(nType, nVersion) + 1 ;
     }
 
     template <typename Stream>
@@ -407,7 +407,7 @@ public:
         uint8_t proposalType = ProposalType ::NULL_PROPOSAL ;
 
         if(!IsEmpty())
-            proposalType = ptr_proposal->proposal_type ;
+            proposalType = sp_proposal->proposal_type ;
         uint8_t pt = (uint8_t&)proposalType;
 
         ::Serialize(os, pt, nType, nVersion);
@@ -415,35 +415,35 @@ public:
         if(IsEmpty())
             return ;
 
-        switch (ptr_proposal->proposal_type) {
+        switch (sp_proposal->proposal_type) {
             case PARAM_GOVERN:
-                ::Serialize(os, *((CParamsGovernProposal   *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CParamsGovernProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
 
             case CDP_COIN_PAIR:
-                ::Serialize(os, *((CCdpCoinPairProposal *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CCdpCoinPairProposal *) (sp_proposal.get())), nType, nVersion);
                 break;
             case CDP_PARAM_GOVERN:
-                ::Serialize(os, *((CCdpParamGovernProposal *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CCdpParamGovernProposal *) (sp_proposal.get())), nType, nVersion);
                 break;
             case GOVERNOR_UPDATE:
-                ::Serialize(os, *((CGovernorUpdateProposal *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CGovernorUpdateProposal *) (sp_proposal.get())), nType, nVersion);
                 break;
             case DEX_SWITCH:
-                ::Serialize(os, *((CDexSwitchProposal      *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CDexSwitchProposal      *) (sp_proposal.get())), nType, nVersion);
                 break;
             case MINER_FEE_UPDATE:
-                ::Serialize(os, *((CMinerFeeProposal       *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CMinerFeeProposal       *) (sp_proposal.get())), nType, nVersion);
                 break;
             case COIN_TRANSFER:
-                ::Serialize(os, *((CCoinTransferProposal   *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CCoinTransferProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             case BP_COUNT_UPDATE:
-                ::Serialize(os, *((CBPCountUpdateProposal   *) (ptr_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CBPCountUpdateProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
-                                                  ptr_proposal->proposal_type));
+                                                  sp_proposal->proposal_type));
         }
 
 
@@ -461,50 +461,50 @@ public:
         switch(proposalType) {
 
             case PARAM_GOVERN: {
-                ptr_proposal = std::make_shared<CParamsGovernProposal>();
-                ::Unserialize(is, *((CParamsGovernProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CParamsGovernProposal>();
+                ::Unserialize(is, *((CParamsGovernProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case CDP_COIN_PAIR: {
-                ptr_proposal = std::make_shared<CCdpCoinPairProposal>();
-                ::Unserialize(is, *((CCdpCoinPairProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CCdpCoinPairProposal>();
+                ::Unserialize(is, *((CCdpCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case CDP_PARAM_GOVERN: {
-                ptr_proposal = std::make_shared<CCdpParamGovernProposal>();
-                ::Unserialize(is, *((CCdpParamGovernProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CCdpParamGovernProposal>();
+                ::Unserialize(is, *((CCdpParamGovernProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case GOVERNOR_UPDATE: {
-                ptr_proposal = std::make_shared<CGovernorUpdateProposal>();
-                ::Unserialize(is, *((CGovernorUpdateProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CGovernorUpdateProposal>();
+                ::Unserialize(is, *((CGovernorUpdateProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case DEX_SWITCH: {
-                ptr_proposal = std::make_shared<CDexSwitchProposal>();
-                ::Unserialize(is, *((CDexSwitchProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CDexSwitchProposal>();
+                ::Unserialize(is, *((CDexSwitchProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case MINER_FEE_UPDATE: {
-                ptr_proposal = std::make_shared<CMinerFeeProposal>();
-                ::Unserialize(is, *((CMinerFeeProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std::make_shared<CMinerFeeProposal>();
+                ::Unserialize(is, *((CMinerFeeProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case COIN_TRANSFER: {
-                ptr_proposal = std:: make_shared<CCoinTransferProposal>();
-                ::Unserialize(is,  *((CCoinTransferProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std:: make_shared<CCoinTransferProposal>();
+                ::Unserialize(is,  *((CCoinTransferProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case BP_COUNT_UPDATE: {
-                ptr_proposal = std:: make_shared<CBPCountUpdateProposal>();
-                ::Unserialize(is,  *((CBPCountUpdateProposal *)(ptr_proposal.get())), nType, nVersion);
+                sp_proposal = std:: make_shared<CBPCountUpdateProposal>();
+                ::Unserialize(is,  *((CBPCountUpdateProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
@@ -512,7 +512,7 @@ public:
                 throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
                                                   nProposalTye));
         }
-        ptr_proposal->proposal_type = proposalType;
+        sp_proposal->proposal_type = proposalType;
     }
 
 };

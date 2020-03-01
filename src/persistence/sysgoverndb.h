@@ -88,7 +88,7 @@ public:
 
         CProposalStorageBean bean ;
         if(proposalsCache.GetData(txid, bean) ){
-            proposal = bean.ptr_proposal ;
+            proposal = bean.sp_proposal ;
             return true;
         }
 

@@ -55,7 +55,7 @@ uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw
 
 
 string CProposalRequestTx::ToString(CAccountDBCache &accountCache) {
-    string proposalString = proposal.ptr_proposal->ToString() ;
+    string proposalString = proposal.sp_proposal->ToString() ;
     return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
                      txUid.ToString(), valid_height);
@@ -64,7 +64,7 @@ string CProposalRequestTx::ToString(CAccountDBCache &accountCache) {
 Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
-    result.push_back(Pair("proposal", proposal.ptr_proposal->ToJson()));
+    result.push_back(Pair("proposal", proposal.sp_proposal->ToJson()));
 
     return result;
 }  // json-rpc usage
@@ -75,7 +75,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
      if (!CheckFee(context)) return false;
 
-     if(!proposal.ptr_proposal->CheckProposal(context )){
+     if(!proposal.sp_proposal->CheckProposal(context )){
          return false ;
      }
 
@@ -115,9 +115,9 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
                           WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
      }
 
-     auto newProposal = proposal.ptr_proposal->GetNewInstance() ;
+     auto newProposal = proposal.sp_proposal->GetNewInstance() ;
      newProposal->expire_block_height = context.height + expireBlockCount ;
-     newProposal->need_governor_count = GetGovernorApprovalMinCount(proposal.ptr_proposal->proposal_type, cw);
+     newProposal->need_governor_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
          return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
