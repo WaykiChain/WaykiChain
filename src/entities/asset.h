@@ -118,6 +118,24 @@ public:
     }
 };
 
+enum AssetType : uint8_t {
+    NULL_ASSET      = 0
+    NIA             = 1, //natively issued asset
+    DIA             = 2, //decentralized issued asset
+    UIA             = 3, //user issued asset
+    MPA             = 4  //market pegged asset
+};
+
+enum AssetPermType : uint8_t {
+    NULL_ASSET_PERM = 0,
+    DEX_BASE        = 1,
+    DEX_QUOTE       = 2,
+    CDP_IN          = 3,
+    CDP_OUT         = 4,
+    PRICE_FEED      = 5,
+    XCHAIN          = 6 
+};
+
 class CBaseAsset {
 public:
     TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
@@ -171,7 +189,7 @@ class CAsset: public CBaseAsset {
 public:
     uint64_t min_order_amount;  // min amount for submit order tx, 0 is unlimited
     uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimited
-    
+
 public:
     CAsset(): CBaseAsset(), min_order_amount(0), max_order_amount(0) {}
 
