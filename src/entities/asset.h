@@ -214,7 +214,7 @@ public:
 
     CAsset(CBaseAsset *pBaseAsset): CBaseAsset(*pBaseAsset), min_order_amount(0), max_order_amount(0) {}
 
-    CAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
+    CAsset(const TokenSymbol& symbolIn, const TokenName& nameIn, const CUserID& ownerUseridIn,
            uint64_t totalSupplyIn, bool mintableIn, uint64_t minOrderAmountIn, uint64_t maxOrderAmountIn)
         : CBaseAsset(symbolIn, nameIn, ownerUseridIn, totalSupplyIn, mintableIn),
           min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
@@ -224,7 +224,7 @@ public:
         READWRITE(asset_name); 
         READWRITE((uint8_t &) asset_type);
         READWRITE(VARINT(asset_perms_sum));
-        READWRITE(VARINT(owner_uid));
+        READWRITE(owner_uid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
         
