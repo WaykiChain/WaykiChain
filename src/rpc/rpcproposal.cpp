@@ -299,9 +299,9 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
                 "                         2 stand for remove\n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitfeedcoinproposal", "0-1 WICC WUSD 1  WICC:1:WI")
+                + HelpExampleCli("submitfeedcoinpairproposal", "0-1 WICC WUSD 1  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitfeedcoinproposal", "0-1 WICC WUSD 1  WICC:1:WI")
+                + HelpExampleRpc("submitfeedcoinpairproposal", "0-1 WICC WUSD 1  WICC:1:WI")
 
         );
     }

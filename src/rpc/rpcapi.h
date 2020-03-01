@@ -102,7 +102,7 @@ extern Value submitparamgovernproposal(const Array& params, bool fHelp) ;
 extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitdexquotecoinproposal(const Array& params, bool fHelp) ;
-extern Value submitfeedcoinproposal(const Array& params, bool fHelp);
+extern Value submitfeedcoinpairproposal(const Array& params, bool fHelp);
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 extern Value submitbpcountupdateproposal(const Array& params, bool fHelp) ;
 
