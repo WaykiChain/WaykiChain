@@ -11,19 +11,19 @@
 #include "entities/proposal.h"
 
 
-class CProposalCreateTx: public CBaseTx {
+class CProposalRequestTx: public CBaseTx {
 public:
     CProposalStorageBean proposal;
 
 public:
-    CProposalCreateTx(): CBaseTx(PROPOSAL_REQUEST_TX) {}
+    CProposalRequestTx(): CBaseTx(PROPOSAL_REQUEST_TX) {}
 
-    CProposalCreateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+    CProposalRequestTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                  uint64_t feesIn, CProposalStorageBean proposalIn )
             : CBaseTx(PROPOSAL_REQUEST_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
               proposal(proposalIn) {}
 
-    ~CProposalCreateTx() {}
+    ~CProposalRequestTx() {}
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(this->nVersion));
@@ -41,16 +41,13 @@ public:
            << fee_symbol <<proposal;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalCreateTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CProposalRequestTx>(*this); }
     virtual string ToString(CAccountDBCache &accountCache);            // logging usage
     virtual Object ToJson(const CAccountDBCache &accountCache) const;  // json-rpc usage
 
     virtual bool CheckTx(CTxExecuteContext &context);
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
-
-
-
 
 class CProposalApprovalTx: public CBaseTx {
 public:

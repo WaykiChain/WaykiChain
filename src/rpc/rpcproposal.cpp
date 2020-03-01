@@ -126,7 +126,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
     proposal.param_values.push_back(std::make_pair(type, paramValue));
 
-    CProposalCreateTx tx ;
+    CProposalRequestTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol;
@@ -183,7 +183,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     proposal.param_values.push_back(std::make_pair(type, paramValue));
     proposal.coinPair = CCdpCoinPair(bcoinSymbol, scoinSymbol) ;
 
-    CProposalCreateTx tx ;
+    CProposalRequestTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol;
@@ -230,7 +230,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     proposal.governor_regid = governorId ;
     proposal.operate_type = ProposalOperateType(operateType);
 
-    CProposalCreateTx tx ;
+    CProposalRequestTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
@@ -276,7 +276,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     proposal.dexid = dexId ;
     proposal.operate_type = ProposalOperateType(operateType);
 
-    CProposalCreateTx tx ;
+    CProposalRequestTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
@@ -354,7 +354,7 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     proposal.bp_count = bpCount ;
     proposal.launch_height = launchHeight ;
 
-    CProposalCreateTx tx ;
+    CProposalRequestTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
@@ -399,7 +399,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     proposal.fee_symbol = feeInfo.symbol;
     proposal.fee_sawi_amount = feeInfo.GetSawiAmount();
 
-    CProposalCreateTx tx ;
+    CProposalRequestTx tx ;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
@@ -458,7 +458,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     proposal.token      = transferInfo.symbol;
     proposal.amount     = transferInfo.GetSawiAmount();
 
-    CProposalCreateTx tx;
+    CProposalRequestTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol   = fee.symbol;

@@ -51,14 +51,14 @@ uint8_t GetNeedGovernorCount(ProposalType proposalType, CCacheWrapper& cw ){
 }
 
 
-string CProposalCreateTx::ToString(CAccountDBCache &accountCache) {
+string CProposalRequestTx::ToString(CAccountDBCache &accountCache) {
     string proposalString = proposal.proposalPtr->ToString() ;
     return strprintf("txType=%s, hash=%s, ver=%d, %s, llFees=%ld, keyid=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, proposalString, llFees,
                      txUid.ToString(), valid_height);
 }          // logging usage
 
-Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
+Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 
     Object result = CBaseTx::ToJson(accountCache);
     result.push_back(Pair("proposal", proposal.proposalPtr->ToJson()));
@@ -66,7 +66,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
     return result;
 }  // json-rpc usage
 
- bool CProposalCreateTx::CheckTx(CTxExecuteContext &context) {
+ bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
 
      IMPLEMENT_DEFINE_CW_STATE
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
@@ -78,7 +78,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount))
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, read account failed"), REJECT_INVALID,
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, read account failed"), REJECT_INVALID,
                           "bad-getaccount");
 
      CPubKey pubKey = (txUid.is<CPubKey>() ? txUid.get<CPubKey>() : srcAccount.owner_pubkey);
@@ -87,28 +87,28 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 
- bool CProposalCreateTx::ExecuteTx(CTxExecuteContext &context) {
+ bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
 
      IMPLEMENT_DEFINE_CW_STATE
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, read source addr account info error"),
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
                           READ_ACCOUNT_FAIL, "bad-read-accountdb");
      }
      if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, account has insufficient funds"),
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
                           UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
      }
 
      if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set account info error"),
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set account info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
      uint64_t expireBlockCount ;
 
      if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expireBlockCount)) {
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx,get proposal expire block count error"),
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                           WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
      }
 
@@ -117,7 +117,7 @@ Object CProposalCreateTx::ToJson(const CAccountDBCache &accountCache) const {
      newProposal->need_governor_count = GetNeedGovernorCount(proposal.proposalPtr->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::ExecuteTx, set proposal info error"),
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
      }
     return true ;

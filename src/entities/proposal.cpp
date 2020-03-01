@@ -36,11 +36,11 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
      CValidationState &state = *context.pState;
 
      if(param_values.size() == 0)
-            return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty"), REJECT_INVALID,
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, params list is empty"), REJECT_INVALID,
                         "params-empty");
        for(auto pa: param_values){
            if(SysParamTable.count(SysParamType(pa.first)) == 0){
-               return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
+               return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
            }
        }
@@ -78,11 +78,11 @@ bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {
     CValidationState &state = *context.pState;
 
     if (param_values.size() == 0 || param_values.size() > 50)
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, params list is empty or size >50"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, params list is empty or size >50"), REJECT_INVALID,
                          "params-empty");
     for (auto pa: param_values) {
         if (SysParamTable.count(SysParamType(pa.first)) == 0) {
-            return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, parameter name (%s) is not in sys params list ",
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ",
                                            pa.first),
                              REJECT_INVALID, "params-error");
         }
@@ -131,19 +131,19 @@ bool CGovernorUpdateProposal::ExecuteProposal(CTxExecuteContext& context){
     IMPLEMENT_DEFINE_CW_STATE
 
      if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
                           "operate_type-illegal");
      }
 
      CAccount governor_account ;
      if(!cw.accountCache.GetAccount(governor_regid,governor_account)){
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, governor regid(%s) is not exist!", governor_regid.ToString()), REJECT_INVALID,
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, governor regid(%s) is not exist!", governor_regid.ToString()), REJECT_INVALID,
                           "governor-not-exist");
      }
      vector<CRegID> governers ;
 
      if(operate_type == ProposalOperateType ::DISABLE&&!cw.sysGovernCache.CheckIsGovernor(governor_regid)){
-         return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, regid(%s) is not a governor!", governor_regid.ToString()), REJECT_INVALID,
+         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a governor!", governor_regid.ToString()), REJECT_INVALID,
                           "regid-not-governor");
      }
     return true ;
@@ -154,12 +154,12 @@ bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
     IMPLEMENT_DEFINE_CW_STATE
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
     if((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
        (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE)){
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
     }
 
@@ -189,18 +189,18 @@ bool CDexSwitchProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, operate type error!"), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type error!"), REJECT_INVALID,
                          "operate-type-error");
     }
 
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
                          "dexoperator-not-exist");
 
     if((dexOperator.activated && operate_type == ProposalOperateType::ENABLE)||
         (!dexOperator.activated && operate_type == ProposalOperateType::DISABLE)){
-        return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is activated or not activated already !", dexid), REJECT_INVALID,
                          "need-not-update");
     }
 
@@ -213,26 +213,26 @@ bool CMinerFeeProposal:: CheckProposal(CTxExecuteContext& context ) {
     CValidationState& state = *context.pState ;
 
   if(!kFeeSymbolSet.count(fee_symbol)) {
-      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
+      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
                        REJECT_INVALID,
                        "feesymbol-error");
   }
 
   auto itr = kTxFeeTable.find(tx_type);
   if(itr == kTxFeeTable.end()){
-      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, the tx type (%d) is invalid!", tx_type),
+      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) is invalid!", tx_type),
                        REJECT_INVALID,
                        "txtype-error");
   }
 
   if(!std::get<5>(itr->second)){
-      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, the tx type (%d) miner fee can't be updated!", tx_type),
+      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be updated!", tx_type),
                        REJECT_INVALID,
                        "can-not-update");
   }
 
   if(fee_sawi_amount == 0 ){
-      return state.DoS(100, ERRORMSG("CProposalCreateTx::CheckTx, the tx type (%d) miner fee can't be zero", tx_type),
+      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be zero", tx_type),
                        REJECT_INVALID,
                        "can-not-be-zero");
   }

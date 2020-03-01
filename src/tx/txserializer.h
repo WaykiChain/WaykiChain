@@ -122,7 +122,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CDEXOperatorRegisterTx&)tx, serType, version); break;
 
         case PROPOSAL_REQUEST_TX:
-            ::Serialize(os, (const CProposalCreateTx&)tx,serType, version); break ;
+            ::Serialize(os, (const CProposalRequestTx&)tx,serType, version); break ;
         case PROPOSAL_APPROVAL_TX:
             ::Serialize(os, (const CProposalApprovalTx&)tx,serType, version); break ;
 
@@ -325,8 +325,8 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
 
 
         case PROPOSAL_REQUEST_TX: {
-            pBaseTx = std::make_shared<CProposalCreateTx>();
-            ::Unserialize(is, *((CProposalCreateTx *)(pBaseTx.get())), serType, version);
+            pBaseTx = std::make_shared<CProposalRequestTx>();
+            ::Unserialize(is, *((CProposalRequestTx *)(pBaseTx.get())), serType, version);
             break;
         }
         case PROPOSAL_APPROVAL_TX: {
