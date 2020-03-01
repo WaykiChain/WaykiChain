@@ -22,7 +22,7 @@ class CValidationState ;
 class CTxExecuteContext ;
 using namespace json_spirit;
 
-enum ProposalType: uint8_t{
+enum ProposalType: uint8_t {
     NULL_PROPOSAL     = 0,
     PARAM_GOVERN      = 1,
     GOVERNOR_UPDATE   = 2,
@@ -100,11 +100,11 @@ public:
     static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
         size_t symbolSize = symbol.size();
         if (symbolSize < 2 || symbolSize > 7)
-            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
+            return make_shared<string>(strprintf("symbol len=%d, but it must be within range[%d, %d]",
                                                  symbolSize, 2, 7));
 
         for (auto ch : symbol) {
-            if ( ch<'A' || ch > 'Z')
+            if ( ch < 'A' || ch > 'Z')
                 return make_shared<string>("there is invalid char in symbol");
         }
         return nullptr;
@@ -139,13 +139,11 @@ public:
     CDexQuoteCoinProposal(): CProposal(ProposalType ::DEX_QUOTE_COIN) {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height)) ;
-            READWRITE(approval_min_count) ;
-            READWRITE(coin_symbol) ;
-            READWRITE((uint8_t&)op_type);
+        READWRITE(VARINT(expire_block_height)) ;
+        READWRITE(approval_min_count) ;
+        READWRITE(coin_symbol) ;
+        READWRITE((uint8_t&)op_type);
     )
-
-
 
     // @return nullptr if succeed, else err string
     static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
@@ -174,11 +172,10 @@ public:
                 strprintf("op_type=%d", op_type);
     }
 
-
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexQuoteCoinProposal>(*this); } ;
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
 };
 
@@ -332,7 +329,7 @@ public:
     string ToString() override {
         string baseString = CProposal::ToString() ;
         return strprintf("%s, tx_type=%d, fee_symbo=%s ,fee_sawi_amount=%d",
-                baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
+                        baseString, tx_type, fee_symbol,fee_sawi_amount ) ;
 
     }
 };
@@ -761,7 +758,7 @@ public:
                 throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
                                                   nProposalTye));
         }
-        
+
         sp_proposal->proposal_type = proposalType;
     }
 

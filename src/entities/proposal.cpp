@@ -369,11 +369,11 @@ bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
 
     CValidationState& state = *context.pState ;
 
-    if( bp_count == 0 || bp_count>=255)
+    if( bp_count == 0 || bp_count >= 255)
         return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,bp_count must be between 0 and 255"),
                 REJECT_INVALID,"bad-bp-count") ;
 
-    if(launch_height < (uint32_t)context.height +3600){
+    if(launch_height < (uint32_t)context.height + 3600){
         return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,launch_height must more than current height + 3600"),
                          REJECT_INVALID,"bad-bp-count") ;
 
