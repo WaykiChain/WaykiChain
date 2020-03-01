@@ -81,9 +81,9 @@ public:
     CParamsGovernProposal(): CProposal(ProposalType::PARAM_GOVERN){}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE(param_values);
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(param_values);
     );
 
     virtual Object ToJson() override {
@@ -117,8 +117,9 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    
 };
 
 
@@ -126,15 +127,15 @@ public:
 class CGovernorUpdateProposal: public CProposal{
 public:
     CRegID governor_regid ;
-     ProposalOperateType operate_type  = ProposalOperateType::NULL_OPT;
+    ProposalOperateType operate_type  = ProposalOperateType::NULL_OPT;
 
     CGovernorUpdateProposal(): CProposal(ProposalType::GOVERNOR_UPDATE){}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE(governor_regid);
-            READWRITE((uint8_t&)operate_type);
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(governor_regid);
+        READWRITE((uint8_t&)operate_type);
     );
 
     Object ToJson() override {
@@ -152,27 +153,29 @@ public:
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernorUpdateProposal>(*this); }
-    bool ExecuteProposal(CTxExecuteContext& context) override;
+    
     bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    
 };
 
 class CDexSwitchProposal: public CProposal{
 public:
     uint32_t dexid;
-    ProposalOperateType operate_type = ProposalOperateType ::ENABLE;
+    ProposalOperateType operate_type = ProposalOperateType::ENABLE;
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE(VARINT(dexid));
-            READWRITE((uint8_t&)operate_type);
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(VARINT(dexid));
+        READWRITE((uint8_t&)operate_type);
     );
 
     CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
 
-    bool ExecuteProposal(CTxExecuteContext& context ) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context ) override;
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -197,12 +200,12 @@ public:
     CMinerFeeProposal() : CProposal(ProposalType::MINER_FEE_UPDATE) {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE((uint8_t&)tx_type);
-            READWRITE(fee_symbol);
-            READWRITE(VARINT(fee_sawi_amount));
-            )
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE((uint8_t&)tx_type);
+        READWRITE(fee_symbol);
+        READWRITE(VARINT(fee_sawi_amount));
+    )
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
 
@@ -227,7 +230,6 @@ public:
 };
 
 class CCoinTransferProposal: public CProposal {
-
 public:
     uint64_t amount ;
     TokenSymbol token ;
@@ -235,21 +237,21 @@ public:
     CUserID to_uid ;
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE(VARINT(amount));
-            READWRITE(token) ;
-            READWRITE(from_uid) ;
-            READWRITE(to_uid) ;
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(VARINT(amount));
+        READWRITE(token) ;
+        READWRITE(from_uid) ;
+        READWRITE(to_uid) ;
     );
 
 
-    CCoinTransferProposal(): CProposal(ProposalType::COIN_TRANSFER){}
+    CCoinTransferProposal(): CProposal(ProposalType::COIN_TRANSFER) {}
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCoinTransferProposal>(*this); } ;
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -264,23 +266,20 @@ public:
         string baseString = CProposal::ToString();
         return baseString ;
     }
-
-
 };
 
 class CCdpParamGovernProposal: public CProposal {
-
 public:
     vector<std::pair<uint8_t, uint64_t>> param_values;
-    CCdpCoinPair coinPair ;
+    CCdpCoinPair coin_pair ;
 
-    CCdpParamGovernProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN){}
+    CCdpParamGovernProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN) {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE(param_values);
-            READWRITE(coinPair);
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(param_values);
+        READWRITE(coin_pair);
     );
 
     virtual Object ToJson() override {
@@ -315,8 +314,8 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpParamGovernProposal>(*this); } ;
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
 };
 
@@ -327,11 +326,10 @@ public:
 
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height));
-            READWRITE(approval_min_count);
-            READWRITE(bp_count);
-            READWRITE(VARINT(launch_height));
-
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(bp_count);
+        READWRITE(VARINT(launch_height));
     );
 
 

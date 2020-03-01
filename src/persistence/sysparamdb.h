@@ -129,7 +129,7 @@ public:
     }
 
     bool SetCdpParam(const CCdpCoinPair& coinPair, const CdpParamType& paramkey, const uint64_t& value) {
-        auto key = std::make_pair(coinPair,paramkey);
+        auto key = std::make_pair(coinPair, paramkey);
         return cdpParamCache.SetData(key, value);
     }
     bool SetMinerFee( const TxType txType, const string feeSymbol, const uint64_t feeSawiAmount) {

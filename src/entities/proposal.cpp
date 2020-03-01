@@ -56,13 +56,13 @@ bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
         if(itr == CdpParamTable.end())
             return false ;
 
-        if(!cw.sysParamCache.SetCdpParam(coinPair,CdpParamType(pa.first), pa.second)){
+        if(!cw.sysParamCache.SetCdpParam(coin_pair,CdpParamType(pa.first), pa.second)){
             return false ;
         }
         if(pa.first == CdpParamType ::CDP_INTEREST_PARAM_A
            || pa.first == CdpParamType::CDP_INTEREST_PARAM_B){
 
-            if(!cw.sysParamCache.SetCdpInterestParam(coinPair, CdpParamType(pa.first), context.height, pa.second)){
+            if(!cw.sysParamCache.SetCdpInterestParam(coin_pair, CdpParamType(pa.first), context.height, pa.second)){
                 return false ;
             }
 
@@ -70,7 +70,6 @@ bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
     }
 
     return true ;
-
 }
 
 bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {

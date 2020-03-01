@@ -181,7 +181,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
 
     proposal.param_values.push_back(std::make_pair(type, paramValue));
-    proposal.coinPair = CCdpCoinPair(bcoinSymbol, scoinSymbol) ;
+    proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol) ;
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
@@ -537,7 +537,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
 
     CCdpCoinPair coinPair = CCdpCoinPair(vCoinPair[0], vCoinPair[1]);
 
-    if(params.size() == 2){
+    if (params.size() == 2) {
         string paramName = params[1].get_str() ;
         CdpParamType cpt ;
         auto itr = paramNameToCdpParamTypeMap.find(paramName) ;
@@ -554,7 +554,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         Object obj ;
         obj.push_back(Pair(paramName, pv));
         return obj;
-    }else{
+    } else {
         Object obj;
         for(auto kv:paramNameToCdpParamTypeMap){
             auto paramName = kv.first ;
