@@ -72,9 +72,9 @@ public:
             return 1 ;
 
         vector<CRegID> regids;
-        if(governorsCache.GetData(regids)){
-            uint8_t cnt = (regids.size()/3)*2 +2 ;
-            return cnt>regids.size()?regids.size():cnt;
+        if (governorsCache.GetData(regids)) {
+            uint8_t cnt = regids.size() * 2 / 3 + 2;
+            return (cnt > regids.size() ? regids.size() : cnt);
         } 
             
         return 1 ;
