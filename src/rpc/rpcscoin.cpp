@@ -432,18 +432,18 @@ Value getusercdp(const Array& params, bool fHelp){
     return obj;
 }
 
-Value getcdp(const Array& params, bool fHelp){
+Value getcdpinfo(const Array& params, bool fHelp){
     if (fHelp || params.size() < 1 || params.size() > 2) {
         throw runtime_error(
-            "getcdp \"cdp_id\"\n"
-            "\nget CDP by its CDP_ID\n"
+            "getcdpinfo $cdp_id\n"
+            "\nget CDP by its $cdp_id\n"
             "\nArguments:\n"
-            "1.\"cdp_id\": (string, required) cdp_id\n"
+            "1.\"$cdp_id\": (string, required) cdp_id\n"
             "\nResult:\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+            + HelpExampleCli("getcdpinfo", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getcdp", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
+            + HelpExampleRpc("getcdpinfo", "\"c01f0aefeeb25fd6afa596f27ee3a1e861b657d2e1c341bfd1c412e87d9135c8\"\n")
         );
     }
 
@@ -707,23 +707,23 @@ extern Value getasset(const Array& params, bool fHelp) {
     return obj;
 }
 
-extern Value getassets(const Array& params, bool fHelp) {
+extern Value listassets(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 0) {
         throw runtime_error(
-            "getassets\n"
+            "listassets\n"
             "\nget all assets.\n"
             "\nArguments:\n"
             "\nResult: a list of assets\n"
             "\nExamples:\n"
-            + HelpExampleCli("getassets", "")
+            + HelpExampleCli("listassets", "")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getassets", "")
+            + HelpExampleRpc("listassets", "")
         );
     }
 
     auto pAssetsIt = pCdMan->pAssetCache->CreateUserAssetsIterator();
     if (!pAssetsIt) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, "get all user issued assets iterator error!");
+        throw JSONRPCError(RPC_INVALID_PARAMS, "List all user-issued assets iterator error!");
     }
 
     Array assetArray;
@@ -738,21 +738,19 @@ extern Value getassets(const Array& params, bool fHelp) {
 }
 
 
-extern Value getcdpcoinpairs(const Array& params, bool fHelp) {
+extern Value listcdpcoinpairs(const Array& params, bool fHelp) {
      if (fHelp || params.size() > 0) {
         throw runtime_error(
-            "getcdpcoinpairs\n"
+            "listcdpcoinpairs\n"
             "\nget all cdp coin pair.\n"
             "\nArguments:\n"
             "\nResult: a list of cdp_coin_pairs\n"
             "\nExamples:\n"
-            + HelpExampleCli("getcdpcoinpairs", "")
+            + HelpExampleCli("listcdpcoinpairs", "")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getcdpcoinpairs", "")
+            + HelpExampleRpc("listcdpcoinpairs", "")
         );
     }
-
-
 
     const map<CCdpCoinPair, CdpCoinPairStatus> &cdpCoinPairMap = pCdMan->pCdpCache->GetCdpCoinPairMap();
 

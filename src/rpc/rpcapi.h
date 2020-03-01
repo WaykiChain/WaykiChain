@@ -60,7 +60,7 @@ extern Value submitcdpredeemtx(const Array& params, bool fHelp);
 extern Value submitcdpliquidatetx(const Array& params, bool fHelp);
 
 extern Value getscoininfo(const Array& params, bool fHelp);
-extern Value getcdp(const Array& params, bool fHelp);
+extern Value getcdpinfo(const Array& params, bool fHelp);
 extern Value getusercdp(const Array& params, bool fHelp);
 
 extern Value listcdps(const Array& params, bool fHelp);
@@ -70,10 +70,10 @@ extern Value listcdpstoliquidate(const Array& params, bool fHelp);
 extern Value submitassetissuetx(const Array& params, bool fHelp);
 extern Value submitassetupdatetx(const Array& params, bool fHelp);
 
-extern Value getasset(const Array& params, bool fHelp);
-extern Value getassets(const Array& params, bool fHelp);
+extern Value getassetinfo(const Array& params, bool fHelp);
+extern Value listassets(const Array& params, bool fHelp);
 
-extern Value getcdpcoinpairs(const Array& params, bool fHelp);
+extern Value listcdpcoinpairs(const Array& params, bool fHelp);
 
 /******************************* DEX *******************************************/
 extern Value submitdexbuylimitordertx(const Array& params, bool fHelp);
@@ -217,8 +217,8 @@ extern Value getusercdp(const json_spirit::Array& params, bool fHelp);
 extern Value submitassetissuetx(const json_spirit::Array& params, bool fHelp);
 extern Value submitassetupdatetx(const json_spirit::Array& params, bool fHelp);
 
-extern Value getasset(const json_spirit::Array& params, bool fHelp);
-extern Value getassets(const json_spirit::Array& params, bool fHelp);
+extern Value getassetinfo(const json_spirit::Array& params, bool fHelp);
+extern Value listassets(const json_spirit::Array& params, bool fHelp);
 
 extern Value jsontobinwasm(const json_spirit::Array& params, bool fHelp);
 extern Value bintojsonwasm(const json_spirit::Array& params, bool fHelp);

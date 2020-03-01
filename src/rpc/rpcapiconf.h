@@ -119,7 +119,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getscoininfo",                   &getscoininfo,                      true,       false,      false   },
     { "getcdp",                         &getcdp,                            true,       false,      false   },
     { "getusercdp",                     &getusercdp,                        true,       false,      false   },
-    { "getcdpcoinpairs",                &getcdpcoinpairs,                   true,       false,      false   },
+    { "listcdpcoinpairs",                &listcdpcoinpairs,                   true,       false,      false   },
 
     { "getsysparam",                    &getsysparam,                       true,       false,      false   },
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
@@ -145,8 +145,8 @@ static const CRPCCommand vRPCCommands[] =
     /* for asset */
     { "submitassetissuetx",             &submitassetissuetx,                false,      false,      false   },
     { "submitassetupdatetx",            &submitassetupdatetx,               false,      false,      false   },
-    { "getasset",                       &getasset,                          true,       false,      false   },
-    { "getassets",                      &getassets,                         true,       false,      false   },
+    { "getassetinfo",                   &getassetinfo,                      true,       false,      false   },
+    { "listassets",                     &listassets,                        true,       false,      false   },
     /* for wasm */
     { "submitwasmcontractdeploytx",     &submitwasmcontractdeploytx,        true,       false,      true    },
     { "submitwasmcontractcalltx",       &submitwasmcontractcalltx,          true,       false,      true    },
