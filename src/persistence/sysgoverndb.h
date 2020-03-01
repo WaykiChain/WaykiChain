@@ -54,17 +54,16 @@ public:
 
 
     bool CheckIsGovernor(const CRegID &candidateRegId) {
-        if (!governorsCache.HaveData()) {
-            return candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2);
-        } else {
-            vector<CRegID> regids;
-            if(governorsCache.GetData(regids)){
-                auto itr = find(regids.begin(), regids.end(), candidateRegId);
-                return ( itr != regids.end());
-            }
-            else
-                return false ;
+        if (!governorsCache.HaveData())
+            return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+
+        vector<CRegID> regids;
+        if(governorsCache.GetData(regids)){
+            auto itr = find(regids.begin(), regids.end(), candidateRegId);
+            return ( itr != regids.end() );
         }
+            
+        return false ;
     }
 
 
