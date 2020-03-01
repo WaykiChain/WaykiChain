@@ -726,14 +726,14 @@ extern Value listassets(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMS, "List all user-issued assets iterator error!");
     }
 
-    Array assetArray;
+    Array arrAssets;
     for (pAssetsIt->First(); pAssetsIt->IsValid(); pAssetsIt->Next()) {
-        assetArray.push_back(AssetToJson(*pCdMan->pAccountCache, pAssetsIt->GetAsset()));
+        arrAssets.push_back(AssetToJson(*pCdMan->pAccountCache, pAssetsIt->GetAsset()));
     }
 
     Object obj;
-    obj.push_back(Pair("count",     assetArray.size()));
-    obj.push_back(Pair("assets",    assetArray));
+    obj.push_back(Pair("count",     arrAssets.size()));
+    obj.push_back(Pair("assets",    arrAssets));
     return obj;
 }
 
