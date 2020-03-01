@@ -36,9 +36,9 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                                 const CUtxoInput &input, CUtxoCondStorageBean &cond) {
     CValidationState &state = *context.pState;
 
-    switch (cond.utxoCondPtr->cond_type) {
+    switch (cond.ptr_utxo_cond->cond_type) {
         case UtxoCondType::OP2SA : {
-            CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (*cond.utxoCondPtr);
+            CSingleAddressCondOut& theCond = dynamic_cast< CSingleAddressCondOut& > (*cond.ptr_utxo_cond);
 
             if(isPrevUtxoOut) {
                 if (theCond.uid != txUid)
@@ -53,14 +53,14 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
         }
 
         case UtxoCondType::OP2MA : {
-            CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (*cond.utxoCondPtr);
+            CMultiSignAddressCondOut& theCond = dynamic_cast< CMultiSignAddressCondOut& > (*cond.ptr_utxo_cond);
 
             if (isPrevUtxoOut) { //theCond is the previous UTXO output
                 bool found = false;
                 for (auto inputCond : input.conds) {
-                    if (inputCond.utxoCondPtr->cond_type == UtxoCondType::IP2MA) {
+                    if (inputCond.ptr_utxo_cond->cond_type == UtxoCondType::IP2MA) {
                         found = true;
-                        CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (*inputCond.utxoCondPtr);
+                        CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (*inputCond.ptr_utxo_cond);
                         if (p2maCondIn.m > p2maCondIn.n) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig m > n error!"), REJECT_INVALID,
                                     "cond-multsig-m-larger-than-n-err");
@@ -99,14 +99,14 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
         }
 
         case UtxoCondType::OP2PH : {
-            CPasswordHashLockCondOut& theCond = dynamic_cast< CPasswordHashLockCondOut& > (*cond.utxoCondPtr);
+            CPasswordHashLockCondOut& theCond = dynamic_cast< CPasswordHashLockCondOut& > (*cond.ptr_utxo_cond);
 
             if (isPrevUtxoOut) {
                 bool found = false;
                 for (auto inputCond : input.conds) {
-                    if (cond.utxoCondPtr->cond_type == UtxoCondType::IP2PH) {
+                    if (cond.ptr_utxo_cond->cond_type == UtxoCondType::IP2PH) {
                         found = true;
-                        CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (*inputCond.utxoCondPtr);
+                        CPasswordHashLockCondIn& p2phCondIn = dynamic_cast< CPasswordHashLockCondIn& > (*inputCond.ptr_utxo_cond);
 
                         if (p2phCondIn.password.size() > 256) { //FIXME: sysparam
                              return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, secret size too large error!"), REJECT_INVALID,
@@ -151,7 +151,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             break;
         }
         case UtxoCondType::OCLAIM_LOCK : {
-            CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (*cond.utxoCondPtr);
+            CClaimLockCondOut& theCond = dynamic_cast< CClaimLockCondOut& > (*cond.ptr_utxo_cond);
 
             if (isPrevUtxoOut) {
                 if ((uint64_t) context.height <= theCond.height)
@@ -165,7 +165,7 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             break;
         }
         case UtxoCondType::ORECLAIM_LOCK : {
-            CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (*cond.utxoCondPtr);
+            CReClaimLockCondOut& theCond = dynamic_cast< CReClaimLockCondOut& > (*cond.ptr_utxo_cond);
 
             if (isPrevUtxoOut) {
                 if (prevUtxoTxUid == txUid) { // for reclaiming the coins

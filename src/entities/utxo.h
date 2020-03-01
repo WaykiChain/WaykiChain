@@ -248,19 +248,19 @@ struct CReClaimLockCondOut : CUtxoCond {
 };
 
 struct CUtxoCondStorageBean {
-    std::shared_ptr<CUtxoCond> utxoCondPtr = nullptr;
+    std::shared_ptr<CUtxoCond> ptr_utxo_cond = nullptr;
 
     CUtxoCondStorageBean() {};
-    CUtxoCondStorageBean( std::shared_ptr<CUtxoCond> ptr): utxoCondPtr(ptr) {}
+    CUtxoCondStorageBean( std::shared_ptr<CUtxoCond> ptr): ptr_utxo_cond(ptr) {}
 
-    bool IsEmpty() const { return utxoCondPtr == nullptr; }
-    void SetEmpty() { utxoCondPtr = nullptr; }
+    bool IsEmpty() const { return ptr_utxo_cond == nullptr; }
+    void SetEmpty() { ptr_utxo_cond = nullptr; }
 
     unsigned int GetSerializeSize(int nType, int nVersion) const {
         if(IsEmpty())
             return 1 ;
 
-        return (*utxoCondPtr).GetSerializeSize(nType, nVersion) + 1 ;
+        return (*ptr_utxo_cond).GetSerializeSize(nType, nVersion) + 1 ;
     }
 
     template <typename Stream>
@@ -269,7 +269,7 @@ struct CUtxoCondStorageBean {
         uint8_t utxoCondType = UtxoCondType::NULL_UTXOCOND_TYPE;
 
         if(!IsEmpty())
-            utxoCondType = utxoCondPtr->cond_type;
+            utxoCondType = ptr_utxo_cond->cond_type;
 
         uint8_t pt = (uint8_t&)utxoCondType;
 
@@ -278,34 +278,34 @@ struct CUtxoCondStorageBean {
         if(IsEmpty())
             return ;
 
-        switch (utxoCondPtr->cond_type) {
+        switch (ptr_utxo_cond->cond_type) {
             case UtxoCondType::IP2SA:
-                ::Serialize(os, *((CSingleAddressCondIn *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CSingleAddressCondIn *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             case UtxoCondType::IP2MA:
-                ::Serialize(os, *((CMultiSignAddressCondIn *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CMultiSignAddressCondIn *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             case UtxoCondType::IP2PH:
-                ::Serialize(os, *((CPasswordHashLockCondIn *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CPasswordHashLockCondIn *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
 
             case UtxoCondType::OP2SA:
-                ::Serialize(os, *((CSingleAddressCondOut *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CSingleAddressCondOut *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             case UtxoCondType::OP2MA:
-                ::Serialize(os, *((CMultiSignAddressCondOut *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CMultiSignAddressCondOut *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             case UtxoCondType::OP2PH:
-                ::Serialize(os, *((CPasswordHashLockCondOut *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CPasswordHashLockCondOut *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             case UtxoCondType::OCLAIM_LOCK:
-                ::Serialize(os, *((CClaimLockCondOut *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CClaimLockCondOut *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             case UtxoCondType::ORECLAIM_LOCK:
-                ::Serialize(os, *((CReClaimLockCondOut *) (utxoCondPtr.get())), nType, nVersion);
+                ::Serialize(os, *((CReClaimLockCondOut *) (ptr_utxo_cond.get())), nType, nVersion);
                 break;
             default:
-                throw ios_base::failure(strprintf("Serialize: utxoCondType(%d) error.", utxoCondPtr->cond_type));
+                throw ios_base::failure(strprintf("Serialize: utxoCondType(%d) error.", ptr_utxo_cond->cond_type));
         }
 
     }
@@ -321,50 +321,50 @@ struct CUtxoCondStorageBean {
 
         switch(condType) {
             case UtxoCondType::IP2SA: {
-                utxoCondPtr = std::make_shared<CSingleAddressCondIn>();
-                ::Unserialize(is, *((CSingleAddressCondIn *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CSingleAddressCondIn>();
+                ::Unserialize(is, *((CSingleAddressCondIn *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::IP2MA: {
-                utxoCondPtr = std::make_shared<CMultiSignAddressCondIn>();
-                ::Unserialize(is, *((CMultiSignAddressCondIn *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CMultiSignAddressCondIn>();
+                ::Unserialize(is, *((CMultiSignAddressCondIn *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::IP2PH: {
-                utxoCondPtr = std::make_shared<CPasswordHashLockCondIn>();
-                ::Unserialize(is, *((CPasswordHashLockCondIn *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CPasswordHashLockCondIn>();
+                ::Unserialize(is, *((CPasswordHashLockCondIn *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::OP2SA: {
-                utxoCondPtr = std::make_shared<CSingleAddressCondOut>();
-                ::Unserialize(is, *((CSingleAddressCondIn *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CSingleAddressCondOut>();
+                ::Unserialize(is, *((CSingleAddressCondIn *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::OP2MA: {
-                utxoCondPtr = std::make_shared<CMultiSignAddressCondOut>();
-                ::Unserialize(is, *((CMultiSignAddressCondIn *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CMultiSignAddressCondOut>();
+                ::Unserialize(is, *((CMultiSignAddressCondIn *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::OP2PH: {
-                utxoCondPtr = std::make_shared<CPasswordHashLockCondOut>();
-                ::Unserialize(is, *((CPasswordHashLockCondIn *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CPasswordHashLockCondOut>();
+                ::Unserialize(is, *((CPasswordHashLockCondIn *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::OCLAIM_LOCK: {
-                utxoCondPtr = std::make_shared<CClaimLockCondOut>();
-                ::Unserialize(is, *((CClaimLockCondOut *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CClaimLockCondOut>();
+                ::Unserialize(is, *((CClaimLockCondOut *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
             case UtxoCondType::ORECLAIM_LOCK: {
-                utxoCondPtr = std::make_shared<CReClaimLockCondOut>();
-                ::Unserialize(is, *((CReClaimLockCondOut *)(utxoCondPtr.get())), nType, nVersion);
+                ptr_utxo_cond = std::make_shared<CReClaimLockCondOut>();
+                ::Unserialize(is, *((CReClaimLockCondOut *)(ptr_utxo_cond.get())), nType, nVersion);
                 break;
             }
 
@@ -372,29 +372,29 @@ struct CUtxoCondStorageBean {
                 throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.", utxoCondType));
         }
 
-        utxoCondPtr->cond_type = condType;
+        ptr_utxo_cond->cond_type = condType;
     }
 
     std::string ToString() const {
-        switch (utxoCondPtr->cond_type) {
+        switch (ptr_utxo_cond->cond_type) {
             case UtxoCondType::IP2SA:
-                return ((CSingleAddressCondIn *) utxoCondPtr.get())->ToString();
+                return ((CSingleAddressCondIn *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::IP2MA:
-                return ((CMultiSignAddressCondIn *) utxoCondPtr.get())->ToString();
+                return ((CMultiSignAddressCondIn *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::IP2PH:
-                return ((CPasswordHashLockCondIn *) utxoCondPtr.get())->ToString();
+                return ((CPasswordHashLockCondIn *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::OP2SA:
-                return ((CSingleAddressCondOut *) utxoCondPtr.get())->ToString();
+                return ((CSingleAddressCondOut *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::OP2MA:
-                return ((CMultiSignAddressCondOut *) utxoCondPtr.get())->ToString();
+                return ((CMultiSignAddressCondOut *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::OP2PH:
-                return ((CPasswordHashLockCondOut *) utxoCondPtr.get())->ToString();
+                return ((CPasswordHashLockCondOut *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::OCLAIM_LOCK:
-                return ((CClaimLockCondOut *) utxoCondPtr.get())->ToString();
+                return ((CClaimLockCondOut *) ptr_utxo_cond.get())->ToString();
             case UtxoCondType::ORECLAIM_LOCK:
-                return ((CReClaimLockCondOut *) utxoCondPtr.get())->ToString();
+                return ((CReClaimLockCondOut *) ptr_utxo_cond.get())->ToString();
             default:
-                throw ios_base::failure(strprintf("ToString: utxoCondType(%d) error.", utxoCondPtr->cond_type));
+                throw ios_base::failure(strprintf("ToString: utxoCondType(%d) error.", ptr_utxo_cond->cond_type));
         }
     }
 
