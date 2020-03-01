@@ -249,14 +249,14 @@ bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
  Object CCdpCoinPairProposal::ToJson() {
     Object o = CProposal::ToJson();
-    o.push_back(Pair("cdp_coin_pair", cdpCoinPair.ToString()));
+    o.push_back(Pair("cdp_coin_pair", cdp_coin_pair.ToString()));
 
     o.push_back(Pair("status", GetCdpCoinPairStatusName(status))) ;
     return o ;
 }
 
 string CCdpCoinPairProposal::ToString() {
-    return  strprintf("cdp_coin_pair=%s", cdpCoinPair.ToString()) + ", " +
+    return  strprintf("cdp_coin_pair=%s", cdp_coin_pair.ToString()) + ", " +
             strprintf("status=%s", GetCdpCoinPairStatusName(status));
 }
 
@@ -279,14 +279,14 @@ bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
 
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (kScoinSymbolSet.count(cdpCoinPair.bcoin_symbol) == 0) {
+    if (kScoinSymbolSet.count(cdp_coin_pair.bcoin_symbol) == 0) {
         return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
-                __func__, cdpCoinPair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
+                __func__, cdp_coin_pair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
     }
 
-    auto symbolErr = CheckCdpAssetSymbol(cw, cdpCoinPair.bcoin_symbol);
+    auto symbolErr = CheckCdpAssetSymbol(cw, cdp_coin_pair.bcoin_symbol);
     if (symbolErr) {
-        return state.DoS(100, ERRORMSG("%s(), unsupport cdp asset symbol=%s! %s", cdpCoinPair.bcoin_symbol, *symbolErr),
+        return state.DoS(100, ERRORMSG("%s(), unsupport cdp asset symbol=%s! %s", cdp_coin_pair.bcoin_symbol, *symbolErr),
             REJECT_INVALID, "unsupported-asset-symbol");
     }
 
@@ -298,9 +298,9 @@ bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
 
 bool CCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
-    if (!context.pCw->cdpCache.SetCdpCoinPairStatus(cdpCoinPair, status)) {
+    if (!context.pCw->cdpCache.SetCdpCoinPairStatus(cdp_coin_pair, status)) {
         return context.pState->DoS(100, ERRORMSG("%s(), save cdp coin pair failed! coin_pair=%s, status=%s",
-                cdpCoinPair.ToString(), GetCdpCoinPairStatusName(status)),
+                cdp_coin_pair.ToString(), GetCdpCoinPairStatusName(status)),
             REJECT_INVALID, "unsupported-asset-symbol");
     }
     return true;

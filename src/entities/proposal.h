@@ -28,7 +28,7 @@ enum ProposalType: uint8_t{
     GOVERNOR_UPDATE   = 2 ,
     DEX_SWITCH        = 3 ,
     MINER_FEE_UPDATE  = 4 ,
-    CDP_COIN_PAIR     = 5, // govern cdpCoinPair, set the cdpCoinPair status
+    CDP_COIN_PAIR     = 5, // govern cdp_coin_pair, set cdp_coin_pair status
     CDP_PARAM_GOVERN  = 6 ,
     COIN_TRANSFER     = 7 ,
     BP_COUNT_UPDATE   = 8 ,
@@ -349,23 +349,21 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CBPCountUpdateProposal>(*this); }
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
-
     bool CheckProposal(CTxExecuteContext& context) override;
-
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
 };
 
 class CCdpCoinPairProposal: public CProposal {
 public:
-    CCdpCoinPair cdpCoinPair;
+    CCdpCoinPair cdp_coin_pair;
     CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
 
     CCdpCoinPairProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN){}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(cdpCoinPair);
-            READWRITE(VARINT((uint8_t&)status));
+        READWRITE(cdp_coin_pair);
+        READWRITE(VARINT((uint8_t&)status));
     );
 
     virtual Object ToJson() override;
@@ -374,8 +372,8 @@ public:
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
 
 };
 
