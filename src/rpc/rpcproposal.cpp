@@ -480,10 +480,10 @@ Value getsysparam(const Array& params, bool fHelp){
     if(fHelp || params.size() > 1){
 
         throw runtime_error(
-                "getsysparam \"param_name\"\n"
-                "create proposal about param govern\n"
+                "getsysparam $param_name\n"
+                "get system param info\n"
                 "\nArguments:\n"
-                "1.\"param_name\":      (string, optional) param name, list all parameters when it's absent \n"
+                "1.$param_name:      (string, optional) param name, list all parameters when omitted \n"
 
                 "\nExamples:\n"
                 + HelpExampleCli("getsysparam", "")
