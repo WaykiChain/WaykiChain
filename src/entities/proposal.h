@@ -52,7 +52,7 @@ public:
 public:
 
     CProposal() {}
-    CProposal(uint8_t proposalTypeIn):proposal_type(ProposalType(proposalTypeIn)) {}
+    CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn)) {}
 
     virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
     virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
@@ -68,7 +68,6 @@ public:
         o.push_back(Pair("expire_block_height", expire_block_height)) ;
 
         return o ;
-
     };
 
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
