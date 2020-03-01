@@ -46,7 +46,7 @@ class CProposal {
 public:
 
     ProposalType proposal_type = NULL_PROPOSAL;
-    int8_t need_governor_count = 0;
+    int8_t approval_min_count = 0;
     int32_t expire_block_height = 0;
 
 public:
@@ -59,12 +59,12 @@ public:
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
     virtual string ToString(){
         return strprintf("proposaltype=%d,needgovernoramount=%d,expire_height=%d",
-                proposal_type, need_governor_count, expire_block_height) ;
+                proposal_type, approval_min_count, expire_block_height) ;
     }
     virtual Object ToJson(){
         Object o ;
         o.push_back(Pair("proposal_type", proposal_type)) ;
-        o.push_back(Pair("need_governor_count", need_governor_count)) ;
+        o.push_back(Pair("approval_min_count", approval_min_count)) ;
         o.push_back(Pair("expire_block_height", expire_block_height)) ;
 
         return o ;
@@ -83,7 +83,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE(param_values);
     );
 
@@ -133,7 +133,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE(governor_regid);
             READWRITE((uint8_t&)operate_type);
     );
@@ -163,7 +163,7 @@ public:
     ProposalOperateType operate_type = ProposalOperateType ::ENABLE;
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE(VARINT(dexid));
             READWRITE((uint8_t&)operate_type);
     );
@@ -195,11 +195,11 @@ public:
     string  fee_symbol = "" ;
     uint64_t  fee_sawi_amount = 0 ;
 
-    CMinerFeeProposal():CProposal(ProposalType::MINER_FEE_UPDATE){}
+    CMinerFeeProposal() : CProposal(ProposalType::MINER_FEE_UPDATE) {}
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE((uint8_t&)tx_type);
             READWRITE(fee_symbol);
             READWRITE(VARINT(fee_sawi_amount));
@@ -237,7 +237,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE(VARINT(amount));
             READWRITE(token) ;
             READWRITE(from_uid) ;
@@ -279,7 +279,7 @@ public:
 
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE(param_values);
             READWRITE(coinPair);
     );
@@ -329,7 +329,7 @@ public:
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
     IMPLEMENT_SERIALIZE(
             READWRITE(VARINT(expire_block_height));
-            READWRITE(need_governor_count);
+            READWRITE(approval_min_count);
             READWRITE(bp_count);
             READWRITE(VARINT(launch_height));
 

@@ -117,7 +117,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 
      auto newProposal = proposal.sp_proposal->GetNewInstance() ;
      newProposal->expire_block_height = context.height + expireBlockCount ;
-     newProposal->need_governor_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
+     newProposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
          return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
@@ -204,12 +204,12 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
 
      auto assentedCount = cw.sysGovernCache.GetApprovalCount(txid);
 
-     if(assentedCount > proposal->need_governor_count){
+     if(assentedCount > proposal->approval_min_count){
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal executed already"),
                           WRITE_ACCOUNT_FAIL, "proposal-executed-already");
      }
 
-     if( assentedCount == proposal->need_governor_count){
+     if( assentedCount == proposal->approval_min_count){
 
          if(!proposal->ExecuteProposal(context)){
              return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
