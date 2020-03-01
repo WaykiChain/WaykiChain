@@ -31,7 +31,7 @@ namespace SYMB {
 
     static const string BTC_USDT    = "BTC_USDT";
     static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
-    static const string ETH_USDT    = "ETH_DAI";    //ERC20 DAI
+    static const string ETH_DAI     = "ETH_DAI";    //ERC20 DAI
 
     static const string GOLD        = "GOLD";
     static const string KWH         = "KWH";
