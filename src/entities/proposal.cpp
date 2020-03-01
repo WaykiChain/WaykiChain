@@ -48,24 +48,19 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
      return true ;
 }
 
-bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
-
+bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
-    for( auto pa: param_values){
+    for (auto pa: param_values){
         auto itr = CdpParamTable.find(CdpParamType(pa.first));
-        if(itr == CdpParamTable.end())
+        if (itr == CdpParamTable.end())
             return false ;
 
-        if(!cw.sysParamCache.SetCdpParam(coin_pair,CdpParamType(pa.first), pa.second)){
+        if (!cw.sysParamCache.SetCdpParam(coin_pair,CdpParamType(pa.first), pa.second))
             return false ;
-        }
-        if(pa.first == CdpParamType ::CDP_INTEREST_PARAM_A
-           || pa.first == CdpParamType::CDP_INTEREST_PARAM_B){
-
-            if(!cw.sysParamCache.SetCdpInterestParam(coin_pair, CdpParamType(pa.first), context.height, pa.second)){
+        
+        if (pa.first == CdpParamType ::CDP_INTEREST_PARAM_A || pa.first == CdpParamType::CDP_INTEREST_PARAM_B) {
+            if (!cw.sysParamCache.SetCdpInterestParam(coin_pair, CdpParamType(pa.first), context.height, pa.second))
                 return false ;
-            }
-
         }
     }
 
@@ -73,17 +68,16 @@ bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 }
 
 bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {
-
     CValidationState &state = *context.pState;
 
     if (param_values.size() == 0 || param_values.size() > 50)
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, params list is empty or size >50"), REJECT_INVALID,
                          "params-empty");
+
     for (auto pa: param_values) {
         if (SysParamTable.count(SysParamType(pa.first)) == 0) {
-            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ",
-                                           pa.first),
-                             REJECT_INVALID, "params-error");
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first), 
+                            REJECT_INVALID, "params-error");
         }
     }
 
