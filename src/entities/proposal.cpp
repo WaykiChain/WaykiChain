@@ -241,9 +241,8 @@ bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
 shared_ptr<string> CheckCdpAssetSymbol(CCacheWrapper &cw, const TokenSymbol &symbol) {
     size_t coinSymbolSize = symbol.size();
-    if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
+    if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN)
         return make_shared<string>("empty or too long");
-    }
 
     if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
         (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !cw.assetCache.HaveAsset(symbol)))
@@ -421,18 +420,6 @@ bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
     return true ;
 }
 
-
-bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
-
-    CCacheWrapper& cw = *context.pCw ;
-
-    if(ProposalOperateType::ENABLE == op_type)
-        return cw.priceFeedCache.AddFeedCoinPair(feed_symbol, base_symbol) ;
-    else
-        return cw.priceFeedCache.EraseFeedCoinPair(feed_symbol, base_symbol) ;
-
-}
-
 bool CFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
 
     IMPLEMENT_DEFINE_CW_STATE
@@ -466,4 +453,43 @@ bool CFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
                          REJECT_INVALID, "symbol-not-exist") ;
     }
     return true ;
+}
+
+bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
+
+    CCacheWrapper& cw = *context.pCw ;
+
+    if(ProposalOperateType::ENABLE == op_type)
+        return cw.priceFeedCache.AddFeedCoinPair(feed_symbol, base_symbol) ;
+    else
+        return cw.priceFeedCache.EraseFeedCoinPair(feed_symbol, base_symbol) ;
+
+}
+
+bool CXChainSwapInProposal::CheckProposal(CTxExecuteContext& context ) {
+
+    CValidationState& state = *context.pState ;
+
+    return true  ;
+}
+
+bool CXChainSwapInProposal::ExecuteProposal(CTxExecuteContext& context ) {
+
+    CValidationState& state = *context.pState ;
+
+    return true  ;
+}
+
+bool CXChainSwapOutProposal::CheckProposal(CTxExecuteContext& context ) {
+
+    CValidationState& state = *context.pState ;
+
+    return true  ;
+}
+
+bool CXChainSwapOutProposal::ExecuteProposal(CTxExecuteContext& context ) {
+
+    CValidationState& state = *context.pState ;
+
+    return true  ;
 }
