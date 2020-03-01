@@ -148,7 +148,7 @@ struct CBaseAsset {
     CBaseAsset(): asset_perms_sum(0), total_supply(0), mintable(false) {}
 
     CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, 
-            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn) :   
+            const uint16_t assetPermsSum, const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn) :   
             asset_symbol(assetSymbol),
             asset_name(assetName),
             asset_type(assetType),
