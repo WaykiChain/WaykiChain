@@ -22,7 +22,7 @@ public:
     CTxUTXODBCache() {};
     CTxUTXODBCache(CDBAccess *pDbAccess) : txUtxoCache(pDbAccess), txUtxoPasswordProofCache(pDbAccess) {};
     CTxUTXODBCache(CTxUTXODBCache* pBaseIn): txUtxoCache(pBaseIn->txUtxoCache), 
-        txUtxoPasswordProofCache(pBaseIn->txUtxoPasswordProofCache) {} ;
+                txUtxoPasswordProofCache(pBaseIn->txUtxoPasswordProofCache) {} ;
 
 public:
     bool SetUtxoTx(const pair<TxID, CFixedUInt16> &utxoKey);

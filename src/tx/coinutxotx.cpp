@@ -43,11 +43,11 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
             if(isPrevUtxoOut) {
                 if (theCond.uid != txUid)
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid mismatches error!"), REJECT_INVALID,
-                                "uid-mismatches-err");
+                                    "uid-mismatches-err");
             } else {
                 if (theCond.uid.IsEmpty())
                     return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, uid empty error!"), REJECT_INVALID,
-                                        "uid-empty-err");
+                                    "uid-empty-err");
             }
             break;
         }
@@ -63,23 +63,23 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                         CMultiSignAddressCondIn& p2maCondIn = dynamic_cast< CMultiSignAddressCondIn& > (*inputCond.sp_utxo_cond);
                         if (p2maCondIn.m > p2maCondIn.n) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig m > n error!"), REJECT_INVALID,
-                                    "cond-multsig-m-larger-than-n-err");
+                                            "cond-multsig-m-larger-than-n-err");
                         }
                         if (p2maCondIn.m > 20 || p2maCondIn.n > 20) { //FIXME: replace 20 w/ sysparam
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig m/n too large!"), REJECT_INVALID,
-                                    "cond-multsig-mn-too-large-err");
+                                            "cond-multsig-mn-too-large-err");
                         }
                         if (p2maCondIn.uids.size() != p2maCondIn.n) {
                              return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig uids size mismatch!"), REJECT_INVALID,
-                                    "cond-multsig-uids-size-mismatch-err");
+                                            "cond-multsig-uids-size-mismatch-err");
                         }
                         if ((uint160) theCond.uid.get<CKeyID>() != p2maCondIn.GetRedeemScriptHash()) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig addr mismatch error!"), REJECT_INVALID,
-                                    "cond-multsig-addr-mismatch-err");
+                                            "cond-multsig-addr-mismatch-err");
                         }
                         if (!p2maCondIn.VerifyMultiSig(input.prev_utxo_txid, input.prev_utxo_vout_index, txUid)) {
                             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, cond multisig verify failed!"), REJECT_INVALID,
-                                    "cond-multsig-verify-fail");
+                                            "cond-multsig-verify-fail");
                         }
                         break;
                     }
@@ -120,8 +120,8 @@ inline bool CheckUtxoOutCondition( const CTxExecuteContext &context, const bool 
                             uint256 hash = Hash(text);
                             uint256 proof = uint256();
                             CRegIDKey regIdKey(txUid.get<CRegID>());
-                            if (context.pCw->txUtxoCache.GetUtxoPasswordProof(std::make_tuple(input.prev_utxo_txid,
-                                        CFixedUInt16(input.prev_utxo_vout_index), regIdKey), proof))
+                            auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
+                            if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof))
                                 return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, password proof not existing!"), REJECT_INVALID,
                                                 "password-proof-not-exist-err");
 
@@ -307,6 +307,13 @@ bool CCoinUtxoTransferTx::ExecuteTx(CTxExecuteContext &context) {
         if (!context.pCw->txUtxoCache.DelUtoxTx(std::make_pair(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index))))
             return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::CheckTx, del prev utxo error!"), REJECT_INVALID,
                             "del-prev-utxo-err");
+        
+        uint256 proof = uint256();
+        CRegIDKey regIdKey(txUid.get<CRegID>());
+        auto proofKey = std::make_tuple(input.prev_utxo_txid, CFixedUInt16(input.prev_utxo_vout_index), regIdKey);
+        if (context.pCw->txUtxoCache.GetUtxoPasswordProof(proofKey, proof)) {
+            context.pCw->txUtxoCache.DelUtoxPasswordProof(proofKey);
+        }
     }
 
     for (size_t i = 0; i < vouts.size(); i++) {
@@ -400,10 +407,9 @@ bool CCoinUtxoPasswordProofTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
 
     CRegIDKey regIdKey(txUid.get<CRegID>());
-    if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey),
-            password_proof))
+    if (!cw.txUtxoCache.SetUtxoPasswordProof(std::make_tuple(utxo_txid, CFixedUInt16(utxo_vout_index), regIdKey), password_proof))
         return state.DoS(100, ERRORMSG("CCoinUtxoTransferTx::ExecuteTx, bad saving utxo proof",
-                    txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");
+                        txUid.ToString()), READ_ACCOUNT_FAIL, "bad-save-utxo-passwordproof");
 
     return true;
 }
