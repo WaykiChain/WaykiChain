@@ -683,25 +683,25 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     return SubmitTx(account.keyid, tx);
 }
 
-extern Value getasset(const Array& params, bool fHelp) {
+extern Value getassetinfo(const Array& params, bool fHelp) {
      if (fHelp || params.size() < 1 || params.size() > 1) {
         throw runtime_error(
-            "getasset \"asset_symbol\"\n"
-            "\nget asset by symbol.\n"
+            "getassetinfo $asset_symbol\n"
+            "\nget asset info by its symbol.\n"
             "\nArguments:\n"
-            "1.\"aset_symbol\":            (string, required) asset symbol\n"
+            "1.\"$aset_symbol\":            (string, required) asset symbol\n"
             "\nResult: asset object\n"
             "\nExamples:\n"
-            + HelpExampleCli("getasset", "MINEUSD")
+            + HelpExampleCli("getassetinfo", "MINEUSD")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("getasset", "MINEUSD")
+            + HelpExampleRpc("getassetinfo", "MINEUSD")
         );
     }
     const TokenSymbol& assetSymbol = RPC_PARAM::GetAssetIssueSymbol(params[0]);
 
     CAsset asset;
     if (!pCdMan->pAssetCache->GetAsset(assetSymbol, asset))
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("asset not exist! asset_symbol=%s", assetSymbol));
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Asset(%s) not exist!", assetSymbol));
 
     Object obj = AssetToJson(*pCdMan->pAccountCache, asset);
     return obj;
