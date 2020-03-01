@@ -52,7 +52,7 @@ public:
 public:
 
     CProposal() {}
-    CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn)) {}
+    CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
 
     virtual shared_ptr<CProposal> GetNewInstance() { return nullptr; } ;
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
