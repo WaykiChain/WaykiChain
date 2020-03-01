@@ -27,7 +27,6 @@
 #include "tx/assettx.h"
 #include "tx/wasmcontracttx.h"
 #include "tx/nickidregtx.h"
-#include "tx/einvalidtxtype.h"
 #include "tx/dexoperatortx.h"
 #include "tx/proposaltx.h"
 
