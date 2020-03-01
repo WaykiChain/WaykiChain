@@ -174,7 +174,7 @@ static const uint32_t CONTRACT_CALL_RESERVED_FEES_RATIO = 10;  // boosted by 10^
 
 static const string EMPTY_STRING = "";
 
-static const uint8_t BP_MAX_COUNT = 256;    //max number of allowed BPs
+static const uint8_t BP_MAX_COUNT = 255;    //max number of allowed BPs
 
 static const uint16_t GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT = 3600; //blocks number
 

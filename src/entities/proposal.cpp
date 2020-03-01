@@ -371,7 +371,7 @@ bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
     CValidationState& state = *context.pState ;
 
     if (bp_count == 0 || bp_count > BP_MAX_COUNT)
-        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal, bp_count must be between 1 and 256"),
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal, bp_count must be between 1 and 255"),
                         REJECT_INVALID,"bad-bp-count") ;
 
     if (effective_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
