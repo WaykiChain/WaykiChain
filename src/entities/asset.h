@@ -126,38 +126,58 @@ enum AssetType : uint8_t {
     MPA             = 4  //market pegged asset
 };
 
-enum AssetPermType : uint8_t {
+enum AssetPermType : uint16_t {
     NULL_ASSET_PERM = 0,
-    DEX_BASE        = 1,
-    DEX_QUOTE       = 2,
-    CDP_IN          = 3,
-    CDP_OUT         = 4,
-    PRICE_FEED      = 5,
-    XCHAIN          = 6 
+    DEX_BASE        = 1 << 0,
+    DEX_QUOTE       = 1 << 1,
+    CDP_IN          = 1 << 2,
+    CDP_OUT         = 1 << 3,
+    PRICE_FEED      = 1 << 4,
+    XCHAIN_SWAP     = 1 << 5 
 };
 
-class CBaseAsset {
-public:
-    TokenSymbol symbol;     // asset symbol, E.g WICC | WUSD
-    CUserID owner_uid;      // creator or owner user id of the asset
-    TokenName name;         // asset long name, E.g WaykiChain coin
-    uint64_t total_supply;  // boosted by 10^8 for the decimal part, max is 90 billion.
-    bool mintable;          // whether this token can be minted in the future.
-public:
-    CBaseAsset(): total_supply(0), mintable(false) {}
+struct CBaseAsset {
+    TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
+    TokenName   asset_name;         //asset long name, E.g WaykiChain coin
+    AssetType   asset_type;         //asset type
+    uint16_t    asset_perms_sum;    //sum of asset perms
+    CUserID     owner_uid;          //creator or owner user id of the asset
+    uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
+    bool        mintable;           //whether this token can be minted in the future.
 
-    CBaseAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
-           uint64_t totalSupplyIn, bool mintableIn)
-        : symbol(symbolIn),
-          owner_uid(ownerUseridIn),
-          name(nameIn),
-          total_supply(totalSupplyIn),
-          mintable(mintableIn){};
+    CBaseAsset(): asset_perms_sum(0), total_supply(0), mintable(false) {}
 
-    IMPLEMENT_SERIALIZE(READWRITE(symbol); READWRITE(owner_uid); READWRITE(name);
-                        READWRITE(mintable); READWRITE(VARINT(total_supply));)
+    CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, 
+            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn) :   
+            asset_symbol(assetSymbol),
+            asset_name(assetName),
+            asset_type(assetType),
+            asset_perms_sum(assetPermsSum),
+            owner_uid(ownerUid),
+            total_supply(totalSupply),
+            mintable(mintableIn) {};
 
-public:
+    CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const CUserID& ownerUid, 
+            uint64_t totalSupply, bool mintableIn) : 
+            asset_symbol(assetSymbol),
+            asset_name(assetName),
+            asset_type(AssetType::UIA),
+            asset_perms_sum(AssetPermType::DEX_BASE),
+            owner_uid(ownerUid),
+            total_supply(totalSupply),
+            mintable(mintableIn) {};
+
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(asset_symbol); 
+        READWRITE(asset_name); 
+        READWRITE((uint8_t &) asset_type);
+        READWRITE(VARINT(asset_perms_sum));
+        READWRITE(VARINT(owner_uid));
+        READWRITE(VARINT(total_supply));
+        READWRITE(mintable);
+    )
+
     static bool CheckSymbolChar(const char ch) {
         return  ch >= 'A' && ch <= 'Z';
     }
@@ -177,11 +197,10 @@ public:
     }
 
     string ToString() const {
-        return  strprintf("symbol=%s", symbol) + ", " +
-                strprintf("owner_uid=%s", owner_uid.ToString()) + ", " +
-                strprintf("name=%s", name) + ", " +
-                strprintf("total_supply=%llu", total_supply) + ", " +
-                strprintf("mintable=%d", mintable);
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%s, asset_perms_sum=%d,"
+                      "owner_uid=%s, total_supply=%llu, mintable=%d",
+                        asset_symbol, asset_name, asset_type, asset_perms_sum, 
+                        owner_uid.ToString(), total_supply, mintable);
     }
 };
 
@@ -201,11 +220,14 @@ public:
           min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(symbol);
-        READWRITE(owner_uid);
-        READWRITE(name);
-        READWRITE(mintable);
+        READWRITE(asset_symbol); 
+        READWRITE(asset_name); 
+        READWRITE((uint8_t &) asset_type);
+        READWRITE(VARINT(asset_perms_sum));
+        READWRITE(VARINT(owner_uid));
         READWRITE(VARINT(total_supply));
+        READWRITE(mintable);
+        
         READWRITE(VARINT(max_order_amount));
         READWRITE(VARINT(min_order_amount));
     )
@@ -214,8 +236,8 @@ public:
 
     void SetEmpty() {
         owner_uid.SetEmpty();
-        symbol.clear();
-        name.clear();
+        asset_symbol.clear();
+        asset_name.clear();
         mintable = false;
         total_supply = 0;
         max_order_amount = 0;
