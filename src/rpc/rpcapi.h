@@ -211,7 +211,7 @@ extern Value submitcdpstaketx(const json_spirit::Array& params, bool fHelp);
 extern Value submitcdpredeemtx(const json_spirit::Array& params, bool fHelp);
 extern Value submitcdpliquidatetx(const json_spirit::Array& params, bool fHelp);
 extern Value getscoininfo(const json_spirit::Array& params, bool fHelp);
-extern Value getcdp(const json_spirit::Array& params, bool fHelp);
+extern Value getcdpinfo(const json_spirit::Array& params, bool fHelp);
 extern Value getusercdp(const json_spirit::Array& params, bool fHelp);
 
 extern Value submitassetissuetx(const json_spirit::Array& params, bool fHelp);

@@ -117,7 +117,7 @@ static const CRPCCommand vRPCCommands[] =
     { "submitcdpredeemtx",              &submitcdpredeemtx,                 false,      false,      true    },
     { "submitcdpliquidatetx",           &submitcdpliquidatetx,              false,      false,      true    },
     { "getscoininfo",                   &getscoininfo,                      true,       false,      false   },
-    { "getcdp",                         &getcdp,                            true,       false,      false   },
+    { "getcdpinfo",                     &getcdpinfo,                            true,       false,      false   },
     { "getusercdp",                     &getusercdp,                        true,       false,      false   },
     { "listcdpcoinpairs",                &listcdpcoinpairs,                   true,       false,      false   },
 
