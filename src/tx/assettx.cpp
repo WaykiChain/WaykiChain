@@ -124,7 +124,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
 
     if (asset.asset_name.empty() || asset.asset_name.size() > MAX_ASSET_NAME_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_name is empty or len=%d greater than %d",
-            asset.name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+            asset.asset_name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
     }
 
     if (asset.total_supply == 0 || asset.total_supply > MAX_ASSET_TOTAL_SUPPLY) {
