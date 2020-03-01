@@ -68,17 +68,17 @@ public:
     }
 
 
-    uint8_t GetNeedGovernorCount(){
-        if (!governorsCache.HaveData()) {
+    uint8_t GetGovernorApprovalMinCount(){
+        if (!governorsCache.HaveData())
             return 1 ;
-        } else {
-            vector<CRegID> regids;
-            if(governorsCache.GetData(regids)){
-                uint8_t cnt = (regids.size()/3)*2 +2 ;
-                return cnt>regids.size()?regids.size():cnt;
-            } else
-                return 1 ;
-        }
+
+        vector<CRegID> regids;
+        if(governorsCache.GetData(regids)){
+            uint8_t cnt = (regids.size()/3)*2 +2 ;
+            return cnt>regids.size()?regids.size():cnt;
+        } 
+            
+        return 1 ;
     }
 
     bool SetProposal(const uint256& txid,  shared_ptr<CProposal>& proposal ){

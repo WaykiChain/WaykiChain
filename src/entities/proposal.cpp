@@ -12,7 +12,7 @@
 #include "config/txbase.h"
 
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
-extern uint8_t GetNeedGovernorCount(ProposalType proposalType, CCacheWrapper& cw );
+extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
     CCacheWrapper &cw       = *context.pCw;

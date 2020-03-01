@@ -28,7 +28,7 @@ bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& c
 
 }
 
-uint8_t GetNeedGovernorCount(ProposalType proposalType, CCacheWrapper& cw ){
+uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw ){
 
     if(proposalType == ProposalType::GOVERNOR_UPDATE){
         VoteDelegateVector delegateList;
@@ -46,7 +46,7 @@ uint8_t GetNeedGovernorCount(ProposalType proposalType, CCacheWrapper& cw ){
         }
         return delegateList.size() ;
     } else {
-        return cw.sysGovernCache.GetNeedGovernorCount();
+        return cw.sysGovernCache.GetGovernorApprovalMinCount();
     }
 }
 
@@ -114,7 +114,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 
      auto newProposal = proposal.ptr_proposal->GetNewInstance() ;
      newProposal->expire_block_height = context.height + expireBlockCount ;
-     newProposal->need_governor_count = GetNeedGovernorCount(proposal.ptr_proposal->proposal_type, cw);
+     newProposal->need_governor_count = GetGovernorApprovalMinCount(proposal.ptr_proposal->proposal_type, cw);
 
      if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
          return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
