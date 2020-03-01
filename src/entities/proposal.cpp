@@ -370,7 +370,7 @@ bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
 
     CValidationState& state = *context.pState ;
 
-    if (bp_count == 0 || bp_count > BP_MAX_COUNT)
+    if (bp_count == 0) //bp_count > BP_MAX_COUNT: always false
         return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal, bp_count must be between 1 and 255"),
                         REJECT_INVALID,"bad-bp-count") ;
 
