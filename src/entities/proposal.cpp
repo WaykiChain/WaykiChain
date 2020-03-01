@@ -14,9 +14,10 @@
 
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
-bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
+bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
     CCacheWrapper &cw       = *context.pCw;
+    
     for( auto pa: param_values){
         auto itr = SysParamTable.find(SysParamType(pa.first));
         if(itr == SysParamTable.end())
@@ -33,7 +34,6 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 }
 
  bool CParamsGovernProposal::CheckProposal(CTxExecuteContext& context ) {
-
      CValidationState &state = *context.pState;
 
      if(param_values.size() == 0)
@@ -119,7 +119,6 @@ bool CGovernorUpdateProposal::ExecuteProposal(CTxExecuteContext& context) {
 }
 
  bool CGovernorUpdateProposal::CheckProposal(CTxExecuteContext& context ){
-
     IMPLEMENT_DEFINE_CW_STATE
 
      if(op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE){
@@ -142,8 +141,8 @@ bool CGovernorUpdateProposal::ExecuteProposal(CTxExecuteContext& context) {
 }
 
 bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
-
     IMPLEMENT_DEFINE_CW_STATE
+
     DexOperatorDetail dexOperator;
     if (!cw.dexCache.GetDexOperator(dexid, dexOperator))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, dexoperator(%d) is not a governor!", dexid), REJECT_INVALID,
@@ -176,8 +175,8 @@ bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
 
     return true ;
 }
-bool CDexSwitchProposal::CheckProposal(CTxExecuteContext& context ) {
 
+bool CDexSwitchProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
@@ -200,37 +199,34 @@ bool CDexSwitchProposal::CheckProposal(CTxExecuteContext& context ) {
 }
 
 
-
-
 bool CMinerFeeProposal:: CheckProposal(CTxExecuteContext& context ) {
-
     CValidationState& state = *context.pState ;
 
-  if(!kFeeSymbolSet.count(fee_symbol)) {
-      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
-                       REJECT_INVALID,
-                       "feesymbol-error");
-  }
+    if(!kFeeSymbolSet.count(fee_symbol)) {
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, fee symbol(%s) is invalid!", fee_symbol),
+                        REJECT_INVALID,
+                        "feesymbol-error");
+    }
 
-  auto itr = kTxFeeTable.find(tx_type);
-  if(itr == kTxFeeTable.end()){
-      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) is invalid!", tx_type),
-                       REJECT_INVALID,
-                       "txtype-error");
-  }
+    auto itr = kTxFeeTable.find(tx_type);
+    if(itr == kTxFeeTable.end()){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) is invalid!", tx_type),
+                        REJECT_INVALID,
+                        "txtype-error");
+    }
 
-  if(!std::get<5>(itr->second)){
-      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be updated!", tx_type),
-                       REJECT_INVALID,
-                       "can-not-update");
-  }
+    if(!std::get<5>(itr->second)){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be updated!", tx_type),
+                        REJECT_INVALID,
+                        "can-not-update");
+    }
 
-  if(fee_sawi_amount == 0 ){
-      return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be zero", tx_type),
-                       REJECT_INVALID,
-                       "can-not-be-zero");
-  }
-  return true ;
+    if(fee_sawi_amount == 0 ){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, the tx type (%d) miner fee can't be zero", tx_type),
+                        REJECT_INVALID,
+                        "can-not-be-zero");
+    }
+    return true ;
 }
 
 bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
@@ -253,7 +249,6 @@ shared_ptr<string> CheckCdpAssetSymbol(CCacheWrapper &cw, const TokenSymbol &sym
 
 
 bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
-
     IMPLEMENT_DEFINE_CW_STATE
 
     if (kScoinSymbolSet.count(cdp_coin_pair.bcoin_symbol) == 0) {
@@ -285,8 +280,6 @@ bool CCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
 
 bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
-
-
     IMPLEMENT_DEFINE_CW_STATE;
 
     CAccount srcAccount;
@@ -327,8 +320,8 @@ bool CCoinTransferProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
     return true ;
 }
-bool CCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
 
+bool CCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
     if (amount < DUST_AMOUNT_THRESHOLD)
@@ -346,9 +339,7 @@ bool CCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
 }
 
 
-
 bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
-
     IMPLEMENT_DEFINE_CW_STATE;
 
     auto currentBpCount = cw.delegateCache.GetActivedDelegateNum() ;
@@ -366,7 +357,6 @@ bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
 
 }
 bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
-
     CValidationState& state = *context.pState ;
 
     if (bp_count == 0) //bp_count > BP_MAX_COUNT: always false
@@ -381,7 +371,6 @@ bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
 }
 
 bool CDexQuoteCoinProposal::ExecuteProposal(CTxExecuteContext& context) {
-
     CCacheWrapper& cw = *context.pCw ;
 
     if(ProposalOperateType::ENABLE == op_type)
@@ -392,8 +381,8 @@ bool CDexQuoteCoinProposal::ExecuteProposal(CTxExecuteContext& context) {
 }
 
 bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
-
     IMPLEMENT_DEFINE_CW_STATE
+
     if(op_type == ProposalOperateType::NULL_PROPOSAL_OP)
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: op_type is null "),
                 REJECT_INVALID, "bad-op-type") ;
@@ -421,8 +410,8 @@ bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
 }
 
 bool CFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
-
     IMPLEMENT_DEFINE_CW_STATE
+
     if(op_type == ProposalOperateType::NULL_PROPOSAL_OP)
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: op_type is null "),
                          REJECT_INVALID, "bad-op-type") ;
@@ -459,7 +448,7 @@ bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
     CCacheWrapper& cw = *context.pCw ;
 
-    if(ProposalOperateType::ENABLE == op_type)
+    if (ProposalOperateType::ENABLE == op_type)
         return cw.priceFeedCache.AddFeedCoinPair(feed_symbol, base_symbol) ;
     else
         return cw.priceFeedCache.EraseFeedCoinPair(feed_symbol, base_symbol) ;
