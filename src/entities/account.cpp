@@ -251,10 +251,19 @@ Object CAccount::ToJsonObj() const {
     for (auto tokenPair : tokens) {
         Object tokenObj;
         const CAccountToken &token = tokenPair.second;
-        tokenObj.push_back(Pair("free_amount",      token.free_amount));
-        tokenObj.push_back(Pair("staked_amount",    token.staked_amount));
-        tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));
-        tokenObj.push_back(Pair("voted_amount",     token.voted_amount));
+
+        uint64_t total_amount = token.free_amount + token.staked_amount + token.frozen_amount 
+                                + token.voted_amount + token.pledged_amount;
+        
+        if (total_amount == 0)
+            continue;
+
+        tokenObj.push_back(Pair("free_amount",      token.free_amount));    //FREE
+        tokenObj.push_back(Pair("staked_amount",    token.staked_amount));  //Stake
+        tokenObj.push_back(Pair("frozen_amount",    token.frozen_amount));  //DEX
+        tokenObj.push_back(Pair("voted_amount",     token.voted_amount));   //VOTES
+        tokenObj.push_back(Pair("pledged_amount",   token.pledged_amount)); //CDP
+        tokenObj.push_back(Pair("total_amount",     total_amount));         //Total
 
         tokenMapObj.push_back(Pair(tokenPair.first, tokenObj));
     }
