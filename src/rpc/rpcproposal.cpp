@@ -452,18 +452,18 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-    CCoinTransferProposal proposal ;
-    proposal.from_uid = fromUid ;
-    proposal.to_uid = toUid ;
-    proposal.token = transferInfo.symbol ;
-    proposal.amount = transferInfo.GetSawiAmount() ;
+    CCoinTransferProposal proposal;
+    proposal.from_uid   = fromUid;
+    proposal.to_uid     = toUid;
+    proposal.token      = transferInfo.symbol;
+    proposal.amount     = transferInfo.GetSawiAmount();
 
-    CProposalCreateTx tx ;
+    CProposalCreateTx tx;
     tx.txUid        = txUid;
     tx.llFees       = fee.GetSawiAmount();
-    tx.fee_symbol    = fee.symbol ;
+    tx.fee_symbol   = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
+    tx.proposal     = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
 
     return SubmitTx(txAccount.keyid, tx) ;
 
