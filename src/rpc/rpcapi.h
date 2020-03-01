@@ -108,7 +108,7 @@ extern Value submitbpcountupdateproposal(const Array& params, bool fHelp) ;
 extern Value getcdpparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;
 extern Value getgovernors(const Array& params, bool fHelp);
-extern Value listminminerfees(const Array& params, bool fHelp) ;
+extern Value listmintxfees(const Array& params, bool fHelp) ;
 
 /******************************  WASM VM *********************************/
 extern Value vmexecutescript(const json_spirit::Array& params, bool fHelp);
@@ -234,7 +234,7 @@ extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 extern Value submitproposalapprovaltx(const Array& params, bool fHelp) ;
 extern Value getsysparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;
-extern Value listminminerfees(const Array& params, bool fHelp) ;
+extern Value listmintxfees(const Array& params, bool fHelp) ;
 
 // debug
 Value dumpdb(const Array& params, bool fHelp);

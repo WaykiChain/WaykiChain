@@ -373,7 +373,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
                 "create proposal about enable/disable dexoperator\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
-                "2.\"tx_type\":          (numberic, required) the tx type you can get the list by command \"listminminerfees\" \n"
+                "2.\"tx_type\":          (numberic, required) the tx type you can get the list by command \"listmintxfees\" \n"
                 "3.\"fee_info\":         (combomoney, required) the miner fee symbol, example:WICC, WUSD \n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
@@ -582,21 +582,21 @@ Value getcdpparam(const Array& params, bool fHelp){
 
 }
 
-Value listminminerfees(const Array& params, bool fHelp) {
+Value listmintxfees(const Array& params, bool fHelp) {
     if(fHelp || params.size() != 0){
 
         throw runtime_error(
-                "listminminerfees\n"
+                "listmintxfees\n"
                 "\nget all tx minimum fee.\n"
                 "\nExamples:\n" +
-                HelpExampleCli("listminminerfees", "") + "\nAs json rpc\n" + HelpExampleRpc("listminminerfees", ""));
+                HelpExampleCli("listmintxfees", "") + "\nAs json rpc\n" + HelpExampleRpc("listmintxfees", ""));
     }
 
     Array arr;
     for(auto kv: kTxFeeTable){
-        Object o ;
-        o.push_back(Pair("tx_name", std::get<0>(kv.second)));
-        o.push_back(Pair("tx_code", kv.first));
+        Object o;
+        o.push_back(Pair("txtype_name", std::get<0>(kv.second)));
+        o.push_back(Pair("txtype_code", kv.first));
         uint64_t feeOut;
         if(GetTxMinFee(kv.first,chainActive.Height(), SYMB::WICC,feeOut))
             o.push_back(Pair("minfee_in_wicc", feeOut));
