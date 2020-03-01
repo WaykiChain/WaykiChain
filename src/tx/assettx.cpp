@@ -17,10 +17,10 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CBaseAsset &asset)
     Object result;
     CKeyID ownerKeyid;
     accountCache.GetKeyId(asset.owner_uid, ownerKeyid);
-    result.push_back(Pair("asset_symbol",   asset.symbol));
+    result.push_back(Pair("asset_symbol",   asset.asset_symbol));
+    result.push_back(Pair("asset_name",     asset.asset_name));
     result.push_back(Pair("owner_uid",      asset.owner_uid.ToString()));
     result.push_back(Pair("owner_addr",     ownerKeyid.ToAddress()));
-    result.push_back(Pair("asset_name",     asset.name));
     result.push_back(Pair("total_supply",   asset.total_supply));
     result.push_back(Pair("mintable",       asset.mintable));
     return result;
@@ -122,7 +122,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
             REJECT_INVALID, "invalid-asset-symbol");
     }
 
-    if (asset.name.empty() || asset.name.size() > MAX_ASSET_NAME_LEN) {
+    if (asset.asset_name.empty() || asset.asset_name.size() > MAX_ASSET_NAME_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_name is empty or len=%d greater than %d",
             asset.name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
     }
