@@ -70,14 +70,12 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 }  // json-rpc usage
 
  bool CProposalRequestTx::CheckTx(CTxExecuteContext &context) {
-
      IMPLEMENT_DEFINE_CW_STATE
      IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
      if (!CheckFee(context)) return false;
 
-     if(!proposal.sp_proposal->CheckProposal(context )){
+     if (!proposal.sp_proposal->CheckProposal(context))
          return false ;
-     }
 
      CAccount srcAccount;
      if (!cw.accountCache.GetAccount(txUid, srcAccount))
@@ -91,38 +89,34 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
 
 
  bool CProposalRequestTx::ExecuteTx(CTxExecuteContext &context) {
-
      IMPLEMENT_DEFINE_CW_STATE
 
      CAccount srcAccount;
-     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
-         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
-                          READ_ACCOUNT_FAIL, "bad-read-accountdb");
-     }
-     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
-         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
-                          UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-     }
+     if (!cw.accountCache.GetAccount(txUid, srcAccount))
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, read source addr account info error"),
+                        READ_ACCOUNT_FAIL, "bad-read-accountdb");
+    
+     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, account has insufficient funds"),
+                        UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
      if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
          return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set account info error"),
-                          WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
+                        WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
      uint64_t expireBlockCount ;
-
-     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expireBlockCount)) {
-         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
-                          WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
-     }
+     if(!cw.sysParamCache.GetParam(PROPOSAL_EXPIRE_BLOCK_COUNT, expireBlockCount))
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
+                        WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
      auto newProposal = proposal.sp_proposal->GetNewInstance() ;
      newProposal->expire_block_height = context.height + expireBlockCount ;
      newProposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
-     if(!cw.sysGovernCache.SetProposal(GetHash(), newProposal)){
-         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
-                          WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-     }
+     if (!cw.sysGovernCache.SetProposal(GetHash(), newProposal))
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
+                        WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
+
     return true ;
 }
 

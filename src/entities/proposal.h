@@ -54,12 +54,12 @@ public:
     CProposal() {}
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn)) {}
 
-    virtual shared_ptr<CProposal> GetNewInstance(){ return nullptr; } ;
-    virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
+    virtual shared_ptr<CProposal> GetNewInstance() { return nullptr; } ;
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
+    virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
     virtual string ToString(){
         return strprintf("proposal_type=%d,approval_min_count=%d,expire_block_height=%d",
-                proposal_type, approval_min_count, expire_block_height) ;
+                        proposal_type, approval_min_count, expire_block_height) ;
     }
     virtual Object ToJson(){
         Object o ;
@@ -284,7 +284,7 @@ public:
 
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("asset_pair", coinPair.ToString()));
+        o.push_back(Pair("asset_pair", coin_pair.ToString()));
         Array arrayItems;
         for (const auto &item : param_values) {
             Object subItem;

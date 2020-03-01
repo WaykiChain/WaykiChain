@@ -84,32 +84,30 @@ bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {
     return true;
 }
 
-bool CGovernorUpdateProposal::ExecuteProposal(CTxExecuteContext& context){
-
+bool CGovernorUpdateProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
-    if(operate_type == ProposalOperateType::DISABLE){
-        vector<CRegID> governors ;
-        if(cw.sysGovernCache.GetGovernors(governors)){
 
-            for(auto itr = governors.begin();itr !=governors.end();){
-                if(*itr == governor_regid){
+    if (operate_type == ProposalOperateType::DISABLE) {
+        vector<CRegID> governors;
+        if (cw.sysGovernCache.GetGovernors(governors)) {
+            for (auto itr = governors.begin(); itr != governors.end();) {
+                if (*itr == governor_regid) {
                     governors.erase(itr);
                     break ;
-                }else
+                } else
                     itr++ ;
             }
             return cw.sysGovernCache.SetGovernors(governors) ;
         }
+
         return false ;
 
-    }else if(operate_type == ProposalOperateType::ENABLE){
-
+    } else if (operate_type == ProposalOperateType::ENABLE) {
         vector<CRegID> governors ;
         cw.sysGovernCache.GetGovernors(governors);
 
-        if(find( governors.begin(),governors.end(),governor_regid) != governors.end()){
+        if (find(governors.begin(),governors.end(),governor_regid) != governors.end())
             return false ;
-        }
 
         governors.push_back(governor_regid) ;
         return cw.sysGovernCache.SetGovernors(governors) ;
