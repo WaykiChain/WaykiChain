@@ -119,7 +119,7 @@ public:
 };
 
 enum AssetType : uint8_t {
-    NULL_ASSET      = 0
+    NULL_ASSET      = 0,
     NIA             = 1, //natively issued asset
     DIA             = 2, //decentralized issued asset
     UIA             = 3, //user issued asset
