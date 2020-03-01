@@ -538,8 +538,22 @@ public:
         READWRITE(VARINT(swap_amount));
     );
 
-    virtual Object ToJson() override;
-    string ToString() override;
+    Object ToJson() override {
+        Object obj = CProposal::ToJson();
+        obj.push_back(Pair("peer_chain_type", peer_chain_type));
+        obj.push_back(Pair("peer_chain_token_symbol", peer_chain_token_symbol));
+        obj.push_back(Pair("peer_chain_uid", peer_chain_uid);
+        obj.push_back(Pair("peer_chain_txid", peer_chain_txid));
+        obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
+        obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
+        return obj;
+    }
+
+    string ToString() override {
+        return  strprintf("peer_chain_type=%d, peer_chain_token_symbol=%s, peer_chain_uid=%, peer_chain_txid=%, self_chain_uid=%s, swap_amount=%llu",
+                        peer_chain_type, peer_chain_token_symbol, peer_chain_uid, peer_chain_txid, self_chain_uid.ToString(), swap_amount);
+    }
+    
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CXChainSwapInProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
@@ -577,8 +591,21 @@ public:
         READWRITE(VARINT(swap_amount));
     );
 
-    virtual Object ToJson() override;
-    string ToString() override;
+     Object ToJson() override {
+        Object obj = CProposal::ToJson();
+        obj.push_back(Pair("self_chain_uid", self_chain_uid.ToString()));
+        obj.push_back(Pair("self_chain_token_symbol", self_chain_token_symbol));
+        obj.push_back(Pair("peer_chain_type", peer_chain_type);
+        obj.push_back(Pair("peer_chain_uid", peer_chain_uid));
+        obj.push_back(Pair("swap_amount", ValueFromAmount(swap_amount)));
+        return obj;
+    }
+
+    string ToString() override {
+        return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_type=%d, peer_chain_uid=%, swap_amount=%llu",
+                        self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_type, peer_chain_uid, swap_amount);
+    }
+
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CXChainSwapOutProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
