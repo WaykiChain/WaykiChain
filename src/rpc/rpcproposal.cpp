@@ -228,7 +228,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
     CGovernorUpdateProposal proposal ;
     proposal.governor_regid = governorId ;
-    proposal.operate_type = ProposalOperateType(operateType);
+    proposal.op_type = ProposalOperateType(operateType);
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
@@ -240,6 +240,97 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
 }
 
+Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
+    if(fHelp || params.size() < 3 || params.size() > 4) {
+        throw runtime_error(
+                "submitdexquotecoinproposal \"addr\" \"token_symbol\" \"operate_type\" [\"fee\"]\n"
+                "request proposal about add/remove dex quote coin\n"
+                "\nArguments:\n"
+                "1.\"addr\":             (string, required) the tx submitor's address\n"
+                "2.\"token_symbol\":     (string, required) the dex quote coin symbol\n"
+                "3.\"op_type\":          (numberic, required) the operate type \n"
+                "                         1 stand for add\n"
+                "                         2 stand for remove\n"
+                "4.\"fee\":              (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitdexquotecoinproposal", "0-1 WUSD 1  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitdexquotecoinproposal", "0-1 WUSD 1  WICC:1:WI")
+
+                );
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    string token = params[1].get_str();
+    uint64_t operateType = params[2].get_int();
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    CDexQuoteCoinProposal proposal ;
+    proposal.coin_symbol = token ;
+    proposal.op_type = ProposalOperateType(operateType);
+
+    CProposalRequestTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetSawiAmount();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CDexQuoteCoinProposal>(proposal)) ;
+    return SubmitTx(account.keyid, tx) ;
+
+
+}
+
+
+Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
+    if(fHelp || params.size() < 3 || params.size() > 4) {
+        throw runtime_error(
+                "submitfeedcoinpairproposal \"addr\" \"feed_symbol\" \"base_symbol\" \"operate_type\" [\"fee\"]\n"
+                "request proposal about add/remove feed price coin pair \n"
+                "\nArguments:\n"
+                "1.\"addr\":             (string, required) the tx submitor's address\n"
+                "2.\"feed_symbol\":     (string, required) the feed coin symbol\n"
+                "3.\"base_symbol\":     (string, required) the feed base coin symbol\n"
+                "4.\"op_type\":          (numberic, required) the operate type \n"
+                "                         1 stand for add\n"
+                "                         2 stand for remove\n"
+                "4.\"fee\":              (combomoney, optional) the tx fee \n"
+                "\nExamples:\n"
+                + HelpExampleCli("submitfeedcoinproposal", "0-1 WICC WUSD 1  WICC:1:WI")
+                + "\nAs json rpc call\n"
+                + HelpExampleRpc("submitfeedcoinproposal", "0-1 WICC WUSD 1  WICC:1:WI")
+
+        );
+    }
+
+    EnsureWalletIsUnlocked();
+    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
+    string feedSymbol = params[1].get_str();
+    string baseSymbol = params[2].get_str();
+    uint64_t operateType = params[3].get_int();
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
+    int32_t validHeight  = chainActive.Height();
+    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    CFeedCoinPairProposal proposal ;
+    proposal.feed_symbol = feedSymbol ;
+    proposal.base_symbol = baseSymbol ;
+    proposal.op_type = ProposalOperateType(operateType);
+
+    CProposalRequestTx tx ;
+    tx.txUid        = txUid;
+    tx.llFees       = fee.GetSawiAmount();
+    tx.fee_symbol    = fee.symbol ;
+    tx.valid_height = validHeight;
+    tx.proposal = CProposalStorageBean(std::make_shared<CFeedCoinPairProposal>(proposal)) ;
+    return SubmitTx(account.keyid, tx) ;
+
+
+}
 Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
     if(fHelp || params.size() < 3 || params.size() > 4){
@@ -490,7 +581,7 @@ Value getsysparam(const Array& params, bool fHelp){
         auto itr = paramNameToSysParamTypeMap.find(paramName) ;
         if (itr == paramNameToSysParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
-        
+
         st = std::get<1>(itr->second) ;
         uint64_t pv ;
         if(!pCdMan->pSysParamCache->GetParam(st, pv))
@@ -543,7 +634,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         auto itr = paramNameToCdpParamTypeMap.find(paramName) ;
         if( itr == paramNameToCdpParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
-        
+
         cpt = std::get<1>(itr->second) ;
 
         uint64_t pv ;
@@ -593,3 +684,23 @@ Value listmintxfees(const Array& params, bool fHelp) {
 
     return arr ;
 }
+
+Value getdexquotecoins(const Array& params, bool fHelp) {
+
+    if(fHelp || params.size() !=0){
+        throw runtime_error("") ;
+    }
+
+    set<TokenSymbol> coins ;
+    pCdMan->pDexCache->GetDexQuoteCoins(coins) ;
+
+    Object o ;
+    Array arr ;
+    for(TokenSymbol token: coins)
+        arr.push_back(token) ;
+    o.push_back(Pair("dex_quote_coins", arr)) ;
+    return o ;
+
+
+}
+

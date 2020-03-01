@@ -34,6 +34,7 @@ typedef leveldb::Slice Slice;
     DEFINE( RECEIPT,            "receipts",       (100 << 10) )      /* tx receipt */ \
     DEFINE( UTXO,               "utxo",           (50  << 20) )      /* utxo tx track db */ \
     DEFINE( SYSGOVERN,          "governs",        (100 << 10) )           \
+    DEFINE( PRICEFEED,          "pricefeed",      (50  << 10) )      \
     /*                                                                  */  \
     /* Add new Enum elements above, DB_NAME_COUNT Must be the last one */ \
     DEFINE( DB_NAME_COUNT,        "",               0)                  /* enum count, must be the last one */
@@ -121,6 +122,7 @@ namespace dbk {
         DEFINE( DEX_OPERATOR_DETAIL,  "dode",       DEX )        /* [prefix]{dex_operator_id} --> dex_operator_detail */ \
         DEFINE( DEX_OPERATOR_OWNER_MAP, "doom",     DEX )        /* [prefix]{owner_name} --> dex_operator_id */ \
         DEFINE( DEX_OPERATOR_TRADE_PAIR, "dotp",    DEX )              \
+        DEFINE( DEX_QUOTE_COIN_SYMBOL, "dqcs",      DEX)                    \
         /**** log db                                                                    */ \
         DEFINE( TX_EXECUTE_FAIL,      "txef",       LOG )        /* [prefix]{height}{txid} --> {error code, error message} */ \
         /**** tx receipt db                                                                 */ \
@@ -129,6 +131,7 @@ namespace dbk {
         DEFINE( TX_UTXO,              "utxo",       UTXO )       /* [prefix]{txid-voutindex} --> 1 */ \
         /**** tx coinutxo db                                                                 */ \
         DEFINE( UTXO_PWSDPRF,         "pwdp",       UTXO )       /* [prefix]{txid-voutindex} --> {passwordProof} */ \
+        DEFINE( PRICE_FEED_COIN,      "pfco",       PRICEFEED)         \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */

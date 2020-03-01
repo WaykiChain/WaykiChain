@@ -101,6 +101,8 @@ extern Value submitparamgovernproposal(const Array& params, bool fHelp) ;
 
 extern Value submitcdpparamgovernproposal(const Array& params, bool fHelp) ;
 extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
+extern Value submitdexquotecoinproposal(const Array& params, bool fHelp) ;
+extern Value submitfeedcoinproposal(const Array& params, bool fHelp);
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 extern Value submitbpcountupdateproposal(const Array& params, bool fHelp) ;
 
@@ -228,13 +230,14 @@ extern Value gettxtrace(const json_spirit::Array& params, bool fHelp);
 extern Value abidefjsontobinwasm(const json_spirit::Array& params, bool fHelp);
 
 extern Value submitgovernorupdateproposal(const Array& params, bool fHelp) ;
-extern Value submitdexswitchproposal(const Array& params, bool fHelp) ;
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 
 extern Value submitproposalapprovaltx(const Array& params, bool fHelp) ;
 extern Value getsysparam(const Array& params, bool fHelp) ;
 extern Value getproposal(const Array& params, bool fHelp) ;
 extern Value listmintxfees(const Array& params, bool fHelp) ;
+
+extern Value getdexquotecoins(const Array& params, bool fHelp);
 
 // debug
 Value dumpdb(const Array& params, bool fHelp);

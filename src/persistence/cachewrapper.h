@@ -41,6 +41,7 @@ public:
 
     CTxMemCache         txCache;
     CPricePointMemCache ppCache;
+    CPriceFeedCache     priceFeedCache;
 public:
     static std::shared_ptr<CCacheWrapper> NewCopyFrom(CCacheDBManager* pCdMan);
 public:
@@ -107,6 +108,8 @@ public:
     CDBAccess           *pSysGovernDb;
     CSysGovernDBCache   *pSysGovernCache;
 
+    CDBAccess           *pPriceFeedDb;
+    CPriceFeedCache     *pPriceFeedCache;
 
     CTxMemCache         *pTxCache;
     CPricePointMemCache *pPpCache;

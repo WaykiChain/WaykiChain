@@ -514,3 +514,33 @@ bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& ol
     }
     return operator_detail_cache.SetData(idKey, detail);
 }
+
+
+bool CDexDBCache::AddDexQuoteCoin(TokenSymbol coin) {
+    set<TokenSymbol> coins ;
+    dex_quote_coin_cache.GetData(coins);
+    if(coins.count(coin) != 0 )
+        return true ;
+    coins.insert(coin) ;
+    return dex_quote_coin_cache.SetData(coins);
+}
+
+bool CDexDBCache::EraseDexQuoteCoin(TokenSymbol coin) {
+    set<TokenSymbol> coins ;
+    dex_quote_coin_cache.GetData(coins);
+    if(coins.count(coin) == 0 )
+        return true ;
+    coins.erase(coin) ;
+    return dex_quote_coin_cache.SetData(coins);
+}
+
+bool CDexDBCache::HaveDexQuoteCoin(TokenSymbol coin) {
+    set<TokenSymbol> coins ;
+    dex_quote_coin_cache.GetData(coins);
+    return (coins.count(coin) != 0 ) ;
+}
+
+bool CDexDBCache::GetDexQuoteCoins(set<TokenSymbol>& coinSet) {
+    return dex_quote_coin_cache.GetData(coinSet) ;
+
+}

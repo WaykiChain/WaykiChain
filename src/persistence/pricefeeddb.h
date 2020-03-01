@@ -13,6 +13,7 @@
 #include "entities/id.h"
 #include "entities/price.h"
 #include "tx/tx.h"
+#include "persistence/dbaccess.h"
 
 #include <map>
 #include <string>
@@ -76,6 +77,81 @@ private:
     CoinPricePointMap mapCoinPricePointCache;  // coinPriceType -> consecutiveBlockPrice
     CPricePointMemCache *pBase;
     PriceMap latest_median_prices;
+
+};
+
+class CPriceFeedCache {
+public:
+    CPriceFeedCache() {}
+    CPriceFeedCache(CDBAccess *pDbAccess)
+    : price_feed_coin_cache(pDbAccess) {};
+
+
+public:
+
+
+    bool Flush() {
+        price_feed_coin_cache.Flush();
+        return true;
+    }
+
+    uint32_t GetCacheSize() const {
+        return price_feed_coin_cache.GetCacheSize() ;
+    }
+    void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
+        price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
+    };
+
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
+        price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
+    }
+
+    void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
+        price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
+
+    }
+
+
+
+
+    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+        set<pair<TokenSymbol,TokenSymbol>> coinPairs ;
+        price_feed_coin_cache.GetData(coinPairs);
+        if(coinPairs.count(make_pair(feedCoin, baseCoin)) != 0 )
+            return true ;
+        coinPairs.insert(make_pair(feedCoin,baseCoin)) ;
+        return price_feed_coin_cache.SetData(coinPairs);
+    }
+
+    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+        auto coinPair = std::make_pair(feedCoin, baseCoin);
+        set<pair<TokenSymbol,TokenSymbol>> coins ;
+        price_feed_coin_cache.GetData(coins);
+        if(coins.count(coinPair) == 0 )
+            return true ;
+        coins.erase(coinPair) ;
+        return price_feed_coin_cache.SetData(coins);
+    }
+
+    bool HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseSymbol) {
+        set<pair<TokenSymbol, TokenSymbol>> coins ;
+        price_feed_coin_cache.GetData(coins);
+        return (coins.count(make_pair(feedCoin,baseSymbol)) != 0 ) ;
+    }
+
+    bool GetDFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
+        return price_feed_coin_cache.GetData(coinSet) ;
+
+    }
+
+
+public:
+/*       type               prefixType                      key                        value                variable             */
+/*  ----------------   -----------------------------  ---------------------------  ------------------   ------------------------ */
+    /////////// DexDB
+    // order tx id -> active order
+    CSimpleKVCache< dbk::PRICE_FEED_COIN,          set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
+
 };
 
 #endif  // PERSIST_PRICEFEED_H

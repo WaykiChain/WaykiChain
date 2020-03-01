@@ -70,7 +70,7 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CCoinUtxoTransferTx&)tx, serType, version); break;
          case UTXO_PASSWORD_PROOF_TX:
             ::Serialize(os, (const CCoinUtxoPasswordProofTx&)tx, serType, version); break;
-        
+
         case UCOIN_TRANSFER_TX:
             ::Serialize(os, (const CCoinTransferTx&)tx, serType, version); break;
         case UCOIN_REWARD_TX:

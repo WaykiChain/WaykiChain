@@ -32,6 +32,8 @@ enum ProposalType: uint8_t{
     CDP_PARAM_GOVERN  = 6 ,
     COIN_TRANSFER     = 7 ,
     BP_COUNT_UPDATE   = 8 ,
+    DEX_QUOTE_COIN    = 9 ,
+    FEED_COIN_PAIR    = 10
 
 };
 
@@ -73,6 +75,110 @@ public:
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 };
 
+class CFeedCoinPairProposal: public CProposal {
+public:
+
+    TokenSymbol  feed_symbol ;
+    TokenSymbol  base_symbol = SYMB::USD ;
+    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
+
+    CFeedCoinPairProposal(): CProposal(ProposalType ::FEED_COIN_PAIR) {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height)) ;
+            READWRITE(approval_min_count) ;
+            READWRITE(feed_symbol) ;
+            READWRITE(base_symbol) ;
+            READWRITE((uint8_t&)op_type);
+    )
+
+
+
+    // @return nullptr if succeed, else err string
+    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
+        size_t symbolSize = symbol.size();
+        if (symbolSize < 2 || symbolSize > 7)
+            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
+                                                 symbolSize, 2, 7));
+
+        for (auto ch : symbol) {
+            if ( ch<'A' || ch > 'Z')
+                return make_shared<string>("there is invalid char in symbol");
+        }
+        return nullptr;
+    }
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("feed_symbol", feed_symbol));
+        o.push_back(Pair("base_symbol", base_symbol));
+
+        o.push_back(Pair("op_type", op_type)) ;
+        return o ;
+    }
+
+    string ToString() override {
+        return  strprintf("feed_symbol=%s,base_symbol=%s",feed_symbol, base_symbol ) + ", " +
+                strprintf("op_type=%d", op_type);
+    }
+
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CFeedCoinPairProposal>(*this); } ;
+
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
+
+};
+class CDexQuoteCoinProposal: public CProposal {
+public:
+    TokenSymbol  coin_symbol ;
+    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
+
+    CDexQuoteCoinProposal(): CProposal(ProposalType ::DEX_QUOTE_COIN) {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height)) ;
+            READWRITE(approval_min_count) ;
+            READWRITE(coin_symbol) ;
+            READWRITE((uint8_t&)op_type);
+    )
+
+
+
+    // @return nullptr if succeed, else err string
+    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
+        size_t symbolSize = symbol.size();
+        if (symbolSize < 2 || symbolSize > 7)
+            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
+                                                 symbolSize, 2, 7));
+
+        for (auto ch : symbol) {
+            if ( ch<'A' || ch > 'Z')
+                return make_shared<string>("there is invalid char in symbol");
+        }
+        return nullptr;
+    }
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("coin_symbol", coin_symbol));
+
+        o.push_back(Pair("op_type", op_type)) ;
+        return o ;
+    }
+
+    string ToString() override {
+        return  strprintf("coin_symbol=%s",coin_symbol ) + ", " +
+                strprintf("op_type=%d", op_type);
+    }
+
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexQuoteCoinProposal>(*this); } ;
+
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
+
+};
 
 class CParamsGovernProposal: public CProposal {
 public:
@@ -119,7 +225,7 @@ public:
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    
+
 };
 
 
@@ -127,7 +233,7 @@ public:
 class CGovernorUpdateProposal: public CProposal{
 public:
     CRegID governor_regid ;
-    ProposalOperateType operate_type  = ProposalOperateType::NULL_PROPOSAL_OP;
+    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
     CGovernorUpdateProposal(): CProposal(ProposalType::GOVERNOR_UPDATE){}
 
@@ -135,28 +241,28 @@ public:
         READWRITE(VARINT(expire_block_height));
         READWRITE(approval_min_count);
         READWRITE(governor_regid);
-        READWRITE((uint8_t&)operate_type);
+        READWRITE((uint8_t&)op_type);
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("governor_regid",governor_regid.ToString())) ;
-        o.push_back(Pair("operate_type", operate_type));
+        o.push_back(Pair("operate_type", op_type));
         return o ;
     }
 
     string ToString() override {
         string baseString = CProposal::ToString() ;
         return strprintf("%s, governor_regid=%s, operate_type=%d", baseString,
-                governor_regid.ToString(),operate_type) ;
+                governor_regid.ToString(),op_type) ;
 
     }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernorUpdateProposal>(*this); }
-    
+
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    
+
 };
 
 class CDexSwitchProposal: public CProposal{
@@ -356,16 +462,26 @@ public:
     CCdpCoinPair cdp_coin_pair;
     CdpCoinPairStatus status; // cdp coin pair status, can not be NONE
 
-    CCdpCoinPairProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN){}
+    CCdpCoinPairProposal(): CProposal(ProposalType::CDP_COIN_PAIR){}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(cdp_coin_pair);
         READWRITE(VARINT((uint8_t&)status));
     );
 
-    virtual Object ToJson() override;
 
-    string ToString() override;
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("cdp_coin_pair", cdp_coin_pair.ToString()));
+
+        o.push_back(Pair("status", GetCdpCoinPairStatusName(status))) ;
+        return o ;
+    }
+
+    string ToString() override {
+        return  strprintf("cdp_coin_pair=%s", cdp_coin_pair.ToString()) + ", " +
+                strprintf("status=%s", GetCdpCoinPairStatusName(status));
+    }
 
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
 
@@ -436,6 +552,12 @@ public:
             case BP_COUNT_UPDATE:
                 ::Serialize(os, *((CBPCountUpdateProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
+            case DEX_QUOTE_COIN:
+                ::Serialize(os, *((CDexQuoteCoinProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case FEED_COIN_PAIR:
+                ::Serialize(os, *((CFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                                   sp_proposal->proposal_type));
@@ -500,6 +622,19 @@ public:
             case BP_COUNT_UPDATE: {
                 sp_proposal = std:: make_shared<CBPCountUpdateProposal>();
                 ::Unserialize(is,  *((CBPCountUpdateProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+
+            case DEX_QUOTE_COIN: {
+                sp_proposal = std:: make_shared<CDexQuoteCoinProposal>();
+                ::Unserialize(is,  *((CDexQuoteCoinProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case FEED_COIN_PAIR: {
+                sp_proposal = std:: make_shared<CFeedCoinPairProposal>();
+                ::Unserialize(is,  *((CFeedCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

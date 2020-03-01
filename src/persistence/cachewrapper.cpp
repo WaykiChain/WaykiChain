@@ -34,6 +34,8 @@ CCacheWrapper::CCacheWrapper(CCacheWrapper *cwIn) {
     txCache.SetBaseViewPtr(&cwIn->txCache);
     ppCache.SetBaseViewPtr(&cwIn->ppCache);
     sysGovernCache.SetBaseViewPtr(&cwIn->sysGovernCache);
+    priceFeedCache.SetBaseViewPtr(&cwIn->priceFeedCache);
+
 }
 
 CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
@@ -52,6 +54,7 @@ CCacheWrapper::CCacheWrapper(CCacheDBManager* pCdMan) {
     txCache.SetBaseViewPtr(pCdMan->pTxCache);
     ppCache.SetBaseViewPtr(pCdMan->pPpCache);
     sysGovernCache.SetBaseViewPtr(pCdMan->pSysGovernCache);
+    priceFeedCache.SetBaseViewPtr(pCdMan->pPriceFeedCache);
 }
 
 void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
@@ -70,6 +73,7 @@ void CCacheWrapper::CopyFrom(CCacheDBManager* pCdMan){
     txCache = *pCdMan->pTxCache;
     ppCache = *pCdMan->pPpCache;
     sysGovernCache = *pCdMan->pSysGovernCache ;
+    priceFeedCache = *pCdMan->pPriceFeedCache ;
 }
 
 CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
@@ -90,6 +94,7 @@ CCacheWrapper& CCacheWrapper::operator=(CCacheWrapper& other) {
     this->txCache        = other.txCache;
     this->ppCache        = other.ppCache;
     this->sysGovernCache = other.sysGovernCache;
+    this->priceFeedCache = other.priceFeedCache;
 
     return *this;
 }
@@ -110,6 +115,7 @@ void CCacheWrapper::Flush() {
     txCache.Flush();
     ppCache.Flush();
     sysGovernCache.Flush();
+    priceFeedCache.Flush();
 }
 
 void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
@@ -125,6 +131,7 @@ void CCacheWrapper::SetDbOpLogMap(CDBOpLogMap *pDbOpLogMap) {
     txReceiptCache.SetDbOpLogMap(pDbOpLogMap);
     txUtxoCache.SetDbOpLogMap(pDbOpLogMap);
     sysGovernCache.SetDbOpLogMap(pDbOpLogMap) ;
+    priceFeedCache.SetDbOpLogMap(pDbOpLogMap) ;
 }
 
 UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
@@ -141,6 +148,7 @@ UndoDataFuncMap CCacheWrapper::GetUndoDataFuncMap() {
     txReceiptCache.RegisterUndoFunc(undoDataFuncMap);
     txUtxoCache.RegisterUndoFunc(undoDataFuncMap);
     sysGovernCache.RegisterUndoFunc(undoDataFuncMap);
+    priceFeedCache.RegisterUndoFunc(undoDataFuncMap);
     return undoDataFuncMap;
 }
 
@@ -173,6 +181,7 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
     pDexDb          = new CDBAccess(dbDir, DBNameType::DEX, false, fReIndex);
     pDexCache       = new CDexDBCache(pDexDb);
 
+
     pBlockIndexDb   = new CBlockIndexDB(false, fReIndex);
 
     pBlockDb        = new CDBAccess(dbDir, DBNameType::BLOCK, false, fReIndex);
@@ -189,6 +198,10 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
 
     pSysGovernDb    = new CDBAccess(dbDir, DBNameType::SYSGOVERN, false, fReIndex);
     pSysGovernCache = new CSysGovernDBCache(pSysGovernDb);
+
+    pPriceFeedDb    = new CDBAccess(dbDir, DBNameType::PRICEFEED, false, fReIndex);
+    pPriceFeedCache = new CPriceFeedCache(pPriceFeedDb);
+
 
     // memory-only cache
     pTxCache        = new CTxMemCache();
@@ -209,6 +222,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pReceiptCache;   pReceiptCache = nullptr;
     delete pSysGovernCache; pSysGovernCache = nullptr;
     delete pUtxoCache;      pUtxoCache = nullptr;
+    delete pPriceFeedCache; pPriceFeedCache = nullptr;
 
     delete pSysParamDb;     pSysParamDb = nullptr;
     delete pAccountDb;      pAccountDb = nullptr;
@@ -224,7 +238,7 @@ CCacheDBManager::~CCacheDBManager() {
     delete pReceiptDb;      pReceiptDb = nullptr;
     delete pSysGovernDb;    pSysGovernDb = nullptr;
     delete pUtxoDb;         pUtxoDb = nullptr;
-
+    delete pPriceFeedDb;    pPriceFeedDb = nullptr;
     // memory-only cache
     delete pTxCache;        pTxCache = nullptr;
     delete pPpCache;        pPpCache = nullptr;
@@ -258,6 +272,8 @@ bool CCacheDBManager::Flush() {
     if (pSysGovernCache) pSysGovernCache->Flush();
 
     if (pUtxoCache) pUtxoCache->Flush();
+
+    if (pPriceFeedCache) pPriceFeedCache->Flush();
 
     // Memory only cache, not bother to flush.
     // if (pTxCache)
