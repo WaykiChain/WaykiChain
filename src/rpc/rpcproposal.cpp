@@ -412,35 +412,32 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 }
 
 Value submitcointransferproposal( const Array& params, bool fHelp) {
-
     if(fHelp || params.size() < 4 || params.size() > 5){
-
         throw runtime_error(
-                "submitcointransferproposal \"from_uid\" \"to_uid\" \"symbol:amount:unit\"  [\"fee\"]\n"
+                "submitcointransferproposal $tx_uid $from_uid $to_uid $transfer_amount [$fee]\n"
                 "create proposal about enable/disable dexoperator\n"
                 "\nArguments:\n"
-                "1.\"tx_uid\":                (string, required) the tx submitor's address\n"
-                "2.\"from_uid\":              (string, required) the address that transfer from\n"
-                "3.\"to_uid\":                (string, required) the address that tranfer to \n"
-                "4.\"amount\":                (combomoney, required) the tansfer amount \n"
-                "5.\"fee\":                   (combomoney, optional) the tx fee \n"
+                "1.$tx_uid:                (string, required) the submitor's address\n"
+                "2.$from_uid:              (string, required) the address that transfer from\n"
+                "3.$to_uid:                (string, required) the address that tranfer to \n"
+                "4.$transfer_amount:       (combomoney, required) the tansfer amount\n"
+                "5.$fee:                   (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
+                + HelpExampleCli("submitminerfeeproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
+                + HelpExampleRpc("submitminerfeeproposal", "0-1 100-1 200-1 WICC:1000:wi WICC:0.001:wi")
 
         );
-
     }
 
     EnsureWalletIsUnlocked();
-    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    const CUserID& fromUid = RPC_PARAM:: GetUserId(params[1]) ;
-    const CUserID& toUid = RPC_PARAM:: GetUserId(params[2]) ;
+    const CUserID& txUid    = RPC_PARAM::GetUserId(params[0], true);
+    const CUserID& fromUid  = RPC_PARAM::GetUserId(params[1]) ;
+    const CUserID& toUid    = RPC_PARAM::GetUserId(params[2]) ;
 
     ComboMoney transferInfo = RPC_PARAM::GetComboMoney(params[3],SYMB::WICC);
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
-    int32_t validHeight  = chainActive.Height();
+    int32_t validHeight     = chainActive.Height();
 
     auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(transferInfo.symbol);
     if (pSymbolErr)
@@ -455,13 +452,11 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-
     CCoinTransferProposal proposal ;
     proposal.from_uid = fromUid ;
     proposal.to_uid = toUid ;
     proposal.token = transferInfo.symbol ;
     proposal.amount = transferInfo.GetSawiAmount() ;
-
 
     CProposalCreateTx tx ;
     tx.txUid        = txUid;
@@ -469,7 +464,6 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposalBean = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
-
 
     return SubmitTx(txAccount.keyid, tx) ;
 
