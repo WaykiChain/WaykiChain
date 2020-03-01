@@ -476,9 +476,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
 }
 
 Value getsysparam(const Array& params, bool fHelp){
-
     if(fHelp || params.size() > 1){
-
         throw runtime_error(
                 "getsysparam $param_name\n"
                 "get system param info\n"
@@ -490,30 +488,26 @@ Value getsysparam(const Array& params, bool fHelp){
                 + "\nAs json rpc call\n"
                 + HelpExampleRpc("getsysparam", "")
         );
-
     }
 
-    if(params.size() == 1){
-
+    if (params.size() == 1) {
         string paramName = params[0].get_str() ;
         SysParamType st ;
         auto itr = paramNameToSysParamTypeMap.find(paramName) ;
-        if( itr == paramNameToSysParamTypeMap.end()){
+        if (itr == paramNameToSysParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
-        }
+        
         st = std::get<1>(itr->second) ;
         uint64_t pv ;
-        if(!pCdMan->pSysParamCache->GetParam(st, pv)){
+        if(!pCdMan->pSysParamCache->GetParam(st, pv))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
-        }
 
         Object obj ;
         obj.push_back(Pair(paramName, pv));
         return obj;
-
     } else {
         Object obj;
-        for(auto kv:paramNameToSysParamTypeMap){
+        for(auto kv : paramNameToSysParamTypeMap) {
             auto paramName = kv.first ;
             uint64_t pv = 0;
             pCdMan->pSysParamCache->GetParam(std::get<1>(kv.second), pv);
@@ -530,10 +524,10 @@ Value getcdpparam(const Array& params, bool fHelp) {
     if(fHelp || params.size() > 1){
         throw runtime_error(
                 "getcdpparam $bcoin_scoin_pair $param_name \n"
-                "create proposal about param govern\n"
+                "get its param info about a given CDP type by its coinpair key\n"
                 "\nArguments:\n"
                 "1.$bcoin_scoin_pair: (string,required) a CDP type denoted by boin:scoin symbol pair\n"
-                "2.$param_name:       (string, optional)a param name. list all parameters when $param_name is omitted\n"
+                "2.$param_name:       (string, optional)a param name. list all parameters when omitted\n"
 
                 "\nExamples:\n"
                 + HelpExampleCli("getcdpparam", "WICC:WUSD")
