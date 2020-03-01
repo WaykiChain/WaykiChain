@@ -4,6 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
+#include "config/const.h"
 #include "entities/proposal.h"
 #include "persistence/cachewrapper.h"
 #include <algorithm>
@@ -369,15 +370,13 @@ bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
 
     CValidationState& state = *context.pState ;
 
-    if( bp_count == 0 || bp_count >= 255)
-        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,bp_count must be between 0 and 255"),
-                REJECT_INVALID,"bad-bp-count") ;
+    if (bp_count == 0 || bp_count > BP_MAX_COUNT)
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal, bp_count must be between 1 and 256"),
+                        REJECT_INVALID,"bad-bp-count") ;
 
-    if(launch_height < (uint32_t)context.height + 3600){
-        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal,launch_height must more than current height + 3600"),
+    if (launch_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal: launch_height must be >= current height + 3600"),
                          REJECT_INVALID,"bad-bp-count") ;
-
-    }
 
     return true  ;
 }
