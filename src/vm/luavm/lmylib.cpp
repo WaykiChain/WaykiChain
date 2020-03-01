@@ -2350,7 +2350,7 @@ int32_t ExGetCurTxInputAssetFunc(lua_State *L) {
     LUA_BurnFuncCall(L, FUEL_CALL_GetCurTxInputAsset, BURN_VER_R2);
 
     lua_createtable (L, 0, 2); // create table object with 2 field
-    // set asset.symbol
+    // set asset.asset_symbol
     lua_pushstring(L, pVmRunEnv->GetContext().transfer_symbol.c_str());
     lua_setfield(L, -2, "symbol");
 
@@ -2430,7 +2430,7 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
         return 0;
     }
     lua_createtable (L, 0, 2); // create table object with 2 field
-    // set asset.symbol
+    // set asset.asset_symbol
     lua_pushstring(L, tokenType.c_str());
     lua_setfield(L, -2, "symbol");
 

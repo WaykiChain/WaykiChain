@@ -116,7 +116,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID(txUid);
     if (!CheckFee(context)) return false;
 
-    auto symbolErr = CAsset::CheckSymbol(asset.symbol);
+    auto symbolErr = CAsset::CheckSymbol(asset.asset_symbol);
     if (symbolErr) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", *symbolErr),
             REJECT_INVALID, "invalid-asset-symbol");
@@ -168,9 +168,9 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
                         llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (cw.assetCache.HaveAsset(asset.symbol))
+    if (cw.assetCache.HaveAsset(asset.asset_symbol))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset has been issued! symbol=%s",
-            asset.symbol), REJECT_INVALID, "asset-existed-error");
+            asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 
     shared_ptr<CAccount> pOwnerAccount;
     if (pTxAccount->IsMyUid(asset.owner_uid)) {
@@ -191,7 +191,7 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    if (!pOwnerAccount->OperateBalance(asset.symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
+    if (!pOwnerAccount->OperateBalance(asset.asset_symbol, BalanceOpType::ADD_FREE, asset.total_supply)) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, fail to add total_supply to issued account! total_supply=%llu, txUid=%s",
                         asset.total_supply, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
@@ -221,7 +221,7 @@ string CAssetIssueTx::ToString(CAccountDBCache &accountCache) {
     return strprintf("txType=%s, hash=%s, ver=%d, txUid=%s, llFees=%ld, valid_height=%d, "
         "owner_uid=%s, asset_symbol=%s, asset_name=%s, total_supply=%llu, mintable=%d",
         GetTxType(nTxType), GetHash().ToString(), nVersion, txUid.ToDebugString(), llFees, valid_height,
-        asset.owner_uid.ToDebugString(), asset.symbol, asset.name, asset.total_supply, asset.mintable);
+        asset.owner_uid.ToDebugString(), asset.asset_symbol, asset.name, asset.total_supply, asset.mintable);
 }
 
 Object CAssetIssueTx::ToJson(const CAccountDBCache &accountCache) const {
