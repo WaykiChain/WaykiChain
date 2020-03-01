@@ -358,7 +358,7 @@ bool CBPCountUpdateProposal:: ExecuteProposal(CTxExecuteContext& context) {
                 REJECT_INVALID, "save-currbpcount-failed");
     }
 
-    if(!cw.sysParamCache.SetNewBpCount(bp_count,launch_height)){
+    if(!cw.sysParamCache.SetNewBpCount(bp_count,effective_height)){
         return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::ExecuteProposal, save new bp count failed!"),
                 REJECT_INVALID, "save-newbpcount-failed");
     }
@@ -374,8 +374,8 @@ bool CBPCountUpdateProposal:: CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal, bp_count must be between 1 and 256"),
                         REJECT_INVALID,"bad-bp-count") ;
 
-    if (launch_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
-        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal: launch_height must be >= current height + 3600"),
+    if (effective_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
+        return state.DoS(100, ERRORMSG("CBPCountUpdateProposal::CheckProposal: effective_height must be >= current height + 3600"),
                          REJECT_INVALID,"bad-bp-count") ;
 
     return true  ;

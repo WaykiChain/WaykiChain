@@ -416,12 +416,12 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
 Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
         throw runtime_error(
-                "submitbpcountupdateproposal \"addr\" \"bp_count\" \"launch_height\"  [\"fee\"]\n"
+                "submitbpcountupdateproposal \"addr\" \"bp_count\" \"effective_height\"  [\"fee\"]\n"
                 "create proposal about enable/disable dexoperator\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"bp_count\":         (numberic, required) the count of block producer(miner)  \n"
-                "3.\"launch_height\":    (numberic, required) the height of the proposal launch \n"
+                "3.\"effective_height\":    (numberic, required) the height of the proposal launch \n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitbpcountupdateproposal", "0-1 21 45002020202  WICC:1:WI")
@@ -435,7 +435,7 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true ) ;
     uint8_t bpCount = params[1].get_int() ;
-    uint32_t launchHeight = params[2].get_int() ;
+    uint32_t effectiveHeight = params[2].get_int() ;
     ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
@@ -443,7 +443,7 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
 
     CBPCountUpdateProposal proposal ;
     proposal.bp_count = bpCount ;
-    proposal.launch_height = launchHeight ;
+    proposal.effective_height = effectiveHeight ;
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;

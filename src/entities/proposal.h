@@ -427,7 +427,7 @@ public:
 class CBPCountUpdateProposal: public CProposal {
 public:
     uint8_t bp_count ;
-    uint32_t launch_height ;
+    uint32_t effective_height ;
 
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
 
@@ -435,7 +435,7 @@ public:
         READWRITE(VARINT(expire_block_height));
         READWRITE(approval_min_count);
         READWRITE(bp_count);
-        READWRITE(VARINT(launch_height));
+        READWRITE(VARINT(effective_height));
     );
 
 

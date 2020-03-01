@@ -217,8 +217,8 @@ public:
 
 
 public:
-    bool SetNewBpCount(uint8_t newBpCount, uint32_t launchHeight) {
-        return newBpCountCache.SetData(std::make_pair(CVarIntValue(launchHeight), newBpCount)) ;
+    bool SetNewBpCount(uint8_t newBpCount, uint32_t effectiveHeight) {
+        return newBpCountCache.SetData(std::make_pair(CVarIntValue(effectiveHeight), newBpCount)) ;
     }
     bool SetCurrentBpCount(uint8_t bpCount) {
 
@@ -228,8 +228,8 @@ public:
 
         pair<CVarIntValue<uint32_t>,uint8_t> value ;
         if(newBpCountCache.GetData(value)){
-            auto launchHeight = std::get<0>(value);
-            if(height >= launchHeight.get()) {
+            auto effectiveHeight = std::get<0>(value);
+            if(height >= effectiveHeight.get()) {
                 return std::get<1>(value) ;
             }
         }
