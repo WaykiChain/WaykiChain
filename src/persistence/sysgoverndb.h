@@ -104,12 +104,14 @@ public:
     bool GetApprovalList(const uint256& proposalId, vector<CRegID>& v){
         return  approvalListCache.GetData(proposalId, v) ;
     }
+    
     bool SetApproval(const uint256 &proposalId, const CRegID &governor){
 
         vector<CRegID> v  ;
         if(approvalListCache.GetData(proposalId, v)){
             if(find(v.begin(),v.end(),governor) != v.end()){
-                return ERRORMSG("governor(regid= %s) had assented this proposal(proposalid=%s)", governor.ToString(), proposalId.ToString());
+                return ERRORMSG("governor(regid= %s) had assented this proposal(proposalid=%s)", 
+                                governor.ToString(), proposalId.ToString());
             }
         }
         v.push_back(governor) ;
@@ -128,6 +130,7 @@ public:
         proposalsCache.RegisterUndoFunc(undoDataFuncMap);
         approvalListCache.RegisterUndoFunc(undoDataFuncMap);
     }
+
 private:
 /*  CSimpleKVCache          prefixType             value           variable           */
 /*  -------------------- --------------------   -------------   --------------------- */
@@ -139,5 +142,6 @@ private:
     // pgvn{txid} -> proposal
     CCompositeKVCache< dbk::GOVN_PROP,             uint256,     CProposalStorageBean>          proposalsCache;
     // sgvn{txid}->vector(regid)
-    CCompositeKVCache< dbk::GOVN_APPROVAL_LIST,    uint256,     vector<CRegID> >            approvalListCache;
+    CCompositeKVCache< dbk::GOVN_APPROVAL_LIST,    uint256,     vector<CRegID> >               approvalListCache;
+
 };
