@@ -518,7 +518,7 @@ public:
 
     CXChainSwapInProposal(): CProposal(ProposalType::XCHAIN_SWAP_IN) {}
     CXChainSwapInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid,
-                        CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP), 
+                        CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP_IN), 
                         peer_chain_type(peerChainType), 
                         peer_chain_token_symbol(peerChainTokenSymbol), 
                         peer_chain_uid(peerChainUid),
@@ -654,7 +654,7 @@ public:
             case XCHAIN_SWAP_IN:
                 ::Serialize(os, *((CXChainSwapInProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
-            case XCHAIN_SWAP_Out:
+            case XCHAIN_SWAP_OUT:
                 ::Serialize(os, *((CXChainSwapOutProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
 
@@ -736,13 +736,13 @@ public:
 
             case XCHAIN_SWAP_IN: {
                 sp_proposal = std:: make_shared<CXChainSwapInProposal>();
-                ::Unserialize(is,  *((CXchainSwapInProposal *)(sp_proposal.get())), nType, nVersion);
+                ::Unserialize(is,  *((CXChainSwapInProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
             case XCHAIN_SWAP_OUT: {
                 sp_proposal = std:: make_shared<CXChainSwapOutProposal>();
-                ::Unserialize(is,  *((CXchainSwapOutProposal *)(sp_proposal.get())), nType, nVersion);
+                ::Unserialize(is,  *((CXChainSwapOutProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 
