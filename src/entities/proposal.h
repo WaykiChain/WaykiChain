@@ -36,9 +36,9 @@ enum ProposalType: uint8_t{
 };
 
 enum ProposalOperateType: uint8_t {
-    NULL_OPT = 0,
-    ENABLE   = 1 ,
-    DISABLE  = 2
+    NULL_PROPOSAL_OP    = 0,
+    ENABLE              = 1 ,
+    DISABLE             = 2
 };
 
 
@@ -127,7 +127,7 @@ public:
 class CGovernorUpdateProposal: public CProposal{
 public:
     CRegID governor_regid ;
-    ProposalOperateType operate_type  = ProposalOperateType::NULL_OPT;
+    ProposalOperateType operate_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
     CGovernorUpdateProposal(): CProposal(ProposalType::GOVERNOR_UPDATE){}
 
