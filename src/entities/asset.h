@@ -177,11 +177,11 @@ public:
     }
 
     string ToString() const {
-        return strprintf("symbol=%s", symbol) + ", " +
-        strprintf("owner_uid=%s", owner_uid.ToString()) + ", " +
-        strprintf("name=%s", name) + ", " +
-        strprintf("total_supply=%llu", total_supply) + ", " +
-        strprintf("mintable=%d", mintable);
+        return  strprintf("symbol=%s", symbol) + ", " +
+                strprintf("owner_uid=%s", owner_uid.ToString()) + ", " +
+                strprintf("name=%s", name) + ", " +
+                strprintf("total_supply=%llu", total_supply) + ", " +
+                strprintf("mintable=%d", mintable);
     }
 };
 
