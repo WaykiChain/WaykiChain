@@ -58,7 +58,7 @@ public:
     virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
     virtual string ToString(){
-        return strprintf("proposaltype=%d,needgovernoramount=%d,expire_height=%d",
+        return strprintf("proposal_type=%d,approval_min_count=%d,expire_block_height=%d",
                 proposal_type, approval_min_count, expire_block_height) ;
     }
     virtual Object ToJson(){
