@@ -38,7 +38,7 @@ template<typename Stream>
 void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, int serType, int version) {
 
     // if (!pBaseTx) {
-    //     throw EInvalidTxType(strprintf("%s(), unsupport null tx type to serialize",
+    //     throw runtime_error(strprintf("%s(), unsupport null tx type to serialize",
     //         __FUNCTION__));
     // }
     const CBaseTx &tx = *pBaseTx;
@@ -128,8 +128,8 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
             ::Serialize(os, (const CProposalApprovalTx&)tx,serType, version); break ;
 
         default:
-            throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
-                __FUNCTION__, tx.nTxType, GetTxType(tx.nTxType)));
+            throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to serialize",
+                                __FUNCTION__, tx.nTxType, GetTxType(tx.nTxType)));
             break;
     }
 }
@@ -337,8 +337,8 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         }
 
         default:
-            throw EInvalidTxType(strprintf("%s(), unsupport nTxType(%d:%s) to unserialize",
-                __FUNCTION__, pBaseTx->nTxType, GetTxType(pBaseTx->nTxType)));
+            throw runtime_error(strprintf("%s(), unsupport nTxType(%d:%s) to unserialize",
+                                __FUNCTION__, pBaseTx->nTxType, GetTxType(pBaseTx->nTxType)));
     }
     pBaseTx->nTxType = TxType(nTxType);
 }
