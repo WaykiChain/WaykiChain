@@ -314,19 +314,19 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoin
 
     bool global_collateral_ceiling_reached = cdpGlobalData.total_staked_assets >= globalCollateralCeiling * COIN;
 
-    CdpRatioSortedCache::Map forceLiquidateCdps;
     uint64_t forceLiquidateRatio = 0;
     if (!pCdMan->pSysParamCache->GetCdpParam(cdpCoinPair, CdpParamType::CDP_FORCE_LIQUIDATE_RATIO, forceLiquidateRatio)) {
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire cdp force liquidate ratio error");
     }
 
+    CdpRatioSortedCache::Map forceLiquidateCdps;
     pCdMan->pCdpCache->GetCdpListByCollateralRatio(cdpCoinPair, forceLiquidateRatio, assetPrice, forceLiquidateCdps);
 
     Object obj;
 
     obj.push_back(Pair("assets_symbol",                         cdpCoinPair.bcoin_symbol));
     obj.push_back(Pair("scoin_symbol",                          cdpCoinPair.scoin_symbol));
-    obj.push_back(Pair("global_staked_asset",                  cdpGlobalData.total_staked_assets));
+    obj.push_back(Pair("global_staked_asset",                   cdpGlobalData.total_staked_assets));
     obj.push_back(Pair("global_owed_scoins",                    cdpGlobalData.total_owed_scoins));
     obj.push_back(Pair("global_collateral_ceiling",             globalCollateralCeiling * COIN));
     obj.push_back(Pair("global_collateral_ceiling_reached",     global_collateral_ceiling_reached));
@@ -337,7 +337,7 @@ Object GetCdpInfoJson(const CCdpCoinPair &cdpCoinPair, PriceMap &medianPricePoin
     obj.push_back(Pair("global_collateral_ratio_floor_reached", globalCollateralRatioFloorReached));
 
     obj.push_back(Pair("force_liquidate_ratio",                 strprintf("%.2f%%", (double)forceLiquidateRatio / RATIO_BOOST * 100)));
-    obj.push_back(Pair("force_liquidate_cdp_amount",            forceLiquidateCdps.size()));
+    obj.push_back(Pair("force_liquidate_cdp_amount",            (uint32_t) forceLiquidateCdps.size()));
     return obj;
 }
 
