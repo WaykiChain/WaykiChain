@@ -517,7 +517,7 @@ public:
     uint64_t    swap_amount;
 
     CXChainSwapInProposal(): CProposal(ProposalType::XCHAIN_SWAP_IN) {}
-    CXChainSwapInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid
+    CXChainSwapInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid,
                         CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP), 
                         peer_chain_type(peerChainType), 
                         peer_chain_token_symbol(peerChainTokenSymbol), 
