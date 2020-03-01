@@ -128,12 +128,12 @@ enum AssetType : uint8_t {
 
 enum AssetPermType : uint16_t {
     NULL_ASSET_PERM = 0,
-    DEX_BASE        = 1 << 0,
-    DEX_QUOTE       = 1 << 1,
-    CDP_IN          = 1 << 2,
-    CDP_OUT         = 1 << 3,
-    PRICE_FEED      = 1 << 4,
-    XCHAIN_SWAP     = 1 << 5 
+    DEX_BASE        = (1 << 0),
+    DEX_QUOTE       = (1 << 1),
+    CDP_IN          = (1 << 2),
+    CDP_OUT         = (1 << 3),
+    PRICE_FEED      = (1 << 4),
+    XCHAIN_SWAP     = (1 << 5) 
 };
 
 struct CBaseAsset {
