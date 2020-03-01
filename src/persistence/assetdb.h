@@ -23,7 +23,7 @@
 
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
-    // <asset_tokenSymbol -> asset>
+    // <asset$tokenSymbol -> asset>
 typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DBAssetCache;
 
 class CUserAssetsIterator: public CDBIterator<DBAssetCache> {

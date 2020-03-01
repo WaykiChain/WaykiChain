@@ -120,14 +120,14 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
     return true ;
 }
 
-
 string CProposalApprovalTx::ToString(CAccountDBCache &accountCache) {
 
     return strprintf("txType=%s, hash=%s, ver=%d, proposalid=%s, llFees=%ld, keyid=%s, valid_height=%d",
                      GetTxType(nTxType), GetHash().ToString(), nVersion, txid.GetHex(), llFees,
                      txUid.ToString(), valid_height);
 }
- Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
+
+Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
 
      Object result = CBaseTx::ToJson(accountCache);
      result.push_back(Pair("proposal_id", txid.ToString()));
