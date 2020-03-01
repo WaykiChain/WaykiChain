@@ -807,13 +807,9 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 
     RPCTypeCheck(params, list_of(str_type));
     CKeyID keyid = RPC_PARAM::GetKeyId(params[0]);
-    CUserID userId;
-
-
-    userId = keyid;
+    CUserID userId = keyid;
     Object obj;
     bool found = false;
-
     CAccount account;
     if (pCdMan->pAccountCache->GetAccount(userId, account)) {
         if (!account.owner_pubkey.IsValid()) {
@@ -829,7 +825,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             }
         }
         obj = account.ToJsonObj();
-        obj.push_back(Pair("position", "inblock"));
+        obj.push_back(Pair("location", "inblock"));
 
         found = true;
     } else {  // unregistered keyid
@@ -839,11 +835,11 @@ Value getaccountinfo(const Array& params, bool fHelp) {
             pWalletMain->GetPubKey(keyid, minerPubKey, true);
             account.owner_pubkey = pubKey;
             account.keyid        = pubKey.GetKeyId();
-            if (minerPubKey != pubKey) {
+            if (minerPubKey != pubKey)
                 account.miner_pubkey = minerPubKey;
-            }
+            
             obj = account.ToJsonObj();
-            obj.push_back(Pair("position", "inwallet"));
+            obj.push_back(Pair("location", "inwallet"));
 
             found = true;
         }
@@ -851,8 +847,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
 
     if (found) {
         // TODO: multi stable coin
-        uint64_t bcoinMedianPrice =
-            pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+        uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
