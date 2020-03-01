@@ -131,7 +131,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CParamsGovernProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CParamsGovernProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -188,7 +188,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CCdpParamGovernProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CCdpParamGovernProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -235,7 +235,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CGovernorUpdateProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CGovernorUpdateProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 
 }
@@ -281,7 +281,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CDexSwitchProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CDexSwitchProposal>(proposal)) ;
     return SubmitTx(account.keyid, tx) ;
 }
 
@@ -359,7 +359,7 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CBPCountUpdateProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CBPCountUpdateProposal>(proposal)) ;
 
     return SubmitTx(account.keyid, tx) ;
 
@@ -404,7 +404,7 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CMinerFeeProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CMinerFeeProposal>(proposal)) ;
 
 
     return SubmitTx(account.keyid, tx) ;
@@ -463,7 +463,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     tx.llFees       = fee.GetSawiAmount();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
-    tx.proposalBean = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
+    tx.proposal = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
 
     return SubmitTx(txAccount.keyid, tx) ;
 
