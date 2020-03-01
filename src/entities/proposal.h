@@ -553,7 +553,7 @@ public:
     TokenSymbol self_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
 
     ChainType   peer_chain_type = ChainType::BITCOIN; //redudant, reference only
-    string      peer_chain_uid;  // swap-out initiator's address at peer chain
+    string      peer_chain_uid;  // swap-out peer-chain address
     uint64_t    swap_amount;
     
     
@@ -598,28 +598,23 @@ public:
     bool IsEmpty() const { return sp_proposal == nullptr; }
     void SetEmpty() { sp_proposal = nullptr; }
 
-
-
     unsigned int GetSerializeSize(int nType, int nVersion) const {
-
         if(IsEmpty())
             return 1 ;
-        else
-            return (*sp_proposal).GetSerializeSize(nType, nVersion) + 1 ;
+  
+        return (*sp_proposal).GetSerializeSize(nType, nVersion) + 1 ;
     }
 
     template <typename Stream>
     void Serialize(Stream &os, int nType, int nVersion) const {
-
         uint8_t proposalType = ProposalType ::NULL_PROPOSAL ;
 
-        if(!IsEmpty())
+        if (!IsEmpty())
             proposalType = sp_proposal->proposal_type ;
-        uint8_t pt = (uint8_t&)proposalType;
 
-        ::Serialize(os, pt, nType, nVersion);
+        ::Serialize(os, (uint8_t&) proposalType, nType, nVersion);
 
-        if(IsEmpty())
+        if (IsEmpty())
             return ;
 
         switch (sp_proposal->proposal_type) {
@@ -667,8 +662,6 @@ public:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                                   sp_proposal->proposal_type));
         }
-
-
     }
 
     template <typename Stream>
@@ -677,11 +670,10 @@ public:
         uint8_t nProposalTye;
         is.read((char *)&(nProposalTye), sizeof(nProposalTye));
         ProposalType proposalType = (ProposalType)nProposalTye ;
-        if(proposalType == ProposalType:: NULL_PROPOSAL)
+        if (proposalType == ProposalType:: NULL_PROPOSAL)
             return ;
 
         switch(proposalType) {
-
             case PARAM_GOVERN: {
                 sp_proposal = std::make_shared<CParamsGovernProposal>();
                 ::Unserialize(is, *((CParamsGovernProposal *)(sp_proposal.get())), nType, nVersion);
@@ -761,7 +753,6 @@ public:
 
         sp_proposal->proposal_type = proposalType;
     }
-
 };
 
 
