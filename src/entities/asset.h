@@ -46,7 +46,7 @@ static const unordered_set<string> kCoinTypeSet = {
 };
 
 static const unordered_set<string> kCurrencyTypeSet = {
-    SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::USDT, SYMB::GOLD, SYMB::KWH
+    SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
 };
 
 static const unordered_set<string> kScoinSymbolSet = {
