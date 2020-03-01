@@ -173,7 +173,7 @@ struct CBaseAsset {
         READWRITE(asset_name); 
         READWRITE((uint8_t &) asset_type);
         READWRITE(VARINT(asset_perms_sum));
-        READWRITE(VARINT(owner_uid));
+        READWRITE(owner_uid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
     )
