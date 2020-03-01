@@ -12,22 +12,29 @@
 using namespace std;
 
 namespace SYMB {
-    static const string WICC                = "WICC";
-    static const string WGRT                = "WGRT";
-    static const string WUSD                = "WUSD";
-    static const string WCNY                = "WCNY";
+    static const string WICC        = "WICC";
+    static const string WGRT        = "WGRT";
+    static const string WUSD        = "WUSD";
+    static const string WCNY        = "WCNY";
 
-    static const string WBTC                = "WBTC";
-    static const string WETH                = "WETH";
-    static const string WEOS                = "WEOS";
+    static const string WBTC        = "WBTC";
+    static const string WETH        = "WETH";
+    static const string WEOS        = "WEOS";
 
-    static const string USD                 = "USD";
-    static const string CNY                 = "CNY";
-    static const string EUR                 = "EUR";
-    static const string BTC                 = "BTC";
-    static const string USDT                = "USDT";
-    static const string GOLD                = "GOLD";
-    static const string KWH                 = "KWH";
+    static const string USD         = "USD";
+    static const string CNY         = "CNY";
+    static const string EUR         = "EUR";
+
+    static const string BTC         = "BTC";
+    static const string ETH         = "ETH";
+    static const string EOS         = "EOS";
+
+    static const string BTC_USDT    = "BTC_USDT";
+    static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
+    static const string ETH_USDT    = "ETH_DAI";    //ERC20 DAI
+
+    static const string GOLD        = "GOLD";
+    static const string KWH         = "KWH";
 }
 
 struct CoinUnitTypeHash {

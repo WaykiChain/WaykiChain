@@ -23,17 +23,19 @@ class CTxExecuteContext ;
 using namespace json_spirit;
 
 enum ProposalType: uint8_t{
-    NULL_PROPOSAL     = 0 ,
-    PARAM_GOVERN      = 1 ,
-    GOVERNOR_UPDATE   = 2 ,
-    DEX_SWITCH        = 3 ,
-    MINER_FEE_UPDATE  = 4 ,
+    NULL_PROPOSAL     = 0,
+    PARAM_GOVERN      = 1,
+    GOVERNOR_UPDATE   = 2,
+    DEX_SWITCH        = 3,
+    MINER_FEE_UPDATE  = 4,
     CDP_COIN_PAIR     = 5, // govern cdp_coin_pair, set cdp_coin_pair status
     CDP_PARAM_GOVERN  = 6 ,
     COIN_TRANSFER     = 7 ,
     BP_COUNT_UPDATE   = 8 ,
     DEX_QUOTE_COIN    = 9 ,
     FEED_COIN_PAIR    = 10
+    XCHAIN_SWAP_IN    = 11,
+    XCHAIN_SWAP_OUT   = 12,
 
 };
 
@@ -229,7 +231,6 @@ public:
 };
 
 
-
 class CGovernorUpdateProposal: public CProposal{
 public:
     CRegID governor_regid ;
@@ -269,6 +270,7 @@ class CDexSwitchProposal: public CProposal{
 public:
     uint32_t dexid;
     ProposalOperateType operate_type = ProposalOperateType::ENABLE;
+
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expire_block_height));
         READWRITE(approval_min_count);
@@ -431,6 +433,7 @@ public:
     uint32_t launch_height ;
 
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
+
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expire_block_height));
         READWRITE(approval_min_count);
@@ -483,6 +486,102 @@ public:
                 strprintf("status=%s", GetCdpCoinPairStatusName(status));
     }
 
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+enum ChainType: uint8_t {
+    NULL_CHAIN_TYPE = 0,
+    BITCOIN         = 1,
+    ETHEREUM        = 2,
+    EOS             = 3
+};
+
+// default setting before deGov
+static const std::map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
+    { SYMB::BTC,     SYMB::WBTC  },
+    { SYMB::ETH,     SYMB::WETH  },
+    { SYMB::WBTC,    SYMB::BTC   },
+    { SYMB::WETH,    SYMB::ETH   },   
+    // {SYMB::ETH_USDT, SYMB::WETH_USDT},
+};
+
+class CXChainSwapInProposal: public CProposal {
+public:
+    ChainType   peer_chain_type = ChainType::BITCOIN;  //redudant, reference only
+    TokenSymbol peer_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
+    string      peer_chain_uid;  // initiator's address at peer chain
+    string      peer_chain_txid; // a proof from the peer chain (non-HTLC version)
+    
+    CUserID     self_chain_uid;
+    uint64_t    swap_amount;
+
+    CXChainSwapProposal(): CProposal(ProposalType::XCHAIN_SWAP_IN) {}
+    CXChainSwapProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid
+                        CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP), 
+                        peer_chain_type(peerChainType), 
+                        peer_chain_token_symbol(peerChainTokenSymbol), 
+                        peer_chain_uid(peerChainUid),
+                        peer_chain_txid(peerChainTxid),
+                        self_chain_uid(selfChainUid), 
+                        swap_amount(swapAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE((uint8_t &)peer_chain_type);
+        READWRITE(peer_chain_token_symbol);
+        READWRITE(peer_chain_uid);
+        READWRITE(peer_chain_txid);
+        READWRITE(self_chain_uid);
+        READWRITE(VARINT(swap_amount));
+    );
+
+    virtual Object ToJson() override;
+    string ToString() override;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+
+};
+
+class CXChainSwapOutProposal: public CProposal {
+public:
+    CUserID     self_chain_uid;  // swap-out initiator's address 
+    TokenSymbol self_chain_token_symbol; // from kXChainSwapTokenMap to get the target token symbol
+
+    ChainType   peer_chain_type = ChainType::BITCOIN; //redudant, reference only
+    string      peer_chain_uid;  // swap-out initiator's address at peer chain
+    uint64_t    swap_amount;
+    
+    
+    CXChainSwapProposal(): CProposal(ProposalType::XCHAIN_SWAP_OUT) {}
+    CXChainSwapProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainUid,
+                        uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP_OUT), 
+                        self_chain_uid(uid), 
+                        self_chain_token_symbol(selfChainTokenSymbol), 
+                        peer_chain_type(peerChainType),
+                        peer_chain_uid(peerChainUid),
+                        swap_amount(swapAmount) {}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+
+        READWRITE(self_chain_uid);
+        READWRITE(self_chain_token_symbol);
+        READWRITE((uint8_t &)peer_chain_type);
+        READWRITE(peer_chain_uid);
+        READWRITE(VARINT(swap_amount));
+    );
+
+    virtual Object ToJson() override;
+    string ToString() override;
     shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
@@ -552,12 +651,21 @@ public:
             case BP_COUNT_UPDATE:
                 ::Serialize(os, *((CBPCountUpdateProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
+
             case DEX_QUOTE_COIN:
                 ::Serialize(os, *((CDexQuoteCoinProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             case FEED_COIN_PAIR:
                 ::Serialize(os, *((CFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
+
+            case XCHAIN_SWAP_IN:
+                ::Serialize(os, *((CXChainSwapInProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+            case XCHAIN_SWAP_Out:
+                ::Serialize(os, *((CXChainSwapOutProposal   *) (sp_proposal.get())), nType, nVersion);
+                break;
+
             default:
                 throw ios_base::failure(strprintf("Serialize: proposalType(%d) error.",
                                                   sp_proposal->proposal_type));
@@ -625,7 +733,6 @@ public:
                 break;
             }
 
-
             case DEX_QUOTE_COIN: {
                 sp_proposal = std:: make_shared<CDexQuoteCoinProposal>();
                 ::Unserialize(is,  *((CDexQuoteCoinProposal *)(sp_proposal.get())), nType, nVersion);
@@ -638,10 +745,23 @@ public:
                 break;
             }
 
+            case XCHAIN_SWAP_IN: {
+                sp_proposal = std:: make_shared<CXChainSwapInProposal>();
+                ::Unserialize(is,  *((CXchainSwapInProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
+            case XCHAIN_SWAP_OUT: {
+                sp_proposal = std:: make_shared<CXChainSwapOutProposal>();
+                ::Unserialize(is,  *((CXchainSwapOutProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+
             default:
                 throw ios_base::failure(strprintf("Unserialize: nTxType(%d) error.",
                                                   nProposalTye));
         }
+        
         sp_proposal->proposal_type = proposalType;
     }
 
