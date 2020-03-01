@@ -516,8 +516,8 @@ public:
     CUserID     self_chain_uid;
     uint64_t    swap_amount;
 
-    CXChainSwapProposal(): CProposal(ProposalType::XCHAIN_SWAP_IN) {}
-    CXChainSwapProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid
+    CXChainSwapInProposal(): CProposal(ProposalType::XCHAIN_SWAP_IN) {}
+    CXChainSwapInProposal(ChainType peerChainType, TokenSymbol peerChainTokenSymbol, string &peerChainUid, string &peerChainTxid
                         CUserID &selfChainUid, uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP), 
                         peer_chain_type(peerChainType), 
                         peer_chain_token_symbol(peerChainTokenSymbol), 
@@ -557,8 +557,8 @@ public:
     uint64_t    swap_amount;
     
     
-    CXChainSwapProposal(): CProposal(ProposalType::XCHAIN_SWAP_OUT) {}
-    CXChainSwapProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainUid,
+    CXChainSwapOutProposal(): CProposal(ProposalType::XCHAIN_SWAP_OUT) {}
+    CXChainSwapOutProposal(CUserID &uid, TokenSymbol selfChainTokenSymbol, ChainType peerChainType, string &peerChainUid,
                         uint64_t &swapAmount): CProposal(ProposalType::XCHAIN_SWAP_OUT), 
                         self_chain_uid(uid), 
                         self_chain_token_symbol(selfChainTokenSymbol), 
