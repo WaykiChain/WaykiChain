@@ -216,7 +216,7 @@ public:
 
     CAsset(const TokenSymbol& symbolIn, const CUserID& ownerUseridIn, const TokenName& nameIn,
            uint64_t totalSupplyIn, bool mintableIn, uint64_t minOrderAmountIn, uint64_t maxOrderAmountIn)
-        : CBaseAsset(symbolIn, ownerUseridIn, nameIn, totalSupplyIn, mintableIn),
+        : CBaseAsset(symbolIn, nameIn, ownerUseridIn, totalSupplyIn, mintableIn),
           min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
 
     IMPLEMENT_SERIALIZE(
