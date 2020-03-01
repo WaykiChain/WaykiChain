@@ -125,7 +125,7 @@ static const CRPCCommand vRPCCommands[] =
     { "getcdpparam",                    &getcdpparam,                       true,       false,      false   },
     { "getproposal",                    &getproposal,                       true,       false,      false   },
     { "getgovernors",                   &getgovernors,                      true,       false,      false   },
-    { "getminminerfee",                 &getminminerfee,                    true,       false,      false   },
+    { "listminminerfees",                 &listminminerfees,                    true,       false,      false   },
     /* for dex */
     { "submitdexbuylimitordertx",       &submitdexbuylimitordertx,          false,      false,      false   },
     { "submitdexselllimitordertx",      &submitdexselllimitordertx,         false,      false,      false   },
