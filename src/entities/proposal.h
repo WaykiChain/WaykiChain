@@ -33,7 +33,7 @@ enum ProposalType: uint8_t {
     COIN_TRANSFER     = 7 ,
     BP_COUNT_UPDATE   = 8 ,
     DEX_QUOTE_COIN    = 9 ,
-    FEED_COIN_PAIR    = 10
+    FEED_COIN_PAIR    = 10,
     XCHAIN_SWAP_IN    = 11,
     XCHAIN_SWAP_OUT   = 12,
 
