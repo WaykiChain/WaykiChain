@@ -540,7 +540,7 @@ public:
 
     virtual Object ToJson() override;
     string ToString() override;
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CXChainSwapInProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -579,7 +579,7 @@ public:
 
     virtual Object ToJson() override;
     string ToString() override;
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CXChainSwapOutProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
