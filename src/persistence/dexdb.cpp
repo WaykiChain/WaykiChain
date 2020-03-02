@@ -517,6 +517,10 @@ bool CDexDBCache::UpdateDexOperator(const DexID &id, const DexOperatorDetail& ol
 
 
 bool CDexDBCache::AddDexQuoteCoin(TokenSymbol coin) {
+
+    if(coin == SYMB::WUSD)
+        return true ;
+
     set<TokenSymbol> coins ;
     dex_quote_coin_cache.GetData(coins);
     if(coins.count(coin) != 0 )
@@ -526,6 +530,9 @@ bool CDexDBCache::AddDexQuoteCoin(TokenSymbol coin) {
 }
 
 bool CDexDBCache::EraseDexQuoteCoin(TokenSymbol coin) {
+    if(coin == SYMB::WUSD)
+        return true ;
+
     set<TokenSymbol> coins ;
     dex_quote_coin_cache.GetData(coins);
     if(coins.count(coin) == 0 )
@@ -535,12 +542,16 @@ bool CDexDBCache::EraseDexQuoteCoin(TokenSymbol coin) {
 }
 
 bool CDexDBCache::HaveDexQuoteCoin(TokenSymbol coin) {
+    if(coin == SYMB::WUSD)
+        return true ;
     set<TokenSymbol> coins ;
     dex_quote_coin_cache.GetData(coins);
     return (coins.count(coin) != 0 ) ;
 }
 
 bool CDexDBCache::GetDexQuoteCoins(set<TokenSymbol>& coinSet) {
-    return dex_quote_coin_cache.GetData(coinSet) ;
-
+    bool res = dex_quote_coin_cache.GetData(coinSet) ;
+    if(res )
+        coinSet.insert(SYMB::WUSD);
+    return res  ;
 }
