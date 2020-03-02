@@ -92,10 +92,18 @@ public:
     bool Flush() {
         sysParamCache.Flush();
         minerFeeCache.Flush();
+        cdpParamCache.Flush();
+        cdpInterestParamChangesCache.Flush();
+        currentBpCountCache.Flush();
+        newBpCountCache.Flush();
         return true;
     }
 
-    uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize() + minerFeeCache.GetCacheSize(); }
+    uint32_t GetCacheSize() const { return sysParamCache.GetCacheSize() +
+                                    minerFeeCache.GetCacheSize() +
+                                    cdpInterestParamChangesCache.GetCacheSize() +
+                                    currentBpCountCache.GetCacheSize() +
+                                    newBpCountCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CSysParamDBCache *pBaseIn) {
         sysParamCache.SetBase(&pBaseIn->sysParamCache);

@@ -238,6 +238,7 @@ extern Value getproposal(const Array& params, bool fHelp) ;
 extern Value listmintxfees(const Array& params, bool fHelp) ;
 
 extern Value getdexquotecoins(const Array& params, bool fHelp);
+extern Value getbpcount(const Array& params, bool fHelp);
 
 // debug
 Value dumpdb(const Array& params, bool fHelp);
