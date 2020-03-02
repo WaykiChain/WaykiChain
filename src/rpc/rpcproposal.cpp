@@ -704,3 +704,14 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
 
 }
 
+
+Value getbpcount(const Array& params, bool fHelp) {
+    if(fHelp || params.size() != 0 ){
+        throw runtime_error("") ;
+    }
+    auto co =  pCdMan->pSysParamCache->GetBpCount(chainActive.Height());
+    Object o ;
+    o.push_back(Pair("bp_count", co)) ;
+    return o;
+
+}

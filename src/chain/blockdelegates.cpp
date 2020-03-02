@@ -19,13 +19,12 @@ static std::string ToString(const VoteDelegateVector &activeDelegates) {
     return strprintf("{count=%d, [%s]}", activeDelegates.size(), s);
 }
 
-static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegates &pendingDelegates) {
+static bool GenPendingDelegates(CBlock &block, uint8_t newestDelegateNum, CCacheWrapper &cw, PendingDelegates &pendingDelegates) {
 
     pendingDelegates.counted_vote_height = block.GetHeight();
     VoteDelegateVector topVoteDelegates;
-    auto delegateNum = cw.sysParamCache.GetBpCount(block.GetHeight()) ;
-    if (!cw.delegateCache.GetTopVoteDelegates(delegateNum, topVoteDelegates) ||
-        topVoteDelegates.size() != delegateNum ) {
+    if (!cw.delegateCache.GetTopVoteDelegates(newestDelegateNum, topVoteDelegates) ||
+        topVoteDelegates.size() != newestDelegateNum ) {
 
         LogPrint(BCLog::ERROR, "[WARNING] %s, the got top vote delegates is invalid! block=%d:%s, got_num=%d, definitive_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString());
@@ -44,7 +43,7 @@ static bool GenPendingDelegates(CBlock &block, CCacheWrapper &cw, PendingDelegat
     if (!activeDelegates.empty() && pendingDelegates.top_vote_delegates == activeDelegates) {
         LogPrint(BCLog::INFO, "%s, the top vote delegates are unchanged! block=%d:%s, num=%d, dest_num=%d\n",
                 __FUNCTION__, block.GetHeight(), block.GetHash().ToString(),
-                pendingDelegates.top_vote_delegates.size(), delegateNum);
+                pendingDelegates.top_vote_delegates.size(), newestDelegateNum);
         // update counted_vote_height and top_vote_delegates to skip unchanged delegates to next count vote slot height
         return true;
     }
@@ -78,10 +77,14 @@ bool chain::ProcessBlockDelegates(CBlock &block, CCacheWrapper &cw, CValidationS
         (countVoteInterval == 0 || (block.GetHeight() % countVoteInterval == 0))) {
 
         int32_t lastVoteHeight = cw.delegateCache.GetLastVoteHeight();
-        if (pendingDelegates.counted_vote_height == 0 ||
-            lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height) {
+        int32_t activedDelegateNum = cw.delegateCache.GetActivedDelegateNum() ;
+        auto    newestDelegateNum = cw.sysParamCache.GetBpCount(block.GetHeight()) ;
 
-            if (!GenPendingDelegates(block, cw, pendingDelegates)) {
+        if (pendingDelegates.counted_vote_height == 0 ||
+            lastVoteHeight > (int32_t)pendingDelegates.counted_vote_height
+            || activedDelegateNum != newestDelegateNum) {
+
+            if (!GenPendingDelegates(block, newestDelegateNum, cw, pendingDelegates)) {
                 return state.DoS(100, ERRORMSG("%s() : GenPendingDelegates failed! block=%d:%s",
                     __FUNCTION__, block.GetHeight(), block.GetHash().ToString()));
             }
