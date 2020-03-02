@@ -551,7 +551,6 @@ bool CDexDBCache::HaveDexQuoteCoin(TokenSymbol coin) {
 
 bool CDexDBCache::GetDexQuoteCoins(set<TokenSymbol>& coinSet) {
     bool res = dex_quote_coin_cache.GetData(coinSet) ;
-    if(res )
-        coinSet.insert(SYMB::WUSD);
+    coinSet.insert(SYMB::WUSD);
     return res  ;
 }

@@ -115,6 +115,10 @@ public:
 
 
     bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+
+        if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+            return true ;
+
         set<pair<TokenSymbol,TokenSymbol>> coinPairs ;
         price_feed_coin_cache.GetData(coinPairs);
         if(coinPairs.count(make_pair(feedCoin, baseCoin)) != 0 )
@@ -124,6 +128,10 @@ public:
     }
 
     bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+
+        if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+            return true ;
+
         auto coinPair = std::make_pair(feedCoin, baseCoin);
         set<pair<TokenSymbol,TokenSymbol>> coins ;
         price_feed_coin_cache.GetData(coins);
@@ -133,15 +141,19 @@ public:
         return price_feed_coin_cache.SetData(coins);
     }
 
-    bool HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseSymbol) {
+    bool HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) {
+        if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+            return true ;
+
         set<pair<TokenSymbol, TokenSymbol>> coins ;
         price_feed_coin_cache.GetData(coins);
-        return (coins.count(make_pair(feedCoin,baseSymbol)) != 0 ) ;
+        return (coins.count(make_pair(feedCoin,baseCoin)) != 0 ) ;
     }
 
-    bool GetDFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
-        return price_feed_coin_cache.GetData(coinSet) ;
-
+    bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
+        price_feed_coin_cache.GetData(coinSet) ;
+        coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
+        return true ;
     }
 
 
