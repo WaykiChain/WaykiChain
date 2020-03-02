@@ -37,6 +37,7 @@ namespace wasm {
         virtual bool has_authorization( const uint64_t& account ) const = 0;// { return true; }
         virtual void require_auth2    ( const uint64_t& account, const uint64_t& permission ) const = 0;// {}
         virtual uint64_t pending_block_time() = 0;//{ return 0; }
+        virtual TxID gettxid() = 0;//{ return 0; }
         virtual void     exit      () = 0;//{}
 
         virtual bool set_data  ( const uint64_t& contract, const string& k, const string& v ) = 0;//{ return 0; }
