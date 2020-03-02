@@ -51,8 +51,6 @@ uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw
             
             return delegateList.size();
         }
-        case ProposalType ::BP_COUNT_UPDATE:
-            return 1 ;
 
         default:
             return cw.sysGovernCache.GetGovernorApprovalMinCount();

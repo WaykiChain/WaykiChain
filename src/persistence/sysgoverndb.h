@@ -122,7 +122,11 @@ public:
         return governorsCache.SetData(governors) ;
     }
     bool GetGovernors(vector<CRegID>& governors){
-        return governorsCache.GetData(governors);
+
+        governorsCache.GetData(governors);
+        if(governors.empty())
+            governors.emplace_back(SysCfg().GetStableCoinGenesisHeight(), 2);
+        return true;
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
