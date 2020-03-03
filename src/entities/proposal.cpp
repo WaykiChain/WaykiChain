@@ -76,7 +76,7 @@ bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {
                          "params-empty");
 
     for (auto pa: param_values) {
-        if (SysParamTable.count(SysParamType(pa.first)) == 0) {
+        if (CdpParamTable.count(CdpParamType(pa.first)) == 0) {
             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                             REJECT_INVALID, "params-error");
         }

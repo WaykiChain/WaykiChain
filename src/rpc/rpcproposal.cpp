@@ -135,7 +135,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
 Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
-    if(fHelp || params.size() < 3 || params.size() > 4){
+    if(fHelp || params.size() < 5 || params.size() > 6){
 
         throw runtime_error(
                 "submitcdpparamgovernproposal \"addr\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n"
@@ -148,9 +148,9 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
                 "5.\"scoin_symbol\":     (string,required) the stable coin symbol\n"
                 "6.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
-                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC WUSD WICC:1:WI")
+                + HelpExampleCli("submitcdpparamgovernproposal", "0-1 CDP_INTEREST_PARAM_A  10000 WICC WUSD WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitcdpparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC WUSD WICC:1:WI")
+                + HelpExampleRpc("submitcdpparamgovernproposal", "0-1 CDP_INTEREST_PARAM_A  10000 WICC WUSD WICC:1:WI")
 
         );
 
@@ -161,10 +161,10 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string paramName = params[1].get_str() ;
+    uint64_t paramValue = AmountToRawValue(params[2]) ;
     string bcoinSymbol = params[3].get_str() ;
     string scoinSymbol = params[4].get_str() ;
-    uint64_t paramValue = AmountToRawValue(params[2]) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
+    ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());

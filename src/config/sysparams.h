@@ -15,7 +15,6 @@
 
 using namespace std;
 
-
 enum SysParamType : uint8_t {
     NULL_SYS_PARAM_TYPE                     = 0,
     MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT    = 1,
@@ -35,8 +34,6 @@ enum SysParamType : uint8_t {
     DEX_OPERATOR_RISK_FEE_RATIO             = 27
 
 };
-
-
 
 static const unordered_map<string, std::tuple<string,SysParamType>> paramNameToSysParamTypeMap = {
         {"MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT",           make_tuple("A", MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT)    },
@@ -81,7 +78,6 @@ static const unordered_map<SysParamType, std::tuple<string, uint64_t,string >, S
 
 };
 
-
 static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParamTypeHash> sysParamScopeTable = {
         { MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT,      RANGE(0,0)        },
         { PRICE_FEED_BCOIN_STAKE_AMOUNT_MIN,         RANGE(0,0)        },  // 1%: min 210K bcoins staked to be a price feeder for miner
@@ -101,8 +97,6 @@ static const unordered_map<SysParamType, std::pair<uint64_t, uint64_t>, SysParam
 
 };
 
-
-
 inline string CheckSysParamValue(const SysParamType paramType, uint64_t value){
     if(sysParamScopeTable.count(paramType) == 0)
         return strprintf("check param scope error:don't find param type (%d)", paramType);
@@ -118,7 +112,6 @@ inline string CheckSysParamValue(const SysParamType paramType, uint64_t value){
     return EMPTY_STRING;
 
 }
-
 
 inline SysParamType  GetSysParamType(const string  paramName){
     auto itr = paramNameToSysParamTypeMap.find(paramName);

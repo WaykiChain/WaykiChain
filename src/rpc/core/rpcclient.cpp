@@ -225,7 +225,6 @@ Array RPCConvertValues(const string &strMethod, const vector<string> &strParams)
     if (strMethod == "submitparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
 
     if (strMethod == "submitcdpparamgovernproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
-    if (strMethod == "submitcdpparamgovernproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
 
     if (strMethod == "submitgovernorupdateproposal"   && n > 2) ConvertTo<int64_t>(params[2]) ;
     if (strMethod == "submitgovernorupdateproposal"   && n > 3) ConvertTo<int64_t>(params[3]) ;
