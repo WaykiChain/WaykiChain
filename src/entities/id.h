@@ -73,11 +73,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(height));
         READWRITE(VARINT(index));
-        if (fRead) {
-            vRegID.clear();
-            vRegID.insert(vRegID.end(), BEGIN(height), END(height));
-            vRegID.insert(vRegID.end(), BEGIN(index), END(index));
-        }
+        if (fRead) UpdateRawData();
     )
 
 private:
@@ -87,6 +83,11 @@ private:
 
     void SetRegID(string strRegID);
     void SetRegIDByCompact(const vector<uint8_t> &vIn);
+    void UpdateRawData() const {
+        vRegID.clear();
+        vRegID.insert(vRegID.end(), BEGIN(height), END(height));
+        vRegID.insert(vRegID.end(), BEGIN(index), END(index));
+    };
 
     friend CUserID;
     friend class CRegIDKey;
@@ -103,6 +104,7 @@ public:
     IMPLEMENT_SERIALIZE(
         READWRITE_FIXED_UINT32(regid.height);
         READWRITE_FIXED_UINT16(regid.index);
+        if (fRead) regid.UpdateRawData();
     )
 
     inline bool IsEmpty() const { return regid.IsEmpty(); }
