@@ -547,16 +547,13 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
 
 CKeyID RPC_PARAM::GetUserKeyId(const CUserID &uid) {
     CKeyID keyid;
-    pCdMan->pAccountCache->GetKeyId(uid, keyid);
-    if (!keyid.IsEmpty()) {
+    if (!pCdMan->pAccountCache->GetKeyId(uid, keyid))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY,
                            strprintf("Get keyid by userid=%s failed", uid.ToString()));
-    }
     return keyid;
 }
 
 CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue){
-
     return GetUserKeyId(ParseUserIdByAddr(jsonValue));
 }
 
