@@ -38,7 +38,12 @@ static bool ProcessDexOperatorFee(CCacheWrapper &cw, CValidationState &state, co
                         __func__, action, exchangeFee, txAccount.keyid.ToAddress()),
                         UPDATE_ACCOUNT_FAIL, "insufficent-funds");
 
-    uint64_t riskFee       = exchangeFee * ASSET_RISK_FEE_RATIO / RATIO_BOOST;
+    uint64_t dexOperatorRiskFeeRatio ;
+    if(!cw.sysParamCache.GetParam(SysParamType::DEX_OPERATOR_RISK_FEE_RATIO, dexOperatorRiskFeeRatio)) {
+        return state.DoS(100, ERRORMSG("ProcessDexOperatorFee, get dexOperatorRiskFeeRatio error",
+                                       action, exchangeFee, txAccount.regid.ToString()), READ_SYS_PARAM_FAIL, "read-db-error");
+    }
+    uint64_t riskFee       = exchangeFee * dexOperatorRiskFeeRatio / RATIO_BOOST;
     uint64_t minerTotalFee = exchangeFee - riskFee;
 
     CAccount fcoinGenesisAccount;

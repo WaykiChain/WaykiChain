@@ -18,6 +18,8 @@
 
 using namespace std;
 
+#define RANGE(MIN,MAX) make_pair(MIN, MAX)
+
 static const uint16_t RATIO_BOOST          = 10000;
 static const uint32_t PRICE_BOOST          = 100000000;
 static const uint32_t CDP_BASE_RATIO_BOOST = 100000000;
@@ -34,12 +36,11 @@ static const double TRANSACTION_PRIORITY_CEILING      = 1000.0;  // Most trx pri
 static const double PRICE_MEDIAN_TRANSACTION_PRIORITY = 10000.0;
 static const double PRICE_FEED_TRANSACTION_PRIORITY   = 20000.0;
 
-static const uint64_t ASSET_RISK_FEE_RATIO  = 4000;        // 40% * 10000, the ratio of asset fee into the risk reserve
+
 static const uint64_t MIN_DEX_ORDER_AMOUNT  = 0.1 * COIN;  // min amount of dex order limit
 static const uint64_t MAX_SETTLE_ITEM_COUNT = 10000;       // max count of dex settle item limit.
 
 
-static const uint64_t DEX_OPERATOR_RISK_FEE_RATIO  = 4000; // 40% * 10000, the ratio of DEX operator fee into the risk reserve
 static const uint64_t DEX_OPERATOR_FEE_RATIO_MAX = 50 * PRICE_BOOST;
 static const uint64_t DEX_PRICE_MAX = 1000000 * PRICE_BOOST;
 
@@ -97,6 +98,37 @@ static const unordered_map<CdpParamType, std::tuple<string, uint64_t,string >, C
         { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple("L",  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            }  // min penalty fee = 10
 };
 
+static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> cdpParamRangeTable = {
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     RANGE(0,0)        },  // 25% * 210000000
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          RANGE(0,0)        },  // 80% * 10000
+        { CDP_START_COLLATERAL_RATIO,               RANGE(0,0)        },  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                RANGE(0,0)        },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            RANGE(0,0)        },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                RANGE(0,0)        },  // 0 ~ 1.04    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,             RANGE(0,0)        },  // discount: 97%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    RANGE(0,0)        },  // 0.9 WUSD, dust amount (<0.9) rejected
+        { CDP_INTEREST_PARAM_A,                     RANGE(0,0)        },  // a = 2
+        { CDP_INTEREST_PARAM_B,                     RANGE(0,0)        },  // b = 1
+        { CDP_SYSORDER_PENALTY_FEE_MIN,             RANGE(0,0)        }  // min penalty fee = 10
+};
+
+
+inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
+    if(cdpParamRangeTable.count(paramType) == 0)
+        return strprintf("check param scope error:don't find param type (%d)", paramType);
+    auto itr = cdpParamRangeTable.find(paramType) ;
+
+    auto min = std::get<0>(itr->second);
+    auto max = std::get<1>(itr->second);
+    if(min == 0 && max == 0)
+        return EMPTY_STRING;
+    if( value < min || value >max)
+        return strprintf("check param scope error: the scope of param type(%d) "
+                         "is [%d,%d],but the value you submited is %d", paramType, min,max,value );
+    return EMPTY_STRING;
+
+}
+
 inline const string& GetCdpParamKey(CdpParamType paramType) {
     auto it = CdpParamTable.find(paramType);
     if (it != CdpParamTable.end())
@@ -117,6 +149,16 @@ inline const string& GetCdpParamName(CdpParamType paramType) {
         return std::get<2>(it->second);
     return EMPTY_STRING;
 }
+
+inline CdpParamType  GetCdpParamType(const string  paramName){
+    auto itr = paramNameToCdpParamTypeMap.find(paramName);
+    if(itr == paramNameToCdpParamTypeMap.end())
+        return NULL_CDP_PARAM_TYPE;
+    else
+        return std::get<1>(itr->second);
+
+}
+
 
 class CCdpCoinPair {
 public:

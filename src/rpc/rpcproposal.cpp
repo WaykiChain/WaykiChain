@@ -9,14 +9,6 @@
 #include "rpc/core/rpccommons.h"
 
 
-SysParamType  GetParamType(const string  paramName){
-    auto itr = paramNameToSysParamTypeMap.find(paramName);
-    if(itr == paramNameToSysParamTypeMap.end())
-        return NULL_SYS_PARAM_TYPE;
-    else
-        return std::get<1>(itr->second);
-
-}
 
 Value getproposal(const Array& params, bool fHelp){
 
@@ -120,9 +112,13 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     CParamsGovernProposal proposal ;
 
 
-    SysParamType  type = GetParamType(paramName) ;
+    SysParamType  type = GetSysParamType(paramName) ;
     if(type == SysParamType::NULL_SYS_PARAM_TYPE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
+
+    string errorInfo = CheckSysParamValue(type, paramValue ) ;
+    if(errorInfo != EMPTY_STRING)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo) ;
 
     proposal.param_values.push_back(std::make_pair(type, paramValue));
 
@@ -142,14 +138,14 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     if(fHelp || params.size() < 3 || params.size() > 4){
 
         throw runtime_error(
-                "submitcdpparamgovernproposal \"addr\" \"param_name\" \"param_value\" \"bcoin_symbole\" \"scoin_symbol\" [\"fee\"]\n"
+                "submitcdpparamgovernproposal \"addr\" \"param_name\" \"param_value\" \"bcoin_symbol\" \"scoin_symbol\" [\"fee\"]\n"
                 "create proposal about cdp  param govern\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"param_name\":       (string, required) the name of param, the param list can be found in document \n"
                 "3.\"param_value\":      (numberic, required) the param value that will be updated to \n"
-                "4.\"bcoin_symbo\":      (string,required) the base coin symbol\n"
-                "5.\"scoin_symbo\":      (string,required) the stable coin symbol\n"
+                "4.\"bcoin_symbol\":     (string,required) the base coin symbol\n"
+                "5.\"scoin_symbol\":     (string,required) the stable coin symbol\n"
                 "6.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitcdpparamgovernproposal", "0-1 ASSET_ISSUE_FEE  10000 WICC WUSD WICC:1:WI")
@@ -173,13 +169,17 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
 
-    CCdpParamGovernProposal proposal ;
 
 
-    SysParamType  type = GetParamType(paramName) ;
-    if(type == SysParamType::NULL_SYS_PARAM_TYPE)
+    CdpParamType  type = GetCdpParamType(paramName) ;
+    if(type == CdpParamType::NULL_CDP_PARAM_TYPE)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("system param type(%s) is not exist",paramName));
 
+    string errorInfo = CheckCdpParamValue(type, paramValue ) ;
+    if(errorInfo != EMPTY_STRING)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, errorInfo) ;
+
+    CCdpParamGovernProposal proposal ;
     proposal.param_values.push_back(std::make_pair(type, paramValue));
     proposal.coin_pair = CCdpCoinPair(bcoinSymbol, scoinSymbol) ;
 
