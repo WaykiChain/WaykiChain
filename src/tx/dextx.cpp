@@ -1028,7 +1028,7 @@ namespace dex {
 
     bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-//            IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
         IMPLEMENT_CHECK_TX_REGID(txUid);
         if (!CheckFee(context)) return false;
         if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
@@ -1043,7 +1043,7 @@ namespace dex {
                 REJECT_INVALID, "invalid-deal-items");
 
         for (size_t i = 0; i < dealItems.size(); i++) {
-            const DealItem & dealItem = dealItems.at(i);
+            const DealItem &dealItem = dealItems.at(i);
             if (dealItem.buyOrderId.IsEmpty() || dealItem.sellOrderId.IsEmpty())
                 return state.DoS(100, ERRORMSG("%s, deal_items[%d], buy_order_id or sell_order_id is empty",
                     i), REJECT_INVALID, "empty-order-id");
