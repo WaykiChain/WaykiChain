@@ -149,15 +149,14 @@ Value dumpprivkey(const Array& params, bool fHelp) {
 
     EnsureWalletIsUnlocked();
 
-    CUserID uid = RPC_PARAM::GetUserId(params[0], true);
-    CKeyID keyId = uid.get<CKeyID>();
+    auto keyid = RPC_PARAM::GetKeyId(params[0]);
 
     CKey vchSecret;
-    if (!pWalletMain->GetKey(keyId, vchSecret))
-        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for uid " + uid.ToString() + " is not known.");
+    if (!pWalletMain->GetKey(keyid, vchSecret))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Private key for uid " + params[0].get_str() + " is not known.");
 
     CKey minerkey;
-	pWalletMain->GetKey(keyId, minerkey, true);
+	pWalletMain->GetKey(keyid, minerkey, true);
     Object reply;
     	reply.push_back(Pair("privkey", CCoinSecret(vchSecret).ToString()));
 
