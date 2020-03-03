@@ -447,11 +447,11 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("gendexoperatorordertx", "\"10-3\" \"WUSD\" \"WICC:200000000:sawi\""
-                             " 1 \"PRIVATE\" 40000 80000\n")
+            + HelpExampleCli("gendexoperatorordertx", "\"10-3\" \"LIMIT_PRICE\" \"BUY\" \"WICC:2000000000:sawi\""
+                             " \"WUSD:0\" 100000000 0 \"PUBLIC\" 80000 40000\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("gendexoperatorordertx", "\"10-3\", \"WUSD\", \"WICC:200000000:sawi\","
-                             " 1, \"PRIVATE\", 40000, 80000\n")
+            + HelpExampleRpc("gendexoperatorordertx", "\"10-3\", \"LIMIT_PRICE\", \"BUY\", \"WICC:2000000000:sawi\","
+                             " \"WUSD:0\", 100000000, 0, \"PUBLIC\", 80000, 40000\n")
         );
     }
 
