@@ -36,9 +36,6 @@ private:
     const TokenSymbol &assetSymbol;
     const TokenSymbol &scoinSymbol;
 
-
-    bool SellAssetToRiskRevervePool();
-
     bool SellAssetToRiskRevervePool(const CUserCDP &cdp, const TokenSymbol &assetSymbol,
         uint64_t amount, const TokenSymbol &coinSymbol, uint256 &orderId, shared_ptr<CDEXOrderDetail> &pOrderOut);
 
@@ -271,14 +268,14 @@ bool CCdpForceLiquidator::Execute() {
                     UPDATE_ACCOUNT_FAIL, "unpledge-bcoins-failed");
         }
         if (!cdpOwnerAccount.OperateBalance(cdp.bcoin_symbol, SUB_FREE, cdp.total_staked_bcoins)) {
-            return state.DoS(100, ERRORMSG("$s(), sub unpledged bcoins failed! cdp={%s}", __func__, cdp.ToString()),
+            return state.DoS(100, ERRORMSG("%s(), sub unpledged bcoins failed! cdp={%s}", __func__, cdp.ToString()),
                     UPDATE_ACCOUNT_FAIL, "deduct-bcoins-failed");
         }
 
         // b.2) sell bcoins to get scoins and put them to risk reserve pool
         uint256 assetSellOrderId;
         shared_ptr<CDEXOrderDetail> pAssetSellOrder;
-        if (!SellAssetToRiskRevervePool(cdp, SYMB::WGRT, cdp.total_staked_bcoins, scoinSymbol, assetSellOrderId, pAssetSellOrder))
+        if (!SellAssetToRiskRevervePool(cdp, assetSymbol, cdp.total_staked_bcoins, scoinSymbol, assetSellOrderId, pAssetSellOrder))
             return false;
 
         totalSelloutBcoins += cdp.total_staked_bcoins;
@@ -363,6 +360,8 @@ bool CCdpForceLiquidator::SellAssetToRiskRevervePool(const CUserCDP &cdp, const 
                 __func__, cdp.cdpid.ToString(), assetSymbol, coinSymbol, amount),
                 CREATE_SYS_ORDER_FAILED, "create-sys-order-failed");
     }
+    LogPrint(BCLog::DEX, "%s(), create sys sell market order OK! cdpid=%s, order_detail={%s}",
+                __func__, cdp.cdpid.ToString(), pOrderOut->ToString());
     return true;
 }
 
