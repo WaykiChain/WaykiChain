@@ -110,7 +110,7 @@ public:
         vector<CRegID> v  ;
         if(approvalListCache.GetData(proposalId, v)){
             if(find(v.begin(),v.end(),governor) != v.end()){
-                return ERRORMSG("governor(regid= %s) had assented this proposal(proposalid=%s)", 
+                return ERRORMSG("governor(regid= %s) had approvaled this proposal(proposalid=%s)",
                                 governor.ToString(), proposalId.ToString());
             }
         }

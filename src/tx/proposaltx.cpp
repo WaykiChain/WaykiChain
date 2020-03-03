@@ -196,7 +196,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
                           WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
      if(!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>())){
-         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal assention info error"),
+         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
      }
 
