@@ -107,7 +107,11 @@ bool CDelegateDBCache::GetActiveDelegate(const CRegID &regid, VoteDelegate &vote
 }
 
 bool CDelegateDBCache::GetActiveDelegates(VoteDelegateVector &voteDelegates) {
-    return active_delegates_cache.GetData(voteDelegates);
+     bool res =  active_delegates_cache.GetData(voteDelegates);
+     if(res){
+         assert(voteDelegates.size() != 0 );
+     }
+     return res ;
 }
 
 bool CDelegateDBCache::SetActiveDelegates(const VoteDelegateVector &voteDelegates) {
