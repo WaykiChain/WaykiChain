@@ -2055,7 +2055,6 @@ int32_t ExTransferSomeAsset(lua_State *L) {
 
     vector<uint8_t> sendKey;
     vector<uint8_t> recvKey;
-    CRegID script = pVmRunEnv->GetContractRegID();
 
     CRegID sendRegID = pVmRunEnv->GetTxUserRegid();
     CKeyID SendKeyID = sendRegID.GetKeyId(*pVmRunEnv->GetCatchView());
