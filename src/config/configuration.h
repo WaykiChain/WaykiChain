@@ -45,7 +45,7 @@ public:
     uint32_t GetDefaultPort(const NET_TYPE type) const;
     uint32_t GetRPCPort(const NET_TYPE type) const;
     uint32_t GetStartTimeInit(const NET_TYPE type) const;
-    uint32_t GetTotalDelegateNum() const;
+    uint8_t GetTotalDelegateNum() const;
     uint32_t GetMaxVoteCandidateNum() const;
     uint64_t GetCoinInitValue() const { return InitialCoin; };
 	uint32_t GetFeatureForkHeight(const NET_TYPE type) const;
@@ -110,7 +110,7 @@ private:
     static uint64_t DefaultFee;
 
     /* Total Delegate Number */
-    static uint32_t TotalDelegateNum;
+    static uint8_t TotalDelegateNum;
 
     /* Max Number of Delegate Candidate to Vote for by a single account */
     static uint32_t MaxVoteCandidateNum;

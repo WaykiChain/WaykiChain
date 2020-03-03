@@ -241,14 +241,12 @@ public:
                 return std::get<1>(value) ;
             }
         }
-
         uint8_t bpCount ;
         if(currentBpCountCache.GetData(bpCount)){
             return bpCount;
         }
 
-        return 11 ;
-
+        return IniCfg().GetTotalDelegateNum() ;
     }
 
 public:
