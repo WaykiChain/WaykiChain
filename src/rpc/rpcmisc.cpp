@@ -211,7 +211,6 @@ Value verifymessage(const Array& params, bool fHelp) {
     /*DEFINE( BLOCK_INDEX,          cw.blockCache.txDiskPosCache)         */ \
     DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, txDiskPosCache) \
     DEFINE( LAST_BLOCKFILE,       pBlockCache, lastBlockFileCache) \
-    DEFINE( MEDIAN_PRICES,        pBlockCache, medianPricesCache) \
     DEFINE( REINDEX,              pBlockCache, reindexCache) \
     DEFINE( FINALITY_BLOCK,       pBlockCache, finalityBlockCache) \
     DEFINE( FLAG,                 pBlockCache, flagCache) \
@@ -249,6 +248,8 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( DEX_OPERATOR_DETAIL,  pDexCache, operator_detail_cache) \
     DEFINE( DEX_OPERATOR_OWNER_MAP, pDexCache, operator_owner_map_cache) \
     DEFINE( DEX_OPERATOR_TRADE_PAIR, pDexCache, operator_trade_pair_cache) \
+    /**** price feed */ \
+    DEFINE( MEDIAN_PRICES,        pPriceFeedCache, medianPricesCache) \
     /**** log db                                                                    */ \
     DEFINE( TX_EXECUTE_FAIL,      pLogCache,  executeFailCache ) \
     /**** tx receipt db                                                                    */ \

@@ -360,7 +360,7 @@ Value getscoininfo(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INTERNAL_ERROR, "Acquire median price slide window blockcount error");
     }
 
-    PriceMap medianPricePoints = pCdMan->pBlockCache->GetMedianPrices();
+    PriceMap medianPricePoints = pCdMan->pPriceFeedCache->GetMedianPrices();
 
     // TODO: multi cdp coin pairs
     Array cdpInfoArray;
@@ -416,7 +416,7 @@ Value getusercdp(const Array& params, bool fHelp){
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("The account not exists! userId=%s", pUserId->ToString()));
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
 
     Object obj;
     Array cdps;
@@ -447,7 +447,7 @@ Value getcdpinfo(const Array& params, bool fHelp){
         );
     }
 
-    uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+    uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
 
     uint256 cdpTxId(uint256S(params[0].get_str()));
     CUserCDP cdp;

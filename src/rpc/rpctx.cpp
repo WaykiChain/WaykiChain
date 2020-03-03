@@ -827,7 +827,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         obj.push_back(Pair("registered", true));
 
         // TODO: multi stable coin
-        uint64_t bcoinMedianPrice = pCdMan->pBlockCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
+        uint64_t bcoinMedianPrice = pCdMan->pPriceFeedCache->GetMedianPrice(CoinPricePair(SYMB::WICC, SYMB::USD));
         Array cdps;
         vector<CUserCDP> userCdps;
         if (pCdMan->pCdpCache->GetCDPList(account.regid, userCdps)) {
@@ -849,7 +849,7 @@ Value getaccountinfo(const Array& params, bool fHelp) {
         account.keyid        = pubKey.GetKeyId();
         if (minerPubKey != pubKey)
             account.miner_pubkey = minerPubKey;
-        
+
         obj = account.ToJsonObj();
         obj.push_back(Pair("in_wallet", true));
 
@@ -1545,7 +1545,7 @@ Value gettotalcoins(const Array& params, bool fHelp) {
             "\nExamples:\n" +
             HelpExampleCli("gettotalcoins", "") + "\nAs json rpc call\n" + HelpExampleRpc("gettotalcoins", ""));
     }
-    
+
     Object stats = pCdMan->pAccountCache->GetAccountDBStats();
     return stats;
 }

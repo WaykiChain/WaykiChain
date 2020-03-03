@@ -88,7 +88,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
                          "bad-median-price-points");
     }
 
-    if (!cw.blockCache.SetMedianPrices(median_prices)) {
+    if (!cw.priceFeedCache.SetMedianPrices(median_prices)) {
         return state.DoS(100, ERRORMSG("CBlockPriceMedianTx::ExecuteTx, save median prices to db failed"), REJECT_INVALID,
                          "save-median-prices-failed");
     }
@@ -103,7 +103,7 @@ bool CBlockPriceMedianTx::ExecuteTx(CTxExecuteContext &context) {
 
     // TODO: support multi asset/scoin cdp
     CCdpForceLiquidator forceLiquidator(*this, context, receipts, fcoinGenesisAccount, SYMB::WICC, SYMB::WUSD);
-    if (!forceLiquidator.Execute()) 
+    if (!forceLiquidator.Execute())
         return false;
 
     if (!cw.accountCache.SetAccount(fcoinGenesisAccount.keyid, fcoinGenesisAccount))

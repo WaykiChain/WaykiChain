@@ -154,7 +154,7 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
 
     // TODO: multi stable coin
-    uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(assetSymbol, quoteSymbol));
+    uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(CoinPricePair(assetSymbol, quoteSymbol));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price! coinPricePair=%s:%s",
                 assetSymbol, quoteSymbol), REJECT_INVALID, "acquire-asset-price-err");
@@ -467,7 +467,7 @@ bool CCDPRedeemTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+    uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
     if (bcoinMedianPrice == 0)
         return state.DoS(100, ERRORMSG("CCDPRedeemTx::ExecuteTx, failed to acquire bcoin median price!!"),
                         REJECT_INVALID, "acquire-bcoin-median-price-err");
@@ -744,7 +744,7 @@ bool CCDPLiquidateTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
 
 
-    uint64_t bcoinMedianPrice = cw.blockCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
+    uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(CoinPricePair(cdp.bcoin_symbol, SYMB::USD));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPLiquidateTx::ExecuteTx, failed to acquire bcoin median price!!"),
                          REJECT_INVALID, "acquire-bcoin-median-price-err");

@@ -84,7 +84,6 @@ namespace dbk {
         DEFINE( BLOCK_INDEX,          "bidx",   BLOCK )         /* pbfl --> $nFile */ \
         DEFINE( BLOCKFILE_NUM_INFO,   "bfni",   BLOCK )         /* BlockFileNum --> $BlockFileInfo */ \
         DEFINE( LAST_BLOCKFILE,       "ltbf",   BLOCK )         /* [prefix] --> $LastBlockFile */ \
-        DEFINE( MEDIAN_PRICES,        "mdps",   BLOCK )         /* [prefix] --> median prices */ \
         DEFINE( REINDEX,              "ridx",   BLOCK )         /* [prefix] --> $Reindex = 1 | 0 */ \
         DEFINE( FINALITY_BLOCK,       "finb",   BLOCK )         /* [prefix] --> &globalfinblock height and hash */ \
         DEFINE( FLAG,                 "flag",   BLOCK )         /* [prefix] --> $Flag = 1 | 0 */ \
@@ -131,6 +130,8 @@ namespace dbk {
         DEFINE( TX_UTXO,              "utxo",       UTXO )       /* [prefix]{txid-voutindex} --> 1 */ \
         /**** tx coinutxo db                                                                 */ \
         DEFINE( UTXO_PWSDPRF,         "pwdp",       UTXO )       /* [prefix]{txid-voutindex} --> {passwordProof} */ \
+        /**** price feed db                                                                 */ \
+        DEFINE( MEDIAN_PRICES,        "mdps",       PRICEFEED)   /* [prefix] --> median prices */ \
         DEFINE( PRICE_FEED_COIN,      "pfco",       PRICEFEED)         \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \

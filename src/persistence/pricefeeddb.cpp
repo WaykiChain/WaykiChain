@@ -243,7 +243,7 @@ bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t
         return ERRORMSG("%s, read sys param MEDIAN_PRICE_SLIDE_WINDOW_BLOCKCOUNT error", __func__);
     }
 
-    latest_median_prices = cw.blockCache.GetMedianPrices();
+    latest_median_prices = cw.priceFeedCache.GetMedianPrices();
 
     CoinPricePair bcoinPricePair(SYMB::WICC, SYMB::USD);
     uint64_t bcoinMedianPrice = GetMedianPrice(blockHeight, slideWindow, bcoinPricePair);
@@ -259,3 +259,29 @@ bool CPricePointMemCache::CalcBlockMedianPrices(CCacheWrapper &cw, const int32_t
 
     return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// CPriceFeedCache
+
+uint64_t CPriceFeedCache::GetMedianPrice(const CoinPricePair &coinPricePair) const {
+    PriceMap medianPrices;
+    if (medianPricesCache.GetData(medianPrices)) {
+        auto it = medianPrices.find(coinPricePair);
+        if (it != medianPrices.end())
+            return it->second;
+    }
+    return 0;
+}
+
+PriceMap CPriceFeedCache::GetMedianPrices() const {
+    PriceMap medianPrices;
+    if (medianPricesCache.GetData(medianPrices)) {
+        return medianPrices;
+    }
+    return {};
+}
+
+bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
+    return medianPricesCache.SetData(medianPrices);
+}
+

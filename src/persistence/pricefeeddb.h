@@ -84,35 +84,33 @@ class CPriceFeedCache {
 public:
     CPriceFeedCache() {}
     CPriceFeedCache(CDBAccess *pDbAccess)
-    : price_feed_coin_cache(pDbAccess) {};
-
-
+    : price_feed_coin_cache(pDbAccess),
+      medianPricesCache(pDbAccess) {};
 public:
-
-
     bool Flush() {
         price_feed_coin_cache.Flush();
+        medianPricesCache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const {
-        return price_feed_coin_cache.GetCacheSize() ;
+        return  price_feed_coin_cache.GetCacheSize() +
+                medianPricesCache.GetCacheSize() ;
     }
     void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
         price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
+        medianPricesCache.SetBase(&pBaseIn->medianPricesCache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
+        medianPricesCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
-
+        medianPricesCache.RegisterUndoFunc(undoDataFuncMap);
     }
-
-
-
 
     bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
 
@@ -156,13 +154,19 @@ public:
         return true ;
     }
 
+    uint64_t GetMedianPrice(const CoinPricePair &coinPricePair) const;
+    PriceMap GetMedianPrices() const;
+    bool SetMedianPrices(const PriceMap &medianPrices);
 
 public:
-/*       type               prefixType                      key                        value                variable             */
-/*  ----------------   -----------------------------  ---------------------------  ------------------   ------------------------ */
-    /////////// DexDB
+
+/*  CSimpleKVCache          prefixType          value           variable           */
+/*  -------------------- --------------------  -------------   --------------------- */
+    /////////// PriceFeedDB
     // order tx id -> active order
-    CSimpleKVCache< dbk::PRICE_FEED_COIN,          set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
+    CSimpleKVCache< dbk::PRICE_FEED_COIN,      set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
+    // [prefix] -> median price map
+    CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     medianPricesCache;
 
 };
 

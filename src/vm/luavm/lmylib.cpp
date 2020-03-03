@@ -2485,7 +2485,7 @@ int32_t ExGetAssetPriceFunc(lua_State *L) {
     LUA_BurnAccount(L, FUEL_CALL_GetAssetPrice, BURN_VER_R2);
 
     auto pAccount = make_shared<CAccount>();
-    uint64_t price = pVmRunEnv->GetCw()->blockCache.GetMedianPrice(pricePair);
+    uint64_t price = pVmRunEnv->GetCw()->priceFeedCache.GetMedianPrice(pricePair);
 
     // check stack to avoid stack overflow
     if (!lua_checkstack(L, sizeof(lua_Integer))) {
@@ -2495,7 +2495,7 @@ int32_t ExGetAssetPriceFunc(lua_State *L) {
 
     lua_pushinteger(L, price);
 
-    return 1;    
+    return 1;
 }
 
 static const luaL_Reg mylib[] = {
