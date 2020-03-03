@@ -496,16 +496,13 @@ uint64_t RPC_PARAM::GetWiccFee(const Array& params, const size_t index, const Tx
 CUserID RPC_PARAM::ParseUserIdByAddr(const Value &jsonValue) {
     auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
     if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf("Invalid address=%s", jsonValue.get_str()));
     }
     return *pUserId;
 }
 
 CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
-    auto pUserId = CUserID::ParseUserId(jsonValue.get_str());
-    if (!pUserId) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-    }
+    auto userId = ParseUserIdByAddr(jsonValue);
 
     /**
      * Attention: feature enable in stable coin release!
@@ -526,47 +523,26 @@ CUserID RPC_PARAM::GetUserId(const Value &jsonValue, const bool senderUid ) {
      */
     CRegID regid;
     if (GetFeatureForkVersion(chainActive.Height()) >= MAJOR_VER_R2) {
-        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid) && regid.IsMature(chainActive.Height())) {
+        if (pCdMan->pAccountCache->GetRegId(userId, regid) && regid.IsMature(chainActive.Height())) {
             return CUserID(regid);
         } else {
-            if (senderUid && pUserId->is<CKeyID>()) {
+            if (senderUid && userId.is<CKeyID>()) {
                 CPubKey sendPubKey;
-                if (!pWalletMain->GetPubKey(pUserId->get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
+                if (!pWalletMain->GetPubKey(userId.get<CKeyID>(), sendPubKey) || !sendPubKey.IsFullyValid())
                     throw JSONRPCError(RPC_WALLET_ERROR, "Key not found in the local wallet");
 
                 return CUserID(sendPubKey);
             } else {
-                return *pUserId;
+                return userId;
             }
         }
     } else { // MAJOR_VER_R1
-        if (pCdMan->pAccountCache->GetRegId(*pUserId, regid)) {
+        if (pCdMan->pAccountCache->GetRegId(userId, regid)) {
             return CUserID(regid);
         } else {
-            return *pUserId;
+            return userId;
         }
     }
-}
-
-CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue, const bool senderUid  ){
-
-    CKeyID keyid;
-    if(!RPC_PARAM::GetKeyId(jsonValue, keyid, senderUid))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid address");
-    return keyid ;
-}
-
-bool RPC_PARAM::GetKeyId(const Value &jsonValue, CKeyID& keyid, const bool senderUid  ) {
-
-    CUserID uid = RPC_PARAM::GetUserId(jsonValue, senderUid);
-    if(uid.is<CKeyID>())
-        keyid =  uid.get<CKeyID>();
-    else if( uid.is<CPubKey>()) {
-        keyid =  uid.get<CPubKey>().GetKeyId();
-    }else if(uid.is<CRegID>()){
-        keyid =  uid.get<CRegID>().GetKeyId(*pCdMan->pAccountCache);
-    }
-    return !keyid.IsEmpty();
 }
 
 CKeyID RPC_PARAM::GetUserKeyId(const CUserID &uid) {
@@ -577,6 +553,11 @@ CKeyID RPC_PARAM::GetUserKeyId(const CUserID &uid) {
                            strprintf("Get keyid by userid=%s failed", uid.ToString()));
     }
     return keyid;
+}
+
+CKeyID RPC_PARAM::GetKeyId(const Value &jsonValue){
+
+    return GetUserKeyId(ParseUserIdByAddr(jsonValue));
 }
 
 string RPC_PARAM::GetLuaContractScript(const Value &jsonValue) {

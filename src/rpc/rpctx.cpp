@@ -510,12 +510,9 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
         if (delegateAddr.type() == null_type || delegateVotes == null_type) {
             throw JSONRPCError(RPC_INVALID_PARAMETER, "Vote fund address error or fund value error");
         }
-        CKeyID delegateKeyId;
-        if (!RPC_PARAM::GetKeyId(delegateAddr, delegateKeyId)) {
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address error");
-        }
+        auto delegateUid = RPC_PARAM::ParseUserIdByAddr(delegateAddr);
         CAccount delegateAcct;
-        if (!pCdMan->pAccountCache->GetAccount(CUserID(delegateKeyId), delegateAcct)) {
+        if (!pCdMan->pAccountCache->GetAccount(delegateUid, delegateAcct)) {
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Delegate address does not exist");
         }
         if (!delegateAcct.HaveOwnerPubKey()) {
@@ -1523,13 +1520,9 @@ Value validateaddr(const Array& params, bool fHelp) {
     }
 
     Object obj;
-
-    CKeyID keyid;
-    if (!RPC_PARAM::GetKeyId(params[0], keyid)) {
-        obj.push_back(Pair("is_valid", false));
-    } else {
-        obj.push_back(Pair("is_valid", true));
-    }
+    CKeyID keyid = RPC_PARAM::GetKeyId(params[0]);
+    obj.push_back(Pair("is_valid", true));
+    obj.push_back(Pair("addr", keyid.ToAddress()));
 
     return obj;
 }
