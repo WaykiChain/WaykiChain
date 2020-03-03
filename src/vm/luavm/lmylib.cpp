@@ -108,10 +108,12 @@ static CLuaVMRunEnv* GetVmRunEnvByContext(lua_State *L) {
     return (CLuaVMRunEnv*)pState->pContext;
 }
 
-static bool GetKeyId(const CAccountDBCache &accountView, vector<uint8_t> &ret, CKeyID &keyId) {
+static bool GetKeyId(const CAccountDBCache &accountCache, vector<uint8_t> &ret, CKeyID &keyId) {
     if (ret.size() == 6) {
-        CRegID reg(ret);
-        keyId = reg.GetKeyId(accountView);
+        CRegID regid(ret);
+        if (regid.IsEmpty()) return false;
+
+        accountCache.GetKeyId(regid, keyId);
     } else if (ret.size() == 34) {
         string addr(ret.begin(), ret.end());
         keyId = CKeyID(addr);
@@ -1581,7 +1583,7 @@ int32_t ExGetContractDataFunc(lua_State *L) {
     string value;
 
     int32_t len = 0;
-    if (!scriptDB->GetContractData(contractRegId, key, value)) {
+    if (contractRegId.IsEmpty() || !scriptDB->GetContractData(contractRegId, key, value)) {
         len = 0;
         lua_BurnStoreUnchanged(L, key.size(), 0, BURN_VER_R2);
     } else {

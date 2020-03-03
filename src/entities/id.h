@@ -45,13 +45,21 @@ class CRegIDKey;
 
 class CRegID {
 public:
-    CRegID(const string &strRegID);
-    CRegID(const vector<uint8_t> &vIn);
+    /**
+     * constructor by regid string, such as: 10-1
+     */
+    CRegID(const string &regidStr);
+    /**
+     * constructor by raw data (data in memory format)
+     */
+    CRegID(const vector<uint8_t> &rawDataIn);
     CRegID(const uint32_t height = 0, const uint16_t index = 0);
 
-    const vector<uint8_t> &GetRegIdRaw() const;
+    bool SetRegID(const string &regidStr);
+    bool SetRegID(const vector<uint8_t> &rawDataIn);
 
-    void SetRegID(const vector<uint8_t> &vIn);
+    vector<uint8_t> GetRegIdRaw() const;
+
     CKeyID GetKeyId(const CAccountDBCache &accountCache) const;
     uint32_t GetHeight() const { return height; }
     uint16_t GetIndex() const { return index; }
@@ -73,25 +81,20 @@ public:
     static bool GetKeyId(const string &str, CKeyID &keyId);
     inline constexpr bool IsEmpty() const { return (height == 0 && index == 0); }
     void SetEmpty() { Clear(); }
-    bool Clear();
+
+    void Clear();
+
     string ToString() const;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(height));
         READWRITE(VARINT(index));
-        if (fRead) {
-            vRegID.clear();
-            vRegID.insert(vRegID.end(), BEGIN(height), END(height));
-            vRegID.insert(vRegID.end(), BEGIN(index), END(index));
-        }
     )
 private:
-    uint32_t height;
-    uint16_t index;
-    mutable vector<uint8_t> vRegID;
+    uint32_t height = 0;
+    uint16_t index = 0;
 
-    void SetRegID(string strRegID);
-    void SetRegIDByCompact(const vector<uint8_t> &vIn);
+    static const uint32_t RAW_SIZE = sizeof(height) + sizeof(index);
 
     friend CUserID;
     friend class CRegIDKey;

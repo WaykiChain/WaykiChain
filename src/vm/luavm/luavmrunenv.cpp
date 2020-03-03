@@ -261,8 +261,7 @@ bool CLuaVMRunEnv::OperateAccount(const vector<CVmOperate>& operates) {
         CUserID uid;
 
         if (accountId.size() == 6) {
-            CRegID regid;
-            regid.SetRegID(accountId);
+            CRegID regid(accountId);
             if (!p_context->p_cw->accountCache.GetAccount(CUserID(regid), *pAccount)) {
                 LogPrint(BCLog::LUAVM, "[ERR]CLuaVMRunEnv::OperateAccount(), account not exist! regid=%s\n", regid.ToString());
                 return false;
