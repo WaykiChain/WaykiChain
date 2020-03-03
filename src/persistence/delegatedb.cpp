@@ -13,8 +13,6 @@ bool CDelegateDBCache::GetTopVoteDelegates(uint32_t delegateNum ,VoteDelegateVec
     set<decltype(voteRegIdCache)::KeyType> topKeys;
     voteRegIdCache.GetTopNElements(delegateNum, topKeys);
 
-    // assert(regIds.size() == IniCfg().GetTotalDelegateNum());
-
     for (const auto &key : topKeys) {
         const string &votesStr = std::get<0>(key);
         const CRegIDKey &regIdKey = std::get<1>(key);

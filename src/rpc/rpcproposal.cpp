@@ -606,7 +606,7 @@ Value getsysparam(const Array& params, bool fHelp){
 
 
 Value getcdpparam(const Array& params, bool fHelp) {
-    if(fHelp || params.size() > 1){
+    if(fHelp || params.size() < 1 || params.size() > 2){
         throw runtime_error(
                 "getcdpparam $bcoin_scoin_pair $param_name \n"
                 "get its param info about a given CDP type by its coinpair key\n"
