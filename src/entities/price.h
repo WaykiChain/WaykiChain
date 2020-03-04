@@ -18,6 +18,8 @@
 typedef std::pair<TokenSymbol, TokenSymbol> CoinPricePair;
 typedef std::map<CoinPricePair, uint64_t> PriceMap;
 
+static const PriceMap EMPTY_PRICE_MAP = {};
+
 static const CoinPricePair kDefaultFcoinPricePair = {SYMB::WGRT, SYMB::USD};
 
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCoinPricePairSet = {

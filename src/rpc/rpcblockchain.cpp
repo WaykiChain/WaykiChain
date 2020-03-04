@@ -53,7 +53,8 @@ Object BlockToJSON(const CBlock& block, const CBlockIndex* pBlockIndex) {
         result.push_back(Pair("next_block_hash", pNext->GetBlockHash().GetHex()));
 
     Array prices;
-    for (auto &item : block.GetBlockMedianPrice()) {
+    const auto& priceMap = block.GetBlockMedianPrice();
+    for (const auto &item : priceMap) {
         if (item.second == 0) {
             continue;
         }
