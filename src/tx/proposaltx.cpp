@@ -33,28 +33,21 @@ bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& c
 
 uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw ) {
 
-    switch (proposalType) {
-        case ProposalType::GOVERNOR_UPDATE : {
-            VoteDelegateVector delegateList;
-            if (!cw.delegateCache.GetActiveDelegates(delegateList))
-                return 8;
-            
-            if (delegateList.size() == 11)
-                return 8 ;
 
-            return ((delegateList.size()/3)*2+1);
-        }
-        case ProposalType::COIN_TRANSFER : {
-            VoteDelegateVector delegateList;
-            if (!cw.delegateCache.GetActiveDelegates(delegateList))
-                return 8 ;
-            
-            return delegateList.size();
-        }
 
-        default:
-            return cw.sysGovernCache.GetGovernorApprovalMinCount();
+    if(proposalType == ProposalType::GOVERNOR_UPDATE
+       || proposalType == ProposalType::COIN_TRANSFER
+       || proposalType == ProposalType::BP_COUNT_UPDATE){
+
+        VoteDelegateVector delegateList;
+        if (!cw.delegateCache.GetActiveDelegates(delegateList))
+            return 8;
+        return (delegateList.size()/3)*2+delegateList.size()%3;
+
+    } else{
+        return cw.sysGovernCache.GetGovernorApprovalMinCount();
     }
+
 }
 
 
