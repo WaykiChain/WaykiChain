@@ -90,7 +90,7 @@ namespace RPC_PARAM {
 
     PublicMode GetOrderPublicMode(const Value &jsonValue) {
         PublicMode ret = PublicMode::PUBLIC_MODE_NULL;
-        if (kPublicModeHelper.Parse(jsonValue.get_str(), ret))
+        if (!kPublicModeHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
                 jsonValue.get_str()));
         return ret;
