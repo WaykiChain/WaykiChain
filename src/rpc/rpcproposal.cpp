@@ -83,7 +83,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
         throw runtime_error(
                 "submitparamgovernproposal \"addr\" \"param_name\" \"param_value\" [\"fee\"]\n"
-                "create proposal about param govern\n"
+                "create proposal about system param govern\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"param_name\":       (string, required) the name of param, the param list can be found in document \n"
@@ -381,7 +381,7 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
     if(fHelp || params.size() < 2 || params.size() > 3){
         throw runtime_error(
                 "submitproposalapprovaltx \"addr\" \"proposalid\" [\"fee\"]\n"
-                "assent a proposal\n"
+                "approval a proposal\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"proposalid\":       (numberic, required) the dexoperator's id\n"
@@ -417,12 +417,12 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     if(fHelp || params.size() < 3 || params.size() > 4){
         throw runtime_error(
                 "submitbpcountupdateproposal \"addr\" \"bp_count\" \"effective_height\"  [\"fee\"]\n"
-                "create proposal about enable/disable dexoperator\n"
+                "create proposal about update total delegate(bp) count\n"
                 "\nArguments:\n"
-                "1.\"addr\":             (string, required) the tx submitor's address\n"
-                "2.\"bp_count\":         (numberic, required) the count of block producer(miner)  \n"
+                "1.\"addr\":                (string, required) the tx submitor's address\n"
+                "2.\"bp_count\":            (numberic, required) the count of block producer(miner)  \n"
                 "3.\"effective_height\":    (numberic, required) the height of the proposal launch \n"
-                "4.\"fee\":              (combomoney, optional) the tx fee \n"
+                "4.\"fee\":                 (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitbpcountupdateproposal", "0-1 21 45002020202  WICC:1:WI")
                 + "\nAs json rpc call\n"
@@ -461,16 +461,16 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
 
         throw runtime_error(
                 "submitminerfeeproposal \"addr\" \"tx_type\" \"fee_info\"  [\"fee\"]\n"
-                "create proposal about enable/disable dexoperator\n"
+                "create proposal about updating the min miner fee\n"
                 "\nArguments:\n"
                 "1.\"addr\":             (string, required) the tx submitor's address\n"
                 "2.\"tx_type\":          (numberic, required) the tx type you can get the list by command \"listmintxfees\" \n"
-                "3.\"fee_info\":         (combomoney, required) the miner fee symbol, example:WICC, WUSD \n"
+                "3.\"fee_info\":         (combomoney, required) the miner fee symbol,amount,unit, example:WICC:10000:SAWI \n"
                 "4.\"fee\":              (combomoney, optional) the tx fee \n"
                 "\nExamples:\n"
                 + HelpExampleCli("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
                 + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitminerfeeproposal", "0-1 1 1  WICC:1:WI")
+                + HelpExampleRpc("submitminerfeeproposal", "0-1 1 WICC:1:WI  WICC:1:WI")
 
         );
 

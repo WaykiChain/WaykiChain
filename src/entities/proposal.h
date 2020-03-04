@@ -442,6 +442,7 @@ public:
     virtual Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("bp_count", (uint64_t)bp_count));
+        o.push_back(Pair("effective_height",(uint64_t)effective_height));
         return o ;
     }
 
