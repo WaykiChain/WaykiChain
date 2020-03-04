@@ -44,6 +44,11 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
                return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                        REJECT_INVALID, "params-error");
            }
+           string errorInfo = CheckSysParamValue(SysParamType(pa.first), pa.second);
+
+           if(errorInfo != EMPTY_STRING)
+               return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
+                                REJECT_INVALID, "params-range-error");
        }
 
      return true ;
@@ -80,6 +85,11 @@ bool CCdpParamGovernProposal::CheckProposal(CTxExecuteContext& context ) {
             return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, parameter name (%s) is not in sys params list ", pa.first),
                             REJECT_INVALID, "params-error");
         }
+
+        string errorInfo = CheckCdpParamValue(CdpParamType(pa.first), pa.second);
+        if(errorInfo != EMPTY_STRING)
+            return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx failed: %s ", errorInfo),
+                             REJECT_INVALID, "params-range-error");
     }
 
     return true;
@@ -332,8 +342,6 @@ bool CCoinTransferProposal:: CheckProposal(CTxExecuteContext& context ) {
     if (!cw.accountCache.GetAccount(from_uid, srcAccount))
         return state.DoS(100, ERRORMSG("CCoinTransferProposal::CheckProposal, read account failed"), REJECT_INVALID,
                          "bad-getaccount");
-
-
 
     return true ;
 }
