@@ -63,19 +63,19 @@ enum CdpParamType : uint8_t {
 
 
 
-static const unordered_map<string, std::tuple<string,CdpParamType>> paramNameToCdpParamTypeMap = {
+static const unordered_map<string, CdpParamType> paramNameToCdpParamTypeMap = {
 
-        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",           make_tuple("B", CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT)    },
-        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                make_tuple("C", CDP_GLOBAL_COLLATERAL_RATIO_MIN)         },
-        {"CDP_START_COLLATERAL_RATIO",                     make_tuple("D", CDP_START_COLLATERAL_RATIO)              },
-        {"CDP_START_LIQUIDATE_RATIO",                      make_tuple("E", CDP_START_LIQUIDATE_RATIO)               },
-        {"CDP_NONRETURN_LIQUIDATE_RATIO",                  make_tuple("F", CDP_NONRETURN_LIQUIDATE_RATIO)           },
-        {"CDP_FORCE_LIQUIDATE_RATIO",                      make_tuple("G", CDP_FORCE_LIQUIDATE_RATIO)               },
-        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                   make_tuple("H", CDP_LIQUIDATE_DISCOUNT_RATIO)            },
-        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",          make_tuple("I", CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN)   },
-        {"CDP_INTEREST_PARAM_A",                           make_tuple("J", CDP_INTEREST_PARAM_A)                    },
-        {"CDP_INTEREST_PARAM_B",                           make_tuple("K", CDP_INTEREST_PARAM_B)                    },
-        {"CDP_SYSORDER_PENALTY_FEE_MIN",                   make_tuple("L", CDP_SYSORDER_PENALTY_FEE_MIN)            }
+        {"CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT",            CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT    },
+        {"CDP_GLOBAL_COLLATERAL_RATIO_MIN",                 CDP_GLOBAL_COLLATERAL_RATIO_MIN         },
+        {"CDP_START_COLLATERAL_RATIO",                      CDP_START_COLLATERAL_RATIO              },
+        {"CDP_START_LIQUIDATE_RATIO",                       CDP_START_LIQUIDATE_RATIO               },
+        {"CDP_NONRETURN_LIQUIDATE_RATIO",                   CDP_NONRETURN_LIQUIDATE_RATIO           },
+        {"CDP_FORCE_LIQUIDATE_RATIO",                       CDP_FORCE_LIQUIDATE_RATIO               },
+        {"CDP_LIQUIDATE_DISCOUNT_RATIO",                    CDP_LIQUIDATE_DISCOUNT_RATIO            },
+        {"CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN",           CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN   },
+        {"CDP_INTEREST_PARAM_A",                            CDP_INTEREST_PARAM_A                    },
+        {"CDP_INTEREST_PARAM_B",                            CDP_INTEREST_PARAM_B                    },
+        {"CDP_SYSORDER_PENALTY_FEE_MIN",                    CDP_SYSORDER_PENALTY_FEE_MIN            }
 };
 
 struct CdpParamTypeHash {
@@ -84,18 +84,18 @@ struct CdpParamTypeHash {
     }
 };
 
-static const unordered_map<CdpParamType, std::tuple<string, uint64_t,string >, CdpParamTypeHash> CdpParamTable = {
-        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple("B",  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
-        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple("C",  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
-        { CDP_START_COLLATERAL_RATIO,               make_tuple("D",  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
-        { CDP_START_LIQUIDATE_RATIO,                make_tuple("E",  15000,        "CDP_START_LIQUIDATE_RATIO")               },  // 1.13 ~ 1.5  : common liquidation
-        { CDP_NONRETURN_LIQUIDATE_RATIO,            make_tuple("F",  11300,        "CDP_NONRETURN_LIQUIDATE_RATIO")           },  // 1.04 ~ 1.13 : Non-return to CDP owner
-        { CDP_FORCE_LIQUIDATE_RATIO,                make_tuple("G",  10400,        "CDP_FORCE_LIQUIDATE_RATIO")               },  // 0 ~ 1.04    : forced liquidation only
-        { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple("H",  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
-        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple("I",  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
-        { CDP_INTEREST_PARAM_A,                     make_tuple("J",  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
-        { CDP_INTEREST_PARAM_B,                     make_tuple("K",  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
-        { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple("L",  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            }  // min penalty fee = 10
+static const unordered_map<CdpParamType, std::tuple< uint64_t,string >, CdpParamTypeHash> CdpParamTable = {
+        { CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT,     make_tuple(  52500000,     "CDP_GLOBAL_COLLATERAL_CEILING_AMOUNT")    },  // 25% * 210000000
+        { CDP_GLOBAL_COLLATERAL_RATIO_MIN,          make_tuple(  8000,         "CDP_GLOBAL_COLLATERAL_RATIO_MIN")         },  // 80% * 10000
+        { CDP_START_COLLATERAL_RATIO,               make_tuple(  19000,        "CDP_START_COLLATERAL_RATIO")              },  // 190% * 10000 : starting collateral ratio
+        { CDP_START_LIQUIDATE_RATIO,                make_tuple(  15000,        "CDP_START_LIQUIDATE_RATIO")               },  // 1.13 ~ 1.5  : common liquidation
+        { CDP_NONRETURN_LIQUIDATE_RATIO,            make_tuple(  11300,        "CDP_NONRETURN_LIQUIDATE_RATIO")           },  // 1.04 ~ 1.13 : Non-return to CDP owner
+        { CDP_FORCE_LIQUIDATE_RATIO,                make_tuple(  10400,        "CDP_FORCE_LIQUIDATE_RATIO")               },  // 0 ~ 1.04    : forced liquidation only
+        { CDP_LIQUIDATE_DISCOUNT_RATIO,             make_tuple(  9700,         "CDP_LIQUIDATE_DISCOUNT_RATIO")            },  // discount: 97%
+        { CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN,    make_tuple(  90000000,     "CDP_BCOINSTOSTAKE_AMOUNT_MIN_IN_SCOIN")   },  // 0.9 WUSD, dust amount (<0.9) rejected
+        { CDP_INTEREST_PARAM_A,                     make_tuple(  2,            "CDP_INTEREST_PARAM_A")                    },  // a = 2
+        { CDP_INTEREST_PARAM_B,                     make_tuple(  1,            "CDP_INTEREST_PARAM_B")                    },  // b = 1
+        { CDP_SYSORDER_PENALTY_FEE_MIN,             make_tuple(  10,           "CDP_SYSORDER_PENALTY_FEE_MIN")            }  // min penalty fee = 10
 };
 
 static const unordered_map<CdpParamType, std::pair<uint64_t,uint64_t>, CdpParamTypeHash> cdpParamRangeTable = {
@@ -129,24 +129,17 @@ inline string CheckCdpParamValue(const CdpParamType paramType, uint64_t value){
 
 }
 
-inline const string& GetCdpParamKey(CdpParamType paramType) {
-    auto it = CdpParamTable.find(paramType);
-    if (it != CdpParamTable.end())
-        return std::get<0>(it->second);
-    return EMPTY_STRING;
-}
-
 inline uint64_t GetCdpParamDefaultValue(CdpParamType paramType) {
     auto it = CdpParamTable.find(paramType);
     if (it != CdpParamTable.end())
-        return std::get<1>(it->second);
+        return std::get<0>(it->second);
     return 0;
 }
 
 inline const string& GetCdpParamName(CdpParamType paramType) {
     auto it = CdpParamTable.find(paramType);
     if (it != CdpParamTable.end())
-        return std::get<2>(it->second);
+        return std::get<1>(it->second);
     return EMPTY_STRING;
 }
 
@@ -155,7 +148,7 @@ inline CdpParamType  GetCdpParamType(const string  paramName){
     if(itr == paramNameToCdpParamTypeMap.end())
         return NULL_CDP_PARAM_TYPE;
     else
-        return std::get<1>(itr->second);
+        return itr->second;
 
 }
 

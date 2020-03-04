@@ -68,15 +68,12 @@ public:
 
 
     uint8_t GetGovernorApprovalMinCount(){
-        if (!governorsCache.HaveData())
-            return 1 ;
 
         vector<CRegID> regids;
         if (governorsCache.GetData(regids)) {
-            uint8_t cnt = regids.size() * 2 / 3 + 2;
-            return (cnt > regids.size() ? regids.size() : cnt);
+            return regids.size() * 2 / 3 + regids.size()%3;
         } 
-            
+
         return 1 ;
     }
 

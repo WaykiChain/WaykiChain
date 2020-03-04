@@ -62,10 +62,9 @@ public:
             return false;
 
         auto iter = SysParamTable.find(paramType);
-        string keyPostfix = std::get<0>(iter->second);
         CVarIntValue<uint64_t > value ;
         if (!sysParamCache.GetData(paramType, value)) {
-            paramValue = std::get<1>(iter->second);
+            paramValue = std::get<0>(iter->second);
         } else{
             paramValue = value.get();
         }
@@ -81,7 +80,7 @@ public:
         auto key = std::make_pair(coinPair, paramType);
         CVarIntValue<uint64_t > value ;
         if (!cdpParamCache.GetData(key, value)) {
-            paramValue = std::get<1>(iter->second);
+            paramValue = std::get<0>(iter->second);
         } else{
             paramValue = value.get();
         }

@@ -201,7 +201,7 @@ public:
             string param_name = "" ;
             auto itr = SysParamTable.find(SysParamType(item.first)) ;
             if(itr != SysParamTable.end())
-                param_name = std::get<2>(itr->second);
+                param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));
             subItem.push_back(Pair("param_value", item.second));
@@ -398,7 +398,7 @@ public:
             string param_name = "" ;
             auto itr = SysParamTable.find(SysParamType(item.first)) ;
             if(itr != SysParamTable.end())
-                param_name = std::get<2>(itr->second);
+                param_name = std::get<1>(itr->second);
 
             subItem.push_back(Pair("param_name", param_name));
             subItem.push_back(Pair("param_value", item.second));
@@ -646,12 +646,12 @@ public:
             return ;
 
         switch (sp_proposal->proposal_type) {
+
             case PARAM_GOVERN:
                 ::Serialize(os, *((CParamsGovernProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
-
             case CDP_COIN_PAIR:
-                ::Serialize(os, *((CCdpCoinPairProposal *) (sp_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CCdpCoinPairProposal    *) (sp_proposal.get())), nType, nVersion);
                 break;
             case CDP_PARAM_GOVERN:
                 ::Serialize(os, *((CCdpParamGovernProposal *) (sp_proposal.get())), nType, nVersion);
@@ -669,21 +669,19 @@ public:
                 ::Serialize(os, *((CCoinTransferProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             case BP_COUNT_UPDATE:
-                ::Serialize(os, *((CBPCountUpdateProposal   *) (sp_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CBPCountUpdateProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
-
             case DEX_QUOTE_COIN:
                 ::Serialize(os, *((CDexQuoteCoinProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             case FEED_COIN_PAIR:
                 ::Serialize(os, *((CFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
-
             case XCHAIN_SWAP_IN:
                 ::Serialize(os, *((CXChainSwapInProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
             case XCHAIN_SWAP_OUT:
-                ::Serialize(os, *((CXChainSwapOutProposal   *) (sp_proposal.get())), nType, nVersion);
+                ::Serialize(os, *((CXChainSwapOutProposal  *) (sp_proposal.get())), nType, nVersion);
                 break;
 
             default:

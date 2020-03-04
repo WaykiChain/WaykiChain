@@ -8,8 +8,6 @@
 #include "rpc/core/rpcserver.h"
 #include "rpc/core/rpccommons.h"
 
-
-
 Value getproposal(const Array& params, bool fHelp){
 
     if(fHelp || params.size() != 1){
@@ -582,7 +580,7 @@ Value getsysparam(const Array& params, bool fHelp){
         if (itr == paramNameToSysParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
-        st = std::get<1>(itr->second) ;
+        st = itr->second ;
         uint64_t pv ;
         if(!pCdMan->pSysParamCache->GetParam(st, pv))
             throw JSONRPCError(RPC_INVALID_PARAMETER, "get param error");
@@ -595,7 +593,7 @@ Value getsysparam(const Array& params, bool fHelp){
         for(auto kv : paramNameToSysParamTypeMap) {
             auto paramName = kv.first ;
             uint64_t pv = 0;
-            pCdMan->pSysParamCache->GetParam(std::get<1>(kv.second), pv);
+            pCdMan->pSysParamCache->GetParam(kv.second, pv);
 
             obj.push_back(Pair(paramName, pv)) ;
 
@@ -603,7 +601,6 @@ Value getsysparam(const Array& params, bool fHelp){
         return obj ;
     }
 }
-
 
 Value getcdpparam(const Array& params, bool fHelp) {
     if(fHelp || params.size() < 1 || params.size() > 2){
@@ -635,7 +632,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         if( itr == paramNameToCdpParamTypeMap.end())
             throw JSONRPCError(RPC_INVALID_PARAMETER, "param name is illegal");
 
-        cpt = std::get<1>(itr->second) ;
+        cpt = itr->second ;
 
         uint64_t pv ;
         if(!pCdMan->pSysParamCache->GetCdpParam(coinPair,cpt, pv)){
@@ -650,7 +647,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         for(auto kv:paramNameToCdpParamTypeMap){
             auto paramName = kv.first ;
             uint64_t pv ;
-            pCdMan->pSysParamCache->GetCdpParam(coinPair,std::get<1>(kv.second), pv);
+            pCdMan->pSysParamCache->GetCdpParam(coinPair,kv.second, pv);
             obj.push_back(Pair(paramName, pv)) ;
         }
         return obj ;
@@ -700,8 +697,6 @@ Value getdexquotecoins(const Array& params, bool fHelp) {
         arr.push_back(token) ;
     o.push_back(Pair("dex_quote_coins", arr)) ;
     return o ;
-
-
 }
 
 
