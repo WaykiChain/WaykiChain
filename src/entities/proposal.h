@@ -34,8 +34,9 @@ enum ProposalType: uint8_t {
     BP_COUNT_UPDATE   = 8 ,
     DEX_QUOTE_COIN    = 9 ,
     FEED_COIN_PAIR    = 10,
-    XCHAIN_SWAP_IN    = 11,
-    XCHAIN_SWAP_OUT   = 12,
+    PRICE_FEEDER      = 11,
+    XCHAIN_SWAP_IN    = 12,
+    XCHAIN_SWAP_OUT   = 13,
 
 };
 
@@ -131,6 +132,45 @@ public:
     bool CheckProposal(CTxExecuteContext& context ) override;
 
 };
+
+
+class CPriceFeederProposal: public CProposal {
+public:
+
+    CRegID  feeder_regid;
+    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
+
+    CPriceFeederProposal(): CProposal(ProposalType ::PRICE_FEEDER) {}
+
+    IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(expire_block_height)) ;
+            READWRITE(approval_min_count) ;
+            READWRITE(feeder_regid) ;
+            READWRITE((uint8_t&)op_type);
+    )
+
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("feeder_regid", feeder_regid.ToString()));
+
+        o.push_back(Pair("op_type", op_type)) ;
+        return o ;
+    }
+
+    string ToString() override {
+        return  strprintf("feed_regid=%s,",feeder_regid.ToString()) + ", " +
+                strprintf("op_type=%d", op_type);
+    }
+
+
+    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CPriceFeederProposal>(*this); } ;
+
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    bool CheckProposal(CTxExecuteContext& context ) override;
+
+};
+
 class CDexQuoteCoinProposal: public CProposal {
 public:
     TokenSymbol  coin_symbol ;
@@ -677,6 +717,9 @@ public:
             case FEED_COIN_PAIR:
                 ::Serialize(os, *((CFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
+            case PRICE_FEEDER:
+                ::Serialize(os, *((CPriceFeederProposal    *) (sp_proposal.get())), nType, nVersion);
+                break;
             case XCHAIN_SWAP_IN:
                 ::Serialize(os, *((CXChainSwapInProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
@@ -757,6 +800,11 @@ public:
             case FEED_COIN_PAIR: {
                 sp_proposal = std:: make_shared<CFeedCoinPairProposal>();
                 ::Unserialize(is,  *((CFeedCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
+                break;
+            }
+            case PRICE_FEEDER: {
+                sp_proposal = std:: make_shared<CPriceFeederProposal>();
+                ::Unserialize(is,  *((CPriceFeederProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

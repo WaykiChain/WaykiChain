@@ -463,6 +463,15 @@ bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
 }
 
+bool CPriceFeederProposal::CheckProposal(CTxExecuteContext& context) {
+
+    return true ;
+}
+bool CPriceFeederProposal::ExecuteProposal(CTxExecuteContext& context) {
+
+    return true ;
+}
+
 bool CXChainSwapInProposal::CheckProposal(CTxExecuteContext& context ) {
 
     CValidationState& state = *context.pState ;
