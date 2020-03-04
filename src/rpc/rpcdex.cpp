@@ -188,11 +188,11 @@ Value submitdexbuylimitordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\""
-                             " 1 \"PRIVATE\"\n")
+            + HelpExampleCli("submitdexbuylimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000000:sawi\""
+                             " 100000000 1 \"PRIVATE\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\","
-                             " 1, \"PRIVATE\"\n")
+            + HelpExampleRpc("submitdexbuylimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000000:sawi\","
+                             " 100000000, 1, \"PRIVATE\"\n")
         );
     }
 
@@ -252,11 +252,11 @@ Value submitdexselllimitordertx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"txid\" (string) The transaction id.\n"
             "\nExamples:\n"
-            + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000:sawi\""
-                             " 1 \"PRIVATE\"\n")
+            + HelpExampleCli("submitdexselllimitordertx", "\"10-3\" \"WUSD\" \"WICC:1000000000:sawi\""
+                             " 100000000 1 \"PRIVATE\"\n")
             + "\nAs json rpc call\n"
-            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000:sawi\","
-                             " 1, \"PRIVATE\"\n")
+            + HelpExampleRpc("submitdexselllimitordertx", "\"10-3\", \"WUSD\", \"WICC:1000000000:sawi\","
+                             " 100000000, 1, \"PRIVATE\"\n")
         );
     }
 
