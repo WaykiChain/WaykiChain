@@ -432,12 +432,15 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
 
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true ) ;
-    uint8_t bpCount = params[1].get_int() ;
+    uint32_t bpCount = params[1].get_int() ;
     uint32_t effectiveHeight = params[2].get_int() ;
     ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+
+    if(bpCount <=0 || bpCount > BP_MAX_COUNT)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of bp_count is [0,%d]", BP_MAX_COUNT));
 
     CBPCountUpdateProposal proposal ;
     proposal.bp_count = bpCount ;

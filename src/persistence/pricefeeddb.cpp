@@ -285,3 +285,70 @@ bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
     return medianPricesCache.SetData(medianPrices);
 }
 
+
+
+bool CPriceFeedCache::CheckIsPriceFeeder(const CRegID &candidateRegId) {
+    if (!price_feeders_cache.HaveData())
+        return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+
+    vector<CRegID> regids;
+    if(price_feeders_cache.GetData(regids)){
+        auto itr = find(regids.begin(), regids.end(), candidateRegId);
+        return ( itr != regids.end() );
+    }
+
+    return false ;
+}
+
+bool CPriceFeedCache::SetPriceFeeders(const vector<CRegID> &governors){
+    return price_feeders_cache.SetData(governors) ;
+}
+bool CPriceFeedCache::GetPriceFeeders(vector<CRegID>& priceFeeders) {
+
+    price_feeders_cache.GetData(priceFeeders);
+    if(priceFeeders.empty())
+        priceFeeders.emplace_back(CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+    return true;
+}
+
+bool CPriceFeedCache::AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+
+    if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+        return true ;
+
+    set<pair<TokenSymbol,TokenSymbol>> coinPairs ;
+    price_feed_coin_cache.GetData(coinPairs);
+    if(coinPairs.count(make_pair(feedCoin, baseCoin)) != 0 )
+        return true ;
+    coinPairs.insert(make_pair(feedCoin,baseCoin)) ;
+    return price_feed_coin_cache.SetData(coinPairs);
+}
+
+bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+
+    if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+        return true ;
+
+    auto coinPair = std::make_pair(feedCoin, baseCoin);
+    set<pair<TokenSymbol,TokenSymbol>> coins ;
+    price_feed_coin_cache.GetData(coins);
+    if(coins.count(coinPair) == 0 )
+        return true ;
+    coins.erase(coinPair) ;
+    return price_feed_coin_cache.SetData(coins);
+}
+
+bool CPriceFeedCache::HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) {
+    if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
+        return true ;
+
+    set<pair<TokenSymbol, TokenSymbol>> coins ;
+    price_feed_coin_cache.GetData(coins);
+    return (coins.count(make_pair(feedCoin,baseCoin)) != 0 ) ;
+}
+
+bool CPriceFeedCache::GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
+    price_feed_coin_cache.GetData(coinSet) ;
+    coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
+    return true ;
+}

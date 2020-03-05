@@ -132,7 +132,8 @@ namespace dbk {
         DEFINE( UTXO_PWSDPRF,         "pwdp",       UTXO )       /* [prefix]{txid-voutindex} --> {passwordProof} */ \
         /**** price feed db                                                                 */ \
         DEFINE( MEDIAN_PRICES,        "mdps",       PRICEFEED)   /* [prefix] --> median prices */ \
-        DEFINE( PRICE_FEED_COIN,      "pfco",       PRICEFEED)         \
+        DEFINE( PRICE_FEED_COIN,      "pfco",       PRICEFEED)   /* [prefix] --> price feed coins */      \
+        DEFINE( PRICE_FEEDERS,         "pfdr",       PRICEFEED)   /* [prefix] --> price feeder */      \
         /*                                                                             */ \
         /* Add new Enum elements above, PREFIX_COUNT Must be the last one              */ \
         DEFINE( PREFIX_COUNT,          "",       DB_NAME_NONE)    /* enum count, must be the last one */

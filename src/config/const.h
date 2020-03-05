@@ -176,6 +176,6 @@ static const string EMPTY_STRING = "";
 
 static const uint8_t BP_MAX_COUNT = 255;    //max number of allowed BPs
 
-static const uint16_t GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT = 3600; //blocks number
+static const uint16_t GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT = 50; //blocks number
 
 #endif //CONFIG_CONST_H

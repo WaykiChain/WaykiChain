@@ -463,12 +463,65 @@ bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
 }
 
-bool CPriceFeederProposal::CheckProposal(CTxExecuteContext& context) {
 
-    return true ;
-}
 bool CPriceFeederProposal::ExecuteProposal(CTxExecuteContext& context) {
+    CCacheWrapper &cw       = *context.pCw;
 
+    if (op_type == ProposalOperateType::DISABLE) {
+        vector<CRegID> priceFeeders;
+        if (cw.priceFeedCache.GetPriceFeeders(priceFeeders)) {
+            for (auto itr = priceFeeders.begin(); itr != priceFeeders.end();) {
+                if (*itr == feeder_regid) {
+                    priceFeeders.erase(itr);
+                    break ;
+                } else
+                    itr++ ;
+            }
+            return cw.priceFeedCache.SetPriceFeeders(priceFeeders) ;
+        }
+
+        return false ;
+
+    } else if (op_type == ProposalOperateType::ENABLE) {
+        vector<CRegID> priceFeeders ;
+        cw.priceFeedCache.GetPriceFeeders(priceFeeders);
+
+        if (find(priceFeeders.begin(),priceFeeders.end(),feeder_regid) != priceFeeders.end())
+            return false ;
+
+        priceFeeders.push_back(feeder_regid) ;
+        return cw.priceFeedCache.SetPriceFeeders(priceFeeders) ;
+    }
+
+    return false  ;
+
+}
+
+bool CPriceFeederProposal::CheckProposal(CTxExecuteContext& context ){
+    IMPLEMENT_DEFINE_CW_STATE
+
+    if(op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
+                         "operate_type-illegal");
+    }
+
+    CAccount governor_account ;
+    if(!cw.accountCache.GetAccount(feeder_regid,governor_account)){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, governor regid(%s) is not exist!", feeder_regid.ToString()), REJECT_INVALID,
+                         "priceFeeder-not-exist");
+    }
+    vector<CRegID> governers ;
+
+    bool isFeeder = cw.priceFeedCache.CheckIsPriceFeeder(feeder_regid);
+    if(op_type == ProposalOperateType ::DISABLE&&!isFeeder){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a price-feeder!", feeder_regid.ToString()), REJECT_INVALID,
+                         "regid-not-priceFeeder");
+    }
+
+    if(op_type == ProposalOperateType ::ENABLE&&isFeeder){
+        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is  a price-feeder already!", feeder_regid.ToString()), REJECT_INVALID,
+                         "regid-is-priceFeeder-already");
+    }
     return true ;
 }
 

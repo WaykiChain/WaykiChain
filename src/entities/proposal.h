@@ -133,7 +133,6 @@ public:
 
 };
 
-
 class CPriceFeederProposal: public CProposal {
 public:
 

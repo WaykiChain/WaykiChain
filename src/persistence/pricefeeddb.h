@@ -85,74 +85,47 @@ public:
     CPriceFeedCache() {}
     CPriceFeedCache(CDBAccess *pDbAccess)
     : price_feed_coin_cache(pDbAccess),
-      medianPricesCache(pDbAccess) {};
+      medianPricesCache(pDbAccess),
+      price_feeders_cache(pDbAccess) {};
 public:
     bool Flush() {
         price_feed_coin_cache.Flush();
         medianPricesCache.Flush();
+        price_feeders_cache.Flush();
         return true;
     }
 
     uint32_t GetCacheSize() const {
         return  price_feed_coin_cache.GetCacheSize() +
-                medianPricesCache.GetCacheSize() ;
+                medianPricesCache.GetCacheSize() +
+                price_feeders_cache.GetCacheSize();
     }
     void SetBaseViewPtr(CPriceFeedCache *pBaseIn) {
         price_feed_coin_cache.SetBase(&pBaseIn->price_feed_coin_cache);
         medianPricesCache.SetBase(&pBaseIn->medianPricesCache);
+        price_feeders_cache.SetBase(&pBaseIn->price_feeders_cache);
     };
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         price_feed_coin_cache.SetDbOpLogMap(pDbOpLogMapIn);
         medianPricesCache.SetDbOpLogMap(pDbOpLogMapIn);
+        price_feeders_cache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         price_feed_coin_cache.RegisterUndoFunc(undoDataFuncMap);
         medianPricesCache.RegisterUndoFunc(undoDataFuncMap);
+        price_feeders_cache.RegisterUndoFunc(undoDataFuncMap);
     }
 
-    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
+    bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
+    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
+    bool HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) ;
+    bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
 
-        if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
-            return true ;
-
-        set<pair<TokenSymbol,TokenSymbol>> coinPairs ;
-        price_feed_coin_cache.GetData(coinPairs);
-        if(coinPairs.count(make_pair(feedCoin, baseCoin)) != 0 )
-            return true ;
-        coinPairs.insert(make_pair(feedCoin,baseCoin)) ;
-        return price_feed_coin_cache.SetData(coinPairs);
-    }
-
-    bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) {
-
-        if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
-            return true ;
-
-        auto coinPair = std::make_pair(feedCoin, baseCoin);
-        set<pair<TokenSymbol,TokenSymbol>> coins ;
-        price_feed_coin_cache.GetData(coins);
-        if(coins.count(coinPair) == 0 )
-            return true ;
-        coins.erase(coinPair) ;
-        return price_feed_coin_cache.SetData(coins);
-    }
-
-    bool HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) {
-        if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
-            return true ;
-
-        set<pair<TokenSymbol, TokenSymbol>> coins ;
-        price_feed_coin_cache.GetData(coins);
-        return (coins.count(make_pair(feedCoin,baseCoin)) != 0 ) ;
-    }
-
-    bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) {
-        price_feed_coin_cache.GetData(coinSet) ;
-        coinSet.insert(make_pair(SYMB::WICC, SYMB::USD));
-        return true ;
-    }
+    bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
+    bool SetPriceFeeders(const vector<CRegID> &governors) ;
+    bool GetPriceFeeders(vector<CRegID>& priceFeeders) ;
 
     uint64_t GetMedianPrice(const CoinPricePair &coinPricePair) const;
     PriceMap GetMedianPrices() const;
@@ -163,10 +136,12 @@ public:
 /*  CSimpleKVCache          prefixType          value           variable           */
 /*  -------------------- --------------------  -------------   --------------------- */
     /////////// PriceFeedDB
-    // order tx id -> active order
+    // [prefix] -> feed pair
     CSimpleKVCache< dbk::PRICE_FEED_COIN,      set<pair<TokenSymbol, TokenSymbol >>>     price_feed_coin_cache;
     // [prefix] -> median price map
     CSimpleKVCache< dbk::MEDIAN_PRICES,        PriceMap>     medianPricesCache;
+    // [prefix] -> price feeders
+    CSimpleKVCache< dbk::PRICE_FEEDERS,        vector<CRegID>>  price_feeders_cache ;
 
 };
 

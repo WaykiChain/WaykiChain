@@ -53,18 +53,7 @@ public:
     }
 
 
-    bool CheckIsGovernor(const CRegID &candidateRegId) {
-        if (!governorsCache.HaveData())
-            return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
 
-        vector<CRegID> regids;
-        if(governorsCache.GetData(regids)){
-            auto itr = find(regids.begin(), regids.end(), candidateRegId);
-            return ( itr != regids.end() );
-        }
-            
-        return false ;
-    }
 
 
     uint8_t GetGovernorApprovalMinCount(){
@@ -115,6 +104,19 @@ public:
         return approvalListCache.SetData(proposalId,v) ;
     }
 
+    bool CheckIsGovernor(const CRegID &candidateRegId) {
+        if (!governorsCache.HaveData())
+            return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
+
+        vector<CRegID> regids;
+        if(governorsCache.GetData(regids)){
+            auto itr = find(regids.begin(), regids.end(), candidateRegId);
+            return ( itr != regids.end() );
+        }
+
+        return false ;
+    }
+
     bool SetGovernors(const vector<CRegID> &governors){
         return governorsCache.SetData(governors) ;
     }
@@ -122,7 +124,7 @@ public:
 
         governorsCache.GetData(governors);
         if(governors.empty())
-            governors.emplace_back(SysCfg().GetStableCoinGenesisHeight(), 2);
+            governors.emplace_back(CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
         return true;
     }
 
