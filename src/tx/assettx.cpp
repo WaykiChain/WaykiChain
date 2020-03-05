@@ -115,15 +115,15 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID(txUid);
     if (!CheckFee(context)) return false;
 
-    auto symbolErr = CAssetIssueTx::CheckSymbol(asset.asset_symbol);
+    auto symbolErr = CheckSymbol(asset.asset_symbol);
     if (symbolErr) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", *symbolErr),
-            REJECT_INVALID, "invalid-asset-symbol");
+                        REJECT_INVALID, "invalid-asset-symbol");
     }
 
     if (asset.asset_name.empty() || asset.asset_name.size() > MAX_ASSET_NAME_LEN) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, asset_name is empty or len=%d greater than %d",
-            asset.asset_name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
+                        asset.asset_name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
     }
 
     if (asset.total_supply == 0 || asset.total_supply > MAX_ASSET_TOTAL_SUPPLY) {

@@ -703,7 +703,7 @@ Value getcdpparam(const Array& params, bool fHelp) {
         Object obj;
         for(auto kv:paramNameToCdpParamTypeMap){
             auto paramName = kv.first ;
-            uint64_t pv ;
+            uint64_t pv = 0;
             pCdMan->pSysParamCache->GetCdpParam(coinPair,kv.second, pv);
             obj.push_back(Pair(paramName, pv)) ;
         }
