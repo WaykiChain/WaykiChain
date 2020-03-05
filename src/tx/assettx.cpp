@@ -211,8 +211,11 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
             return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, set asset owner account to db failed! owner_uid=%s",
                 asset.owner_uid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
     }
-    CAsset savedAsset(&asset);
-    savedAsset.owner_uid = pOwnerAccount->regid;
+
+    //Persist with Owner's RegID to save space than other User ID types
+    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::DEX_BASE,
+                    CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
+
     if (!cw.assetCache.SaveAsset(savedAsset))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");

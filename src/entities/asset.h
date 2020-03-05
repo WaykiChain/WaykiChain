@@ -147,8 +147,6 @@ public:
 public:
     CAsset(): asset_type(AssetType::NULL_ASSET) {}
 
-    CAsset(CAsset *pBaseAsset): asset_type(AssetType::NULL_ASSET) {}
-
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, uint64_t assetPermsSum,
             const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
         : asset_symbol(assetSymbol), asset_name(assetName), asset_type(assetType), asset_perms_sum(assetPermsSum),
