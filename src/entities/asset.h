@@ -55,8 +55,8 @@ static const unordered_set<string> kScoinSymbolSet = {
 
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCDPCoinPairSet = {
     {SYMB::WICC, SYMB::WUSD},
-    // {SYMB::WBTC, SYMB::WUSD},
-    // {SYMB::WETH, SYMB::WUSD},
+    {SYMB::WBTC, SYMB::WUSD},
+    {SYMB::WETH, SYMB::WUSD},
     // {SYMB::WEOS, SYMB::WUSD},
 
     // {SYMB::WICC, SYMB::WCNY},
@@ -133,7 +133,7 @@ enum AssetPermType : uint16_t {
     CDP_IN          = (1 << 2),
     CDP_OUT         = (1 << 3),
     PRICE_FEED      = (1 << 4),
-    XCHAIN_SWAP     = (1 << 5) 
+    XCHAIN_SWAP     = (1 << 5)
 };
 
 struct CBaseAsset {
@@ -147,8 +147,8 @@ struct CBaseAsset {
 
     CBaseAsset(): asset_perms_sum(0), total_supply(0), mintable(false) {}
 
-    CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, 
-            const uint16_t assetPermsSum, const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn) :   
+    CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType,
+            const uint16_t assetPermsSum, const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn) :
             asset_symbol(assetSymbol),
             asset_name(assetName),
             asset_type(assetType),
@@ -157,8 +157,8 @@ struct CBaseAsset {
             total_supply(totalSupply),
             mintable(mintableIn) {};
 
-    CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const CUserID& ownerUid, 
-            uint64_t totalSupply, bool mintableIn) : 
+    CBaseAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const CUserID& ownerUid,
+            uint64_t totalSupply, bool mintableIn) :
             asset_symbol(assetSymbol),
             asset_name(assetName),
             asset_type(AssetType::UIA),
@@ -169,8 +169,8 @@ struct CBaseAsset {
 
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(asset_symbol); 
-        READWRITE(asset_name); 
+        READWRITE(asset_symbol);
+        READWRITE(asset_name);
         READWRITE((uint8_t &) asset_type);
         READWRITE(VARINT(asset_perms_sum));
         READWRITE(owner_uid);
@@ -199,7 +199,7 @@ struct CBaseAsset {
     string ToString() const {
         return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%s, asset_perms_sum=%d,"
                       "owner_uid=%s, total_supply=%llu, mintable=%d",
-                        asset_symbol, asset_name, asset_type, asset_perms_sum, 
+                        asset_symbol, asset_name, asset_type, asset_perms_sum,
                         owner_uid.ToString(), total_supply, mintable);
     }
 };
@@ -220,14 +220,14 @@ public:
           min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(asset_symbol); 
-        READWRITE(asset_name); 
+        READWRITE(asset_symbol);
+        READWRITE(asset_name);
         READWRITE((uint8_t &) asset_type);
         READWRITE(VARINT(asset_perms_sum));
         READWRITE(owner_uid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
-        
+
         READWRITE(VARINT(max_order_amount));
         READWRITE(VARINT(min_order_amount));
     )
