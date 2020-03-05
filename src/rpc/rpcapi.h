@@ -106,6 +106,9 @@ extern Value submitfeedcoinpairproposal(const Array& params, bool fHelp);
 extern Value submitminerfeeproposal(const Array& params, bool fHelp) ;
 extern Value submitbpcountupdateproposal(const Array& params, bool fHelp) ;
 extern Value submitcointransferproposal( const Array& params, bool fHelp);
+extern Value submitpricefeederproposal(const Array& params, bool fHelp);
+extern Value submitgovernorupdateproposal(const Array& params, bool fHelp) ;
+extern Value submitproposalapprovaltx(const Array& params, bool fHelp) ;
 
 
 extern Value getcdpparam(const Array& params, bool fHelp) ;
@@ -197,8 +200,6 @@ extern Value getabiwasm(const Array& params, bool fHelp);
 extern Value gettxtrace(const Array& params, bool fHelp);
 extern Value abidefjsontobinwasm(const Array& params, bool fHelp);
 
-extern Value submitgovernorupdateproposal(const Array& params, bool fHelp) ;
-extern Value submitproposalapprovaltx(const Array& params, bool fHelp) ;
 extern Value getsysparam(const Array& params, bool fHelp) ;
 
 extern Value getdexquotecoins(const Array& params, bool fHelp);
