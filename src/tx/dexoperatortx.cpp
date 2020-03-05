@@ -441,21 +441,3 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
-
-string CDEXOperatorUpdateTradePairTx::ToString(CAccountDBCache &accountCache){
-
-    return "";
-};
-
-Object CDEXOperatorUpdateTradePairTx::ToJson(const CAccountDBCache &accountCache) const{
-
-    Object result = CBaseTx::ToJson(accountCache);
-
-    result.push_back(Pair("dex_id", (uint32_t) dexid)) ;
-    result.push_back(Pair("trade_pair", tradePair.ToString())) ;
-    result.push_back(Pair("op_type", (uint8_t)op));
-    return result;
-};
-
- bool CDEXOperatorUpdateTradePairTx::CheckTx(CTxExecuteContext &context){ return true; };
- bool CDEXOperatorUpdateTradePairTx::ExecuteTx(CTxExecuteContext &context){ return true; };

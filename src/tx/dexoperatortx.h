@@ -11,56 +11,6 @@
 #include "tx.h"
 #include "persistence/dexdb.h"
 
-
-class CDEXOperatorUpdateTradePairTx: public CBaseTx {
-
-public:
-    enum DexTradePairOpType: uint8_t{
-        ADD = 1 ,
-        REMOVE = 2
-    };
-    DexID dexid;
-    CAssetTradingPair tradePair ;
-    DexTradePairOpType op;
-    IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(this->nVersion));
-            nVersion = this->nVersion;
-            READWRITE(VARINT(valid_height));
-            READWRITE(txUid);
-            READWRITE(fee_symbol);
-            READWRITE(VARINT(llFees));
-            READWRITE(VARINT(dexid));
-            READWRITE(tradePair);
-            READWRITE((uint8_t&)op);
-    )
-    CDEXOperatorUpdateTradePairTx():CBaseTx(DEX_OPERATOR_UPDATE_TRDE_PAIR_TX) {}
-    CDEXOperatorUpdateTradePairTx(const CUserID &txUidIn, int32_t validHeightIn,
-                           const TokenSymbol &feeSymbol, uint64_t fees,
-                           const DexID &dexIdIn,
-                           const CAssetTradingPair& tradePairIn,
-                           const DexTradePairOpType& opIn)
-            : CBaseTx(DEX_OPERATOR_UPDATE_TRDE_PAIR_TX,
-                    txUidIn, validHeightIn, feeSymbol, fees),
-                    dexid(dexIdIn), tradePair(tradePairIn), op(opIn) {}
-    ~CDEXOperatorUpdateTradePairTx() {}
-
-    virtual void SerializeForHash(CHashWriter &hw) const {
-        hw << VARINT(nVersion) << uint8_t(nTxType) << VARINT(valid_height) << txUid << fee_symbol
-           << VARINT(llFees) << dexid << tradePair << (uint8_t&)op;
-    }
-
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const {
-        return std::make_shared<CDEXOperatorUpdateTradePairTx>(*this);
-    }
-
-    virtual string ToString(CAccountDBCache &accountCache) ;
-    virtual Object ToJson(const CAccountDBCache &accountCache) const ;
-
-    virtual bool CheckTx(CTxExecuteContext &context) ;
-    virtual bool ExecuteTx(CTxExecuteContext &context) ;
-
-};
-
 class CDEXOperatorRegisterTx: public CBaseTx {
 public:
     struct Data {
