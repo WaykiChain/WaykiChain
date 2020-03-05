@@ -665,6 +665,10 @@ public:
     bool IsEmpty() const { return sp_proposal == nullptr; }
     void SetEmpty() { sp_proposal = nullptr; }
 
+    string ToString() const {
+        return sp_proposal->ToString();
+    }
+
     unsigned int GetSerializeSize(int nType, int nVersion) const {
         if(IsEmpty())
             return 1 ;

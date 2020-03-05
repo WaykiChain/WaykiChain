@@ -195,15 +195,6 @@ Value verifymessage(const Array& params, bool fHelp) {
 //                 prefix type             db          cache
 //               -------------------- -------------  ----------------------
 #define DBK_PREFIX_CACHE_LIST(DEFINE) \
-    /**** params                      */ \
-    DEFINE( SYS_PARAM,            pSysParamCache, sysParamCache )        \
-    DEFINE( MINER_FEE,            pSysParamCache, minerFeeCache )         \
-    DEFINE( CDP_PARAM,            pSysParamCache, cdpParamCache )         \
-    DEFINE( CDP_INTEREST_PARAMS,  pSysParamCache, cdpInterestParamChangesCache ) \
-    /*DEFINE( BP_COUNT,             "bpct",   SYSPARAM )*/           \
-    /*DEFINE( SYS_GOVERN,           "govn",   SYSGOVERN )*/       /* govn --> $list of governors */ \
-    /*DEFINE( GOVN_PROP,            "pgvn",   SYSGOVERN )*/       /* pgvn{txid} --> proposal */ \
-    /*DEFINE( GOVN_SECOND,          "sgvn",   SYSGOVERN )*/       /* sgvn{txid}{regid} --> 1 */ \
     /*** Asset Registry DB */ \
     DEFINE( ASSET,                pAssetCache, assetCache )  \
     DEFINE( ASSET_TRADING_PAIR,   pAssetCache, assetTradingPairCache)  \
@@ -250,12 +241,25 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( DEX_OPERATOR_TRADE_PAIR, pDexCache, operator_trade_pair_cache) \
     /**** price feed */ \
     DEFINE( MEDIAN_PRICES,        pPriceFeedCache, medianPricesCache) \
+    DEFINE( PRICE_FEED_COIN,      pPriceFeedCache,price_feed_coin_cache) \
+    DEFINE( PRICE_FEEDERS,        pPriceFeedCache,price_feeders_cache)  \
     /**** log db                                                                    */ \
     DEFINE( TX_EXECUTE_FAIL,      pLogCache,  executeFailCache ) \
     /**** tx receipt db                                                                    */ \
     DEFINE( TX_RECEIPT,           pReceiptCache,   txReceiptCache ) \
     /**** tx coinutxo db                                                                    */ \
-    DEFINE( TX_UTXO,              pUtxoCache,   txUtxoCache)
+    DEFINE( TX_UTXO,              pUtxoCache,   txUtxoCache) \
+    /**** sys param db                                                              */\
+    DEFINE(SYS_PARAM,             pSysParamCache, sys_param_chache) \
+    DEFINE(MINER_FEE,             pSysParamCache, miner_fee_cache) \
+    DEFINE(CDP_PARAM,             pSysParamCache, cdp_param_cache) \
+    DEFINE(CDP_INTEREST_PARAMS,   pSysParamCache, cdp_interest_param_changes_cache) \
+    DEFINE(BP_COUNT,              pSysParamCache, current_bp_count_cache) \
+    DEFINE(NEW_BP_COUNT,          pSysParamCache, new_bp_count_cache)    \
+    /**** sys govern db                                                */\
+    DEFINE(SYS_GOVERN,            pSysGovernCache, governors_cache)      \
+    DEFINE(GOVN_PROP,             pSysGovernCache, proposals_cache)      \
+    DEFINE(GOVN_APPROVAL_LIST,    pSysGovernCache, approvals_cache)      \
 
 
 template<int32_t PREFIX_TYPE, typename KeyType, typename ValueType>
