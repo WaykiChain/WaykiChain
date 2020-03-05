@@ -279,10 +279,10 @@ void check_order_amount_range(const TokenSymbol &symbol, const int64_t amount, c
                 "%s, amount is out of range, symbol=%s, amount=%llu", err_title, symbol, amount);
 }
 
-void check_order_symbol_pair(const TokenSymbol &asset_symbol, const TokenSymbol &coin_symbol) {
-    WASM_ASSERT(kTradingPairSet.count(make_pair(asset_symbol, coin_symbol)) != 0, wasm_assert_exception,
-        "unsupport trading pair! asset_symbol=%s, coin_symbol=%s", asset_symbol, coin_symbol);
-}
+// void check_order_symbol_pair(const TokenSymbol &asset_symbol, const TokenSymbol &coin_symbol) {
+//     WASM_ASSERT(kTradingPairSet.count(make_pair(asset_symbol, coin_symbol)) != 0, wasm_assert_exception,
+//         "unsupport trading pair! asset_symbol=%s, coin_symbol=%s", asset_symbol, coin_symbol);
+// }
 
 uint64_t calc_coin_amount(uint64_t asset_amount, const uint64_t price) {
     uint128_t coin_amount = asset_amount * (uint128_t)price / PRICE_BOOST;

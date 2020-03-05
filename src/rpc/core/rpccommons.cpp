@@ -694,10 +694,11 @@ void RPC_PARAM::CheckOrderSymbols(const string &title, const TokenSymbol &coinSy
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s invalid order asset symbol=%s", title, assetSymbol));
     }
 
-    if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s unsupport trading pair! coin_symbol=%s, asset_symbol=%s",
-            title, coinSymbol, assetSymbol));
-    }
+    //TODO: check with assetdb for perms
+    // if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
+    //     throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s unsupport trading pair! coin_symbol=%s, asset_symbol=%s",
+    //         title, coinSymbol, assetSymbol));
+    // }
 }
 
 bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {

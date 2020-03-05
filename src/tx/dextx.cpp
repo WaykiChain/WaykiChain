@@ -221,10 +221,11 @@ namespace dex {
                             REJECT_INVALID, "invalid-order-asset-symbol");
         }
 
-        if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-            return context.pState->DoS(100, ERRORMSG("%s, not support the trading pair! coin_symbol=%s, asset_symbol=%s",
-                TX_ERR_TITLE, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
-        }
+        //TODO: check if asset has perms for DEX
+        // if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
+        //     return context.pState->DoS(100, ERRORMSG("%s, not support the trading pair! coin_symbol=%s, asset_symbol=%s",
+        //         TX_ERR_TITLE, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
+        // }
 
         return true;
     }
