@@ -105,7 +105,7 @@ namespace dex {
         pSysOrder->coin_amount        = coiAmountIn;
         pSysOrder->asset_amount       = assetAmountIn;
         pSysOrder->price              = 0;
-        pSysOrder->public_mode        = PublicMode::ORDER_PUBLIC; // sys order must be public
+        pSysOrder->public_mode        = PublicMode::PUBLIC; // sys order must be public
         pSysOrder->dex_id             = 0;
         pSysOrder->opt_operator_fee_ratios = make_optional<OperatorFeeRatios>(0, 0); // no order fee for sys order
         pSysOrder->tx_cord            = txCord;

@@ -40,7 +40,7 @@ namespace dex {
         uint64_t asset_amount       = 0;                 //!< amount of asset to buy/sell
         uint64_t price              = 0;                 //!< price in coinType want to buy/sell asset
         DexID dex_id                = 0;                 //!< dex id
-        PublicMode public_mode = PublicMode::ORDER_PUBLIC; //!< order public mode
+        PublicMode public_mode = PublicMode::PUBLIC; //!< order public mode
         string memo                 = "";                   //!< memo
 
         bool has_operator_config      = false;
@@ -87,7 +87,7 @@ namespace dex {
             order_type  = ORDER_LIMIT_PRICE;
             order_side  = ORDER_BUY;
             dex_id      = DEX_RESERVED_ID;
-            public_mode = PublicMode::ORDER_PUBLIC;
+            public_mode = PublicMode::PUBLIC;
         }
 
         CDEXBuyLimitOrderTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
@@ -103,7 +103,7 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = priceIn;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = PublicMode::ORDER_PUBLIC;
+            public_mode  = PublicMode::PUBLIC;
             // other order fields are default value
         }
 
@@ -143,7 +143,7 @@ namespace dex {
             order_type  = ORDER_LIMIT_PRICE;
             order_side  = ORDER_SELL;
             dex_id      = DEX_RESERVED_ID;
-            public_mode = PublicMode::ORDER_PUBLIC;
+            public_mode = PublicMode::PUBLIC;
             // other order fields are default value
         }
 
@@ -159,7 +159,7 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = priceIn;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = PublicMode::ORDER_PUBLIC;
+            public_mode  = PublicMode::PUBLIC;
             // other order fields are default value
         }
 
@@ -199,7 +199,7 @@ namespace dex {
             order_type   = ORDER_MARKET_PRICE;
             order_side   = ORDER_BUY;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = PublicMode::ORDER_PUBLIC;
+            public_mode  = PublicMode::PUBLIC;
             // other order fields are default value
         }
 
@@ -215,7 +215,7 @@ namespace dex {
             asset_amount = 0;
             price        = 0;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = PublicMode::ORDER_PUBLIC;
+            public_mode  = PublicMode::PUBLIC;
             // other order fields are default value
         }
 
@@ -253,7 +253,7 @@ namespace dex {
             order_type   = ORDER_MARKET_PRICE;
             order_side   = ORDER_SELL;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = PublicMode::ORDER_PUBLIC;
+            public_mode  = PublicMode::PUBLIC;
             // other order fields are default value
         }
 
@@ -269,7 +269,7 @@ namespace dex {
             asset_amount = assetAmountIn;
             price        = 0;
             dex_id       = DEX_RESERVED_ID;
-            public_mode  = PublicMode::ORDER_PUBLIC;
+            public_mode  = PublicMode::PUBLIC;
             // other order fields are default value
         }
 

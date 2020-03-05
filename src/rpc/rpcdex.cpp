@@ -89,7 +89,7 @@ namespace RPC_PARAM {
     }
 
     PublicMode GetOrderPublicMode(const Value &jsonValue) {
-        PublicMode ret = PublicMode::ORDER_PRIVATE;
+        PublicMode ret = PublicMode::PRIVATE;
         if (!kPublicModeHelper.Parse(jsonValue.get_str(), ret))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("order_public_mode=%s is invalid",
                 jsonValue.get_str()));
@@ -98,7 +98,7 @@ namespace RPC_PARAM {
 
     PublicMode GetOrderPublicMode(const Array &params, const size_t index) {
 
-        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : PublicMode::ORDER_PUBLIC;
+        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : PublicMode::PUBLIC;
     }
 
     DexOperatorDetail GetDexOperator(const DexID &dexId) {
