@@ -15,6 +15,7 @@
 
 #include "commons/types.h"
 #include "config/const.h"
+#include "config/configuration.h"
 #include "crypto/hash.h"
 #include "id.h"
 #include "vote.h"
