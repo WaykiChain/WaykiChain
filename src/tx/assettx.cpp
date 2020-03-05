@@ -26,13 +26,6 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &
     return result;
 }
 
-Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
-    Object result = AssetToJson(accountCache, (CUserIssuedAsset)asset);
-    result.push_back(Pair("max_order_amount",   asset.max_order_amount));
-    result.push_back(Pair("min_order_amount",   asset.min_order_amount));
-    return result;
-}
-
 static bool ProcessAssetFee(CCacheWrapper &cw, CValidationState &state, const string &action,
     CAccount &txAccount, vector<CReceipt> &receipts,uint32_t currHeight) {
 
