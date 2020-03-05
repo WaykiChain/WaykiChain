@@ -563,7 +563,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
             pOwnerRegid->ToString()));
     }
 
-    CBaseAsset asset(assetSymbol, assetName, CUserID(*pOwnerRegid), (uint64_t)totalSupply, mintable);
+    CUserIssuedAsset asset(assetSymbol, assetName, CUserID(*pOwnerRegid), (uint64_t)totalSupply, mintable);
     CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), asset);
     return SubmitTx(account.keyid, tx);
 }

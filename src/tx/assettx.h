@@ -8,20 +8,71 @@
 
 #include "tx.h"
 
+struct CUserIssuedAsset {
+    TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
+    CUserID     owner_uid;          //creator or owner user id of the asset
+    TokenName   asset_name;         //asset long name, E.g WaykiChain coin
+    uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
+    bool        mintable;           //whether this token can be minted in the future.
+
+    CUserIssuedAsset(): total_supply(0), mintable(false) {}
+
+    CUserIssuedAsset(const TokenSymbol& assetSymbol, const CUserID& ownerUid, const TokenName& assetName,
+                    uint64_t totalSupply, bool mintableIn) :
+            asset_symbol(assetSymbol),
+            owner_uid(ownerUid),
+            asset_name(assetName),
+            total_supply(totalSupply),
+            mintable(mintableIn) {};
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(asset_symbol);
+        READWRITE(owner_uid);
+        READWRITE(asset_name);
+        READWRITE(VARINT(total_supply));
+        READWRITE(mintable);
+    )
+
+    static bool CheckSymbolChar(const char ch) {
+        return  ch >= 'A' && ch <= 'Z';
+    }
+
+    // @return nullptr if succeed, else err string
+    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
+        size_t symbolSize = symbol.size();
+        if (symbolSize < MIN_ASSET_SYMBOL_LEN || symbolSize > MAX_TOKEN_SYMBOL_LEN)
+            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
+                symbolSize, MIN_ASSET_SYMBOL_LEN, MAX_TOKEN_SYMBOL_LEN));
+
+        for (auto ch : symbol) {
+            if (!CheckSymbolChar(ch))
+                return make_shared<string>("there is invalid char in symbol");
+        }
+        return nullptr;
+    }
+
+    string ToString() const {
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%s, asset_perms_sum=%d,"
+                      "owner_uid=%s, total_supply=%llu, mintable=%d",
+                        asset_symbol, asset_name, asset_type, asset_perms_sum,
+                        owner_uid.ToString(), total_supply, mintable);
+    }
+};
+
 Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset);
-Object AssetToJson(const CAccountDBCache &accountCache, const CBaseAsset &asset);
+Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &asset);
 
 /**
  * Issue a new asset onto Chain
  */
 class CAssetIssueTx: public CBaseTx {
 public:
-    CBaseAsset      asset;          // asset
+    CUserIssuedAsset  asset;          // UIA asset
 public:
     CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
     CAssetIssueTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
-                  uint64_t fees, const CBaseAsset &assetIn)
+                  uint64_t fees, const CUserIssuedAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, feeSymbol, fees),
           asset(assetIn){}
 

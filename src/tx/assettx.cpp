@@ -13,7 +13,7 @@
 static const string ASSET_ACTION_ISSUE = "issue";
 static const string ASSET_ACTION_UPDATE = "update";
 
-Object AssetToJson(const CAccountDBCache &accountCache, const CBaseAsset &asset) {
+Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &asset) {
     Object result;
     CKeyID ownerKeyid;
     accountCache.GetKeyId(asset.owner_uid, ownerKeyid);
@@ -27,7 +27,7 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CBaseAsset &asset)
 }
 
 Object AssetToJson(const CAccountDBCache &accountCache, const CAsset &asset) {
-    Object result = AssetToJson(accountCache, (CBaseAsset)asset);
+    Object result = AssetToJson(accountCache, (CUserIssuedAsset)asset);
     result.push_back(Pair("max_order_amount",   asset.max_order_amount));
     result.push_back(Pair("min_order_amount",   asset.min_order_amount));
     return result;
