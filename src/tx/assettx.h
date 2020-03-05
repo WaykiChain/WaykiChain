@@ -52,10 +52,8 @@ struct CUserIssuedAsset {
     }
 
     string ToString() const {
-        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%s, asset_perms_sum=%d,"
-                      "owner_uid=%s, total_supply=%llu, mintable=%d",
-                        asset_symbol, asset_name, asset_type, asset_perms_sum,
-                        owner_uid.ToString(), total_supply, mintable);
+        return strprintf("asset_symbol=%s, asset_name=%s, owner_uid=%s, total_supply=%llu, mintable=%d",
+                        asset_symbol, asset_name, owner_uid.ToString(), total_supply, mintable);
     }
 };
 
