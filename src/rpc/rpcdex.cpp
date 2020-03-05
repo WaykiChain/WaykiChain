@@ -98,7 +98,7 @@ namespace RPC_PARAM {
 
     PublicMode GetOrderPublicMode(const Array &params, const size_t index) {
 
-        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : ORDER_PUBLIC;
+        return params.size() > index ? GetOrderPublicMode(params[index].get_str()) : PublicMode::ORDER_PUBLIC;
     }
 
     DexOperatorDetail GetDexOperator(const DexID &dexId) {

@@ -887,12 +887,12 @@ namespace dex {
             uint32_t sellDexId = sellOrder.dex_id;
             OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
             if (buyDexId != sellDexId) {
-                if (makerSide == ORDER_BUY && buyOrder.public_mode != ORDER_PUBLIC) {
+                if (makerSide == ORDER_BUY && buyOrder.public_mode != PublicMode::ORDER_PUBLIC) {
                     return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "buy-maker-order-not-public");
                 }
-                if (makerSide == ORDER_SELL && buyOrder.public_mode != ORDER_PUBLIC) {
+                if (makerSide == ORDER_SELL && buyOrder.public_mode != PublicMode::ORDER_PUBLIC) {
                     return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "sell-maker-order-not-public");

@@ -47,16 +47,17 @@ namespace dex {
     };
 
 
-    enum PublicMode: uint8_t {
+    enum class PublicMode: uint8_t {
         PUBLIC_MODE_NULL    = 0,
         ORDER_PUBLIC        = 1,
         ORDER_PRIVATE       = 2
     };
+    static const PublicMode PUBLIC_MODE_DEFAULT = PublicMode::ORDER_PRIVATE;
 
     static const EnumHelper<PublicMode, uint8_t> kPublicModeHelper (
         {
-            {ORDER_PUBLIC, "PUBLIC"},
-            {ORDER_PRIVATE, "PRIVATE"}
+            {PublicMode::ORDER_PUBLIC, "PUBLIC"},
+            {PublicMode::ORDER_PRIVATE, "PRIVATE"}
         }
     );
 
@@ -109,7 +110,7 @@ namespace dex {
         uint64_t asset_amount           = 0;                 //!< amount of asset to buy/sell
         uint64_t price                  = 0;                //!< price in coinType want to buy/sell asset
         DexID dex_id                    = 0;                //!< dex id of operator
-        dex::PublicMode public_mode     = dex::ORDER_PUBLIC;//!< order public mode
+        PublicMode public_mode          = PublicMode::ORDER_PUBLIC;//!< order public mode
         optional<OperatorFeeRatios> opt_operator_fee_ratios;    //!< operator_fee_ratios, optional
         CTxCord tx_cord                  = CTxCord();       //!< related tx cord
         CRegID user_regid                = CRegID();        //!< user regid
