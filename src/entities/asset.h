@@ -176,7 +176,7 @@ public:
 
     string ToString() const {
         return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, asset_perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
-                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid, total_supply, mintable);
+                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
 };
 
