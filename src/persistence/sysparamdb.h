@@ -153,7 +153,7 @@ public:
         auto &item = changeMap[CVarIntValue(height)];
         if (paramType == CdpParamType::CDP_INTEREST_PARAM_A) {
             item.param_a = value;
-        } else if (paramType == CdpParamType::CDP_INTEREST_PARAM_A) {
+        } else if (paramType == CdpParamType::CDP_INTEREST_PARAM_B) {
             item.param_b = value;
         } else {
             assert(false && "must be param_a || param_b");
