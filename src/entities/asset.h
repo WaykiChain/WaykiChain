@@ -134,7 +134,7 @@ enum AssetPermType : uint64_t {
 ////////////////////////////////////////////////////////////////////
 /// Common Asset Definition, used when persisted inside state DB
 ////////////////////////////////////////////////////////////////////
-class CAsset: {
+class CAsset {
 public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
