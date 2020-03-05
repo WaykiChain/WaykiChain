@@ -17,7 +17,7 @@ extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrap
 
 bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
     CCacheWrapper &cw       = *context.pCw;
-    
+
     for( auto pa: param_values){
         auto itr = SysParamTable.find(SysParamType(pa.first));
         if(itr == SysParamTable.end())
@@ -164,20 +164,8 @@ bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
                          "need-not-update");
     }
 
-    dexOperator.activated = !dexOperator.activated ;
-
-    DexOperatorDetail newOperator  {
-        dexOperator.owner_regid,
-        dexOperator.fee_receiver_regid,
-        dexOperator.name,
-        dexOperator.portal_url,
-        dexOperator.maker_fee_ratio,
-        dexOperator.taker_fee_ratio,
-        dexOperator.memo,
-        dexOperator.activated
-    };
-
-
+    DexOperatorDetail newOperator = dexOperator;
+    newOperator.activated = (operate_type == ProposalOperateType::ENABLE);
 
     if (!cw.dexCache.UpdateDexOperator(dexid, dexOperator, newOperator))
         return state.DoS(100, ERRORMSG("%s, save updated dex operator error! dex_id=%u", __func__, dexid),

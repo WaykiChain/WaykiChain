@@ -115,3 +115,8 @@ namespace dex {
         return pSysOrder;
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// class DexOperatorDetail
+
+const DexOperatorDetail DexOperatorDetail::EMPTY_OBJ = {};

@@ -209,6 +209,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
         data.fee_receiver_uid.get<CRegID>(),
         data.name,
         data.portal_url,
+        data.public_mode,
         data.maker_fee_ratio,
         data.taker_fee_ratio,
         data.memo
@@ -413,16 +414,7 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
     if (!ProcessDexOperatorFee(cw, state, OPERATOR_ACTION_REGISTER, *pTxAccount, receipts,context.height))
          return false;
 
-    DexOperatorDetail detail = {
-            oldDetail.owner_regid,
-            oldDetail.fee_receiver_regid,
-            oldDetail.name,
-            oldDetail.portal_url,
-            oldDetail.maker_fee_ratio,
-            oldDetail.taker_fee_ratio,
-            oldDetail.memo,
-            oldDetail.activated
-    };
+    DexOperatorDetail detail = oldDetail;
     if(!update_data.UpdateToDexOperator(detail,cw) ){
         return state.DoS(100, ERRORMSG("%s, copy updated dex operator error! dex_id=%u", __func__, update_data.dexId),
                          UPDATE_ACCOUNT_FAIL, "copy-updated-operator-error");

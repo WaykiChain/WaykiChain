@@ -207,22 +207,25 @@ namespace dex {
 
 // dex operator
 struct DexOperatorDetail {
-    CRegID owner_regid;                   // owner uid of exchange
-    CRegID fee_receiver_regid;                   // match uid
+    CRegID owner_regid;                 // owner regid of exchange
+    CRegID fee_receiver_regid;          // fee receiver regid
     string name              = "";       // domain name
-    string portal_url        = "";
-    uint64_t maker_fee_ratio = 0;
-    uint64_t taker_fee_ratio = 0;
+    string portal_url        = "";       // portal url of dex operator
+    dex::PublicMode public_mode   = dex::PublicMode::PRIVATE; // the default public mode for creating order
+    uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
+    uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
     string memo              = "";
-    bool activated           = false ;
+    // TODO: use status to replace activated
+    bool activated           = false;
 
-    // TODO: state
+    static const DexOperatorDetail EMPTY_OBJ;
 
     IMPLEMENT_SERIALIZE(
         READWRITE(owner_regid);
         READWRITE(fee_receiver_regid);
         READWRITE(name);
         READWRITE(portal_url);
+        READWRITE_ENUM(public_mode, uint8_t);
         READWRITE(VARINT(maker_fee_ratio));
         READWRITE(VARINT(taker_fee_ratio));
         READWRITE(activated) ;
@@ -235,19 +238,18 @@ struct DexOperatorDetail {
     }
 
     void SetEmpty() {
-        owner_regid.SetEmpty(); fee_receiver_regid.SetEmpty(); name = ""; portal_url = ""; maker_fee_ratio = 0;
-        taker_fee_ratio = 0; memo = "";
+        *this = EMPTY_OBJ;
     }
 
     string ToString() const {
-        return strprintf("owner_regid=%s", owner_regid.ToString()) + ", " +
-        strprintf("fee_receiver_regid=%s", fee_receiver_regid.ToString()) + ", " +
-        strprintf("name=%s", name) + ", " +
-        strprintf("portal_url=%s", portal_url) + ", " +
-        strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
-        strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
-        strprintf("memo=%s", memo) + ", " +
-        strprintf("activated=%d", activated);
+        return  strprintf("owner_regid=%s", owner_regid.ToString()) + ", " +
+                strprintf("fee_receiver_regid=%s", fee_receiver_regid.ToString()) + ", " +
+                strprintf("name=%s", name) + ", " +
+                strprintf("portal_url=%s", portal_url) + ", " +
+                strprintf("maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
+                strprintf("taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
+                strprintf("memo=%s", memo) + ", " +
+                strprintf("activated=%d", activated);
     }
 };
 

@@ -15,11 +15,12 @@ class CDEXOperatorRegisterTx: public CBaseTx {
 public:
     struct Data {
         CUserID owner_uid;                   // owner uid of exchange
-        CUserID fee_receiver_uid;                   // match uid
+        CUserID fee_receiver_uid;            // fee receiver uid
         string name              = "";       // domain name
-        string portal_url        = "";
-        uint64_t maker_fee_ratio = 0;
-        uint64_t taker_fee_ratio = 0;
+        string portal_url        = "";       // portal url of dex operator
+        dex::PublicMode public_mode   = dex::PublicMode::PRIVATE; // the default public mode for creating order
+        uint64_t maker_fee_ratio = 0;    // the default maker fee ratio for creating order
+        uint64_t taker_fee_ratio = 0;    // the defalt taker fee ratio for creating order
         string memo              = "";
 
         IMPLEMENT_SERIALIZE(
