@@ -48,7 +48,6 @@ namespace dex {
 
 
     enum class PublicMode: uint8_t {
-        PUBLIC_MODE_NULL    = 0,
         ORDER_PUBLIC        = 1,
         ORDER_PRIVATE       = 2
     };
