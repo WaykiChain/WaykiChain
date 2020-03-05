@@ -143,19 +143,15 @@ public:
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
 
-
-    uint64_t min_order_amount;  // min amount for submit order tx, 0 is unlimited
-    uint64_t max_order_amount;  // max amount for submit order tx, 0 is unlimited
-
 public:
-    CAsset(): CUserIssuedAsset(), min_order_amount(0), max_order_amount(0) {}
+    CAsset(): asset_type(AssetType::NULL_ASSET) {}
 
-    CAsset(CUserIssuedAsset *pBaseAsset): CUserIssuedAsset(*pBaseAsset), min_order_amount(0), max_order_amount(0) {}
+    CAsset(CAsset *pBaseAsset): asset_type(AssetType::NULL_ASSET) {}
 
-    CAsset(const TokenSymbol& symbolIn, const TokenName& nameIn, const CUserID& ownerUseridIn,
-           uint64_t totalSupplyIn, bool mintableIn, uint64_t minOrderAmountIn, uint64_t maxOrderAmountIn)
-        : CUserIssuedAsset(symbolIn, nameIn, ownerUseridIn, totalSupplyIn, mintableIn),
-          min_order_amount(minOrderAmountIn), max_order_amount(maxOrderAmountIn){};
+    CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, uint64_t assetPermsSum,
+            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
+        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(assetType), asset_perms_sum(assetPermsSum),
+        owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
 
     IMPLEMENT_SERIALIZE(
         READWRITE(asset_symbol);
@@ -165,9 +161,6 @@ public:
         READWRITE(owner_uid);
         READWRITE(VARINT(total_supply));
         READWRITE(mintable);
-
-        READWRITE(VARINT(max_order_amount));
-        READWRITE(VARINT(min_order_amount));
     )
 
     bool IsEmpty() const { return owner_uid.IsEmpty(); }
@@ -178,14 +171,11 @@ public:
         asset_name.clear();
         mintable = false;
         total_supply = 0;
-        max_order_amount = 0;
-        min_order_amount = 0;
     }
 
     string ToString() const {
-        return CUserIssuedAsset::ToString()+ ", " +
-                strprintf("min_order_amount=%llu", min_order_amount) + ", " +
-                strprintf("min_order_amount=%llu", min_order_amount);
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, asset_perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
+                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid, total_supply, mintable);
     }
 };
 
