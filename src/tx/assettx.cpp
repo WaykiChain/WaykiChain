@@ -115,7 +115,7 @@ bool CAssetIssueTx::CheckTx(CTxExecuteContext &context) {
     IMPLEMENT_CHECK_TX_REGID(txUid);
     if (!CheckFee(context)) return false;
 
-    auto symbolErr = CheckSymbol(asset.asset_symbol);
+    auto symbolErr = CUserIssuedAsset::CheckSymbol(asset.asset_symbol);
     if (symbolErr) {
         return state.DoS(100, ERRORMSG("CAssetIssueTx::CheckTx, invlid asset symbol! %s", *symbolErr),
                         REJECT_INVALID, "invalid-asset-symbol");
