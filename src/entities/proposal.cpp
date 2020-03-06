@@ -177,6 +177,9 @@ bool CDexSwitchProposal::ExecuteProposal(CTxExecuteContext& context) {
 bool CDexSwitchProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
+    if(dexid == 0)
+        return state.DoS(100,ERRORMSG("the No.0 dex operator can't be disable"),
+                REJECT_INVALID, "operator0-can't-disable");
     if(operate_type != ProposalOperateType::ENABLE && operate_type != ProposalOperateType::DISABLE){
         return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type error!"), REJECT_INVALID,
                          "operate-type-error");
