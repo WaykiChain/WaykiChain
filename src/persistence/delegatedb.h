@@ -36,7 +36,7 @@ public:
     bool GetCandidateVotes(const CRegID &regId, vector<CCandidateReceivedVote> &candidateVotes);
 
     // There’s no reason to worry about performance issues as it will used only in stable coin genesis height.
-    bool GetVoterList(map<CRegIDKey, vector<CCandidateReceivedVote>> &regId2Vote);
+    bool GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote);
 
     bool Flush();
     uint32_t GetCacheSize() const;
