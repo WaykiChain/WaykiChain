@@ -23,7 +23,7 @@ bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
 bool CAssetDBCache::SetAsset(const CAsset &asset) {
     return assetCache.SetData(asset.asset_symbol, asset);
 }
-bool CAssetDBCache::ExistAssetSymbol(const TokenSymbol &tokenSymbol) {
+bool CAssetDBCache::HasAssetSymbol(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
 
