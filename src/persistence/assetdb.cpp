@@ -21,7 +21,7 @@ bool CAssetDBCache::SetAsset(const CAsset &asset) {
 }
 
 bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
-    return assetCache.HaveData(tokenSymbol);
+    return assetCache.HasData(tokenSymbol);
 }
 
 shared_ptr<string> CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {

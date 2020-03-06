@@ -445,7 +445,7 @@ public:
     }
 
     template<typename KeyType, typename ValueType>
-    bool HaveData(const dbk::PrefixType prefixType, const KeyType &key) const {
+    bool HasData(const dbk::PrefixType prefixType, const KeyType &key) const {
         string keyStr = dbk::GenDbKey(prefixType, key);
         return db.Exists(keyStr);
     }
@@ -601,7 +601,7 @@ public:
         return true;
     }
 
-    bool HaveData(const KeyType &key) const {
+    bool HasData(const KeyType &key) const {
         if (db_util::IsEmpty(key)) {
             return false;
         }
@@ -917,7 +917,7 @@ public:
         return true;
     }
 
-    bool HaveData() const {
+    bool HasData() const {
         auto ptr = GetDataPtr();
         return ptr && !db_util::IsEmpty(*ptr);
     }

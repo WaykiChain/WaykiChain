@@ -21,8 +21,8 @@ CCdpDBCache::CCdpDBCache(CCdpDBCache *pBaseIn)
       cdpRatioSortedCache(pBaseIn->cdpRatioSortedCache) {}
 
 bool CCdpDBCache::NewCDP(const int32_t blockHeight, CUserCDP &cdp) {
-    assert(!cdpCache.HaveData(cdp.cdpid));
-    assert(!userCdpCache.HaveData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())));
+    assert(!cdpCache.HasData(cdp.cdpid));
+    assert(!userCdpCache.HasData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair())));
 
     return cdpCache.SetData(cdp.cdpid, cdp) &&
         userCdpCache.SetData(make_pair(CRegIDKey(cdp.owner_regid), cdp.GetCoinPair()), cdp.cdpid) &&
@@ -42,7 +42,7 @@ bool CCdpDBCache::UpdateCDP(const CUserCDP &oldCDP, const CUserCDP &newCDP) {
 }
 
 bool CCdpDBCache::UserHaveCdp(const CRegID &regid, const TokenSymbol &assetSymbol, const TokenSymbol &scoinSymbol) {
-    return userCdpCache.HaveData(make_pair(CRegIDKey(regid), CCdpCoinPair(assetSymbol, scoinSymbol)));
+    return userCdpCache.HasData(make_pair(CRegIDKey(regid), CCdpCoinPair(assetSymbol, scoinSymbol)));
 }
 
 bool CCdpDBCache::GetCDPList(const CRegID &regid, vector<CUserCDP> &cdpList) {

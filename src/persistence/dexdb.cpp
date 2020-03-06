@@ -384,10 +384,10 @@ bool CDexDBCache::GetActiveOrder(const uint256 &orderId, CDEXOrderDetail &active
     return activeOrderCache.GetData(orderId, activeOrder);
 }
 
-bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) { return activeOrderCache.HaveData(orderId); }
+bool CDexDBCache::HaveActiveOrder(const uint256 &orderId) { return activeOrderCache.HasData(orderId); }
 
 bool CDexDBCache::CreateActiveOrder(const uint256 &orderId, const CDEXOrderDetail &activeOrder) {
-    if (activeOrderCache.HaveData(orderId)) {
+    if (activeOrderCache.HasData(orderId)) {
         return ERRORMSG("CreateActiveOrder, the order is existed! order_id=%s, order=%s\n", orderId.GetHex(),
                         activeOrder.ToString());
     }
@@ -467,11 +467,11 @@ bool CDexDBCache::HaveDexOperator(const DexID &id) {
     if(id == MAIN_DEX_ID )
         return true ;
     decltype(operator_detail_cache)::KeyType idKey(id);
-    return operator_detail_cache.HaveData(idKey);
+    return operator_detail_cache.HasData(idKey);
 }
 
 bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
-     bool dbHave = operator_owner_map_cache.HaveData(regid);
+     bool dbHave = operator_owner_map_cache.HasData(regid);
 
      if(!dbHave){
          CRegID sysRegId = SysCfg().GetDexMatchSvcRegId() ;
@@ -489,7 +489,7 @@ bool CDexDBCache::HaveDexOperatorByOwner(const CRegID &regid) {
 
 bool CDexDBCache::CreateDexOperator(const DexID &id, const DexOperatorDetail& detail) {
     decltype(operator_detail_cache)::KeyType idKey(id);
-    if (operator_detail_cache.HaveData(idKey)) {
+    if (operator_detail_cache.HasData(idKey)) {
         return ERRORMSG("%s, the dex operator is existed! id=%s\n", __func__, id);
     }
 

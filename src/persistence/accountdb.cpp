@@ -90,15 +90,15 @@ bool CAccountDBCache::SetAccount(const CNickID &nickId,const CAccount &account){
 
 
 bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
-    return accountCache.HaveData(keyId);
+    return accountCache.HasData(keyId);
 }
 
 bool CAccountDBCache::HaveAccount(const CRegID &regId) const{
-    return regId2KeyIdCache.HaveData(regId);
+    return regId2KeyIdCache.HasData(regId);
 }
 
 bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
-    return nickId2KeyIdCache.HaveData(CVarIntValue<uint64_t >(nickId.value));
+    return nickId2KeyIdCache.HasData(CVarIntValue<uint64_t >(nickId.value));
 }
 
 bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
@@ -317,13 +317,13 @@ Object CAccountDBCache::GetAccountDBStats() {
         CAccountToken wicc = item.second.GetToken(SYMB::WICC);
         CAccountToken wusd = item.second.GetToken(SYMB::WUSD);
         CAccountToken wgrt = item.second.GetToken(SYMB::WGRT);
-        
+
         bcoinsStates[0] += wicc.free_amount;
         bcoinsStates[1] += wicc.voted_amount;
         bcoinsStates[2] += wicc.frozen_amount;
         bcoinsStates[3] += wicc.staked_amount;
         bcoinsStates[4] += wicc.pledged_amount;
-        
+
         scoinsStates[0] += wusd.free_amount;
         scoinsStates[1] += wusd.voted_amount;
         scoinsStates[2] += wusd.frozen_amount;
@@ -372,7 +372,7 @@ Object CAccountDBCache::GetAccountDBStats() {
     obj.push_back(Pair("total_regids",  totalRegIds));
 
     return obj;
-    
+
 }
 
 Object CAccountDBCache::ToJsonObj(dbk::PrefixType prefix) {

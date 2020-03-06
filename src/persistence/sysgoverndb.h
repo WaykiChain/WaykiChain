@@ -40,13 +40,13 @@ public:
                + approvals_cache.GetCacheSize();
     }
 
-    void SetBaseViewPtr(CSysGovernDBCache *pBaseIn) { 
+    void SetBaseViewPtr(CSysGovernDBCache *pBaseIn) {
         governors_cache.SetBase(&pBaseIn->governors_cache);
         proposals_cache.SetBase(&pBaseIn->proposals_cache);
         approvals_cache.SetBase(&pBaseIn->approvals_cache);
     }
 
-    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) { 
+    void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         governors_cache.SetDbOpLogMap(pDbOpLogMapIn);
         proposals_cache.SetDbOpLogMap(pDbOpLogMapIn);
         approvals_cache.SetDbOpLogMap(pDbOpLogMapIn);
@@ -61,7 +61,7 @@ public:
         vector<CRegID> regids;
         if (governors_cache.GetData(regids)) {
             return regids.size() * 2 / 3 + regids.size()%3;
-        } 
+        }
 
         return 1 ;
     }
@@ -90,7 +90,7 @@ public:
     bool GetApprovalList(const uint256& proposalId, vector<CRegID>& v){
         return  approvals_cache.GetData(proposalId, v) ;
     }
-    
+
     bool SetApproval(const uint256 &proposalId, const CRegID &governor){
 
         vector<CRegID> v  ;
@@ -105,7 +105,7 @@ public:
     }
 
     bool CheckIsGovernor(const CRegID &candidateRegId) {
-        if (!governors_cache.HaveData())
+        if (!governors_cache.HasData())
             return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
 
         vector<CRegID> regids;

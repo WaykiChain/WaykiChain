@@ -288,7 +288,7 @@ bool CPriceFeedCache::SetMedianPrices(const PriceMap &medianPrices) {
 
 
 bool CPriceFeedCache::CheckIsPriceFeeder(const CRegID &candidateRegId) {
-    if (!price_feeders_cache.HaveData())
+    if (!price_feeders_cache.HasData())
         return (candidateRegId == CRegID(SysCfg().GetStableCoinGenesisHeight(), 2));
 
     vector<CRegID> regids;
