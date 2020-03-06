@@ -896,9 +896,39 @@ Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
     EnsureWalletIsUnlocked();
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
     CDEXOperatorUpdateData updateData ;
-    updateData.dexId = params[1].get_int() ;
+    updateData.dexId = CDEXOperatorUpdateData::UpdateField (params[1].get_int()) ;
     updateData.field = CDEXOperatorUpdateData::UpdateField(params[2].get_int());
-    updateData.value = params[3].get_str();
+    string valueStr = params[3].get_str();
+    switch (updateData.field){
+        case CDEXOperatorUpdateData::UpdateField::FEE_RECEIVER_UID :
+        case CDEXOperatorUpdateData::UpdateField::OWNER_UID :{
+            CUserID uid = RPC_PARAM::GetUserId(valueStr);
+            if(!uid.is<CRegID>()) {
+                throw JSONRPCError(RPC_INVALID_PARAMETER, "owner_uid or fee_receiver_uid must be or has regid, "
+                                                          "and regid must be muture");
+            }
+            updateData.value = uid;
+            break;
+        }
+        case CDEXOperatorUpdateData::UpdateField::NAME :
+        case CDEXOperatorUpdateData::UpdateField::PORTAL_URL :
+        case CDEXOperatorUpdateData::UpdateField::MEMO :
+            updateData.value = valueStr;
+            break;
+        case CDEXOperatorUpdateData::UpdateField::MAKER_FEE_RATIO:
+        case CDEXOperatorUpdateData::UpdateField::TAKER_FEE_RATIO:{
+            uint64_t uint64V;
+            if (!ParseUint64(valueStr, uint64V))
+                throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid fee ratio=%s as uint64_t type",
+                                                                 valueStr));
+            updateData.value = uint64V;
+            break;
+        }
+
+        default:
+            throw JSONRPCError(RPC_INVALID_PARAMETER, "the dex update field code is error,its range is [1,7]");
+    }
+
     string errmsg ;
     string errcode ;
     if(!updateData.Check(errmsg,errcode,chainActive.Height())){

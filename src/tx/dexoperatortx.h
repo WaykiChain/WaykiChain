@@ -196,6 +196,7 @@ public:
     bool UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) ;
     bool GetRegID(CCacheWrapper& cw,CRegID& regid) ;
 
+
     string ValueToString() const {
         switch (field){
             case FEE_RECEIVER_UID :

@@ -239,7 +239,7 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_
     if(field == FEE_RECEIVER_UID || field == OWNER_UID){
         string placeholder = (field == FEE_RECEIVER_UID)? "fee_receiver": "owner" ;
 
-        auto uid = CUserID::ParseUserId(get<string>());
+        auto uid = std::make_shared<CUserID>(get<CUserID>()) ;
         if (!uid) {
             errmsg = strprintf("CDEXOperatorUpdateData::check(): %s_uid (%s) is a invalid account",placeholder, ValueToString());
             errcode = strprintf("%s-uid-invalid", placeholder) ;
@@ -273,12 +273,6 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_
 
 
     if(field == TAKER_FEE_RATIO || field == MAKER_FEE_RATIO ){
-        regex  r("[0-9]+");
-        if(!regex_match(get<string>() ,r )){
-            errmsg = strprintf("%s, fee_ratio format is error", __func__);
-            errcode = "invalid-match-fee-ratio-type" ;
-            return false ;
-        }
 
         uint64_t v = get<uint64_t>() ;
         if( v > MAX_MATCH_FEE_RATIO_VALUE){
@@ -293,40 +287,22 @@ bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_
 
 }
 
-bool CDEXOperatorUpdateData::GetRegID(CCacheWrapper &cw,CRegID& regid) {
-
-    auto uid = CUserID::ParseUserId(get<string>()) ;
-    if((*uid).is<CRegID>()){
-        regid =  (*uid).get<CRegID>() ;
-        return true;
-    }
-
-    CAccount account ;
-    if(cw.accountCache.GetAccount(*uid,account) && !account.regid.IsEmpty()){
-        regid = account.regid;
-        return true ;
-    }
-    return false ;
-}
-
 bool CDEXOperatorUpdateData::UpdateToDexOperator(DexOperatorDetail& detail,CCacheWrapper& cw) {
 
     switch (field) {
         case FEE_RECEIVER_UID:{
-            CRegID regid ;
-            if( GetRegID(cw ,regid)){
-                detail.fee_receiver_regid = regid ;
-                return true;
+            if(get<CUserID>().is<CRegID>()){
+                detail.fee_receiver_regid = get<CUserID>().get<CRegID>() ;
+                return true ;
             } else{
                 return false ;
             }
         }
         case OWNER_UID:{
-            CRegID regid ;
-            if(GetRegID(cw ,regid)){
-                detail.owner_regid = regid ;
+            if(get<CUserID>().is<CRegID>()){
+                detail.owner_regid = get<CUserID>().get<CRegID>() ;
                 return true ;
-            }else{
+            } else{
                 return false ;
             }
         }
