@@ -213,7 +213,7 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
     CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::DEX_BASE,
                     CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
 
-    if (!cw.assetCache.SaveAsset(savedAsset))
+    if (!cw.assetCache.SetAsset(savedAsset))
         return state.DoS(100, ERRORMSG("CAssetIssueTx::ExecuteTx, save asset failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
@@ -461,7 +461,7 @@ bool CAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
         return false;
     }
 
-    if (!cw.assetCache.SaveAsset(asset))
+    if (!cw.assetCache.SetAsset(asset))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, save asset failed",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "save-asset-failed");
 
