@@ -24,12 +24,6 @@ namespace dex {
         DEX_CANCEL_ORDER_TX
     };
 
-    struct OrderOperatorData {
-        OperatorFeeRatios fee_ratios;           //!< operator fee ratios
-        CUserID operator_uid;                   //!< dex operator uid
-        UnsignedCharArray operator_signature;   //!< dex operator signature
-    };
-
     class CDEXOrderBaseTx : public CBaseTx {
     public:
         OrderType order_type   = ORDER_LIMIT_PRICE; //!< order type
