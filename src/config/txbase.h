@@ -152,9 +152,6 @@ static const unordered_map<TxType, std::tuple<string, uint64_t, uint64_t, uint64
 
 { WASM_CONTRACT_TX,         std::make_tuple("WASM_CONTRACT_TX",         0,          0.01*COIN,  0.01*COIN,  0.01*COIN   ,true) },
 
-{ DEX_OPERATOR_REGISTER_TX, std::make_tuple("DEX_OPERATOR_REGISTER_TX", 0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-{ DEX_OPERATOR_UPDATE_TX,   std::make_tuple("DEX_OPERATOR_UPDATE_TX",   0,          0.001*COIN, 0.001*COIN, 0.001*COIN  ,true) },
-
 { PROPOSAL_REQUEST_TX,      std::make_tuple("PROPOSAL_REQUEST_TX",      0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
 { PROPOSAL_APPROVAL_TX,     std::make_tuple("PROPOSAL_APPROVAL_TX",     0,          0.01*COIN,  0.01*COIN,  0.01*COIN  ,true) },
 

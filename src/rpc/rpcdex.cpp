@@ -901,7 +901,7 @@ Value submitdexoperatorupdatetx(const Array& params, bool fHelp){
     const CUserID &userId = RPC_PARAM::GetUserId(params[0].get_str(),true);
     CDEXOperatorUpdateData updateData ;
     updateData.dexId = params[1].get_int() ;
-    updateData.field = (uint8_t)params[2].get_int() ;
+    updateData.field = CDEXOperatorUpdateData::UpdateField(params[2].get_int());
     updateData.value = params[3].get_str();
     string errmsg ;
     string errcode ;
