@@ -197,7 +197,6 @@ Value verifymessage(const Array& params, bool fHelp) {
 #define DBK_PREFIX_CACHE_LIST(DEFINE) \
     /*** Asset Registry DB */ \
     DEFINE( ASSET,                pAssetCache, assetCache )  \
-    DEFINE( ASSET_TRADING_PAIR,   pAssetCache, assetTradingPairCache)  \
     /**** block db                                                                          */ \
     /*DEFINE( BLOCK_INDEX,          cw.blockCache.txDiskPosCache)         */ \
     DEFINE( BLOCKFILE_NUM_INFO,   pBlockCache, txDiskPosCache) \

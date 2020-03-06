@@ -57,39 +57,33 @@ public:
      */
     shared_ptr<string> CheckTransferCoinSymbol(const TokenSymbol &symbol);
 
-    bool AddAssetTradingPair(const CAssetTradingPair &assetTradingPair);
-    bool ExistAssetTradingPair(const CAssetTradingPair &TradingPair);
-    bool EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair);
-
     bool Flush();
 
-    uint32_t GetCacheSize() const { return assetCache.GetCacheSize() + assetTradingPairCache.GetCacheSize(); }
+    uint32_t GetCacheSize() const { return assetCache.GetCacheSize(); }
 
     void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
-        assetTradingPairCache.SetBase(&pBaseIn->assetTradingPairCache);
     }
 
     void SetDbOpLogMap(CDBOpLogMap *pDbOpLogMapIn) {
         assetCache.SetDbOpLogMap(pDbOpLogMapIn);
-        assetTradingPairCache.SetDbOpLogMap(pDbOpLogMapIn);
     }
 
     void RegisterUndoFunc(UndoDataFuncMap &undoDataFuncMap) {
         assetCache.RegisterUndoFunc(undoDataFuncMap);
-        assetTradingPairCache.RegisterUndoFunc(undoDataFuncMap);
     }
 
     shared_ptr<CUserAssetsIterator> CreateUserAssetsIterator() {
         return make_shared<CUserAssetsIterator>(assetCache);
     }
+
 public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
     DBAssetCache   assetCache;
-    // <asset_trading_pair -> 1>
-    CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
+    // // <asset_trading_pair -> 1>
+    // CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
 };
 
 #endif  // PERSIST_ASSETDB_H
