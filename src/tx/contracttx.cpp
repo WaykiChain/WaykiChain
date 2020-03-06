@@ -459,7 +459,7 @@ bool CUniversalContractInvokeTx::CheckTx(CTxExecuteContext &context) {
     if (SysCfg().NetworkID() == TEST_NET && context.height < 260000) {
         // TODO: remove me if reset testnet.
     } else {
-        auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(coin_symbol);
+        auto pSymbolErr = cw.assetCache.CheckAssetSymbol(coin_symbol);
         if (pSymbolErr) {
             return state.DoS(100, ERRORMSG("CUniversalContractInvokeTx::CheckTx, invalid coin_symbol=%s, %s",
                             coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");

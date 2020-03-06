@@ -671,7 +671,7 @@ string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramNa
 
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
                                     const uint64_t value) {
-    if (pCdMan->pAssetCache->CheckTransferCoinSymbol(tokenSymbol))
+    if (pCdMan->pAssetCache->CheckAssetSymbol(tokenSymbol))
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
 
 

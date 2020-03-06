@@ -534,7 +534,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight     = chainActive.Height();
 
-    auto pSymbolErr = pCdMan->pAssetCache->CheckTransferCoinSymbol(transferInfo.symbol);
+    auto pSymbolErr = pCdMan->pAssetCache->CheckAssetSymbol(transferInfo.symbol);
     if (pSymbolErr)
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", transferInfo.symbol, *pSymbolErr));
 

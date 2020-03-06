@@ -24,7 +24,7 @@ bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
 
-shared_ptr<string> CAssetDBCache::CheckTransferCoinSymbol(const TokenSymbol &symbol) {
+shared_ptr<string> CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {
     size_t coinSymbolSize = symbol.size();
     if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
         return make_shared<string>("empty or too long");

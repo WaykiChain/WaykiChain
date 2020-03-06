@@ -115,7 +115,7 @@ bool CCoinTransferTx::CheckTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
-        auto pSymbolErr = cw.assetCache.CheckTransferCoinSymbol(transfers[i].coin_symbol);
+        auto pSymbolErr = cw.assetCache.CheckAssetSymbol(transfers[i].coin_symbol);
         if (pSymbolErr) {
             return state.DoS(100, ERRORMSG("CCoinTransferTx::CheckTx, transfers[%d], invalid coin_symbol=%s, %s",
                 i, transfers[i].coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
