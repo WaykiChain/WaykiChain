@@ -6,14 +6,12 @@
 #ifndef PERSIST_ASSETDB_H
 #define PERSIST_ASSETDB_H
 
-#include "entities/asset.h"
-#include "leveldbwrapper.h"
-#include "entities/asset.h"
-#include "entities/asset.h"
 #include "commons/arith_uint256.h"
 #include "dbconf.h"
 #include "dbaccess.h"
 #include "dbiterator.h"
+#include "entities/asset.h"
+#include "leveldbwrapper.h"
 
 #include <map>
 #include <string>
@@ -40,7 +38,7 @@ class CAssetDBCache {
 public:
     CAssetDBCache() {}
 
-    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess), assetTradingPairCache(pDbAccess) {
+    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     }
 

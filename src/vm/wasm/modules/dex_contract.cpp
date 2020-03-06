@@ -325,7 +325,7 @@ void dex::dex_order_create(wasm_context &context) {
 
     TokenSymbol asset_sym = args.asset().sym.code().to_string();
     TokenSymbol coin_sym = args.coin().sym.code().to_string();
-    check_order_symbol_pair(asset_sym, coin_sym);
+    // check_order_symbol_pair(asset_sym, coin_sym);
 
     OrderType order_type = OrderType(args.order_type());
     OrderSide order_side = OrderSide(args.order_side());
