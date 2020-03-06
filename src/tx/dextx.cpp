@@ -211,11 +211,11 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                                             const TokenSymbol &assetSymbol) {
-        if (pCdMan->pAssetCache->CheckAssetSymbol(coinSymbol, AssetPermType::DEX_QUOTE))
+        if (!pCdMan->pAssetCache->CheckAssetSymbol(coinSymbol, AssetPermType::DEX_QUOTE))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order coin symbol=%s", TX_ERR_TITLE, coinSymbol),
                                     REJECT_INVALID, "invalid-order-coin-symbol");
 
-        if (pCdMan->pAssetCache->CheckAssetSymbol(assetSymbol, AssetPermType::DEX_BASE))
+        if (!pCdMan->pAssetCache->CheckAssetSymbol(assetSymbol, AssetPermType::DEX_BASE))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order asset symbol=%s", TX_ERR_TITLE, assetSymbol),
                                     REJECT_INVALID, "invalid-order-asset-symbol");
         return true;
