@@ -1,6 +1,5 @@
 #pragma once
 #include "wasm/abi_def.hpp"
-//#include "wasm/modules/dex_contract.hpp"
 
 namespace wasm {
 
