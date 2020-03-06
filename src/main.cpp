@@ -1034,7 +1034,7 @@ bool SaveTxIndex(const uint256 &txid, CCacheWrapper &cw, CValidationState &state
 static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, const uint32_t currBlockTime,
                                                     CCacheWrapper &cw, CValidationState &state) {
     // acquire votes list
-    map<CRegIDKey, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
+    map<string /* CRegID */, vector<CCandidateReceivedVote>> regId2ReceivedVotes;
     if (!cw.delegateCache.GetVoterList(regId2ReceivedVotes)) {
         return state.DoS(100, ERRORMSG("ComputeVoteStakingInterestAndRevokeVotes() : failed to get vote list"),
                          REJECT_INVALID, "bad-get-vote-list");
@@ -1043,7 +1043,7 @@ static bool ComputeVoteStakingInterestAndRevokeVotes(const int32_t currHeight, c
     // revoke votes if necessary
     map<CRegID, vector<CCandidateVote>> regId2CandidateVotes;
     for (auto &item : regId2ReceivedVotes) {
-        CRegID regId = item.first.regid;
+        CRegID regId(UnsignedCharArray(item.first.begin(), item.first.end()));
         auto &candidateReceivedVotes = item.second;
         vector<CCandidateVote> candidateVotes;
         assert(!candidateReceivedVotes.empty());

@@ -77,7 +77,8 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     return voteRegIdCache.EraseData(oldKey);
 }
 
-bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId, const vector<CCandidateReceivedVote> &candidateVotes) {
+bool CDelegateDBCache::SetCandidateVotes(const CRegID &regId,
+                                       const vector<CCandidateReceivedVote> &candidateVotes) {
     return regId2VoteCache.SetData(CRegIDKey(regId), candidateVotes);
 }
 
@@ -85,7 +86,7 @@ bool CDelegateDBCache::GetCandidateVotes(const CRegID &regId, vector<CCandidateR
     return regId2VoteCache.GetData(CRegIDKey(regId), candidateVotes);
 }
 
-bool CDelegateDBCache::GetVoterList(map<CRegIDKey, vector<CCandidateReceivedVote>> &regId2Vote) {
+bool CDelegateDBCache::GetVoterList(map<string/* CRegID */, vector<CCandidateReceivedVote>> &regId2Vote) {
     return regId2VoteCache.GetAllElements(regId2Vote);
 }
 
