@@ -77,13 +77,14 @@ bool CBaseTx::IsValidHeight(int32_t nCurrHeight, int32_t nTxCacheHeight) const {
 
 bool CBaseTx::GenerateRegID(CTxExecuteContext &context, CAccount &account) {
     if (txUid.type() == typeid(CPubKey)) {
+        account.owner_pubkey = txUid.get<CPubKey>();
+
         CRegID regId;
         if (context.pCw->accountCache.GetRegId(txUid, regId)) {
             // account has regid already, return
             return true;
         }
 
-        account.owner_pubkey = txUid.get<CPubKey>();
         // generate a new regid for the account
         account.regid = CRegID(context.height, context.index);
         if (!context.pCw->accountCache.SaveAccount(account))
