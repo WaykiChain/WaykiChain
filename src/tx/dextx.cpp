@@ -65,8 +65,7 @@ namespace dex {
         IMPLEMENT_DEFINE_CW_STATE;
         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        // TODO: ...
-        //IMPLEMENT_CHECK_TX_MEMO;
+
         if (!kOrderTypeHelper.CheckEnum(order_type))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order_type=%u", TX_ERR_TITLE,
                     order_type), REJECT_INVALID, "invalid-order-side");
