@@ -178,18 +178,5 @@ public:
     }
 };
 
-bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) {
-    if (symbol == SYMB::WICC) {
-        return CheckBaseCoinRange(amount);
-    } else if (symbol == SYMB::WGRT) {
-        return CheckFundCoinRange(amount);
-    } else if (symbol == SYMB::WUSD) {
-        return CheckStableCoinRange(amount);
-    } else {
-        // TODO: need to check other token range
-        return amount >= 0;
-    }
-}
-
 
 #endif //ENTITIES_ASSET_H

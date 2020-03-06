@@ -190,11 +190,10 @@ public:
     bool CheckMinFee(CTxExecuteContext &context, uint64_t minFee) const;
 
     bool VerifySignature(CTxExecuteContext &context, const CPubKey &pubkey);
-
 protected:
     bool CheckTxFeeSufficient(const TokenSymbol &feeSymbol, const uint64_t llFees, const int32_t height) const;
     bool CheckSignatureSize(const vector<unsigned char> &signature) const;
-    bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const;
+
 
     static bool AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKeyID> &keyIds);
 };

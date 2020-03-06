@@ -155,18 +155,6 @@ bool CBaseTx::AddInvolvedKeyIds(vector<CUserID> uids, CCacheWrapper &cw, set<CKe
     return true;
 }
 
-bool CBaseTx::CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) const {
-    if (symbol == SYMB::WICC) {
-        return CheckBaseCoinRange(amount);
-    } else if (symbol == SYMB::WGRT) {
-        return CheckFundCoinRange(amount);
-    } else if (symbol == SYMB::WUSD) {
-        return CheckStableCoinRange(amount);
-    } else {
-        // TODO: need to check other token range
-        return amount >= 0;
-    }
-}
 
 bool CBaseTx::CheckFee(CTxExecuteContext &context, function<bool(CTxExecuteContext&, uint64_t)> minFeeChecker) const {
     // check fee value range

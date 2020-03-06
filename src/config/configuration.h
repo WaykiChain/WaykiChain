@@ -229,5 +229,17 @@ inline int64_t GetBaseCoinMaxMoney() { return BASECOIN_MAX_MONEY; }
 inline bool CheckBaseCoinRange(const int64_t amount) { return (amount >= 0 && amount <= BASECOIN_MAX_MONEY); }
 inline bool CheckFundCoinRange(const int64_t amount) { return (amount >= 0 && amount <= FUNDCOIN_MAX_MONEY); }
 inline bool CheckStableCoinRange(const int64_t amount) { return (amount >= 0 && amount <= STABLECOIN_MAX_MONEY); }
+inline bool CheckCoinRange(const TokenSymbol &symbol, const int64_t amount) {
+    if (symbol == SYMB::WICC) {
+        return CheckBaseCoinRange(amount);
+    } else if (symbol == SYMB::WGRT) {
+        return CheckFundCoinRange(amount);
+    } else if (symbol == SYMB::WUSD) {
+        return CheckStableCoinRange(amount);
+    } else {
+        // TODO: need to check other token range
+        return amount >= 0;
+    }
+}
 
 #endif /* CONFIGURATION_H_ */
