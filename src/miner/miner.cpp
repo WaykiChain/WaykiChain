@@ -653,7 +653,6 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, CAccount 
 
     CRegID minerRegId;
     GetCurrentDelegate(MillisToSecond(startMiningMs), blockHeight, delegateList, minerRegId);
-    LogPrint("MINER", "GetCurrentDelegate() : regid=%s\n", minerRegId.ToString());
 
     {
         LOCK(cs_main);
@@ -670,7 +669,6 @@ static bool GetMiner(int64_t startMiningMs, const int32_t blockHeight, CAccount 
 
         if (minerAccount.miner_pubkey.IsValid() && pWalletMain->GetKey(minerAccount.keyid, minerKey, true)) {
             isMinerKey = true;
-
         } else if (!pWalletMain->GetKey(minerAccount.keyid, minerKey)) {
             LogPrint("MINER", "GetMiner() : [ignore] miner key does not exist in wallet! height=%d, time_ms=%lld, "
                 "regid=%s, addr=%s\n",
