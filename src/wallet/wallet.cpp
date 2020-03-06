@@ -473,7 +473,7 @@ bool CWallet::IsMine(CBaseTx *pTx) const {
     }
 
     for (auto &keyid : keyIds) {
-        if (HaveKey(keyid) > 0) {
+        if (HasKey(keyid) > 0) {
             return true;
         }
     }
@@ -556,7 +556,7 @@ bool CWallet::AddKey(const CKeyID &KeyId, const CKeyCombi &keyCombi) {
     if (!fFileBacked)
         return true;
 
-    if (keyCombi.HaveMainKey()) {
+    if (keyCombi.HasMainKey()) {
         if (KeyId != keyCombi.GetCKeyID())
             return false;
     }
@@ -577,7 +577,7 @@ bool CWallet::AddKey(const CKey &key) {
 
 bool CWallet::RemoveKey(const CKey &key) {
     CKeyID keyId = key.GetPubKey().GetKeyId();
-    
+
     if (!IsEncrypted()) { //unencrypted or unlocked
         CWalletDB(strWalletFile).EraseKeyStoreValue(keyId);
         mapKeys.erase(keyId);

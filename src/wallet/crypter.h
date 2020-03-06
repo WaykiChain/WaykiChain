@@ -151,11 +151,11 @@ public:
     bool IsEmpty() { return mapCryptedKeys.empty() && mapKeys.empty(); }
     virtual bool AddCryptedKey(const CPubKey& vchPubKey, const vector<unsigned char>& vchCryptedSecret);
     bool AddKeyCombi(const CKeyID& keyId, const CKeyCombi& keyCombi);
-    bool HaveKey(const CKeyID& address) const {
+    bool HasKey(const CKeyID& address) const {
         {
             LOCK(cs_KeyStore);
             if (!IsEncrypted())
-                return CBasicKeyStore::HaveKey(address);
+                return CBasicKeyStore::HasKey(address);
             return mapCryptedKeys.count(address) > 0;
         }
         return false;
@@ -178,7 +178,7 @@ public:
             else {
                 CKeyCombi keyCombi;
                 if (GetKeyCombi((*mi).first, keyCombi)) {
-                    if (keyCombi.HaveMinerKey() || keyCombi.HaveMainKey())  // only return satisfied mining address
+                    if (keyCombi.HaveMinerKey() || keyCombi.HasMainKey())  // only return satisfied mining address
                         setAddress.insert((*mi).first);
                 }
             }

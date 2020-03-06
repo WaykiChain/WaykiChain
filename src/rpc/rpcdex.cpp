@@ -133,7 +133,7 @@ namespace RPC_PARAM {
 Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDetail,
     shared_ptr<CDEXOrderBaseTx> &pOrderBaseTx) {
 
-    if (!pWalletMain->HaveKey(txKeyid)) {
+    if (!pWalletMain->HasKey(txKeyid)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "tx user address not found in wallet");
     }
     const uint256 txHash = pOrderBaseTx->GetHash();
@@ -145,7 +145,7 @@ Object SubmitOrderTx(const CKeyID &txKeyid, const DexOperatorDetail &operatorDet
     if (pOrderBaseTx->has_operator_config) {
         CAccount operatorAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, operatorDetail.fee_receiver_regid);
         const CKeyID &operatorKeyid = operatorAccount.keyid;
-        if (!pWalletMain->HaveKey(operatorKeyid)) {
+        if (!pWalletMain->HasKey(operatorKeyid)) {
             CDataStream ds(SER_DISK, CLIENT_VERSION);
             ds << pBaseTx;
             throw JSONRPCError(RPC_WALLET_ERROR, strprintf("dex operator address not found in wallet! "

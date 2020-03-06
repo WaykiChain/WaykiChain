@@ -92,7 +92,7 @@ void GetPriorityTx(int32_t height, set<TxPriority> &txPriorities, const int32_t 
 
     for (map<uint256, CTxMemPoolEntry>::iterator mi = mempool.memPoolTxs.begin(); mi != mempool.memPoolTxs.end(); ++mi) {
         CBaseTx *pBaseTx = mi->second.GetTransaction().get();
-        if (!pBaseTx->IsBlockRewardTx() && !pCdMan->pTxCache->HaveTx(pBaseTx->GetHash())) {
+        if (!pBaseTx->IsBlockRewardTx() && !pCdMan->pTxCache->HasTx(pBaseTx->GetHash())) {
             feeSymbol = std::get<0>(mi->second.GetFees());
             fee       = std::get<1>(mi->second.GetFees());
             txSize    = mi->second.GetTxSize();
@@ -256,7 +256,7 @@ bool VerifyRewardTx(const CBlock *pBlock, CCacheWrapper &cwIn, bool bNeedRunTx, 
         uint64_t totalRunStep = 0;
         for (uint32_t i = 1; i < pBlock->vptx.size(); i++) {
             shared_ptr<CBaseTx> pBaseTx = pBlock->vptx[i];
-            if (spCW->txCache.HaveTx(pBaseTx->GetHash()))
+            if (spCW->txCache.HasTx(pBaseTx->GetHash()))
                 return ERRORMSG("VerifyRewardTx() : duplicate transaction, txid=%s", pBaseTx->GetHash().GetHex());
 
             CValidationState state;

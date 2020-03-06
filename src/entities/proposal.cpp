@@ -242,7 +242,7 @@ shared_ptr<string> CheckCdpAssetSymbol(CCacheWrapper &cw, const TokenSymbol &sym
         return make_shared<string>("empty or too long");
 
     if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
-        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !cw.assetCache.HaveAsset(symbol)))
+        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !cw.assetCache.HasAsset(symbol)))
         return make_shared<string>("unsupported symbol");
 
     return nullptr;

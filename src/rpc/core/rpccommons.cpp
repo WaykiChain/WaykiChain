@@ -224,7 +224,7 @@ bool ParseRpcInputMoney(const string &comboMoneyStr, ComboMoney &comboMoney, con
 
 
 Object SubmitTx(const CKeyID &keyid, CBaseTx &tx) {
-    if (!pWalletMain->HaveKey(keyid)) {
+    if (!pWalletMain->HasKey(keyid)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Sender address not found in wallet");
     }
 

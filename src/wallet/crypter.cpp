@@ -130,7 +130,7 @@ bool CCryptoKeyStore::SetCrypted() {
     if (fUseCrypto)
         return true;
 
-    if (HaveMainKey())
+    if (HasMainKey())
         return false;
 
     fUseCrypto = true;
@@ -294,7 +294,7 @@ bool CCryptoKeyStore::EncryptKeys(CKeyingMaterial& vMasterKeyIn) {
 
             if (!AddCryptedKey(vchPubKey, vchCryptedSecret))
                 return false;
-                
+
             mKey.second.PurgeMainKey();
         }
     }

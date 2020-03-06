@@ -28,14 +28,14 @@ bool CTxMemCache::RemoveBlockTx(const CBlock &block) {
     return true;
 }
 
-bool CTxMemCache::HaveTx(const uint256 &txid) {
+bool CTxMemCache::HasTx(const uint256 &txid) {
     bool found = txids.count(txid) > 0;
     if (found)
         return true;
     else if (pBase == nullptr) {
         return false;
     } else
-        return pBase->HaveTx(txid);
+        return pBase->HasTx(txid);
 }
 
 void CTxMemCache::BatchWrite(const UnorderedHashSet &txidsIn) {

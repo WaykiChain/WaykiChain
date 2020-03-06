@@ -16,7 +16,7 @@ bool CAssetDBCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
     return assetCache.GetData(tokenSymbol, asset);
 }
 
-bool CAssetDBCache::HaveAsset(const TokenSymbol &tokenSymbol) {
+bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
 
@@ -34,7 +34,7 @@ shared_ptr<string> CAssetDBCache::CheckTransferCoinSymbol(const TokenSymbol &sym
     }
 
     if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
-        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !HaveAsset(symbol)))
+        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !HasAsset(symbol)))
         return make_shared<string>("unsupported symbol");
 
     return nullptr;

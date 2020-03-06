@@ -171,7 +171,7 @@ bool CAssetIssueTx::ExecuteTx(CTxExecuteContext &context) {
                         llFees, txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "insufficent-funds");
     }
 
-    if (cw.assetCache.HaveAsset(asset.asset_symbol))
+    if (cw.assetCache.HasAsset(asset.asset_symbol))
         return state.DoS(100, ERRORMSG("CAssetUpdateTx::ExecuteTx, the asset has been issued! symbol=%s",
             asset.asset_symbol), REJECT_INVALID, "asset-existed-error");
 

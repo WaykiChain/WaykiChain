@@ -161,7 +161,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     if (!account.HaveOwnerPubKey()) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Account is unregistered");
     }
-    if (!pWalletMain->HaveKey(srcKeyId)) {
+    if (!pWalletMain->HasKey(srcKeyId)) {
         throw JSONRPCError(RPC_WALLET_ERROR, "Send address is not in wallet");
     }
     if (balance < totalFee) {
