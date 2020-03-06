@@ -27,20 +27,17 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
-        auto pSymbolErr = cw.assetCache.CheckAssetSymbol(transfers[i].coin_symbol);
-        if (pSymbolErr) {
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], invalid coin_symbol=%s, %s",
-                i, transfers[i].coin_symbol, *pSymbolErr), REJECT_INVALID, "invalid-coin-symbol");
-        }
+        if (!cw.assetCache.CheckAssetSymbol(transfers[i].coin_symbol))
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
+                            transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
 
         if (transfers[i].coin_amount < DUST_AMOUNT_THRESHOLD)
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], dust amount, %llu < %llu",
-                i, transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
-
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], dust amount, %llu < %llu", i,
+                            transfers[i].coin_amount, DUST_AMOUNT_THRESHOLD), REJECT_DUST, "invalid-coin-amount");
 
         if (!CheckBaseCoinRange(transfers[i].coin_amount))
-            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], coin_amount=%llu out of valid range",
-                i, transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
+            return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], coin_amount=%llu out of valid range", i,
+                            transfers[i].coin_amount), REJECT_DUST, "invalid-coin-amount");
     }
 
     uint64_t minFee;

@@ -24,17 +24,35 @@ bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HasData(tokenSymbol);
 }
 
-shared_ptr<string> CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {
-    if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
-        if (kCoinTypeSet.count(symbol))
-            return nullptr;
+bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {
+    if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
+        return false;
 
-        CAsset asset;
-        if (GetAsset(symbol, asset))
-            return nullptr;
-    }
+    if (kCoinTypeSet.count(symbol))
+        return true;
 
-    return make_shared<string>("unsupported symbol");
+    CAsset asset;
+    if (GetAsset(symbol, asset))
+        return true;
+
+    return false;
+}
+
+bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum) {
+    if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
+        return false;
+
+    if (kCoinTypeSet.count(symbol))
+        return true;
+
+    CAsset asset;
+    if (!GetAsset(symbol, asset))
+        return false;
+
+    if (permsSum > asset.asset_perms_sum)
+        return false;
+
+    return (permsSum == asset.asset_perms_sum & permsSum);
 }
 
 bool CAssetDBCache::Flush() {

@@ -310,9 +310,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
 
-    auto pSymbolErr = pCdMan->pAssetCache->CheckAssetSymbol(cmCoin.symbol);
-    if (pSymbolErr)
-        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
+    if (!pCdMan->pAssetCache->CheckAssetSymbol(cmCoin.symbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", cmCoin.symbol));
 
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
@@ -407,9 +406,8 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_MTX);
 
-    auto pSymbolErr = pCdMan->pAssetCache->CheckAssetSymbol(cmCoin.symbol);
-    if (pSymbolErr)
-        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", cmCoin.symbol, *pSymbolErr));
+    if (!pCdMan->pAssetCache->CheckAssetSymbol(cmCoin.symbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", cmCoin.symbol));
 
     if (cmCoin.amount == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");

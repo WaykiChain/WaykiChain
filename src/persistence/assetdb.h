@@ -52,7 +52,8 @@ public:
      * check transfer coin symbol
      * return nullptr if succeed, else error msg
      */
-    shared_ptr<string> CheckAssetSymbol(const TokenSymbol &symbol);
+    bool CheckAssetSymbol(const TokenSymbol &symbol);
+    bool CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum);
 
     bool Flush();
 

@@ -211,23 +211,13 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckOrderSymbols(CTxExecuteContext &context, const TokenSymbol &coinSymbol,
                                             const TokenSymbol &assetSymbol) {
-
-        if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
+        if (pCdMan->pAssetCache->CheckAssetSymbol(coinSymbol, AssetPermType::DEX_QUOTE))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order coin symbol=%s", TX_ERR_TITLE, coinSymbol),
-                            REJECT_INVALID, "invalid-order-coin-symbol");
-        }
+                                    REJECT_INVALID, "invalid-order-coin-symbol");
 
-        if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
+        if (pCdMan->pAssetCache->CheckAssetSymbol(assetSymbol, AssetPermType::DEX_BASE))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order asset symbol=%s", TX_ERR_TITLE, assetSymbol),
-                            REJECT_INVALID, "invalid-order-asset-symbol");
-        }
-
-        //TODO: check if asset has perms for DEX
-        // if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-        //     return context.pState->DoS(100, ERRORMSG("%s, not support the trading pair! coin_symbol=%s, asset_symbol=%s",
-        //         TX_ERR_TITLE, coinSymbol, assetSymbol), REJECT_INVALID, "invalid-trading-pair");
-        // }
-
+                                    REJECT_INVALID, "invalid-order-asset-symbol");
         return true;
     }
 

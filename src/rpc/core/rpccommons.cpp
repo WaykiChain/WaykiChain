@@ -671,9 +671,8 @@ string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramNa
 
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
                                     const uint64_t value) {
-    if (pCdMan->pAssetCache->CheckAssetSymbol(tokenSymbol))
+    if (!pCdMan->pAssetCache->CheckAssetSymbol(tokenSymbol))
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
-
 
     if (!account.OperateBalance(tokenSymbol, opType, value))
         throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, strprintf("Account does not have enough %s", tokenSymbol));
@@ -686,19 +685,11 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
 
 void RPC_PARAM::CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
                                   const TokenSymbol &assetSymbol) {
-    if (coinSymbol.empty() || coinSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(coinSymbol) == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s invalid order coin symbol=%s", title, coinSymbol));
-    }
+    if (!pCdMan->pAssetCache->CheckAssetSymbol(coinSymbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", coinSymbol));
 
-    if (assetSymbol.empty() || assetSymbol.size() > MAX_TOKEN_SYMBOL_LEN || kCoinTypeSet.count(assetSymbol) == 0) {
-        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s invalid order asset symbol=%s", title, assetSymbol));
-    }
-
-    //TODO: check with assetdb for perms
-    // if (kTradingPairSet.count(make_pair(assetSymbol, coinSymbol)) == 0) {
-    //     throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("%s unsupport trading pair! coin_symbol=%s, asset_symbol=%s",
-    //         title, coinSymbol, assetSymbol));
-    // }
+    if (!pCdMan->pAssetCache->CheckAssetSymbol(assetSymbol))
+        throw JSONRPCError(REJECT_INVALID, strprintf("Invalid asset symbol=%s! %s", assetSymbol));
 }
 
 bool RPC_PARAM::ParseHex(const string &hexStr, string &binStrOut, string &errStrOut) {
