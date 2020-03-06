@@ -52,7 +52,7 @@ bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSu
     if (permsSum > asset.asset_perms_sum)
         return false;
 
-    return (permsSum == asset.asset_perms_sum & permsSum);
+    return (permsSum == (asset.asset_perms_sum & permsSum));
 }
 
 bool CAssetDBCache::Flush() {
