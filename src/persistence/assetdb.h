@@ -48,10 +48,7 @@ public:
     bool GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset);
     bool SetAsset(const CAsset &asset);
     bool HasAsset(const TokenSymbol &tokenSymbol);
-    /**
-     * check transfer coin symbol
-     * return nullptr if succeed, else error msg
-     */
+
     bool CheckAssetSymbol(const TokenSymbol &symbol);
     bool CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum);
 
