@@ -71,8 +71,8 @@ bool CDelegateDBCache::EraseDelegateVotes(const CRegID &regId, const uint64_t vo
     delegateRegIds.clear();
 
     static uint64_t maxNumber = 0xFFFFFFFFFFFFFFFF;
-    uint64_t oldVotes         = maxNumber - votes;
-    auto oldKey               = std::make_pair(oldVotes, CRegIDKey(regId));
+    uint64_t votes            = maxNumber - votes;
+    auto oldKey               = std::make_pair(votes, CRegIDKey(regId));
 
     return voteRegIdCache.EraseData(oldKey);
 }
