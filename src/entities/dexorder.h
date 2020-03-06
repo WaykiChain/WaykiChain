@@ -104,6 +104,20 @@ namespace dex {
         Object ToJson() const;
     };
 
+    struct COrderOperatorParams {
+        PublicMode public_mode   = PublicMode::PUBLIC;//!< order public mode
+        uint64_t maker_fee_ratio = 0; //!< match fee ratio
+        uint64_t taker_fee_ratio = 0; //!< taker fee ratio
+
+        IMPLEMENT_SERIALIZE(
+            READWRITE(VARINT(maker_fee_ratio));
+            READWRITE(VARINT(taker_fee_ratio));
+        )
+
+        string ToString() const;
+        Object ToJson() const;
+    };
+
     struct CDEXOrderDetail {
         OrderGenerateType generate_type = EMPTY_ORDER;       //!< generate type
         dex::OrderType order_type       = dex::ORDER_LIMIT_PRICE; //!< order type
@@ -114,8 +128,7 @@ namespace dex {
         uint64_t asset_amount           = 0;                 //!< amount of asset to buy/sell
         uint64_t price                  = 0;                //!< price in coinType want to buy/sell asset
         DexID dex_id                    = 0;                //!< dex id of operator
-        PublicMode public_mode          = PublicMode::PUBLIC;//!< order public mode
-        optional<OperatorFeeRatios> opt_operator_fee_ratios;    //!< operator_fee_ratios, optional
+        optional<COrderOperatorParams> opt_operator_params; //!< operator params, optional
         CTxCord tx_cord                  = CTxCord();       //!< related tx cord
         CRegID user_regid                = CRegID();        //!< user regid
         uint64_t total_deal_coin_amount  = 0;               //!< total deal coin amount
@@ -132,13 +145,11 @@ namespace dex {
             READWRITE(VARINT(asset_amount));
             READWRITE(VARINT(price));
             READWRITE(VARINT(dex_id));
-            READWRITE(opt_operator_fee_ratios);
+            READWRITE(opt_operator_params);
             READWRITE(tx_cord);
             READWRITE(user_regid);
             READWRITE(VARINT(total_deal_coin_amount));
             READWRITE(VARINT(total_deal_asset_amount));
-
-            READWRITE(tx_cord);
         )
 
         bool IsEmpty() const {

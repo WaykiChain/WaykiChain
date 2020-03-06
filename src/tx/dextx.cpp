@@ -81,9 +81,6 @@ namespace dex {
 
         if (!CheckOrderPrice(context)) return false;
 
-        if (!kPublicModeHelper.CheckEnum(public_mode))
-            return context.pState->DoS(100, ERRORMSG("%s, invalid public_mode=%s", TX_ERR_TITLE,
-                    kPublicModeHelper.GetName(public_mode)), REJECT_INVALID, "invalid-public-mode");
         IMPLEMENT_CHECK_TX_MEMO;
 
         if (!CheckOrderOperator(context)) return false;
@@ -140,12 +137,16 @@ namespace dex {
         orderDetail.coin_amount        = coinAmount;
         orderDetail.asset_amount       = asset_amount;
         orderDetail.price              = price;
-        orderDetail.public_mode        = public_mode;
         orderDetail.dex_id             = dex_id;
         orderDetail.tx_cord            = CTxCord(context.height, context.index);
         orderDetail.user_regid         = txAccount.regid;
-        if (has_operator_config)
-            orderDetail.opt_operator_fee_ratios  = operator_fee_ratios;
+        if (has_operator_config) {
+            orderDetail.opt_operator_params  = {
+                public_mode,
+                operator_fee_ratios.maker_fee_ratio,
+                operator_fee_ratios.taker_fee_ratio,
+            };
+        }
         // other fields keep the default value
 
         if (!context.pCw->dexCache.CreateActiveOrder(txid, orderDetail))
@@ -300,6 +301,11 @@ namespace dex {
 
         if (has_operator_config) {
             const auto &hash = GetHash();
+
+            if (!kPublicModeHelper.CheckEnum(public_mode))
+                return context.pState->DoS(100, ERRORMSG("%s, invalid public_mode=%s", TX_ERR_TITLE,
+                        kPublicModeHelper.GetName(public_mode)), REJECT_INVALID, "invalid-public-mode");
+
             if (!CheckOperatorFeeRatioRange(context, hash, operator_fee_ratios.taker_fee_ratio,
                     TX_ERR_TITLE + ", taker_fee_ratio"))
                 return false;
@@ -534,6 +540,8 @@ namespace dex {
         shared_ptr<DexOperatorDetail> pSellOperatorDetail;
         shared_ptr<CAccount> pBuyMatchAccount;
         shared_ptr<CAccount> pSellMatchAccount;
+        COrderOperatorParams buyOrderOperatorParams;
+        COrderOperatorParams sellOrderOperatorParams;
         OrderSide takerSide;
 
         CDealItemExecuter(DealItem &dealItemIn, uint32_t index, CDEXSettleTx &txIn,
@@ -649,23 +657,27 @@ namespace dex {
             if (!GetDexOperator(context, sellOrder.dex_id, pSellOperatorDetail, DEAL_ITEM_TITLE)) return false;
             if (!GetAccount(pSellOperatorDetail->fee_receiver_regid, pSellMatchAccount)) return false;
 
-            // 1.4 get taker side
+            // 1.4 get order operator params
+            buyOrderOperatorParams = GetOrderOperatorParams(buyOrder, *pBuyOperatorDetail);
+            sellOrderOperatorParams = GetOrderOperatorParams(sellOrder, *pSellOperatorDetail);
+
+            // 1.5 get taker side
             takerSide = GetTakerOrderSide();
 
-            // 3. check coin type match
+            // 2. check coin type match
             if (buyOrder.coin_symbol != sellOrder.coin_symbol) {
                 return state.DoS(100, ERRORMSG("%s, coin symbol unmatch! buyer coin_symbol=%s, " \
                     "seller coin_symbol=%s", DEAL_ITEM_TITLE, buyOrder.coin_symbol, sellOrder.coin_symbol),
                     REJECT_INVALID, "coin-symbol-unmatch");
             }
-            // 4. check asset type match
+            // 3. check asset type match
             if (buyOrder.asset_symbol != sellOrder.asset_symbol) {
                 return state.DoS(100, ERRORMSG("%s, asset symbol unmatch! buyer asset_symbol=%s, " \
                     "seller asset_symbol=%s", DEAL_ITEM_TITLE, buyOrder.asset_symbol, sellOrder.asset_symbol),
                     REJECT_INVALID, "asset-symbol-unmatch");
             }
 
-            // 5. check price match
+            // 4. check price match
             if (buyOrder.order_type == ORDER_LIMIT_PRICE && sellOrder.order_type == ORDER_LIMIT_PRICE) {
                 if ( buyOrder.price < dealItem.dealPrice
                     || sellOrder.price > dealItem.dealPrice ) {
@@ -693,10 +705,8 @@ namespace dex {
                 // no limit
             }
 
-            // TODO: check operator fee ratio
-            // 2. check dex_id
-            if (!CheckDexOperator()) return false;
-            // TODO: check taker_side
+            // 5. check cross exchange trading with public mode
+            if (!CheckCrossExchangeTrading()) return false;
 
             // 6. check and operate deal amount
             uint64_t calcCoinAmount = CDEXOrderBaseTx::CalcCoinAmount(dealItem.dealAssetAmount, dealItem.dealPrice);
@@ -779,8 +789,8 @@ namespace dex {
             uint64_t buyerReceivedAssets = dealItem.dealAssetAmount;
             // 9.1 buyer pay the fee from the received assets to settler
 
-            uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, *pBuyOperatorDetail, takerSide);
-            uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, *pSellOperatorDetail, takerSide);
+            uint64_t buyOperatorFeeRatio = GetOperatorFeeRatio(buyOrder, buyOrderOperatorParams, takerSide);
+            uint64_t sellOperatorFeeRatio = GetOperatorFeeRatio(sellOrder, sellOrderOperatorParams, takerSide);
 
             if (!CheckOperatorFeeRatioRange(context, dealItem.buyOrderId, buyOperatorFeeRatio, DEAL_ITEM_TITLE))
                 return false;
@@ -881,18 +891,33 @@ namespace dex {
             return true;
         }
 
-        bool CheckDexOperator() {
+        COrderOperatorParams GetOrderOperatorParams(CDEXOrderDetail &order, DexOperatorDetail &operatorDetail) {
+            if (buyOrder.opt_operator_params) {
+                return buyOrder.opt_operator_params.value();
+            } else {
+                return {
+                    pBuyOperatorDetail->public_mode,
+                    pBuyOperatorDetail->maker_fee_ratio,
+                    pBuyOperatorDetail->taker_fee_ratio
+                };
+            }
+        }
+
+        bool CheckCrossExchangeTrading() {
 
             uint32_t buyDexId = buyOrder.dex_id;
             uint32_t sellDexId = sellOrder.dex_id;
+            PublicMode buyOrderPublicMode = buyOrderOperatorParams.public_mode;
+            PublicMode sellOrderPublicMode = sellOrderOperatorParams.public_mode;
             OrderSide makerSide = takerSide == ORDER_BUY ? ORDER_SELL : ORDER_BUY;
+
             if (buyDexId != sellDexId) {
-                if (makerSide == ORDER_BUY && buyOrder.public_mode != PublicMode::PUBLIC) {
+                if (makerSide == ORDER_BUY && buyOrderPublicMode != PublicMode::PUBLIC) {
                     return context.pState->DoS(100, ERRORMSG("%s, the buy order is maker order and must be public! "
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "buy-maker-order-not-public");
                 }
-                if (makerSide == ORDER_SELL && buyOrder.public_mode != PublicMode::PUBLIC) {
+                if (makerSide == ORDER_SELL && sellOrderPublicMode != PublicMode::PUBLIC) {
                     return context.pState->DoS(100, ERRORMSG("%s, the sell order is maker order and must be public! "
                         "buy_dex_id=%u, sell_dex_id=%u", DEAL_ITEM_TITLE, buyDexId, sellDexId),
                         REJECT_INVALID, "sell-maker-order-not-public");
@@ -938,21 +963,13 @@ namespace dex {
         }
 
         uint64_t GetOperatorFeeRatio(const CDEXOrderDetail &order,
-                                     const DexOperatorDetail &operatorDetail,
+                                     const COrderOperatorParams &orderOperatorParams,
                                      const OrderSide &takerSide) {
             uint64_t ratio;
-            OperatorFeeRatios feeRatios;
-            if (order.opt_operator_fee_ratios) {
-                feeRatios = order.opt_operator_fee_ratios.value();
-            } else {
-                feeRatios.taker_fee_ratio = operatorDetail.taker_fee_ratio;
-                feeRatios.taker_fee_ratio = operatorDetail.maker_fee_ratio;
-            }
-
             if (order.order_side == takerSide) {
-                ratio = feeRatios.taker_fee_ratio;
+                ratio = orderOperatorParams.taker_fee_ratio;
             } else {
-                ratio = feeRatios.maker_fee_ratio;
+                ratio = orderOperatorParams.maker_fee_ratio;
             }
             LogPrint(BCLog::DEX, "got operator_fee_ratio=%llu, is_taker=%d, order_side=%d",
                 ratio, order.order_side == takerSide, kOrderSideHelper.GetName(order.order_side));
