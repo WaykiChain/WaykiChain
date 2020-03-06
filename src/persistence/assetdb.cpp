@@ -25,16 +25,16 @@ bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
 }
 
 shared_ptr<string> CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {
-    size_t coinSymbolSize = symbol.size();
-    if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN) {
-        return make_shared<string>("empty or too long");
+    if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN) {
+        if (kCoinTypeSet.count(symbol))
+            return nullptr;
+
+        CAsset asset;
+        if (GetAsset(symbol, asset))
+            return nullptr;
     }
 
-    if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
-        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !HasAsset(symbol)))
-        return make_shared<string>("unsupported symbol");
-
-    return nullptr;
+    return make_shared<string>("unsupported symbol");
 }
 
 bool CAssetDBCache::Flush() {
