@@ -16,14 +16,11 @@ bool CAssetDBCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
     return assetCache.GetData(tokenSymbol, asset);
 }
 
-bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
-    return assetCache.HaveData(tokenSymbol);
-}
-
 bool CAssetDBCache::SetAsset(const CAsset &asset) {
     return assetCache.SetData(asset.asset_symbol, asset);
 }
-bool CAssetDBCache::HasAssetSymbol(const TokenSymbol &tokenSymbol) {
+
+bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HaveData(tokenSymbol);
 }
 
@@ -40,18 +37,7 @@ shared_ptr<string> CAssetDBCache::CheckTransferCoinSymbol(const TokenSymbol &sym
     return nullptr;
 }
 
-bool CAssetDBCache::AddAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetTradingPairCache.SetData(assetTradingPair, 1);
-}
-bool CAssetDBCache::EraseAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetTradingPairCache.EraseData(assetTradingPair);
-}
-bool CAssetDBCache::ExistAssetTradingPair(const CAssetTradingPair &assetTradingPair) {
-    return assetTradingPairCache.HaveData(assetTradingPair);
-}
-
 bool CAssetDBCache::Flush() {
     assetCache.Flush();
-    assetTradingPairCache.Flush();
     return true;
 }
