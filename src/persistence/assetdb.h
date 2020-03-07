@@ -22,11 +22,11 @@
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset$tokenSymbol -> asset>
-typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DBAssetCache;
+typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DbAssetCache;
 
-class CUserAssetsIterator: public CDbIterator<DBAssetCache> {
+class CUserAssetsIterator: public CDbIterator<DbAssetCache> {
 public:
-    typedef CDbIterator<DBAssetCache> Base;
+    typedef CDbIterator<DbAssetCache> Base;
     using Base::Base;
 
     const CAsset& GetAsset() const {
@@ -75,7 +75,7 @@ public:
 /*  CCompositeKVCache     prefixType            key              value           variable           */
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
-    DBAssetCache   assetCache;
+    DbAssetCache   assetCache;
     // // <asset_trading_pair -> 1>
     // CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
 };
