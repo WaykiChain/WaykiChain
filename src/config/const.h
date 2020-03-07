@@ -7,6 +7,7 @@
 #define CONFIG_CONST_H
 
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 
 using namespace std;
@@ -36,7 +37,7 @@ namespace SYMB {
 
     static const string GOLD        = "GOLD";
     static const string KWH         = "KWH";
-}
+};
 
 //default list below, can be also expanded thru DeGov
 static const unordered_set<string> kCoinTypeSet = {
