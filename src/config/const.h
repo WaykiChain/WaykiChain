@@ -86,7 +86,7 @@ namespace COIN_UNIT {
     static const string MWI  = "mwi";
 }
 
-static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeTable {
+static const unordered_map<string, uint64_t, CoinUnitTypeHash> CoinUnitTypeMap {
     {"sawi", 1                  },  // 0.00000001
     {"quwi", 10                 },  // 0.0000001
     {"muwi", 100                },  // 0.000001

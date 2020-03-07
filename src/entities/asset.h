@@ -52,8 +52,8 @@ struct ComboMoney {
     ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
 
     uint64_t GetAmountInSawi() const {
-        auto it = CoinUnitTypeTable.find(unit);
-        if (it != CoinUnitTypeTable.end())
+        auto it = CoinUnitTypeMap.find(unit);
+        if (it != CoinUnitTypeMap.end())
             return amount * it->second;
         
         assert(false && "coin unit not found");

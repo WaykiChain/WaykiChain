@@ -130,7 +130,7 @@ bool parseAmountAndUnit( vector<string>& comboMoneyArr, ComboMoney& comboMoney,c
 
     string strUnit = comboMoneyArr[1];
     std::for_each(strUnit.begin(), strUnit.end(), [](char &c) { c = ::tolower(c); });
-    if (!CoinUnitTypeTable.count(strUnit))
+    if (!CoinUnitTypeMap.count(strUnit))
         return false;
 
     if(!pow10(comboMoneyArr[0].c_str(), CoinUnitPrecisionTable.find(strUnit)->second, iValue))

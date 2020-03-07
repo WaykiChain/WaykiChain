@@ -50,7 +50,7 @@ Value getcoinunitinfo(const Array& params, bool fHelp){
 
 	// Declaring a set that will store the pairs using above comparision logic
 	std::set<std::pair<std::string, uint64_t>, Comparator> setOfUnits(
-			CoinUnitTypeTable.begin(), CoinUnitTypeTable.end(), compFunctor);
+			CoinUnitTypeMap.begin(), CoinUnitTypeMap.end(), compFunctor);
 
 	Object obj;
     for (auto& it: setOfUnits) {
