@@ -107,11 +107,10 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                         WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
-     auto newProposal = proposal.sp_proposal->GetNewInstance() ;
-     newProposal->expire_block_height = context.height + expireBlockCount ;
-     newProposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
+     proposal.sp_proposal->expire_block_height = context.height + expireBlockCount ;
+     proposal.sp_proposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
-     if (!cw.sysGovernCache.SetProposal(GetHash(), newProposal))
+     if (!cw.sysGovernCache.SetProposal(GetHash(), proposal.sp_proposal))
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx, set proposal info error"),
                         WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
 

@@ -76,8 +76,6 @@ public:
 /*  -------------------- --------------------   --------------  -------------   --------------------- */
     // <asset_tokenSymbol -> asset>
     DbAssetCache   assetCache;
-    // // <asset_trading_pair -> 1>
-    // CCompositeKVCache< dbk::ASSET_TRADING_PAIR, CAssetTradingPair,  uint8_t>        assetTradingPairCache;
 };
 
 #endif  // PERSIST_ASSETDB_H

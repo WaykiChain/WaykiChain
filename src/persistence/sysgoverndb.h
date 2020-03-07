@@ -53,9 +53,6 @@ public:
     }
 
 
-
-
-
     uint8_t GetGovernorApprovalMinCount(){
 
         vector<CRegID> regids;

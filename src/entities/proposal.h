@@ -59,7 +59,6 @@ public:
     CProposal() {}
     CProposal(ProposalType proposalTypeIn) : proposal_type(proposalTypeIn) {}
 
-    virtual shared_ptr<CProposal> GetNewInstance() { return nullptr; } ;
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
     virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
     virtual string ToString(){
@@ -125,9 +124,6 @@ public:
                 strprintf("op_type=%d", op_type);
     }
 
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CFeedCoinPairProposal>(*this); } ;
-
     bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
 
@@ -161,9 +157,6 @@ public:
         return  strprintf("feed_regid=%s,",feeder_regid.ToString()) + ", " +
                 strprintf("op_type=%d", op_type);
     }
-
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CPriceFeederProposal>(*this); } ;
 
     bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
@@ -211,8 +204,6 @@ public:
                 strprintf("op_type=%d", op_type);
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexQuoteCoinProposal>(*this); } ;
-
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -259,8 +250,6 @@ public:
         return baseString ;
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CParamsGovernProposal>(*this); } ;
-
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -295,8 +284,6 @@ public:
 
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CGovernorUpdateProposal>(*this); }
-
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -315,8 +302,6 @@ public:
     );
 
     CDexSwitchProposal(): CProposal(ProposalType::DEX_SWITCH){}
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CDexSwitchProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context ) override;
@@ -350,8 +335,6 @@ public:
         READWRITE(fee_symbol);
         READWRITE(VARINT(fee_sawi_amount));
     )
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CMinerFeeProposal>(*this); }
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -391,8 +374,6 @@ public:
 
 
     CCoinTransferProposal(): CProposal(ProposalType::COIN_TRANSFER) {}
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCoinTransferProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -456,8 +437,6 @@ public:
         return baseString ;
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpParamGovernProposal>(*this); } ;
-
     bool CheckProposal(CTxExecuteContext& context ) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -490,8 +469,6 @@ public:
         return baseString ;
     }
 
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CBPCountUpdateProposal>(*this); }
-
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -522,8 +499,6 @@ public:
         return  strprintf("cdp_coin_pair=%s", cdp_coin_pair.ToString()) + ", " +
                 strprintf("status=%s", GetCdpCoinPairStatusName(status));
     }
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CCdpCoinPairProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
@@ -598,8 +573,6 @@ public:
                         peer_chain_type, peer_chain_token_symbol, peer_chain_uid, peer_chain_txid, self_chain_uid.ToString(), swap_amount);
     }
     
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CXChainSwapInProposal>(*this); } ;
-
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
 
@@ -649,8 +622,6 @@ public:
         return  strprintf("self_chain_uid=%s, self_chain_token_symbol=%s, peer_chain_type=%d, peer_chain_uid=%, swap_amount=%llu",
                         self_chain_uid.ToString(), self_chain_token_symbol, peer_chain_type, peer_chain_uid, swap_amount);
     }
-
-    shared_ptr<CProposal> GetNewInstance() override { return make_shared<CXChainSwapOutProposal>(*this); } ;
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
