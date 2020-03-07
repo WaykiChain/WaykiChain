@@ -113,13 +113,13 @@ public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
     AssetType   asset_type;         //asset type
-    uint64_t    asset_perms_sum;    //a sum of asset perms
+    uint64_t    asset_perms_sum =0; //a sum of asset perms
     CUserID     owner_uid;          //creator or owner user id of the asset
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
 
 public:
-    CAsset(): asset_type(AssetType::NULL_ASSET) {}
+    CAsset(): asset_type(AssetType::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
 
     CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, uint64_t assetPermsSum,
             const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
