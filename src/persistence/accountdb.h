@@ -51,10 +51,10 @@ public:
     bool SetAccount(const CUserID &uid,     const CAccount &account);
     bool SaveAccount(const CAccount &account);
 
-    bool HaveAccount(const CKeyID &keyId) const;
-    bool HaveAccount(const CRegID &regId) const;
-    bool HaveAccount(const CNickID &nickId) const;
-    bool HaveAccount(const CUserID &userId) const;
+    bool HasAccount(const CKeyID &keyId) const;
+    bool HasAccount(const CRegID &regId) const;
+    bool HasAccount(const CNickID &nickId) const;
+    bool HasAccount(const CUserID &userId) const;
 
     bool EraseAccount(const CKeyID &keyId);
     bool EraseAccount(const CUserID &userId);

@@ -39,7 +39,7 @@ enum AccountPermType : uint64_t {
     PERM_SEND_UTXO      = (1 << 6 ),      
     PERM_RECV_UTXO      = (1 << 7 ),
     PERM_PROPOSE        = (1 << 8 ), //DeGov propose
-    PERM_MINE_BLOCK     = (1 << 9 ), // elected BP can mine blocks
+    PERM_MINE_BLOCK     = (1 << 9 ), //elected BP can mine blocks
     PERM_DEX            = (1 << 10), //freeze | unfreeze
     PERM_CDP            = (1 << 12), //pledge | unpledge
     PERM_XCHAIN         = (1 << 12), //swap in | out

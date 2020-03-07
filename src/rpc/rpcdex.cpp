@@ -500,7 +500,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
 
     DexOperatorDetail operatorDetail = RPC_PARAM::GetDexOperator(dexId);
 
-    if (!pCdMan->pAccountCache->HaveAccount(operatorDetail.fee_receiver_regid))
+    if (!pCdMan->pAccountCache->HasAccount(operatorDetail.fee_receiver_regid))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("operator account not existed! operator_regid=%s",
             operatorDetail.fee_receiver_regid.ToString()));
 

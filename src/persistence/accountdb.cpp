@@ -89,30 +89,30 @@ bool CAccountDBCache::SetAccount(const CNickID &nickId,const CAccount &account){
 }
 
 
-bool CAccountDBCache::HaveAccount(const CKeyID &keyId) const {
+bool CAccountDBCache::HasAccount(const CKeyID &keyId) const {
     return accountCache.HasData(keyId);
 }
 
-bool CAccountDBCache::HaveAccount(const CRegID &regId) const{
+bool CAccountDBCache::HasAccount(const CRegID &regId) const{
     return regId2KeyIdCache.HasData(regId);
 }
 
-bool CAccountDBCache::HaveAccount(const CNickID &nickId) const{
+bool CAccountDBCache::HasAccount(const CNickID &nickId) const{
     return nickId2KeyIdCache.HasData(CVarIntValue<uint64_t >(nickId.value));
 }
 
-bool CAccountDBCache::HaveAccount(const CUserID &userId) const {
+bool CAccountDBCache::HasAccount(const CUserID &userId) const {
     if (userId.is<CRegID>()) {
-        return HaveAccount(userId.get<CRegID>());
+        return HasAccount(userId.get<CRegID>());
 
     } else if (userId.is<CKeyID>()) {
-        return HaveAccount(userId.get<CKeyID>());
+        return HasAccount(userId.get<CKeyID>());
 
     } else if (userId.is<CPubKey>()) {
-        return HaveAccount(userId.get<CPubKey>().GetKeyId());
+        return HasAccount(userId.get<CPubKey>().GetKeyId());
 
     } else if (userId.is<CNickID>()) {
-        return HaveAccount(userId.get<CNickID>());
+        return HasAccount(userId.get<CNickID>());
 
     } else if (userId.is<CNullID>()) {
         return ERRORMSG("SetAccount input userid can't be CNullID type");

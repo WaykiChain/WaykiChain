@@ -187,7 +187,7 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
     }
     shared_ptr<CAccount> pMatchAccount;
     if (!pTxAccount->IsMyUid(data.fee_receiver_uid) && !pOwnerAccount->IsMyUid(data.fee_receiver_uid)) {
-        if (!cw.accountCache.HaveAccount(data.fee_receiver_uid))
+        if (!cw.accountCache.HasAccount(data.fee_receiver_uid))
             return state.DoS(100, ERRORMSG("CDEXOperatorRegisterTx::ExecuteTx, get match account failed! fee_receiver_uid=%s",
                 data.fee_receiver_uid.ToDebugString()), REJECT_INVALID, "match-account-not-exist");
     }
