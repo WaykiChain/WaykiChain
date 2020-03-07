@@ -122,7 +122,7 @@ bool CCdpDBCache::GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinP
     // TODO: GetDefaultData
     uint8_t value;
     if (!cdpCoinPairsCache.GetData(cdpCoinPair, value)) {
-        if (kCDPCoinPairSet.count(make_pair(cdpCoinPair.bcoin_symbol, cdpCoinPair.scoin_symbol)) > 0) {
+        if (kCdpCoinPairSet.count(make_pair(cdpCoinPair.bcoin_symbol, cdpCoinPair.scoin_symbol)) > 0) {
             status = CdpCoinPairStatus::NORMAL;
             return true;
         }
@@ -134,7 +134,7 @@ bool CCdpDBCache::GetCdpCoinPairStatus(const CCdpCoinPair &cdpCoinPair, CdpCoinP
 
 map<CCdpCoinPair, CdpCoinPairStatus> CCdpDBCache::GetCdpCoinPairMap() {
     map<CCdpCoinPair, CdpCoinPairStatus> ret;
-    for (auto item : kCDPCoinPairSet) {
+    for (auto item : kCdpCoinPairSet) {
         ret[CCdpCoinPair(item.first, item.second)] = CdpCoinPairStatus::NORMAL;
     }
     CDBIterator<decltype(cdpCoinPairsCache)> dbIt(cdpCoinPairsCache);

@@ -66,7 +66,7 @@ static const unordered_set<string> kScoinSymbolSet = {
 };
 
 //default list below, can be also updated thru DeGov
-static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCDPCoinPairSet = {
+static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCdpCoinPairSet = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WBTC, SYMB::WUSD},
     {SYMB::WETH, SYMB::WUSD},
@@ -106,6 +106,7 @@ struct ComboMoney {
         return amount;
     }
 };
+
 class CAssetTradingPair {
 public:
     TokenSymbol base_asset_symbol;
