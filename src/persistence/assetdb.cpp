@@ -12,19 +12,19 @@
 
 using namespace std;
 
-bool CAssetDBCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
+bool CAssetDbCache::GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset) {
     return assetCache.GetData(tokenSymbol, asset);
 }
 
-bool CAssetDBCache::SetAsset(const CAsset &asset) {
+bool CAssetDbCache::SetAsset(const CAsset &asset) {
     return assetCache.SetData(asset.asset_symbol, asset);
 }
 
-bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
+bool CAssetDbCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HasData(tokenSymbol);
 }
 
-bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum) {
+bool CAssetDbCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum) {
     if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
         return false;
 
@@ -41,7 +41,7 @@ bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSu
     return (permsSum == (asset.asset_perms_sum & permsSum));
 }
 
-bool CAssetDBCache::Flush() {
+bool CAssetDbCache::Flush() {
     assetCache.Flush();
     return true;
 }

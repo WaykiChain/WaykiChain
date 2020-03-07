@@ -29,7 +29,7 @@ public:
     CSysParamDBCache    sysParamCache;
     CBlockDBCache       blockCache;
     CAccountDBCache     accountCache;
-    CAssetDBCache       assetCache;
+    CAssetDbCache       assetCache;
     CContractDBCache    contractCache;
     CDelegateDBCache    delegateCache;
     CCdpDBCache         cdpCache;
@@ -74,7 +74,7 @@ public:
     CAccountDBCache     *pAccountCache;
 
     CDBAccess           *pAssetDb;
-    CAssetDBCache       *pAssetCache;
+    CAssetDbCache       *pAssetCache;
 
     CDBAccess           *pContractDb;
     CContractDBCache    *pContractCache;

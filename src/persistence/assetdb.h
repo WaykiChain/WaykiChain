@@ -34,15 +34,15 @@ public:
     }
 };
 
-class CAssetDBCache {
+class CAssetDbCache {
 public:
-    CAssetDBCache() {}
+    CAssetDbCache() {}
 
-    CAssetDBCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
+    CAssetDbCache(CDBAccess *pDbAccess) : assetCache(pDbAccess) {
         assert(pDbAccess->GetDbNameType() == DBNameType::ASSET);
     }
 
-    ~CAssetDBCache() {}
+    ~CAssetDbCache() {}
 
 public:
     bool GetAsset(const TokenSymbol &tokenSymbol, CAsset &asset);
@@ -55,7 +55,7 @@ public:
 
     uint32_t GetCacheSize() const { return assetCache.GetCacheSize(); }
 
-    void SetBaseViewPtr(CAssetDBCache *pBaseIn) {
+    void SetBaseViewPtr(CAssetDbCache *pBaseIn) {
         assetCache.SetBase(&pBaseIn->assetCache);
     }
 

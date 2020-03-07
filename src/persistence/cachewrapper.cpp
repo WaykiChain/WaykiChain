@@ -164,7 +164,7 @@ CCacheDBManager::CCacheDBManager(bool fReIndex, bool fMemory) {
     pAccountCache   = new CAccountDBCache(pAccountDb);
 
     pAssetDb        = new CDBAccess(dbDir, DBNameType::ASSET, false, fReIndex);
-    pAssetCache     = new CAssetDBCache(pAssetDb);
+    pAssetCache     = new CAssetDbCache(pAssetDb);
 
     pContractDb     = new CDBAccess(dbDir, DBNameType::CONTRACT, false, fReIndex);
     pContractCache  = new CContractDBCache(pContractDb);
