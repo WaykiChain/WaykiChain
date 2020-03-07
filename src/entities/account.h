@@ -26,6 +26,34 @@ using namespace json_spirit;
 
 class CAccountDBCache;
 
+
+// perms for an account
+enum AccountPermType : uint64_t {
+    NULL_ACCOUNT_PERM   = 0,        // no perm at all w/ the account
+    PERM_SEND_COIN      = (1 << 0 ),
+    PERM_RECV_COIN      = (1 << 1 ),
+    PERM_STAKE_COIN     = (1 << 2 ),
+    PERM_UNSTAKE_COIN   = (1 << 3 ),
+    PERM_SEND_VOTE      = (1 << 4 ),
+    PERM_RECV_VOTE      = (1 << 5 ),
+    PERM_SEND_UTXO      = (1 << 6 ),      
+    PERM_RECV_UTXO      = (1 << 7 ),
+    PERM_PROPOSE        = (1 << 8 ), //DeGov propose
+    PERM_MINE_BLOCK     = (1 << 9 ), // elected BP can mine blocks
+    PERM_DEX            = (1 << 10), //freeze | unfreeze
+    PERM_CDP            = (1 << 12), //pledge | unpledge
+    PERM_XCHAIN         = (1 << 12), //swap in | out
+    
+    
+};
+
+const uint64_t kAccountCommonPerms =  
+                  AccountPermType::PERM_SEND_COIN   + AccountPermType::PERM_RECV_COIN 
+                + AccountPermType::PERM_STAKE_COIN  + AccountPermType::PERM_UNSTAKE_COIN   
+                + AccountPermType::PERM_SEND_VOTE   + AccountPermType::PERM_RECV_VOTE 
+                + AccountPermType::PERM_SEND_UTXO   + AccountPermType::PERM_RECV_UTXO 
+                + AccountPermType::PERM_PROPOSE     + AccountPermType::PERM_MINE_BLOCK;
+
 enum BalanceType : uint8_t {
     NULL_TYPE    = 0,  //!< invalid type
     FREE_VALUE   = 1,

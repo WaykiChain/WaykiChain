@@ -24,7 +24,20 @@
 using namespace json_spirit;
 using namespace std;
 
-//default list below, can be also updated thru DeGov
+
+// perms for an asset group
+enum AssetPermType : uint64_t {
+    NULL_ASSET_PERM     = 0,        // no perm at all w/ the asset including coin transfer etc.
+    PERM_DEX_BASE       = (1 << 1 ),
+    PERM_DEX_QUOTE      = (1 << 2 ),
+    PERM_CDP_BCOIN      = (1 << 3 ),
+    PERM_CDP_SCOIN      = (1 << 4 ),
+    PERM_PRICE_FEED     = (1 << 5 ),
+    PERM_XCHAIN_SWAP    = (1 << 6 ),
+
+};
+
+//default list below, can be also expanded thru DeGov
 namespace SYMB {
     static const string WICC        = "WICC";
     static const string WGRT        = "WGRT";
@@ -51,7 +64,7 @@ namespace SYMB {
     static const string KWH         = "KWH";
 }
 
-//default list below, can be also updated thru DeGov
+//default list below, can be also expanded thru DeGov
 static const unordered_set<string> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
@@ -65,7 +78,7 @@ static const unordered_set<string> kScoinSymbolSet = {
     SYMB::WUSD, SYMB::WCNY
 };
 
-//default list below, can be also updated thru DeGov
+//default list below, can be also expanded thru DeGov
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCdpCoinPairSet = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WBTC, SYMB::WUSD},
@@ -149,16 +162,6 @@ enum AssetType : uint8_t {
     DIA             = 2, //decentralized issued asset
     UIA             = 3, //user issued asset
     MPA             = 4  //market pegged asset
-};
-
-enum AssetPermType : uint64_t {
-    NULL_ASSET_PERM = 0,
-    DEX_BASE        = (1 << 0),
-    DEX_QUOTE       = (1 << 1),
-    CDP_BCOIN       = (1 << 2),
-    CDP_SCOIN       = (1 << 3),
-    PRICE_FEED      = (1 << 4),
-    XCHAIN_SWAP     = (1 << 5)
 };
 
 ////////////////////////////////////////////////////////////////////

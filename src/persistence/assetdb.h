@@ -49,8 +49,7 @@ public:
     bool SetAsset(const CAsset &asset);
     bool HasAsset(const TokenSymbol &tokenSymbol);
 
-    bool CheckAssetSymbol(const TokenSymbol &symbol);
-    bool CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum);
+    bool CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum = 0);
 
     bool Flush();
 

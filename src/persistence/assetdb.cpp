@@ -24,7 +24,7 @@ bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HasData(tokenSymbol);
 }
 
-bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {
+bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum = 0) {
     if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
         return false;
 
@@ -35,21 +35,7 @@ bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol) {
     if (GetAsset(symbol, asset))
         return true;
 
-    return false;
-}
-
-bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum) {
-    if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
-        return false;
-
-    if (kCoinTypeSet.count(symbol))
-        return true;
-
-    CAsset asset;
-    if (!GetAsset(symbol, asset))
-        return false;
-
-    if (permsSum > asset.asset_perms_sum)
+     if (permsSum > asset.asset_perms_sum)
         return false;
 
     return (permsSum == (asset.asset_perms_sum & permsSum));
