@@ -24,9 +24,9 @@
     // <asset$tokenSymbol -> asset>
 typedef CCompositeKVCache< dbk::ASSET,         TokenSymbol,        CAsset>      DBAssetCache;
 
-class CUserAssetsIterator: public CDBIterator<DBAssetCache> {
+class CUserAssetsIterator: public CDbIterator<DBAssetCache> {
 public:
-    typedef CDBIterator<DBAssetCache> Base;
+    typedef CDbIterator<DBAssetCache> Base;
     using Base::Base;
 
     const CAsset& GetAsset() const {

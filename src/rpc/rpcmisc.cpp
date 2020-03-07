@@ -264,7 +264,7 @@ Value verifymessage(const Array& params, bool fHelp) {
 template<int32_t PREFIX_TYPE, typename KeyType, typename ValueType>
 string DbCacheToString(CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> &cache) {
     string str;
-    CDBIterator< CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> > it(cache);
+    CDbIterator< CCompositeKVCache<PREFIX_TYPE, KeyType, ValueType> > it(cache);
     for(it.First(); it.IsValid(); it.Next()) {
         str += strprintf("%s={%s},\n", db_util::ToString(it.GetKey()), db_util::ToString(it.GetValue()));
     }

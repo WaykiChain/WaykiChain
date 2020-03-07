@@ -268,13 +268,13 @@ private:
 };
 
 template<typename CacheType>
-class CDBIterator {
+class CDbIterator {
 public:
     typedef CDBCacheIteratorImpl<CacheType> IteratorImpl;
     typedef typename CacheType::KeyType KeyType;
     typedef typename CacheType::ValueType ValueType;
 
-    CDBIterator(CacheType &dbCacheIn): sp_it_Impl(IteratorImpl::Create(dbCacheIn)){
+    CDbIterator(CacheType &dbCacheIn): sp_it_Impl(IteratorImpl::Create(dbCacheIn)){
 
     }
     virtual bool First() {
@@ -395,9 +395,9 @@ struct CommonPrefixMatcher {
     }
 };
 template<typename CacheType, typename PrefixElement, typename PrefixMatcher = CommonPrefixMatcher>
-class CDBPrefixIterator: public CDBIterator<CacheType> {
+class CDBPrefixIterator: public CDbIterator<CacheType> {
 private:
-    typedef CDBIterator<CacheType> Base;
+    typedef CDbIterator<CacheType> Base;
     typedef typename CacheType::KeyType KeyType;
     typedef typename CacheType::ValueType ValueType;
 protected:

@@ -137,7 +137,7 @@ map<CCdpCoinPair, CdpCoinPairStatus> CCdpDBCache::GetCdpCoinPairMap() {
     for (auto item : kCdpCoinPairMap) {
         ret[CCdpCoinPair(item.second.first, item.second.second)] = CdpCoinPairStatus::NORMAL;
     }
-    CDBIterator<decltype(cdpCoinPairsCache)> dbIt(cdpCoinPairsCache);
+    CDbIterator<decltype(cdpCoinPairsCache)> dbIt(cdpCoinPairsCache);
     for (dbIt.First(); dbIt.IsValid(); dbIt.Next()) {
         ret[dbIt.GetKey()] = (CdpCoinPairStatus)dbIt.GetValue();
     }
