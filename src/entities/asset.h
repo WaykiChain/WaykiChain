@@ -24,6 +24,33 @@
 using namespace json_spirit;
 using namespace std;
 
+
+namespace SYMB {
+    static const string WICC        = "WICC";
+    static const string WGRT        = "WGRT";
+    static const string WUSD        = "WUSD";
+    static const string WCNY        = "WCNY";
+
+    static const string WBTC        = "WBTC";
+    static const string WETH        = "WETH";
+    static const string WEOS        = "WEOS";
+
+    static const string USD         = "USD";
+    static const string CNY         = "CNY";
+    static const string EUR         = "EUR";
+
+    static const string BTC         = "BTC";
+    static const string ETH         = "ETH";
+    static const string EOS         = "EOS";
+
+    static const string BTC_USDT    = "BTC_USDT";
+    static const string ETH_USDT    = "ETH_USDT";   //ERC20 USDT
+    static const string ETH_DAI     = "ETH_DAI";    //ERC20 DAI
+
+    static const string GOLD        = "GOLD";
+    static const string KWH         = "KWH";
+}
+
 struct ComboMoney {
     TokenSymbol     symbol;     //E.g. WICC
     uint64_t        amount;
@@ -42,6 +69,7 @@ struct ComboMoney {
     }
 };
 
+//default list below, can be also updated thru DeGov
 static const unordered_set<string> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
@@ -50,10 +78,12 @@ static const unordered_set<string> kCurrencyTypeSet = {
     SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
 };
 
+// must only be specified in code below
 static const unordered_set<string> kScoinSymbolSet = {
     SYMB::WUSD, SYMB::WCNY
 };
 
+//default list below, can be also updated thru DeGov
 static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCDPCoinPairSet = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WBTC, SYMB::WUSD},

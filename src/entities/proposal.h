@@ -546,6 +546,10 @@ static const std::map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
     // {SYMB::ETH_USDT, SYMB::WETH_USDT},
 };
 
+class CAssetProposal: public CProposal {
+
+};
+
 class CXChainSwapInProposal: public CProposal {
 public:
     ChainType   peer_chain_type = ChainType::BITCOIN;  //redudant, reference only
