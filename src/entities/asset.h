@@ -24,6 +24,14 @@
 using namespace json_spirit;
 using namespace std;
 
+// asset types
+enum AssetType : uint8_t {
+    NULL_ASSET      = 0,
+    NIA             = 1, //Natively Issued Asset
+    DIA             = 2, //DeGov Issued Asset
+    UIA             = 3, //User Issued Asset
+    MPA             = 4  //Market Pegged Asset
+};
 
 // perms for an asset group
 enum AssetPermType : uint64_t {
@@ -37,10 +45,61 @@ enum AssetPermType : uint64_t {
 
 };
 
+////////////////////////////////////////////////////////////////////
+/// Common Asset Definition, used when persisted inside state DB
+////////////////////////////////////////////////////////////////////
+class CAsset {
+public:
+    TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
+    TokenName   asset_name;         //asset long name, E.g WaykiChain coin
+    AssetType   asset_type;         //asset type
+    uint64_t    asset_perms_sum = 0;//a sum of asset perms
+    CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
+    uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
+    bool        mintable;           //whether this token can be minted in the future.
+
+public:
+    CAsset(): asset_type(AssetType::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
+
+    CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, uint64_t assetPermsSum,
+            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
+        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(assetType), asset_perms_sum(assetPermsSum),
+        owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(asset_symbol);
+        READWRITE(asset_name);
+        READWRITE((uint8_t &) asset_type);
+        READWRITE(VARINT(asset_perms_sum));
+        READWRITE(owner_uid);
+        READWRITE(VARINT(total_supply));
+        READWRITE(mintable);
+    )
+
+    bool IsEmpty() const { return owner_uid.IsEmpty(); }
+
+    void SetEmpty() {
+        asset_symbol.clear();
+        asset_name.clear();
+        asset_type = AssetType::NULL_ASSET;
+        asset_perms_sum = 0;
+        owner_uid.SetEmpty();
+        total_supply = 0;
+        mintable = false;
+    }
+
+    string ToString() const {
+        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, asset_perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
+                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid.ToString(), total_supply, mintable);
+    }
+};
+
+
 inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
     auto it = kCdpScoinToPriceQuoteMap.find(scoinSymbol);
     if (it != kCdpScoinToPriceQuoteMap.end())
         return it->second;
+
     return EMPTY_STRING;
 }
 
@@ -96,61 +155,5 @@ public:
         quote_asset_symbol.clear();
     }
 };
-
-enum AssetType : uint8_t {
-    NULL_ASSET      = 0,
-    NIA             = 1, //natively issued asset
-    DIA             = 2, //decentralized issued asset
-    UIA             = 3, //user issued asset
-    MPA             = 4  //market pegged asset
-};
-
-////////////////////////////////////////////////////////////////////
-/// Common Asset Definition, used when persisted inside state DB
-////////////////////////////////////////////////////////////////////
-class CAsset {
-public:
-    TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
-    TokenName   asset_name;         //asset long name, E.g WaykiChain coin
-    AssetType   asset_type;         //asset type
-    uint64_t    asset_perms_sum =0; //a sum of asset perms
-    CUserID     owner_uid;          //creator or owner user id of the asset
-    uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
-    bool        mintable;           //whether this token can be minted in the future.
-
-public:
-    CAsset(): asset_type(AssetType::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
-
-    CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, uint64_t assetPermsSum,
-            const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
-        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(assetType), asset_perms_sum(assetPermsSum),
-        owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
-
-    IMPLEMENT_SERIALIZE(
-        READWRITE(asset_symbol);
-        READWRITE(asset_name);
-        READWRITE((uint8_t &) asset_type);
-        READWRITE(VARINT(asset_perms_sum));
-        READWRITE(owner_uid);
-        READWRITE(VARINT(total_supply));
-        READWRITE(mintable);
-    )
-
-    bool IsEmpty() const { return owner_uid.IsEmpty(); }
-
-    void SetEmpty() {
-        owner_uid.SetEmpty();
-        asset_symbol.clear();
-        asset_name.clear();
-        mintable = false;
-        total_supply = 0;
-    }
-
-    string ToString() const {
-        return strprintf("asset_symbol=%s, asset_name=%s, asset_type=%d, asset_perms_sum=%llu, owner_uid=%s, total_supply=%llu, mintable=%d",
-                asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid.ToString(), total_supply, mintable);
-    }
-};
-
 
 #endif //ENTITIES_ASSET_H
