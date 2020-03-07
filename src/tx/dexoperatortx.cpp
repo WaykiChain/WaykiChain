@@ -219,11 +219,11 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "save-operator-error");
 
     if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::ExecuteTx, set tx account to db failed! txUid=%s",
+        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx account to db failed! txUid=%s",
             txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
 
     if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::ExecuteTx, set tx receipts failed!! txid=%s",
+        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
                         GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }
@@ -413,11 +413,11 @@ bool CDEXOperatorUpdateTx::ExecuteTx(CTxExecuteContext &context) {
                          UPDATE_ACCOUNT_FAIL, "save-updated-operator-error");
 
     if (!cw.accountCache.SetAccount(txUid, *pTxAccount))
-        return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::ExecuteTx, set tx account to db failed! txUid=%s",
+        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx account to db failed! txUid=%s",
                                        txUid.ToDebugString()), UPDATE_ACCOUNT_FAIL, "bad-set-accountdb");
 
     if(!cw.txReceiptCache.SetTxReceipts(GetHash(), receipts))
-        return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::ExecuteTx, set tx receipts failed!! txid=%s",
+        return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::ExecuteTx, set tx receipts failed!! txid=%s",
                                        GetHash().ToString()), REJECT_INVALID, "set-tx-receipt-failed");
     return true;
 }

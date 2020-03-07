@@ -563,7 +563,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     }
 
     CUserIssuedAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
-    CUserIssuedAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
+    CUserUpdateAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
     return SubmitTx(account.keyid, tx);
 }
 
@@ -595,13 +595,13 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
     const string &updateTypeStr = params[2].get_str();
     const Value &jsonUpdateValue = params[3].get_str();
 
-    auto pUpdateType = CUserIssuedAssetUpdate::ParseUpdateType(updateTypeStr);
+    auto pUpdateType = CUserUpdateAsset::ParseUpdateType(updateTypeStr);
     if (!pUpdateType)
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Invalid update_type=%s", updateTypeStr));
 
-    CUserIssuedAssetUpdate updateData;
+    CUserUpdateAsset updateData;
     switch(*pUpdateType) {
-        case CUserIssuedAssetUpdate::OWNER_UID: {
+        case CUserUpdateAsset::OWNER_UID: {
             const string &valueStr = jsonUpdateValue.get_str();
             auto pNewOwnerUid = CUserID::ParseUserId(valueStr);
             if (!pNewOwnerUid) {
@@ -611,7 +611,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             updateData.Set(*pNewOwnerUid);
             break;
         }
-        case CUserIssuedAssetUpdate::NAME: {
+        case CUserUpdateAsset::NAME: {
             const string &valueStr = jsonUpdateValue.get_str();
             if (valueStr.size() == 0 || valueStr.size() > MAX_ASSET_NAME_LEN) {
                 throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("invalid asset name! empty, or length=%d greater than %d",
@@ -620,7 +620,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
             updateData.Set(valueStr);
             break;
         }
-        case CUserIssuedAssetUpdate::MINT_AMOUNT: {
+        case CUserUpdateAsset::MINT_AMOUNT: {
             uint64_t mintAmount;
             if (jsonUpdateValue.type() == json_spirit::Value_type::int_type ) {
                 int64_t v = jsonUpdateValue.get_int64();
@@ -662,7 +662,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     int32_t validHeight = chainActive.Height();
 
-    if (*pUpdateType == CUserIssuedAssetUpdate::OWNER_UID) {
+    if (*pUpdateType == CUserUpdateAsset::OWNER_UID) {
         CUserID &ownerUid = updateData.get<CUserID>();
         if (account.IsMyUid(ownerUid))
             return JSONRPCError(RPC_INVALID_PARAMS, strprintf("the new owner uid=%s is belong to old owner account",
@@ -678,7 +678,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         ownerUid = newAccount.regid;
     }
 
-    CUserIssuedAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
+    CUserUpdateAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
     return SubmitTx(account.keyid, tx);
 }
 

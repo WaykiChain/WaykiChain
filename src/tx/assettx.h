@@ -45,19 +45,19 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &
 /**
  * Issue a new asset onto Chain
  */
-class CUserIssuedAssetUpdateTx: public CBaseTx {
+class CUserIssueAssetTx: public CBaseTx {
 public:
     CUserIssuedAsset  asset;          // UIA asset
     
 public:
-    CUserIssuedAssetUpdateTx() : CBaseTx(ASSET_ISSUE_TX) {};
+    CUserIssueAssetTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
-    CUserIssuedAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
+    CUserIssueAssetTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                   uint64_t fees, const CUserIssuedAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, feeSymbol, fees),
           asset(assetIn){}
 
-    ~CUserIssuedAssetUpdateTx() {}
+    ~CUserIssueAssetTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -76,7 +76,7 @@ public:
                    << fee_symbol << VARINT(llFees) << asset;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserIssuedAssetUpdateTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserUpdateAssetTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
@@ -85,7 +85,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-class CUserIssuedAssetUpdate {
+class CUserUpdateAsset {
 public:
     class CNullData {
     public:
@@ -113,7 +113,7 @@ public:
 
     static const string& GetUpdateTypeName(UpdateType type);
 public:
-    CUserIssuedAssetUpdate(): type(UPDATE_NONE), value(CNullData()) {}
+    CUserUpdateAsset(): type(UPDATE_NONE), value(CNullData()) {}
 
     void Set(const CUserID &ownerUid);
 
@@ -152,7 +152,7 @@ public:
             case NAME:          s << get<string>(); break;
             case MINT_AMOUNT:   s << VARINT(get<uint64_t>()); break;
             default: {
-                LogPrint(BCLog::ERROR, "CUserIssuedAssetUpdate::Serialize(), Invalid Asset update type=%d\n", type);
+                LogPrint(BCLog::ERROR, "CUserUpdateAsset::Serialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
             }
         }
@@ -181,7 +181,7 @@ public:
                 break;
             }
             default: {
-                LogPrint(BCLog::ERROR, "CUserIssuedAssetUpdate::Unserialize(), Invalid Asset update type=%d\n", type);
+                LogPrint(BCLog::ERROR, "CUserUpdateAsset::Unserialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
             }
         }
@@ -197,21 +197,21 @@ public:
 /**
  * Update an existing asset from Chain
  */
-class CUserIssuedAssetUpdateTx: public CBaseTx {
+class CUserUpdateAssetTx: public CBaseTx {
 public:
     TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
-    CUserIssuedAssetUpdate update_data;   // update data(type, value)
+    CUserUpdateAsset update_data;   // update data(type, value)
     
 public:
-    CUserIssuedAssetUpdateTx() : CBaseTx(UIA_UPDATE_TX) {}
+    CUserUpdateAssetTx() : CBaseTx(UIA_UPDATE_TX) {}
 
-    CUserIssuedAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                   uint64_t feesIn, const TokenSymbol &assetSymbolIn, const CUserIssuedAssetUpdate &updateData)
+    CUserUpdateAssetTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+                   uint64_t feesIn, const TokenSymbol &assetSymbolIn, const CUserUpdateAsset &updateData)
         : CBaseTx(UIA_UPDATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
           asset_symbol(assetSymbolIn),
           update_data(updateData) {}
 
-    ~CUserIssuedAssetUpdateTx() {}
+    ~CUserUpdateAssetTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -231,7 +231,7 @@ public:
                    << fee_symbol << VARINT(llFees) << asset_symbol << update_data;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserIssuedAssetUpdateTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserUpdateAssetTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
