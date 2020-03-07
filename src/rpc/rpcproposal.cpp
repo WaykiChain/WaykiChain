@@ -105,7 +105,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CParamsGovernProposal proposal ;
 
@@ -122,7 +122,7 @@ Value submitparamgovernproposal(const Array& params, bool fHelp){
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CParamsGovernProposal>(proposal)) ;
@@ -165,7 +165,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
     ComboMoney fee          = RPC_PARAM::GetFee(params, 5, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
 
 
@@ -183,7 +183,7 @@ Value submitcdpparamgovernproposal(const Array& params, bool fHelp){
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CCdpParamGovernProposal>(proposal)) ;
@@ -225,7 +225,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CGovernorUpdateProposal proposal ;
     proposal.governor_regid = governorId.get<CRegID>() ;
@@ -233,7 +233,7 @@ Value submitgovernorupdateproposal(const Array& params , bool fHelp) {
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CGovernorUpdateProposal>(proposal)) ;
@@ -268,7 +268,7 @@ Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CDexQuoteCoinProposal proposal ;
     proposal.coin_symbol = token ;
@@ -276,7 +276,7 @@ Value submitdexquotecoinproposal(const Array& params, bool fHelp) {
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CDexQuoteCoinProposal>(proposal)) ;
@@ -315,7 +315,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CFeedCoinPairProposal proposal ;
     proposal.feed_symbol = feedSymbol ;
@@ -324,7 +324,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CFeedCoinPairProposal>(proposal)) ;
@@ -362,7 +362,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CDexSwitchProposal proposal ;
     proposal.dexid = dexId ;
@@ -370,7 +370,7 @@ Value submitdexswitchproposal(const Array& params, bool fHelp) {
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CDexSwitchProposal>(proposal)) ;
@@ -402,11 +402,11 @@ Value submitproposalapprovaltx(const Array& params, bool fHelp){
     ComboMoney fee          = RPC_PARAM::GetFee(params, 2, PROPOSAL_REQUEST_TX);
     int32_t validHegiht  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CProposalApprovalTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol;
     tx.valid_height = validHegiht;
     tx.txid = proposalId ;
@@ -440,7 +440,7 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
     ComboMoney fee = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     if(bpCount <=0 || bpCount > BP_MAX_COUNT)
         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the range of bp_count is [0,%d]", BP_MAX_COUNT));
@@ -451,7 +451,7 @@ Value submitbpcountupdateproposal(const Array& params,bool fHelp) {
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CBPCountUpdateProposal>(proposal)) ;
@@ -487,16 +487,16 @@ Value submitminerfeeproposal(const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CMinerFeeProposal proposal ;
     proposal.tx_type = TxType(txType)  ;
     proposal.fee_symbol = feeInfo.symbol;
-    proposal.fee_sawi_amount = feeInfo.GetSawiAmount();
+    proposal.fee_sawi_amount = feeInfo.GetAmountInSawi();
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CMinerFeeProposal>(proposal)) ;
@@ -537,24 +537,24 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     if (!pCdMan->pAssetCache->CheckAssetSymbol(transferInfo.symbol))
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", transferInfo.symbol));
 
-    if (transferInfo.GetSawiAmount() == 0)
+    if (transferInfo.GetAmountInSawi() == 0)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
     CAccount fromAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, fromUid);
-    RPC_PARAM::CheckAccountBalance(fromAccount, transferInfo.symbol, SUB_FREE, transferInfo.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(fromAccount, transferInfo.symbol, SUB_FREE, transferInfo.GetAmountInSawi());
 
     CAccount txAccount = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(txAccount, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CCoinTransferProposal proposal;
     proposal.from_uid   = fromUid;
     proposal.to_uid     = toUid;
     proposal.token      = transferInfo.symbol;
-    proposal.amount     = transferInfo.GetSawiAmount();
+    proposal.amount     = transferInfo.GetAmountInSawi();
 
     CProposalRequestTx tx;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol   = fee.symbol;
     tx.valid_height = validHeight;
     tx.proposal     = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
@@ -598,7 +598,7 @@ Value submitpricefeederproposal(const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
     CPriceFeederProposal proposal ;
     proposal.feeder_regid = priceFeederId.get<CRegID>() ;
@@ -606,7 +606,7 @@ Value submitpricefeederproposal(const Array& params, bool fHelp) {
 
     CProposalRequestTx tx ;
     tx.txUid        = txUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.fee_symbol    = fee.symbol ;
     tx.valid_height = validHeight;
     tx.proposal = CProposalStorageBean(std::make_shared<CPriceFeederProposal>(proposal)) ;

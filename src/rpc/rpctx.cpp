@@ -77,7 +77,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
 
     if (account.HaveOwnerPubKey())
         throw JSONRPCError(RPC_WALLET_ERROR, "Account was already registered");
@@ -95,7 +95,7 @@ Value submitaccountregistertx(const Array& params, bool fHelp) {
     CAccountRegisterTx tx;
     tx.txUid        = pubkey;
     tx.minerUid     = minerUid;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.valid_height = validHeight;
 
     return SubmitTx(account.keyid, tx);
@@ -125,7 +125,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     int32_t validHeight  = chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
     if(!account.nickid.IsEmpty()){
         throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
     }
@@ -145,7 +145,7 @@ Value submitnickidregistertx(const Array& params, bool fHelp) {
     }
 
 
-    std::shared_ptr<CNickIdRegisterTx> pBaseTx = std::make_shared<CNickIdRegisterTx>(txUid, nickid, fee.GetSawiAmount(), fee.symbol, validHeight);
+    std::shared_ptr<CNickIdRegisterTx> pBaseTx = std::make_shared<CNickIdRegisterTx>(txUid, nickid, fee.GetAmountInSawi(), fee.symbol, validHeight);
 
     return SubmitTx(account.keyid, *pBaseTx);
 }
@@ -215,7 +215,7 @@ Value submitutxospendtx(const Array& params, bool fHelp) {
 
 
     // CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    // RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    // RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
     // if(!account.nickid.IsEmpty()){
     //     throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
     // }
@@ -234,7 +234,7 @@ Value submitutxospendtx(const Array& params, bool fHelp) {
     // entity.is_null     = false ;
 
     // auto pBaseTx = std::make_shared<CCoinUtxoTransferTx>(sendUserId,chainActive.Height(),
-    //                                              cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
+    //                                              cmFee.symbol, cmFee.GetAmountInSawi(),entity, memo);
     // pBaseTx->prior_utxo_secret = prior_utxo_secret ;
     // pBaseTx->prior_utxo_txid   = prior_utxo_txid ;
 
@@ -310,7 +310,7 @@ Value submitcreateutxotx(const Array& params, bool fHelp ){
 
 
     // CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    // RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    // RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
     // if(!account.nickid.IsEmpty()){
     //     throw JSONRPCError(RPC_WALLET_ERROR,"the account have nickid already!");
     // }
@@ -325,14 +325,14 @@ Value submitcreateutxotx(const Array& params, bool fHelp ){
 
     // UTXOEntity entity ;
     // entity.coin_symbol = cmCoin.symbol ;
-    // entity.coin_amount = cmCoin.GetSawiAmount() ;
+    // entity.coin_amount = cmCoin.GetAmountInSawi() ;
     // entity.to_uid      = recvUserId ;
     // entity.lock_duration = lock_duration ;
     // entity.htlc_cond = hc ;
     // entity.is_null     = false ;
 
     // auto pBaseTx = std::make_shared<CCoinUtxoTransferTx>(sendUserId,chainActive.Height(),
-    //         cmFee.symbol, cmFee.GetSawiAmount(),entity, memo);
+    //         cmFee.symbol, cmFee.GetAmountInSawi(),entity, memo);
 
 
     // return SubmitTx(account.keyid, *pBaseTx);
@@ -379,12 +379,12 @@ Value submitcontractdeploytx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Regid does not exist or immature");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
 
     CLuaContractDeployTx tx;
     tx.txUid        = txUid;
     tx.contract     = CLuaContract(contractScript, memo);
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.nRunStep     = tx.contract.GetContractSize();
     tx.valid_height = validHegiht;
 
@@ -440,14 +440,14 @@ Value submitcontractcalltx(const Array& params, bool fHelp) {
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
     RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, amount);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
 
     CLuaContractInvokeTx tx;
     tx.nTxType      = LCONTRACT_INVOKE_TX;
     tx.txUid        = txUid;
     tx.app_uid      = appUid;
     tx.coin_amount  = amount;
-    tx.llFees       = fee.GetSawiAmount();
+    tx.llFees       = fee.GetAmountInSawi();
     tx.arguments    = arguments;
     tx.valid_height = validHegiht;
 
@@ -496,11 +496,11 @@ Value submitdelegatevotetx(const Array& params, bool fHelp) {
     int32_t validHegiht  = params.size() > 3 ? params[3].get_int() : chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, SYMB::WICC, SUB_FREE, fee.GetAmountInSawi());
 
     CDelegateVoteTx delegateVoteTx;
     delegateVoteTx.txUid        = txUid;
-    delegateVoteTx.llFees       = fee.GetSawiAmount();
+    delegateVoteTx.llFees       = fee.GetAmountInSawi();
     delegateVoteTx.valid_height = validHegiht;
 
     Array arrVotes = params[1].get_array();
@@ -572,13 +572,13 @@ Value submitucontractdeploytx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Contract memo is too large");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     CUniversalContractDeployTx tx;
     tx.txUid        = txUid;
     tx.contract     = CUniversalContract(contractScript, memo);
     tx.fee_symbol   = cmFee.symbol;
-    tx.llFees       = cmFee.GetSawiAmount();
+    tx.llFees       = cmFee.GetAmountInSawi();
     tx.nRunStep     = tx.contract.GetContractSize();
     tx.valid_height = validHegiht;
 
@@ -636,17 +636,17 @@ Value submitucontractcalltx(const Array& params, bool fHelp) {
     int32_t validHegiht = (params.size() > 5) ? params[5].get_int() : chainActive.Height();
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     CUniversalContractInvokeTx tx;
     tx.nTxType      = UCONTRACT_INVOKE_TX;
     tx.txUid        = txUid;
     tx.app_uid      = appUid;
     tx.coin_symbol  = cmCoin.symbol;
-    tx.coin_amount  = cmCoin.GetSawiAmount();
+    tx.coin_amount  = cmCoin.GetAmountInSawi();
     tx.fee_symbol   = cmFee.symbol;
-    tx.llFees       = cmFee.GetSawiAmount();
+    tx.llFees       = cmFee.GetAmountInSawi();
     tx.arguments    = arguments;
     tx.valid_height = validHegiht;
 

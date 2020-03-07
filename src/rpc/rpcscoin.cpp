@@ -90,10 +90,10 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, feedUid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     int32_t validHeight = chainActive.Height();
-    CPriceFeedTx tx(feedUid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), pricePoints);
+    CPriceFeedTx tx(feedUid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), pricePoints);
 
     return SubmitTx(account.keyid, tx);
 }
@@ -146,9 +146,9 @@ Value submitcoinstaketx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, userId);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
-    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), action, coinAmount.symbol, coinAmount.GetSawiAmount());
+    CCoinStakeTx tx(userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), action, coinAmount.symbol, coinAmount.GetAmountInSawi());
     return SubmitTx(account.keyid, tx);
 }
 
@@ -541,7 +541,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     uint64_t assetIssueFee; //550 WICC
     if (!pCdMan->pSysParamCache->GetParam(ASSET_ISSUE_FEE, assetIssueFee))
@@ -564,7 +564,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     }
 
     CUserIssuedAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
-    CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), asset);
+    CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
     return SubmitTx(account.keyid, tx);
 }
 
@@ -654,7 +654,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     uint64_t assetUpdateFee;
     if (!pCdMan->pSysParamCache->GetParam(ASSET_UPDATE_FEE, assetUpdateFee))
@@ -679,7 +679,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         ownerUid = newAccount.regid;
     }
 
-    CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetSawiAmount(), assetSymbol, updateData);
+    CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
     return SubmitTx(account.keyid, tx);
 }
 

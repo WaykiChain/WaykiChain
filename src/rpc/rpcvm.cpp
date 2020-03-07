@@ -131,7 +131,7 @@ Value vmexecutescript(const Array& params, bool fHelp) {
     if (params.size() > 4) {
         ComboMoney feeIn = RPC_PARAM::GetFee(params, 4, LCONTRACT_DEPLOY_TX);
         assert(feeIn.symbol == SYMB::WICC);
-        totalFee = feeIn.GetSawiAmount();
+        totalFee = feeIn.GetAmountInSawi();
     }
 
     if (totalFee < minFee) {

@@ -73,7 +73,7 @@ Value gensendtxraw(const Array& params, bool fHelp) {
     std::shared_ptr<CCoinTransferTx> tx;
 
     tx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
-                                                cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
+                                                cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
 
 
     if (!pWalletMain->Sign(keyID, tx->GetHash(), tx->signature)) {

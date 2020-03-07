@@ -183,12 +183,12 @@ Value submitwasmcontractdeploytx( const Array &params, bool fHelp ) {
                           wasm_chain::account_access_exception,
                           "authorizer '%s' does not exist ",
                           authorizer_name.to_string().c_str())
-            RPC_PARAM::CheckAccountBalance(authorizer, fee.symbol, SUB_FREE, fee.GetSawiAmount());
+            RPC_PARAM::CheckAccountBalance(authorizer, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
 
             tx.nTxType      = WASM_CONTRACT_TX;
             tx.txUid        = authorizer.regid;
             tx.fee_symbol   = fee.symbol;
-            tx.llFees       = fee.GetSawiAmount();
+            tx.llFees       = fee.GetAmountInSawi();
             tx.valid_height = chainActive.Tip()->height;
             tx.inline_transactions.push_back({wasmio, wasm::N(setcode), std::vector<permission>{{authorizer_name.value, wasmio_owner}},
                                              wasm::pack(std::tuple(contract.value, code, abi, ""))});
@@ -273,7 +273,7 @@ Value submitwasmcontractcalltx( const Array &params, bool fHelp ) {
             tx.txUid        = authorizer.regid;
             tx.valid_height = chainActive.Height();
             tx.fee_symbol   = fee.symbol;
-            tx.llFees       = fee.GetSawiAmount();
+            tx.llFees       = fee.GetAmountInSawi();
 
             //for(int i = 0; i < 300 ; i++)
             tx.inline_transactions.push_back({contract_name.value, action.value, std::vector<permission>{{authorizer_name.value, wasmio_owner}}, action_data});

@@ -317,8 +317,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Coins is zero!");
 
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, sendUserId);
-    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetSawiAmount());
-    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetSawiAmount());
+    RPC_PARAM::CheckAccountBalance(account, cmCoin.symbol, SUB_FREE, cmCoin.GetAmountInSawi());
+    RPC_PARAM::CheckAccountBalance(account, cmFee.symbol, SUB_FREE, cmFee.GetAmountInSawi());
 
     string memo    = params.size() == 5 ? params[4].get_str() : "";
     int32_t height = chainActive.Height();
@@ -326,7 +326,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
 
     if (GetFeatureForkVersion(height) >= MAJOR_VER_R2) {
         pBaseTx = std::make_shared<CCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.symbol,
-            cmCoin.GetSawiAmount(), cmFee.symbol, cmFee.GetSawiAmount(), memo);
+            cmCoin.GetAmountInSawi(), cmFee.symbol, cmFee.GetAmountInSawi(), memo);
     } else { // MAJOR_VER_R1
         if (cmCoin.symbol != SYMB::WICC || cmFee.symbol != SYMB::WICC)
             throw JSONRPCError(REJECT_INVALID, strprintf("Only support WICC for coin symbol or fee symbol before "
@@ -336,8 +336,8 @@ Value submitsendtx(const Array& params, bool fHelp) {
             throw JSONRPCError(REJECT_INVALID, strprintf("%s is unregistered, should register first",
                                                          sendUserId.get<CKeyID>().ToAddress()));
 
-        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetSawiAmount(),
-            cmFee.GetSawiAmount(), memo);
+        pBaseTx = std::make_shared<CBaseCoinTransferTx>(sendUserId, recvUserId, height, cmCoin.GetAmountInSawi(),
+            cmFee.GetAmountInSawi(), memo);
     }
 
     return SubmitTx(account.keyid, *pBaseTx);
@@ -416,8 +416,8 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     int32_t height = chainActive.Height();
 
     std::shared_ptr<CBaseTx> pBaseTx;
-    pBaseTx = std::make_shared<CMulsigTx>(recvUserId, height, cmCoin.symbol, cmCoin.GetSawiAmount(), cmFee.symbol,
-                                          cmFee.GetSawiAmount(), memo, required, signaturePairs);
+    pBaseTx = std::make_shared<CMulsigTx>(recvUserId, height, cmCoin.symbol, cmCoin.GetAmountInSawi(), cmFee.symbol,
+                                          cmFee.GetAmountInSawi(), memo, required, signaturePairs);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pBaseTx;

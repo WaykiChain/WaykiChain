@@ -460,7 +460,7 @@ ComboMoney RPC_PARAM::GetFee(const Array& params, const size_t index, const TxTy
         if (!GetTxMinFee(txType, chainActive.Height(), fee.symbol, minFee))
             throw JSONRPCError(RPC_INVALID_PARAMS,
                 strprintf("Can not find the min tx fee! symbol=%s", fee.symbol));
-        if (fee.GetSawiAmount() < minFee)
+        if (fee.GetAmountInSawi() < minFee)
             throw JSONRPCError(RPC_INVALID_PARAMS,
                 strprintf("The given fee is too small: %llu < %llu sawi", fee.amount, minFee));
     } else {

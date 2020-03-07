@@ -24,7 +24,7 @@
 using namespace json_spirit;
 using namespace std;
 
-
+//default list below, can be also updated thru DeGov
 namespace SYMB {
     static const string WICC        = "WICC";
     static const string WGRT        = "WGRT";
@@ -50,24 +50,6 @@ namespace SYMB {
     static const string GOLD        = "GOLD";
     static const string KWH         = "KWH";
 }
-
-struct ComboMoney {
-    TokenSymbol     symbol;     //E.g. WICC
-    uint64_t        amount;
-    CoinUnitName    unit;       //E.g. sawi
-
-    ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
-
-    uint64_t GetSawiAmount() const {
-        auto it = CoinUnitTypeTable.find(unit);
-        if (it != CoinUnitTypeTable.end()) {
-            return amount * it->second;
-        } else {
-            assert(false && "coin unit not found");
-            return amount;
-        }
-    }
-};
 
 //default list below, can be also updated thru DeGov
 static const unordered_set<string> kCoinTypeSet = {
@@ -107,6 +89,23 @@ inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol
         return it->second;
     return EMPTY_STRING;
 }
+
+struct ComboMoney {
+    TokenSymbol     symbol;     //E.g. WICC
+    uint64_t        amount;
+    CoinUnitName    unit;       //E.g. sawi
+
+    ComboMoney() : symbol(SYMB::WICC), amount(0), unit(COIN_UNIT::SAWI){};
+
+    uint64_t GetAmountInSawi() const {
+        auto it = CoinUnitTypeTable.find(unit);
+        if (it != CoinUnitTypeTable.end())
+            return amount * it->second;
+        
+        assert(false && "coin unit not found");
+        return amount;
+    }
+};
 class CAssetTradingPair {
 public:
     TokenSymbol base_asset_symbol;
