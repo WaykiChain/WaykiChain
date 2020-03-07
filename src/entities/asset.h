@@ -161,7 +161,7 @@ public:
 };
 
 // Check it when supplied from external like Tx or RPC calls
-static bool CheckSymbol(const AssetCategory AssetCategory, const TokenSymbol &assetSymbol, string &errMsg) {
+bool CheckSymbol(const AssetCategory AssetCategory, const TokenSymbol &assetSymbol, string &errMsg) {
     uint32_t symbolSizeMin = 3;
     uint32_t symbolSizeMax = 7;
 
