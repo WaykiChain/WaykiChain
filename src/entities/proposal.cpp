@@ -246,7 +246,7 @@ bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
                 __func__, cdp_coin_pair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
 
-    if (CheckAsset(cdp_coin_pair.bcoin_symbol, AssetPermType::PERM_CDP_BCOIN))
+    if (!cw.assetCache.CheckAsset(cdp_coin_pair.bcoin_symbol, AssetPermType::PERM_CDP_BCOIN))
         return state.DoS(100, ERRORMSG("%s(), unsupported cdp bcoin symbol=%s!", cdp_coin_pair.bcoin_symbol),
             REJECT_INVALID, "unsupported-asset-bcoin-symbol");
 
@@ -399,7 +399,7 @@ bool CFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: op_type is null "),
                          REJECT_INVALID, "bad-op-type") ;
 
-    if (!CheckAsset(feed_symbol, AssetPermType::PERM_PRICE_FEED))
+    if (!cw.assetCache.CheckAsset(feed_symbol, AssetPermType::PERM_PRICE_FEED))
         return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal: feed_symbol invalid"),
                          REJECT_INVALID, "bad-symbol") ;
 

@@ -68,7 +68,7 @@ Value submitpricefeedtx(const Array& params, bool fHelp) {
         }
 
         string coinStr = coinValue.get_str();
-        if (!CheckAsset(coinStr, AssetPermType::PERM_PRICE_FEED))
+        if (!pCdMan->pAssetCache->CheckAsset(coinStr, AssetPermType::PERM_PRICE_FEED))
             throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("Invalid price feed symbol: %s", coinStr));
     
         string currencyStr = currencyValue.get_str();
