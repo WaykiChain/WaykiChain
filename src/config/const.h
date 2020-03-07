@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
+#include "common/types.h"
 
 using namespace std;
 
