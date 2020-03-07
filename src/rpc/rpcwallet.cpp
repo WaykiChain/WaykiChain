@@ -310,7 +310,7 @@ Value submitsendtx(const Array& params, bool fHelp) {
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_TX);
 
-    if (!pCdMan->pAssetCache->CheckAssetSymbol(cmCoin.symbol))
+    if (!pCdMan->pAssetCache->CheckAsset(cmCoin.symbol))
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", cmCoin.symbol));
 
     if (cmCoin.amount == 0)
@@ -360,12 +360,13 @@ Value genmulsigtx(const Array& params, bool fHelp) {
             "\nResult:\n"
             "\"rawtx\"                  (string) The raw transaction without any signatures\n"
             "\nExamples:\n" +
-            HelpExampleCli("genmulsigtx",
-                           "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
-                           "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
-                           "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
-                           "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, "
-                           "WaykiChain!\"") +
+            HelpExampleCli(
+                "genmulsigtx",
+                "\"0203210233e68ec1402f875af47201efca7c9f210c93f10016ad73d6cd789212d5571"
+                "e9521031f3d66a05bf20e83e046b74d9073d925f5dce29970623595bc4d66ed81781dd5"
+                "21034819476f12ac0e53bd82bc3205c91c40e9c569b08af8db04503afdebceb7134c\" "
+                "\"wNDue1jHcgRSioSDL4o1AzXz3D72gCMkP6\" \"WICC:1000000:sawi\" \"WICC:10000:sawi\" \"Hello, "
+                "WaykiChain!\"") +
             "\nAs json rpc call\n" +
             HelpExampleRpc(
                 "genmulsigtx",
@@ -406,7 +407,7 @@ Value genmulsigtx(const Array& params, bool fHelp) {
     ComboMoney cmCoin  = RPC_PARAM::GetComboMoney(params[2], SYMB::WICC);
     ComboMoney cmFee   = RPC_PARAM::GetFee(params, 3, UCOIN_TRANSFER_MTX);
 
-    if (!pCdMan->pAssetCache->CheckAssetSymbol(cmCoin.symbol))
+    if (!pCdMan->pAssetCache->CheckAsset(cmCoin.symbol))
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", cmCoin.symbol));
 
     if (cmCoin.amount == 0)

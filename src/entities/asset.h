@@ -94,7 +94,6 @@ public:
     }
 };
 
-
 inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
     auto it = kCdpScoinToPriceQuoteMap.find(scoinSymbol);
     if (it != kCdpScoinToPriceQuoteMap.end())
@@ -155,5 +154,40 @@ public:
         quote_asset_symbol.clear();
     }
 };
+
+// Check it when supplied from external like Tx or RPC calls
+static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
+    uint32_t symbolSizeMin = 3;
+    uint32_t symbolSizeMax = 7;
+
+    switch (assetType) {
+        case AssetType::NIA :
+        case AssetType::DIA :
+        case AssetType::MPA :
+            break;
+
+        case AssetType::UIA :
+            symbolSizeMin = 6;
+            symbolSizeMax = 8;
+            break;
+
+        default:
+            return false;
+    }
+
+    size_t symbolSize = assetSymbol.size();
+    if (symbolSize < symbolSizeMin || symbolSize > symbolSizeMax) {
+        errMsg = strprintf("symbol len=%d, but it must be within range[%d, %d]", symbolSize, 2, 7);
+        return false;
+    }
+    for (auto ch : assetSymbol) {
+        if ( ch < 'A' || ch > 'Z') {
+            errMsg = strprintf("Invalid char in symbol: %d", ch);
+            return false;
+        }
+    }
+    
+    return true;
+}
 
 #endif //ENTITIES_ASSET_H

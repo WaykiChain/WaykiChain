@@ -30,7 +30,6 @@ bool CheckIsGovernor(CRegID account, ProposalType proposalType, CCacheWrapper& c
 
 }
 
-
 uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw ) {
 
     if(proposalType == ProposalType::BP_COUNT_UPDATE)
@@ -160,54 +159,43 @@ Object CProposalApprovalTx::ToJson(const CAccountDBCache &accountCache) const {
 }
 
 bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
-
-     IMPLEMENT_DEFINE_CW_STATE
-
+    IMPLEMENT_DEFINE_CW_STATE
 
     shared_ptr<CProposal> proposal ;
-    if(!cw.sysGovernCache.GetProposal(txid,proposal)){
+    if (!cw.sysGovernCache.GetProposal(txid,proposal))
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::CheckTx, proposal(id=%s)  not found", txid.ToString()),
                          WRITE_ACCOUNT_FAIL, "proposal-not-found");
-    }
 
     auto assentedCount = cw.sysGovernCache.GetApprovalCount(txid);
-    if(assentedCount >= proposal->approval_min_count){
+    if (assentedCount >= proposal->approval_min_count)
         return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal executed already"),
                          WRITE_ACCOUNT_FAIL, "proposal-executed-already");
-    }
 
      CAccount srcAccount;
-     if (!cw.accountCache.GetAccount(txUid, srcAccount)) {
+     if (!cw.accountCache.GetAccount(txUid, srcAccount))
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, read source addr account info error"),
                           READ_ACCOUNT_FAIL, "bad-read-accountdb");
-     }
 
-     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees)) {
+     if (!srcAccount.OperateBalance(fee_symbol, SUB_FREE, llFees))
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
                           UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
-     }
 
-     if(proposal->expire_block_height < context.height){
+     if (proposal->expire_block_height < context.height)
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
                           WRITE_ACCOUNT_FAIL, "proposal-expired");
-     }
 
      if (!cw.accountCache.SetAccount(CUserID(srcAccount.keyid), srcAccount))
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set account info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-accountdb");
 
-     if(!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>())){
+     if (!cw.sysGovernCache.SetApproval(txid, txUid.get<CRegID>()))
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, set proposal approval info error"),
                           WRITE_ACCOUNT_FAIL, "bad-write-proposaldb");
-     }
 
-
-     if( assentedCount+1 == proposal->approval_min_count){
-
-         if(!proposal->ExecuteProposal(context)){
+     if (assentedCount + 1 == proposal->approval_min_count) {
+         if (!proposal->ExecuteProposal(context))
              return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal execute error"),
                               WRITE_ACCOUNT_FAIL, "proposal-execute-error");
-         }
      }
 
      return true ;

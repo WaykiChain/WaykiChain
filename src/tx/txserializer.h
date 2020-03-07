@@ -62,9 +62,9 @@ void CBaseTx::SerializePtr(Stream& os, const std::shared_ptr<CBaseTx> &pBaseTx, 
         case UCOIN_STAKE_TX:
             ::Serialize(os, (const CCoinStakeTx&)tx, serType, version); break;
         case ASSET_ISSUE_TX:
-            ::Serialize(os, (const CAssetIssueTx&)tx, serType, version); break;
-        case ASSET_UPDATE_TX:
-            ::Serialize(os, (const CAssetUpdateTx&)tx, serType, version); break;
+            ::Serialize(os, (const CUserIssuedAssetUpdateTx&)tx, serType, version); break;
+        case UIA_UPDATE_TX:
+            ::Serialize(os, (const CUserIssuedAssetUpdateTx&)tx, serType, version); break;
 
         case UTXO_TRANSFER_TX:
             ::Serialize(os, (const CCoinUtxoTransferTx&)tx, serType, version); break;
@@ -182,14 +182,14 @@ void CBaseTx::UnserializePtr(Stream& is, std::shared_ptr<CBaseTx> &pBaseTx, int 
         }
 
         case ASSET_ISSUE_TX: {
-            pBaseTx = std::make_shared<CAssetIssueTx>();
-            ::Unserialize(is, *((CAssetIssueTx *)(pBaseTx.get())), serType, version);
+            pBaseTx = std::make_shared<CUserIssuedAssetUpdateTx>();
+            ::Unserialize(is, *((CUserIssuedAssetUpdateTx *)(pBaseTx.get())), serType, version);
             break;
         }
 
-        case ASSET_UPDATE_TX: {
-            pBaseTx = std::make_shared<CAssetUpdateTx>();
-            ::Unserialize(is, *((CAssetUpdateTx *)(pBaseTx.get())), serType, version);
+        case UIA_UPDATE_TX: {
+            pBaseTx = std::make_shared<CUserIssuedAssetUpdateTx>();
+            ::Unserialize(is, *((CUserIssuedAssetUpdateTx *)(pBaseTx.get())), serType, version);
             break;
         }
 

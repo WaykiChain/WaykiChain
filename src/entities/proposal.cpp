@@ -4,36 +4,20 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 
+#include "config/txbase.h"
 #include "config/const.h"
 #include "entities/proposal.h"
+#include "persistence/assetdb.h"
 #include "persistence/cachewrapper.h"
+
 #include <algorithm>
 #include "main.h"
 #include <set>
-#include "config/txbase.h"
 
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType,CCacheWrapper&cw );
 extern uint8_t GetGovernorApprovalMinCount(ProposalType proposalType, CCacheWrapper& cw );
 
-bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
-    CCacheWrapper &cw       = *context.pCw;
-
-    for( auto pa: param_values){
-        auto itr = SysParamTable.find(SysParamType(pa.first));
-        if(itr == SysParamTable.end())
-            return false ;
-
-        if(!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second)){
-            return false ;
-        }
-
-    }
-
-    return true ;
-
-}
-
- bool CParamsGovernProposal::CheckProposal(CTxExecuteContext& context ) {
+bool CParamsGovernProposal::CheckProposal(CTxExecuteContext& context ) {
      CValidationState &state = *context.pState;
 
      if(param_values.size() == 0)
@@ -53,6 +37,25 @@ bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
 
      return true ;
 }
+
+bool CParamsGovernProposal::ExecuteProposal(CTxExecuteContext& context){
+    CCacheWrapper &cw       = *context.pCw;
+
+    for( auto pa: param_values){
+        auto itr = SysParamTable.find(SysParamType(pa.first));
+        if(itr == SysParamTable.end())
+            return false ;
+
+        if(!cw.sysParamCache.SetParam(SysParamType(pa.first), pa.second)){
+            return false ;
+        }
+
+    }
+
+    return true ;
+
+}
+
 
 bool CCdpParamGovernProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper &cw       = *context.pCw;
@@ -235,38 +238,21 @@ bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
     return cw.sysParamCache.SetMinerFee(tx_type,fee_symbol,fee_sawi_amount);
 }
 
-
-shared_ptr<string> CheckCdpAssetSymbol(CCacheWrapper &cw, const TokenSymbol &symbol) {
-    size_t coinSymbolSize = symbol.size();
-    if (coinSymbolSize == 0 || coinSymbolSize > MAX_TOKEN_SYMBOL_LEN)
-        return make_shared<string>("empty or too long");
-
-    if ((coinSymbolSize < MIN_ASSET_SYMBOL_LEN && !kCoinTypeSet.count(symbol)) ||
-        (coinSymbolSize >= MIN_ASSET_SYMBOL_LEN && !cw.assetCache.HasAsset(symbol)))
-        return make_shared<string>("unsupported symbol");
-
-    return nullptr;
-}
-
-
 bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (kScoinSymbolSet.count(cdp_coin_pair.bcoin_symbol) == 0) {
+    if (kScoinSymbolSet.count(cdp_coin_pair.bcoin_symbol) == 0)
         return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
                 __func__, cdp_coin_pair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
-    }
 
-    auto symbolErr = CheckCdpAssetSymbol(cw, cdp_coin_pair.bcoin_symbol);
-    if (symbolErr) {
-        return state.DoS(100, ERRORMSG("%s(), unsupport cdp asset symbol=%s! %s", cdp_coin_pair.bcoin_symbol, *symbolErr),
-            REJECT_INVALID, "unsupported-asset-symbol");
-    }
+    if (CheckAsset(cdp_coin_pair.bcoin_symbol, AssetPermType::PERM_CDP_BCOIN))
+        return state.DoS(100, ERRORMSG("%s(), unsupported cdp bcoin symbol=%s!", cdp_coin_pair.bcoin_symbol),
+            REJECT_INVALID, "unsupported-asset-bcoin-symbol");
 
-    if (status == CdpCoinPairStatus::NONE || kCdpCoinPairStatusNames.count(status) == 0 ) {
+    if (status == CdpCoinPairStatus::NONE || kCdpCoinPairStatusNames.count(status) == 0 )
         return state.DoS(100, ERRORMSG("%s(), unsupport status=%d", (uint8_t)status), REJECT_INVALID, "unsupported-status");
-    }
-  return true ;
+  
+    return true ;
 }
 
 bool CCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
@@ -384,27 +370,24 @@ bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
 
     if(op_type == ProposalOperateType::NULL_PROPOSAL_OP)
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: op_type is null "),
-                REJECT_INVALID, "bad-op-type") ;
+                        REJECT_INVALID, "bad-op-type") ;
 
-    auto checkResult  = CheckSymbol(coin_symbol) ;
-    if( checkResult != nullptr){
-        return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal:%s",*checkResult),
-                REJECT_INVALID, "bad-symbol") ;
-    }
+    string errMsg = "";
+    if (CheckSymbol(AssetType::DIA, coin_symbol, errMsg))
+        return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: CheckSymbol failed: %s", errMsg),
+                        REJECT_INVALID, "bad-symbol") ;
 
-    bool haveCoin = cw.dexCache.HaveDexQuoteCoin(coin_symbol);
-    if( haveCoin && op_type == ProposalOperateType ::ENABLE) {
+    bool hasCoin = cw.dexCache.HaveDexQuoteCoin(coin_symbol);
+    if (hasCoin && op_type == ProposalOperateType::ENABLE)
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal:coin_symbol(%s) "
                                        "is dex quote coin symbol already",coin_symbol),
                          REJECT_INVALID, "symbol-exist") ;
-    }
 
-
-    if( !haveCoin && op_type == ProposalOperateType ::DISABLE) {
+    if (!hasCoin && op_type == ProposalOperateType::DISABLE)
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal:coin_symbol(%s) "
                                        "is not a dex quote coin symbol ",coin_symbol),
                          REJECT_INVALID, "symbol-not-exist") ;
-    }
+
     return true ;
 }
 
@@ -454,67 +437,6 @@ bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
 }
 
-
-bool CPriceFeederProposal::ExecuteProposal(CTxExecuteContext& context) {
-    CCacheWrapper &cw       = *context.pCw;
-
-    if (op_type == ProposalOperateType::DISABLE) {
-        vector<CRegID> priceFeeders;
-        if (cw.priceFeedCache.GetPriceFeeders(priceFeeders)) {
-            for (auto itr = priceFeeders.begin(); itr != priceFeeders.end();) {
-                if (*itr == feeder_regid) {
-                    priceFeeders.erase(itr);
-                    break ;
-                } else
-                    itr++ ;
-            }
-            return cw.priceFeedCache.SetPriceFeeders(priceFeeders) ;
-        }
-
-        return false ;
-
-    } else if (op_type == ProposalOperateType::ENABLE) {
-        vector<CRegID> priceFeeders ;
-        cw.priceFeedCache.GetPriceFeeders(priceFeeders);
-
-        if (find(priceFeeders.begin(),priceFeeders.end(),feeder_regid) != priceFeeders.end())
-            return false ;
-
-        priceFeeders.push_back(feeder_regid) ;
-        return cw.priceFeedCache.SetPriceFeeders(priceFeeders) ;
-    }
-
-    return false  ;
-
-}
-
-bool CPriceFeederProposal::CheckProposal(CTxExecuteContext& context ){
-    IMPLEMENT_DEFINE_CW_STATE
-
-    if(op_type != ProposalOperateType::ENABLE && op_type != ProposalOperateType::DISABLE){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, operate type is illegal!"), REJECT_INVALID,
-                         "operate_type-illegal");
-    }
-
-    CAccount governor_account ;
-    if(!cw.accountCache.GetAccount(feeder_regid,governor_account)){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, governor regid(%s) is not exist!", feeder_regid.ToString()), REJECT_INVALID,
-                         "priceFeeder-not-exist");
-    }
-    vector<CRegID> governers ;
-
-    bool isFeeder = cw.priceFeedCache.CheckIsPriceFeeder(feeder_regid);
-    if(op_type == ProposalOperateType ::DISABLE&&!isFeeder){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is not a price-feeder!", feeder_regid.ToString()), REJECT_INVALID,
-                         "regid-not-priceFeeder");
-    }
-
-    if(op_type == ProposalOperateType ::ENABLE&&isFeeder){
-        return state.DoS(100, ERRORMSG("CProposalRequestTx::CheckTx, regid(%s) is  a price-feeder already!", feeder_regid.ToString()), REJECT_INVALID,
-                         "regid-is-priceFeeder-already");
-    }
-    return true ;
-}
 
 bool CXChainSwapInProposal::CheckProposal(CTxExecuteContext& context ) {
 

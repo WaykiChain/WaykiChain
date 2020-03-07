@@ -647,9 +647,10 @@ TokenSymbol RPC_PARAM::GetOrderAssetSymbol(const Value &jsonValue) {
 
 TokenSymbol RPC_PARAM::GetAssetIssueSymbol(const Value &jsonValue) {
     TokenSymbol symbol = jsonValue.get_str();
-    if (symbol.empty() || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
-        throw JSONRPCError(RPC_INVALID_PARAMS,
-                           "asset_symbol=%s must be composed of 6 or 7 capital letters [A-Z]");
+    string errMsg = "";
+    if (CheckSymbol(AssetType::UIA, symbol, errMsg))
+        throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Err: %s", errMsg));
+
     return symbol;
 }
 
@@ -671,7 +672,7 @@ string RPC_PARAM::GetBinStrFromHex(const Value &jsonValue, const string &paramNa
 
 void RPC_PARAM::CheckAccountBalance(CAccount &account, const TokenSymbol &tokenSymbol, const BalanceOpType opType,
                                     const uint64_t value) {
-    if (!pCdMan->pAssetCache->CheckAssetSymbol(tokenSymbol))
+    if (!pCdMan->pAssetCache->CheckAsset(tokenSymbol))
         throw JSONRPCError(RPC_WALLET_ERROR, strprintf("Unsupported coin symbol: %s", tokenSymbol));
 
     if (!account.OperateBalance(tokenSymbol, opType, value))
@@ -685,10 +686,10 @@ void RPC_PARAM::CheckActiveOrderExisted(CDexDBCache &dexCache, const uint256 &or
 
 void RPC_PARAM::CheckOrderSymbols(const string &title, const TokenSymbol &coinSymbol,
                                   const TokenSymbol &assetSymbol) {
-    if (!pCdMan->pAssetCache->CheckAssetSymbol(coinSymbol))
+    if (!pCdMan->pAssetCache->CheckAsset(coinSymbol))
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s! %s", coinSymbol));
 
-    if (!pCdMan->pAssetCache->CheckAssetSymbol(assetSymbol))
+    if (!pCdMan->pAssetCache->CheckAsset(assetSymbol))
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid asset symbol=%s! %s", assetSymbol));
 }
 

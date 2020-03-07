@@ -27,7 +27,7 @@ bool CMulsigTx::CheckTx(CTxExecuteContext &context) {
 
     for (size_t i = 0; i < transfers.size(); i++) {
         IMPLEMENT_CHECK_TX_REGID_OR_KEYID(transfers[i].to_uid);
-        if (!cw.assetCache.CheckAssetSymbol(transfers[i].coin_symbol))
+        if (!cw.assetCache.CheckAsset(transfers[i].coin_symbol))
             return state.DoS(100, ERRORMSG("CMulsigTx::CheckTx, transfers[%d], invalid coin_symbol=%s", i,
                             transfers[i].coin_symbol), REJECT_INVALID, "invalid-coin-symbol");
 

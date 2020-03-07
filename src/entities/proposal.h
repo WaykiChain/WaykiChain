@@ -23,12 +23,12 @@ class CTxExecuteContext ;
 using namespace json_spirit;
 
 enum ProposalType: uint8_t {
-    NULL_PROPOSAL     = 0,
-    PARAM_GOVERN      = 1,
-    GOVERNOR_UPDATE   = 2,
-    DEX_SWITCH        = 3,
-    MINER_FEE_UPDATE  = 4,
-    CDP_COIN_PAIR     = 5, // govern cdp_coin_pair, set cdp_coin_pair status
+    NULL_PROPOSAL     = 0 ,
+    PARAM_GOVERN      = 1 ,
+    GOVERNOR_UPDATE   = 2 ,
+    DEX_SWITCH        = 3 ,
+    MINER_FEE_UPDATE  = 4 ,
+    CDP_COIN_PAIR     = 5 , // govern cdp_coin_pair, set cdp_coin_pair status
     CDP_PARAM_GOVERN  = 6 ,
     COIN_TRANSFER     = 7 ,
     BP_COUNT_UPDATE   = 8 ,
@@ -41,7 +41,7 @@ enum ProposalType: uint8_t {
 };
 
 enum ProposalOperateType: uint8_t {
-    NULL_PROPOSAL_OP    = 0,
+    NULL_PROPOSAL_OP    = 0 ,
     ENABLE              = 1 ,
     DISABLE             = 2
 };
@@ -87,28 +87,12 @@ public:
     CFeedCoinPairProposal(): CProposal(ProposalType ::FEED_COIN_PAIR) {}
 
     IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height)) ;
-            READWRITE(approval_min_count) ;
-            READWRITE(feed_symbol) ;
-            READWRITE(base_symbol) ;
-            READWRITE((uint8_t&)op_type);
+        READWRITE(VARINT(expire_block_height)) ;
+        READWRITE(approval_min_count) ;
+        READWRITE(feed_symbol) ;
+        READWRITE(base_symbol) ;
+        READWRITE((uint8_t&)op_type);
     )
-
-
-
-    // @return nullptr if succeed, else err string
-    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
-        size_t symbolSize = symbol.size();
-        if (symbolSize < 2 || symbolSize > 7)
-            return make_shared<string>(strprintf("symbol len=%d, but it must be within range[%d, %d]",
-                                                 symbolSize, 2, 7));
-
-        for (auto ch : symbol) {
-            if ( ch < 'A' || ch > 'Z')
-                return make_shared<string>("there is invalid char in symbol");
-        }
-        return nullptr;
-    }
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -124,42 +108,8 @@ public:
                 strprintf("op_type=%d", op_type);
     }
 
-    bool ExecuteProposal(CTxExecuteContext& context) override;
     bool CheckProposal(CTxExecuteContext& context ) override;
-
-};
-
-class CPriceFeederProposal: public CProposal {
-public:
-
-    CRegID  feeder_regid;
-    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
-
-    CPriceFeederProposal(): CProposal(ProposalType ::PRICE_FEEDER) {}
-
-    IMPLEMENT_SERIALIZE(
-            READWRITE(VARINT(expire_block_height)) ;
-            READWRITE(approval_min_count) ;
-            READWRITE(feeder_regid) ;
-            READWRITE((uint8_t&)op_type);
-    )
-
-
-    Object ToJson() override {
-        Object o = CProposal::ToJson();
-        o.push_back(Pair("feeder_regid", feeder_regid.ToString()));
-
-        o.push_back(Pair("op_type", op_type)) ;
-        return o ;
-    }
-
-    string ToString() override {
-        return  strprintf("feed_regid=%s,",feeder_regid.ToString()) + ", " +
-                strprintf("op_type=%d", op_type);
-    }
-
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    bool CheckProposal(CTxExecuteContext& context ) override;
 
 };
 
@@ -176,20 +126,6 @@ public:
         READWRITE(coin_symbol) ;
         READWRITE((uint8_t&)op_type);
     )
-
-    // @return nullptr if succeed, else err string
-    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
-        size_t symbolSize = symbol.size();
-        if (symbolSize < 2 || symbolSize > 7)
-            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
-                                                 symbolSize, 2, 7));
-
-        for (auto ch : symbol) {
-            if ( ch<'A' || ch > 'Z')
-                return make_shared<string>("there is invalid char in symbol");
-        }
-        return nullptr;
-    }
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
@@ -695,9 +631,6 @@ public:
             case FEED_COIN_PAIR:
                 ::Serialize(os, *((CFeedCoinPairProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
-            case PRICE_FEEDER:
-                ::Serialize(os, *((CPriceFeederProposal    *) (sp_proposal.get())), nType, nVersion);
-                break;
             case XCHAIN_SWAP_IN:
                 ::Serialize(os, *((CXChainSwapInProposal   *) (sp_proposal.get())), nType, nVersion);
                 break;
@@ -778,11 +711,6 @@ public:
             case FEED_COIN_PAIR: {
                 sp_proposal = std:: make_shared<CFeedCoinPairProposal>();
                 ::Unserialize(is,  *((CFeedCoinPairProposal *)(sp_proposal.get())), nType, nVersion);
-                break;
-            }
-            case PRICE_FEEDER: {
-                sp_proposal = std:: make_shared<CPriceFeederProposal>();
-                ::Unserialize(is,  *((CPriceFeederProposal *)(sp_proposal.get())), nType, nVersion);
                 break;
             }
 

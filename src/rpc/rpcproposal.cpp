@@ -534,7 +534,7 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight     = chainActive.Height();
 
-    if (!pCdMan->pAssetCache->CheckAssetSymbol(transferInfo.symbol))
+    if (!pCdMan->pAssetCache->CheckAsset(transferInfo.symbol))
         throw JSONRPCError(REJECT_INVALID, strprintf("Invalid coin symbol=%s!", transferInfo.symbol));
 
     if (transferInfo.GetAmountInSawi() == 0)
@@ -560,57 +560,6 @@ Value submitcointransferproposal( const Array& params, bool fHelp) {
     tx.proposal     = CProposalStorageBean(std::make_shared<CCoinTransferProposal>(proposal)) ;
 
     return SubmitTx(txAccount.keyid, tx) ;
-
-}
-
-Value submitpricefeederproposal(const Array& params, bool fHelp) {
-
-
-    if(fHelp || params.size() < 3 || params.size() > 4){
-
-        throw runtime_error(
-                "submitpricefeederproposal \"addr\" \"governor_uid\" \"operate_type\" [\"fee\"]\n"
-                "create proposal about  add/remove a governor \n"
-                "\nArguments:\n"
-                "1.\"addr\":             (string,     required) the tx submitor's address\n"
-                "2.\"price_feeder_uid\": (string,     required) the price feeder's uid\n"
-                "3.\"operate_type\":     (numberic,   required) the operate type \n"
-                "                         1 stand for add\n"
-                "                         2 stand for remove\n"
-                "4.\"fee\":              (combomoney, optional) the tx fee \n"
-                "\nExamples:\n"
-                + HelpExampleCli("submitpricefeederproposal", "0-1 100-2 1  WICC:1:WI")
-                + "\nAs json rpc call\n"
-                + HelpExampleRpc("submitpricefeederproposal", "0-1 100-2 1  WICC:1:WI")
-
-        );
-
-    }
-
-    EnsureWalletIsUnlocked();
-
-    const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
-    CUserID priceFeederId = RPC_PARAM::GetUserId(params[1]) ;
-    if(!priceFeederId.is<CRegID>())
-        throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf("the price feeder(%s) must be registered(have regid)",
-                      priceFeederId.ToString() )) ;
-    uint64_t operateType = AmountToRawValue(params[2]) ;
-    ComboMoney fee          = RPC_PARAM::GetFee(params, 3, PROPOSAL_REQUEST_TX);
-    int32_t validHeight  = chainActive.Height();
-    CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, txUid);
-    RPC_PARAM::CheckAccountBalance(account, fee.symbol, SUB_FREE, fee.GetAmountInSawi());
-
-    CPriceFeederProposal proposal ;
-    proposal.feeder_regid = priceFeederId.get<CRegID>() ;
-    proposal.op_type = ProposalOperateType(operateType);
-
-    CProposalRequestTx tx ;
-    tx.txUid        = txUid;
-    tx.llFees       = fee.GetAmountInSawi();
-    tx.fee_symbol    = fee.symbol ;
-    tx.valid_height = validHeight;
-    tx.proposal = CProposalStorageBean(std::make_shared<CPriceFeederProposal>(proposal)) ;
-    return SubmitTx(account.keyid, tx) ;
 
 }
 

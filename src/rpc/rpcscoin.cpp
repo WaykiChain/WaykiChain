@@ -564,7 +564,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     }
 
     CUserIssuedAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
-    CAssetIssueTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
+    CUserIssuedAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
     return SubmitTx(account.keyid, tx);
 }
 
@@ -650,7 +650,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         }
     }
 
-    ComboMoney cmFee = RPC_PARAM::GetFee(params, 4, TxType::ASSET_UPDATE_TX);
+    ComboMoney cmFee = RPC_PARAM::GetFee(params, 4, TxType::UIA_UPDATE_TX);
 
     // Get account for checking balance
     CAccount account = RPC_PARAM::GetUserAccount(*pCdMan->pAccountCache, uid);
@@ -679,7 +679,7 @@ Value submitassetupdatetx(const Array& params, bool fHelp) {
         ownerUid = newAccount.regid;
     }
 
-    CAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
+    CUserIssuedAssetUpdateTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), assetSymbol, updateData);
     return SubmitTx(account.keyid, tx);
 }
 

@@ -33,24 +33,6 @@ struct CUserIssuedAsset {
         READWRITE(mintable);
     )
 
-    static bool CheckSymbolChar(const char ch) {
-        return  ch >= 'A' && ch <= 'Z';
-    }
-
-    // @return nullptr if succeed, else err string
-    static shared_ptr<string> CheckSymbol(const TokenSymbol &symbol) {
-        size_t symbolSize = symbol.size();
-        if (symbolSize < MIN_ASSET_SYMBOL_LEN || symbolSize > MAX_TOKEN_SYMBOL_LEN)
-            return make_shared<string>(strprintf("length=%d must be in range[%d, %d]",
-                symbolSize, MIN_ASSET_SYMBOL_LEN, MAX_TOKEN_SYMBOL_LEN));
-
-        for (auto ch : symbol) {
-            if (!CheckSymbolChar(ch))
-                return make_shared<string>("there is invalid char in symbol");
-        }
-        return nullptr;
-    }
-
     string ToString() const {
         return strprintf("asset_symbol=%s, asset_name=%s, owner_uid=%s, total_supply=%llu, mintable=%d",
                         asset_symbol, asset_name, owner_uid.ToString(), total_supply, mintable);
@@ -63,18 +45,19 @@ Object AssetToJson(const CAccountDBCache &accountCache, const CUserIssuedAsset &
 /**
  * Issue a new asset onto Chain
  */
-class CAssetIssueTx: public CBaseTx {
+class CUserIssuedAssetUpdateTx: public CBaseTx {
 public:
     CUserIssuedAsset  asset;          // UIA asset
+    
 public:
-    CAssetIssueTx() : CBaseTx(ASSET_ISSUE_TX) {};
+    CUserIssuedAssetUpdateTx() : CBaseTx(ASSET_ISSUE_TX) {};
 
-    CAssetIssueTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
+    CUserIssuedAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbol,
                   uint64_t fees, const CUserIssuedAsset &assetIn)
         : CBaseTx(ASSET_ISSUE_TX, txUidIn, validHeightIn, feeSymbol, fees),
           asset(assetIn){}
 
-    ~CAssetIssueTx() {}
+    ~CUserIssuedAssetUpdateTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -93,7 +76,7 @@ public:
                    << fee_symbol << VARINT(llFees) << asset;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetIssueTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserIssuedAssetUpdateTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;
@@ -214,21 +197,21 @@ public:
 /**
  * Update an existing asset from Chain
  */
-class CAssetUpdateTx: public CBaseTx {
-
+class CUserIssuedAssetUpdateTx: public CBaseTx {
 public:
     TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
     CAssetUpdateData update_data;   // update data(type, value)
+    
 public:
-    CAssetUpdateTx() : CBaseTx(ASSET_UPDATE_TX) {}
+    CUserIssuedAssetUpdateTx() : CBaseTx(UIA_UPDATE_TX) {}
 
-    CAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
+    CUserIssuedAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
                    uint64_t feesIn, const TokenSymbol &assetSymbolIn, const CAssetUpdateData &updateData)
-        : CBaseTx(ASSET_UPDATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
+        : CBaseTx(UIA_UPDATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
           asset_symbol(assetSymbolIn),
           update_data(updateData) {}
 
-    ~CAssetUpdateTx() {}
+    ~CUserIssuedAssetUpdateTx() {}
 
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(this->nVersion));
@@ -248,7 +231,7 @@ public:
                    << fee_symbol << VARINT(llFees) << asset_symbol << update_data;
     }
 
-    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CAssetUpdateTx>(*this); }
+    virtual std::shared_ptr<CBaseTx> GetNewInstance() const { return std::make_shared<CUserIssuedAssetUpdateTx>(*this); }
 
     virtual string ToString(CAccountDBCache &accountCache);
     virtual Object ToJson(const CAccountDBCache &accountCache) const;

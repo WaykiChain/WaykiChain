@@ -2228,7 +2228,7 @@ static bool ParseAccountAssetTransfer(lua_State *L, CLuaVMRunEnv &vmRunEnv, Asse
         return false;
     }
 
-    if (!vmRunEnv.GetCw()->assetCache.CheckAssetSymbol(transfer.tokenType)) {
+    if (!vmRunEnv.GetCw()->assetCache.CheckAsset(transfer.tokenType)) {
         LogPrint(BCLog::LUAVM, "ParseAccountAssetTransfer(), Invalid tokenType=%s!\n", transfer.tokenType);
         return false;
     }
@@ -2406,7 +2406,7 @@ int32_t ExGetAccountAssetFunc(lua_State *L) {
         LogPrint(BCLog::LUAVM, "[ERROR]%s(), get tokenType failed\n", __FUNCTION__);
         return 0;
     }
-    if (!pVmRunEnv->GetCw()->assetCache.CheckAssetSymbol(tokenType)) {
+    if (!pVmRunEnv->GetCw()->assetCache.CheckAsset(tokenType)) {
         LogPrint(BCLog::LUAVM, "[ERROR]%s(), Invalid tokenType=%s!\n", __FUNCTION__, tokenType);
         return 0;
     }
