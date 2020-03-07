@@ -24,7 +24,7 @@ bool CAssetDBCache::HasAsset(const TokenSymbol &tokenSymbol) {
     return assetCache.HasData(tokenSymbol);
 }
 
-bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum = 0) {
+bool CAssetDBCache::CheckAssetSymbol(const TokenSymbol &symbol, uint64_t permsSum) {
     if (symbol.size() == 0 || symbol.size() > MAX_TOKEN_SYMBOL_LEN)
         return false;
 
