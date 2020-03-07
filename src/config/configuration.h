@@ -11,6 +11,7 @@
 #include "commons/uint256.h"
 #include "commons/util/util.h"
 #include "version.h"
+#include "const.h"
 
 #include <map>
 #include <memory>
