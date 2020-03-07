@@ -374,7 +374,7 @@ bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
                         REJECT_INVALID, "bad-op-type") ;
 
     string errMsg = "";
-    if (CheckSymbol(AssetCategory::DIA, coin_symbol, errMsg))
+    if (CheckSymbol(AssetType::DIA, coin_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: CheckSymbol failed: %s", errMsg),
                         REJECT_INVALID, "bad-symbol") ;
 

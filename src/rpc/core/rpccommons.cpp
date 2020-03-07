@@ -648,7 +648,7 @@ TokenSymbol RPC_PARAM::GetOrderAssetSymbol(const Value &jsonValue) {
 TokenSymbol RPC_PARAM::GetAssetIssueSymbol(const Value &jsonValue) {
     TokenSymbol symbol = jsonValue.get_str();
     string errMsg = "";
-    if (CheckSymbol(AssetCategory::UIA, symbol, errMsg))
+    if (CheckSymbol(AssetType::UIA, symbol, errMsg))
         throw JSONRPCError(RPC_INVALID_PARAMS, strprintf("Err: %s", errMsg));
 
     return symbol;

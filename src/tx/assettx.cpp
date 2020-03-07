@@ -120,7 +120,7 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     string errMsg = "";
-    if (!CheckSymbol(AssetCategory::UIA, asset.asset_symbol, errMsg))
+    if (!CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, invlid asset symbol! %s", errMsg),
                         REJECT_INVALID, "invalid-asset-symbol");
 
@@ -206,7 +206,7 @@ bool CUserIssueAssetTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     //Persist with Owner's RegID to save space than other User ID types
-    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetCategory::UIA, AssetPermType::PERM_DEX_BASE,
+    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
                     CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
@@ -334,7 +334,7 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     string errMsg = "";
-    if (CheckSymbol(AssetCategory::UIA, asset_symbol, errMsg))
+    if (CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset_symbol error: %s", errMsg), 
                         REJECT_INVALID, "invalid-asset-symbol");
 
