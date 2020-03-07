@@ -77,34 +77,34 @@ public:
     virtual uint32_t GetSerializeSize(int32_t nType, int32_t nVersion) const { return 0; }
 };
 
+// base currency -> quote currency
 class CFeedCoinPairProposal: public CProposal {
 public:
+    TokenSymbol  feed_symbol;
+    TokenSymbol  quote_symbol = SYMB::USD;
+    ProposalOperateType op_type = ProposalOperateType::NULL_PROPOSAL_OP;
 
-    TokenSymbol  feed_symbol ;
-    TokenSymbol  base_symbol = SYMB::USD ;
-    ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
-
-    CFeedCoinPairProposal(): CProposal(ProposalType ::FEED_COIN_PAIR) {}
+    CFeedCoinPairProposal(): CProposal(ProposalType::FEED_COIN_PAIR) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height)) ;
-        READWRITE(approval_min_count) ;
-        READWRITE(feed_symbol) ;
-        READWRITE(base_symbol) ;
+        READWRITE(VARINT(expire_block_height));
+        READWRITE(approval_min_count);
+        READWRITE(feed_symbol);
+        READWRITE(quote_symbol);
         READWRITE((uint8_t&)op_type);
     )
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
         o.push_back(Pair("feed_symbol", feed_symbol));
-        o.push_back(Pair("base_symbol", base_symbol));
+        o.push_back(Pair("quote_symbol", quote_symbol));
 
         o.push_back(Pair("op_type", op_type)) ;
         return o ;
     }
 
     string ToString() override {
-        return  strprintf("feed_symbol=%s,base_symbol=%s",feed_symbol, base_symbol ) + ", " +
+        return  strprintf("feed_symbol=%s,quote_symbol=%s",feed_symbol, quote_symbol ) + ", " +
                 strprintf("op_type=%d", op_type);
     }
 

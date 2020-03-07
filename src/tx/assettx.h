@@ -85,7 +85,7 @@ public:
     virtual bool ExecuteTx(CTxExecuteContext &context);
 };
 
-class CAssetUpdateData {
+class CUserIssuedAssetUpdate {
 public:
     class CNullData {
     public:
@@ -113,7 +113,7 @@ public:
 
     static const string& GetUpdateTypeName(UpdateType type);
 public:
-    CAssetUpdateData(): type(UPDATE_NONE), value(CNullData()) {}
+    CUserIssuedAssetUpdate(): type(UPDATE_NONE), value(CNullData()) {}
 
     void Set(const CUserID &ownerUid);
 
@@ -152,7 +152,7 @@ public:
             case NAME:          s << get<string>(); break;
             case MINT_AMOUNT:   s << VARINT(get<uint64_t>()); break;
             default: {
-                LogPrint(BCLog::ERROR, "CAssetUpdateData::Serialize(), Invalid Asset update type=%d\n", type);
+                LogPrint(BCLog::ERROR, "CUserIssuedAssetUpdate::Serialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
             }
         }
@@ -181,7 +181,7 @@ public:
                 break;
             }
             default: {
-                LogPrint(BCLog::ERROR, "CAssetUpdateData::Unserialize(), Invalid Asset update type=%d\n", type);
+                LogPrint(BCLog::ERROR, "CUserIssuedAssetUpdate::Unserialize(), Invalid Asset update type=%d\n", type);
                 throw ios_base::failure("Invalid Asset update type");
             }
         }
@@ -200,13 +200,13 @@ public:
 class CUserIssuedAssetUpdateTx: public CBaseTx {
 public:
     TokenSymbol asset_symbol;       // symbol of asset that needs to be updated
-    CAssetUpdateData update_data;   // update data(type, value)
+    CUserIssuedAssetUpdate update_data;   // update data(type, value)
     
 public:
     CUserIssuedAssetUpdateTx() : CBaseTx(UIA_UPDATE_TX) {}
 
     CUserIssuedAssetUpdateTx(const CUserID &txUidIn, int32_t validHeightIn, const TokenSymbol &feeSymbolIn,
-                   uint64_t feesIn, const TokenSymbol &assetSymbolIn, const CAssetUpdateData &updateData)
+                   uint64_t feesIn, const TokenSymbol &assetSymbolIn, const CUserIssuedAssetUpdate &updateData)
         : CBaseTx(UIA_UPDATE_TX, txUidIn, validHeightIn, feeSymbolIn, feesIn),
           asset_symbol(assetSymbolIn),
           update_data(updateData) {}

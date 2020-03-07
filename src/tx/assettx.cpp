@@ -120,7 +120,7 @@ bool CUserIssuedAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     string errMsg = "";
-    if (!CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg)
+    if (!CheckSymbol(AssetCategory::UIA, asset.asset_symbol, errMsg)
         return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::CheckTx, invlid asset symbol! %s", errMsg),
                         REJECT_INVALID, "invalid-asset-symbol");
 
@@ -206,7 +206,7 @@ bool CUserIssuedAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
     }
 
     //Persist with Owner's RegID to save space than other User ID types
-    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetType::UIA, AssetPermType::PERM_DEX_BASE,
+    CAsset savedAsset(asset.asset_symbol, asset.asset_name, AssetCategory::UIA, AssetPermType::PERM_DEX_BASE,
                     CUserID(pOwnerAccount->regid), asset.total_supply, asset.mintable);
 
     if (!cw.assetCache.SetAsset(savedAsset))
@@ -233,21 +233,21 @@ Object CUserIssuedAssetUpdateTx::ToJson(const CAccountDBCache &accountCache) con
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// class CAssetUpdateData
+// class CUserIssuedAssetUpdate
 
-static const EnumTypeMap<CAssetUpdateData::UpdateType, string> ASSET_UPDATE_TYPE_NAMES = {
-    {CAssetUpdateData::OWNER_UID,   "owner_uid"},
-    {CAssetUpdateData::NAME,        "name"},
-    {CAssetUpdateData::MINT_AMOUNT, "mint_amount"}
+static const EnumTypeMap<CUserIssuedAssetUpdate::UpdateType, string> ASSET_UPDATE_TYPE_NAMES = {
+    {CUserIssuedAssetUpdate::OWNER_UID,   "owner_uid"},
+    {CUserIssuedAssetUpdate::NAME,        "name"},
+    {CUserIssuedAssetUpdate::MINT_AMOUNT, "mint_amount"}
 };
 
-static const unordered_map<string, CAssetUpdateData::UpdateType> ASSET_UPDATE_PARSE_MAP = {
-    {"owner_addr",  CAssetUpdateData::OWNER_UID},
-    {"name",        CAssetUpdateData::NAME},
-    {"mint_amount", CAssetUpdateData::MINT_AMOUNT}
+static const unordered_map<string, CUserIssuedAssetUpdate::UpdateType> ASSET_UPDATE_PARSE_MAP = {
+    {"owner_addr",  CUserIssuedAssetUpdate::OWNER_UID},
+    {"name",        CUserIssuedAssetUpdate::NAME},
+    {"mint_amount", CUserIssuedAssetUpdate::MINT_AMOUNT}
 };
 
-shared_ptr<CAssetUpdateData::UpdateType> CAssetUpdateData::ParseUpdateType(const string& str) {
+shared_ptr<CUserIssuedAssetUpdate::UpdateType> CUserIssuedAssetUpdate::ParseUpdateType(const string& str) {
     if (!str.empty()) {
         auto it = ASSET_UPDATE_PARSE_MAP.find(str);
         if (it != ASSET_UPDATE_PARSE_MAP.end()) {
@@ -257,28 +257,28 @@ shared_ptr<CAssetUpdateData::UpdateType> CAssetUpdateData::ParseUpdateType(const
     return nullptr;
 }
 
-const string& CAssetUpdateData::GetUpdateTypeName(UpdateType type) {
+const string& CUserIssuedAssetUpdate::GetUpdateTypeName(UpdateType type) {
     auto it = ASSET_UPDATE_TYPE_NAMES.find(type);
     if (it != ASSET_UPDATE_TYPE_NAMES.end()) return it->second;
     return EMPTY_STRING;
 }
-void CAssetUpdateData::Set(const CUserID &ownerUid) {
+void CUserIssuedAssetUpdate::Set(const CUserID &ownerUid) {
     type = OWNER_UID;
     value = ownerUid;
 }
 
-void CAssetUpdateData::Set(const string &name) {
+void CUserIssuedAssetUpdate::Set(const string &name) {
     type = NAME;
     value = name;
 
 }
-void CAssetUpdateData::Set(const uint64_t &mintAmount) {
+void CUserIssuedAssetUpdate::Set(const uint64_t &mintAmount) {
     type = MINT_AMOUNT;
     value = mintAmount;
 
 }
 
-string CAssetUpdateData::ValueToString() const {
+string CUserIssuedAssetUpdate::ValueToString() const {
     string s;
     switch (type) {
         case OWNER_UID:     s += get<CUserID>().ToString(); break;
@@ -289,13 +289,13 @@ string CAssetUpdateData::ValueToString() const {
     return s;
 }
 
-string CAssetUpdateData::ToString(const CAccountDBCache &accountCache) const {
+string CUserIssuedAssetUpdate::ToString(const CAccountDBCache &accountCache) const {
     string s = "update_type=" + GetUpdateTypeName(type);
     s += ", update_value=" + ValueToString();
     return s;
 }
 
-Object CAssetUpdateData::ToJson(const CAccountDBCache &accountCache) const {
+Object CUserIssuedAssetUpdate::ToJson(const CAccountDBCache &accountCache) const {
     Object result;
     result.push_back(Pair("update_type",   GetUpdateTypeName(type)));
     result.push_back(Pair("update_value",  ValueToString()));
@@ -334,12 +334,12 @@ bool CUserIssuedAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     string errMsg = "";
-    if (CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
+    if (CheckSymbol(AssetCategory::UIA, asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::CheckTx, asset_symbol error: %s", errMsg), 
                         REJECT_INVALID, "invalid-asset-symbol");
 
     switch (update_data.GetType()) {
-        case CAssetUpdateData::OWNER_UID: {
+        case CUserIssuedAssetUpdate::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
             if (!newOwnerUid.is<CRegID>()) {
                 return state.DoS(100, ERRORMSG("%s, the new asset owner_uid must be regid", __FUNCTION__), REJECT_INVALID,
@@ -347,14 +347,14 @@ bool CUserIssuedAssetUpdateTx::CheckTx(CTxExecuteContext &context) {
             }
             break;
         }
-        case CAssetUpdateData::NAME: {
+        case CUserIssuedAssetUpdate::NAME: {
             const string &name = update_data.get<string>();
             if (name.empty() || name.size() > MAX_ASSET_NAME_LEN)
                 return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::CheckTx, asset name is empty or len=%d greater than %d",
                     name.size(), MAX_ASSET_NAME_LEN), REJECT_INVALID, "invalid-asset-name");
             break;
         }
-        case CAssetUpdateData::MINT_AMOUNT: {
+        case CUserIssuedAssetUpdate::MINT_AMOUNT: {
             uint64_t mintAmount = update_data.get<uint64_t>();
             if (mintAmount == 0 || mintAmount > MAX_ASSET_TOTAL_SUPPLY) {
                 return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::CheckTx, asset mint_amount=%llu is 0 or greater than %llu",
@@ -406,7 +406,7 @@ bool CUserIssuedAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
 
 
     switch (update_data.GetType()) {
-        case CAssetUpdateData::OWNER_UID: {
+        case CUserIssuedAssetUpdate::OWNER_UID: {
             const CUserID &newOwnerUid = update_data.get<CUserID>();
             if (account.IsMyUid(newOwnerUid))
                 return state.DoS(100, ERRORMSG("CUserIssuedAssetUpdateTx::ExecuteTx, the new owner uid=%s is belong to old owner account",
@@ -426,11 +426,11 @@ bool CUserIssuedAssetUpdateTx::ExecuteTx(CTxExecuteContext &context) {
             asset.owner_uid = newAccount.regid;
             break;
         }
-        case CAssetUpdateData::NAME: {
+        case CUserIssuedAssetUpdate::NAME: {
             asset.asset_name = update_data.get<string>();
             break;
         }
-        case CAssetUpdateData::MINT_AMOUNT: {
+        case CUserIssuedAssetUpdate::MINT_AMOUNT: {
             uint64_t mintAmount = update_data.get<uint64_t>();
             uint64_t newTotalSupply = asset.total_supply + mintAmount;
             if (newTotalSupply > MAX_ASSET_TOTAL_SUPPLY || newTotalSupply < asset.total_supply) {

@@ -6,6 +6,7 @@
 
 #include "config/txbase.h"
 #include "config/const.h"
+#include "entities/asset.h"
 #include "entities/proposal.h"
 #include "persistence/assetdb.h"
 #include "persistence/cachewrapper.h"
@@ -373,7 +374,7 @@ bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
                         REJECT_INVALID, "bad-op-type") ;
 
     string errMsg = "";
-    if (CheckSymbol(AssetType::DIA, coin_symbol, errMsg))
+    if (CheckSymbol(AssetCategory::DIA, coin_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: CheckSymbol failed: %s", errMsg),
                         REJECT_INVALID, "bad-symbol") ;
 
@@ -398,29 +399,24 @@ bool CFeedCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: op_type is null "),
                          REJECT_INVALID, "bad-op-type") ;
 
-    auto feedCoinCheckResult  = CheckSymbol(feed_symbol) ;
-    if( feedCoinCheckResult != nullptr){
-        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal: feed_symbol %s",*feedCoinCheckResult),
+    if (!CheckAsset(feed_symbol, AssetPermType::PERM_PRICE_FEED))
+        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal: feed_symbol invalid"),
                          REJECT_INVALID, "bad-symbol") ;
-    }
 
-    auto baseCoinChecKResult  = CheckSymbol(base_symbol) ;
-    if( baseCoinChecKResult != nullptr){
-        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal: base_symbol %s",*baseCoinChecKResult),
+    if (!kPriceQuoteSymbolSet.count(quote_symbol))
+        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal: invalid quote_symbol %s", quote_symbol),
                          REJECT_INVALID, "bad-symbol") ;
-    }
 
-
-    bool haveCoin = cw.priceFeedCache.HaveFeedCoinPair(feed_symbol, base_symbol);
-    if( haveCoin && op_type == ProposalOperateType ::ENABLE) {
-        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal:feed_symbol(%s),base_symbol(%s)"
-                                       "is dex quote coin symbol already",feed_symbol, base_symbol),
+    bool hasCoin = cw.priceFeedCache.HasFeedCoinPair(feed_symbol, quote_symbol);
+    if( hasCoin && op_type == ProposalOperateType ::ENABLE) {
+        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal:feed_symbol(%s),quote_symbol(%s)"
+                                       "is dex quote coin symbol already",feed_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-exist") ;
     }
 
-    if( !haveCoin && op_type == ProposalOperateType ::DISABLE) {
-        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal:feed_symbol(%s),base_symbol(%s) "
-                                       "is not a dex quote coin symbol ",feed_symbol, base_symbol),
+    if( !hasCoin && op_type == ProposalOperateType ::DISABLE) {
+        return state.DoS(100, ERRORMSG("CFeedCoinPairProposal:: checkProposal:feed_symbol(%s),quote_symbol(%s) "
+                                       "is not a dex quote coin symbol ",feed_symbol, quote_symbol),
                          REJECT_INVALID, "symbol-not-exist") ;
     }
     return true ;
@@ -431,9 +427,9 @@ bool CFeedCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
     CCacheWrapper& cw = *context.pCw ;
 
     if (ProposalOperateType::ENABLE == op_type)
-        return cw.priceFeedCache.AddFeedCoinPair(feed_symbol, base_symbol) ;
+        return cw.priceFeedCache.AddFeedCoinPair(feed_symbol, quote_symbol) ;
     else
-        return cw.priceFeedCache.EraseFeedCoinPair(feed_symbol, base_symbol) ;
+        return cw.priceFeedCache.EraseFeedCoinPair(feed_symbol, quote_symbol) ;
 
 }
 

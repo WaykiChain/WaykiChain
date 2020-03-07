@@ -338,7 +338,7 @@ bool CPriceFeedCache::EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCo
     return price_feed_coin_cache.SetData(coins);
 }
 
-bool CPriceFeedCache::HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) {
+bool CPriceFeedCache::HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) {
     if(feedCoin == SYMB::WICC && baseCoin == SYMB::USD)
         return true ;
 

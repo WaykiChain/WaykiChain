@@ -25,13 +25,18 @@ using namespace json_spirit;
 using namespace std;
 
 // asset types
-enum AssetType : uint8_t {
-    NULL_ASSET      = 0,
+enum AssetCategory : uint8_t {
+    NULL_ASSET_CAT  = 0,
     NIA             = 1, //Natively Issued Asset
     DIA             = 2, //DeGov Issued Asset
     UIA             = 3, //User Issued Asset
     MPA             = 4  //Market Pegged Asset
 };
+
+enum AssetType : uint8_t {
+    NULL_ASSET  = 0,
+    CURRENCY    = 1,
+}
 
 // perms for an asset group
 enum AssetPermType : uint64_t {
@@ -52,18 +57,18 @@ class CAsset {
 public:
     TokenSymbol asset_symbol;       //asset symbol, E.g WICC | WUSD
     TokenName   asset_name;         //asset long name, E.g WaykiChain coin
-    AssetType   asset_type;         //asset type
+    AssetCategory   asset_type;         //asset type
     uint64_t    asset_perms_sum = 0;//a sum of asset perms
     CUserID     owner_uid;          //creator or owner user id of the asset, null for NIA/DIA/MPA
     uint64_t    total_supply;       //boosted by 10^8 for the decimal part, max is 90 billion.
     bool        mintable;           //whether this token can be minted in the future.
 
 public:
-    CAsset(): asset_type(AssetType::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
+    CAsset(): asset_type(AssetCategory::NULL_ASSET), asset_perms_sum(AssetPermType::PERM_DEX_BASE) {}
 
-    CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetType assetType, uint64_t assetPermsSum,
+    CAsset(const TokenSymbol& assetSymbol, const TokenName& assetName, const AssetCategory AssetCategory, uint64_t assetPermsSum,
             const CUserID& ownerUid, uint64_t totalSupply, bool mintableIn)
-        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(assetType), asset_perms_sum(assetPermsSum),
+        : asset_symbol(assetSymbol), asset_name(assetName), asset_type(AssetCategory), asset_perms_sum(assetPermsSum),
         owner_uid(ownerUid), total_supply(totalSupply), mintable(mintableIn) {};
 
     IMPLEMENT_SERIALIZE(
@@ -81,7 +86,7 @@ public:
     void SetEmpty() {
         asset_symbol.clear();
         asset_name.clear();
-        asset_type = AssetType::NULL_ASSET;
+        asset_type = AssetCategory::NULL_ASSET_CAT;
         asset_perms_sum = 0;
         owner_uid.SetEmpty();
         total_supply = 0;
@@ -95,8 +100,8 @@ public:
 };
 
 inline const TokenSymbol& GetPriceQuoteByCdpScoin(const TokenSymbol &scoinSymbol) {
-    auto it = kCdpScoinToPriceQuoteMap.find(scoinSymbol);
-    if (it != kCdpScoinToPriceQuoteMap.end())
+    auto it = kScoinPriceQuoteMap.find(scoinSymbol);
+    if (it != kScoinPriceQuoteMap.end())
         return it->second;
 
     return EMPTY_STRING;
@@ -156,17 +161,17 @@ public:
 };
 
 // Check it when supplied from external like Tx or RPC calls
-static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
+static bool CheckSymbol(const AssetCategory AssetCategory, const TokenSymbol &assetSymbol, string &errMsg) {
     uint32_t symbolSizeMin = 3;
     uint32_t symbolSizeMax = 7;
 
-    switch (assetType) {
-        case AssetType::NIA :
-        case AssetType::DIA :
-        case AssetType::MPA :
+    switch (AssetCategory) {
+        case AssetCategory::NIA :
+        case AssetCategory::DIA :
+        case AssetCategory::MPA :
             break;
 
-        case AssetType::UIA :
+        case AssetCategory::UIA :
             symbolSizeMin = 6;
             symbolSizeMax = 8;
             break;

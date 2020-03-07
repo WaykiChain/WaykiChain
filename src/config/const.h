@@ -45,13 +45,18 @@ static const unordered_set<TokenSymbol> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
-static const unordered_set<TokenSymbol> kCurrencyTypeSet = {
-    SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
-};
 
 // must only be specified in code below
 static const unordered_set<string> kScoinSymbolSet = {
     SYMB::WUSD, SYMB::WCNY
+};
+// cdp scoin symbol -> price quote symbol
+static const unordered_map<TokenSymbol, TokenSymbol> kScoinPriceQuoteMap = {
+    {SYMB::WUSD, SYMB::USD},
+};
+static const unordered_set<TokenSymbol> kPriceQuoteSymbolSet = {
+    SYMB::USD, 
+    //SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
 };
 
 //default list below, can be also expanded thru DeGov
@@ -61,10 +66,6 @@ static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kCdpCoinPairM
     {"WETH:WUSD", make_pair(SYMB::WETH, SYMB::WUSD) },
 };
 
-// cdp scoin symbol -> price quote symbol
-static const unordered_map<TokenSymbol, TokenSymbol> kCdpScoinToPriceQuoteMap = {
-    {SYMB::WUSD, SYMB::USD},
-};
 
 struct CoinUnitTypeHash {
     size_t operator()(const string &unit) const noexcept {

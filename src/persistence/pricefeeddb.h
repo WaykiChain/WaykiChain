@@ -120,7 +120,7 @@ public:
 
     bool AddFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
     bool EraseFeedCoinPair(TokenSymbol feedCoin, TokenSymbol baseCoin) ;
-    bool HaveFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) ;
+    bool HasFeedCoinPair(TokenSymbol feedCoin,TokenSymbol baseCoin) ;
     bool GetFeedCoinPairs(set<pair<TokenSymbol,TokenSymbol>>& coinSet) ;
 
     bool CheckIsPriceFeeder(const CRegID &candidateRegId) ;
