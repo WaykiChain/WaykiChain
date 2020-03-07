@@ -754,18 +754,18 @@ extern Value listcdpcoinpairs(const Array& params, bool fHelp) {
 
     const map<CCdpCoinPair, CdpCoinPairStatus> &cdpCoinPairMap = pCdMan->pCdpCache->GetCdpCoinPairMap();
 
-    Array coinPairArray;
+    Array arrCoinPairs;
     for (const auto &item : cdpCoinPairMap) {
         Object coinPairObj;
         coinPairObj.push_back(Pair("asset_symbol", item.first.bcoin_symbol));
         coinPairObj.push_back(Pair("scoin_symbol", item.first.scoin_symbol));
         coinPairObj.push_back(Pair("status",       GetCdpCoinPairStatusName(item.second)));
 
-        coinPairArray.push_back(coinPairObj);
+        arrCoinPairs.push_back(coinPairObj);
     }
 
     Object obj;
-    obj.push_back(Pair("count",     coinPairArray.size()));
-    obj.push_back(Pair("cdp_coin_pairs",    coinPairArray));
+    obj.push_back(Pair("count",             arrCoinPairs.size()));
+    obj.push_back(Pair("cdp_coin_pairs",    arrCoinPairs));
     return obj;
 }

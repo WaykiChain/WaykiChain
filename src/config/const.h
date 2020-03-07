@@ -41,11 +41,11 @@ namespace SYMB {
 };
 
 //default list below, can be also expanded thru DeGov
-static const unordered_set<string> kCoinTypeSet = {
+static const unordered_set<TokenSymbol> kCoinTypeSet = {
     SYMB::WICC, SYMB::WGRT, SYMB::WUSD
 };
 
-static const unordered_set<string> kCurrencyTypeSet = {
+static const unordered_set<TokenSymbol> kCurrencyTypeSet = {
     SYMB::USD, SYMB::CNY, SYMB::EUR, SYMB::BTC, SYMB::BTC_USDT, SYMB::ETH_USDT, SYMB::GOLD, SYMB::KWH
 };
 
@@ -55,16 +55,10 @@ static const unordered_set<string> kScoinSymbolSet = {
 };
 
 //default list below, can be also expanded thru DeGov
-static const unordered_map<TokenSymbol, TokenSymbol> kCdpCoinPairMap = {
-    {SYMB::WICC, SYMB::WUSD},
-    {SYMB::WBTC, SYMB::WUSD},
-    {SYMB::WETH, SYMB::WUSD},
-    // {SYMB::WEOS, SYMB::WUSD},
-
-    // {SYMB::WICC, SYMB::WCNY},
-    // {SYMB::WBTC, SYMB::WCNY},
-    // {SYMB::WETH, SYMB::WCNY},
-    // {SYMB::WEOS, SYMB::WCNY},
+static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kCdpCoinPairMap = {
+    {"WICC:WUSD", make_pair(SYMB::WICC, SYMB::WUSD) },
+    {"WBTC:WUSD", make_pair(SYMB::WBTC, SYMB::WUSD) },
+    {"WETH:WUSD", make_pair(SYMB::WETH, SYMB::WUSD) },
 };
 
 // cdp scoin symbol -> price quote symbol
