@@ -310,7 +310,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
     EnsureWalletIsUnlocked();
     const CUserID& txUid = RPC_PARAM::GetUserId(params[0], true);
     string feedSymbol = params[1].get_str();
-    string baseSymbol = params[2].get_str();
+    string quoteSymbol = params[2].get_str();
     uint64_t operateType = params[3].get_int();
     ComboMoney fee          = RPC_PARAM::GetFee(params, 4, PROPOSAL_REQUEST_TX);
     int32_t validHeight  = chainActive.Height();
@@ -319,7 +319,7 @@ Value submitfeedcoinpairproposal(const Array& params, bool fHelp) {
 
     CFeedCoinPairProposal proposal ;
     proposal.feed_symbol = feedSymbol ;
-    proposal.base_symbol = baseSymbol ;
+    proposal.quote_symbol = quoteSymbol ;
     proposal.op_type = ProposalOperateType(operateType);
 
     CProposalRequestTx tx ;

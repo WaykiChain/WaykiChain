@@ -563,7 +563,7 @@ Value submitassetissuetx(const Array& params, bool fHelp) {
     }
 
     CUserIssuedAsset asset(assetSymbol, CUserID(*pOwnerRegid), assetName, (uint64_t)totalSupply, mintable);
-    CUserUpdateAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
+    CUserIssueAssetTx tx(uid, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), asset);
     return SubmitTx(account.keyid, tx);
 }
 
