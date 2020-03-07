@@ -117,7 +117,7 @@ bool CCDPStakeTx::CheckTx(CTxExecuteContext &context) {
     }
 
     const TokenSymbol &assetSymbol = assets_to_stake.begin()->first;
-    if (!kCdpCoinPairSet.count(std::pair<TokenSymbol, TokenSymbol>(assetSymbol, scoin_symbol))) {
+    if (!kCdpCoinPairMap.count(std::pair<TokenSymbol, TokenSymbol>(assetSymbol, scoin_symbol))) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::CheckTx, invalid bcoin-scoin CDPCoinPair!"),
                         REJECT_INVALID, "invalid-CDPCoinPair-symbol");
     }

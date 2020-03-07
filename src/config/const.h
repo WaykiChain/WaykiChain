@@ -54,7 +54,7 @@ static const unordered_set<string> kScoinSymbolSet = {
 };
 
 //default list below, can be also expanded thru DeGov
-static const UnorderedPairSet<TokenSymbol, TokenSymbol> kCdpCoinPairSet = {
+static const unordered_map<TokenSymbol, TokenSymbol> kCdpCoinPairMap = {
     {SYMB::WICC, SYMB::WUSD},
     {SYMB::WBTC, SYMB::WUSD},
     {SYMB::WETH, SYMB::WUSD},
