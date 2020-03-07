@@ -44,7 +44,6 @@ enum AccountPermType : uint64_t {
     PERM_CDP            = (1 << 12), //pledge | unpledge
     PERM_XCHAIN         = (1 << 12), //swap in | out
     
-    
 };
 
 const uint64_t kAccountCommonPerms =  
