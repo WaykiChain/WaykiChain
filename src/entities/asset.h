@@ -116,10 +116,8 @@ public:
 
         bool valid = false;
         for (auto ch : assetSymbol) {
-            bool bInRange09 = (ch >= '0' && ch <= '9');
-            bool bInRangeAZ = (ch >= 'A' && ch <= 'Z');
+            valid = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
 
-            valid = bInRange09 || bInRangeAZ;
             if (assetType == AssetType::UIA) 
                 valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
 
