@@ -66,6 +66,14 @@ static const unordered_map<string, pair<TokenSymbol, TokenSymbol>> kCdpCoinPairM
     {"WETH:WUSD", make_pair(SYMB::WETH, SYMB::WUSD) },
 };
 
+// default setting, to be expanded thru deGov
+static const std::map<TokenSymbol, TokenSymbol> kXChainSwapTokenMap =  {
+    { SYMB::BTC,     SYMB::WBTC  },
+    { SYMB::ETH,     SYMB::WETH  },
+    { SYMB::WBTC,    SYMB::BTC   },
+    { SYMB::WETH,    SYMB::ETH   },   
+    // {SYMB::ETH_USDT, SYMB::WETH_USDT},
+};
 
 struct CoinUnitTypeHash {
     size_t operator()(const string &unit) const noexcept {
@@ -114,6 +122,13 @@ static const unordered_map<string, unsigned int , CoinUnitTypeHash> CoinUnitPrec
     {"wi",   8     },  // 1
     {"kwi",  11    },  // 1000
     {"mwi",  14    },  // 1000,000
+};
+
+enum ChainType: uint8_t {
+    NULL_CHAIN_TYPE = 0,
+    BITCOIN         = 1,
+    ETHEREUM        = 2,
+    EOS             = 3
 };
 
 static const uint64_t COIN = 100000000;  //10^8 = 1 WICC
