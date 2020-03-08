@@ -9,9 +9,9 @@
 #include "entities/asset.h"
 #include "entities/proposal.h"
 #include "persistence/cachewrapper.h"
+#include "main.h"
 
 #include <algorithm>
-#include "main.h"
 #include <set>
 
 extern bool CheckIsGovernor(CRegID account, ProposalType proposalType,CCacheWrapper&cw );

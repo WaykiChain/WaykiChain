@@ -6,9 +6,11 @@
 #ifndef ENTITIES_PROPOSAL_H
 #define ENTITIES_PROPOSAL_H
 
+
 #include <string>
 #include <vector>
 #include <unordered_map>
+
 #include "entities/id.h"
 #include "commons/json/json_spirit.h"
 #include "config/const.h"
@@ -16,6 +18,7 @@
 #include "config/scoin.h"
 #include "entities/cdp.h"
 #include "config/sysparams.h"
+
 
 class CCacheWrapper;
 class CValidationState;
