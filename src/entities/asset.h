@@ -118,11 +118,10 @@ public:
         for (auto ch : assetSymbol) {
             bool bInRange09 = (ch >= '0' && ch <= '9');
             bool bInRangeAZ = (ch >= 'A' && ch <= 'Z');
-            bool bInSpecialChars = (ch == '#' || ch == '.' || ch == '@' || ch == '_');
 
             valid = bInRange09 || bInRangeAZ;
             if (assetType == AssetType::UIA) 
-                valid = valid || bInSpecialChars;
+                valid = valid || (ch == '#' || ch == '.' || ch == '@' || ch == '_');
 
             if (!valid) {
                 errMsg = strprintf("Invalid char in symbol: %d", ch);
