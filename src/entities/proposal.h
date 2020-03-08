@@ -309,7 +309,7 @@ struct CAssetPermProposal: public CProposal {
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
-        READWRITE(asset_symbol)
+        READWRITE(asset_symbol);
         READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
     );
 
