@@ -448,7 +448,9 @@ struct CAssetPermProposal: public CProposal {
     CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(GOV_ASSET_PERM);
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+
         READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
     );
 
@@ -473,7 +475,9 @@ struct CAccountPermProposal: public CProposal {
     CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(GOV_ACCOUNT_PERM);
+        READWRITE(VARINT(expiry_block_height));
+        READWRITE(approval_min_count);
+        
         READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
     );
 
@@ -489,7 +493,7 @@ struct CAccountPermProposal: public CProposal {
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
-    
+
 };
 
 enum ChainType: uint8_t {
