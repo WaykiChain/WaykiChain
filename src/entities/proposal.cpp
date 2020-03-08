@@ -241,12 +241,12 @@ bool CMinerFeeProposal:: ExecuteProposal(CTxExecuteContext& context) {
 bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
     IMPLEMENT_DEFINE_CW_STATE
 
-    if (kScoinSymbolSet.count(cdp_coin_pair.bcoin_symbol) == 0)
+    if (kScoinSymbolSet.count(GOV_CDP_COINPAIR.bcoin_symbol) == 0)
         return state.DoS(100, ERRORMSG("%s, the scoin_symbol=%s of cdp coin pair does not support!",
-                __func__, cdp_coin_pair.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
+                __func__, GOV_CDP_COINPAIR.bcoin_symbol), REJECT_INVALID, "unsupported_scoin_symbol");
 
-    if (!cw.assetCache.CheckAsset(cdp_coin_pair.bcoin_symbol, AssetPermType::PERM_CDP_BCOIN))
-        return state.DoS(100, ERRORMSG("%s(), unsupported cdp bcoin symbol=%s!", cdp_coin_pair.bcoin_symbol),
+    if (!cw.assetCache.CheckAsset(GOV_CDP_COINPAIR.bcoin_symbol, AssetPermType::PERM_CDP_BCOIN))
+        return state.DoS(100, ERRORMSG("%s(), unsupported cdp bcoin symbol=%s!", GOV_CDP_COINPAIR.bcoin_symbol),
             REJECT_INVALID, "unsupported-asset-bcoin-symbol");
 
     if (status == CdpCoinPairStatus::NONE || kCdpCoinPairStatusNames.count(status) == 0 )
@@ -257,9 +257,9 @@ bool CCdpCoinPairProposal::CheckProposal(CTxExecuteContext& context ) {
 
 bool CCdpCoinPairProposal::ExecuteProposal(CTxExecuteContext& context) {
 
-    if (!context.pCw->cdpCache.SetCdpCoinPairStatus(cdp_coin_pair, status)) {
+    if (!context.pCw->cdpCache.SetCdpCoinPairStatus(GOV_CDP_COINPAIR, status)) {
         return context.pState->DoS(100, ERRORMSG("%s(), save cdp coin pair failed! coin_pair=%s, status=%s",
-                cdp_coin_pair.ToString(), GetCdpCoinPairStatusName(status)),
+                GOV_CDP_COINPAIR.ToString(), GetCdpCoinPairStatusName(status)),
             REJECT_INVALID, "unsupported-asset-symbol");
     }
     return true;

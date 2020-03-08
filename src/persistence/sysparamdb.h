@@ -258,7 +258,7 @@ public:
     CCompositeKVCache< dbk::SYS_PARAM,     uint8_t,      CVarIntValue<uint64_t> >              sys_param_chache;
     CCompositeKVCache< dbk::MINER_FEE,     pair<uint8_t, string>,  CVarIntValue<uint64_t> >          miner_fee_cache;
     CCompositeKVCache< dbk::CDP_PARAM,     pair<CCdpCoinPair,uint8_t>, CVarIntValue<uint64_t> >      cdp_param_cache;
-    // [prefix]cdp_coin_pair -> cdp_interest_param_changes (contain all changes)
+    // [prefix]GOV_CDP_COINPAIR -> cdp_interest_param_changes (contain all changes)
     CCompositeKVCache< dbk::CDP_INTEREST_PARAMS, CCdpCoinPair, CCdpInterestParamChangeMap> cdp_interest_param_changes_cache;
     CSimpleKVCache<dbk:: BP_COUNT, uint8_t>             current_bp_count_cache ;
     CSimpleKVCache<dbk:: NEW_BP_COUNT, pair<CVarIntValue<uint32_t>,uint8_t>>  new_bp_count_cache ;

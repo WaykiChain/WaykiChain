@@ -743,7 +743,7 @@ extern Value listcdpcoinpairs(const Array& params, bool fHelp) {
             "listcdpcoinpairs\n"
             "\nget all cdp coin pair.\n"
             "\nArguments:\n"
-            "\nResult: a list of cdp_coin_pairs\n"
+            "\nResult: a list of UPDATE_CDP_COINPAIRs\n"
             "\nExamples:\n"
             + HelpExampleCli("listcdpcoinpairs", "")
             + "\nAs json rpc call\n"
@@ -765,6 +765,6 @@ extern Value listcdpcoinpairs(const Array& params, bool fHelp) {
 
     Object obj;
     obj.push_back(Pair("count",             arrCoinPairs.size()));
-    obj.push_back(Pair("cdp_coin_pairs",    arrCoinPairs));
+    obj.push_back(Pair("UPDATE_CDP_COINPAIRs",    arrCoinPairs));
     return obj;
 }

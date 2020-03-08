@@ -83,7 +83,7 @@ public:
     // ucdp${CRegID}{$cdpCoinPair} -> set<cdpid>
     CCompositeKVCache<  dbk::USER_CDP, pair<CRegIDKey, CCdpCoinPair>, optional<uint256>> userCdpCache;
     // [prefix]${cdpCoinPair} -> ${cdpCoinPairStatus}
-    CCompositeKVCache<  dbk::CDP_COIN_PAIRS, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
+    CCompositeKVCache<  dbk::UPDATE_CDP_COINPAIRS, CCdpCoinPair, uint8_t> cdpCoinPairsCache;
     // cdpr{Ratio}{$cdpid} -> CUserCDP
     CdpRatioSortedCache           cdpRatioSortedCache;
 };

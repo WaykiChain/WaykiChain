@@ -226,7 +226,7 @@ Value verifymessage(const Array& params, bool fHelp) {
     DEFINE( USER_CDP,             pCdpCache,  userCdpCache) \
     DEFINE( CDP_RATIO,            pCdpCache,  cdpRatioSortedCache) \
     DEFINE( CDP_GLOBAL_DATA,      pCdpCache,  cdpGlobalDataCache) \
-    DEFINE( CDP_COIN_PAIRS,       pCdpCache,  cdpCoinPairsCache) \
+    DEFINE( UPDATE_CDP_COINPAIRS,       pCdpCache,  cdpCoinPairsCache) \
     /*DEFINE( CDP_GLOBAL_HALT,      pCdpCache,  cdpGlobalDataCache)           */ \
     /**** cdp closed by redeem/forced or manned liquidate ***/  \
     DEFINE( CLOSED_CDP_TX,        pClosedCdpCache, closedCdpTxCache) \
