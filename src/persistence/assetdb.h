@@ -78,6 +78,4 @@ public:
     DbAssetCache   assetCache;
 };
 
-bool CheckSymbol(const AssetType AssetType, const TokenSymbol &assetSymbol, string &errMsg);
-
 #endif  // PERSIST_ASSETDB_H

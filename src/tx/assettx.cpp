@@ -120,7 +120,7 @@ bool CUserIssueAssetTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     string errMsg = "";
-    if (!CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
+    if (!CAsset::CheckSymbol(AssetType::UIA, asset.asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserIssueAssetTx::CheckTx, invlid asset symbol! %s", errMsg),
                         REJECT_INVALID, "invalid-asset-symbol");
 
@@ -334,7 +334,7 @@ bool CUserUpdateAssetTx::CheckTx(CTxExecuteContext &context) {
     if (!CheckFee(context)) return false;
 
     string errMsg = "";
-    if (CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
+    if (!CAsset::CheckSymbol(AssetType::UIA, asset_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CUserUpdateAssetTx::CheckTx, asset_symbol error: %s", errMsg), 
                         REJECT_INVALID, "invalid-asset-symbol");
 

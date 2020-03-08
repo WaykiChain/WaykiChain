@@ -8,7 +8,6 @@
 #include "config/const.h"
 #include "entities/asset.h"
 #include "entities/proposal.h"
-#include "persistence/assetdb.h"
 #include "persistence/cachewrapper.h"
 
 #include <algorithm>
@@ -374,7 +373,7 @@ bool CDexQuoteCoinProposal::CheckProposal(CTxExecuteContext& context ) {
                         REJECT_INVALID, "bad-op-type") ;
 
     string errMsg = "";
-    if (CheckSymbol(AssetType::DIA, coin_symbol, errMsg))
+    if (!CAsset::CheckSymbol(AssetType::DIA, coin_symbol, errMsg))
         return state.DoS(100, ERRORMSG("CDexQuoteCoinProposal:: checkProposal: CheckSymbol failed: %s", errMsg),
                         REJECT_INVALID, "bad-symbol") ;
 
