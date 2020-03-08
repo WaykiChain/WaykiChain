@@ -269,6 +269,7 @@ struct CGovCoinTransferProposal: public CProposal {
 
 
 struct CAccountPermProposal: public CProposal {
+    CUserID account_uid;
     uint64_t proposed_account_perms_sums;
 
     CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
@@ -277,17 +278,20 @@ struct CAccountPermProposal: public CProposal {
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
+        READWRITE(account_uid);
         READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
+        o.push_back(Pair("account_uid", account_uid.ToString())) ;
         o.push_back(Pair("proposed_account_perms_sums", proposed_account_perms_sums)) ;
         return o ;
     }
 
     std::string ToString() override {
-        return  strprintf("proposed_account_perms_sums=%llu", proposed_account_perms_sums);
+        return  strprintf("account_uid=%s, proposed_account_perms_sums=%llu", 
+                        account_uid.ToString(), proposed_account_perms_sums);
     }
 
     bool CheckProposal(CTxExecuteContext& context) override;
@@ -296,6 +300,7 @@ struct CAccountPermProposal: public CProposal {
 };
 
 struct CAssetPermProposal: public CProposal {
+    TokenSymbol asset_symbol;
     uint64_t proposed_asset_perms_sums;
 
     CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
@@ -304,17 +309,20 @@ struct CAssetPermProposal: public CProposal {
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
+        READWRITE(asset_symbol)
         READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
     );
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
+        o.push_back(Pair("asset_symbol", asset_symbol));
         o.push_back(Pair("proposed_asset_perms_sums", proposed_asset_perms_sums)) ;
         return o ;
     }
 
     std::string ToString() override {
-        return  strprintf("proposed_asset_perms_sums=%llu", proposed_asset_perms_sums);
+        return  strprintf("asset_symbol=%s, proposed_asset_perms_sums=%llu", 
+                        asset_symbol, proposed_asset_perms_sums);
     }
 
     bool CheckProposal(CTxExecuteContext& context) override;
