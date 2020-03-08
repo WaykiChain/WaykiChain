@@ -154,6 +154,10 @@ struct ComboMoney {
         assert(false && "coin unit not found");
         return amount;
     }
+
+    string ToString() {
+        return strprintf("%s:%llu:%s", symbol, amount, unit);
+    }
 };
 
 class CAssetTradingPair {

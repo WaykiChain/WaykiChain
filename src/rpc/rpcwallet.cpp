@@ -340,6 +340,9 @@ Value submitsendtx(const Array& params, bool fHelp) {
             cmFee.GetAmountInSawi(), memo);
     }
 
+    LogPrint(BCLog::RPCCMD, "submitsendtx: from=%s, to=%s, coin=%s, fee=%s", sendUserId.ToString(), 
+            recvUserId.ToString(), cmCoin.ToString(), cmFee.ToString());
+
     return SubmitTx(account.keyid, *pBaseTx);
 }
 
