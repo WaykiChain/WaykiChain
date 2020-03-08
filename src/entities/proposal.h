@@ -29,14 +29,16 @@ enum ProposalType: uint8_t {
     GOV_BPMC_LIST       = 2 , // update BP Mgmt Committee List
     GOV_BP_SIZE         = 3 , // update BP total number (11 -> 21 -> xxx)
     GOV_MINER_FEE       = 4 , // Miner fees for all Trx types
-    GOV_CDP_COINPAIR    = 5 , // govern GOV_CDP_COINPAIR, set GOV_CDP_COINPAIR status
-    GOV_CDP_PARAM       = 6 , // CDP parameters
-    GOV_COIN_TRANSFER   = 7 , // for private-key loss, account robbery or for CFT/AML etc purposes
-    GOV_DEX_OP          = 8 , // turn on/off DEX operator
-    GOV_DEX_QUOTE       = 9 , // DEX quote coin
-    GOV_FEED_COINPAIR   = 10, // BaseSymbol/QuoteSymbol
-    GOV_AXC_IN          = 11, // atomic-cross-chain swap in
-    GOV_AXC_OUT         = 12, // atomic-cross-chain swap out
+    GOV_ACCOUNT_PERM    = 5 , // update account perms
+    GOV_ASSET_PERM      = 6 , // update asset perms
+    GOV_CDP_COINPAIR    = 7 , // govern GOV_CDP_COINPAIR, set GOV_CDP_COINPAIR status
+    GOV_CDP_PARAM       = 8 , // CDP parameters
+    GOV_COIN_TRANSFER   = 9 , // for private-key loss, account robbery or for CFT/AML etc purposes
+    GOV_DEX_OP          = 10, // turn on/off DEX operator
+    GOV_DEX_QUOTE       = 11, // DEX quote coin
+    GOV_FEED_COINPAIR   = 12, // BaseSymbol/QuoteSymbol
+    GOV_AXC_IN          = 13, // atomic-cross-chain swap in
+    GOV_AXC_OUT         = 14, // atomic-cross-chain swap out
 
 };
 
@@ -440,37 +442,55 @@ public:
 
 };
 
-class CAssetProposal: public CProposal {
+struct CAssetPermProposal: public CProposal {
+    uint64_t proposed_asset_perms_sums;
 
-};
-
-struct CAccountProposal: public CProposal {
-    uint64_t account_perms_sums;
-
-    CAccountProposal(): CProposal(ProposalType::GOV_CDP_COINPAIR){}
+    CAssetPermProposal(): CProposal(ProposalType::GOV_ASSET_PERM){}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(GOV_CDP_COINPAIR);
-        READWRITE(VARINT((uint8_t&)status));
+        READWRITE(GOV_ASSET_PERM);
+        READWRITE(VARINT((uint64_t&)proposed_asset_perms_sums));
     );
-
 
     Object ToJson() override {
         Object o = CProposal::ToJson();
-        o.push_back(Pair("GOV_CDP_COINPAIR", GOV_CDP_COINPAIR.ToString()));
-
-        o.push_back(Pair("status", GetCdpCoinPairStatusName(status))) ;
+        o.push_back(Pair("proposed_asset_perms_sums", proposed_asset_perms_sums)) ;
         return o ;
     }
 
     string ToString() override {
-        return  strprintf("GOV_CDP_COINPAIR=%s", GOV_CDP_COINPAIR.ToString()) + ", " +
-                strprintf("status=%s", GetCdpCoinPairStatusName(status));
+        return  strprintf("proposed_asset_perms_sums=%llu", proposed_asset_perms_sums);
     }
 
     bool CheckProposal(CTxExecuteContext& context) override;
     bool ExecuteProposal(CTxExecuteContext& context) override;
-}
+
+};
+
+struct CAccountPermProposal: public CProposal {
+    uint64_t proposed_account_perms_sums;
+
+    CAccountPermProposal(): CProposal(ProposalType::GOV_ACCOUNT_PERM){}
+
+    IMPLEMENT_SERIALIZE(
+        READWRITE(GOV_ACCOUNT_PERM);
+        READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
+    );
+
+    Object ToJson() override {
+        Object o = CProposal::ToJson();
+        o.push_back(Pair("proposed_account_perms_sums", proposed_account_perms_sums)) ;
+        return o ;
+    }
+
+    string ToString() override {
+        return  strprintf("proposed_account_perms_sums=%llu", proposed_account_perms_sums);
+    }
+
+    bool CheckProposal(CTxExecuteContext& context) override;
+    bool ExecuteProposal(CTxExecuteContext& context) override;
+    
+};
 
 enum ChainType: uint8_t {
     NULL_CHAIN_TYPE = 0,
