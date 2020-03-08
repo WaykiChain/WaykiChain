@@ -52,7 +52,7 @@ public:
 
     ProposalType proposal_type = NULL_PROPOSAL;
     int8_t approval_min_count = 0;
-    int32_t expire_block_height = 0;
+    int32_t expiry_block_height = 0;
 
 public:
 
@@ -62,14 +62,14 @@ public:
     virtual bool CheckProposal(CTxExecuteContext& context ) {return true ;};
     virtual bool ExecuteProposal(CTxExecuteContext& context) { return true ;};
     virtual string ToString(){
-        return strprintf("proposal_type=%d,approval_min_count=%d,expire_block_height=%d",
-                        proposal_type, approval_min_count, expire_block_height) ;
+        return strprintf("proposal_type=%d,approval_min_count=%d,expiry_block_height=%d",
+                        proposal_type, approval_min_count, expiry_block_height) ;
     }
     virtual Object ToJson(){
         Object o ;
         o.push_back(Pair("proposal_type", proposal_type)) ;
         o.push_back(Pair("approval_min_count", approval_min_count)) ;
-        o.push_back(Pair("expire_block_height", expire_block_height)) ;
+        o.push_back(Pair("expiry_block_height", expiry_block_height)) ;
 
         return o ;
     };
@@ -87,7 +87,7 @@ public:
     CFeedCoinPairProposal(): CProposal(ProposalType::FEED_COIN_PAIR) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(feed_symbol);
         READWRITE(quote_symbol);
@@ -118,10 +118,10 @@ public:
     TokenSymbol  coin_symbol ;
     ProposalOperateType op_type  = ProposalOperateType::NULL_PROPOSAL_OP;
 
-    CDexQuoteCoinProposal(): CProposal(ProposalType ::DEX_QUOTE_COIN) {}
+    CDexQuoteCoinProposal(): CProposal(ProposalType::DEX_QUOTE_COIN) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height)) ;
+        READWRITE(VARINT(expiry_block_height)) ;
         READWRITE(approval_min_count) ;
         READWRITE(coin_symbol) ;
         READWRITE((uint8_t&)op_type);
@@ -152,7 +152,7 @@ public:
     CParamsGovernProposal(): CProposal(ProposalType::PARAM_GOVERN){}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(param_values);
     );
@@ -200,7 +200,7 @@ public:
     CGovernorUpdateProposal(): CProposal(ProposalType::GOVERNOR_UPDATE){}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(governor_regid);
         READWRITE((uint8_t&)op_type);
@@ -231,7 +231,7 @@ public:
     ProposalOperateType operate_type = ProposalOperateType::ENABLE;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(VARINT(dexid));
         READWRITE((uint8_t&)operate_type);
@@ -265,7 +265,7 @@ public:
     CMinerFeeProposal() : CProposal(ProposalType::MINER_FEE_UPDATE) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE((uint8_t&)tx_type);
         READWRITE(fee_symbol);
@@ -300,7 +300,7 @@ public:
     CUserID to_uid ;
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(VARINT(amount));
         READWRITE(token) ;
@@ -337,7 +337,7 @@ public:
     CCdpParamGovernProposal(): CProposal(ProposalType::CDP_PARAM_GOVERN) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(param_values);
         READWRITE(coin_pair);
@@ -386,7 +386,7 @@ public:
     CBPCountUpdateProposal(): CProposal(BP_COUNT_UPDATE) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
         READWRITE(bp_count);
         READWRITE(VARINT(effective_height));
@@ -482,7 +482,7 @@ public:
                         swap_amount(swapAmount) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
         READWRITE((uint8_t &)peer_chain_type);
@@ -534,7 +534,7 @@ public:
                         swap_amount(swapAmount) {}
 
     IMPLEMENT_SERIALIZE(
-        READWRITE(VARINT(expire_block_height));
+        READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
 
         READWRITE(self_chain_uid);

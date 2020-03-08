@@ -106,7 +106,7 @@ Object CProposalRequestTx::ToJson(const CAccountDBCache &accountCache) const {
         return state.DoS(100, ERRORMSG("CProposalRequestTx::ExecuteTx,get proposal expire block count error"),
                         WRITE_ACCOUNT_FAIL, "get-expire-block-count-error");
 
-     proposal.sp_proposal->expire_block_height = context.height + expireBlockCount ;
+     proposal.sp_proposal->expiry_block_height = context.height + expireBlockCount ;
      proposal.sp_proposal->approval_min_count = GetGovernorApprovalMinCount(proposal.sp_proposal->proposal_type, cw);
 
      if (!cw.sysGovernCache.SetProposal(GetHash(), proposal.sp_proposal))
@@ -180,7 +180,7 @@ bool CProposalApprovalTx::ExecuteTx(CTxExecuteContext &context) {
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, account has insufficient funds"),
                           UPDATE_ACCOUNT_FAIL, "operate-minus-account-failed");
 
-     if (proposal->expire_block_height < context.height)
+     if (proposal->expiry_block_height < context.height)
          return state.DoS(100, ERRORMSG("CProposalApprovalTx::ExecuteTx, proposal(id=%s)  is expired", txid.ToString()),
                           WRITE_ACCOUNT_FAIL, "proposal-expired");
 
