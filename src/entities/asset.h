@@ -93,34 +93,38 @@ public:
                 asset_symbol, asset_name, asset_type, asset_perms_sum, owner_uid.ToString(), total_supply, mintable);
     }
 
-
     // Check it when supplied from external like Tx or RPC calls
-    static bool CheckSymbol(const AssetType AssetType, const TokenSymbol &assetSymbol, string &errMsg) {
-        uint32_t symbolSizeMin = 3;
-        uint32_t symbolSizeMax = 7;
+    static bool CheckSymbol(const AssetType assetType, const TokenSymbol &assetSymbol, string &errMsg) {
+        if (assetType == AssetType::NULL_ASSET) {
+            errMsg = "null asset type";
+            return false;
+        }
 
-        switch (AssetType) {
-            case AssetType::NIA :
-            case AssetType::DIA :
-            case AssetType::MPA :
-                break;
-
-            case AssetType::UIA :
-                symbolSizeMin = 6;
-                symbolSizeMax = 8;
-                break;
-
-            default:
-                return false;
+        uint32_t symbolSizeMin = 4;
+        uint32_t symbolSizeMax = 5;
+        if (assetType == AssetType::UIA) {
+            symbolSizeMin = 6;
+            symbolSizeMax = 8;
         }
 
         size_t symbolSize = assetSymbol.size();
         if (symbolSize < symbolSizeMin || symbolSize > symbolSizeMax) {
-            errMsg = strprintf("symbol len=%d, but it must be within range[%d, %d]", symbolSize, 2, 7);
+            errMsg = strprintf("symbol len=%d, beyond range[%d, %d]", 
+                                symbolSize, symbolSizeMin, symbolSizeMax);
             return false;
         }
+
+        bool valid = false;
         for (auto ch : assetSymbol) {
-            if ( ch < 'A' || ch > 'Z') {
+            bool bInRange09 = (ch >= '0' && ch <= '9');
+            bool bInRangeAZ = (ch >= 'A' && ch <= 'Z');
+            bool bInSpecialChars = (ch == '#' || ch == '.' || ch == '@' || ch == '_');
+
+            valid = bInRange09 || bInRangeAZ;
+            if (assetType == AssetType::UIA) 
+                valid = valid || bInSpecialChars;
+
+            if (!valid) {
                 errMsg = strprintf("Invalid char in symbol: %d", ch);
                 return false;
             }
