@@ -29,11 +29,11 @@ enum ProposalType: uint8_t {
     GOV_BPMC_LIST       = 2 , // update BP Mgmt Committee List
     GOV_BP_SIZE         = 3 , // update BP total number (11 -> 21 -> xxx)
     GOV_MINER_FEE       = 4 , // Miner fees for all Trx types
-    GOV_ACCOUNT_PERM    = 5 , // update account perms
-    GOV_ASSET_PERM      = 6 , // update asset perms
-    GOV_CDP_COINPAIR    = 7 , // govern GOV_CDP_COINPAIR, set GOV_CDP_COINPAIR status
-    GOV_CDP_PARAM       = 8 , // CDP parameters
-    GOV_COIN_TRANSFER   = 9 , // for private-key loss, account robbery or for CFT/AML etc purposes
+    GOV_COIN_TRANSFER   = 5 , // for private-key loss, account robbery or for CFT/AML etc purposes
+    GOV_ACCOUNT_PERM    = 6 , // update account perms
+    GOV_ASSET_PERM      = 7 , // update asset perms
+    GOV_CDP_COINPAIR    = 8 , // govern GOV_CDP_COINPAIR, set GOV_CDP_COINPAIR status
+    GOV_CDP_PARAM       = 9 , // CDP parameters
     GOV_DEX_OP          = 10, // turn on/off DEX operator
     GOV_DEX_QUOTE       = 11, // DEX quote coin
     GOV_FEED_COINPAIR   = 12, // BaseSymbol/QuoteSymbol
@@ -477,7 +477,7 @@ struct CAccountPermProposal: public CProposal {
     IMPLEMENT_SERIALIZE(
         READWRITE(VARINT(expiry_block_height));
         READWRITE(approval_min_count);
-        
+
         READWRITE(VARINT((uint64_t&)proposed_account_perms_sums));
     );
 
