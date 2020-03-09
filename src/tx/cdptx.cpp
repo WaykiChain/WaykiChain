@@ -153,7 +153,6 @@ bool CCDPStakeTx::ExecuteTx(CTxExecuteContext &context) {
     if (!ReadCdpParam(*this, context, cdpCoinPair, CdpParamType::CDP_GLOBAL_COLLATERAL_RATIO_MIN, globalCollateralRatioMin))
         return false;
 
-    // TODO: multi stable coin
     uint64_t bcoinMedianPrice = cw.priceFeedCache.GetMedianPrice(CoinPricePair(assetSymbol, quoteSymbol));
     if (bcoinMedianPrice == 0) {
         return state.DoS(100, ERRORMSG("CCDPStakeTx::ExecuteTx, failed to acquire bcoin median price! coinPricePair=%s:%s",
