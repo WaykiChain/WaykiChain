@@ -63,7 +63,6 @@ namespace dex {
 
     bool CDEXOrderBaseTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
 
         if (!kOrderTypeHelper.CheckEnum(order_type))
@@ -360,8 +359,7 @@ namespace dex {
     // class CDEXBuyLimitOrderTx
 
     bool CDEXBuyLimitOrderTx::CheckTx(CTxExecuteContext &context) {
-
-        // TODO: disable in v3
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
         return CDEXOrderBaseTx::CheckTx(context);
     }
 
@@ -369,8 +367,7 @@ namespace dex {
     // class CDEXSellLimitOrderTx
 
     bool CDEXSellLimitOrderTx::CheckTx(CTxExecuteContext &context) {
-
-        // TODO: disable in v3
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
         return CDEXOrderBaseTx::CheckTx(context);
     }
 
@@ -378,7 +375,7 @@ namespace dex {
     // class CDEXBuyMarketOrderTx
 
     bool CDEXBuyMarketOrderTx::CheckTx(CTxExecuteContext &context) {
-        // TODO: disable in v3
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
         return CDEXOrderBaseTx::CheckTx(context);
     }
 
@@ -386,7 +383,23 @@ namespace dex {
     // class CDEXSellMarketOrderTx
 
     bool CDEXSellMarketOrderTx::CheckTx(CTxExecuteContext &context) {
-        // TODO: disable in v3
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
+        return CDEXOrderBaseTx::CheckTx(context);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // class CDEXOrderTx
+
+    bool CDEXOrderTx::CheckTx(CTxExecuteContext &context) {
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R3)) return false;
+        return CDEXOrderBaseTx::CheckTx(context);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // class CDEXOperatorOrderTx
+
+    bool CDEXOperatorOrderTx::CheckTx(CTxExecuteContext &context) {
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R3)) return false;
         return CDEXOrderBaseTx::CheckTx(context);
     }
 
@@ -409,7 +422,7 @@ namespace dex {
 
     bool CDEXCancelOrderTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
 
         if (order_id.IsEmpty())
@@ -1054,7 +1067,7 @@ namespace dex {
 
     bool CDEXSettleTx::CheckTx(CTxExecuteContext &context) {
         IMPLEMENT_DEFINE_CW_STATE;
-        IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
+        if (!CheckTxAvailableFromVer(context, MAJOR_VER_R2)) return false;
         IMPLEMENT_CHECK_TX_REGID(txUid);
         if (!CheckFee(context)) return false;
         if (txUid.get<CRegID>() != SysCfg().GetDexMatchSvcRegId()) {
