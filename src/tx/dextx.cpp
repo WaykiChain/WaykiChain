@@ -65,8 +65,7 @@ namespace dex {
         IMPLEMENT_DEFINE_CW_STATE;
         IMPLEMENT_DISABLE_TX_PRE_STABLE_COIN_RELEASE;
         IMPLEMENT_CHECK_TX_REGID_OR_PUBKEY(txUid);
-        // TODO: ...
-        //IMPLEMENT_CHECK_TX_MEMO;
+
         if (!kOrderTypeHelper.CheckEnum(order_type))
             return context.pState->DoS(100, ERRORMSG("%s, invalid order_type=%u", TX_ERR_TITLE,
                     order_type), REJECT_INVALID, "invalid-order-side");
@@ -143,8 +142,8 @@ namespace dex {
         if (has_operator_config) {
             orderDetail.opt_operator_params  = {
                 public_mode,
-                operator_fee_ratios.maker_fee_ratio,
-                operator_fee_ratios.taker_fee_ratio,
+                maker_fee_ratio,
+                taker_fee_ratio,
             };
         }
         // other fields keep the default value
@@ -177,8 +176,8 @@ namespace dex {
                 strprintf("price=%llu", price) + ", " +
                 strprintf("dex_id=%u", dex_id) + ", " +
                 strprintf("has_operator_config=%d", has_operator_config) + ", " +
-                strprintf("operator_taker_fee_ratio=%llu", operator_fee_ratios.taker_fee_ratio) + ", " +
-                strprintf("operator_maker_fee_ratio=%llu", operator_fee_ratios.maker_fee_ratio) + ", " +
+                strprintf("operator_taker_fee_ratio=%llu", taker_fee_ratio) + ", " +
+                strprintf("operator_maker_fee_ratio=%llu", maker_fee_ratio) + ", " +
                 strprintf("operator_uid=%s", operator_uid.ToDebugString()) + ", " +
                 strprintf("memo_hex=%s", nVersion) + ", " +
                 strprintf("operator_signature=%s", HexStr(operator_signature));
@@ -200,8 +199,8 @@ namespace dex {
         if (has_operator_config) {
             CKeyID operatorKeyid;
             accountCache.GetKeyId(operator_uid, operatorKeyid);
-            result.push_back(Pair("taker_fee_ratio",    operator_fee_ratios.taker_fee_ratio));
-            result.push_back(Pair("maker_fee_ratio",    operator_fee_ratios.maker_fee_ratio));
+            result.push_back(Pair("taker_fee_ratio",    taker_fee_ratio));
+            result.push_back(Pair("maker_fee_ratio",    maker_fee_ratio));
             result.push_back(Pair("operator_uid",       operator_uid.ToDebugString()));
             result.push_back(Pair("operator_addr",      operatorKeyid.ToAddress()));
             result.push_back(Pair("operator_signature", HexStr(operator_signature)));
@@ -296,11 +295,9 @@ namespace dex {
                 return context.pState->DoS(100, ERRORMSG("%s, invalid public_mode=%s", TX_ERR_TITLE,
                         kPublicModeHelper.GetName(public_mode)), REJECT_INVALID, "invalid-public-mode");
 
-            if (!CheckOperatorFeeRatioRange(context, hash, operator_fee_ratios.taker_fee_ratio,
-                    TX_ERR_TITLE + ", taker_fee_ratio"))
+            if (!CheckOperatorFeeRatioRange(context, hash, taker_fee_ratio, TX_ERR_TITLE + ", taker_fee_ratio"))
                 return false;
-            if (!CheckOperatorFeeRatioRange(context, hash, operator_fee_ratios.maker_fee_ratio,
-                    TX_ERR_TITLE + ", maker_fee_ratio"))
+            if (!CheckOperatorFeeRatioRange(context, hash, maker_fee_ratio, TX_ERR_TITLE + ", maker_fee_ratio"))
                 return false;
 
             if (!operator_uid.is<CRegID>())

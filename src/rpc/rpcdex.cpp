@@ -529,8 +529,7 @@ Value gendexoperatorordertx(const Array& params, bool fHelp) {
     shared_ptr<CBaseTx> pTx = make_shared<CDEXOperatorOrderTx>(
         userId, validHeight, cmFee.symbol, cmFee.GetAmountInSawi(), orderType, orderSide,
         coins.symbol, assets.symbol, coins.GetAmountInSawi(), assets.GetAmountInSawi(), price, dexId,
-        publicMode, memo, OperatorFeeRatios(makerFeeRatio, takerFeeRatio),
-        operatorDetail.fee_receiver_regid);
+        publicMode, memo, makerFeeRatio, takerFeeRatio, operatorDetail.fee_receiver_regid);
 
     CDataStream ds(SER_DISK, CLIENT_VERSION);
     ds << pTx;
