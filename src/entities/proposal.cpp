@@ -350,7 +350,7 @@ bool CGovBpSizeProposal:: CheckProposal(CTxExecuteContext& context ) {
 
     if (effective_height < (uint32_t) context.height + GOVERN_EFFECTIVE_AFTER_BLOCK_COUNT)
         return state.DoS(100, ERRORMSG("CGovBpSizeProposal::CheckProposal: effective_height must be >= current height + 3600"),
-                         REJECT_INVALID,"bad-bp-count") ;
+                         REJECT_INVALID,"bad-effective-height") ;
 
     return true  ;
 }

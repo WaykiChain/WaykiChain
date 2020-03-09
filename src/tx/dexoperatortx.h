@@ -97,11 +97,9 @@ public:
     > ValueType;
 
 public:
-    int32_t dexId = -1 ;
+    uint32_t dexId  ;
     UpdateField field = UPDATE_NONE  ;
     ValueType value ;
-
-    bool IsEmpty(){ return dexId == -1 || field == UPDATE_NONE || field > MEMO ; }
 
     inline unsigned int GetSerializeSize(int serializedType, int nVersion) const {
         unsigned int baseSize = ::GetSerializeSize(VARINT(dexId),serializedType, nVersion);

@@ -230,8 +230,8 @@ bool CDEXOperatorRegisterTx::ExecuteTx(CTxExecuteContext &context) {
 
 bool CDEXOperatorUpdateData::Check(string& errmsg, string& errcode,const uint32_t currentHeight ){
 
-    if(IsEmpty()){
-        errmsg = "CDEXOperatorUpdateData::check(): update data is empty" ;
+    if(field == UPDATE_NONE || field > MEMO ){
+        errmsg = "CDEXOperatorUpdateData::check(): update field is error" ;
         errcode= "empty-update-data" ;
         return false ;
     }
